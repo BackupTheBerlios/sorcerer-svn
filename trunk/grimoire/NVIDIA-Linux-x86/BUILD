@@ -49,7 +49,7 @@ make_device_nodes()  {
   true
 }
 
-LVER=$(  installed_version  $(  get_provider  linux  )  )
+LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
 
 if    [  -z  "$LVER"  ]
 then           LVER=$(  uname  -r  )
