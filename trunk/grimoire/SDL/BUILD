@@ -15,4 +15,11 @@ case  $VERSION  in
           gcc_case  ;;
 esac
 
+# to compile with gcc 3.4.0
+# it's going to require some source patches
+# case  $(  installed_version  gcc  )  in
+#   3.4.0)    CFLAGS="$CFLAGS    -fno-unit-at-a-time"
+#           CXXFLAGS="$CXXFLAGS  -fno-unit-at-a-time"  ;;
+# esac
+
 default_build
