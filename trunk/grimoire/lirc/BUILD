@@ -67,6 +67,7 @@ sed_source         &&
 
   
 {
+libtoolize  --force
 sh  configure.sh         &&
 make                     &&
 prepare_install          &&

@@ -1,22 +1,20 @@
-   VERSION=( "1.4.1" "1.4" "1.2.1" )
+   VERSION=( "1.5" "1.4.1" "1.4" "1.2.1" )
   CATEGORY="security"
  ATTRIBUTE="console"
     SOURCE="setools-$VERSION.tgz"
   HOMEPAGE="http://www.nsa.gov/selinux"
        URL="http://www.nsa.gov/selinux/archives"
-       REQ="BWidget gtk+ libselinux"
+       REQ="BWidget gtk+ libglade libselinux"
 # May also have requirements of:  libglade  libxml2
 # This spell requires BWidget, however BWidget doesn't compile.
 #      REQ="BWidget gtk+"
-  ESTIMATE="115"
+  ESTIMATE="131"
       DESC="setools provides tresys policy analysis and user management tools."
 
 
 build()  {
-  TKV=$(  installed_version  $(  get_provider  tk  )  )
-
-  make  "CFLAGS=$CFLAGS"     \
-        "TCLVER=${TKV:0:3}"  &&
-  prepare_install            &&
+  sed  -i  "s: -O2 : $CFLAGS :"  Makefile
+  make             &&
+  prepare_install  &&
   make    install
 }
