@@ -1,10 +1,3 @@
-LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
-  MOD_DIR="/lib/modules/$LINUX_VER/kernel/drivers/video"
-
-cd  lib/modules/fglrx/build_mod
-sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"     make.sh
-
-
 make_install()  {
 
   chmod      0755   $(  find  $BUILD_DIR  -type d  )
@@ -26,6 +19,12 @@ make_install()  {
 }
 
 
-./make.sh        &&
+LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
+  MOD_DIR="/lib/modules/$LINUX_VER/kernel/drivers/video"
+
+cd  lib/modules/fglrx/build_mod
+sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"  make.sh
+
+bash  ./make.sh  &&
 prepare_install  &&
    make_install

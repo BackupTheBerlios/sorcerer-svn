@@ -1,10 +1,3 @@
-LINUX_VER=$(  installed_version  $(  get_provider  linux-kernel  )  )
-  MOD_DIR="/lib/modules/$LINUX_VER/kernel/drivers/char/drm/"
-
-cd  lib/modules/fglrx/build_mod
-sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"     make.sh
-
-
 make_install()  {
 
   chmod      0755   $(  find  $BUILD_DIR  -type d  )
@@ -27,7 +20,13 @@ make_install()  {
 }
 
 
+LINUX_VER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+  MOD_DIR="/lib/modules/$LINUX_VER/kernel/drivers/char/drm/"
+
+cd  lib/modules/fglrx/build_mod
+sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"  make.sh
+
 patch < $SCRIPT_DIR/vmalloc.patch   &&
-./make.sh                           &&
+bash  ./make.sh                     &&
 prepare_install                     &&
    make_install
