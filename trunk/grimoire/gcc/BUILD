@@ -1,6 +1,6 @@
 (
 
-  ENABLE_LANGS="--enable-languages=${GCC_LANGS[1]:=c++}"
+  ENABLE_LANGS="--enable-languages=${LANGUAGE[1]:=c++}"
 
   export  LIBCFLAGS="$CFLAGS"
   export  LIBCXXFLAGS="$CXXFLAGS"
