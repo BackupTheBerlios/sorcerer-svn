@@ -1,11 +1,15 @@
    VERSION=( "2.9.5" "2.9.3" "2.9.1" )
   CATEGORY="cd graphic"
- ATTRIBUTE="broken kde"
-# Easy enough to fix, but I do not have 
-# the time to fix it at this moment.
+ ATTRIBUTE="kde"
     SOURCE="kover-$VERSION.tar.gz"
        URL="http://lisas.de/kover"
   HOMEPAGE="http://lisas.de/kover"
        REQ="kdelibs"
-  ESTIMATE="268"
+  ESTIMATE="123"
      SHORT="kover is an easy to use WYSIWYG CD cover printer with CDDB support."
+
+build()  {
+  sed  -i  "\,#include <linux/cdrom.h>,i#undef __STRICT_ANSI__\
+#include <linux/types.h>"  kover/cddb_fill.cc  kover/cdrom.h
+  default_build
+}
