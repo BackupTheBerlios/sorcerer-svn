@@ -1,0 +1,38 @@
+   VERSION=( "1.50" )
+  CATEGORY="utility"
+ ATTRIBUTE="new"
+  HOMEPAGE="http://www.memtest.org"
+       URL="$HOMEPAGE/download/$VERSION/"
+    SOURCE=("memtest86+-$VERSION.tar.gz")
+       REQ=""
+#augur estimate didn't work on it O_O
+  ESTIMATE=0
+PGP_PUBLIC_KEY="http://www.memtest.org/memtest_public_key.txt"
+      DESC=("A tool for testing x86 memory problems"
+"Can be used to generate a listing of bad memory blocks which can be 
+given as a boot paramter to the kernel which will allow the kernel to 
+sequester the bad memory. Based on the well-known original memtest86
+written by Chris Brady, memtest86+ is a port by some members of the 
+x86-secret team. Our goal is to provide an up-to-date and completly
+reliable version of this software tool aimed at memory failures 
+detection.")
+
+
+build() {
+
+  if    [  -z  "${SOURCE}"  ]
+  then  prepare_install  &&  echo  "Profile $BSPELL installed."
+  else
+
+    LD_PRELOAD_OLD=$LD_PRELOAD
+    unset           LD_PRELOAD
+	
+    make memtest.bin                    &&
+    prepare_install                     &&
+    export  LD_PRELOAD=$LD_PRELOAD_OLD  &&
+    if ! [ -d /boot/memtest ]
+    then mkdir /boot/memtest
+    fi
+    install memtest.bin /boot/memtest/
+  fi
+}
