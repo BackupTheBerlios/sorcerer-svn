@@ -1,0 +1,74 @@
+   VERSION=( "1.0.2" )
+      SAFE=( "1.0.2" )
+  CATEGORY="mail encryption"
+ ATTRIBUTE="client solo x11 new"
+    SOURCE="thunderbird-${VERSION}-source.tar.bz2"
+       URL="ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source"
+  HOMEPAGE="http://www.mozilla.org/products/thunderbird"
+       REQ="gss gtk+ heimdal jpeg libIDL libpng libmng perl zip zlib"
+DICTIONARY="mozilla-source-1.7.5.tar.bz2"
+  ESTIMATE="16629"
+      DESC="thunderbird is a new UI to gecko the mozilla mail client engine."
+
+build() {
+check_space()  {
+  KILOBYTES=$(
+    df    -Pkm  $SOURCE_DIR  |
+    tr    -s ' '             |
+    tail  -n 1               |
+    cut   -d ' '  -f4
+  )
+  if    ((  KILOBYTES < 1152  ));  then
+    echo  "Insufficient disk space available for compiling mozilla."
+    false
+  fi
+}
+
+
+export    CFLAGS="${CFLAGS/-ffast-math/}"
+export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+export   LDFLAGS=""
+
+export MOZILLA_OFFICIAL=1
+export BUILD_OFFICIAL=1
+export MOZ_THUNDERBIRD=1
+
+cat  <<  EOF  >  .mozconfig
+
+mk_add_options MOZ_CO_PROJECT=thunderbird
+
+ac_add_options --with-pthreads
+ac_add_options --enable-default-toolkit=gtk
+ac_add_options --enable-application=mail
+ac_add_options --disable-native-uconv
+ac_add_options --enable-elf-dynstr-gc
+ac_add_options --prefix=/opt/thunderbird
+ac_add_options --with-default-mozilla-five-home=/opt/thunderbird
+ac_add_options --enable-shared
+ac_add_options --disable-static
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --with-system-mng
+ac_add_options --enable-crypto
+ac_add_options --disable-tests
+ac_add_options --disable-debug
+ac_add_options --enable-optimize="$CFLAGS"
+ac_add_options --enable-xft
+ac_add_options --disable-freetype2
+ac_add_options --disable-profilesharing
+ac_add_options --enable-single-profile
+ac_add_options --disable-logging
+ac_add_options --enable-extensions="cookie,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
+EOF
+
+check_space                    &&
+# ./configure  $OPTS           &&
+make   -f  client.mk  build    &&
+prepare_install                &&
+make   -f  client.mk  install  &&
+ln     -s  /opt/thunderbird/bin/thunderbird /usr/bin/thunderbird
+
+}
