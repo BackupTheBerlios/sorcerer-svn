@@ -42,10 +42,20 @@ fi
 
 ( 
 
-  echo   "Adding fontconfig-2.2.0 with fixed patch"
-  patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.0.patch
-  cp     -a      fontconfig-2.2.0/*  lib/fontconfig/
-  rm     -rf     fontconfig-2.2.0
+  decompress  $(  guess_filename  ${SOURCE[3]}  )  |
+  patch  -p1
+
+  patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.1.patch
+  cp     -a      fontconfig-2.2.1/*  lib/fontconfig/
+  rm     -rf     fontconfig-2.2.1
+
+  cp     -a      xrender-0.8.3  /lib/Xrender
+  rm     -rf     xrender-0.8.3
+  cp     -a      xcursor-0.8.3  /lib/Xcursor
+  rm     -rf     xcursor-0.8.3
+  cp     -a      xft-2.1.2      /lib/Xft
+  rm     -rf     xft-2.1.2
+
 #  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
 #  sed   -i      "s:@FC_FONTPATH@:<dir>/usr/share/fonts</dir>:"    lib/fontconfig/fonts.conf.in
 #  sed   -i      "s:@VERSION@:2.2.0:"                              lib/fontconfig/fontconfig.pc.in
