@@ -11,8 +11,6 @@
                $OPTS                 &&
   make                               &&
   prepare_install                    &&
-  make    install                    &&
-  ln  -s  /usr/share/whiteBOX        \
-          /usr/local/share/whiteBOX
+  make    install
 
 ) > $C_FIFO 2>&1
