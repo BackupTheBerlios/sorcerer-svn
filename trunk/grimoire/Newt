@@ -1,7 +1,15 @@
    VERSION=( "0.51.6" "0.51.4" "0.50.17" )
+#  VERSION=( "0.51.6-21" "0.51.6" "0.51.4" "0.50.17" )
+# 0.51.6-21 is broken
+# cc  -Wall  -D_GNU_SOURCE -g -O2 -DUTF8 -fPIC   -c -o testtree.o testtree.c
+# testtree.c:152: error: redefinition of 'main'
+# testtree.c:8: error: previous definition of 'main' was here
+# make: *** [testtree.o] Error 1
+
   CATEGORY="utility"
  ATTRIBUTE="console library"
-    SOURCE="newt_${VERSION}.orig.tar.gz"
+    SOURCE=( "newt_${VERSION:0:6}.orig.tar.gz"
+             "newt_$VERSION.diff.gz"  )
   HOMEPAGE=""
        URL="ftp://ftp.debian.org/debian/pool/main/n/newt"
        REQ="Python popt slang tcl"
@@ -18,9 +26,9 @@ a nice abstraction over the C interface."
 
 
 build() {
-if    [      -f  newt-$VERSION.tar.gz  ]
-then  tar  -zxf  newt-$VERSION.tar.gz
-      cd         newt-$VERSION
+if    [      -f  newt-${VERSION:0:6}.tar.gz  ]
+then  tar  -zxf  newt-${VERSION:0:6}.tar.gz
+      cd         newt-${VERSION:0:6}
 fi
 
 PYVER="$(  installed_version  $(  get_provider  Python  )  )"
@@ -29,8 +37,15 @@ PYVER="${PYVER:0:3}"
 TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
 TCLVER="${TCLVER:0:3}"
 
+[  -n  "${SOURCE[1]}"  ]  &&
+decompress  "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}"  |
+patch  -p1
+
+cat  debian/patches/*  |  patch  -p1
+
 sed  -i  "s:-static::"                Makefile.in
-sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
+#sed  -i  "s:-ltcl8.3:-ltcl$TCLVER:"   Makefile.in
+sed  -i  "s:-ltcl:-ltcl$TCLVER:"   Makefile.in
 sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
 default_build
 }
