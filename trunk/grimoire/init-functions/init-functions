@@ -47,13 +47,16 @@ start_daemon()  { (
 
   BASE="$(  basename  $(  echo  "$@"  |  cut  -d ' ' -f1 )  )"
 
+  mkdir  -p  /var/run
+
   if      [      -n  "$FORCE"  ]  ||  !  pidofproc  "$BASE";  then
     if    [      -n  "$NICE"   ]
     then  nice   -n  "$NICE"  "$@"  &
     else                      "$@"  &
     fi
-    mkdir        -p  /var/run
     echo  "$!"  >    /var/run/$BASE.pid
+  else
+    false
   fi
 
 ) }
