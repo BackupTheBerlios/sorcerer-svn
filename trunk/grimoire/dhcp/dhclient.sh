@@ -29,6 +29,6 @@ help()  {
 case  $1  in
     start)  stop                 start  ;;
   restart)  stop  &&  sleep  1;  start  ;;
-     stop)  stop                        ;;
+     stop)  stop;  true                 ;;
         *)  help                        ;;
 esac
