@@ -17,11 +17,13 @@ make_locales()  {
 
   unset  LDFLAGS
 
-  if    !  echo  "$CFLAGS"  |  grep  -q  "\-O"
+  if    !  echo  "$CFLAGS"  |  grep  -q  "\-O"  ||
+           echo  "$CFLAGS"  |  grep  -q  "\-O0"
   then  export     CFLAGS="$CFLAGS -Os"
   fi
 
-  if    !  echo  "$CXXFLAGS"  |  grep  -q  "\-O"
+  if    !  echo  "$CXXFLAGS"  |  grep  -q  "\-O\|-O0"
+           echo  "$CXXFLAGS"  |  grep  -q  "\-O0"
   then  export     CXXFLAGS="$CFLAGS -Os"
   fi
 

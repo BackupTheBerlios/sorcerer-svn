@@ -1,0 +1,33 @@
+(
+
+  if    !  gcc  --version  |  grep  "2.95.3";  then
+
+    message  "${COLOR_PROBLEM}Tough break!${COLOR_DEFAULT}"  \
+             "$gcc 2.95.3 is required in order to compile."
+    false
+
+  else
+
+    bunzip2  -cd  $SCRIPT_DIR/gcc-2.95.3-2.patch.bz2  |
+    patch    -p1
+
+    ENABLE_LANGS="--enable-languages=${GCC_LANGS[0]:=c++}"
+
+    export  LIBCFLAGS="$CFLAGS"
+    export  LIBCXXFLAGS="$CXXFLAGS"
+
+    ./configure  --host=$BUILD               \
+                 --prefix=/usr/gcc-$VERSION  \
+                 --enable-shared             \
+                 --enable-threads            \
+                 $ENABLE_LANGS               &&
+    make   -j 2  bootstrap-lean              &&
+    prepare_install                          && 
+    make    install
+  fi
+
+) > $C_FIFO 2>&1  &&  (
+
+  ln  -sf  /usr/gcc-$VERSION/bin/gcc  /usr/gcc-$VERSION/bin/cc
+
+)

@@ -1,127 +1,41 @@
-if    !  [  -d  /var/lib/sorcery/grimoire.merged  ];  then
+if  !  [  -d  /usr/gcc-2.95.3  ];  then  echo  "gcc2"  >>  $INSTALL_QUEUE;  fi
+if  !  [  -d  /usr/gcc-3.2     ];  then  echo  "gcc"   >>  $INSTALL_QUEUE;  rm  -f  $PROVIDE_LOGS/gcc;  fi
 
-  echo  "Merged grimoire directory will now be /var/lib/sorcery/grimoire.merged"
-  echo
-  echo  "/var/lib/sorcery/grimoire.local will now contain only local spells"
-  echo  "Setting GRIMOIRE=/var/lib/sorcery/grimoire.merged in /etc/sorcery/local.config"
-
-  mkdir         /var/lib/sorcery/grimoire.merged
-  ln  -s        /var/lib/sorcery/grimoire/*  \
-                /var/lib/sorcery/grimoire.merged/
-
-  if     [  -d  /var/lib/sorcery/grimoire.local  ];  then  
-    for  SP  in  $(  ls  /var/lib/sorcery/grimoire.local  );  do
-      if    ls  -la      /var/lib/sorcery/grimoire.local/$SP  |
-            grep  -q    "/var/lib/sorcery/grimoire/"
-      then  
-        rm  -f  /var/lib/sorcery/grimoire.local/$SP
-      else
-        rm  -f  /var/lib/sorcery/grimoire.merged/$SP
-        ln  -s  /var/lib/sorcery/grimoire.local/$SP  \
-                /var/lib/sorcery/grimoire.local/$SP
-      fi
-    done
-  else  mkdir  /var/lib/sorcery/grimoire.local
+ifsi()  {
+  if    spell_installed  ${1}2
+  then  echo  "0"  >  $VERSION_LOGS/$1
+        echo  "$1" >  $PROVIDE_LOGS/${1}2
   fi
-  TEMP=$(  cat      /etc/sorcery/local.config  |  grep  -v  "GRIMOIRE="  )
-  echo  "$TEMP"  >  /etc/sorcery/local.config
-fi
+}
 
-if    [  -f        /var/log/sorcery/version/control-center                   ]  &&
-      [  "$(  cat  /var/log/sorcery/version/control-center  )"  ==  "2.0.0"  ]
-then
-  for  DIR  in  /var/log/sorcery/*;  do
-    if    [  -e  $DIR/control-center  ]
-    then  mv     $DIR/control-center  $DIR/control-center2
-    fi
-  done
-
-  TEMP="$(  cat  /var/log/sorcery/install/control-center2   |
-            sed  "s:ll/control-center:ll/control-center2:"  |
-            sed  "s:on/control-center:on/control-center2:"  |
-            sed  "s:um/control-center:um/control-center2:"  |
-            sed  "s:le/control-center:le/control-center2:"  )"
-
-  echo  "$TEMP"  >  /var/log/sorcery/install/control-center2
-
-fi
+ifsi  gtk+
+ifsi  gtkmm
+ifsi  glib
+ifsi  GConf
+ifsi  gtk-engines
+ifsi  libglade
+ifsi  gnome-vfs
+ifsi  libgda
+ifsi  gnome-db
+ifsi  control-center
+ifsi  eel
+ifsi  freetype
+ifsi  librsvg
+ifsi  libsigc++
+ifsi  pygtk
 
 
-if    [  -f  /var/log/sorcery/version/apache  ];  then
-  (
-    APAV="$(  cat  /var/log/sorcery/version/apache  )"
-    if    [  "$APAV"  ==  "2.0.36"  ]  ||
-          [  "$APAV"  ==  "2.0.39"  ]; then
+(
 
-      for  DIR  in  /var/log/sorcery/*;  do
-        if    [  -e  $DIR/apache  ]
-        then  mv     $DIR/apache  $DIR/httpd
-        fi
-      done
+  cd  $INSTALL_LOGS
+  grep  "/usr/lib/libstdc++.la"                \
+        $( find /lib  /usr/lib -name \*.la  )  |
+  cut  -d :  -f1                               |
+  while  read     FILE
+  do     grep  "^$FILE$"  *
+  done            |
+  cut  -d :  -f1  |
+  sort            |
+  uniq            >>  $INSTALL_QUEUE
 
-      TEMP="$(  cat  /var/log/sorcery/install/httpd   |
-                sed  "s:ll/apache:ll/httpd:"  |
-                sed  "s:on/apache:on/httpd:"  |
-                sed  "s:um/apache:um/httpd:"  |
-                sed  "s:le/apache:le/httpd:"  )"
-
-      echo  "$TEMP"  >  /var/log/sorcery/install/httpd
-      
-    fi
-  )
-fi
-
-
-if    [  -f            /var/log/sorcery/version/Linux-PAM  ]  &&
-      PAM_VER=$(  cat  /var/log/sorcery/version/Linux-PAM  )  &&
-      [  "$PAM_VER"  ==  "0.76"                            ]  &&
-      [  -f  /etc/pam.d/sshd                               ]  &&
-      grep  -q  "pam_limits.so"  /etc/pam.d/sshd
-then  TEMP="$(  cat              /etc/pam.d/sshd  )"
-      echo  "$TEMP"  |  grep  -v  "pam_limits.so"  >   /etc/pam.d/sshd
-      echo  "# pam_limits.so malfunctioning?"      >>  /etc/pam.d/sshd
-fi
-
-
-if       [  "$(  installed_version  g-wrap  )"  ==  "1.2.1"  ]  &&
-      !  [  -f          $BRANCH_LOGS/guile  ]
-then  echo  "delay"  >  $BRANCH_LOGS/guile
-fi
-
-
-if    grep  -q  "libintl_bindtextdomain"  /usr/include/libintl.h;  then
-  if    [  -f  $GRIMOIRE/meta/libintl.h  ]
-  then  cp     $GRIMOIRE/meta/libintl.h  /usr/include
-  else  echo  "glibc"  >>  $INSTALL_QUEUE
-  fi
-fi
-
-
-if    [  -f  $VERSION_LOGS/util-linux-crypto  ];  then
-
-  echo  "crypto"  >  $BRANCH_LOGS/util-linux
-
-  for  DIR  in  /var/log/sorcery/*;  do
-    if    [  -e  $DIR/util-linux-crypto  ]
-    then  mv     $DIR/util-linux-crypto  $DIR/util-linux
-    fi
-  done
-
-  TEMP="$(  cat  $INSTALL_LOGS/util-linux   |
-            sed  "s:ll/util-linux-crypto:ll/util-linux:"  |
-            sed  "s:on/util-linux-crypto:on/util-linux:"  |
-            sed  "s:um/util-linux-crypto:um/util-linux:"  |
-            sed  "s:le/util-linux-crypto:le/util-linux:"  )"
-
-  echo  "$TEMP"  >  $INSTALL_LOGS/util-linux
-
-fi
-
-
-if    [  -x  /usr/bin/man      ]  &&
-      [  -x  /usr/bin/strings  ]  &&
-      [  -x  /usr/bin/grep     ]  &&
-      !  /usr/bin/strings   /usr/bin/man  |
-         /usr/bin/grep  -q  "\-irs"
-then  echo  "man"  >>  $INSTALL_QUEUE
-fi
+)
