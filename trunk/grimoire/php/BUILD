@@ -69,9 +69,13 @@ build_apxs()  {
 
   cd  $BUILD_DIR                  &&
   ./configure  $PHP_CONFIGURE     &&
+  make                            &&
+  prepare_install                 &&
+  make    install                 &&
+
   mv  imagick-0.1.1  ext/imagick  &&
   cd                 ext/imagick  &&
-  sh  ../../pear/scripts/phpize   &&
+  phpize                          &&
   cd  $BUILD_DIR                  &&
   rm  -f  configure               &&
   /usr/bin/aclocal                &&
@@ -81,7 +85,6 @@ build_apxs()  {
                --with-imagick           \
                --with-xpm-dir=/usr/lib  &&
   make                                  &&
-  prepare_install                       &&
   make    install                       &&
   if    [  -d  /usr/src/php-$VERSION-apxs   ]
   then  cd     /usr/src/php-$VERSION-apxs;    make   install
