@@ -12,6 +12,7 @@ stop()  {
   echo  -n  "Stopping atd..."
   [     -f            $PID  ]  &&
   kill  -15  $(  cat  $PID  )
+  rm    -f            $PID
   echo  "done."
 }
 
