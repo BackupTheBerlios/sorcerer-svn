@@ -1,20 +1,68 @@
    VERSION=( "0.1.3" )
   CATEGORY="network ppp"
  ATTRIBUTE="console client"
-    SOURCE="dial2net/dial2net-$VERSION"
+    SOURCE="dial2net/dial2net-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://dial2net.sourceforge.net"
        REQ="ppp"
       DESC="dial2net is a PPP configuration tool
-
 dial2net is an application that configures a PPP (dialup) 
 connection according to the ISP specified by the user.
-Both PAP and CHAP protocols are supported.
-"
+Both PAP and CHAP protocols are supported."
 
 
 build() {
+case  $VERSION  in
+  0.1.3)  patch  -p1  <<  EOF
+diff -r -U2 dial2net-0.1.3/isps/default.c dial2net-0.1.3/isps/default.c
+--- dial2net-0.1.3/isps/default.c	2000-09-25 21:16:27.000000000 -0700
++++ dial2net-0.1.3/isps/default.c	2000-09-25 21:16:27.000000000 -0700
+@@ -58,6 +58,5 @@
+ fprintf(cs,"\nOK 'ATDT%s'\n", phone_number);
+ fprintf(cs,"CONNECT		''\n");
+-fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap
+-0\nname \"%s\"",modem,login);
++fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap0\nname \"%s\"",modem,login);
+ fprintf(res,"domain %s\n search %s\nnameserver %s\nnameserver %s\nnameserver %s",domain, search, ns1, ns2, ns3);
+ 
+diff -r -U2 dial2net-0.1.3/isps/earthlink.c dial2net-0.1.3/isps/earthlink.c
+--- dial2net-0.1.3/isps/earthlink.c	2000-09-25 21:16:27.000000000 -0700
++++ dial2net-0.1.3/isps/earthlink.c	2000-09-25 21:16:27.000000000 -0700
+@@ -51,6 +51,5 @@
+ fprintf(cs,"\nOK 'ATDT%s'\n", phone_number);
+ fprintf(cs,"CONNECT		''\n");
+-fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap
+-0\nname \"%s\"",modem,login);
++fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap0\nname \"%s\"",modem,login);
+ fprintf(res,"domain mindspring.com\n search earthlink.net\n nameserver 207.217.126.81\nnameserver 207.217.120.82\nnameserver 207.217.120.83\n");
+ 
+diff -r -U2 dial2net-0.1.3/isps/mindspring.c dial2net-0.1.3/isps/mindspring.c
+--- dial2net-0.1.3/isps/mindspring.c	2000-09-25 21:16:27.000000000 -0700
++++ dial2net-0.1.3/isps/mindspring.c	2000-09-25 21:16:27.000000000 -0700
+@@ -51,6 +51,5 @@
+ fprintf(cs,"\nOK 'ATDT%s'\n", phone_number);
+ fprintf(cs,"CONNECT		''\n");
+-fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap
+-0\nname \"%s\"",modem,login);
++fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap0\nname \"%s\"",modem,login);
+ fprintf(res,"domain mindspring.com\n search mindspring.com\n nameserver 207.69.188.185\nnameserver 207.69.188.186\nnamesever 207.69.188.187");
+ 
+diff -r -U2 dial2net-0.1.3/isps/worldnet.c dial2net-0.1.3/isps/worldnet.c
+--- dial2net-0.1.3/isps/worldnet.c	2000-09-25 21:16:27.000000000 -0700
++++ dial2net-0.1.3/isps/worldnet.c	2000-09-25 21:16:27.000000000 -0700
+@@ -50,6 +50,5 @@
+ fprintf(cs,"\nOK 'ATDT%s'\n", phone_number);
+ fprintf(cs,"CONNECT		''\n");
+-fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap
+-0\nname \"%s\"",modem,login);
++fprintf(opts,"lock\ndefaultroute\nnoipdefault\nmodem\n/dev/%s\n115200\ncrtscts\ndebug\npassive\nasyncmap0\nname \"%s\"",modem,login);
+ fprintf(res,"domain worldnet.att.net\n search worldnet.att.net\nnameserver 204.127.160.1\nnnameserver 204.127.129.1\nnameserver 204.127.129.2");
+ 
+EOF
+;;
+esac
 make             &&
 prepare_install  &&
 make    install
 }
+
