@@ -51,6 +51,10 @@ then  cp     /etc/postfix/main.cf  \
              /etc/postfix/main.cf.save
 fi
 
+
+grep  -lr  "tail +"  *  |  xargs  -l32  sed  -i  "s:tail +:tail -n +:g"
+
+
 make  -f Makefile.init makefiles  \
       "CC=gcc"                    \
       "AUXLIBS=$AUXLIBS"          \
