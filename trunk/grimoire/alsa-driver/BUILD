@@ -34,16 +34,15 @@ rm  -f  /lib/modules/`installed_version linux`/misc/snd*
                --with-debug=none     \
                --with-cards=$CARD    &&
   make                               &&
-  prepare_install
+  prepare_install                    &&
+  make    install                    &&
+  ./snddevices
 
 ) > $C_FIFO 2>&1  &&  (
 
-  make    install
-  ./snddevices
   rm  -f   /dev/snd
   ln  -sf  /devices/snd  /dev/snd
   ln  -sf  ../init.d/alsasound  /etc/rcS.d/S99alsasound
- 
   if  [  !  -f   /etc/modules.d/alsa  ];  then
     mkdir   -p   /etc/modules.d
     mconf   >    /etc/modules.d/alsa
