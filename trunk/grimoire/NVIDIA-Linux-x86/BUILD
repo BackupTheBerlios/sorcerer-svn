@@ -54,10 +54,15 @@ chown  -R  root:root  *
 cd  usr/src/nv
 
 if  spell_installed  linux;  then
-  LVER=$(  installed_version  linux  )
+  LVER=$(  installed_version  $(  get_provider  linux  )  )
     SM="/usr/src/linux/System.map"
   sed  -i  "s/\$(shell uname -r)/$LVER/"              Makefile
   sed  -i  "s:depmod -a:depmod -a -q -F $SM  $LVER:"  Makefile
+
+  # if    [  "${LVER:0:3}"  ==  "2.6"  ]
+  # then  export  BUILD_PARAMS="CONFIG_MODVERSIONS"
+  # fi
+
 fi
 
 # sed  -i  "s:/sbin/rmmod nvidia:true:"     Makefile
