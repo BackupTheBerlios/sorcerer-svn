@@ -10,7 +10,7 @@
   groupadd  gdm           2>/dev/null
   useradd   gdm  -g  gdm  2>/dev/null
 
-  patch  -p 0  <  $SCRIPT_DIR/gdm.patch  &&
+  # patch  -p 0  <  $SCRIPT_DIR/gdm.patch  &&
 
   ./configure  --prefix=/usr         \
                --localstatedir=/var  \
