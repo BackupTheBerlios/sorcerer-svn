@@ -1,13 +1,15 @@
 #!/bin/sh
 
-  EPID="/var/spool/mail/exim-daemon.pid"
-   PID="/var/run/exim.pid"
+#  EPID="/var/spool/mail/exim-daemon.pid"
+#   PID="/var/run/exim.pid"
+
+   PID="/var/spool/mail/exim-daemon.pid"
 
 start()  {
   echo  -n  "Starting exim..."
 # /usr/sbin/exim  -bd  -q15m  -oP $PID
   /usr/sbin/exim  -bd  -q15m
-  cp    $EPID  $PID
+# cp    $EPID  $PID
   echo  "done."
 }
 
