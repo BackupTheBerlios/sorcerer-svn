@@ -1,0 +1,28 @@
+      YEAR="$(  date  -u  +%Y  )"
+       DAY="$(  date  -u  +%j  |  sed  "s:^0*::"  )"
+   VERSION="$YEAR-$DAY"
+
+   for    ((  VCX=1;  VCX<10;  VCX++  ));  do
+          ((  DAY--  ))
+    if    ((  DAY == 0  ))
+    then  ((  YEAR--    ));  DAY=$( date -d ${YEAR}0100 -u +%j )
+    fi
+    VERSION[$VCX]="$YEAR-$DAY"
+  done
+
+  CATEGORY="catalog"
+ ATTRIBUTE="core grimoire solo"
+    SOURCE="grimoire-$VERSION.tar.bz2"
+       URL="http://sorcerer.wox.org/download/grimoire"
+  HOMEPAGE="http://sorcerer.wox.org/grimoire/grimoire,sorcerer.html.gz"
+  EPROVIDE="grimoire,sorcerer grimoire"
+     SHORT="grimoire is the official catalog of spells for sorcerer."
+
+
+build()  {
+  prepare_install                         &&
+  mkdir      -p  $GRIMOIRE_LIBRARY        &&
+  find       .   -type f  -printf "%P\n"  |
+  grep       -v  "\.ccache/reference"     |
+  tar_files  >   $GRIMOIRE_LIBRARY/$SPELL.tar
+}  
