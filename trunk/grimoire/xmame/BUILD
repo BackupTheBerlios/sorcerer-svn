@@ -25,6 +25,7 @@ activate_voyeur
     0.79.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
 #   0.84.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
       0.87) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
+      0.88) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
   esac
 
   grep -q "CRLF"  makefile.unix || sed -i "1iCRLF = 2"        makefile.unix
@@ -35,8 +36,9 @@ activate_voyeur
                  CFLAGS="$CFLAGS"      \
                  CXXFLAGS="$CXXFLAGS"  \
                  -f  makefile.unix     &&
-  make  install  PREFIX=/usr           \
-                 BINDIR=/usr/games     \
-                 -f  makefile.unix
+  prepare_install                      &&
+  make    install  PREFIX=/usr         \
+                   BINDIR=/usr/games   \
+                   -f  makefile.unix
 
 ) &> $C_FIFO
