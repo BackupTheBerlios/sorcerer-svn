@@ -18,7 +18,14 @@
             ;;
   esac
 
-  sed    -i      "s:tst-atime::"  libio/Makefile
+  sed    -i  "s:tst-atime::"  libio/Makefile
+
+# Uncomment the sed line below to retry glibc build 
+# without the tst-leaks if you previously encounted
+# [/usr/src/sorcery/glibc-2.3.2/build/localedata/tst-leaks.out] Error 139
+
+# sed    -i  "s:tst-leaks tst-mbswcs6:tst-mbswcs6:"  localedata/Makefile
+
 
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset  LD_PRELOAD

@@ -1,6 +1,6 @@
 (
 
-  DEST=/usr/share/freedroidRPG/sounds/speeches/
+  DEST=/usr/share/freedroidRPG/sound/speeches/
 
   prepare_install      &&
   mkdir  -p     $DEST  &&
