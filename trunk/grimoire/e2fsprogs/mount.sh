@@ -27,10 +27,11 @@ start() {
 
   fi
 
+  # remount /  as readwrite, then fake remount to record to /etc/mtab
   echo     "done."
-  mount    -n  -o  remount,rw  /
-  echo     >  /etc/mtab
-  mount    -f  -o  remount,rw  /
+  mount    -n  -o  remount  /
+  touch    /etc/mtab
+  mount    -f  -o  remount  /
   mount    -a
   rm       -f  /fastboot  /forcefsck
 
