@@ -14,8 +14,6 @@ if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
 then  cp     $CONFIG_LOGS/$SPELL/host.def  config/cf/host.def
 fi
 
-message  "Building XFree86 takes a very long time."
-
 
 ( 
 
