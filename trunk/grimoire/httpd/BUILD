@@ -29,7 +29,9 @@
 
   db_41_fix
 
-  cat  $SCRIPT_DIR/layout  >>  config.layout
+  cat  $SCRIPT_DIR/layout      >>                  config.layout
+  cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
+  cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
 
   fix_ssl_conf
 

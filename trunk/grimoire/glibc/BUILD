@@ -51,6 +51,8 @@
 
   mkdir  build
   cd     build
+# thread-local storage is available in newer 2.5.x kernels.
+#              --with-tls                     \
   ../configure  --host=$BUILD                 \
                --build=$BUILD                 \
                --prefix=/usr                  \
