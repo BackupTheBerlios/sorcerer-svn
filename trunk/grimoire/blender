@@ -1,0 +1,38 @@
+   VERSION=( "2.36" )
+  CATEGORY="graphic-synthesis video-editor"
+ ATTRIBUTE="broken new x11"
+    SOURCE="blender-$VERSION.tar.gz"
+       URL="http://download.blender.org/source/"
+  HOMEPAGE="http://www.blender3d.org/"
+	#to fix ogg and vorbis are really required if compiled in
+	 REQ=("openal alsa-lib libogg libvorbis Python x11 freetype jpeg mozilla")
+ FRESHMEAT="blender"
+  ESTIMATE=5984
+     DESC=("a 3d modeling environement"
+		 "Blender is a fully integrated 3D graphics creation suite allowing modeling, animation, rendering, post-production, real-time interactive 3D, and game creation and playback with cross-platform compatibility.")
+
+create_config() {
+	echo "export NAN_PYTHON_VERSION=$(shell augur version Python)"
+	echo "export OS=linux"
+	echo "export LDFLAGS+= -lopenal -lasound -logg -lGL -lGLU -L/usr/X11R6/lib"
+}
+
+
+		 
+install() {
+	cp obj/linux*/bin/blender /usr/bin
+	cp obj/linux*/bin/blenderplayer /usr/bin
+	#cp obj/linux*/bin/Blender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
+	#cp obj/linux*/bin/npBlender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
+}
+
+build() {
+	cd $SOURCE_DIR/blender &&
+	create_config > user-def.mk &&
+	sed -i "s:BINTARGETS += blenderstatic::g" source/Makefile &&
+	make &&
+	prepare_install &&
+	install
+}
+	
+
