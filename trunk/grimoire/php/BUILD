@@ -27,6 +27,7 @@ PHP_CONFIGURE="\
 --with-layout=GNU             \
 --with-zlib                   \
 --with-bz2                    \
+--enable-exif                 \
 $OPTS"
 
 
