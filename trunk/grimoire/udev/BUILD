@@ -5,6 +5,9 @@ init_install()  {
   ln       -fs      ../init.d/sysfsmount.sh    /etc/rcS.d/S00sysfsmount
   install  -m 0444  etc/udev/udev.permissions.gentoo  /etc/udev/permissions.d/gentoo.permissions
   install  -m 0444  etc/udev/udev.rules.gentoo        /etc/udev/rules.d/gentoo.rules
+  mkdir    -p                                         /etc/udev/scripts
+  install  -m 0755  extras/ide-devfs.sh               /etc/udev/scripts
+  install  -m 0755  extras/scsi-devfs.sh              /etc/udev/scripts
 }
 
 
