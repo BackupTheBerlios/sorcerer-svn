@@ -7,6 +7,7 @@ sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"     make.sh
 
 make_install()  {
 
+  chmod      0755   $(  find  .  -type d  )
   mkdir  -p         $MOD_DIR
   cp     -r  *.o    $MOD_DIR
   cd                $BUILD_DIR/usr
