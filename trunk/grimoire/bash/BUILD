@@ -17,6 +17,12 @@ do  patch  -p0  <  \
     ((  CX++  ))
 done
 
+
+case  $VERSION  in
+  3.0*)  patch  -p0  <  $SCRIPT_DIR/wcontinued.patch  ;;
+esac
+
+
 # [  -z  "$BUILD"  ]  &&
 #          BUILD="$( arch )-pc-linux-gnu"
 
