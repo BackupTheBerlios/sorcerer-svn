@@ -25,10 +25,17 @@
 
   sedit  "s:/usr/local:/usr:"  src/global/mail_params.h
 
-  DBV="$(  installed_version  $(  get_provider  db  )  )"
-  case  ${DBV:0:3}  in
-    4.1)  sedit  "s:db, db_path:db, NULL, db_path:"  src/util/dict_db.c  ;;
-  esac
+  mkdir  db
+  cd     db-$DBVERSION/build_unix  &&
+  ../dist/configure  --prefix=$BUILD_DIR/db  \
+                     --disable-dynamic       &&
+  make                                       &&
+  make  install                              &&
+
+  cd    $BUILD_DIR                               &&
+  rm   -rf  db/lib/*.so                          &&
+  CFLAGS="$CFLAGS  -I$PWD/db/include"            &&
+  sedit  "s:-ldb:-L$PWD/db/lib -ldb:"  makedefs  &&
 
   make  "CC=gcc"               \
         "OPT=$CFLAGS"          \
