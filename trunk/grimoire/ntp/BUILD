@@ -5,6 +5,7 @@ CONF="/etc/ntp.conf"
 save_conf()  {
   if    [  -f  $CONF  ]
   then  cp     $CONF  $CONF.ss
+        echo  "Saving  $CONF  as  $CONF.ss"
   fi
 }
 
@@ -14,6 +15,7 @@ restore_conf()  {
     cp         $CONF     $CONF.default
     cp         $CONF.ss  $CONF
     rm     -f  $CONF.ss
+    echo  "Restored  $CONF.ss  to  $CONF"
   fi
 }
 
