@@ -9,6 +9,11 @@ install_inits()  {
 }
 
 
+case  $VERSION  in
+  3.0.2)  patch  -p1  <  ${SOURCE_CACHE}/dhcp/3.0.2/${SOURCE[1]}  ;;
+esac
+
+
 sed  -i  "s/\/local//"  Makefile.conf
 ./configure      &&
 make             &&
