@@ -27,6 +27,19 @@ switch_delta() {
 }
 
 
+init_bg_compress()  {
+  if       [  -n  "$COMPRESS_LINKS"  ]  &&
+        !  [  -d  "$COMPRESS_LINKS"  ];  then
+    mkdir     -p  "$COMPRESS_LINKS"
+    find  $SOURCE_CACHE      \
+          $CCACHE_CACHE      \
+          $ARCHIVE_CACHE     \
+          $NECROPOLIS_CACHE  \
+          -follow  -type f  -name \*.tar  |
+    xargs  -l32  --replace={}  ln  -s  {}  $COMPRESS_LINKS
+  fi
+}
+
 
 ARCH=$( uname -m )
 
@@ -36,6 +49,7 @@ fi
 
 [  -d  /lib.old  ]  ||  backup_lib
 
+init_bg_compress
 clean_provide_logs
 clean_opt_logs
 switch_delta
