@@ -10,6 +10,6 @@ make                           &&
 prepare_install                &&
 make    install                &&
 make    dev                    &&
-chgrp  firewire  /dev/raw1394	 &&
+chgrp  firewire  /dev/raw1394  &&
 chmod  660       /dev/raw1394  &&
 message  "`cat  $SCRIPT_DIR/message.txt`"
