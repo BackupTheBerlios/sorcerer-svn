@@ -1,3 +1,14 @@
+install_loadables()  {
+  mkdir  -p  /usr/libexec/bash
+  cd   examples/loadables
+  for  FILE  in  *.c
+  do   make     ${FILE%.c}
+       install  -s  -m 0755  -o root  -g root  ${FILE%.c}  /usr/libexec/bash
+  done
+  true
+}
+
+
 CX=2
 while  [  -n  "${SOURCE[$CX]}"  ]
 do  patch  -p2  <  \
@@ -16,5 +27,7 @@ done
              --with-curses   &&
 make                         &&
 prepare_install              &&
+prepare_install              &&
 make    install              &&
-ln     -sf  bash  /bin/sh
+ln     -sf  bash  /bin/sh    &&
+install_loadables

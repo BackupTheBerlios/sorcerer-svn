@@ -3,6 +3,4 @@
              --libdir=/lib  &&
 make  shared                &&
 make  install               &&
-if    !  [   -d  /etc/inputrc ]
-then  cp  $SCRIPT_DIR/inputrc  /etc
-fi
+install  -m 0644  -o root  -g root  $SCRIPT_DIR/inputrc  /etc
