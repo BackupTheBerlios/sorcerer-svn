@@ -1,8 +1,9 @@
 (
+
   ./configure --prefix=/usr       \
               --with-gtk          \
               --enable-zipstream  \
-              --disable-optimise  &&
+              $OPTS               &&
   make                            &&
   prepare_install                 &&
   make    install
