@@ -5,6 +5,8 @@ else
   cp  config.h  $CONFIG_LOGS/$SPELL
 fi
 
+activate_voyeur
+
 (
 
   sedit  "s:-O2:$CFLAGS:"  Makefile

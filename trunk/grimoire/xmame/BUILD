@@ -11,6 +11,7 @@ else
   done
 fi
 
+activate_voyeur
 (
   mkdir  -p          $CONFIG_LOGS/$SPELL
   cp  makefile.unix  $CONFIG_LOGS/$SPELL
