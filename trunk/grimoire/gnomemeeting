@@ -6,7 +6,7 @@
     SOURCE="sources/gnomemeeting/${VERSION:0:3}/gnomemeeting-$VERSION.tar.bz2"
        URL="$GNOME_URL"
   HOMEPAGE="http://www.gnomemeeting.org"
-       REQ="SDL evolution-data-server howl libbonoboui libgnomeui openh323 openldap"
+       REQ="GConf SDL evolution-data-server howl libbonoboui libgnomeui openh323 openldap"
   GNOMEFTP="gnomemeeting"
   ESTIMATE="234"
       DESC="gnomemeeting is a video conferencing and VoIP/IP telephoney application.
@@ -27,8 +27,14 @@ using modern Quicknet telephony cards, and making PC-to-phone calls."
 # }
 
 build() {
-	ln -s /usr/lib/pkgconfig/libebook-*.pc  /usr/lib/pkgconfig/libebook-1.0.pc
-	default_build  &&
-	gnomemeeting-config-tool --install-schemas  --fix-permissions
-	rm -f /usr/lib/pkgconfig/libebook-1.0.pc
+  if ! [ -f /usr/lib/pkgconfig/libebook-1.0.pc ]; then
+    ln -s /usr/lib/pkgconfig/libebook-*.pc  /usr/lib/pkgconfig/libebook-1.0.pc 
+    clean=yes
+  fi &&
+  default_build  &&
+  export LC_ALL=C &&
+  echo YES | gnomemeeting-config-tool --install-schemas  --fix-permissions &&
+  if [ "$clean" == "yes" ]; then
+    rm -f /usr/lib/pkgconfig/libebook-1.0.pc
+  fi
 }
