@@ -25,6 +25,8 @@
     rm  -f  /usr/lib/libGLU.so*
     rm  -f  /usr/X11R6/lib/modules/extentions/libglx.*
     rm  -f  /usr/X11R6/lib/modules/extentions/libGLcore.*
+    rm  -f  /usr/X11R6/lib/libGL.a
+    rm  -f  /usr/X11R6/lib/libGLU.a
 
     cp  -av  lib  X11R6  /usr/
     cp  -av  include/GL  /usr/X11R6/include/
