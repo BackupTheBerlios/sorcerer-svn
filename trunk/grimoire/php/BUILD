@@ -27,7 +27,8 @@ PHP_CONFIGURE="\
 --with-layout=GNU             \
 --with-zlib                   \
 --with-x-includes=/usr/X11R6/include  \
---with-x-libraries=/usr/X11R6/lib"
+--with-x-libraries=/usr/X11R6/lib     \
+$OPTS"
 
 
 build_apxs2()  {
@@ -37,8 +38,7 @@ build_apxs2()  {
   cd                  /usr/src/php-$VERSION-apxs2
   sedit  's:!MODULE_MAGIC_AT_LEAST(20020506,0):MODULE_MAGIC_NUMBER < 20020506:' sapi/apache2filter/php_functions.c
   ./configure  $PHP_CONFIGURE  \
-               --with-apxs2    \
-               $OPTS           &&
+               --with-apxs2    &&
   make
 
 }
@@ -50,8 +50,7 @@ build_apxs()  {
   cp  -a  $BUILD_DIR  /usr/src/php-$VERSION-apxs
   cd                  /usr/src/php-$VERSION-apxs
   ./configure  $PHP_CONFIGURE  \
-               --with-apxs     \
-               $OPTS           &&
+               --with-apxs     &&
   make
 
 }
@@ -69,8 +68,7 @@ build_apxs()  {
   fi  &&
 
   cd  $BUILD_DIR                  &&
-  ./configure  $PHP_CONFIGURE     \
-               $OPTS              &&
+  ./configure  $PHP_CONFIGURE     &&
   mv  imagick-0.1.1  ext/imagick  &&
   cd                 ext/imagick  &&
   sh  ../../pear/scripts/phpize   &&
@@ -81,8 +79,7 @@ build_apxs()  {
   
   ./configure  $PHP_CONFIGURE           \
                --with-imagick           \
-               --with-xpm-dir=/usr/lib  \
-               $OPTS                    &&
+               --with-xpm-dir=/usr/lib  &&
   make                                  &&
   prepare_install                       &&
   make    install                       &&
