@@ -15,10 +15,7 @@ make_menuconfig()  {
 
   restore_config
 
-  if    wiz_running
-  then  kill  -15  $(  cat  $WIZ_PID;  rm  -f  $WIZ_PID  )
-        sleep  1
-  fi
+  wiz_kill
 
   while  $CONFIG_ISDN;  do
     make  testconfig

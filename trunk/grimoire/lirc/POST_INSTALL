@@ -1,13 +1,12 @@
-                       TEMP_MODULES_CONF="/tmp/modules.conf.$$.$RANDOM"
-rm  -rf               $TEMP_MODULES_CONF
-cp  /etc/modules.conf $TEMP_MODULES_CONF
-grep  -v  "lirc"   <  $TEMP_MODULES_CONF  >  /etc/modules.conf
-rm  -rf               $TEMP_MODULES_CONF
-
-MOD="/etc/modules.conf"
 INC="include  /etc/modules.d/lirc"
 
-grep    -q  "$INC"      $MOD  ||
-echo        "$INC"  >>  $MOD
+grep  -q  "$INC"  /etc/modules.conf   ||  echo  "$INC"  >>  /etc/modules.conf
+grep  -q  "$INC"  /etc/modprobe.conf  ||  echo  "$INC"  >>  /etc/modprobe.conf
+
 depmod  -a  -q
+
+if    [  -x  /etc/init.d/lircd.sh  ]
+then         /etc/init.d/lircd.sh  start
+fi
+
 true
