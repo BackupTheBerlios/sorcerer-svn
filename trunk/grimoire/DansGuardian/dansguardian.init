@@ -1,0 +1,29 @@
+#!/bin/sh
+
+case "$1" in
+  start)  
+    echo  "$1ing DansGuardian."
+    /usr/sbin/dansguardian  2> /dev/null
+    ;;
+     
+  stop)
+    echo  "$1ing DansGuardian."
+    /usr/sbin/dansguardian  -q  2> /dev/null
+    /bin/rm -f /var/run/dansguardian.pid
+    /bin/rm -f /tmp/.dguardianipc
+    ;;
+    
+  restart)
+    $0 stop
+    $0 start
+    ;;
+
+  status)
+    /usr/sbin/dansguardian -s
+    ;;
+  
+  *)
+    echo "Usage: $0 {start|stop|restart|status}" 
+    exit 1
+    ;;
+esac
