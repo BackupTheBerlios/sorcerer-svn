@@ -1,19 +1,26 @@
-   VERSION=( "2.0.0" "1.1.2" "1.1.1" "1.1.0" "1.0.11" "1.0.10" )
+   VERSION=( "2.0.1" "2.0.0" "1.1.2" "1.1.1" "1.1.0" "1.0.11" "1.0.10" )
     IGNORE="^2\.0\.1\|^200.....\|floppyfw"
   CATEGORY="network"
- ATTRIBUTE="x11 broken"
+ ATTRIBUTE="x11"
     SOURCE="fwbuilder/fwbuilder-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.fwbuilder.org"
-       REQ="autoconf automake gdk-pixbuf gettext gtkmm-v1.2 libfwbuilder libtool  libsigc++-v1.0 libxml2 libxslt openssl popt readline"
-  ESTIMATE="354"
+       REQ="autoconf automake gettext libfwbuilder libtool  qt-x11-free"
+#      REQ="autoconf automake gdk-pixbuf gettext gtkmm-v1.2 libfwbuilder libtool  libsigc++-v1.0 libxml2 libxslt openssl popt qt-x11-free readline"
+  ESTIMATE="543"
      SHORT="fwbuilder is a GUI for building firewalls using iptables."
 
 
 build() {
-#  export  CFLAGS="-I/usr/include/qt $CFLAGS"
-#  export  CXXFLAGS="-I/usr/include/qt $CXXFLAGS"
-#  export  CXX="g++ -I/usr/include/qt $CXXFLAGS"
+  export  QTDIR=/usr
+  UIQ="-I/usr/include/qt"
   ./autogen.sh  &&
-  default_build
+  ./configure  --build=$BUILD         \
+               --prefix=/usr          \
+               --sysconfdir=/etc      \
+               --localstatedir=/var   \
+               $OPTS                  &&
+  make  CXX="g++  $UIQ  $CXXFLAGS"    &&
+  prepare_install                     &&
+  make    install
 }
