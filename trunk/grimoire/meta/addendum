@@ -1,42 +1,4 @@
-guess_filename_new()  {  (
-
-  BN=$(  basename       $1   )
-  FN=$(  root_filename  $BN  )
-
-  find  $SOURCE_CACHE           \
-        $LEECH_DIR              \
-        -name  $FN          -o  \
-        -name  $FN.tar.bz2  -o  \
-        -name  $FN.tar.gz   -o  \
-        -name  $FN.tgz      -o  \
-        -name  $FN.bz2      -o  \
-        -name  $FN.gz       -o  \
-        -name  $FN.zip      -o  \
-        -name  $BN      2>/dev/null  |
-  head  -1
-
-)  }
-
-
-if    !  [   -d  $SOURCE_CACHE/sorcery  ];  then
-
-  cd  $SOURCE_CACHE
-  mkdir  -p                             TRASH
-  mv  $(  find * -type f -maxdepth 0 )  TRASH
-
-  for  SPELL  in  $(  show_grimoire  );  do
-       VER=$(  available_version  $SPELL  )
-    for  SOURCE  in  $(  sources  $SPELL  );  do
-      FILE=$(  guess_filename_new  $SOURCE  )
-
-      if    [  -n   "$FILE"  ];  then
-        touch        $FILE
-        mkdir  -p           $SPELL/$VER
-        #  echo  "ln $FILE  $SPELL/$VER"
-        ln           $FILE  $SPELL/$VER
-      fi
-
-    done
-  done
-
+if    spell_installed  ccache  &&
+      !  [  -f  /usr/libexec/ccache/ccache  ]
+then  echo  "ccache"  >>  $INSTALL_QUEUE
 fi
