@@ -1,0 +1,31 @@
+   VERSION=( "1.54.0" "1.53" )
+  CATEGORY="network ppp"
+ ATTRIBUTE="client console new"
+    SOURCE="wvdial-$VERSION.tar.gz"
+  HOMEPAGE="http://open.nit.ca/wvdial"
+       URL="http://open.nit.ca/download"
+       REQ="ppp wvstreams"
+ FRESHMEAT="wvdial"
+      DESC="wvdial is a PPP connection/configuration tool
+WvDial, pronounced Weave Dial, is an 
+easier way to connect to the internet.
+It completely avoids the need for chat 
+scripts, edits pap-secrets and chap-secrets 
+for you, detects your modem automatically, 
+and chooses a valid init string.
+It can even read and respond to 
+command prompts at almost any ISP."
+
+build()  {
+make             PREFIX=/usr  &&
+prepare_install               &&
+make    install  PREFIX=/usr
+}
+
+post_install()  {
+if  !  [  -f  /etc/wvdial.conf  ];  then
+  echo  "Edit /etc/wvdial.conf to add: phone number, username, and password."
+  /usr/bin/wvdialconf  /etc/wvdial.conf
+  true
+fi
+}
