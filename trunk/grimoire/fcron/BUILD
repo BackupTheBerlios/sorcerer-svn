@@ -1,5 +1,9 @@
 (
 
+
+  groupadd  fcron             2>/dev/null
+  useradd   fcron  -g  fcron  2>/dev/null
+
   if    spell_installed  Linux-PAM
   then  WITH_PAM="--with-pam=yes"
   else  WITH_PAM="--with-pam=no"
