@@ -2,6 +2,6 @@
 
   [  -x   install  ]  &&
   prepare_install     &&
-  ./install
+        ./install  $VERSION
 
 ) > $C_FIFO 2>&1
