@@ -49,7 +49,9 @@
   grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
   echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
-  ./configure  --host=$BUILD                  \
+  mkdir  build
+  cd     build
+  ../configure  --host=$BUILD                 \
                --build=$BUILD                 \
                --prefix=/usr                  \
                --enable-add-ons=linuxthreads  \
