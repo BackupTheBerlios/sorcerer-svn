@@ -1,0 +1,47 @@
+   VERSION=( "0.8.1" )
+  CATEGORY="log"
+ ATTRIBUTE="server new"
+    SOURCE="rsyslog-$VERSION.tar.gz"
+       URL="http://www.monitorware.com/rsyslog"
+  HOMEPAGE="http://www.monitorware.com/rsyslog/"
+  EPROVIDE="system-logger"
+  ESTIMATE="11"
+      DESC="rsyslog is an enhanced syslogd.
+Among other features, it offers support for MySQL and fully
+configurable output formats (including large timestamps).
+It has been forked from the standard sysklogd package.
+The project's goal is to provide a more
+configurable and reliable syslog deamon.
+"Reliable" in the previous sentence refers to support for reliable
+transmission modes like TCP or RFC 3195 (syslog-reliable)."
+
+build()  {
+install_init()  {
+TRAD="\$template TraditionalFormat,\"%timegenerated% %HOSTNAME% %syslogtag%%msg:::drop-last-lf%\n\"
+*.*  /var/log/syslog;TraditionalFormat"
+if  !  [   -f            /etc/syslog.conf  ]
+then   echo  "$TRAD"  >  /etc/syslog.conf
+       chmod  0600       /etc/syslog.conf
+fi
+install  -m 0600 sample.conf   /etc/syslog.conf.sample
+ln  -sf  ../init.d/rsyslog.sh  /etc/rcS.d/S20rsyslog
+ln  -sf  ../init.d/rsyslog.sh  /etc/rc0.d/K70rsyslog
+ln  -sf  ../init.d/rsyslog.sh  /etc/rc6.d/K70rsyslog
+install  -m 0700 $SCRIPT_DIR/rsyslog.sh  /etc/init.d
+}
+
+make                     &&
+prepare_install          &&
+make    install-replace  &&
+install_init
+}
+
+post_install()  {
+/etc/init.d/rsyslog.sh start
+true
+}
+
+pre_remove()  {
+/etc/init.d/rsyslog.sh stop
+true
+}
