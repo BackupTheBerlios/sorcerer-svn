@@ -3,6 +3,22 @@ if    spell_installed  Linux-PAM  ||
 then  WITH_PAM="--with-pam"
 fi
 
+
+selinux_patches()  {
+  SCX=1
+  while  [  -n                    "${SOURCE[$SCX]}"    ]
+  do     zcat  $(  guess_filename  ${SOURCE[$SCX]}  )  |
+         patch  -p1
+         ((  SCX++  ))
+  done
+}
+
+
+case  $BRANCH  in
+  selinux)  selinux_patches  ;;
+esac
+
+
 groupadd    sshd        2>/dev/null
 useradd  -g sshd  sshd  2>/dev/null
 mkdir    -p       /var/empty
