@@ -1,6 +1,8 @@
-   VERSION=( "1.1.2" "1.1.1" "1.1.0" "0.8.2" "0.8.1" )
+   VERSION=( "1.0" "1.1.3" "1.1.2" "1.1.1" "1.1.0" "0.8.2" "0.8.1" )
+# 1.1 versions are not stable
   CATEGORY="web"
- ATTRIBUTE="gnome"
+ ATTRIBUTE="gnome broken"
+# epiphany-extensions 1.0 does not support mozilla 1.7.2
     SOURCE="sources/epiphany-extensions/${VERSION:0:3}/epiphany-extensions-$VERSION.tar.bz2"
        URL="$GNOME_URL"
   HOMEPAGE="http://www.gnome.org/projects/epiphany/extensions.html"
@@ -8,11 +10,16 @@
   ESTIMATE="145"
  FRESHMEAT="ephy-extensions"
   GNOMEFTP="epiphany-extensions"
-     SHORT="epiphany-extensions is a collection of extensions for Epiphany web browser."
-      LONG="
-It includes mouse gestures, a popup blocker, 
+      DESC=( "epiphany-extensions is a collection of extensions for Epiphany web browser."
+"It includes mouse gestures, a popup blocker, 
 the ability to move tabs to other windows without drag-and-drop, 
 an extension template to ease writing your own extension, 
 an error viewer and validator, a certificate viewer, 
-and the ability to connect Epiphany to the Dashboard.
-"
+and the ability to connect Epiphany to the Dashboard." )
+
+
+build()  {
+  MVER="$(  installed_version  $(  get_provider mozilla  )  )"
+  OPTS="--with-mozilla-snapshot=$MVER"
+  default_build
+}
