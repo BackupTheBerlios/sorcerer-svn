@@ -18,7 +18,6 @@
 
   fi
 
-
 ) > $C_FIFO 2>&1  &&  (
 
   cd  bin
@@ -31,7 +30,15 @@
   cp  pico    /usr/bin
   cp  pilot   /usr/bin
   cp  pine    /usr/bin
-  cd  ../doc
+
+  mkdir  -p  /usr/include/imap
+  cp     -f  $BUILD_DIR/imap/src/c-client/*.h  \
+             /usr/include/imap
+
+  cp     -f  $BUILD_DIR/c-client/c-client.a  \
+             /usr/lib/libc-client.a
+
+  cd  $BUILD_DIR/doc
 
   for  MANPAGE  in  `ls  *.1`;  do
     gzip  -9  $MANPAGE
