@@ -23,6 +23,7 @@ EOF
 
 (
 
+  sedit  "s:/sbin/depmod:/bin/true:g"  Makefile
   modprobe  soundcore
   ./configure  --prefix=/usr         \
                --with-isapnp=yes     \
