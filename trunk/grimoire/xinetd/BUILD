@@ -1,4 +1,4 @@
-if  default_build;  then
+install_init()  {
 
   cp     $SCRIPT_DIR/xinetd.sh  /etc/init.d
 
@@ -11,11 +11,18 @@ if  default_build;  then
   ln  -sf  ../init.d/xinetd.sh  /etc/rc4.d/S40xinetd
   ln  -sf  ../init.d/xinetd.sh  /etc/rc5.d/S40xinetd
 
+}
+
+
+install_conf()  {
   mkdir  -p       /var/log/xinetd
   mkdir  -p       /etc/xinetd.d
   ID="includedir  /etc/xinetd.d"
-  [  -f           /etc/xinetd.conf  ]  ||
   echo  "$ID"  >  /etc/xinetd.conf
-else
-  false
-fi
+  touch           /etc/xinetd.conf
+}
+
+
+default_build  &&
+install_init   &&
+install_conf
