@@ -1,7 +1,7 @@
 (
 
-  if    [  -f              $CONFIG_LOGS/DEFAULT/$VERSION/LANGUAGE  ]
-  then  LANGUAGES=$(  cat  $CONFIG_LOGS/DEFAULT/$VERSION/LANGAUGE  )
+  if    [  -f             $CONFIG_LOGS/DEFAULT/$VERSION/LANGUAGE  ]
+  then  LANGUAGE=$(  cat  $CONFIG_LOGS/DEFAULT/$VERSION/LANGAUGE  )
   fi
 
   LANGUAGE="${LANGUAGE// /,}"
