@@ -54,7 +54,8 @@ fi
 make  -f Makefile.init makefiles  \
       "CC=gcc"                    \
       "AUXLIBS=$AUXLIBS"          \
-      "CCARGS=$CCARGS"            &&
+      "CCARGS=$CCARGS"            \
+      "OPT=$CFLAGS"               &&
 make                              &&
 prepare_install                   &&
 
