@@ -13,5 +13,7 @@ install_init()  {
 
 }
 
+sed  -i  "s:\$HEAD -1:\$HEAD -n 1:"  configure
+
 default_build  &&
 install_init

@@ -7,7 +7,9 @@ matrox_maven_patch()  {
   LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
   case  $LVER  in
     2.6*)  bzip2  -cd  $SCRIPT_DIR/DirectFB-0.9.20-matrox_maven.patch.bz2  |
-           patch  -p1  ;;
+           patch  -p1  
+           sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>" interfaces/IDirectFBVideoProvider/idirectfbvideoprovider_v4l.c
+           ;;
   esac
 
 }
