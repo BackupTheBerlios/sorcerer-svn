@@ -1,5 +1,7 @@
 #!/bin/sh
 
+PID=/var/run/swapd.pid
+
 start() {
   echo  "Starting swapd..."
   /usr/sbin/swapd
@@ -7,12 +9,11 @@ start() {
 }
 
 stop()  {
-  [     -f     /var/run/swapd.pid               ]  &&
-  PID=$(  cat  /var/run/swapd.pid  2>/dev/null  )  &&
-  [     -n   "$PID"                             ]  &&
-  ps    -p    $PID  --no-heading -o cmd            |
-  grep  -q   "[swapd]"                             &&
-  echo  "Stopping swapd...$(  kill  $PID  )  done."
+  echo  -n  "Stopping swapd..."
+  [     -f            $PID  ]  &&
+  kill  -15  $(  cat  $PID  )
+  rm    -f            $PID
+  echo  "done."
 }
 
 

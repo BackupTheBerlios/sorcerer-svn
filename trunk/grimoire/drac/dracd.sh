@@ -1,16 +1,25 @@
 #!/bin/sh
 
+start()  {
+  echo  -n  "Starting rpc.dracd..."
+  /usr/sbin/rpc.dracd
+  echo  "done."
+}
+
+stop()  {
+  echo  -n  "Stopping rpc.dracd..."
+  pkill "^rpc.dracd$"
+  echo  "done."
+}
+
+help()  {
+  echo  "Usage:  $0  {start|stop|restart}"
+}
+
+
 case $1 in
-  start|restart)  echo  -n  "$1ing rpc.dracd daemon: "
-                  pkill  "^rpc.dracd$"  &&  sleep  5
-                  rpc.dracd &
-                  ;;
-
-           stop)  echo  -n  "$1ing rpc.dracd daemon: "
-                  pkill "^rpc.dracd$"
-                  ;;
-
-              *)  echo  "Usage: dracd {start|stop|restart}"
-                  exit  1
-                  ;;
+    start)                       start  ;;
+  restart)  stop  &&  sleep  3;  start  ;;
+     stop)  stop                        ;;
+        *)  help                        ;;
 esac

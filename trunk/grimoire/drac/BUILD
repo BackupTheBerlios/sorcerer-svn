@@ -25,8 +25,8 @@
     ln  -sf  ../init.d/dracd.sh  /etc/rc5.d/S99dracd
   fi
   
-  if  [  -f  /etc/mail/dracd.allow  ];  then
-    cp  $SCRIPT_DIR/dracd.allow  /etc/mail
+  if    [  -f  /etc/mail/dracd.allow  ]
+  then  cp  $SCRIPT_DIR/dracd.allow  /etc/mail
   fi
 
 )

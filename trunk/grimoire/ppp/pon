@@ -1,7 +1,11 @@
 #!/bin/sh
 
-ps     -C     pppd     >  /dev/null  &&
-pkill  -15  "^pppd$"                 &&
-sleep   5
+PID=/var/run/ppp0
+
+if  [   -f            $PID  ];  then
+  kill  -15  $(  cat  $PID  )
+  rm    -f            $PID
+  sleep  3
+fi
 
 /usr/sbin/pppd   call  ${@:-isp}

@@ -11,7 +11,7 @@
 ) > $C_FIFO 2>&1  &&  (
 
   cd  netkit-base/etc.sample
-  for   FILE  in  `ls`;  do
+  for   FILE  in  *;  do
     if    [  !  -e  /etc/$FILE      ]  &&
           [  "$FILE"  !=  "README"  ]
     then  cp  $FILE  /etc            
