@@ -3,7 +3,7 @@ build_apxs2()  {
   rm  -rf             /usr/src/php-$VERSION-apxs2
   cp  -a  $BUILD_DIR  /usr/src/php-$VERSION-apxs2
   cd                  /usr/src/php-$VERSION-apxs2
-
+  sedit  's:!MODULE_MAGIC_AT_LEAST(20020506,0):MODULE_MAGIC_NUMBER < 20020506:' sapi/apache2filter/php_functions.c
   ./configure  --prefix=/usr                 \
                --sysconfdir=/etc             \
                --with-config-file-path=/etc  \
