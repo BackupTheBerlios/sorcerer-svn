@@ -1,10 +1,12 @@
 (
 
+  # export  CFLAGS="$CFLAGS $LDFLAGS"
+
   ./configure  --host=$BUILD        \
                --prefix=/usr        \
                --with-root-prefix=  \
                --enable-elf-shlibs  &&
-  make                              &&
+  make  "LDFLAGS=$LDFLAGS"          &&
   prepare_install                   &&
   make    install                   &&
   make    install-libs

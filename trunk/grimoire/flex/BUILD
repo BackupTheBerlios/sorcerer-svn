@@ -3,7 +3,7 @@
   ./configure  --build=$BUILD  \
                --prefix=/usr   \
                $OPTS           &&
-  make                         &&
+  make  "LDFLAGS=$LDFLAGS"     &&
   prepare_install              &&
   make    install              &&
   ln  -sf  flex  /usr/bin/lex
