@@ -29,27 +29,14 @@ PHP_CONFIGURE="\
 $OPTS"
 
 
-build_apxs2()  {
-    
-  BUILD_DIR[1]="$SOURCE_DIR/php-$VERSION-apxs2"
-  rm  -rf             ${BUILD_DIR[1]}
-  cp  -a  $BUILD_DIR  ${BUILD_DIR[1]}
-  cd                  ${BUILD_DIR[1]}
-  ./configure  $PHP_CONFIGURE  \
-               --with-apxs2    &&
-  make
 
-}
+build_module()  {
 
-
-build_apxs()  {
-
-  BUILD_DIR[1]="$SOURCE_DIR/php-$VERSION-apxs"
-  rm  -rf             ${BUILD_DIR[1]}
-  cp  -a  $BUILD_DIR  ${BUILD_DIR[1]}
-  cd                  ${BUILD_DIR[1]}
-  ./configure  $PHP_CONFIGURE  \
-               --with-apxs     &&
+  echo  "Building web server module:  $1"
+  rm  -rf             apxs
+  cp  -a  $BUILD_DIR  apxs
+  cd                  apxs
+  ./configure  $PHP_CONFIGURE  --with-$1  &&
   make
 
 }
@@ -57,30 +44,21 @@ build_apxs()  {
 
 (
 
-  APACHE_PROVIDER="$(  get_provider  apache  )"
+  if    spell_installed $( get_provider httpd   ); then build_module apxs2
+  elif  spell_installed $( get_provider apapche ); then build_module apxs
+  fi    &&
 
-  if    spell_installed  $APACHE_PROVIDER;  then
-    case  $APACHE_PROVIDER  in
-      apache)  build_apxs   ;;
-       httpd)  build_apxs2  ;;
-    esac
-  fi  &&
+  cd           $BUILD_DIR      &&
+  ./configure  $PHP_CONFIGURE  &&
+  make                         &&
+  prepare_install              &&
+  make    install              &&
 
-  cd           $BUILD_DIR               &&
-  ./configure  $PHP_CONFIGURE           &&
-  make                                  &&
-  prepare_install                       &&
-  make    install                       &&
-  if    [  -n  "${BUILD_DIR[1]}"  ]     &&
-        [  -d   ${BUILD_DIR[1]}   ]
-  then  cd      ${BUILD_DIR[1]};  make   install
+  if    [  -d  apxs  ]
+  then  cd     apxs  2>/dev/null  &&  make  install
   fi
-
   
 ) > $C_FIFO 2>&1  &&  (
-
-  rm  -rf  $SOURCE_DIR/php-$VERSION-apxs  \
-           $SOURCE_DIR/php-$VERSION-apxs2
 
   if    !   [  -e         /etc/php.ini  ]
   then  cp  php.ini-dist  /etc/php.ini
