@@ -33,6 +33,7 @@ then
   (
 
     patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
+    sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
 
     $APACHE_CONFIGURE  &&
     make               &&
@@ -71,6 +72,8 @@ else
     activate_voyeur
 
     (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
+       sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
+
        cd   ${DIR[2]}       &&
        $MOD_PERL_CONFIGURE  &&
        make                 &&
@@ -87,6 +90,8 @@ else
 
     activate_voyeur
     (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
+       sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
+
        $APACHE_CONFIGURE  &&
        make               &&
        prepare_install    &&

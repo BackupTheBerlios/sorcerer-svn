@@ -14,6 +14,8 @@ remove_perl_module()  {
 }
 
 
+  sedit  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c
+
   APACHE_CONFIGURE=\
 "./configure  --enable-so                            \
               --enable-ssl                           \
