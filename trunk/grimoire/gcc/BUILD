@@ -18,13 +18,7 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
-  remove_header()  {
-    ls  /usr/lib/gcc-lib/*  |
-    directories             |
-    while  read  DIR
-    do     rm  -f  /usr/lib/gcc-lib/$DIR/$VERSION/include/$1
-    done
-  }
+  remove_header()  {  rm  -f  $(  find  /usrc/gcc-$VERSION -name $1  );  }
 
   remove_header   curses.h
   remove_header  ncurses.h
