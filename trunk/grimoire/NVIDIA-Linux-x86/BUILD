@@ -22,8 +22,8 @@ install_libs()  {
 
   rm  -f  /usr/X11R6/lib/libGL.*
   rm  -f  /usr/lib/libGL.*
-  rm  -f  /usr/X11R6/lib/modules/extentions/libglx.*
-  rm  -f  /usr/X11R6/lib/modules/extentions/libGLcore.*
+  rm  -f  /usr/X11R6/lib/modules/extensions/libglx.*
+  rm  -f  /usr/X11R6/lib/modules/extensions/libGLcore.*
 
   cp  -a   lib  X11R6  /usr/                2>/dev/null
   cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
