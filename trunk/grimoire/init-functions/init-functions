@@ -1,0 +1,58 @@
+# LSB-compliant init.d scripts for use with the distribution sorcerer only!
+# Copyright Kyle Sallee 2002.  All rights reserved.
+
+log_success_msg()  {  echo  "$@";  }
+log_failure_msg()  {  echo  "$@";  }
+log_warning_msg()  {  echo  "$@";  }
+
+pidofproc()  { (
+
+   [     -n          "$1"  ]     &&
+   BN="$(  basename  "$1"  )"    &&
+   BP="/var/run/$BN.pid"         &&
+   [     -f        $BP     ]     &&
+   PID="$(  cat    $BP     )"    &&
+   ps    -C       "$BN"  -o pid  |
+   grep  -q  -x   "$PID"         &&
+   echo           "$PID"
+  
+) }
+
+killproc()  { (
+
+  if  PID=$(  pidofproc  "$1"  );  then
+    if    [  -n  "$2"  ]
+    then  kill   -$2  $PID
+    else  kill   -15  $PID;  sleep  3
+          kill   -9   $PID   2>/dev/null
+    fi
+    rm  -f  /var/run/$(  basename   "$1"  ).pid
+  fi
+
+) }
+
+start_daemon()  { (
+
+  unset  FORCE  NICE
+
+  while
+    case  $1  in
+      -f)  FORCE="f";  shift  1  ;;
+      -n)  NICE="$2";  shift  2  ;;
+       *)  false                 ;;
+    esac
+  do  :
+  done
+
+  BASE="$(  basename  $(  echo  "$@"  |  cut  -d ' ' -f1 )  )"
+
+  if      [      -n  "$FORCE"  ]  ||  !  pidofproc  "$BASE";  then
+    if    [      -n  "$NICE"   ]
+    then  nice   -n  "$NICE"  "$@"  &
+    else                      "$@"  &
+    fi
+    mkdir        -p  /var/run
+    echo  "$!"  >    /var/run/$BASE.pid
+  fi
+
+) }
