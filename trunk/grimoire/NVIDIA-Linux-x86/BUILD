@@ -28,8 +28,8 @@
     rm  -f  /usr/X11R6/lib/libGL.a
     rm  -f  /usr/X11R6/lib/libGLU.a
 
-    cp  -av  lib  X11R6  /usr/
-    cp  -av  include/GL  /usr/X11R6/include/
+    cp  -a   lib  X11R6  /usr/
+    cp  -a   include/GL  /usr/X11R6/include/
     cp  -a   share/doc  ..
     cp  -a   include    ../doc
   }

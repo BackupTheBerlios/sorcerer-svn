@@ -15,6 +15,6 @@
   make                                     &&
   prepare_install                          &&
   make    install                          &&
-  cp  -r  sample-configurations  doc
+  cp  -R  sample-configurations  doc
 
 ) > $C_FIFO 2>&1

@@ -8,7 +8,7 @@ IVERSION=$(  installed_version  $BSPELL  )
     NSS_DIR=/usr/include/mozilla-$VERSION/nss 
     mkdir  -p  $NSS_DIR
     for  dir  in  private  public;  do
-      cp  -Lf  $BUILD_DIR/dist/${dir}/nss/*.h \
+      cp  -f  $BUILD_DIR/dist/${dir}/nss/*.h \
       $NSS_DIR
     done
 

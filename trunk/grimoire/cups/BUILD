@@ -27,8 +27,8 @@ if  spell_installed  openssl;    then  OPTS="$OPTS  --enable-ssl";  fi
   fake_redhat               &&
   make    install           &&
   cd      drivers           &&
-  cp     -r  usr/*  /usr    &&
-  cp     -r  var/*  /var    &&
+  cp     -R  usr/*  /usr    &&
+  cp     -R  var/*  /var    &&
   cd         var/cups/conf  &&
   mkdir  -p  /etc/cups      &&
   cp     *   /etc/cups

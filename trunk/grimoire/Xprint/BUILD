@@ -10,7 +10,7 @@
     mkdir  -p  $(  dirname  $DESTINATION  )
     if    !  [  -e          $DESTINATION  ]  ||
              [  -n         "$OVERWRITE"   ]
-    then  cp  -av  $SOURCE  $DESTINATION
+    then  cp  -a  $SOURCE   $DESTINATION
     fi
 
   }
@@ -32,7 +32,7 @@
     rm     -rf      usr/X11R6/lib/X11/xserver/C/print/models/HPDJ1600C
     rm     -rf      usr/X11R6/lib/X11/xserver/C/print/models/HPLJ4family
     mkdir  -p      /usr/X11R6/lib/X11/xserver
-    cp     -av      usr/X11R6/lib/X11/xserver/*  \
+    cp     -a       usr/X11R6/lib/X11/xserver/*  \
                    /usr/X11R6/lib/X11/xserver
     true
   }

@@ -12,12 +12,12 @@ echo "list-sample-owner:	owner@myhost.mydomain.myzone" >> /etc/aliases.minimalis
 mkdir /etc/minimalist
 
 # Copy sample files
-cp ./sample/lists.lst /etc/minimalist/lists.lst-sample
-cp -r ./sample/sample /etc/minimalist/
-cp ./minimalist.conf-sample /etc/minimalist/
+cp      ./sample/lists.lst /etc/minimalist/lists.lst-sample
+cp  -R  ./sample/sample /etc/minimalist/
+cp      ./minimalist.conf-sample /etc/minimalist/
 
 # Copy the progam file...
-cp -v ./minimalist.pl /usr/sbin
+cp    ./minimalist.pl  /usr/sbin
 
 # Make spool dir
 mkdir /var/spool/minimalist
@@ -27,8 +27,8 @@ chown nobody.nogroup /var/spool/minimalist/list-sample
 chown nobody.nogroup /var/spool/minimalist/list-sample/list
 
 # Copy the help files
-mkdir /usr/doc/minimalist
-cp -r ./docs /usr/doc/minimalist
+mkdir              /usr/doc/minimalist
+cp     -R  ./docs  /usr/doc/minimalist
 
 } > $C_FIFO 2>&1
 

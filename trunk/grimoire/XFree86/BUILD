@@ -39,7 +39,7 @@ fi
 
   echo   "Adding fontconfig-2.2.0 with fixed patch"
   patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.0.patch
-  cp     -av     fontconfig-2.2.0/*  lib/fontconfig/
+  cp     -a      fontconfig-2.2.0/*  lib/fontconfig/
   rm     -rf     fontconfig-2.2.0
 #  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
 #  sed   -i      "s:@FC_FONTPATH@:<dir>/usr/share/fonts</dir>:"    lib/fontconfig/fonts.conf.in

@@ -6,7 +6,7 @@
 
   prepare_install                          &&
   mkdir  -p                 $DEST_DIR      &&
-  cp     -rv  $BUILD_DIR/*  $DEST_DIR      &&
+  cp     -R   $BUILD_DIR/*  $DEST_DIR      &&
   cd                        $DEST_DIR/bin  &&
   for  FILE  in  *;  do
     if    [  -f     $FILE  ]  &&
