@@ -24,14 +24,14 @@
   make -s install USER=privoxy GROUP=privoxy  &&
    
   if  $PRIVOXY_BOOT;  then
-    ln  -sf  ../init.d/privoxy  /etc/rc0.d/K25privoxy
-    ln  -sf  ../init.d/privoxy  /etc/rc1.d/K25privoxy
-    ln  -sf  ../init.d/privoxy  /etc/rc2.d/K25privoxy
-    ln  -sf  ../init.d/privoxy  /etc/rc6.d/K25privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc0.d/K20privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc1.d/K20privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc2.d/K20privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc6.d/K20privoxy
 
-    ln  -sf  ../init.d/privoxy  /etc/rc3.d/S90privoxy
-    ln  -sf  ../init.d/privoxy  /etc/rc4.d/S90privoxy
-    ln  -sf  ../init.d/privoxy  /etc/rc5.d/S90privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc3.d/S95privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc4.d/S95privoxy
+    ln  -sf  ../init.d/privoxy  /etc/rc5.d/S95privoxy
   fi
 
 ) > $C_FIFO 2>&1
