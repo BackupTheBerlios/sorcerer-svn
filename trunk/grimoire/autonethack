@@ -5,8 +5,9 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://auto-nethack.sourceforge.net"
        REQ="ncurses"
-    OPT[0]="XFree86:--enable-x11-graphics::Enable X11 graphic interface"
-    OPT[1]="gtk+:--enable-gtk2hack-graphics::Enable gtk2hack graphic interface"
+    OPT[0]="XFree86:--enable-x11-graphics --enable-default-graphics=x11::Enable X11 graphic interface"
+# gtk+ programs may not run guid games.
+#   OPT[1]="gtk+:--enable-gtk2hack-graphics --enable-default-graphics=gtk2::Enable gtk2hack graphic interface"
 # qt interface configure support is broken 3.4.3.01
 #   OPT[2]="qt-x11-free:--enable-qt-graphics::Enable qt graphic interface"
       OPTS="--bindir=/usr/games"
@@ -15,7 +16,14 @@
      SHORT="autonethack is an easier to install nethack."
 
 
-# build()  {
-#   export  QT_DIR=/usr
-#   default_build
-# }
+build()  {
+  export  QT_DIR=/usr
+  default_build
+  chown  root:games  /usr/games/lib/nethackdir
+  chmod  0775        /usr/games/lib/nethackdir
+  chown  root:games  /usr/games/lib/nethackdir/nethack
+  chmod  2755        /usr/games/lib/nethackdir/nethack
+  chown  root:games  /usr/games/lib/nethackdir/{save,perm,record,logfile}
+  chmod  0775        /usr/games/lib/nethackdir/save
+  chmod  0664        /usr/games/lib/nethackdir/{perm,record,logfile}
+}
