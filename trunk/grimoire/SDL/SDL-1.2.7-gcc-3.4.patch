@@ -1,0 +1,277 @@
+diff -r -U2 SDL-1.2.7/src/audio/SDL_mixer_MMX.c SDL-1.2.7/src/audio/SDL_mixer_MMX.c
+--- SDL-1.2.7/src/audio/SDL_mixer_MMX.c	2002-11-08 23:13:28.000000000 -0700
++++ SDL-1.2.7/src/audio/SDL_mixer_MMX.c	2002-11-08 23:13:28.000000000 -0700
+@@ -16,11 +16,9 @@
+     __asm__ __volatile__ (
+ 
+-"	movl %0,%%edi\n"	// edi = dst
+-"	movl %1,%%esi\n"	// esi = src
+ "	movl %3,%%eax\n"	// eax = volume
+ 
+-"	movl %2,%%ebx\n"	// ebx = size
++"	movl %2,%%edx\n"	// edx = size
+ 
+-"	shrl $4,%%ebx\n"	// process 16 bytes per iteration = 8 samples
++"	shrl $4,%%edx\n"	// process 16 bytes per iteration = 8 samples
+ 
+ "	jz .endS16\n"
+@@ -40,12 +38,12 @@
+ "	.mixloopS16:\n"
+ 
+-"	movq (%%esi),%%mm1\n" // mm1 = a|b|c|d
++"	movq (%1),%%mm1\n" // mm1 = a|b|c|d
+ 
+ "	movq %%mm1,%%mm2\n" // mm2 = a|b|c|d
+ 
+-"	movq 8(%%esi),%%mm4\n" // mm4 = e|f|g|h
++"	movq 8(%1),%%mm4\n" // mm4 = e|f|g|h
+ 
+ 	// pré charger le buffer dst dans mm7
+-"	movq (%%edi),%%mm7\n" // mm7 = dst[0]"
++"	movq (%0),%%mm7\n" // mm7 = dst[0]"
+ 
+ 	// multiplier par le volume
+@@ -70,9 +68,9 @@
+ 
+ 	// pré charger le buffer dst dans mm5
+-"	movq 8(%%edi),%%mm5\n" // mm5 = dst[1]
++"	movq 8(%0),%%mm5\n" // mm5 = dst[1]
+ 
+ 	// diviser par 128
+ "	psrad $7,%%mm1\n" // mm1 = a*v/128|b*v/128 , 128 = SDL_MIX_MAXVOLUME
+-"	addl $16,%%esi\n"
++"	add $16,%1\n"
+ 
+ "	psrad $7,%%mm3\n" // mm3 = c*v/128|d*v/128
+@@ -88,13 +86,13 @@
+ 	// mm4 = le sample avec le volume modifié
+ "	packssdw %%mm4,%%mm6\n" // mm6 = s(e*v|f*v|g*v|h*v)
+-"	movq %%mm3,(%%edi)\n"
++"	movq %%mm3,(%0)\n"
+ 
+ "	paddsw %%mm5,%%mm6\n" // mm6 = adjust_volume(src)+dst
+ 
+-"	movq %%mm6,8(%%edi)\n"
++"	movq %%mm6,8(%0)\n"
+ 
+-"	addl $16,%%edi\n"
++"	add $16,%0\n"
+ 
+-"	dec %%ebx\n"
++"	dec %%edx\n"
+ 
+ "	jnz .mixloopS16\n"
+@@ -104,7 +102,7 @@
+ ".endS16:\n"
+ 	 :
+-	 : "m" (dst), "m"(src),"m"(size),
++	 : "r" (dst), "r"(src),"m"(size),
+ 	 "m"(volume)
+-	 : "eax","ebx", "esi", "edi","memory"
++	 : "eax","edx","memory"
+ 	 );
+ }
+@@ -120,9 +118,7 @@
+     __asm__ __volatile__ (
+ 
+-"	movl %0,%%edi\n"	// edi = dst
+-"	movl %1,%%esi\n"	// esi = src
+ "	movl %3,%%eax\n"	// eax = volume
+ 
+-"	movd %%ebx,%%mm0\n"
++"	movd %%edx,%%mm0\n"
+ "	movq %%mm0,%%mm1\n"
+ "	psllq $16,%%mm0\n"
+@@ -133,8 +129,8 @@
+ "	por %%mm1,%%mm0\n"
+ 
+-"	movl %2,%%ebx\n"	// ebx = size
+-"	shr $3,%%ebx\n"	// process 8 bytes per iteration = 8 samples
++"	movl %2,%%edx\n"	// edx = size
++"	shr $3,%%edx\n"	// process 8 bytes per iteration = 8 samples
+ 
+-"	cmp $0,%%ebx\n"
++"	cmp $0,%%edx\n"
+ "	je .endS8\n"
+ 
+@@ -143,5 +139,5 @@
+ 
+ "	pxor %%mm2,%%mm2\n"		// mm2 = 0
+-"	movq (%%esi),%%mm1\n"	// mm1 = a|b|c|d|e|f|g|h
++"	movq (%1),%%mm1\n"	// mm1 = a|b|c|d|e|f|g|h
+ 
+ "	movq %%mm1,%%mm3\n" 	// mm3 = a|b|c|d|e|f|g|h
+@@ -153,8 +149,8 @@
+ 
+ "	punpcklbw %%mm2,%%mm3\n"	// mm3 = 0|e|0|f|0|g|0|h
+-"	movq (%%edi),%%mm2\n"	// mm2 = destination
++"	movq (%0),%%mm2\n"	// mm2 = destination
+ 
+ "	pmullw %%mm0,%%mm1\n"	// mm1 = v*a|v*b|v*c|v*d
+-"	addl $8,%%esi\n"
++"	add $8,%1\n"
+ 
+ "	pmullw %%mm0,%%mm3\n"	// mm3 = v*e|v*f|v*g|v*h
+@@ -167,8 +163,8 @@
+ "	paddsb %%mm2,%%mm3\n"	// add to destination buffer
+ 
+-"	movq %%mm3,(%%edi)\n"	// store back to ram
+-"	addl $8,%%edi\n"
++"	movq %%mm3,(%0)\n"	// store back to ram
++"	add $8,%0\n"
+ 
+-"	dec %%ebx\n"
++"	dec %%edx\n"
+ 
+ "	jnz .mixloopS8\n"
+@@ -177,7 +173,7 @@
+ "	emms\n"
+ 	 :
+-	 : "m" (dst), "m"(src),"m"(size),
++	 : "r" (dst), "r"(src),"m"(size),
+ 	 "m"(volume)
+-	 : "eax","ebx", "esi", "edi","memory"
++	 : "eax","edx","memory"
+ 	 );
+ }
+diff -r -U2 SDL-1.2.7/src/cpuinfo/SDL_cpuinfo.c SDL-1.2.7/src/cpuinfo/SDL_cpuinfo.c
+--- SDL-1.2.7/src/cpuinfo/SDL_cpuinfo.c	2004-02-10 08:31:35.000000000 -0700
++++ SDL-1.2.7/src/cpuinfo/SDL_cpuinfo.c	2004-02-10 08:31:35.000000000 -0700
+@@ -23,5 +23,5 @@
+ #ifdef SAVE_RCSID
+ static char rcsid =
+- "@(#) $Id: SDL-1.2.7-gcc-3.4.patch,v 1.1 2004/07/04 08:36:41 cromwell Exp $";
++ "@(#) $Id: SDL-1.2.7-gcc-3.4.patch,v 1.1 2004/07/04 08:36:41 cromwell Exp $";
+ #endif
+ 
+@@ -82,4 +82,24 @@
+ 	: "%eax", "%ecx"
+ 	);
++#elif defined(__GNUC__) && defined(__x86_64__)
++/* Technically, if this is being compiled under __x86_64__ then it has 
++CPUid by definition.  But it's nice to be able to prove it.  :)      */
++	__asm__ (
++"        pushfq                      # Get original EFLAGS             \n"
++"        popq    %%rax                                                 \n"
++"        movq    %%rax,%%rcx                                           \n"
++"        xorl    $0x200000,%%eax     # Flip ID bit in EFLAGS           \n"
++"        pushq   %%rax               # Save new EFLAGS value on stack  \n"
++"        popfq                       # Replace current EFLAGS value    \n"
++"        pushfq                      # Get new EFLAGS                  \n"
++"        popq    %%rax               # Store new EFLAGS in EAX         \n"
++"        xorl    %%ecx,%%eax         # Can not toggle ID bit,          \n"
++"        jz      1f                  # Processor=80486                 \n"
++"        movl    $1,%0               # We have CPUID support           \n"
++"1:                                                                    \n"
++	: "=m" (has_CPUID)
++	:
++	: "%rax", "%rcx"
++	);
+ #elif defined(_MSC_VER)
+ 	__asm {
+@@ -104,5 +124,5 @@
+ {
+ 	int features = 0;
+-#if defined(__GNUC__) && defined(i386)
++#if defined(__GNUC__) && ( defined(i386) || defined(__x86_64__) )
+ 	__asm__ (
+ "        movl    %%ebx,%%edi\n"
+@@ -119,5 +139,5 @@
+ 	: "=m" (features)
+ 	:
+-	: "%eax", "%ebx", "%ecx", "%edx", "%edi"
++	: "%eax", "%ecx", "%edx", "%edi"
+ 	);
+ #elif defined(_MSC_VER)
+@@ -140,5 +160,5 @@
+ {
+ 	int features = 0;
+-#if defined(__GNUC__) && defined(i386)
++#if defined(__GNUC__) && (defined(i386) || defined (__x86_64__) )
+ 	__asm__ (
+ "        movl    %%ebx,%%edi\n"
+@@ -154,5 +174,5 @@
+ 	: "=m" (features)
+ 	:
+-	: "%eax", "%ebx", "%ecx", "%edx", "%edi"
++	: "%eax", "%ecx", "%edx", "%edi"
+ 	);
+ #elif defined(_MSC_VER)
+diff -r -U2 SDL-1.2.7/src/video/SDL_yuv_mmx.c SDL-1.2.7/src/video/SDL_yuv_mmx.c
+--- SDL-1.2.7/src/video/SDL_yuv_mmx.c	2004-02-18 10:22:04.000000000 -0700
++++ SDL-1.2.7/src/video/SDL_yuv_mmx.c	2004-02-18 10:22:04.000000000 -0700
+@@ -23,5 +23,5 @@
+ #ifdef SAVE_RCSID
+ static char rcsid =
+- "@(#) $Id: SDL-1.2.7-gcc-3.4.patch,v 1.1 2004/07/04 08:36:41 cromwell Exp $";
++ "@(#) $Id: SDL-1.2.7-gcc-3.4.patch,v 1.1 2004/07/04 08:36:41 cromwell Exp $";
+ #endif
+ 
+@@ -121,10 +121,10 @@
+ 		 "punpcklbw %%mm7,%%mm1\n" //         0  v3 0  v2 00 v1 00 v0
+ 		 "punpckldq %%mm1,%%mm1\n" //         00 v1 00 v0 00 v1 00 v0
+-		 "psubw _MMX_0080w,%%mm1\n"  // mm1-128:r1 r1 r0 r0 r1 r1 r0 r0 
++		 "psubw %[_MMX_0080w],%%mm1\n"  // mm1-128:r1 r1 r0 r0 r1 r1 r0 r0 
+ 
+ 		 // create Cr_g (result in mm0)
+ 		 "movq %%mm1,%%mm0\n"           // r1 r1 r0 r0 r1 r1 r0 r0
+-		 "pmullw _MMX_VgrnRGB,%%mm0\n"// red*-46dec=0.7136*64
+-		 "pmullw _MMX_VredRGB,%%mm1\n"// red*89dec=1.4013*64
++		 "pmullw %[_MMX_VgrnRGB],%%mm0\n"// red*-46dec=0.7136*64
++		 "pmullw %[_MMX_VredRGB],%%mm1\n"// red*89dec=1.4013*64
+ 		 "psraw  $6, %%mm0\n"           // red=red/64
+ 		 "psraw  $6, %%mm1\n"           // red=red/64
+@@ -135,6 +135,6 @@
+ 		 "punpckldq %%mm3,%%mm2\n"      //   L3 L2 L1 L0 l3 l2 l1 l0
+ 		 "movq %%mm2,%%mm4\n"           //   L3 L2 L1 L0 l3 l2 l1 l0
+-		 "pand _MMX_FF00w,%%mm2\n"      //   L3 0  L1  0 l3  0 l1  0
+-		 "pand _MMX_00FFw,%%mm4\n"      //   0  L2  0 L0  0 l2  0 l0
++		 "pand %[_MMX_FF00w],%%mm2\n"      //   L3 0  L1  0 l3  0 l1  0
++		 "pand %[_MMX_00FFw],%%mm4\n"      //   0  L2  0 L0  0 l2  0 l0
+ 		 "psrlw $8,%%mm2\n"             //   0  L3  0 L1  0 l3  0 l1
+ 
+@@ -153,9 +153,9 @@
+ 		 "punpcklbw %%mm7,%%mm1\n" //         0  u3 0  u2 00 u1 00 u0
+ 		 "punpckldq %%mm1,%%mm1\n" //         00 u1 00 u0 00 u1 00 u0
+-		 "psubw _MMX_0080w,%%mm1\n"  // mm1-128:u1 u1 u0 u0 u1 u1 u0 u0 
++		 "psubw %[_MMX_0080w],%%mm1\n"  // mm1-128:u1 u1 u0 u0 u1 u1 u0 u0 
+ 		 // create Cb_g (result in mm5)
+ 		 "movq %%mm1,%%mm5\n"            // u1 u1 u0 u0 u1 u1 u0 u0
+-		 "pmullw _MMX_UgrnRGB,%%mm5\n"    // blue*-109dec=1.7129*64
+-		 "pmullw _MMX_UbluRGB,%%mm1\n"    // blue*114dec=1.78125*64
++		 "pmullw %[_MMX_UgrnRGB],%%mm5\n"    // blue*-109dec=1.7129*64
++		 "pmullw %[_MMX_UbluRGB],%%mm1\n"    // blue*114dec=1.78125*64
+ 		 "psraw  $6, %%mm5\n"            // blue=red/64
+ 		 "psraw  $6, %%mm1\n"            // blue=blue/64
+@@ -239,6 +239,12 @@
+ 		 :
+ 		 : "m" (cr), "r"(cb),"r"(lum),
+-		 "r"(row1),"r"(cols),"r"(row2),"m"(x),"m"(y),"m"(mod)
+-		 : "%ebx"
++		 "r"(row1),"r"(cols),"r"(row2),"m"(x),"m"(y),"m"(mod),
++         [_MMX_0080w] "m" (*_MMX_0080w),
++         [_MMX_00FFw] "m" (*_MMX_00FFw),
++         [_MMX_FF00w] "m" (*_MMX_FF00w),
++         [_MMX_VgrnRGB] "m" (*_MMX_VgrnRGB),
++         [_MMX_VredRGB] "m" (*_MMX_VredRGB),
++         [_MMX_UgrnRGB] "m" (*_MMX_UgrnRGB),
++         [_MMX_UbluRGB] "m" (*_MMX_UbluRGB)
+ 		 );
+ }
+@@ -414,6 +420,14 @@
+          :
+          :"m" (cr), "r"(cb),"r"(lum),
+-	 "r"(row1),"r"(cols),"r"(row2),"m"(x),"m"(y),"m"(mod)
+-	 : "%ebx"
++	 "r"(row1),"r"(cols),"r"(row2),"m"(x),"m"(y),"m"(mod),
++     [_MMX_0080w] "m" (*_MMX_0080w),
++ [_MMX_Ugrn565] "m" (*_MMX_Ugrn565),
++ [_MMX_Ublu5x5] "m" (*_MMX_Ublu5x5),
++ [_MMX_00FFw] "m" (*_MMX_00FFw),
++ [_MMX_Vgrn565] "m" (*_MMX_Vgrn565),
++ [_MMX_Vred5x5] "m" (*_MMX_Vred5x5),
++ [_MMX_Ycoeff] "m" (*_MMX_Ycoeff),
++ [_MMX_red565] "m" (*_MMX_red565),
++ [_MMX_grn565] "m" (*_MMX_grn565)
+          );
+ }
