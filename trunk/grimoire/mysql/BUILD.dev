@@ -1,6 +1,7 @@
 (
 
-  export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti"
+  export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
+  export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
 
   if    $CLIENT_ONLY
   then  OPTS="$OPTS --without-server"
