@@ -1,7 +1,12 @@
-if    !  grep  -q  "/opt/gcc/$VERSION/lib"      /etc/ld.so.conf
-then     echo      "/opt/gcc/$VERSION/lib"  >>  /etc/ld.so.conf
-         ldconfig
-fi
+         TEMP_LD_SO_CONF="/tmp/ld.so.conf.$$.$RANDOM"
+grep  -v  "gcc"           /etc/ld.so.conf  >  $TEMP_LD_SO_CONF
+cp      $TEMP_LD_SO_CONF  /etc/ld.soc.onf
+rm  -f  $TEMP_LD_SO_CONF
 
-unlock_cast
-cast  -c  installwatch
+available_compilers  |
+while  read  COMP;  do
+  if    [  -x  /opt/gcc/$COMP/bin/gcc  ]
+  then  echo  "/opt/gcc/$COMP/lib"     >>  /etc/ld.so.conf
+  else  echo  "/usr/gcc-$COMP/lib"     >>  /etc/ld.so.conf
+  fi
+done

@@ -1,11 +1,15 @@
 (
 
-  LANGUAGE[1]="${LANGUAGE[1]// /,}"
-  ENABLE_LANGS="--enable-languages=${LANGUAGE[1]:=c++}"
+  if    [  -f              $CONFIG_LOGS/DEFAULT/$VERSION/LANGUAGE  ]
+  then  LANGUAGES=$(  cat  $CONFIG_LOGS/DEFAULT/$VERSION/LANGAUGE  )
+  fi
+
+  LANGUAGE="${LANGUAGE// /,}"
+  ENABLE_LANGS="--enable-languages=${LANGUAGE:=c++}"
 
     LCF="LIBCFLAGS=$CFLAGS"
    LCXF="LIBCXXFLAGS=$CXXFLAGS"
-     BF="BOOT_CFLAGS=$CFLAGS -Wl,-dynamic-linker=/opt/glibc/2.2.5/lib/ld-linux.so.2 -Wl,-rpath,/opt/glibc/2.2.5/lib"
+     BF="BOOT_CFLAGS=$CFLAGS"
    LJCF="LIBGCJ_CFLAGS=$CFLAGS"
   LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
    LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
@@ -14,7 +18,7 @@
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset  LD_PRELOAD
 
-  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.patch
+  patch  -p1  <  $SCRIPT_DIR/gcc-$VERSION.patch
 
   ./configure  --host=$BUILD               \
                --prefix=/opt/gcc/$VERSION  \
@@ -31,12 +35,6 @@
   make    install
 
 ) > $C_FIFO 2>&1  &&  (
-
-  find /opt/gcc/3.2 -name lib*.la  |
-  while  read  LA;  do
-    cp  $LA  $LA.old
-    sed  "s:-L/opt/glibc/2.2.5/lib::g"  $LA.old  >  $LA
-  done
 
   ln  -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
   ln  -sf   /opt/gcc/$VERSION/bin/gcc   /opt/gcc/$VERSION/bin/cc
