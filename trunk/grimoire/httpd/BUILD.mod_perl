@@ -1,19 +1,5 @@
 (
 
-remove_perl_module()  {
-
-         LPM="modules/mod_perl.so"
-  HTTPD_CONF="/etc/httpd/httpd.conf"
-  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
-
-  if    grep      "mod_perl.so"  $HTTPD_CONF
-  then  grep  -v  "mod_perl.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
-        cp      $HTTPD_CONF_TMP  $HTTPD_CONF
-  fi
-
-}
-
-
   APACHE_CONFIGURE=\
 "./configure  --enable-so                            \
               --enable-ssl                           \
@@ -36,11 +22,41 @@ remove_perl_module()  {
               --build=$BUILD                         \
               $OPTS"
 
-  $APACHE_CONFIGURE  &&
-  make               &&
-  prepare_install    &&
-  make    install    &&
-  remove_perl_module
+  MOD_PERL_CONFIGURE="perl  Makefile.PL MP_AP_PREFIX=$BUILD_DIR"
+
+  add_perl_module()  {
+
+              LPM="LoadModule perl_module modules/mod_perl.so"
+       HTTPD_CONF="/etc/httpd/httpd.conf"
+    HTTPD_MODULES="/usr/share/httpd/modules/"
+
+    cp    src/modules/perl/mod_perl.so  $HTTPD_MODULES
+    if    !  grep  -q  "perl_module"    $HTTPD_CONF
+    then     echo      "$LPM"  >>       $HTTPD_CONF
+    fi
+
+  }
+
+  if    show_depends_of  httpd  2>/dev/null  |
+        grep  -q  -w  "perl"
+  then
+    $APACHE_CONFIGURE    &&
+    make                 &&
+    cd    ${DIR[1]}      &&
+    $MOD_PERL_CONFIGURE  &&
+    make                 &&
+    cd  ..               &&
+    prepare_install      &&
+    make    install      &&
+    cd  ${DIR[1]}        &&
+    make    install      &&
+    add_perl_module
+  else
+    $APACHE_CONFIGURE    &&
+    make                 &&
+    prepare_install      &&
+    make    install
+  fi
 
 ) > $C_FIFO 2>&1  &&
 
