@@ -102,14 +102,27 @@ remove_extraversion()  {
 }
 
 
+make_modules()  {
+  if    grep  -q  "CONFIG_MODULES=y"  .config
+  then  make   modules  &&  backup_modules
+  fi
+}
+
+
+make_modules_install() {
+  if    grep  -q  "CONFIG_MODULES=y"  .config
+  then  make   modules_install
+  fi
+}
+
+
 compile_and_install()  {
   yes  ""  |  make  oldconfig
   store_config            &&
   make   bzImage          &&
-  make   modules          &&
-  backup_modules          &&
+  make_modules            &&
   prepare_install         &&
-  make   modules_install  &&
+  make_modules_install    &&
   install_kernel          &&
   install_headers
 }
