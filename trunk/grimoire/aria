@@ -1,0 +1,63 @@
+   VERSION=( "1.0.0" )
+  CATEGORY="file-transfer"
+ ATTRIBUTE="x11"
+  HOMEPAGE="http://duda.wz.cz/software/aria/index_en.php http://aria.rednoah.com/"
+       URL=("http://aria.rednoah.com/storage/sources")
+    SOURCE="aria-$VERSION.tar.bz2"
+       REQ=("gtk+ glib"
+            ":--disable-nls::disable native language support"
+            "gettext intltool:--enable-nls::enable native language support"
+            ":--with-x::x11 support")
+#           "openssl:::openssh support")
+  ESTIMATE="355"
+      DESC=(" Aria is a download tool for UNIX(Linux?) similar to Reget or GetRight."
+" It downloads files from Internet via HTTP/HTTPS or FTP. The transfer 
+can be paused, resumed, queued and saved. It has very friendly GTK based
+ GUI, and useful log consoles. Some of its main features are:
+
+    * Automatic CRC/MD5 checking
+    * Split downloads
+    * Recursive downloads
+    * HTTP/FTP proxy server
+    * cut-and-paste, drag-and-drop(Mozilla, Galeon, Opera, Konqueror, 
+      Netscape)
+    * multi-list(tabbed mode) feature
+    * file retrieving over HTTP, HTTPS and FTP protocol
+    * recursive dowloading via HTTP and FTP protocol
+    * interleave route to host by PROXY servers
+    * drag'n'drop support
+    * paste URL from clipboard
+    * cookie support
+    * download resume
+    * server templates to avoid some URL format
+    * automatic MD5 and CRC checking
+    * multi-threading download
+    * download speed limits for each item
+
+")
+ 
+build() {
+  chown -R root.root * &&
+  patch -d src < $SCRIPT_DIR/aria-1.0.0-savefiles-gentoo.diff &&
+  patch -d po  < $SCRIPT_DIR/aria-1.0.0-xgettext-gentoo.diff  &&
+
+  if    [  -z  "${SOURCE}"  ]
+  then  prepare_install  &&  echo  "Profile $BSPELL installed."
+  else
+
+    LD_PRELOAD_OLD=$LD_PRELOAD
+    unset           LD_PRELOAD
+
+    ./configure  --build=$BUILD         \
+                 --prefix=/usr          \
+                 --sysconfdir=/etc      \
+                 --localstatedir=/var   \
+                 $OPTS                  &&
+    touch -m Makefile                   &&
+    make                                &&
+    prepare_install                     &&
+    export  LD_PRELOAD=$LD_PRELOAD_OLD  &&
+    make    install
+  fi
+
+}
