@@ -1,3 +1,7 @@
+case  $VERSION  in
+  2.4.2)  patch  -p1  <  $SCRIPT_DIR/wxGTK-2.4.2.patch  ;;
+esac
+
 export  PATH="/opt/bison/1.35/bin:$PATH"
 
 sed  -i  "s:##name##:##name:"  contrib/src/mmedia/sndcpcm.cpp
