@@ -84,9 +84,14 @@ pkgconf_install()  {
 
 echo  "Applying patch to upgrade 4.3.0 to 4.3.0.1"
 decompress  $(  guess_filename  "${SOURCE[3]}"  \
-                                "$SOURCE_CACHE/$BSPELL/$VERSION"
+                                "${SOURCE_CACHE}/$BSPELL/$VERSION"
              )  |
 patch  -p1
+
+echo  "Applying fontfile.diff"
+cat  $(  guess_filename  "${SOURCE[4]}"  \
+                         "${SOURCE_CACHE}/$BSPELL/$VERSION"
+      )  |  patch  -d lib/font/fontfile  -p0
 
 patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.1.patch
 
