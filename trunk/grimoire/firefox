@@ -1,0 +1,95 @@
+   VERSION=( "1.0" )
+  CATEGORY="web encryption"
+ ATTRIBUTE="client solo x11 new"
+    SOURCE="firefox-${VERSION}-source.tar.bz2"
+       URL="ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source"
+  HOMEPAGE="http://www.mozilla.org/products/firefox"
+       REQ="gss gtk+ heimdal jpeg libIDL libpng libmng perl zip zlib"
+DICTIONARY="mozilla-source-1.7.5.tar.bz2"
+  ESTIMATE="16618"
+      DESC="firefox is a new UI to gecko the mozilla HTML rendering engine."
+
+build() {
+check_space()  {
+  KILOBYTES=$(
+    df    -Pkm  $SOURCE_DIR  |
+    tr    -s ' '             |
+    tail  -n 1               |
+    cut   -d ' '  -f4
+  )
+  if    ((  KILOBYTES < 1152  ));  then
+    echo  "Insufficient disk space available for compiling mozilla."
+    false
+  fi
+}
+
+
+export    CFLAGS="${CFLAGS/-ffast-math/}"
+export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
+export  MOZILLA_OFFICIAL=1
+export  BUILD_OFFICIAL=1
+export  MOZ_PHOENIX=1
+
+cat  <<  EOF  >  .mozconfig
+mk_add_options MOZ_CO_PROJECT=browser
+ac_add_options --enable-application=firefox
+export         MOZ_PHOENIX=1
+mk_add_options MOZ_PHOENIX=1
+ac_add_option  --enable-mathml
+ac_add_options --enable-extensions="cookie,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
+
+ac_add_options --enable-crypto
+ac_add_options --disable-tests
+ac_add_options --disable-mailnews
+ac_add_options --disable-composer
+ac_add_options --disable-auto-deps
+ac_add_options --with-pthreads
+ac_add_options --without-system-nspr
+
+ac_add_options --disable-jsd
+ac_add_options --disable-ldap
+ac_add_options --disable-pedantic
+ac_add_options --disable-profilesharing
+ac_add_options --disable-installer
+ac_add_options --enable-single-profile
+ac_add_options --enable-image-decoders=png,gif,jpeg,bmp
+ac_add_options --disable-logging
+
+
+ac_add_options --prefix=/opt/firefox
+ac_add_options --with-default-mozilla-five-home=/opt/firefox
+ac_add_options --enable-shared
+ac_add_options --disable-static
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --with-system-mng
+ac_add_options --enable-crypto
+ac_add_options --enable-xinerama
+ac_add_options --disable-tests
+ac_add_options --disable-debug
+ac_add_options --enable-optimize="$CFLAGS"
+ac_add_options --enable-reorder
+ac_add_options --enable-strip
+ac_add_options --enable-elf-dynstr-gc
+ac_add_options --enable-cpp-rtti
+ac_add_options --enable-xterm-updates
+ac_add_options --enable-toolkit-gtk2
+ac_add_options --enable-default-toolkit=gtk2
+ac_add_options --enable-old-abi-compat-wrappers
+ac_add_options --enable-xft
+ac_add_options --disable-freetype2
+ac_add_options --disable-gnomevfs
+EOF
+
+check_space                    &&
+# ./configure  $OPTS           &&
+make   -f  client.mk  build    &&
+prepare_install                &&
+make   -f  client.mk  install  &&
+ln     -s  /opt/firefox/bin/firefox  /usr/bin/firefox
+
+}
