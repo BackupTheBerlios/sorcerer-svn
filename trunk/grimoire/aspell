@@ -1,0 +1,65 @@
+   [  -z  $VERSION  ]  &&
+   VERSION=( "0.50.5" "0.50.4.1" "0.50.4" "0.50.3" "0.50.1" )
+      SAFE=( "0.50.5" )
+    IGNORE="^[a-z][a-z]\|2004"
+  CATEGORY="editor"
+ ATTRIBUTE="console concurrent"
+    SOURCE="aspell/aspell-$VERSION"
+ FRESHMEAT="aspell"
+       URL="$GNU_URL"
+  HOMEPAGE="http://aspell.net"
+       REQ="libtool ncurses"
+  ESTIMATE="281"
+     SHORT="aspell is a spell checker designed to eventually replace ispell."
+      LONG="
+aspell is a spell checker designed to eventually replace ispell.
+Its main feature is that it does a much better job of 
+coming up with possible suggestions than ispell does.
+It also has support for checking (La)TeX and HTML files, 
+and run-time support for other non-English languages.
+"
+
+
+build_aspell()  {
+  ./configure  --build=$BUILD        \
+               --prefix=/usr         \
+               --sysconfdir=/etc     \
+               --localstatedir=/var  \
+               $OPTS                 &&
+  make                               &&
+  prepare_install                    &&
+  make    install
+}
+
+
+build_dict()  {
+  ./configure      &&
+  prepare_install  &&
+  make    install
+}
+
+
+
+define_dict()  {
+  unset  LONG
+
+     SHORT="$SPELL provides a dictionary for use with aspell."
+    SOURCE="aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2"
+  ESTIMATE="7"
+
+}
+
+
+case  $SPELL  in
+  aspell-dict-*)  define_dict  ;;
+esac
+
+
+build()  {
+
+  case  $SPELL  in
+    aspell)  build_aspell  ;;
+         *)  build_dict    ;;
+  esac
+
+}
