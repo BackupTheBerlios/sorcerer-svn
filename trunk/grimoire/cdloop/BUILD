@@ -1,2 +1,2 @@
-sedit  "s/guile -c '(use-modules (gtk gtk))'/true/"  configure
+sedit  "s:guile -c:true:g"  configure
 default_build
