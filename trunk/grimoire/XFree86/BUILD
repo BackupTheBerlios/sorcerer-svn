@@ -71,6 +71,7 @@ fi
 
   if  [  !  -e                /etc/skel/.xsession  ];  then
     cp  $SCRIPT_DIR/xsession  /etc/skel/.xsession
+    ln  -sf  .xsession        /etc/skel/.xinitrc
   fi
 
   if  [  !  -e                    /usr/bin/X11  ];  then
