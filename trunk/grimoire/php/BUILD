@@ -1,6 +1,7 @@
 case  $VERSION  in
   4.3.5)  OPTS="$OPTS  --without-curl --without-imap"  ;;
   4.3.6)  OPTS="$OPTS  --without-curl --without-imap"  ;;
+  4.3.7)  OPTS="$OPTS  --without-imap"  ;;
 esac
 
 PHP_CONFIGURE="\
