@@ -1,0 +1,56 @@
+   VERSION=( "040907" "040727" "040718" "040712" "040620" "040603" "040502" )
+  CATEGORY="utility"
+ ATTRIBUTE="console new"
+    SOURCE="heirloom/heirloom-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+       REQ="byacc bzip2 ed flex gzip make ncurses zlib"
+  HOMEPAGE="http://heirloom.sourceforge.net"
+ FRESHMEAT="heirloom"
+  ESTIMATE="895"
+      DESC="heirloom toolchest is a collection of standard Unix utilities.
+heriloom is a collection of Unix utilities originally from Caldera.
+It was derived from original Unix material released
+as open source by Caldera and contains up to four
+versions of each utility corresponding to SVID3/SVR4,
+SVID4/ SVR4.2MP, POSIX.2/SUSV2, and 4BSD (SVR4 /usr/ucb).
+It contains support for lines of arbitrary length and in
+many cases binary input data, support for multibyte
+character sets, especially UTF-8, and more than 100
+individual utilities including bc, cpio, diff, ed, file,
+find, grep, man, nawk, oawk, ps, sed, sort, spell, and tar.
+Extensive documentation is included.
+
+Use heirloom toolchest if you want, but do not 
+uninstall coreutils because none of the binaries 
+installed by heirloom are protected against reaping,
+and sorcery tools and other shell scripts may not
+work correctly with the heirloom supplied ELFs."
+
+
+build() {
+OH=/opt/heirloom
+sed  -i  "s:/usr/5bin:$OH/bin:
+          s:/usr/ucb:$OH/bin/ucb:
+          s:/usr/5lib:$OH/lib:
+          s:/var/adm/spellhist:/dev/null:
+          s:-lcurses:-lncurses:
+          s:-Wl,-Bstatic::
+          s:-Wl,-Bdynamic::
+          s:-fomit-frame-pointer::
+          s:-funroll-loops::
+          s:CFLAGS = -O:CFLAGS = $CFLAGS:
+          s:CFLAGS2 = -O2:CFLAGS2 = $CFLAGS:
+          s:CFLAGSS = -Os:CFLAGSS = $CFLAGS:
+          s:CFLAGSU = -O2:CFLAGSU = $CFLAGS:"  build/mk.config
+make             &&
+prepare_install  &&
+hash   -r        &&
+mkdir  -p  $OH   &&
+make    install  &&
+hash   -r
+}
+
+
+POST_REMOVE() {
+hash  -r
+}
