@@ -1,6 +1,6 @@
-   VERSION=( "20040914" "20040813" "20040716" "20040615" "20040505" "20040408" "20031212" )
+   VERSION=( "20041019" "20040914" "20040813" "20040716" "20040615" "20040505" "20040408" "20031212" )
   CATEGORY="emulator"
- ATTRIBUTE="x11"
+ ATTRIBUTE="broken x11"
     SOURCE="wine/Wine-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.winehq.com"
@@ -26,12 +26,10 @@ completely alternative implementation consisting of
 native system DLLs if they are available."
 
 build()  {
-
-  grep  -rl  "#include <linux/fd.h>\|# include <linux/fd.h>"  *  |
-  while  read
-  do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>
-                   \,# include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
-  done
+  case  $VERSION  in
+    20041019)  sed  -i  "\,# include <linux/fd.h>,i#include <linux/compiler.h>"  dlls/winedos/int13.c
+               sed  -i  "\,# include <linux/cdrom.h>,i#include <linux/types.h>"  dlls/ntdll/cdrom.c  ;;
+  esac
 
   unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
@@ -43,5 +41,4 @@ build()  {
   make                               &&
   prepare_install                    &&
   make    install  LDCONFIG=/bin/true
-
 }

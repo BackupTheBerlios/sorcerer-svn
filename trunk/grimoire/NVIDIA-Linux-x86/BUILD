@@ -65,6 +65,24 @@ case  $LVER  in
      *)  cp  Makefile.kbuild  Makefile  ;;
 esac
 
+case  $VERSION  in
+  1.0-6111)  
+case  $LVER  in
+  2.6.9)  patch  -p0  <<  EOF
+diff -r -U2 nv.c nv.c
+--- nv.c     2004-07-27 08:33:20.000000000 -0700
++++ nv.c     2004-07-27 08:33:20.000000000 -0700
+@@ -20,4 +20,5 @@
+ #endif
+
++#define __VMALLOC_RESERVE (128 << 20)
+ /*
+  * our global state; one per device
+EOF
+;;
+esac
+;;
+esac
 
    SM="/usr/src/linux/System.map"
   SSC="suser-sanity-check"
