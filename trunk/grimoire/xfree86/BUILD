@@ -34,7 +34,7 @@ fi
   bzip2  -cd  $(  guess_filename  ${SOURCE[3]}  )  |  patch  -p1
   cat         $(  guess_filename  ${SOURCE[4]}  )  |  patch  -p1
 
-  export  PATH="/opt/bison/1.35/bin:$PATH"
+  export  PATH="$CANTRIP/opt/bison/1.35/bin:$PATH"
 
   make  World                      &&
   prepare_install                  &&
