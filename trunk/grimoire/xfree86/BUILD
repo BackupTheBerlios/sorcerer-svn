@@ -16,9 +16,7 @@ fi
   then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
   fi
 
-  patch  -p1  <  $(  guess_filename  ${SOURCE[3]}  )
-  patch  -p1  <  $(  guess_filename  ${SOURCE[4]}  )
-  patch  -p1  <  $(  guess_filename  ${SOURCE[5]}  )
+  bzcat  $(  guess_filename  ${SOURCE[3]}  )  |  patch  -p1
 
   make  World                      &&
   prepare_install                  &&
