@@ -1,3 +1,4 @@
+
 finish_install()  {
 
   mkdir  -p  /usr/share/httpd/cgi-bin.ssl
@@ -70,4 +71,4 @@ AC="--enable-layout=Sorcerer  \
 make              &&
 prepare_install   &&
 make    install   &&
- finish_install
+finish_install    
