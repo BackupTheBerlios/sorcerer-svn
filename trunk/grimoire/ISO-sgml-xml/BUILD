@@ -10,5 +10,5 @@ mkdir -p /usr/share/xml/iso-entities-8879.1986/
 unzip -o ${SOURCE_CACHE}/$BSPELL/$VERSION/${SOURCE[1]} -d /usr/share/xml/iso-entities-8879.1986/
 cp -R $SCRIPT_DIR/iso-entities-8879.1986-xml.cat /etc/xml/xml.d/
 
-
-$SCRIPT_DIR/gencat.sh
+cat /etc/sgml/sgml.d/* >/etc/sgml/catalog 
+cat /etc/xml/xml.d/* >/etc/xml/catalog
