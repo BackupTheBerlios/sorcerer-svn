@@ -2,7 +2,7 @@ check_space()  {
   KILOBYTES=$(
     df    -Pkm  $SOURCE_DIR  |
     tr    -s ' '             |
-    tail  -1                 |
+    tail  -n 1               |
     cut   -d ' '  -f4
   )
   if    ((  KILOBYTES < 1152  ));  then
