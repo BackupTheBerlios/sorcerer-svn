@@ -1,12 +1,6 @@
-if  $CUSTOM;  then
-  ./Configure  -Dprefix=/usr -Dusethreads
-fi
-
 (
 
-  if  !  $CUSTOM;  then
-    ./Configure  -Dprefix=/usr -d -e -Dusethreads
-  fi               &&
+  ./Configure  -Dprefix=/usr -d -e -Dusethreads
   make             &&
   prepare_install  &&
   make    install
