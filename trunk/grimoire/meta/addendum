@@ -102,3 +102,14 @@ if  grep  -q  "sorcerer.wox.org"  /etc/hosts;  then
   TEMP="$( cat /etc/hosts )"
   echo  "$TEMP"  |  grep  -v  "sorcerer.wox.org"  >  /etc/hosts
 fi  
+
+
+if    [  -f            /var/log/sorcery/version/Linux-PAM  ]  &&
+      PAM_VER=$(  cat  /var/log/sorcery/version/Linux-PAM  )  &&
+      [  "$PAM_VER"  ==  "0.76"                            ]  &&
+      [  -f  /etc/pam.d/sshd                               ]  &&
+      grep  -q  "pam_limits.so"  /etc/pam.d/sshd
+then  TEMP="$(  cat              /etc/pam.d/sshd  )"
+      echo  "$TEMP"  |  grep  -v  "pam_limits.so"  >   /etc/pam.d/sshd
+      echo  "# pam_limits.so malfunctioning?"      >>  /etc/pam.d/sshd
+fi
