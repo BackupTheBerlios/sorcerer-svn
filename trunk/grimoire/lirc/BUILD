@@ -2,8 +2,8 @@ conf()  {
 
   if  !  grep  -q  "driver="  $SPELL_CONFIG;  then
 
-  patch  -p 0  <  $SCRIPT_DIR/lirc-setup.patch
-  ./setup.sh                                         &&
+  bzip2 -dc  $SCRIPT_DIR/lirc-setup.patch.bz2  |  patch  -p0
+  ./setup.sh                                              &&
   cat configure.sh >>  $SPELL_CONFIG
 
   fi
@@ -50,10 +50,13 @@ remove_old_modules()  {
   make    install                         &&
   chgrp  lirc  /dev/lirc*                 && 
   chmod  660   /dev/lirc*                 &&
-  cp  $SCRIPT_DIR/lircd.sh   /etc/init.d  &&
   message  "`cat  $SCRIPT_DIR/message.txt`"
 
 ) > $C_FIFO 2>&1  &&  (
+
+  if    !  [  -f                      /etc/init.d/lircd.sh  ]
+  then     cp  $SCRIPT_DIR/lircd.sh   /etc/init.d
+  fi
 
   if  ! [  -f      /etc/modules.d/lirc  ]
   then  mkdir  -p  /etc/modules.d
