@@ -21,9 +21,6 @@ EOF
 }
 
 
-# Clean out the old alsa drivers.
-rm  -f  /lib/modules/`installed_version linux`/misc/snd*
-
 (
 
   modprobe  soundcore

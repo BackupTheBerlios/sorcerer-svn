@@ -3,7 +3,7 @@
   ./configure  --build=$BUILD  \
                --prefix=/usr   \
                --libdir=/lib   &&
-  make  shared                 &&
+  make    shared               &&
   prepare_install              &&
   make    install
 
