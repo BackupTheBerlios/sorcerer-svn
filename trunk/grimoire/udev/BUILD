@@ -11,6 +11,6 @@ ln  -fs  ../init.d/sysfsmount.sh    /etc/rcS.d/S00sysfsmount  &&
 		sed -i "s,udev_root=.*,udev_root=\"/dev/\"," /etc/udev/udev.conf
 		sed -i "s,udev_db=.*,udev_db=\"/dev/.udev.tdb\"," /etc/udev/udev.conf
 	fi
-	sed -i "s,udev_rules=.*,udev_rules=\"/etc/udev/udev.rules\"," /etc/udev/udev.conf
+	#sed -i "s,udev_rules=.*,udev_rules=\"/etc/udev/udev.rules\"," /etc/udev/udev.conf
 	sed -i "s,udev_permissions=.*,udev_permissions=\"/etc/udev/udev.permissions.gentoo\"," /etc/udev/udev.conf
 )
