@@ -32,7 +32,7 @@ EOF
 
 
 install_data()  {
-  CONTENT=$(  guess_filename  $SOURCE  $SOURCE_CACHE/$BSPELL/$VERSION  )
+  CONTENT=$(  guess_filename  $SOURCE  )
   PACKAGE=/usr/share/uqm/content/packages
   if    [  -n  "$CONTENT"  ];  then
     prepare_install            &&
@@ -47,17 +47,40 @@ install_data()  {
 }
 
 
-build()  {
-  if    [  "$SPELL"  ==  "uqm"  ]
-  then  install_source
-  else  install_data
+install_remix()  {
+  CONTENT1=$(  guess_filename  ${SOURCE[0]}  )
+  CONTENT2=$(  guess_filename  ${SOURCE[1]}  )
+  PACKAGE=/usr/share/uqm/content/packages/addon/uqmremix
+  if    [  -n  "$CONTENT1"  ]  &&
+        [  -n  "$CONTENT2"  ]
+  then
+    prepare_install            &&
+    set      -x                &&
+    mkdir    -p      $PACKAGE  &&
+    install  -m 0644  -o root  -g  root  $CONTENT1   $PACKAGE  &&
+    install  -m 0644  -o root  -g  root  $CONTENT2   $PACKAGE  &&
+    set      +x
+  else
+    echo  "$SOURCE not found"
+    false
   fi
+}
+
+
+build()  {
+  case  $SPELL  in
+    uqm)        install_source  ;;
+    uqm-remix)  install_remix   ;;
+    *)          install_data    ;;
+  esac
 }
 
 
 if    ! [  "$SPELL"  ==  "uqm"  ];  then
   unset  REQ  OPT
-  SOURCE="sc2/uqm-${VERSION}-${SPELL:4}.zip"
   ESTIMATE="5"
   pre_build()  {  :;  }
+  if     !  [  "$SPELL"  ==  "uqm-remix"  ]
+  then   SOURCE="sc2/uqm-${VERSION}-${SPELL:4}.zip"
+  fi
 fi
