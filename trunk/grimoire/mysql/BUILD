@@ -21,7 +21,7 @@ esac
 sed  -i  "s:Linuxthreads:pthread:"  configure
 
 case  $VERSION  in
-  4.1.10)  mkdir  -p                     system/asm
+ 4.1.10*)  mkdir  -p                     system/asm
            sed  "s/new/nneww/"     /usr/include/asm/system.h  >  \
                                          system/asm/system.h
            export    CFLAGS="-isystem $PWD/system $CFLAGS"
