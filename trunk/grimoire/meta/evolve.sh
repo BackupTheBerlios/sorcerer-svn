@@ -30,26 +30,24 @@ install_to_branch()  {  (
 
 
 main()  {
-  if  !  [  -d  /var/log/sorcery/install/bash  ];  then
-    cd /var/log/sorcery/version
-    for  SPELL  in  *;  do
-      cd  /var/log/sorcery
-      unset  BRANCH
-      BRANCH="$(  cat  branch/$SPELL  2>/dev/null  )"
-      if  [  -n  "$BRANCH"  ];  then
-        cd     install;  install_to_branch  $SPELL  $BRANCH
-        cd  ../compile;  compile_to_branch  $SPELL  $BRANCH
+  cd /var/log/sorcery/version
+  for  SPELL  in  *;  do
+    cd  /var/log/sorcery
+    unset  BRANCH
+    BRANCH="$(  cat  branch/$SPELL  2>/dev/null  )"
+    if  [  -n  "$BRANCH"  ];  then
+      cd     install;  install_to_branch  $SPELL  $BRANCH
+      cd  ../compile;  compile_to_branch  $SPELL  $BRANCH
 
-        for    DIR  in  version  md5sum  config   hold  exile  \
-                        provide  opt.on  opt.off  snap  gcc2
-        do    cd  ../$DIR;  spell_to_branch  $SPELL  $BRANCH
-        done
-      fi
-    done
-    rm  -rf  /var/log/sorcery/branch      
-    rm  -rf  /var/log/sorcery/use
-    rm  -rf  /var/log/sorcery/provide
-  fi
+      for    DIR  in  version  md5sum  config   hold  exile  \
+                      provide  opt.on  opt.off  snap  gcc2
+      do    cd  ../$DIR;  spell_to_branch  $SPELL  $BRANCH
+      done
+    fi
+  done
+  rm  -rf  /var/log/sorcery/branch      
+  rm  -rf  /var/log/sorcery/use
+
 }
 
 
