@@ -10,6 +10,8 @@ db_41_fix()  {  (
   esac
 )  }
 
+  unset  LANG  LC_CTYPE
+
   db_41_fix
   ./Configure  -Dprefix=/usr -d -e -Dusethreads
   make  "OPTIMIZE=$CFLAGS"  &&
