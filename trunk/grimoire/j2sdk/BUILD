@@ -1,13 +1,19 @@
 (
 
-  prepare_install                     &&
-  rm   -rf  $BUILD_DIR/old.libraries  &&
-  cp   -r   $BUILD_DIR  /usr/lib      &&
-  cd  /usr/lib/j2sdk${VERSION}/bin    &&
-  for  FILE  in  `ls`;  do
-    if  [  -f  $FILE  ];  then
-      ln  -sf  /usr/lib/j2sdk${VERSION}/bin/${FILE}  \
-                                   /usr/bin/${FILE}
+  if    [  "$PREFIX"  ==  "/usr"  ]
+  then         DEST_DIR="/opt/j2sdk/$VERSION"
+  else  DEST_DIR="$PREFIX/opt/j2sdk/$VERSION"
+  fi
+
+  prepare_install                         &&
+  mkdir  -p                $DEST_DIR      &&
+  cp     -r  $BUILD_DIR/*  $DEST_DIR      &&
+  cd                       $DEST_DIR/bin  &&
+  for  FILE  in  *;  do
+    if      [  -f    $FILE  ]  &&
+            [  -x    $FILE  ]
+    then    ln  -sf  $DEST_DIR/bin/${FILE}  \
+                       $PREFIX/bin/${FILE}
     fi
   done
 
