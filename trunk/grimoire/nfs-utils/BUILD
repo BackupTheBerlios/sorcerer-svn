@@ -1,5 +1,8 @@
 unalias  make
 
+# export    CFLAGS="-I /usr/include/et $CFLAGS"
+# export  CXXFLAGS="-I /usr/include/et $CXXFLAGS"
+
 ./configure  --prefix=/usr  &&
 make                        &&
 make  install               &&

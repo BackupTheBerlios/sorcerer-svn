@@ -1,5 +1,5 @@
-   VERSION=( "1.6.0" "1.4.1" "1.4.0" "1.2.5" "1.2.3" "1.2.2" )
-    IGNORE="^1\.7"
+   VERSION=( "1.8.0" "1.6.0" "1.4.1" "1.4.0" "1.2.5" "1.2.3" "1.2.2" )
+    IGNORE="^1\.9"
   CATEGORY="graphic"
  ATTRIBUTE="library x11"
 #   SOURCE="pango-$VERSION.tar.bz2"
@@ -7,8 +7,24 @@
     SOURCE="sources/pango/${VERSION:0:3}/pango-$VERSION.tar.bz2"
        URL="$GNOME_URL"
   HOMEPAGE="http://www.pango.org"
-       REQ="expat glib freetype x11"
-  ESTIMATE="295"
+       REQ="expat fontconfig glib freetype x11"
+  ESTIMATE="327"
   GNOMEFTP="pango"
       DESC="pango is library for layout and rendering of text.
 pango has an emphasis on internationalization."
+
+
+build()  {
+
+  OF="/opt/fontconfig"
+ OFI="$OF/include"
+ OFL="$OF/lib"
+OFLP="$OFL/pkgconfig"
+
+export  PKG_CONFIG_PATH="$OFLP"
+export               CC="gcc  -I$OFI"
+export          LDFLAGS="-L$OFL  -Wl,-rpath,$OFL  -Wl,-rpath-link,$OFL  $LDFLAGS"
+
+default_build
+
+}
