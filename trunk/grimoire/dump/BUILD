@@ -10,6 +10,5 @@ LDOPTS="--with-ldopts=$LDFLAGS"
              --disable-readline  \
              "$CC"               \
              "$LDOPTS"           &&
-make             &&
-prepare_install  &&
-make    install
+make  &&
+make  install
