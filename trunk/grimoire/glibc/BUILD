@@ -37,9 +37,12 @@ echo       "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
 
 case  $VERSION  in
-  2.3.3)  sed  -i  "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
-          patch  -p1  <  $SCRIPT_DIR/glibc-2.3.3-gcc-3.4.patch
-          export  CFLAGS="$CFLAGS -fno-unit-at-a-time"  ;;
+  2.3.3)  sed    -i      "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
+          # patch  -p1  <  $SCRIPT_DIR/glibc-2.3.3-gcc-3.4.patch
+          # grep   -rl     "\-fno-inline-functions" csu linuxthreads  |
+          # xargs  -l64  \
+          # sed    -i  "s:-fno-inline-functions:-fno-inline-functions -fno-unit-at-a-time:"
+          ;;
 esac
 
 export  LANGUAGE=C
@@ -49,14 +52,21 @@ export    LC_ALL=C
 mkdir  -p  $INSTALL_ROOT/etc
 touch      $INSTALL_ROOT/etc/ld.so.conf
 
+echo  "$OPTS"  |
+grep  -q   "\--enable-add-ons=nptl"  ||
+OPTS="$OPTS  --enable-add-ons=linuxthreads"
+
+export  PATH="${PATH/gcc\/current/gcc/3.3.4}"
+
 mkdir  build
 cd     build
 ../configure  --host=$BUILD                 \
              --build=$BUILD                 \
              --prefix=/usr                  \
-             --enable-add-ons=linuxthreads  \
              --disable-profile              \
              --with-elf                     \
+             --without-gd                   \
+             --without-cvs                  \
              --enable-shared                \
              $OPTS                          &&
 make                                        &&
