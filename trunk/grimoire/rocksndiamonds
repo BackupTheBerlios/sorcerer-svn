@@ -1,0 +1,54 @@
+   VERSION=( "3.1.0" "3.0.8" "3.0.7" "3.0.6" "3.0.5" "3.0.4" "3.0.3" "3.0.2" "3.0.0" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+ SOURCE[0]="rocksndiamonds-$VERSION.tar.gz"
+ SOURCE[1]="levels/rockslevels-dx-1.0.tar.gz"
+ SOURCE[2]="levels/rockslevels-emc-1.0.tar.gz"
+ SOURCE[3]="levels/rockslevels-sp-1.0.tar.gz"
+       URL="http://www.artsoft.org/RELEASES/unix/rocksndiamonds"
+  HOMEPAGE="http://www.artsoft.org/rocksndiamonds"
+       REQ="SDL_image SDL_mixer SDL_net"
+  ESTIMATE="57"
+ FRESHMEAT="rocksndiamonds"
+     SHORT="rocksndiamonds is an arcade style game with stero sounds."
+      LONG="
+rocksndiamonds is an arcade style game 
+for color X11 with stereo sounds.
+It's a game like Boulderdash (C64), 
+Emerald Mine (Amiga) and Supaplex (PC).
+Included are many levels known from the games 
+Boulderdash, Emerald Mine, Sokoban and 
+Supaplex, and a lot of new levels designed 
+by other players.
+"
+
+
+build()  { (
+
+  GD="GAME_DIR=/usr/share/rocksndiamonds"
+  OP="OPTIONS=$CFLAGS"
+  EL="EXTRA_LDFLAGS=$LDFLAGS"
+  UG="/usr/games"
+  RO_GD="/usr/share/rocksndiamonds"
+  RW_GD="/var/lib/rocksndiamonds"
+ 
+  diamond_install()  {
+    set      -x
+    mkdir    -p   $RW_GD  $RO_GD  $UG
+    chmod    a+r  $RW_GD
+    cp       -av  docs graphics levels music sounds  $RO_GD
+    cp       -av  scores                             $RW_GD
+    install  -m 0755  rocksndiamonds                 $UG
+    set      +x
+  }
+
+
+  make    clean
+  make    sdl      "$OP"  "$EL"          \
+                   "RO_GAME_DIR=$RO_GD"  \
+                   "RW_GAME_DIR=$RW_GD"  &&
+  prepare_install  &&
+  diamond_install
+
+
+) }
