@@ -59,7 +59,7 @@ fi
   ULP="/usr/lib/pkgconfig"
   [      -d  $ULP  ]  ||
   mkdir  -p  $ULP
-  cp     -a  /usr/X11R6/lib/pkgconfig  $ULP
+  cp     -a  /usr/X11R6/lib/pkgconfig/*  $ULP
 
   rm     -f  /usr/X11R6/include/zlib.h
   rm     -f  /usr/X11R6/lib/libz.a
