@@ -1,3 +1,11 @@
+CX=2
+while  [  -n  "${SOURCE[$CX]}"  ]
+do  patch  -p2  <  \
+    $(  guess_filename  "${SOURCE[$CX]}"  \
+                         ${SOURCE_CACHE}/$BSPELL/$VERSION  )
+    ((  CX++  ))
+done
+
 ./configure  --build=$BUILD  \
              --prefix=/usr   \
              --bindir=/bin   \
