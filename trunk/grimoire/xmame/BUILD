@@ -15,6 +15,9 @@ activate_voyeur
 (
   mkdir  -p          $CONFIG_LOGS/$SPELL
   cp  makefile.unix  $CONFIG_LOGS/$SPELL
+
+  patch  -p1  <  $SCRIPT_DIR/xmame.int.fix
+
   make  PREFIX=/usr           \
         BINDIR=/usr/games     \
         CFLAGS="$CFLAGS"      \
