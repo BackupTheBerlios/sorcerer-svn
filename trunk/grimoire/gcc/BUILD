@@ -28,6 +28,11 @@
   # 3.2.2 now supports the DESTDIR Makefile variable
   # but isn't specifying a prefix good enough?
 
+  if  [  -n  "${SOURCE[1]}"  ];  then
+    mv  protector.c  protector.h  gcc
+    patch  -p0  <  protector.dif
+  fi
+
   ./configure  --host=$BUILD               \
                --prefix=/opt/gcc/$VERSION  \
                --enable-threads=posix      \
