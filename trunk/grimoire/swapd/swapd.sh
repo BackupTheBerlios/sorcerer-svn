@@ -4,7 +4,7 @@ PID=/var/run/swapd.pid
 
 start() {
   [      -d  /swap  ]  ||
-  mkdir  -p  /swap
+  mkdir  -p  /swap          2>/dev/null
   if  touch  /swap/rw.test  2>/dev/null;  then
     rm  -f   /swap/rw.test
     echo  "Starting swapd..."
