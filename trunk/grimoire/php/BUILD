@@ -25,38 +25,17 @@ PHP_CONFIGURE="\
 --with-gettext                \
 --with-mod_charset            \
 --with-layout=GNU             \
---with-zlib
+--with-zlib                   \
+--with-bz2                    \
 $OPTS"
-
-
-
-build_module()  {
-
-  echo  "Building web server module:  $1"
-  rm  -rf             apxs
-  cp  -a  $BUILD_DIR  apxs
-  cd                  apxs
-  ./configure  $PHP_CONFIGURE  --with-$1  &&
-  make
-
-}
 
 
 (
 
-  if    spell_installed $( get_provider httpd   ); then build_module apxs2
-  elif  spell_installed $( get_provider apache  ); then build_module apxs
-  fi    &&
-
-  cd           $BUILD_DIR      &&
   ./configure  $PHP_CONFIGURE  &&
   make                         &&
   prepare_install              &&
-  make    install              &&
-
-  if    [  -d  apxs  ]
-  then  cd     apxs  2>/dev/null  &&  make  install
-  fi
+  make    install
   
 ) > $C_FIFO 2>&1  &&  (
 

@@ -1,13 +1,16 @@
 #!/bin/sh
 
+make_dirs()  {
+  [      -d  /var/log/httpd  ]  ||
+  mkdir  -p  /var/log/httpd  ]
+}
+
 case $1 in
   start)         echo  "Starting Apache web server."
-                 mkdir  -p  /var/run/httpd
-                 apachectl  startssl
+                 make_dirs;  apachectl  startssl
                  ;;
   restart|stop)  echo  "$1ing Apache web server."
-                 mkdir  -p  /var/run/httpd
-                 apachectl  $1
+                 make_dirs;  apachectl  $1
                  ;;
              *)  echo      "Usage: $0 {start|stop|restart}"
                  ;;
