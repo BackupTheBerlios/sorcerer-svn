@@ -1,6 +1,6 @@
 (
 
-  sedit  "s/-O/$CFLAGS/"  Makefile.in
+  sedit  "s:-O:$CFLAGS:"  Makefile.in
 
   ./configure  --prefix=/usr        &&
   make                              &&
