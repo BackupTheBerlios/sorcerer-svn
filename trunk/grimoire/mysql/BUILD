@@ -1,6 +1,5 @@
 (
 
-  export    CFLAGS="$CFLAGS -O3"
   export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti"
 
   if    $CLIENT_ONLY
