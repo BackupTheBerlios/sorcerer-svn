@@ -1,4 +1,8 @@
 (
+  
+  # already-ruuning patch for running multiple
+  # instances of mozilla without -remote option.
+  bzip2  -cd  $SCRIPT_DIR/already-running.patch.bz2  |  patch -p1
 
   export    CFLAGS="${CFLAGS/-ffast-math/}"
   export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
@@ -20,7 +24,6 @@ ac_add_options --enable-xinerama
 ac_add_options --disable-tests
 ac_add_options --disable-debug
 ac_add_options --enable-optimize="$CFLAGS"
-
 ac_add_options --enable-reorder
 ac_add_options --enable-strip
 ac_add_options --enable-elf-dynstr-gc
@@ -30,10 +33,24 @@ ac_add_options --enable-svg
 ac_add_options --enable-toolkit-gtk2
 ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-old-abi-compat-wrappers
-
 ac_add_options --enable-xft
 ac_add_options --disable-freetype2
 EOF
+
+# mail/news support
+if  ! $MAIL_NEWS;  then
+  echo "ac_add_options --disable-mailnews" >> .mozconfig
+fi   
+
+# composer support
+if  ! $COMPOSER;  then
+  echo "ac_add_options --disable-composer" >> .mozconfig
+fi
+
+# chatzilla support
+if  ! $CHATZILLA;  then
+  echo 'ac_add_options --enable-extensions="default,-venkman,-inspector,-irc"' >> .mozconfig
+fi  
 
   ./configure  $OPTS  &&
   make                &&
