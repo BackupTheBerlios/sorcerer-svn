@@ -1,13 +1,7 @@
 (
 
-  prepare_install  &&
-
-  if    !  [  -f  /etc/shares.excl  ]
-  then  cp             shares.excl  \
-                  /etc/shares.excl
-  fi  &&
-  cp              cron_mkautosmb    \
-                       mkautosmb    \
-                  /usr/bin
+  prepare_install            &&
+  cp  *mkautosmb*  /usr/bin  &&
+  cp  *-example    /etc
 
 ) > $C_FIFO 2>&1
