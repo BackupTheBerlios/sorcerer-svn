@@ -122,67 +122,62 @@ initialize()  {
                     BuildFontServer   InstallFSConfig"
       FONT_OPTIONS="$YES_FONT_OPTIONS  $NO_FONT_OPTIONS"
 
-  YES_MISC_OPTIONS="HasShm BuildXF86DRI BuildXF86DRM BuildGLULibrary BuildGLXLibrary BuildGlxExt InstallXinitConfig InstallXdmConfig XprtServer"
-   NO_MISC_OPTIONS="BuildServersOnly  BuildPexExt  XnestServer
+  YES_MISC_OPTIONS="HasShm BuildXF86DRI BuildXF86DRM  BuildGLULibrary BuildGLXLibrary BuildGlxExt InstallXinitConfig InstallXdmConfig XnestServer XprtServer"
+   NO_MISC_OPTIONS="BuildServersOnly  BuildPexExt
                     LinuxFBDevSupport XVirtualFramebufferServer"
       MISC_OPTIONS="$YES_MISC_OPTIONS  $NO_MISC_OPTIONS"
+
+  TARGET_CONFIG="$CONFIG_LOGS/$SPELL/host.def"
 
 }
 
 
-generate_host_def()  {
-
+host_def_optimizations()  {
   echo  "#define DefaultCCOptions      $CFLAGS"
   echo  "#define DefaultGcc2i386Opt    $CFLAGS"
   echo  "#define LibraryCDebugFlags    $CFLAGS"
   echo  "#define DefaultCDebugFlags    $CFLAGS"
   echo  "#define OptimizedCDebugFlags  $CFLAGS"
   echo  "#define HasZlib YES"
+}
+
+
+enter_to_space()  {  (
+  while  read   ITEM;  do
+    echo  -n  "$ITEM "
+  done
+  echo
+)  }
+
+
+generate_host_def()  {
+
+  host_def_optimizations
 
   if  [  -z  "$XF86CardDrivers"  ];  then
-    XF86CardDrivers="$ON_CARD_DRIVERS"
+  XF86CardDrivers="$ON_CARD_DRIVERS"
   fi
 
-  XF86CardDrivers=`echo  $XF86CardDrivers  |  tr  '
-' ' '`
-  echo  "#define XF86CardDrivers $XF86CardDrivers"
+  echo  -n  "#define XF86CardDrivers "
+  echo  "$XF86CardDrivers"          |  enter_to_space
 
-
-  if  [  -z  "$DriDrivers"  ];  then
-    echo  "#define DriDrivers /**/"
-  else
-    DriDrivers=`echo  $DriDrivers  |  tr  '
-' ' '`
-    echo  "#define DriDrivers $DriDrivers"
+  if  [  -z  "$DriDrivers"  ]
+  then  echo      "#define DriDrivers /**/"
+  else  echo  -n  "#define DriDrivers "
+        echo      "$DriDrivers"     |  enter_to_space
   fi
 
-
-
-  if  [  -z  "$XInputDrivers"  ];  then
-    echo  "#define XInputDrivers mouse"
-  else
-    XInputDrivers=`echo  $XInputDrivers  |  tr  '
-' ' '`
-    echo  "#define XInputDrivers $XInputDrivers"
+  if  [  -z  "$XInputDrivers"  ]
+  then  echo      "#define XInputDrivers mouse"
+  else  echo  -n  "#define XInputDrivers "
+        echo      "$XInputDrivers"  | enter_to_space
   fi
 
 
-
-  for  ITEM  in   $YES_FONT_OPTIONS;  do
-    echo  "#define $ITEM  YES"
-  done
-
-  for  ITEM  in  $NO_FONT_OPTIONS;  do
-    echo  "#define $ITEM  NO"
-  done
-
-  for  ITEM  in   $YES_MISC_OPTIONS;  do
-    echo  "#define $ITEM  YES"
-  done
-
-  for  ITEM  in  $NO_MISC_OPTIONS;  do
-    echo  "#define $ITEM  NO"
-  done
+  for  ITEM  in  $YES_FONT_OPTIONS;  do  echo  "#define $ITEM YES";  done
+  for  ITEM  in   $NO_FONT_OPTIONS;  do  echo  "#define $ITEM  NO";  done
+  for  ITEM  in  $YES_MISC_OPTIONS;  do  echo  "#define $ITEM YES";  done
+  for  ITEM  in   $NO_MISC_OPTIONS;  do  echo  "#define $ITEM  NO";  done
 
 }
 
@@ -190,13 +185,20 @@ generate_host_def()  {
 save_host_def()  {
 
 
-  TARGET1="$CONFIG_LOGS/$SPELL/host.def"
+  dialog  --backtitle  "$BACKTITLE"  \
+          --msgbox     "Saving Configuration to $TARGET_CONFIG"  \
+          6 60
 
-  dialog  --backtitle  "$BACKTITLE"                        \
-          --msgbox     "Saving Configuration to $TARGET1"  \
-          6 40
+  generate_host_def  >  $TARGET_CONFIG
 
-  generate_host_def  >  "$TARGET1"
+}
+
+
+auto_save()  {
+
+  if    !  [  -f  $TARGET_CONFIG  ]
+  then  host_def_optimizations  >  $TARGET_CONFIG
+  fi
 
 }
 
@@ -278,7 +280,7 @@ configure_host_def()  {
   do
 
     case  $COMMAND  in
-                 Exit)  break          ;;
+                 Exit)  auto_save;  break  ;;
                  Save)  save_host_def  ;;
                  Edit)  [  -n   "$EDITOR"  ]                   &&
                         $EDITOR  $CONFIG_LOGS/$SPELL/host.def  ||
