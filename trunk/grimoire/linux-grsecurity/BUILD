@@ -116,9 +116,10 @@ compile_and_install()  {
 
 
 apply_grsecurity_patch()  {
-  cat  $(  guess_filename  ${SOURCE[1]}  )  |  patch  -p1
-  cat  $(  guess_filename  ${SOURCE[2]}  )  |  patch  -p1
+  decompress  $(  guess_filename  ${SOURCE[1]}  )  |  patch  -p1
+  cat         $(  guess_filename  ${SOURCE[2]}  )  |  patch  -p1
   sed  -i  "s:EXTRAVERSION = .*:EXTRAVERSION =:"  Makefile
+  echo "Applied ${SOURCE[2]}"
 }
 
 
