@@ -1,20 +1,16 @@
-(
+if    spell_installed  Linux-PAM
+then  ENABLE_PAM="--enable-pam"
+fi
 
-  if  spell_installed  Linux-PAM;  then
-    ENABLE_PAM="--enable-pam"
-  fi
-
-  sed  -i  "s/	standalone/	inetd/"    \
-         sample-configurations/basic.conf  &&
-  ./configure  --prefix=/usr               \
-               --sysconfdir=/etc           \
-               --localstatedir=/var        \
-               --enable-shadow             \
-               $ENABLE_PAM                 \
-               $OPTS                       &&
-  make                                     &&
-  prepare_install                          &&
-  make    install                          &&
-  cp  -R  sample-configurations  doc
-
-) > $C_FIFO 2>&1
+sed  -i  "s/	standalone/	inetd/"  \
+     sample-configurations/basic.conf    &&
+./configure  --prefix=/usr               \
+             --sysconfdir=/etc           \
+             --localstatedir=/var        \
+             --enable-shadow             \
+             $ENABLE_PAM                 \
+             $OPTS                       &&
+make                                     &&
+prepare_install                          &&
+make    install                          &&
+cp  -R  sample-configurations  doc

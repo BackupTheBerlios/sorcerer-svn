@@ -20,12 +20,9 @@ while  $CONFIG_ISDN;  do
 done
 
 
-(
-  # patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
-  make  subconfig  &&
-  store_config     &&
-  make             &&
-  prepare_install  &&
-  make    install
-
-) > $C_FIFO 2>&1
+# patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
+make  subconfig  &&
+store_config     &&
+make             &&
+prepare_install  &&
+make    install

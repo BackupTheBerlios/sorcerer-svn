@@ -1,10 +1,7 @@
-(
+LID="LINUX_INCLUDE_DIR=/usr/include/i2c/linux"
+  P="PREFIX=/usr"
+  M="MANDIR=/usr/man"
 
-  make  LINUX_INCLUDE_DIR=/usr/include/i2c/linux  all  &&
-  prepare_install                                      &&
-  make  LINUX_INCLUDE_DIR=/usr/include/i2c/linux       \
-        PREFIX=/usr                                    \
-	MANDIR=/usr/man                                \
-	install      
-   
-) > $C_FIFO 2>&1
+make             "$LID" "$P" "$M"  all  &&
+prepare_install                         &&
+make    install  "$LID" "$P" "$M"

@@ -1,16 +1,12 @@
-(
+if    spell_installed  Linux-PAM
+then  ENABLE_PAM="--enable-pam"
+fi
 
-  if  spell_installed  Linux-PAM;  then
-    ENABLE_PAM="--enable-pam"
-  fi
-
-  ./configure  --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $ENABLE_PAM           \
-               $OPTS                 &&
-  make                               &&
-  prepare_install                    &&
-  make    install
-
-) > $C_FIFO 2>&1
+./configure  --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $ENABLE_PAM           \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install

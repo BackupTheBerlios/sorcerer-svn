@@ -1,7 +1,3 @@
-(
-
-  make  ROOT=      &&
-  prepare_install  &&
-  make  ROOT= PREFIX=/usr install
-
-) > $C_FIFO 2>&1
+make             ROOT=  &&
+prepare_install         &&
+make    install  ROOT=  PREFIX=/usr

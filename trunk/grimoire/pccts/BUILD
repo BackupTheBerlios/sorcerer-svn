@@ -1,14 +1,10 @@
-(
-
-  cd  pccts                                        &&
-  sed  -i  "s:\#COPT=-O2:COPT=$CFLAGS:"  makefile  &&
-  make                                             &&
-  prepare_install                                  &&
-  install  -m  700 bin/antlr  /usr/bin             &&
-  install  -m  700 bin/dlg    /usr/bin             &&
-  install  -m  700 bin/genmk  /usr/bin             &&
-  install  -m  700 bin/sor    /usr/bin             &&
-  mkdir                       /usr/include/pccts   &&
-  cp       h/*                /usr/include/pccts
-
-) > $C_FIFO 2>&1
+cd  pccts                                        &&
+sed  -i  "s:\#COPT=-O2:COPT=$CFLAGS:"  makefile  &&
+make                                             &&
+prepare_install                                  &&
+install  -m  700 bin/antlr  /usr/bin             &&
+install  -m  700 bin/dlg    /usr/bin             &&
+install  -m  700 bin/genmk  /usr/bin             &&
+install  -m  700 bin/sor    /usr/bin             &&
+mkdir                       /usr/include/pccts   &&
+cp       h/*                /usr/include/pccts

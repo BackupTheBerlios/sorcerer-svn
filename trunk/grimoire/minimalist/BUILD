@@ -1,4 +1,3 @@
-{
 # First, add the global entry in aliases
 echo " " > /etc/aliases.minimalist-sample
 echo "# minimalist global entry:" >> /etc/aliases.minimalist-sample
@@ -29,7 +28,3 @@ chown nobody.nogroup /var/spool/minimalist/list-sample/list
 # Copy the help files
 mkdir              /usr/doc/minimalist
 cp     -R  ./docs  /usr/doc/minimalist
-
-} > $C_FIFO 2>&1
-
-
