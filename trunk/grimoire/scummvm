@@ -1,0 +1,48 @@
+    VERSION=( "0.6.0" "0.5.1" )
+     IGNORE="macosx\|morphos\|dreamcast\|tools"
+   CATEGORY="game emulator"
+  ATTRIBUTE="x11"
+        URL="$SOURCEFORGE_URL"
+     SOURCE="scummvm/scummvm-$VERSION.tar.bz2"
+   HOMEPAGE="http://scummvm.sourceforge.net"
+        REQ="SDL"
+     OPT[0]="alsa,lib:::for Sound support"
+     OPT[1]="libvorbis:::for OGG music support"
+     OPT[2]="mad,lib:::for MP3 music support"
+     OPT[3]="libmpeg2:::for cutscenes support"
+     OPT[4]="scummvm-fotaq:::for the game Flight Of The Amazon Queen"
+     OPT[5]="scummvm-bass:::for the game Beneath A Steel Sky"
+   ESTIMATE="525"
+  FRESHMEAT="scummvm"
+      SHORT="scummvm is a virtual machine for classic point-and-click adventure games."
+      LONG="
+$SHORT
+It is designed to run:
+Adventure Soft's Simon the Sorcerer 1 and 2; 
+Revolution's Beneath A Steel Sky;
+Broken Sword 1 and Broken Sword 2;
+Flight of the Amazon Queen;
+and games based on LucasArts' SCUMM
+(Script Creation Utility for Maniac Mansion) system.
+"
+
+build()  {
+  ./configure  --disable-debug  $OPTS  &&
+  make  &&
+  install  -D  -s  -m 755  scummvm  /usr/games/scummvm
+}
+
+
+install_game()  {
+  chmod      0755  $1                    &&
+  chmod  -R  0644  $1/*                  &&
+  prepare_install                        &&
+  mkdir  -p            /usr/share/games  &&
+  cp     -rv       $1  /usr/share/games
+}
+
+
+case  $SPELL  in
+  scummvm-*)  unset  VERSION  REQ  OPT  LONG
+              VERSION=( "1.0" )  ;;
+esac
