@@ -6,9 +6,10 @@
   ./configure  --disable-tests              \
                --disable-debug              \
                --enable-optimize="$CFLAGS"  \
-               --without-jpeg               \
-               --without-zlib               \
-               --without-png                \
+               --with-system-jpeg           \
+               --with-system-zlib           \
+               --with-system-png            \
+               --with-system-mng            \
                --enable-crypto              &&
   make                                      &&
   prepare_install
