@@ -12,7 +12,7 @@
   EDITOR=`which $EDITOR  2>/dev/null`  ||
   EDITOR=`which nano`
 
-  sedit  "s/-O2/$CFLAGS/"  configure
+  sed  -i  "s:-O2:$CFLAGS:"  configure
 
   ./configure  --prefix=/usr          \
                --with-answer-all=no   \

@@ -4,7 +4,7 @@ PID="/var/run/fcron.pid"
 
 start()  {
   echo  -n  "Starting fcron..."
-  /usr/sbin/fcron
+  TERM="dumb"  /usr/sbin/fcron
   echo  "done."
 }
 
