@@ -1,0 +1,22 @@
+   VERSION=( "1.2.11" )
+  CATEGORY="network security"
+ ATTRIBUTE="console"
+    SOURCE=( "iptables-$VERSION.tar.bz2"
+             "grsecurity-1.2.11-iptables.patch" )
+       URL=( "http://netfilter.samba.org/files"
+             "http://www.grsecurity.net" )
+  HOMEPAGE="http://netfilter.samba.org"
+  ESTIMATE="418"
+      DESC="iptables-grsecurity provides iptables with stealth module patch."
+
+
+build() {
+patch  -p1  <    $(  guess_filename  ${SOURCE[1]}  )
+sed    -i        "s/-O2/$CFLAGS/"  Makefile
+make             LIBDIR=/usr/lib   &&
+prepare_install                    &&
+make    install  LIBDIR=/usr/lib   \
+                 BINDIR=/usr/sbin  \
+                 MANDIR=/usr/man   \
+                 INCDIR=/usr/include
+}
