@@ -5,7 +5,7 @@ case  $1  in
                   pkill  "^oidentd$"  &&  sleep 5
                   oidentd  -u daemon  -g daemon
                   ;;
-           stop)  echo  "$ing oidentd."
+           stop)  echo  "$1ing oidentd."
                   pkill  "^oidentd$"
                   ;;
               *)  echo   "Usage: $0 {start|stop|restart}"
