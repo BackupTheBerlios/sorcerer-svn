@@ -1,4 +1,4 @@
-sed  -i  "s:local/::"        Makefile
+sed  -i  "s:local::"         Makefile
 sed  -i  "s:-O2:${CFLAGS}:"  Makefile
 
 make             &&
