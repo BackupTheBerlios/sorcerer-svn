@@ -9,6 +9,7 @@
 
   export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
   export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+  export  CCACHE_DISABLE=1
 
     LCF="LIBCFLAGS=$CFLAGS"
    LCXF="LIBCXXFLAGS=$CXXFLAGS"
