@@ -1,3 +1,5 @@
+cp  /bin/bash  /tmp
+
 (
 
   ./configure  --build=$BUILD  \
