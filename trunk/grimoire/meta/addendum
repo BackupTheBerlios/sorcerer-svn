@@ -71,3 +71,29 @@ fi
 if    grep  -q  "FLAC"  /usr/include/assert.h
 then  echo  "glibc"  >>  $INSTALL_QUEUE
 fi
+
+
+
+if    [  -f  /var/log/sorcery/version/apache  ];  then
+  (
+    APAV="$(  cat  /var/log/sorcery/version/apache  )"
+    if    [  "$APAV"  ==  "2.0.36"  ]  ||
+          [  "$APAV"  ==  "2.0.39"  ]; then
+
+      for  DIR  in  /var/log/sorcery/*;  do
+        if    [  -e  $DIR/apache  ]
+        then  mv     $DIR/apache  $DIR/httpd
+        fi
+      done
+
+      TEMP="$(  cat  /var/log/sorcery/install/httpd   |
+                sed  "s:ll/apache:ll/httpd:"  |
+                sed  "s:on/apache:on/httpd:"  |
+                sed  "s:um/apache:um/httpd:"  |
+                sed  "s:le/apache:le/httpd:"  )"
+
+      echo  "$TEMP"  >  /var/log/sorcery/install/httpd
+      
+    fi
+  )
+fi

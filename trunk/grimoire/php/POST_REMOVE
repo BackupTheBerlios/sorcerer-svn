@@ -1,9 +1,14 @@
-if    spell_installed  apache;  then
+modify()  {  (
 
-  cp        /etc/httpd/httpd.conf       /tmp/httpd.conf
-  grep  -v  "LoadModule php4_module"    /tmp/httpd.conf  |
-  grep  -v  "AddModule mod_php4.c"   >  /etc/httpd/httpd.conf
-  rm    -f  /tmp/httpd.conf
+  TEMP="$(  cat  $1  )"
+  echo  "$TEMP"                       |
+  grep  -v  "LoadModule php4_module"  |
+  grep  -v  "AddModule mod_php4.c"    >  $1
   /usr/sbin/apachectl  graceful
 
+)  }
+
+
+if    [  -f  /etc/httpd/httpd.conf   ];  then  modify  /etc/httpd/httpd.conf
+elif  [  -f  /etc/apache/httpd.conf  ];  then  modify  /etc/apache/httpd.conf
 fi
