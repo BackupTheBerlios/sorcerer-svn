@@ -3,7 +3,7 @@ UBMX=${UBM}x
 
 
 case  $VERSION  in
-  0.6)  sed  "\,extern int,d"  mailbox/getline.h  ;;
+  0.6)  sed  -i  "\,extern int,d"  mailbox/getline.h  ;;
 esac
 
 ./configure  --build=$BUILD         \
