@@ -5,7 +5,6 @@
                --enable-rmt        &&
   make                             &&
   prepare_install                  &&
-  make    install                  &&
-  message  "$(  cat  $SCRIPT_DIR/message.txt  )"  
+  make    install
 
 ) > $C_FIFO 2>&1
