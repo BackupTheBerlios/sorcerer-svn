@@ -17,15 +17,16 @@ make_locales()  {
 
   unset  LDFLAGS
 
-  if    !  echo  "$CFLAGS"  |  grep  -q  "\-O"  ||
-           echo  "$CFLAGS"  |  grep  -q  "\-O0"
-  then  export     CFLAGS="$CFLAGS -Os"
-  fi
+  export    CFLAGS="${CFLAGS/-O0/}"
+  export  CXXFLAGS="${CXXFLAGS/-O0/}"
 
-  if    !  echo  "$CXXFLAGS"  |  grep  -q  "\-O\|-O0"
-           echo  "$CXXFLAGS"  |  grep  -q  "\-O0"
-  then  export     CXXFLAGS="$CFLAGS -Os"
-  fi
+  echo  "$CFLAGS"  |
+  grep  -q  "\-O"  ||
+  export  CFLAGS="$CFLAGS -Os"
+
+  echo  "$CXXFLAGS"  |
+  grep  -q  "\-O"    ||
+  export  CXXFLAGS="$CXXFLAGS -Os"
 
   ./configure  --host=$BUILD                  \
                --build=$BUILD                 \
