@@ -1,6 +1,11 @@
 UBM="/usr/bin/mail"
 UBMX=${UBM}x
 
+
+case  $VERSION  in
+  0.6)  sed  "\,extern int,d"  mailbox/getline.h  ;;
+esac
+
 ./configure  --build=$BUILD         \
              --prefix=/usr          \
              --sysconfdir=/etc      \
