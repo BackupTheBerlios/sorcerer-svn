@@ -1,0 +1,62 @@
+   VERSION=( "0.3" "0.2" "0.1" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="sc2/uqm-${VERSION}-source.tgz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://sc2.sourceforge.net"
+       REQ="SDL_image uqm-content"
+    OPT[0]="uqm-3domusic:::for excellent but large music files"
+    OPT[1]="uqm-voice:::for excellent but large voice files"
+  ESTIMATE="302"
+ FRESHMEAT="uqm"
+     SHORT="uqm is a port of the 3DO version of the game StarControl 2."
+
+
+install_source()  {
+  cat  > config.state  <<  EOF
+CHOICE_debug_VALUE='nodebug'
+CHOICE_graphics_VALUE='opengl'
+CHOICE_sound_VALUE='mixsdl'
+INPUT_install_prefix_VALUE='/usr'
+INPUT_install_bindir_VALUE='$prefix/games'
+INPUT_install_libdir_VALUE='$prefix/share'
+EOF
+
+  mkdir  -p  content
+  echo  |  ./build.sh  uqm  depend  &&
+           ./build.sh  uqm          &&
+  prepare_install                   &&
+           ./build.sh  uqm  install
+}
+
+
+install_data()  {
+  CONTENT=$(  guess_filename  $SOURCE  $SOURCE_CACHE/$BSPELL/$VERSION  )
+  PACKAGE=/usr/share/uqm/content/packages
+  if    [  -n  "$CONTENT"  ];  then
+    prepare_install            &&
+    set      -x                &&
+    mkdir    -p      $PACKAGE  &&
+    install  -m 0644  -o root  -g  root  $CONTENT   $PACKAGE  &&
+    set      +x
+  else
+    echo  "$SOURCE not found"
+    false
+  fi
+}
+
+
+build()  {
+  if    [  "$SPELL"  ==  "uqm"  ]
+  then  install_source
+  else  install_data
+  fi
+}
+
+
+if    ! [  "$SPELL"  ==  "uqm"  ];  then
+  unset  REQ  OPT
+  SOURCE="sc2/uqm-${VERSION}-${SPELL:4}.zip"
+  ESTIMATE="5"
+  pre_build()  {  :;  }
+fi
