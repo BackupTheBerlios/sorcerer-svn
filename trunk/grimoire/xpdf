@@ -1,5 +1,5 @@
    VERSION=( "3.00" "2.03" "2.02pl1" )
-      SAFE=( "3.00" "2.03" "2.02pl1" )
+      SAFE=( "3.00" )
     IGNORE="arabic\|dos\|chinese\|cyrillic\|greek\|hebrew\|japanese\|korean\|latin\|thai\|turkish"
   CATEGORY="documentation"
  ATTRIBUTE="x11"
@@ -9,8 +9,48 @@
       OPTS="--with-freetype2-includes=/usr/include/freetype2"
   ESTIMATE="131"
       DESC="xpdf is a PDF, portable document format, viewer.
-
 xpdf is a viewer for Portable Document Format (PDF) files.
 It also comes with two other programs: pdftops and pdftotext 
-which convert PDF files to postscript and plain text respectively.
-"
+which convert PDF files to postscript and plain text respectively."
+
+build() {
+case  $VERSION  in
+  3.00)  patch  -p1  <<  EOF
+diff -r -U2 xpdf-3.00/xpdf/Catalog.cc xpdf-3.00/xpdf/Catalog.cc
+--- xpdf-3.00/xpdf/Catalog.cc	2004-01-21 18:26:45.000000000 -0700
++++ xpdf-3.00/xpdf/Catalog.cc	2004-01-21 18:26:45.000000000 -0700
+@@ -65,4 +65,13 @@
+   pagesSize = numPages0 = (int)obj.getNum();
+   obj.free();
++  // The gcc doesnt optimize this away, so this check is ok,
++  // even if it looks like a pagesSize != pagesSize check
++  if (pagesSize*sizeof(Page *)/sizeof(Page *) != pagesSize ||
++      pagesSize*sizeof(Ref)/sizeof(Ref) != pagesSize) {
++    error(-1, "Invalid 'pagesSize'");
++    ok = gFalse;
++    return;
++  }
++
+   pages = (Page **)gmalloc(pagesSize * sizeof(Page *));
+   pageRefs = (Ref *)gmalloc(pagesSize * sizeof(Ref));
+@@ -192,4 +201,8 @@
+       if (start >= pagesSize) {
+ 	pagesSize += 32;
++        if (pagesSize*sizeof(Page *)/sizeof(Page *) != pagesSize) {
++          error(-1, "Invalid 'pagesSize' parameter.");
++          goto err3;
++        }
+ 	pages = (Page **)grealloc(pages, pagesSize * sizeof(Page *));
+ 	pageRefs = (Ref *)grealloc(pageRefs, pagesSize * sizeof(Ref));
+EOF
+;;
+esac
+default_build
+}
+
+current()  {
+  case  $VERSION  in
+    3.00)  bzcat  $COMPILE_LOG/xpdf.bz2  |
+           grep  -qx  "patching file xpdf/Catalog.cc"  ;;
+  esac
+}

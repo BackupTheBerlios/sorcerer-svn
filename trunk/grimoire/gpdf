@@ -1,5 +1,5 @@
    VERSION=( "2.8.0" "0.132" "0.131" "0.112.1" "0.112" "0.111" "0.110" )
-    IGNORE="^2\.7"
+      SAFE=( "2.8.0" )
   CATEGORY="utility"
  ATTRIBUTE="gnome"
     SOURCE="sources/gpdf/${VERSION:0:3}/gpdf-$VERSION.tar.bz2"
@@ -9,3 +9,45 @@
   ESTIMATE="248"
   GNOMEFTP="gpdf"
       DESC="gpdf is a PDF viewer for GNOME, based upon xpdf."
+
+build() {
+case  $VERSION  in
+  2.8.0)  patch  -p1  <<  EOF
+diff -r -U2 xpdf-3.00/xpdf/Catalog.cc xpdf-3.00/xpdf/Catalog.cc
+--- xpdf-3.00/xpdf/Catalog.cc	2004-01-21 18:26:45.000000000 -0700
++++ xpdf-3.00/xpdf/Catalog.cc	2004-01-21 18:26:45.000000000 -0700
+@@ -65,4 +65,13 @@
+   pagesSize = numPages0 = (int)obj.getNum();
+   obj.free();
++  // The gcc doesnt optimize this away, so this check is ok,
++  // even if it looks like a pagesSize != pagesSize check
++  if (pagesSize*sizeof(Page *)/sizeof(Page *) != pagesSize ||
++      pagesSize*sizeof(Ref)/sizeof(Ref) != pagesSize) {
++    error(-1, "Invalid 'pagesSize'");
++    ok = gFalse;
++    return;
++  }
++
+   pages = (Page **)gmalloc(pagesSize * sizeof(Page *));
+   pageRefs = (Ref *)gmalloc(pagesSize * sizeof(Ref));
+@@ -192,4 +201,8 @@
+       if (start >= pagesSize) {
+ 	pagesSize += 32;
++        if (pagesSize*sizeof(Page *)/sizeof(Page *) != pagesSize) {
++          error(-1, "Invalid 'pagesSize' parameter.");
++          goto err3;
++        }
+ 	pages = (Page **)grealloc(pages, pagesSize * sizeof(Page *));
+ 	pageRefs = (Ref *)grealloc(pageRefs, pagesSize * sizeof(Ref));
+EOF
+;;
+esac
+default_build
+}
+
+current()  {
+  case  $VERSION  in
+    2.8.0)  bzcat  $COMPILE_LOG/gpdf.bz2  |
+            grep  -qx  "patching file xpdf/Catalog.cc"  ;;
+  esac
+}

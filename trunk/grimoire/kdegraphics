@@ -1,5 +1,6 @@
 inherit kde
   CATEGORY="graphic"
+ SOURCE[1]="security_patches/post-3.3.1-kdegraphics.diff"
        REQ=( "glut kdelibs"
              "sane-backends:::for libkscan/kooka"
              "gphoto2:::for digital still camera support"
@@ -10,3 +11,18 @@ inherit kde
       DESC="kdegraphics contains graphics related programs.
 kdegraphics contains graphics-related programs like PostScript? 
 previewer, DVI previewer, and a drawing program."
+
+
+build()  {
+  case  $VERSION  in
+    3.3.1)  patch  -p0  <  $SOURCE_CACHE/kdegraphics/$VERSION/${SOURCE[1]##*/}  ;;
+  esac
+  kde_build
+}
+
+current()  {
+  case  $VERSION  in
+    3.3.1)  bzat  $COMPILE_LOG/kdegraphics.bz2  |
+            grep  -qx  "patching file kpdf/xpdf/Catalog.cc"  ;;
+  esac
+}
