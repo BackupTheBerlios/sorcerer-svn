@@ -28,6 +28,11 @@
 
   sed  -i  "s:/usr/local:/usr:"  src/global/mail_params.h
 
+  if    [  -f  /etc/postfix/main.cf  ]
+  then  cp     /etc/postfix/main.cf  \
+               /etc/postfix/main.cf.save
+  fi
+
   make  "CC=gcc"               \
         "OPT=$CFLAGS"          \
         "AUXLIBS=$AUXLIBS"     \
