@@ -37,26 +37,26 @@
 
   }
 
-#  if    show_depends_of  httpd  2>/dev/null  |
-#        grep  -q  -w  "perl"
-#  then
-#    $APACHE_CONFIGURE    &&
-#    make                 &&
-#    cd    ${DIR[1]}      &&
-#    $MOD_PERL_CONFIGURE  &&
-#    make                 &&
-#    cd  ..               &&
-#    prepare_install      &&
-#    make    install      &&
-#    cd  ${DIR[1]}        &&
-#    make    install      &&
-#    add_perl_module
-#  else
+  if    show_depends_of  httpd  2>/dev/null  |
+        grep  -q  -w  "perl"
+  then
+    $APACHE_CONFIGURE    &&
+    make                 &&
+    cd    ${DIR[1]}      &&
+    $MOD_PERL_CONFIGURE  &&
+    make                 &&
+    cd  ..               &&
+    prepare_install      &&
+    make    install      &&
+    cd  ${DIR[1]}        &&
+    make    install      &&
+    add_perl_module
+  else
     $APACHE_CONFIGURE    &&
     make                 &&
     prepare_install      &&
     make    install
-#  fi
+  fi
 
 ) > $C_FIFO 2>&1  &&
 
