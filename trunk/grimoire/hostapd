@@ -1,0 +1,29 @@
+   VERSION=( "0.2.3" "0.2.2" "0.2.1" "0.2.0" )
+  CATEGORY="network"
+ ATTRIBUTE="driver"
+    SOURCE="hostapd-$VERSION.tar.gz"
+       URL="http://hostap.epitest.fi/releases"
+  HOMEPAGE="http://hostap.epitest.fi"
+  ESTIMATE="25"
+     SHORT="hostapd provides a daemon extended IEEE 802.11 management."
+      LONG="
+$SHORT
+User space daemon for extended IEEE 802.11 management
+IEEE 802.1X Authenticator
+RADIUS Authentication client
+RADIUS Accounting client
+"
+
+
+build() {
+  sed  -i  "s:-O2:$CFLAGS:"  Makefile
+
+  make             &&
+  prepare_install  &&
+  for  FILE  in  *;  do
+    if    [  -f  $FILE  ]  &&
+          [  -x  $FILE  ]
+    then  cp     $FILE  /usr/sbin
+    fi
+  done
+}
