@@ -32,6 +32,17 @@ $OPTS"
 
 (
 
+  GLIBC_VER=$(  installed_version  glibc  )
+  if    [  "$VERSION"    ==  "4.3.1"  ]  &&
+        [  "$GLIBC_VER"  ==  "2.3.2"  ]
+  then
+    for  FILE  in  my_lib.c     my_malloc.c   my_realloc.c  \
+                   my_delete.c  my_tempnam.c  my_error.c    \
+                   my_getwd.c   safemalloc.c  my_once.c
+    do   sed  -i  "1i#include \"errno.h\""  ext/mysql/libmysql/$FILE
+    done
+  fi
+
   ./configure  $PHP_CONFIGURE  &&
   make                         &&
   prepare_install              &&
