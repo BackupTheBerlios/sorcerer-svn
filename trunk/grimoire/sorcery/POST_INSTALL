@@ -1,13 +1,13 @@
 clean_provide_logs()  {
-  find  $PROVIDE_LOGS  -type f  -printf "%P\n"  |
-  while  read;  do
-    if    [  "$(<  "$PROVIDE_LOGS/$REPLY"  )"  ==  "$REPLY"  ]
-    then  rm  -f    $PROVIDE_LOGS/$REPLY
+  grep  -r  ""  $PROVIDE_LOGS  |
+  basenames                    |
+  tr  ':'  ' '                 |
+  while  read  LEFT  RIGHT;  do
+    if    [  "$LEFT"  ==       "$RIGHT"  ]
+    then  rm  -f  $PROVIDE_LOGS/$RIGHT
     fi
   done
-
-  grep   -rl  ","  $PROVIDE_LOGS  |
-  xargs  -l64   rm  -f
+  grep   -rl  ","  $PROVIDE_LOGS  |  xargs  -l64   rm  -f
 }
 
 
@@ -17,11 +17,6 @@ if    [  -x  $SENTINEL-$ARCH  ]
 then  cp     $SENTINEL-$ARCH  $SENTINEL
 fi
 
-
-PCOUNT=$(  find  $PROVIDE_LOGS  -type f  -printf "%P\n"  |  wc  -l  )
-
-if    ((  PCOUNT  >  200  ))
-then  clean_provide_logs
-fi
+clean_provide_logs
 
 generate_index
