@@ -1,11 +1,3 @@
-if    spell_installed  Python                                &&
-      [  "2.2.1"  ==  "$(  installed_version  Python  )"  ]  &&
-      !  spell_held  Python                                  &&
-      !  [  -e  /usr/lib/libpython2.2.so  ]
-then  echo  "Python"  >>  $INSTALL_QUEUE
-fi
-
-
 if    !  [  -d  /var/lib/sorcery/grimoire.merged  ];  then
 
   echo  "Merged grimoire directory will now be /var/lib/sorcery/grimoire.merged"
@@ -43,13 +35,6 @@ then
     then  mv     $DIR/control-center  $DIR/control-center2
     fi
   done
-fi
-
-
-if    [  -f  /var/log/sorcery/install/control-center2  ]  &&
-      grep  "/var/log/sorcery/compile/control-center.bz2"  \
-             /var/log/sorcery/install/control-center2
-then
 
   TEMP="$(  cat  /var/log/sorcery/install/control-center2   |
             sed  "s:ll/control-center:ll/control-center2:"  |
@@ -60,18 +45,6 @@ then
   echo  "$TEMP"  >  /var/log/sorcery/install/control-center2
 
 fi
-
-
-if    [  "$(  cat  /var/log/sorcery/version/lesstif  2>/dev/null  )"  ==  "0.93.34"  ]  &&
-      !  [  -f  /usr/lib/libXm.a  ]
-then  echo  "lesstif"  >>  $INSTALL_QUEUE
-fi
-
-
-if    grep  -q  "FLAC"  /usr/include/assert.h
-then  echo  "glibc"  >>  $INSTALL_QUEUE
-fi
-
 
 
 if    [  -f  /var/log/sorcery/version/apache  ];  then
@@ -98,11 +71,6 @@ if    [  -f  /var/log/sorcery/version/apache  ];  then
   )
 fi
 
-if  grep  -q  "sorcerer.wox.org"  /etc/hosts;  then
-  TEMP="$( cat /etc/hosts )"
-  echo  "$TEMP"  |  grep  -v  "sorcerer.wox.org"  >  /etc/hosts
-fi  
-
 
 if    [  -f            /var/log/sorcery/version/Linux-PAM  ]  &&
       PAM_VER=$(  cat  /var/log/sorcery/version/Linux-PAM  )  &&
@@ -118,4 +86,12 @@ fi
 if       [  "$(  installed_version  g-wrap  )"  ==  "1.2.1"  ]  &&
       !  [  -f          $BRANCH_LOGS/guile  ]
 then  echo  "delay"  >  $BRANCH_LOGS/guile
+fi
+
+
+if    grep  -q  "libintl_bindtextdomain"  /usr/include/libintl.h;  then
+  if    [  -f  $GRIMOIRE/meta/libintl.h  ]
+  then  cp     $GRIMOIRE/meta/libintl.h  /usr/include
+  else  echo  "glibc"  >>  $INSTALL_QUEUE
+  fi
 fi
