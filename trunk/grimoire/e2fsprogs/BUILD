@@ -1,7 +1,5 @@
 install_init()  {
 
-  mkdir  -p  /devices
-
   cp         lib/uuid/libuuid.a  /usr/lib
   mkdir  -p                      /usr/include/uuid
   cp         lib/uuid/uuid.h     /usr/include/uuid
