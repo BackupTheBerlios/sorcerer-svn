@@ -2,6 +2,20 @@ makealiases
 makesmtpaccess
 makesmtpaccess-msa
 
+if     !  [  -d     /etc/skel/Maildir  ]
+then   maildirmake  /etc/skel/Maildir
+fi
+
+(
+  cd  /home  &&
+  for  WHO  in  *;  do
+    if    !  [   -d        $WHO/Maildir  ]
+    then  maildirmake      $WHO/Maildir
+          chown  -R  $WHO  $WHO/Maildir
+    fi
+  done
+)
+
 if    !  [  -f           /etc/courier/hosteddomains  ]
 then  cp  /etc/hostname  /etc/courier/hosteddomains
                                   makehosteddomains
