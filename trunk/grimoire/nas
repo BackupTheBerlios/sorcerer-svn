@@ -1,0 +1,32 @@
+   VERSION=( "1.6g" "1.6" )
+  CATEGORY="audio"
+ ATTRIBUTE="library x11"
+    SOURCE="nas-$VERSION.src.tar.gz"
+       URL="http://nas.codebrilliance.com/nas"
+  HOMEPAGE="http://radscan.com/nas.html"
+       REQ="bison x11"
+  ESTIMATE="2758"
+      DESC="nas is a network audio server.
+In a nutshell, the Network Audio System (NAS) 
+is the audio equivalent of an X display server.
+It was developed by NCD for playing, recording, 
+and manipulating audio data over a network.
+Like the X Window System, it uses the 
+client/server model to separate applications 
+from the specific drivers that control 
+audio input and output devices."
+
+
+build() {
+export  PATH="/opt/bison/1.35/bin:$PATH"
+
+DEST="DESTDIR=/usr"
+CDBF="CDEBUGFLAGS=$CXXFLAGS"
+  WO="WORLDOPTS=-k CDEBUGFLAGS=\"\$(CDEBUGFLAGS) -DSTARTSERVER\""
+
+xmkmf                         &&
+make    World  "$CDBF" "$WO"  &&
+prepare_install               &&
+make    install      "$DEST"  &&
+make    install.man  "$DEST"
+}
