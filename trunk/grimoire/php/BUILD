@@ -31,9 +31,10 @@ $OPTS"
 
 build_apxs2()  {
     
-  rm  -rf             $SOURCE_DIR/php-$VERSION-apxs2
-  cp  -a  $BUILD_DIR  $SOURCE_DIR/php-$VERSION-apxs2
-  cd                  $SOURCE_DIR/php-$VERSION-apxs2
+  BUILD_DIR[1]="$SOURCE_DIR/php-$VERSION-apxs2"
+  rm  -rf             ${BUILD_DIR[1]}
+  cp  -a  $BUILD_DIR  ${BUILD_DIR[1]}
+  cd                  ${BUILD_DIR[1]}
   ./configure  $PHP_CONFIGURE  \
                --with-apxs2    &&
   make
@@ -43,9 +44,10 @@ build_apxs2()  {
 
 build_apxs()  {
 
-  rm  -rf             $SOURCE_DIR/php-$VERSION-apxs
-  cp  -a  $BUILD_DIR  $SOURCE_DIR/php-$VERSION-apxs
-  cd                  $SOURCE_DIR/php-$VERSION-apxs
+  BUILD_DIR[1]="$SOURCE_DIR/php-$VERSION-apxs"
+  rm  -rf             ${BUILD_DIR[1]}
+  cp  -a  $BUILD_DIR  ${BUILD_DIR[1]}
+  cd                  ${BUILD_DIR[1]}
   ./configure  $PHP_CONFIGURE  \
                --with-apxs     &&
   make
@@ -69,16 +71,14 @@ build_apxs()  {
   make                                  &&
   prepare_install                       &&
   make    install                       &&
-  if    [  -d  $SOURCE_DIR/php-$VERSION-apxs   ]
-  then  cd     $SOURCE_DIR/php-$VERSION-apxs;    make   install
-  elif  [  -d  $SOURCE_DIR/php-$VERSION-apxs2  ]
-  then  cd     $SOURCE_DIR/php-$VERSION-apxs2;   make   install
+  if    [  -n  "${BUILD_DIR[1]}"  ]     &&
+        [  -d   ${BUILD_DIR[1]}   ]
+  then  cd      ${BUILD_DIR[1]};  make   install
   fi
 
   
 ) > $C_FIFO 2>&1  &&  (
 
-  cd  $BUILD_DIR
   rm  -rf  $SOURCE_DIR/php-$VERSION-apxs  \
            $SOURCE_DIR/php-$VERSION-apxs2
 
