@@ -18,7 +18,7 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
-  remove_header()  {  rm  -f  $(  find  /usrc/gcc-$VERSION -name $1  );  }
+  remove_header()  {  rm  -f  $(  find  /usr/gcc-$VERSION -name $1  );  }
 
   remove_header   curses.h
   remove_header  ncurses.h
