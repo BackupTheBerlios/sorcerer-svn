@@ -1,6 +1,7 @@
 (
 
-  sed  -i  "s/const char \*what/__const char \*what/"  portmap.c  &&
+  # fix problems with glibc-2.3.2
+  patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
 
   make  WRAP_DIR=/usr/lib  &&
   prepare_install          &&
