@@ -4,11 +4,10 @@ no_export_symbol()  {
       api/cryptoapi.c.old  >  api/cryptoapi.c
 }
 
-# no_export_symbol
-
-  patch  -p1  <  $SCRIPT_DIR/cryptoapi.patch
 
 (
+
+  patch  -p1  <  $SCRIPT_DIR/cryptoapi.patch
 
   sedit  "s/-O2/$CFLAGS/"  configure
 
