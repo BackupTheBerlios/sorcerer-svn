@@ -34,6 +34,8 @@ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
 
      echo  "#define BuildFonts             NO"
 
+     echo  "#define HasExpat               YES"
+
      echo  "#define BuildXinerama          YES"
      echo  "#define BuildXineramaLibrary   YES"
      echo  "#define NormalLibXinerama      YES"
@@ -81,33 +83,6 @@ pkgconf_install()  {
 }
 
 
-
-echo  "Applying patch to upgrade 4.3.0 to 4.3.0.1"
-decompress  $(  guess_filename  "${SOURCE[3]}"  \
-                                "${SOURCE_CACHE}/$BSPELL/$VERSION"
-             )  |
-patch  -p1
-
-echo  "Applying fontfile.diff"
-cat  $(  guess_filename  "${SOURCE[4]}"  \
-                         "${SOURCE_CACHE}/$BSPELL/$VERSION"
-      )  |  patch  -d lib/font/fontfile  -p0
-
-patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.1.patch
-
-cp     -a      fontconfig-2.2.1/*  lib/fontconfig/
-rm     -rf     fontconfig-2.2.1
-
-cp     -a      xrender-0.8.3       lib/Xrender
-rm     -rf     xrender-0.8.3
-cp     -a      xcursor-1.0.2       lib/Xcursor
-rm     -rf     xcursor-1.0.2
-cp     -a      xft-2.1.2           lib/Xft
-rm     -rf     xft-2.1.2
-
-#  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
-#  sed   -i      "s:@FC_FONTPATH@:<dir>/usr/share/fonts</dir>:"    lib/fontconfig/fonts.conf.in
-#  sed   -i      "s:@VERSION@:2.2.0:"                              lib/fontconfig/fontconfig.pc.in
 
 if    spell_installed  "$( get_provider  Linux-PAM  )"
 then  echo  "#define  HasPam  YES"  >>  config/cf/site.def

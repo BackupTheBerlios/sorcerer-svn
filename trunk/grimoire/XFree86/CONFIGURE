@@ -98,23 +98,27 @@ initialize()  {
   BACKTITLE="Sorcery XFree86 host.def Configuration Menu"
 
    ON_CARD_DRIVERS="vga vesa v4l"
-  OFF_CARD_DRIVERS="mga glint nv tga s3virge sis rendition neomagic i740
-                    tdfx savage cirrus vmware tseng trident chips apm
-                    GlideDriver fbdev i128 nsc ati i810 
-                    imstt newport ark cyrix siliconmotion dummy" 
+  OFF_CARD_DRIVERS="mga glint nv tga s3 s3virge sis rendition 
+                    neomagic i740 tdfx savage 
+                    cirrus vmware tseng trident chips apm
+                    GlideDriver i128 NscDriver
+                    ati i810 ark 
+                    cyrix siliconmotion via 
+                    fbdev dummy imstt newport"
       CARD_DRIVERS="$ON_CARD_DRIVERS  $OFF_CARD_DRIVERS"
 
 
    ON_DRI=""
-  OFF_DRI="gamma i810 i830 mga r128 radeon r200 tdfx ffb"
+  OFF_DRI="gamma i810 i830 mga r128 radeon r200 sis tdfx ffb"
       DRI="$ON_DRI  $OFF_DRI"
 
 
    ON_INPUT_DRIVERS="mouse keyboard"
-  OFF_INPUT_DRIVERS="calcomp citron digitaledge dmc dynapro 
-                     elographics tek4957 microtouch mutouch 
-                     penmount spaceorb summa wacom void 
-                     magellan hyperpen jamstudio fpit palmax"
+  OFF_INPUT_DRIVERS="acecad calcomp citron 
+                     digitaledge dmc dynapro elographics tek4957 
+                     microtouch mutouch penmount spaceorb summa 
+                     wacom void magellan hyperpen 
+                     jamstudio fpit palmax"
       INPUT_DRIVERS="$ON_INPUT_DRIVERS  $OFF_INPUT_DRIVERS"
 
 
@@ -131,35 +135,26 @@ initialize()  {
 }
 
 
-enter_to_space()  {  (
-  while  read   ITEM;  do
-    echo  -n  "$ITEM "
-  done
-  echo
-)  }
-
-
 generate_host_def()  {
 
   if  [  -z  "$XF86CardDrivers"  ];  then
   XF86CardDrivers="$ON_CARD_DRIVERS"
   fi
 
-  echo  -n  "#define XF86CardDrivers "
-  echo  "$XF86CardDrivers"          |  enter_to_space
+  echo  "#define XF86CardDrivers $XF86CardDrivers"  |  tr  '\n' ' '
+  echo
 
   if  [  -z  "$DriDrivers"  ]
-  then  echo      "#define DriDrivers /**/"
-  else  echo  -n  "#define DriDrivers "
-        echo      "$DriDrivers"     |  enter_to_space
+  then  echo  "#define DriDrivers /**/"
+  else  echo  "#define DriDrivers $DriDrivers"  |  tr  '\n' ' '
+        echo
   fi
 
   if  [  -z  "$XInputDrivers"  ]
-  then  echo      "#define XInputDrivers mouse"
-  else  echo  -n  "#define XInputDrivers "
-        echo      "$XInputDrivers"  | enter_to_space
+  then  echo  "#define XInputDrivers mouse"
+  else  echo  "#define XInputDrivers $XInputDrivers"  |  tr  '\n' ' '
+        echo
   fi
-
 
   for  ITEM  in  $YES_MISC_OPTIONS;  do  echo  "#define $ITEM YES";  done
   for  ITEM  in   $NO_MISC_OPTIONS;  do  echo  "#define $ITEM  NO";  done
