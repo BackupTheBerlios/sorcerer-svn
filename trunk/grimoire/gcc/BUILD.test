@@ -1,7 +1,7 @@
 (
 
-  sedit  "s:STMP_FIXINC=stmp-fixinc:STMP_FIXINC=:"        gcc/configure
-  sedit  "s:STMP_FIXPROTO=stmp-fixproto:STMP_FIXPROTO=:"  gcc/configure
+  # sedit  "s:STMP_FIXINC=stmp-fixinc:STMP_FIXINC=:"        gcc/configure
+  # sedit  "s:STMP_FIXPROTO=stmp-fixproto:STMP_FIXPROTO=:"  gcc/configure
 
   export  LIBCFLAGS="$CFLAGS"
   export  LIBCXXFLAGS="$CXXFLAGS"
@@ -15,4 +15,18 @@
   ln     -sf  gcc  /usr/bin/cc  &&
   ln     -sf       /usr/bin/cpp  /lib/cpp
 
-) > $C_FIFO 2>&1
+) > $C_FIFO 2>&1  &&  (
+
+  remove_header()  {
+    ls  /usr/lib/gcc-lib/*  |
+    directories             |
+    while  read  DIR
+    do     rm  -f  /usr/lib/gcc-lib/$DIR/$VERSION/include/$1
+    done
+  }
+
+  remove_header   curses.h
+  remove_header  ncurses.h
+  true
+
+}
