@@ -4,17 +4,11 @@ build_client()  {
     UG="/usr/games"
    UGD="$UG/daimonin"
 
-  cd  daimonin/client/make/linux
-  
-  make    "EXTRA_CFLAGS=$CFLAGS"  &&
-  make    install                 &&
-  cd      ../../../               &&
-  rm     -rf  client/{make,src}   &&
-  mkdir  -p              $USDC    &&
-  cp     -a   client/*   $USDC/   &&
-  mkdir  -p              $UG      &&
-  echo   -e   "$RUN"  >  $UGD     &&
-  chmod  755             $UGD
+  cd      daimonin/client/make/linux
+  bash    ./configure  --prefix=/opt/daimonin  &&
+  make             &&
+  prepare_install  &&
+  make    install
 }
 
 
