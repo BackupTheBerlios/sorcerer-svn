@@ -1,3 +1,5 @@
+prepare_install  &&
+
 # First, add the global entry in aliases
 echo " " > /etc/aliases.minimalist-sample
 echo "# minimalist global entry:" >> /etc/aliases.minimalist-sample
