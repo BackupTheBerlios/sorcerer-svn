@@ -4,7 +4,6 @@
        Makefile.linux  \
     >  Makefile        &&
   make                 &&
-  make                 &&
   prepare_install      &&
   make    install
 
