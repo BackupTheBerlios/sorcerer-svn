@@ -1,5 +1,8 @@
 (
 
+  sed  -i  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
+           conf/main.cf
+
   groupadd  mail                  2>/dev/null
   groupadd  postdrop              2>/dev/null
   groupadd  postfix               2>/dev/null
@@ -24,18 +27,6 @@
   # fix to get man pages to install in /usr/man
 
   sed  -i  "s:/usr/local:/usr:"  src/global/mail_params.h
-
-#  mkdir  db
-#  cd     db-$DBVERSION/build_unix  &&
-#  ../dist/configure  --prefix=$BUILD_DIR/db  \
-#                     --disable-dynamic       &&
-#  make                                       &&
-#  make  install                              &&
-
-#  cd    $BUILD_DIR                               &&
-#  rm   -rf  db/lib/*.so                          &&
-#  CFLAGS="$CFLAGS  -I$PWD/db/include"            &&
-#  sed  -i  "s:-ldb:-L$PWD/db/lib -ldb:"  makedefs  &&
 
   make  "CC=gcc"               \
         "OPT=$CFLAGS"          \
@@ -62,8 +53,5 @@
 
   ln  -sf  ../init.d/postfix.sh     /etc/rc0.d/K10postfix
   ln  -sf  ../init.d/postfix.sh     /etc/rc6.d/K10postfix
-
-  sed  -i  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
-         /etc/postfix/main.cf
 
 )
