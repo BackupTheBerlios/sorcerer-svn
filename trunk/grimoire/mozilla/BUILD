@@ -5,37 +5,45 @@
 
   export  MOZILLA_OFFICIAL=1
   export  BUILD_OFFICIAL=1
+  export  MOZ_INTERNAL_LIBART_LGPL=1
 
-  ./configure  --disable-tests              \
-               --disable-debug              \
-               --enable-optimize="$CFLAGS"  \
-               --with-system-jpeg           \
-               --with-system-zlib           \
-               --with-system-png            \
-               --with-system-mng            \
-               --enable-crypto              \
-               --enable-xinerama            &&
-  make                                      &&
-  prepare_install
+# ac_add_options --enable-xft
+  cat  <<  EOF  >  .mozconfig
+ac_add_options --prefix=/usr
+ac_add_options --with-system-jpeg
+ac_add_options --with-system-zlib
+ac_add_options --with-system-png
+ac_add_options --with-system-mng
+ac_add_options --enable-crypto
+ac_add_options --enable-xinerama
+ac_add_options --disable-tests
+ac_add_options --disable-debug
+ac_add_options --enable-optimize="$CFLAGS"
+
+ac_add_options --enable-reorder
+ac_add_options --enable-strip
+ac_add_options --enable-elf-dynstr-gc
+ac_add_options --enable-cpp-rtti
+ac_add_options --enable-xterm-updates
+ac_add_options --enable-svg
+ac_add_options --enable-toolkit-gtk2
+ac_add_options --enable-default-toolkit=gtk2
+EOF
+
+  ./configure      &&
+  make             &&
+  prepare_install  &&
+  make    install
 
 ) > $C_FIFO 2>&1  &&  (
 
-  rm     -f                          /usr/lib/mozilla/component.reg
-  mkdir  -p                          /usr/lib/mozilla
-  cp     -rL  dist/bin/*             /usr/lib/mozilla
-  mkdir  -p                          /usr/include/mozilla
-  cp	 -rL  dist/include/*         /usr/include/mozilla
-  cp  $SCRIPT_DIR/mozilla            /usr/bin
-  mkdir  -p                          /usr/include/mozilla
-  cp     -rL  dist/public/*          /usr/include/mozilla
-#  mkdir  -p                          /usr/include/mozilla/nss
-#  cp     -rL  dist/public/security/* /usr/include/mozilla/nss
-  export  MOZILLA_FIVE_HOME=/usr/lib/mozilla
-  export    LD_LIBRARY_PATH=/usr/lib/mozilla:$LD_LIBRARY_PATH
+  rm  -rf                                   /usr/include/mozilla
+  ln  -sf    /usr/include/mozilla-$VERSION  /usr/include/mozilla
 
-         /usr/lib/mozilla/regxpcom
-         /usr/lib/mozilla/regchrome
-  touch  /usr/lib/mozilla/chrome/user-skins.rdf
-  touch  /usr/lib/mozilla/chrome/user-locales.rdf
+  rm  -rf                                   /usr/lib/mozilla
+  ln  -sf        /usr/lib/mozilla-$VERSION  /usr/lib/mozilla
+
+  rm  -rf                                   /usr/share/idl/mozilla
+  ln  -sf  /usr/share/idl/mozilla-$VERSION  /usr/share/idl/mozilla
 
 )
