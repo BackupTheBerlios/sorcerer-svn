@@ -1,5 +1,22 @@
 IVERSION=$(  installed_version  $BSPELL  )
+
 (
+
+  # mozilla doesn't install nss headers by default
+  # so we do it manually :^)
+  install_security()  {
+    NSS_DIR=/usr/include/mozilla-$VERSION/nss 
+    mkdir  -p  $NSS_DIR
+    for  dir  in  private  public;  do
+      cp  -Lf  $BUILD_DIR/dist/${dir}/nss/*.h \
+      $NSS_DIR
+    done
+
+  }
+  
+  # already-running patch for running multiple
+  # instances of mozilla without -remote option.
+  bzip2  -cd  $SCRIPT_DIR/already-running.patch.bz2  |  patch -p1
 
   export    CFLAGS="${CFLAGS/-ffast-math/}"
   export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
@@ -21,24 +38,39 @@ ac_add_options --enable-xinerama
 ac_add_options --disable-tests
 ac_add_options --disable-debug
 ac_add_options --enable-optimize="$CFLAGS"
-
 ac_add_options --enable-reorder
 ac_add_options --enable-strip
 ac_add_options --enable-elf-dynstr-gc
 ac_add_options --enable-cpp-rtti
 ac_add_options --enable-xterm-updates
 ac_add_options --enable-svg
-ac_add_options --enable-toolkit-gtk
-ac_add_options --enable-default-toolkit=gtk
+ac_add_options --enable-toolkit-gtk2
+ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-old-abi-compat-wrappers
+ac_add_options --enable-xft
+ac_add_options --disable-freetype2
 EOF
-# ac_add_options --disable-mailnews
-# ac_add_options --disable-composer
+
+# mail/news support
+if  ! $MAIL_NEWS;  then
+  echo "ac_add_options --disable-mailnews" >> .mozconfig
+fi   
+
+# composer support
+if  ! $COMPOSER;  then
+  echo "ac_add_options --disable-composer" >> .mozconfig
+fi
+
+# chatzilla support
+if  ! $CHATZILLA;  then
+  echo 'ac_add_options --enable-extensions="default,-irc"' >> .mozconfig
+fi  
 
   ./configure  $OPTS  &&
   make                &&
   prepare_install     &&
-  make    install
+  make    install     &&
+  install_security
 
 ) > $C_FIFO 2>&1  &&  (
 
