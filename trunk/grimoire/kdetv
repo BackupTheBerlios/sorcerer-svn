@@ -1,4 +1,6 @@
-   VERSION=( "0.8.4" "0.8.3" "0.8.2" "0.8.1" "0.8.0" "0.8" "0.8rc2" )
+   VERSION=( "0.8.5" "0.8.4" "0.8.3" "0.8.2" )
+    IGNORE="0.8.5"
+# 0.8.5 has compile errors, has forward declarations
   CATEGORY="television"
  ATTRIBUTE="kde"
     SOURCE="kdetv-$VERSION.tar.bz2"
@@ -9,6 +11,9 @@
       DESC="kdetv is a KDE application for watching t.v."
 
 build()  {
+  case  $VERSION  in
+    0.8.5)  sed  -i  's:klineedit:"":'  configure  ;;
+  esac
   grep   -rl  "<linux/videodev.h>"  *  |
   xargs  -l64  \
   sed    -i   "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"
