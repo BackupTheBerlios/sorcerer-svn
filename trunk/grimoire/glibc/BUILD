@@ -56,7 +56,9 @@ echo  "$OPTS"  |
 grep  -q   "\--enable-add-ons=nptl"  ||
 OPTS="$OPTS  --enable-add-ons=linuxthreads"
 
-export  PATH="${PATH/gcc\/current/gcc/3.3.4}"
+GCC3_VER=$( installed_version  gcc-v3.3 )
+
+export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
 
 mkdir  build
 cd     build

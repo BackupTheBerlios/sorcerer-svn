@@ -38,17 +38,7 @@ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
   LDF="LDFLAGS=$LDFLAGS"
 
-case  $VERSION  in
-     3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
-   3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-   3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-   3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-   3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
-   3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-   3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-   3.3.4)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-    3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-esac
+patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch
 
 # 3.2.2 now supports the DESTDIR Makefile variable
 # That variable is for packagers.
