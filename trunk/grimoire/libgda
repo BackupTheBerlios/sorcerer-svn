@@ -15,9 +15,53 @@
 
 
 build()  {
+
+patch_source()  {
+patch  -p1  <<  EOF
+diff -r -U2 libgda-1.0.4/libgda/gda-util.c libgda-1.0.4/libgda/gda-util.c
+--- libgda-1.0.4/libgda/gda-util.c	2004-01-15 04:56:40.000000000 -0700
++++ libgda-1.0.4/libgda/gda-util.c	2004-01-15 04:56:40.000000000 -0700
+@@ -62,4 +62,5 @@
+ 	case GDA_VALUE_TYPE_TINYINT : return "tinyint";
+ 	default:
++break;
+ 	}
+ 
+diff -r -U2 libgda-1.0.4/providers/mysql/gda-mysql-provider.c libgda-1.0.4/providers/mysql/gda-mysql-provider.c
+--- libgda-1.0.4/providers/mysql/gda-mysql-provider.c	2003-11-26 14:01:22.000000000 -0700
++++ libgda-1.0.4/providers/mysql/gda-mysql-provider.c	2003-11-26 14:01:22.000000000 -0700
+@@ -512,4 +512,5 @@
+ 		break;
+ 	default:
++break;
+ 	}
+ 
+@@ -657,4 +658,5 @@
+ 		return TRUE;
+ 	default :
++break;
+ 	}
+ 
+@@ -1189,4 +1191,5 @@
+ 		return get_mysql_types (cnc, params);
+ 	default :
++break;
+ 	}
+ 
+diff -r -U2 libgda-1.0.4/providers/xml/gda-xml-provider.c libgda-1.0.4/providers/xml/gda-xml-provider.c
+--- libgda-1.0.4/providers/xml/gda-xml-provider.c	2003-09-01 16:55:02.000000000 -0700
++++ libgda-1.0.4/providers/xml/gda-xml-provider.c	2003-09-01 16:55:02.000000000 -0700
+@@ -683,4 +683,5 @@
+ 		return get_types (cnc);
+ 	default :
++break;
+ 	}
+ 
+EOF
+}
+
   case  $VERSION  in
-    1.0.4)  sed  -i  "\,default:,abreak;"   libgda/gda-util.c
-            sed  -i  "\,default :,abreak;"  providers/xml/gda-xml-provider.c  ;;
+    1.0.4)  patch_source  ;;
   esac
   default_build
 }
