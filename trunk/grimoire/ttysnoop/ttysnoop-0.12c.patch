@@ -1,0 +1,58 @@
+diff -r -U2 ttysnoop-0.12c/Makefile ttysnoop-0.12c/Makefile
+--- ttysnoop-0.12c/Makefile	1994-09-06 14:06:59.000000000 -0700
++++ ttysnoop-0.12c/Makefile	1994-09-06 14:06:59.000000000 -0700
+@@ -7,11 +7,11 @@
+ # Without shadow support
+ 
+-CCOPTS	= -O2
+-LIBS	= 
++#CCOPTS	= -O2
++#LIBS	= -lcrypt
+ 
+ # For shadow support
+ 
+-#CCOPTS	= -O2 -DSHADOW_PWD
+-#LIBS	= -lshadow
++CCOPTS	= -O2 -DSHADOW_PWD
++LIBS	= -lshadow -lcrypt
+ 
+ SERVEROBJS	= ttysnoops.o common.o
+@@ -45,4 +45,3 @@
+ 		install -s ttysnoops /sbin
+ 		install -m 644 ttysnoop.8 /usr/man/man8/
+-		@echo ... copy snooptab.dist to /etc/snooptab and edit it ...
+- 
+\ No newline at end of file
++		install -m 644 snooptab.dist /etc/snooptab
+diff -r -U2 ttysnoop-0.12c/ttysnoop.c ttysnoop-0.12c/ttysnoop.c
+--- ttysnoop-0.12c/ttysnoop.c	1994-09-07 06:04:01.000000000 -0700
++++ ttysnoop-0.12c/ttysnoop.c	1994-09-07 06:04:01.000000000 -0700
+@@ -15,5 +15,4 @@
+ #include <sys/ioctl.h>
+ #include <sys/socket.h>
+-#include <linux/time.h>
+ #include <linux/un.h>
+ #include <stdio.h>
+diff -r -U2 ttysnoop-0.12c/ttysnoops.c ttysnoop-0.12c/ttysnoops.c
+--- ttysnoop-0.12c/ttysnoops.c	1996-03-21 11:47:08.000000000 -0700
++++ ttysnoop-0.12c/ttysnoops.c	1996-03-21 11:47:08.000000000 -0700
+@@ -23,5 +23,4 @@
+ #include <sys/socket.h>
+ #include <sys/syslog.h>
+-#include <linux/time.h>
+ #include <linux/un.h>
+ #include <stdio.h>
+@@ -338,10 +337,10 @@
+ 			SC_STRING, SUSP_CHAR, TC_STRING, TERM_CHAR);
+ 		printf ("Snoop password:"); fflush (stdout);
+-		if (inputs(buff, 16, stdin) == 0)
++		if (inputs(buff, 128, stdin) == 0)
+ 		{
+ #ifndef SHADOW_PWD
+-			if (strcmp(pw->pw_passwd, crypt(buff, pw->pw_passwd)) == 0)
++			if (strcmp(pw->pw_passwd, (char *)crypt(buff, pw->pw_passwd)) == 0)
+ #else
+-                        if (strcmp(spw->sp_pwdp, crypt(buff, spw->sp_pwdp)) == 0)
++                        if (strcmp(spw->sp_pwdp, (char *)crypt(buff, spw->sp_pwdp)) == 0)
+ #endif
+ 			{
