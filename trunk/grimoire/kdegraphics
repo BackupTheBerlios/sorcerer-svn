@@ -1,7 +1,8 @@
 inherit kde
   CATEGORY="graphic"
 case  $VERSION  in
-  3.3.2)  SOURCE[1]="security_patches/post-3.3.2-kdegraphics.diff"  ;;
+  3.3.2)  SOURCE[1]="security_patches/post-3.3.2-kdegraphics.diff"
+          SOURCE[2]="security_patches/post-3.3.2-kdegraphics-3.diff"  ;;
 esac
        REQ=( "glut kdelibs"
              "sane-backends:::for libkscan/kooka"
@@ -17,13 +18,14 @@ previewer, DVI previewer, and a drawing program."
 
 build()  {
   case  $VERSION  in
-    3.3.2)  patch  -p0  <  $SOURCE_CACHE/kdegraphics/$VERSION/${SOURCE[1]##*/}  ;;
+    3.3.2)  patch  -p0  <  $SOURCE_CACHE/kdegraphics/$VERSION/${SOURCE[1]##*/}
+            patch  -p0  <  $SOURCE_CACHE/kdegraphics/$VERSION/${SOURCE[2]##*/}  ;;
   esac
   kde_build
 }
 
 current()  {
   case  $VERSION  in
-    3.3.2)  grep   -qx  "patching file kpdf/xpdf/GfxState.cc"  $COMPILE_LOGS/kdegraphics  ;;
+    3.3.2)  grep   -qx  "patching file kpdf/xpdf/XRef.cc"  $COMPILE_LOGS/kdegraphics  ;;
   esac
 }
