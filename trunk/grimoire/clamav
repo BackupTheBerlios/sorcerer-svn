@@ -1,10 +1,9 @@
-   VERSION=( "0.75.1" "0.75" "0.74" "0.73" "0.72" "0.71" "0.70"  )
-    IGNORE="rc\|-"
+   VERSION=( "0.80rc4" "0.80rc2" "0.75.1" "0.75" "0.74" "0.73" "0.72" "0.71" "0.70"  )
   CATEGORY="email network security"
  ATTRIBUTE="console"
     SOURCE="clamav/clamav-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
-  HOMEPAGE="http://clamav.sourceforge.net"
+  HOMEPAGE="http://www.clamav.net"
        REQ="bzip2 gmp zlib"
   ESTIMATE="256"
       DESC="clamav is a GPL anti-virus toolkit. 
@@ -18,8 +17,34 @@ package, which you can use with your own software.
 Most importantly, the virus database is kept up to date."
 
 
+pre_remove() {
+                   GetFreshClamPid=$( pidof freshclam )
+  if   [     -n  "$GetFreshClamPid" ];  then
+                      FreshClamCmdline="$( tr '\0' '\t' < /proc/$GetFreshClamPid/cmdline )"
+       kill  -15  $GetFreshClamPid
+  fi
+
+                   GetClamPid=$( pidof clamd )
+  if   [     -n  "$GetClamPid" ];  then
+                      ClamdCmdline="$( tr '\0' '\t' < /proc/$GetClamPid/cmdline )"
+       kill  -15  $GetClamPid
+  fi
+ 
+   echo "START_FRESHCLAM=\"$FreshClamCmdline\" 
+         START_CLAMD=\"$ClamdCmdline\"" > $SPELL_CONFIG
+}
+
+
 build() {
  groupadd  clamav             2>/dev/null
  useradd   clamav  -g clamav  2>/dev/null
+ sed  -i  "s:^Example:# Example:"  etc/*.conf
  default_build
+}
+
+
+post_install() {
+  ${START_FRESHCLAM:-:}
+  ${START_CLAMD:-:}
+  true
 }
