@@ -1,3 +1,17 @@
+check_space()  {
+  KILOBYTES=$(
+    df    -Pkm  $SOURCE_DIR  |
+    tr    -s ' '             |
+    tail  -1                 |
+    cut   -d ' '  -f4
+  )
+  if    ((  KILOBYTES < 1152  ));  then
+    echo  "Insufficient disk space available for compiling mozilla."
+    false
+  fi
+}
+
+
 install_symlinks()  {
 
   rm  -rf                                   /usr/include/mozilla
@@ -84,6 +98,7 @@ if  ! $CHATZILLA;  then
   echo 'ac_add_options --enable-extensions="default,-irc"' >> .mozconfig
 fi  
 
+check_space         &&
 ./configure  $OPTS  &&
 make                &&
 prepare_install     &&

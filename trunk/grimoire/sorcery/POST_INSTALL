@@ -1,5 +1,25 @@
+clean_provide_logs()  {
+  find  $PROVIDE_LOGS  -type f  -printf "%P\n"  |
+  while  read;  do
+    if    [  "$(<  "$PROVIDE_LOGS/$REPLY"  )"  ==  "$REPLY"  ]
+    then  rm  -f    $PROVIDE_LOGS/$REPLY
+    fi
+  done
+
+  grep   -rl  ","  $PROVIDE_LOGS  |
+  xargs  -l64   rm  -f
+}
+
+
 ARCH=$( uname -m )
 
 if    [  -x  $SENTINEL-$ARCH  ]
 then  cp     $SENTINEL-$ARCH  $SENTINEL
+fi
+
+
+PCOUNT=$(  find  $PROVIDE_LOGS  -type f  -printf "%P\n"  |  wc  -l  )
+
+if    ((  PCOUNT  >  200  ))
+then  clean_provide_logs
 fi
