@@ -1,0 +1,24 @@
+   VERSION=( "19" )
+  CATEGORY="game"
+ ATTRIBUTE="x11 new"
+    SOURCE="batalhao$VERSION.tar.gz"
+       URL="http://batalhao.codigolivre.org.br/files"
+  HOMEPAGE="http://batalhao.codigolivre.org.br"
+       REQ="SDL gtk+"
+      OPTS="--bindir=/usr/games"
+  ESTIMATE="6"
+      DESC="batalhao is a protect the city tank fighting game like NES Battle City."
+
+build()  {
+USGB="/usr/share/games/batalhao"
+  UG="/usr/games"
+rm     -f  batalhao
+sed    -i  "s:gfx/:$USGB/gfx/:"      recursos.h
+sed    -i  "s:mapas/:$USGB/mapas/:"      jogo.h
+chown  -R  root:root  *
+make                                     &&
+prepare_install                          &&
+mkdir    -p                 $UG   $USGB  &&
+cp       -r  gfx  mapas           $USGB  &&
+install  -m 0755  batalhao  $UG
+}
