@@ -19,11 +19,11 @@ build()  {
 install_init()  {
 TRAD="\$template TraditionalFormat,\"%timegenerated% %HOSTNAME% %syslogtag%%msg:::drop-last-lf%\n\"
 *.*  /var/log/syslog;TraditionalFormat"
-if  !  [   -f            /etc/syslog.conf  ]
-then   echo  "$TRAD"  >  /etc/syslog.conf
-       chmod  0600       /etc/syslog.conf
+if  !  [   -f            /etc/rsyslog.conf  ]
+then   echo  "$TRAD"  >  /etc/rsyslog.conf
+       chmod  0600       /etc/rsyslog.conf
 fi
-install  -m 0600 sample.conf   /etc/syslog.conf.sample
+install  -m 0600 sample.conf   /etc/rsyslog.conf.sample
 ln  -sf  ../init.d/rsyslog.sh  /etc/rcS.d/S20rsyslog
 ln  -sf  ../init.d/rsyslog.sh  /etc/rc0.d/K70rsyslog
 ln  -sf  ../init.d/rsyslog.sh  /etc/rc6.d/K70rsyslog
@@ -44,4 +44,10 @@ true
 pre_remove()  {
 /etc/init.d/rsyslog.sh stop
 true
+}
+
+current()  {
+case  $VERSION  in
+  0.8.2)  [  -f  /etc/rsyslog.conf  ]  ;;
+esac
 }
