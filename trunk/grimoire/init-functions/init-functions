@@ -5,32 +5,51 @@ log_success_msg()  {  echo  "$@";  }
 log_failure_msg()  {  echo  "$@";  }
 log_warning_msg()  {  echo  "$@";  }
 
-pidofproc()  { (
 
-   [     -n          "$1"  ]     &&
-   BN="$(  basename  "$1"  )"    &&
-   BP="/var/run/$BN.pid"         &&
-   [     -f        $BP     ]     &&
-   PID="$(  cat    $BP     )"    &&
-   ps    -C       "$BN"  -o pid  |
-   tr    -d ' '                  |
-   grep  -q  -x   "$PID"         &&
-   echo           "$PID"
-  
-) }
+locked()  {
 
-killproc()  { (
+  local  LEN  STATUS  LINE  LPID
 
-  if  PID=$(  pidofproc  "$1"  );  then
+  [  -n  "$2"  ]  &&  LEN=${#2}      &&
+  [  -n  "$1"  ]  &&  [  -f   $1  ]  &&
+  read  LPID  <  $1                  &&
+  STATUS="/proc/$LPID/status"        &&
+  [  -f          $STATUS  ]          &&
+  read  LINE  <  $STATUS             &&
+  [  "${LINE:6:$LEN}"  ==  "$2"   ]
+
+}
+
+
+pidofproc()  {
+
+  local  NAME  FILE
+
+  NAME="$(  basename  "$1"  )"
+  FILE="/var/lock/$NAME.pid"
+  locked "$FILE" "$NAME"  &&
+  cat     $FILE
+
+}
+
+killproc()  {
+
+  local  PID  NAME  FILE
+
+  NAME="$(  basename   $1  )"
+  FILE="/var/lock/$NAME.pid"
+
+  if    locked   "$FILE"  "$NAME";  then
+    read  PID  <  $FILE
     if    [  -n  "$2"  ]
     then  kill   -$2  $PID
     else  kill   -15  $PID;  sleep  3
           kill   -9   $PID   2>/dev/null
     fi
-    rm  -f  /var/run/$(  basename   "$1"  ).pid
+    rm  -f  $FILE
   fi
 
-) }
+}
 
 start_daemon()  { (
 
