@@ -1,0 +1,55 @@
+   VERSION=( "1_31_0" "1.30.2" )
+    IGNORE="jam\|build\|regex\|python\|"
+# is 1.31.0 the stable release?
+# Upgrading to unstable versions because boost 1.30.2 fails to compile.
+  CATEGORY="development"
+ ATTRIBUTE="library"
+# Installs files to /usr/local and sentinel is unable to track them.
+# Perhaps it uses a statically linked program for installation?
+#   SOURCE="boost/boost-$VERSION.tar.bz2"
+    SOURCE="boost/boost_$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.boost.org"
+       REQ="Python-v2.2 boost-jam"
+  ESTIMATE="641"
+      DESC="boost provides additional C++ libraries.
+boost was begun by members of the C++ standards 
+committee Library Working Group to provide free 
+peer-reviewed portable libraries to the C++ community.
+An additional objective is to establish 
+existing practice and provide reference 
+implementations so that the Boost libraries 
+are suitable for eventual standardization.
+Indeed, the explicit intent is to propose many of these 
+libraries for inclusion in the C++ Standard Library.
+The Boost Graph Library, formerly known as the Generic 
+Graph Component Library (GGCL), is a collection of graph 
+algorithms and data structures created in the generic 
+programming style of the Standard Template Library (STL)."
+
+
+build()  {
+export  PYTHON_ROOT=/usr
+bjam    --prefix=/usr  stage    &&
+prepare_install                 &&
+bjam    --prefix=/usr  install
+}
+
+current()  {
+case  $VERSION  in
+  1.30.2)  [  -f  /usr/lib/libboost_filesystem.a  ]  ;;
+esac
+}
+
+build_old()  {
+export  PYTHON_ROOT=/usr
+bjam                                                 &&
+prepare_install                                      &&
+cp  -r  boost                          /usr/include  &&
+cp  -r  libs/python/build/bin-stage/*  /usr/lib      &&
+cp      $(  find . -type f     -a  \
+                   -name \*.a  -o  \
+                   -name \*.so     |
+            grep release           )   /usr/lib
+}
+

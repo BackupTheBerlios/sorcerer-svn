@@ -1,0 +1,66 @@
+   VERSION=( "2.4" "2.3" "2.2" "2.1.1" "2.1" )
+  CATEGORY="development"
+ ATTRIBUTE="console solo"
+    SOURCE="ccache-$VERSION.tar.gz"
+       URL="http://ccache.samba.org/ftp/ccache"
+  HOMEPAGE="http://ccache.samba.org"
+  ESTIMATE="19"
+      DESC="ccache is a C and C++ compiler wrapper to speed compilation.
+ccache is a compiler cache.
+It acts as a caching pre-processor to C/C++ compilers, 
+using the -E compiler switch and a hash to detect when 
+a compilation can be satisfied from cache.
+This often results in a 5 to 10 times 
+speedup in common compilations."
+
+
+build()  {
+
+symlink_install()  {
+  cd  /usr/libexec/ccache
+  ln  -sf  ccache  cc
+  ln  -sf  ccache  gcc
+  ln  -sf  ccache  c++
+  ln  -sf  ccache  g++
+}
+
+
+mtime_patch() {
+cat  <<  EOF  |  patch  -p1
+diff -r -U2 ccache-2.3/ccache.c ccache-2.3/ccache.c
+--- ccache-2.3/ccache.c	2003-09-27 21:48:17.000000000 -0700
++++ ccache-2.3/ccache.c	2003-09-27 21:48:17.000000000 -0700
+@@ -507,4 +507,6 @@
+ 		/* update the mtime on the file so that make doesn't get confused */
+ 		utime(output_file, NULL);
++                /* update the mtime on the hash file so that it can be identified as being used on a noatime mounted partition  */
++                utime(hashname, NULL);
+ 	}
+ 
+EOF
+}
+
+
+mtime_patch                                &&
+./configure  --build=$BUILD                \
+             --prefix=/usr/libexec/ccache  \
+             --bindir=/usr/libexec/ccache  \
+             --sysconfdir=/etc             \
+             --localstatedir=/var          \
+             --mandir=/usr/man             \
+             $OPTS              &&
+make                            &&
+prepare_install                 &&
+mkdir  -p  /usr/libexec/ccache  &&
+make    install                 &&
+symlink_install
+}
+
+
+current()  {
+  case  $VERSION  in
+    2.3)  bzcat  $COMPILE_LOGS/ccache.bz2  |
+          grep  -q  -x  "patching file ccache.c"  ;;
+  esac
+}
+

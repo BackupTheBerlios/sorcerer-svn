@@ -1,0 +1,31 @@
+   VERSION=( "1.2.7" "1.2.6" "1.2.6rc5" "1.2.6rc1" )
+      SAFE=( "1.2.7" "1.2.6" )
+    IGNORE="mips\|-makefile\|beta\|rc\|wince\|project\|config"
+  CATEGORY="graphic"
+ ATTRIBUTE="library"
+    SOURCE="libpng/libpng-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.libpng.org/pub/png/libpng.html"
+       REQ="zlib"
+  ESTIMATE="46"
+      DESC="libpng is a library that supports the PNG graphics format.
+libpng is the PNG library is a collection of routines
+used to create and manipulate PNG format graphics files.
+The PNG format was designed as a replacement for GIF
+and to a lesser extent, TIFF, with many improvements and extensions."
+
+
+build() {
+sed  "s:prefix=/usr/local:prefix=/usr:
+      s:ZLIBLIB=../zlib:ZLIBLIB=/usr/lib:
+      s:ZLIBINC=../zlib:ZLIBINC=/usr/include:
+      s:-O3 -funroll-loops:$CFLAGS:
+      s: -shared : -shared -lz -lc -lm :"  \
+scripts/makefile.linux  >  Makefile
+
+make             &&
+prepare_install  &&
+make    install  &&
+ln  -sf  libpng/png.h      /usr/include/png.h  &&
+ln  -sf  libpng/pngconf.h  /usr/include/pngconf.h
+}

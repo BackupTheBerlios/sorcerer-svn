@@ -1,0 +1,30 @@
+   VERSION=( "0.22.0" "0.19.0" "0.18.0" "0.16.0" )
+      SAFE=( "0.22.0" )
+  CATEGORY="graphic"
+ ATTRIBUTE="library x11"
+    SOURCE="sources/gdk-pixbuf/${VERSION:0:4}/gdk-pixbuf-$VERSION.tar.bz2"
+       URL="$GNOME_URL"
+  HOMEPAGE="http://www.gnome.org"
+       REQ=( "imlib"
+             "gnome-libs:::for gnome 1.4 support" )
+# gdk-pixbuf and gnome-libs have a circular dependency upon one another
+# Thus do not put that gdk-pixbuf requires gnome-libs
+# without removing the req on gdk-pixbuf in gnome-libs
+  ESTIMATE="324"
+      DESC="gdk-pixbuf is a graphics library.
+GdkPixbuf structure for representing images.
+Image loading facilities, both synchronous and progressive.
+Rendering of a GdkPixbuf into various formats/
+Drawables (windows, pixmaps), GdkRGB buffers.
+Fast scaling and compositing of pixbufs.
+Simple animation loading (ie. animated gifs)."
+
+
+post_install() {
+if  !  [  -f  /usr/include/gdk_imlib.h  ];  then
+  unlock_cast
+  if    spell_installed  imlib
+  then  cast             imlib
+  fi
+fi
+}

@@ -1,0 +1,70 @@
+   VERSION=( "1.14.2" "1.14.1" "1.14.0" "1.13.0" "1.12.0" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE=( "stable/freeciv-$VERSION.tar.bz2"
+             "contrib/sounds/sets/stdsounds2.tar.gz"
+             "contrib/tilesets/r-hires/r-hires.4.tar.gz"
+             "contrib/tilesets/neotrident/NeoTrident_30x30_256-1.12.0-1.2.tar.gz"
+             "contrib/tilesets/ft/ft_64x32-1.13-1.1.tar.gz"
+             "contrib/tilesets/lexxy/lexxy13.tar.gz"
+             "contrib/tilesets/isotrident/isotrident11.tar.gz"
+             "contrib/tilesets/macroisotrident/macroisotrident9.tar.gz"
+             "contrib/tilesets/engels/engels-1.12.0.tar.gz"
+             "contrib/tilesets/isoengels/isoengels2.tar.gz"
+             "contrib/tilesets/tinydent/tinydent-png-1.14.1.tar.gz"
+             "contrib/tilesets/tinydent/dinydent-1.14.0.tar.gz"
+             "contrib/tilesets/tinydent/winydent-png-1.14.1.tar.gz"
+             "contrib/tilesets/dizzy/dizzy_20x20_truecolor-1.13.0.tar.gz"
+             "contrib/tilesets/isophex/isophex-1.14.0.tar.gz" )
+       URL="ftp://ftp.freeciv.org/freeciv
+            ftp://ftp.netc.pt/pub/freeciv"
+       REQ="SDL_mixer gtk+ ncurses readline"
+  HOMEPAGE="http://www.freeciv.org"
+  ESTIMATE="254"
+      DESC="freeciv is a reimplementation of Civilization.
+freeciv is a multiuser reimplementation of 
+the famous Microprose game of Civilization.
+By default, the game is an improved Civ II,
+but this can be customized; modpacks for 
+near-100% compatibility with Civ I and Civ II are included.
+Multiuser gameplay is real-time: in each turn,
+all human players move concurrently.
+The game is designed to remain fairly 
+playable even on poor network connections.
+Freeciv can also be played on standalone machines, 
+and its AI players are a good challenge for beginners.
+The source code comes with the server, two X clients,
+and non-X clients for MS Windows and Amiga."
+
+
+pre_build() {
+unpack  ${SOURCE[0]}
+
+cd      $BUILD_DIR
+mkdir   sounds
+cd      sounds
+unpack  ${SOURCE[1]}
+chmod  664  $(  find  .  -type f  )
+
+cd      $BUILD_DIR
+mkdir   tilesets
+cd      tilesets
+
+COUNT=2
+
+while  [  -n  "${SOURCE[$COUNT]}"  ];  do
+  unpack  ${SOURCE[$COUNT]}
+  ((  COUNT++  ))
+done
+chmod  664  $(  find  .  -type f  )
+}
+
+build() {
+./configure  --prefix=/usr        \
+             --bindir=/usr/games  &&
+make             &&
+prepare_install  &&
+make    install  &&
+cd      sounds   &&  cp  -a  *  /usr/share/freeciv  &&
+cd  ../tilesets  &&  cp  -a  *  /usr/share/freeciv
+}

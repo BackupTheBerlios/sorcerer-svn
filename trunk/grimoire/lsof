@@ -1,0 +1,47 @@
+   VERSION=( "4.73" "4.72" "4.71" "4.70" "4.69" "4.68" "4.67" "4.66" "4.65" "4.64" )
+  CATEGORY="utility"
+ ATTRIBUTE="console"
+    SOURCE="lsof/lsof_$VERSION.tar.bz2"
+  HOMEPAGE="ftp://vic.cc.purdue.edu/pub/tools/unix/lsof"
+       URL="ftp://vic.cc.purdue.edu/pub/tools/unix
+            ftp://ftp.cerias.purdue.edu/pub/tools/unix/sysutils
+            ftp://ftp.cert.dfn.de/pub/tools/admin
+            ftp://ftp.cetis.hvu.nl/pub
+            ftp://ftp.crc.ca/pub/packages
+            ftp://ftp.fu-berlin.de/pub/unix/tools
+            ftp://ftp.sunet.se/pub/unix/admin
+            ftp://ftp.tau.ac.il/pub/unix
+            ftp://ftp.tu-darmstadt.de/pub/sysadmin
+            ftp://ftp.tux.org/pub/sites/vic.cc.purdue.edu/tools/unix
+            ftp://ftp.uni-mainz.de/pub/misc
+            ftp://gd.tuwien.ac.at/utils/admin-tools
+            ftp://sunsite.ualberta.ca/pub/Mirror
+            ftp://the.wiretapped.net/pub/security/host-security
+            http://kaizo.org/pub"
+#           ftp://wuarchive.wustl.edu/packages/security
+  ESTIMATE="222"
+      DESC="lsof lists open files.
+lsof is a Unix-specific diagnostic tool.
+Its name stands for LiSt Open Files.
+It lists information about any files that are
+open by processes currently running on the system.
+It can also list communications open by each process."
+
+
+pre_build()  {
+unpack  $SOURCE     &&
+cd      $BUILD_DIR  &&
+tar  -xf  ${SPELL}_${VERSION}_src.tar
+}
+
+
+build() {
+cd  ${SPELL}_${VERSION}_src         &&
+yes |  ./Configure  linux           &&
+sed  -i  "s/-O/$CFLAGS/"  Makefile  &&
+make                                &&
+prepare_install                     &&
+install  -m 0755  lsof    /usr/bin  &&
+mkdir    -p               /usr/man/man8  &&
+install  -m 0644  lsof.8  /usr/man/man8
+}

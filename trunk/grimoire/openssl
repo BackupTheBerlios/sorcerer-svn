@@ -1,0 +1,60 @@
+   VERSION=( "0.9.7e" "0.9.7d" "0.9.7c" "0.9.7b" "0.9.7a" "0.9.7" "0.9.6h" "0.9.6g" "0.9.6f" "0.9.6e" "0.9.6d" )
+      SAFE=( "0.9.7e" "0.9.7d" )
+  CATEGORY="encryption"
+ ATTRIBUTE="core library"
+    SOURCE="openssl-$VERSION.tar.gz"
+       URL="http://www.openssl.org/source
+             ftp://ftp.openssl.org/source
+             ftp://sunsite.cnlab-switch.ch/mirror/openssl/source
+             ftp://ftp.funet.fi/pub/crypt/cryptography/libs/openssl/source
+             ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source
+             ftp://ftp.webmonster.de/pub/openssl/source
+             ftp://opensores.thebunker.net/pub/mirrors/openssl/source
+             ftp://ftp.net.lut.ac.uk/openssl/source
+             ftp://ftp.mirror.ac.uk/sites/ftp.openssl.org/source
+             ftp://sunsite.uio.no/pub/security/openssl/source
+             ftp://ftp.sunet.se/pub/security/tools/net/openssl/source
+             ftp://ftp.chl.chalmers.se/pub/unix/security/openssl/source
+             ftp://ftp.psy.uq.edu.au/pub/Crypto/OpenSSL
+             ftp://gd.tuwien.ac.at/infosys/security/openssl/source
+             ftp://guest.kuria.katowice.pl/pub/openssl/source
+             ftp://ftp.infoscience.co.jp/pub/Crypto/SSL/openssl/source
+             ftp://ftp.happysize.co.jp/mirror/openssl/source
+             ftp://ftp.elab.co.za/support/openssl/source
+             ftp://ftp.directnet.ru/pub/openssl/source
+             ftp://ftp.linux.hr/pub/openssl/source
+             ftp://ftp.openssl.uli.it/source
+             ftp://ftp.grmbl.com/pub/openssl/source
+             ftp://ftp.gin.cz/pub/MIRRORS/ftp.openssl.org/source
+             ftp://ftp.calyx.nl/pub/openssl/source
+             ftp://ftp.duth.gr/pub/OpenSSL/source
+             ftp://ftp.si.uniovi.es/mirror/OpenSSL/source"
+  HOMEPAGE="http://www.openssl.org"
+       REQ="perl"
+   PROTECT="/etc/ssl/certs/"
+  ESTIMATE="1294"
+      DESC="openssl is a library for providing encrypted transport layers.
+The OpenSSL Project is a collaborative effort to develop
+a robust, commercial-grade, full-featured, and Open Source
+toolkit implementing the Secure Sockets Layer (SSL v2/v3)
+and Transport Layer Security (TLS v1) protocols as well
+as a full-strength general purpose cryptography library."
+
+build() {
+sed  -i         "s:-O3 -fomit-frame-pointer -m486:$CFLAGS:"  \
+  $(  grep   -rl "\-O3 -fomit-frame-pointer -m486"  *  )
+
+./config  --prefix=/usr          \
+          --openssldir=/etc/ssl  \
+          shared                 &&
+make                             &&
+prepare_install                  &&
+make    install  MANDIR=/usr/man
+}
+
+post_install()  {
+SSH_PRO=$(  get_provider  openssh  )
+if    spell_installed  $SSH_PRO;  then  unlock_cast
+      cast -c          $SSH_PRO
+fi
+}

@@ -1,0 +1,50 @@
+   VERSION=( "1.14" "1.13" )
+  CATEGORY="archive"
+ ATTRIBUTE="core console solo"
+    SOURCE="tar/tar-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.gnu.org/software/tar/tar.html"
+       URL="$GNU_URL"
+   PROTECT="/bin/tar"
+       REQ=( ""  ":--enable-backup-scripts::to install tar backup scripts" )
+  ESTIMATE="102"
+      DESC="tar creates GNU tar archives.
+Can create tar archives, as well as other forms of manipulation.
+For example, you can use tar on previously created archives to
+extract files, store additional files, or update or list files
+which were already stored.
+Tar can direct its output to available devices, files,
+or other programs (using pipes); tar can even access
+remote devices or files (as archives).
+The program saves many files together into a single tape or
+disk archive, and can restore individual files from the archive.
+It includes multi-volume support, the ability to archive sparse files,
+automatic archive compression/decompression, remote archives and
+special features that allow 'tar' to be used for incremental and
+full backups."
+
+build()  {
+
+templat_install()  {
+  mkdir   -p                               /etc/backup
+  chmod      0755                          /etc/backup
+  install -m 0644   scripts/backup-specs   /etc/backup/backup-specs.template
+}
+
+case  $VERSION  in
+  1.14)  sed  -i 's:mt_offl\>:mt_offline:
+                  s:MT_STATUS}:MT_STATUS} "${TAPE_FILE}":'  \
+              scripts/backup.in  ;;
+esac
+
+./configure  --build=$BUILD     \
+             --prefix=/usr      \
+             --libexecdir=/bin  \
+             --bindir=/bin      \
+             --disable-nls      \
+             $OPTS  &&
+make                &&
+make    html        &&
+prepare_install     &&
+make    install     &&
+templat_install
+}
