@@ -1,7 +1,9 @@
 (
 
-  export    CFLAGS="$(  echo  $CFLAGS    |  sed  s/-ffast-math//  )"
-  export  CXXFLAGS="$(  echo  $CXXFLAGS  |  sed  s/-ffast-math//  )"
+  export    CFLAGS="${CFLAGS/-ffast-math/}"
+  export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
   export  MOZILLA_OFFICIAL=1
   export  BUILD_OFFICIAL=1
