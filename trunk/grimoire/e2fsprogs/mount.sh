@@ -31,7 +31,7 @@ start() {
   mount    -n  -o  remount,rw  /
   echo     >  /etc/mtab
   mount    -f  -o  remount,rw  /
-  mount    -a  -F
+  mount    -a
   rm       -f  /fastboot  /forcefsck
 
 }
