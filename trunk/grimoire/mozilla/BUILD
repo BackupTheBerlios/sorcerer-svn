@@ -30,6 +30,9 @@ ac_add_options --enable-svg
 ac_add_options --enable-toolkit-gtk2
 ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-old-abi-compat-wrappers
+
+ac_add_options --enable-xft
+ac_add_options --disable-freetype2
 EOF
 
   ./configure  $OPTS  &&
