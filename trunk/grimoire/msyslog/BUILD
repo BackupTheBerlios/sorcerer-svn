@@ -7,8 +7,16 @@ install_init()  {
 
 
 install_etc()  {
-  cp  src/examples/syslog.conf.*  /etc
+
   cp   $SCRIPT_DIR/syslog.conf    /etc
+
+  mkdir  -p  /etc/syslog.conf.examples
+
+  for  FILE  in  src/examples/syslog.conf.*
+  do   install  -m 0444  -o root  -g root  \
+                $FILE  /etc/syslog.conf.examples
+  done
+
 }
 
 

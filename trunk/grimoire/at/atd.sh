@@ -1,6 +1,6 @@
-#!/bin/sh
+#!/bin/bash
 
-PID="/var/run/atd.pid"
+PFILE="/var/run/atd.pid"
 
 start()  {
   echo  -n  "Starting atd..."
@@ -10,9 +10,9 @@ start()  {
 
 stop()  {
   echo  -n  "Stopping atd..."
-  [     -f            $PID  ]  &&
-  kill  -15  $(  cat  $PID  )
-  rm    -f            $PID
+  [     -f        $PFILE  ]  &&
+  kill  -15  $(<  $PFILE  )
+  rm    -f        $PFILE
   echo  "done."
 }
 
