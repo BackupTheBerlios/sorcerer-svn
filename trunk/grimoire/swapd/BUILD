@@ -23,6 +23,7 @@ sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
 case  $VERSION  in
   0.2)  patch  -p1  <  $SCRIPT_DIR/swapd-0.2.patch  ;;
+  0.3) echo "/etc/swapd.conf is now useless, use init script instead see swapd --help"
 esac
 
 ./configure  --build=$BUILD        \
