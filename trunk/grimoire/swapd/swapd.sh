@@ -3,9 +3,14 @@
 PID=/var/run/swapd.pid
 
 start() {
-  echo  "Starting swapd..."
-  /usr/sbin/swapd
-  echo  "done."
+  [      -d  /swap  ]  ||
+  mkdir  -p  /swap
+  if  touch  /swap/rw.test  2>/dev/null;  then
+    rm  -f   /swap/rw.test
+    echo  "Starting swapd..."
+    /usr/sbin/swapd
+    echo  "done."
+  fi
 }
 
 stop()  {
