@@ -94,7 +94,7 @@ echo  "EXIM_GROUP=mail"                        >>  Local/Makefile
 if    spell_installed  db;  then
 
   echo  "USE_DB=yes"  >>  Local/Makefile
-  echo  "EXTRALIBS += -lpthread"               >>  Local/Makefile
+# echo  "EXTRALIBS += -lpthread"               >>  Local/Makefile
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
     4.1)  sed  -i  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;

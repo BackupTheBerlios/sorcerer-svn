@@ -38,6 +38,12 @@ if    spell_installed  $(  get_provider  j2sdk  )
 then  OPTS="${OPTS}  --enable-java"
 fi
 
+
+case  $VERSION  in
+  4.3.27)   export   LDFLAGS="-lpthread  $LDFLAGS"  ;;
+esac
+
+
 cd  build_unix &&
 ../dist/configure  --prefix=/usr       \
                    --build=$BUILD      \
@@ -53,6 +59,9 @@ rm     -rf  /usr/docs
 
 current()  {
 case  $VERSION  in
-  4.3.27)  grep  -qx  "patching file rep/rep_region.c"  $COMPILE_LOGS/db  ;;
+# 4.3.27)  grep  -qx  "patching file rep/rep_region.c"  $COMPILE_LOGS/db  ;;
+  4.3.27)  echo  /usr/lib/libdb-4.3.so  |
+           quick_ldd                    |
+           grep  -q  libpthread  ;;
 esac
 }
