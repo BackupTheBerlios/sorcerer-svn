@@ -1,0 +1,78 @@
+   VERSION=( "1.00" )
+  CATEGORY="shell"
+ ATTRIBUTE="console new"
+    SOURCE="busybox-$VERSION.tar.gz"
+       URL="http://www.busybox.net/downloads"
+  HOMEPAGE="http://www.busybox.net"
+ FRESHMEAT="busybox"
+  ESTIMATE="800"
+      DESC="busybox is a tiny rescue shell.
+busybox combines tiny versions of many common 
+UNIX utilities into a single small executable.
+It provides minimalist replacements for most 
+of the utilities you usually find in GNU 
+fileutils, shellutils, etc."
+
+build()  {
+
+run_make_menuconfig()  {
+
+  if  [  "$TERM"  !=  "dumb"  ];  then
+    CONFIG_BUSYBOX="true"
+    while  $CONFIG_BUSYBOX; do
+      make  menuconfig
+      if    query  "Repeat menuconfig?" n
+      then  CONFIG_BUSYBOX=true
+      else  CONFIG_BUSYBOX=false
+      fi
+    done
+  fi
+
+}
+
+
+restore_busybox_configs()  {  (
+
+  CURRENT="$CONFIG_LOGS/$BSPELL/busybox-config"
+      OLD="$CONFIG_LOGS/$BSPELL/busybox-config.old"
+
+  if    [  -f   $CURRENT  ];  then  cp  $CURRENT  .config
+  elif  [  -f   $OLD      ];  then  cp  $OLD      .config;  run_make_menuconfig
+  else  run_make_menuconfig
+  fi
+
+)  }
+
+
+store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/busybox-config;  }
+
+
+compile_and_install()  {
+
+  yes  ""  |  make  oldconfig  &&
+  store_config                 &&
+  make                         &&
+  prepare_install              &&
+  mkdir    -p                /usr/libexec/busybox  &&
+  install  -m 0755  busybox  /usr/libexec/busybox  &&
+  for  CMD_NAME  in  $(
+    /usr/libexec/busybox/busybox --help 2>&1  |
+    grep      ","       |
+    tr        ','  '\n' |
+    tr    -d  '\t'      |
+    tr    -d  ' '       |
+    grep  -v  -x  ""    |
+    tail  +4            |
+    grep  -v  -x  "busybox"
+  )
+  do    ln  -sf  busybox  /usr/libexec/busybox/$CMD_NAME
+  done
+
+}
+
+
+restore_busybox_configs
+activate_voyeur
+compile_and_install  &> $C_FIFO
+
+}
