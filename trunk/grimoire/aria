@@ -1,19 +1,32 @@
    VERSION=( "1.0.0" )
   CATEGORY="file-transfer"
- ATTRIBUTE="x11"
-  HOMEPAGE="http://duda.wz.cz/software/aria/index_en.php http://aria.rednoah.com/"
-       URL=("http://aria.rednoah.com/storage/sources")
+ ATTRIBUTE="x11 new unsafe"
+# Why did this spell lack the new attribute?
+# aria has not had a release in many years
+# it is probably unmaintained, definitely contains
+# much deprecated gcc syntax in the source, and might
+# possibily have security vulnerabilities.
     SOURCE="aria-$VERSION.tar.bz2"
-       REQ=("gtk+ glib"
-            ":--disable-nls::disable native language support"
-            "gettext intltool:--enable-nls::enable native language support"
-            ":--with-x::x11 support")
-#           "openssl:::openssh support")
+       URL="http://aria.rednoah.com/storage/sources"
+# Why were there two homepages in the HOMEPAGE variable?
+  HOMEPAGE="http://duda.wz.cz/software/aria/index_en.php"
+# http://aria.rednoah.com/"
+# Below is incorrect.
+#       REQ=( "gtk+ glib"
+#             ":--disable-nls::disable native language support"
+#             "gettext intltool:--enable-nls::enable native language support"
+#             ":--with-x::x11 support" )
+
+       REQ=( "gtk+ glib"
+             "gettext intltool:--enable-nls:--disable-nls:enable native language support"
+             ":--with-x::x11 support" )
+             # "openssl:::openssh support" )
   ESTIMATE="355"
-      DESC=(" Aria is a download tool for UNIX(Linux?) similar to Reget or GetRight."
-" It downloads files from Internet via HTTP/HTTPS or FTP. The transfer 
-can be paused, resumed, queued and saved. It has very friendly GTK based
- GUI, and useful log consoles. Some of its main features are:
+      DESC="aria is a download tool similar to Reget or GetRight.
+It downloads files from Internet via HTTP/HTTPS or FTP.
+The transfer can be paused, resumed, queued and saved.
+It has very friendly GTK based GUI, and useful log consoles.
+Some of its main features are:
 
     * Automatic CRC/MD5 checking
     * Split downloads
@@ -32,32 +45,19 @@ can be paused, resumed, queued and saved. It has very friendly GTK based
     * server templates to avoid some URL format
     * automatic MD5 and CRC checking
     * multi-threading download
-    * download speed limits for each item
-
-")
+    * download speed limits for each item"
  
+
 build() {
-  chown -R root.root * &&
-  patch -d src < $SCRIPT_DIR/aria-1.0.0-savefiles-gentoo.diff &&
-  patch -d po  < $SCRIPT_DIR/aria-1.0.0-xgettext-gentoo.diff  &&
+# chown uses a colon and not a comma as a separator
+  chown  -R  root:root  *
+  patch  -d  src  <  $SCRIPT_DIR/aria-1.0.0-savefiles-gentoo.diff
+  patch  -d  po   <  $SCRIPT_DIR/aria-1.0.0-xgettext-gentoo.diff
 
-  if    [  -z  "${SOURCE}"  ]
-  then  prepare_install  &&  echo  "Profile $BSPELL installed."
-  else
+# Those above file should have been referenced as additional
+# SOURCE and URLs and not included in the grimoire.
 
-    LD_PRELOAD_OLD=$LD_PRELOAD
-    unset           LD_PRELOAD
+# When can this ever be a profile?
 
-    ./configure  --build=$BUILD         \
-                 --prefix=/usr          \
-                 --sysconfdir=/etc      \
-                 --localstatedir=/var   \
-                 $OPTS                  &&
-    touch -m Makefile                   &&
-    make                                &&
-    prepare_install                     &&
-    export  LD_PRELOAD=$LD_PRELOAD_OLD  &&
-    make    install
-  fi
-
+default_build
 }
