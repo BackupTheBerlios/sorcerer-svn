@@ -1,3 +1,5 @@
+mkdir  -p  $(  dirname  $INSTALL_QUEUE  )
+
 # Probably safe to remove.
 # All png's have likely been updated.
 
@@ -10,34 +12,31 @@
 # fi
 
 
-# Already forgot the purpose of this.  It maybe safe to remove.
-if    [  -f   /usr/include/expat.h  ]  &&
-      md5sum  /usr/include/expat.h     |
-      grep  -q  "19f344fc580bfba1493f098c90172fda"
+if    spell_installed  expat                          &&
+           EXPAT_VER=$(  installed_version  expat  )  &&
+      [  "$EXPAT_VER"  ==  "1.95.6"  ]                &&
+      !  bzcat  $COMPILE_LOGS/expat.bz2               |
+         grep  -q  "patching file lib/expat.h"
 then  echo  "expat"  >>  $INSTALL_QUEUE
 fi
 
 
-# Remove if bladeenc is ever updated.
-if    spell_installed  bladeenc             &&
-      !  bzcat  $COMPILE_LOGS/bladeenc.bz2  |
-      grep  -q  -x  "patching file bladeenc/samplein.c"
+if    spell_installed  bladeenc                             &&
+           BLADEENC_VER=$(  installed_version  bladeenc  )  &&
+      [  "$BLADEENC_VER"  ==  "0.94.2"  ]                   &&
+      !  bzcat  $COMPILE_LOGS/bladeenc.bz2                  |
+         grep  -q  -x  "patching file bladeenc/samplein.c"
 then  echo  "bladeenc"  >>  $INSTALL_QUEUE
 fi
 
 
 # Remove whenever
-if    grep  -q       "USE_GDK_XFT"     /etc/profile
-then  echo  "Detected USE_GDK_XFT  in  /etc/profile"
-      echo  "export   USE_GDK_XFT=1 will cause gnome 2.2 to malfunction."
-      echo  "Considering removing it from /etc/profile"
-      sleep  1
-fi
-
-if    spell_installed  Xft2  &&
-      !  grep  -q  "\-Wl,-rpath,/opt/Xft2/lib"  /usr/lib/pkgconfig/xft.pc
-then  echo  "Xft2"  >>  $INSTALL_QUEUE
-fi
+# if    grep  -q       "USE_GDK_XFT"     /etc/profile
+# then  echo  "Detected USE_GDK_XFT  in  /etc/profile"
+#       echo  "export   USE_GDK_XFT=1 will cause gnome 2.2 to malfunction."
+#       echo  "Considering removing it from /etc/profile"
+#       sleep  1
+# fi
 
 
 # Remove when gcc is 3.2.3 or higher
@@ -48,9 +47,11 @@ fi
 
 
 # Remove when zlib version is above 1.1.4
-if    !  [  -f  $COMPILE_LOGS/zlib.bz2  ]  ||
+if    spell_installed  zlib                         &&
+           ZLIB_VER=$(  installed_version  zlib  )  &&
+      [  "$ZLIB_VER"  ==  "1.1.4" ]                 &&
       !  bzcat  $COMPILE_LOGS/zlib.bz2  |
-      grep  -q  -x  "patching file gzio.c"
+         grep  -q  -x  "patching file gzio.c"
 then  echo  "zlib"  >>  $INSTALL_QUEUE
 fi
 
