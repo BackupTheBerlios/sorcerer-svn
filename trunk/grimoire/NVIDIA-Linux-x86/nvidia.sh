@@ -10,6 +10,7 @@ make_nodes()  {
        chmod  0660        /dev/nvidiactl
        chown  root:video  /dev/nvidiactl
 
+  modprobe  agpgart
   modprobe  nvidia
 
 }
