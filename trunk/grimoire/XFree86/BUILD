@@ -30,6 +30,11 @@ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
 
      echo  "#define BuildFonts             NO"
 
+     echo  "#define BuildXinerama          YES"
+     echo  "#deinfe BuildXineramaLibrary   YES"
+     echo  "#define NormalLibXinerama      YES"
+     echo  "#define SharedLibXinerama      YES"
+
   )  >> config/cf/host.def
 
 fi

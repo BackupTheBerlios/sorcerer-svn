@@ -28,10 +28,10 @@
     rm  -f  /usr/X11R6/lib/libGL.a
 #   rm  -f  /usr/X11R6/lib/libGLU.a
 
-    cp  -a   lib  X11R6  /usr/
-    cp  -a   include/GL  /usr/X11R6/include/
-    cp  -a   share/doc  ..
-    cp  -a   include    ../doc
+    cp  -a   lib  X11R6  /usr/                2>/dev/null
+    cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
+    cp  -a   share/doc  ..                    2>/dev/null
+    cp  -a   include    ../doc                2>/dev/null
   }
 
   make_device_nodes()  {
