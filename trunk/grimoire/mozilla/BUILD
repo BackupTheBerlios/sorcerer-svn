@@ -1,6 +1,18 @@
 (
+
+  # mozilla doesn't install nss headers by default
+  # so we do it manually :^)
+  install_security()  {
+    NSS_DIR=/usr/include/mozilla-$VERSION/nss 
+    mkdir  -p  $NSS_DIR
+    for  dir  in  private  public;  do
+      cp  -Lf  $BUILD_DIR/dist/${dir}/nss/*.h \
+      $NSS_DIR
+    done
+
+  }
   
-  # already-ruuning patch for running multiple
+  # already-running patch for running multiple
   # instances of mozilla without -remote option.
   bzip2  -cd  $SCRIPT_DIR/already-running.patch.bz2  |  patch -p1
 
@@ -55,7 +67,8 @@ fi
   ./configure  $OPTS  &&
   make                &&
   prepare_install     &&
-  make    install
+  make    install     &&
+  install_security
 
 ) > $C_FIFO 2>&1  &&  (
 
