@@ -55,9 +55,13 @@ esac
 # 3.2.2 now supports the DESTDIR Makefile variable
 # but isn't specifying a prefix good enough?
 
-if  [  -n  "${SOURCE[1]}"  ];  then
+if    [  "$BRANCH"  ==  "ssp"  ]
+then
   mv  protector.c  protector.h  gcc
   patch  -p0  <  protector.dif
+  if    echo  "$OPTS"  |  grep  -q  "protectonly"
+  then  patch  -p0  <  protectonly.dif
+  fi
 fi
 
 ./configure  --host=$BUILD               \
