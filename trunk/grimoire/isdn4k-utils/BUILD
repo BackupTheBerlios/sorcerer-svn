@@ -21,7 +21,7 @@ done
 
 
 (
-  patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
+  # patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
   make  subconfig  &&
   store_config     &&
   make             &&
