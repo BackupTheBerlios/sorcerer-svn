@@ -11,6 +11,8 @@ fi
 groupadd  mysql             2>/dev/null
 useradd   mysql  -g  mysql  2>/dev/null
 
+sed  -i  "s:/libssl.a:/libssl.so:"  configure
+
 ./configure  --prefix=/usr                   \
              --without-bench                 \
              --enable-assembler              \
