@@ -38,6 +38,11 @@
   AC="--enable-layout=Sorcerer  \
       --enable-so               \
       --enable-modules=all      \
+      --enable-cache            \
+      --enable-cgi              \
+      --enable-deflate          \
+      --enable-mime-magic       \
+      --enable-proxy            \
       --enable-mods-shared=all  \
       --build=$BUILD            \
       --with-mpm=worker         \
