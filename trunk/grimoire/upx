@@ -1,0 +1,23 @@
+   VERSION=( "1.25" )
+  CATEGORY="archive"
+ ATTRIBUTE="library new"
+    SOURCE="upx-$VERSION-src.tar.gz"
+       URL="http://upx.sourceforge.net/download"
+  HOMEPAGE="http://upx.sourceforge.net"
+       REQ="ucl"
+  ESTIMATE="48"
+      DESC="upx is an executable compressor."
+
+
+build()  {
+  sed  -i  "s:-march=i386 -mcpu=i686:$CXXFLAGS:"  src/Makefile.bld
+  sed  -i  "s:-O2::"  src/Makefile.bld  src/Makedefs.gcc
+  cd      src           &&
+  make    target=linux  \
+          UCLDIR=/usr   &&
+  cd      ../doc        &&
+  make                  &&
+  prepare_install       &&
+  install  -m 0644  -o root  -g root         upx.1  /usr/man/man1  &&
+  install  -m 0755  -o root  -g root  ../src/upx    /usr/bin
+}
