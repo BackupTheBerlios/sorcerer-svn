@@ -10,7 +10,8 @@
                --with-system-zlib           \
                --with-system-png            \
                --with-system-mng            \
-               --enable-crypto              &&
+               --enable-crypto              \
+               --enable-xinerama            &&
   make                                      &&
   prepare_install
 
