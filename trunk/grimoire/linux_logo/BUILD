@@ -12,7 +12,7 @@ fi
 sed  -i  "s:-O2 -Wall:${CFLAGS}:"  Makefile
   
 echo  "${SCRIPT_DIR}/sorcerer.logo"        >> logo_config
-echo  "${SCRIPT_DIR}/sorcerer-banner.logo"  >>  logo_config
+# echo  "${SCRIPT_DIR}/sorcerer-banner.logo"  >>  logo_config
 
 make                           &&
 prepare_install                &&

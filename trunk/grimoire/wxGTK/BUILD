@@ -1,5 +1,7 @@
 export  PATH="/opt/bison/1.35/bin:$PATH"
 
+sed  -i  "s:##name##:##name:"  contrib/src/mmedia/sndcpcm.cpp
+
 ./configure --prefix=/usr            \
             --with-gtk               \
             --enable-zipstream       \
