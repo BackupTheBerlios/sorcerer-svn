@@ -8,7 +8,9 @@ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
     echo  "#define LibraryCDebugFlags     $CFLAGS"
     echo  "#define DefaultCDebugFlags     $CFLAGS"
     echo  "#define OptimizedCDebugFlags   $CFLAGS"
-    echo  "#define LOCAL_LDFLAGS          $LDFLAGS"
+    if  [  -n  "$LDFLAGS"  ];  then
+      echo  "#define LOCAL_LDFLAGS          $LDFLAGS"
+    fi
     echo  "#define HasZlib                YES"
     echo  "#define InstallXdmConfig       YES"
     echo  "#define InstallXinitConfig     YES"
