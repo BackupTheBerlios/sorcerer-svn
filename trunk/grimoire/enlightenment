@@ -1,0 +1,49 @@
+   [  -z  "$VERSION"  ]  &&
+   VERSION=( "0.16.7-0.56" "0.16.6" "0.16.5" )
+  CATEGORY="window-manager"
+ ATTRIBUTE="x11"
+    SOURCE="enlightenment/enlightenment-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+       REQ="etheme-BrushedMetal-Tigert freetype imlib2"
+  HOMEPAGE="http://www.enlightenment.org/pages/main.html"
+    OPT[0]="libghttp:::for automatic enlightenment upgrades"
+    OPT[1]="esound:::for enlightenment sound mixer"
+    OPT[2]="epplets:::for useful gadgets"
+    OPT[3]="edox-data:::for enlightenment documentation"
+    OPT[4]="Eterm:::for terminal emulator"
+    OPT[5]="etheme-BlueSteel:::for optional theme"
+    OPT[6]="etheme-Ganymede:::for optional theme"
+    OPT[7]="etheme-ShinyMetal:::for optional theme"
+  ESTIMATE="148"
+     SHORT="enlightenment is a themeable fast flexible X11 windows Manager."
+      LONG="
+$SHORT
+It is configurable as possible in both look and feel.
+In addition, Enlightenment provides an applet API that 
+provides functionality somewhere between the GNOME 
+applet system and Dock Apps from Afterstep/WindowMaker.
+"
+
+
+build()  {
+  ./configure  --prefix=/usr      \
+               --sysconfdir=/etc  \
+               --enable-fsstd     &&
+  make                            &&
+  prepare_install                 &&
+  make    install
+}
+
+
+common_set()  {
+  unset  REQ  OPT  LONG
+  SOURCE="enlightenment/$SPELL-$VERSION.tar.gz"
+}
+
+
+case  $SPELL  in
+  etheme-*)  VERSION=( "0.16-0.01" )
+             common_set;  SHORT="$SPELL provides a theme for enlightenment."  ;;
+ edox-data)  common_set;  SHORT="$SPELL provides documentation for enlightenment."  ;;
+   epplets)  common_set;  SHORT="$SPELL provides gadgets for enlightenment."  ;;
+esac
