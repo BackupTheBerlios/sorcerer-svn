@@ -2,7 +2,7 @@
 
 case  $1  in
     start)  echo   "Starting Berkley Internet Name Domain"
-						modprobe capability &&
+            modprobe  capability  2>/dev/null
             named  -u  bind                         ;;
 
   restart)  rndc    stop
@@ -11,5 +11,4 @@ case  $1  in
      stop)  rndc   stop                             ;;
 
         *)  echo  "Usage: $0 {start|stop|restart}"  ;;
-
 esac
