@@ -1,4 +1,8 @@
-( 
+(
+
+  sedit  "s:/sbin/rmmod nvidia:true:"     Makefile
+  sedit  "s:/sbin/rmmod NVdriver:true:"   Makefile
+  sedit  "s:/sbin/modprobe nvidia:true:"  Makefile
 
   if  spell_installed  linux;  then
     VERSION=`installed_version  linux`
