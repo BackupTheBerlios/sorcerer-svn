@@ -1,5 +1,9 @@
 (
 
+  if    [  -d  libraw1394-$VERSION  ]
+  then  cd     libraw1394-$VERSION
+  fi
+
   groupadd  firewire      2>/dev/null
   rm  -f    /dev/raw1394
 
