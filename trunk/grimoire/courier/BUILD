@@ -20,8 +20,6 @@ install_init()  {
 
 }
 
-LD_PRELOAD_OLD="$LD_PRELOAD"
-unset  LD_PRELOAD
 ./configure  --prefix=/usr                       \
              --localstatedir=/var/state/courier  \
              --sysconfdir=/etc/courier           \
@@ -29,7 +27,6 @@ unset  LD_PRELOAD
              $OPTS                               &&
 make                                             &&
 prepare_install                                  &&
-export  LD_PRELOAD="$LD_PRELOAD_OLD"             &&
 make    install                                  &&
 make    install-configure                        &&
         install_init

@@ -4,9 +4,6 @@
   sed  -i  "1i#define NOT_IN_libc 1"  lib/plasticfs/opendir.cc
   sed  -i  "s:geteuid() == 0 ||::"    lib/plasticfs/parse.cc
 
-  LD_PRELOAD_OLD="$LD_PRELOAD"
-  unset  LD_PRELOAD
-
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --sysconfdir=/etc     \
@@ -14,7 +11,6 @@
                $OPTS                 &&
   make                               &&
   prepare_install                    &&
-  export  LD_PRELOAD="$LD_PRELOAD_OLD"  &&
   make    install  HAVE_GROFF=no     &&
   cp     -r  man  /usr/
 

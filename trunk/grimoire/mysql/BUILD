@@ -13,8 +13,6 @@
   groupadd  mysql             2>/dev/null
   useradd   mysql  -g  mysql  2>/dev/null
 
-  LD_PRELOAD_OLD="$LD_PRELOAD"          &&
-  unset  LD_PRELOAD                     &&
 	./configure --prefix=/usr       \
 	--without-bench                 \
 	--enable-assembler              \
@@ -40,11 +38,9 @@
 	--enable-thread-safe-client     \
 	--with-comment="MySQL-MAX-$VERSION "  \
         $OPTS                                 &&
-
-  export  LD_PRELOAD="$LD_PRELOAD_OLD"          &&
-  make  pkglibdir=/usr/lib                      &&
-  prepare_install                               &&
-  make  install pkglibdir=/usr/lib  install     &&
+  make  pkglibdir=/usr/lib                    &&
+  prepare_install                             &&
+  make  install pkglibdir=/usr/lib  install   &&
  
   if  ! $CLIENT_ONLY;  then
     mysql_install_db

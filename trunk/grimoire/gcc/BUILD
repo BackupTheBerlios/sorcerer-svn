@@ -36,9 +36,6 @@ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
   LDF="LDFLAGS=$LDFLAGS"
 
-LD_PRELOAD_OLD="$LD_PRELOAD"
-unset  LD_PRELOAD
-
 case  $VERSION  in
     3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
   3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
@@ -69,6 +66,5 @@ make         bootstrap-lean   "$BF"      \
              "$LCF"  "$LCXF"  "$LDF"     \
              "$LJCF" "$LJCXF"            &&
 prepare_install                          &&
-export  LD_PRELOAD="$LD_PRELOAD_OLD"     &&
 make    install                          &&
  finish_install

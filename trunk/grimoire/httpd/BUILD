@@ -38,7 +38,6 @@ finish_install()  {
   }
 
   db_41_fix()  { (
-    unset  LD_PRELOAD
     DBV="$(  installed_version  $(  get_provider  db  )  )"
     case  ${DBV:0:3}  in
       4.1)  sed  -i  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c  ;;

@@ -1,7 +1,6 @@
 (
 
 db_41_fix()  {  (
-  unset  LD_PRELOAD
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
     4.1)  sed  -i  "s:ret, name:ret, NULL, name:"  libraries/libldbm/ldbm.c  ;;
