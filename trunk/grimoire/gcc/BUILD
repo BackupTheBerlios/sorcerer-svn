@@ -1,9 +1,7 @@
 (
 
-  mv       gpc-$PVERSION/p  gcc
   bunzip2  -cd  $SCRIPT_DIR/gcc-2.95.3-2.patch.bz2  |
   patch    -p 1
-  sedit    "s/read junk//"  gcc/p/config-lang.in
 
   ./configure  --host=$BUILD     \
                --prefix=/usr     \
