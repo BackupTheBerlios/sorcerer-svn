@@ -1,5 +1,9 @@
 (
 
+  case  $VERSION  in
+    3.1.11)  sed  -i  "s://extern:extern:" proc/sysinfo.c  ;;
+  esac
+
   make   -e        &&
   prepare_install  &&
   make    install  -e  XSCPT=''  DESTDIR=
