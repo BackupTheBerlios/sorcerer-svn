@@ -13,6 +13,7 @@
 
 
   fix_glibc_install_log
+
   patch -p1  <  $SCRIPT_DIR/glibc-2.3.1.patch
 
   LD_PRELOAD_OLD="$LD_PRELOAD"
@@ -29,6 +30,10 @@
   echo  "$CXXFLAGS"  |
   grep  -q  "\-O"    ||
   export  CXXFLAGS="$CXXFLAGS -Os"
+
+  grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
+  echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
+
   ./configure  --host=$BUILD                  \
                --build=$BUILD                 \
                --prefix=/usr                  \
@@ -39,9 +44,12 @@
   make                                        &&
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
-  make    install                             &&
-  LD="ld-${VERSION}.so"                       &&
-  ln     -sf  $LD  /lib/ld-linux.so.2         &&
-  ldconfig
+  make    install
 
-) > $C_FIFO 2>&1
+) > $C_FIFO 2>&1  &&  (
+
+  LD="ld-${VERSION}.so"
+  ldconfig
+  ln    -sf  $LD  /lib/ld-linux.so.2
+
+)
