@@ -1,0 +1,204 @@
+Sorcerer News for 20031023
+
+Subject:  Ready for hide and seek?
+
+
+Subtitle:  [  "Many grimoires"  ==  "Many headaches"  ]  ||
+
+
+We explored the idea of separating sorcerer-grimoire
+into several grimoires to: expedite updates;
+refine the view of spells to the selection that interests a SA;
+and improving division of labor for maintaining the grimoire.
+
+Unfortunately, it appears that more grimoires may
+create confusion for SAs when trying to locate the
+grimoire that contains the spell that they want.
+Multiple grimoires may complicate updating of spells 
+which have requirements that cross grimoire boundaries.
+Complicating both the use of sorcerer and maintenance 
+of it are contrary to our goals.
+
+Our usual progress is two steps forward one step back.
+This time we take one step back to go two steps forward.
+The following compromise will hopefully increase 
+usability and ease of maintenance of the grimoire.
+
+
+
+Subtitle:  Hiding from Potential Problems is a Viable Solution!
+
+
+sorcery has a new feature called hide which will enable 
+SAs to hide spells that they are not interested in seeking.
+Spells can be hidden by any of 3 criteria: 
+spells with a common attribute;
+spells from a specific category;
+or a spell specified by name.
+
+To avoid confusion hiding and exiling 
+spells share nothing in common.
+
+At first glance it may not be apparent how hiding spells is useful.
+The following presents some possibly useful examples:
+
+SAs may not be interested in broken or depreciated spells.
+
+# augur hide broken
+# augur hide depreciated
+
+
+SAs that favor stability over selection may prefer 
+to avoid accidentally trying spells that have just 
+been introduced into the grimoire.
+
+# augur hide new
+
+After new spells have received a few upgrades,
+fixes, or been in the grimoire for a while they 
+will loose the new attribute thus no longer be 
+hidden on boxes that hide new spells.
+
+Spells with the attribute of new are not 
+the same as spells that are reported as 
+new during an augur synch or augur easy.
+When an indexed grimoire listing changes 
+during synchronization the gain and loss 
+of spells is reporting as New and Gone, respectively.
+It is not the same as a spell with an attribute of new.
+
+For a verbose example:
+Imagine a SA is choosing to install a FTP server on a production box.
+The SA probably prefers a selection of spells that are widely
+tested and deployed rather than accidentally casting the 
+newly contributed spell that entered the grimoire last week.
+SAs running production boxes do not want to submit the
+first bug report for a spell, especially when their 
+insurmountable todo list requires constant and immediate 
+success to avoid having to work during the weekend.
+
+A rating system for spells may be overkill at the moment,
+but hopefully the simple attribute of new combined with
+the hide feature will enable SAs that crave stability
+to achieve greater stability and casting success.
+Since it is so simple to hide and unhide spells,
+SAs that prefer a greater selection will have it also.
+Indeed this compromise should please the majority
+of sorcerer SAs.
+
+
+SAs running production boxes may also want
+to hide spells in the category of game,
+especially since the game-grimoire was
+re-merged into sorcerer-grimoire
+
+# augur hide game
+
+
+SAs running headless or console only servers 
+may prefer to to hide spells they can not enjoy 
+without the benefit of running an Xserver.
+
+# augur hide x11
+
+
+
+Subtitle:  Performance does not Exclude Functionality?
+
+
+The performance cost for hiding spells is low.
+It slightly increases the time required to 
+generate and update the index.
+
+Yes the downloaded grimoire will grow.
+Most boxes will be downloading the much smaller 
+"generated on demand xdelta upgrade patches."
+The size of the grimoire should have little
+bearing on the amount of bytes downloaded 
+to synchronize the grimoire on a sorcerer box.
+
+As the grimoire gains spells the time required
+to generate the index will increase at a less
+than proportional rate to the increase of spells.
+The expected performance of the computers sorcerer 
+is designed to be deployed on should be able to 
+index the grimoire in less than a minute.
+Athlons and Pentium 3/4 can index within a minute.
+Sorcerer on legacy hardware with low 
+CPU/memory/disk such as 133 MHz/64M/2G 
+boxes will require minutes to generate the index.
+Unfortunately, sorcerer is not a good substitute for a 
+binary base distro when it is run on legacy hardware.
+
+
+
+Subtitle:  Hide Works Only on Spells, However...
+
+
+There is no:
+
+# augur hide porn
+# augur hide finances
+or
+# augur hide passwords
+
+More spells for encryption programs were added to the grimoire.
+linux 2.4.22 contains encryption algorithm support if you enable it.
+
+One thing you may want to do which has minimal impact on system 
+performance is to switch to using an encrypted swap partition
+which can be enabled at boot time using a script such as:
+
+#!/bin/bash
+
+SWAP=/devices/discs/disc0/part2
+LOOP=/dev/loop7
+
+modprobe  aes         2>/dev/null
+modprobe  cryptoloop  2>/dev/null
+
+(  dd  if=$SWAP  bs=1M  count=1  2>/dev/null
+   echo  $RANDOM$RANDOM
+)                     |
+md5sum   -            |
+cut      -d ' '  -f1  |
+losetup  -p 0    -e  aes-cbc-256  $LOOP  $SWAP
+mkswap                            $LOOP  1>/dev/null
+swapon                            $LOOP
+
+
+Of course a different script would be required for 
+booting a box with an encrypted /home or other partition.
+Those would have a key that would not be randomly generated.
+Keep in mind that encrypting partitions protects them only 
+when the power is off or the partition is unmounted.
+However having an encrypted swap partition helps 
+ensure that no data that is permanently stored 
+encrypted be written unencrypted to disk.
+
+Encrypting partitions may not be the type of encryption you desire.
+If for example you have a list of data that you may want to view
+but without writing it unencrypted to disk you may prefer to use
+a program like bcrypt available from the bcrypt spell.
+It will enable you to use a password to encrypt any type of file.
+An encrypted text file can be decrypted to stdout without removing
+the file from disk or writing the unencrypted information to disk.
+Adding unessential random characters in random locations into the 
+file before encrypting it can be a good idea for extra protection.
+
+While a little less difficult to loose and easier to conceal than 
+a piece of paper a bcrypt-ed file can be useful for locating that 
+root password for a remote box that you have not used in a long time.
+While far more convenient than a safe it is not as secure, 
+tamper-proof, or deletion proof as a sealed envelope in a safe.
+That is why I suggest that encrypted backups be stored stored 
+in sealed and signed envelopes placed in the fire-proof bolted down safe.
+Do not have a fire-proof bolted down safe?  At least you have bcrypt.
+
+If you desire something more complex, feature rich, capable of using 
+public/private key encryption between parties, or verify electronic 
+signatures on email or source tarballs, then try gnupg.
+First get an online FAQ, Documentation, or HOWTO, 
+because the manual and info pages are sparse.
+
+Good Luck.  Thanks for reading the news.
