@@ -48,7 +48,7 @@ symlink_headers()  {
   case  $MACHTYPE  in
     x86_64-pc-linux-gnu)  ASM="asm-x86_64"  ;;
                       *)  ASM="asm-i386"    ;;
-  easc
+  esac
 
                                        [  -e  /usr/include/asm  ]  ||
   ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
