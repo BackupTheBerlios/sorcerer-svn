@@ -32,14 +32,11 @@
   unset  LD_PRELOAD
   unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
-#  export    CFLAGS="${CFLAGS/-O0/}"
-#  export  CXXFLAGS="${CXXFLAGS/-O0/}"
-
 #  export    CFLAGS="${CFLAGS/-O3/-O2}"
 #  export  CXXFLAGS="${CXXFLAGS/-03/-O2}"
 
-  export    CFLAGS="${CFLAGS/-O*/-O2}"
-  export  CXXFLAGS="${CXXFLAGS/-O*/-O2}"
+  export    CFLAGS="${CFLAGS/-O?/-O2}"
+  export  CXXFLAGS="${CXXFLAGS/-O?/-O2}"
 
   export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
   export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
