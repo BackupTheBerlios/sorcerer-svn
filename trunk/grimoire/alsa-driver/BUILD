@@ -21,6 +21,14 @@ EOF
 }
 
 
+remove_old_modules()  {
+
+  LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
+  rm  -rf  /lib/modules/$LINUX_VER/kernel/sound/acore
+
+}
+
+
 (
 
   sedit  "s:/sbin/depmod:/bin/true:g"  Makefile
@@ -33,6 +41,7 @@ EOF
                --with-cards=$CARD    &&
   make                               &&
   prepare_install                    &&
+  remove_old_modules                 &&
   make    install                    &&
   ./snddevices
 
