@@ -1,9 +1,18 @@
-   VERSION=( "3.0" "2.05b" "2.05a" )
+   VERSION=( "3.0.016" "2.05b" "2.05a" )
   CATEGORY="shell"
  ATTRIBUTE="core console solo"
-    SOURCE="bash-$VERSION.tar.gz"
+    SOURCE="bash-${VERSION:0:3}.tar.gz"
        URL="ftp://ftp.cwru.edu/pub/bash"
-#      URL="$GNU_URL"
+  case  $VERSION  in
+    3.0*)
+         PATCHES=${VERSION:4:3}
+         for  ((SCX=1; SCX < 10; SCX++))
+         do   SOURCE[$SCX]="bash-3.0-patches/bash30-00$SCX"
+         done
+         for  ((SCX=10; SCX < PATCHES; SCX++))
+         do   SOURCE[$SCX]="bash-3.0-patches/bash30-0$SCX"
+         done  ;;
+  esac
   HOMEPAGE="http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html"
        REQ=( "ncurses readline" )
 #             ":--debugger::Enable debugging and extdebug shell option" )
@@ -13,13 +22,13 @@
  FRESHMEAT="gnubash"
       DESC="bash is the shell of the GNU operating system.
 
-Bash is an sh-compatible shell that incorporates useful 
+Bash is an sh-compatible shell that incorporates useful
 features from the Korn shell (ksh) and C shell (csh).
-It is intended to conform to the 
+It is intended to conform to the
 IEEE POSIX P1003.2/ISO 9945.2 Shell and Tools standard.
-It offers functional improvements over sh for both 
-programming and interactive use; these include command 
-line editing, unlimited size command history, job control, 
-shell functions and aliases, indexed arrays of unlimited size, 
+It offers functional improvements over sh for both
+programming and interactive use; these include command
+line editing, unlimited size command history, job control,
+shell functions and aliases, indexed arrays of unlimited size,
 and integer arithmetic in any base from two to sixty-four.
 In addition, most sh scripts can be run by Bash without modification."

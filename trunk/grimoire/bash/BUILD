@@ -9,9 +9,9 @@ install_loadables()  {
 }
 
 
-CX=2
+CX=1
 while  [  -n  "${SOURCE[$CX]}"  ]
-do  patch  -p2  <  \
+do  patch  -p0  <  \
     $(  guess_filename  "${SOURCE[$CX]}"  \
                          ${SOURCE_CACHE}/$BSPELL/$VERSION  )
     ((  CX++  ))
