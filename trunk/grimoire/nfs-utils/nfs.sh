@@ -15,15 +15,15 @@ case $1 in
                    pkill      "^rpc.statd$"    &&  sleep  5
 
                    ps  -C  portmap  >  /dev/null  ||
-                   /usr/sbin/portmap
-                   /usr/sbin/rpc.rquotad
-                   /usr/sbin/rpc.mountd  $MOUNTDOPTS
-                   /usr/sbin/rpc.nfsd    $NUMSERVERS
-                   /usr/sbin/rpc.statd
+                   portmap
+                   rpc.rquotad
+                   rpc.mountd  $MOUNTDOPTS
+                   rpc.nfsd    $NUMSERVERS
+                   rpc.statd
                    ;;
 
             stop)  echo "$1ping NFS services"
-                   /usr/sbin/exportfs -au
+                   exportfs -au
     
                    pkill      "^rpc.rquotad$"
                    pkill      "^rpc.mountd$"
