@@ -1,0 +1,147 @@
+   [  -z  "$VERSION"  ]  &&
+   VERSION=( "0.92.1" "0.92" "0.91" )
+      SAFE=( "0.92.1" )
+    IGNORE="rc"
+  CATEGORY="video-player dvd-player"
+ ATTRIBUTE="x11"
+    SOURCE="releases/MPlayer-$VERSION"
+       REQ="gtk+,v1.2 libdvdread libpng popt unzip w32codec"
+    OPT[0]="MPlayer-Skin:::to install skins for GUI"
+    OPT[1]="MPlayer-font:::to install fonts"
+    OPT[2]="SDL:--enable-sdl::to use SDL audio/video output"
+    OPT[3]="alsa,lib:::for alsa sound support"
+    OPT[4]="aalib:::for ascii art video output rendering"
+    OPT[5]="cdparanoia:::for playing/reading audio CDs"
+    OPT[6]="freetype::--disable-freetype:for anti-aliased osd/subs support"
+    OPT[7]="lame:::to use lame mp3 codec"
+    OPT[8]="libdv:::a software codec for digital video camcorders"
+    OPT[9]="mad:::for playing mpeg audio formats"
+   OPT[10]="svgalib:::for output through svgalib"
+   OPT[11]="xmms:--enable-xmms::to build with XMMS input plugin support"
+   OPT[12]="lirc:--enable-lirc::to enable LIRC (remote control) support"
+   OPT[13]="XviD:::for encoding movies to XviD format"
+   OPT[14]="faad2:--enable-faad::for aac decoding support"
+  HOMEPAGE="http://www.mplayerhq.hu"
+       URL="http://www1.mplayerhq.hu/MPlayer
+            http://www2.mplayerhq.hu/MPlayer
+            http://ftp3.mplayerhq.hu/MPlayer
+            http://ftp5.mplayerhq.hu/MPlayer
+             ftp://ftp1.mplayerhq.hu/MPlayer
+             ftp://ftp2.mplayerhq.hu/MPlayer
+             ftp://ftp3.mplayerhq.hu/MPlayer
+             ftp://ftp5.mplayerhq.hu/MPlayer"
+ FRESHMEAT="mplayer"
+  ESTIMATE="974"
+     SHORT="MPlayer is a movie and animation player."
+      LONG="
+MPlayer is a movie and animation player that supports a wide 
+range of file formats, including ASF, Quicktime, and Vivo.
+It has many MMX/SSE/3Dnow optimized native audio and video 
+codecs, but allows using XAnim's binary codec plugins, and 
+Win32 codec DLLs.
+It has basic VCD/DVD playback functionality, including DVD 
+subtitles, but supports many text-based subtitle formats too.
+For video output, nearly every existing interface is supported.
+It's also able to convert any supported files to raw/divx/mpeg4 
+AVI (pcm/mp3 audio), and even video grabbing from V4L devices.
+"
+
+
+install_skin()  {
+  BASE=$(  basename  $BUILD_DIR  )
+  SKIN="/usr/share/mplayer/Skin/$BASE"
+  chmod  a+r  *         &&
+  prepare_install       &&
+  mkdir  -p      $SKIN  &&
+  cp     -Rv  *  $SKIN
+}
+
+
+install_font()  {
+  FONT="/usr/share/mplayer/fonts"
+  chmod  a+r  *           &&
+  prepare_install         &&
+  mkdir  -p      $FONT    &&
+  cp     -Rv  *  $FONT
+}
+
+
+install_mplayer()  {
+
+
+  install_conf()  {
+
+    mkdir  -p   doc
+    mv     etc  doc
+    cd          doc/etc
+
+    sed    -i  "s:include =:# include =:
+                s:# vo=:vo=:
+                s:# ao=:ao=:"  example.conf
+
+    mkdir  -p  /etc/mplayer
+
+    for  FILE  in  *.conf
+    do   install  -m 0644 -o root -g root  $FILE  /etc/mplayer
+    done
+
+  }
+
+
+  unset  CFLAGS  CXXFLAGS
+
+  ./configure  --prefix=/usr                      \
+               --enable-gui                       \
+               --confdir=/etc/mplayer             \
+               --enable-menu                      \
+               --enable-largefiles                \
+               --with-win32libdir=/usr/lib/win32  \
+               --with-reallibdir=/usr/lib/win32   \
+               --with-xanimlibdir=/usr/lib/win32  \
+               --enable-shared-pp                 \
+               $OPTS                              &&
+  make                                            &&
+  prepare_install                                 &&
+  make    install  prefix=/usr                    &&
+  install_conf
+
+}
+
+
+set_data()  {
+  unset  SAFE  ATTRIBUTE  REQ  OPT  LONG
+  ATTRIBUTE="data"
+   ESTIMATE="5"
+}
+
+
+skin_me()  {
+  set_data
+    SOURCE="Skin/${SPELL:13}-$VERSION.tar.bz2"
+   PROVIDE="MPlayer-Skin"
+     SHORT="provides a Skin for MPlayer's GUI."
+}
+
+
+font_me()  {
+  set_data
+   VERSION=( "1.0" )
+    SOURCE="releases/fonts/${SPELL:8}.tar.bz2"
+  EPROVIDE="MPlayer-font"
+     SHORT="provides a default font for MPlayer's GUI."
+}
+
+
+build()  {
+  case  $SPELL  in
+    MPlayer-Skin-*)  install_skin     ;;
+    MPlayer-font-*)  install_font     ;;
+    MPlayer)         install_mplayer  ;;
+  esac
+}
+
+
+case  $SPELL  in
+  MPlayer-Skin-*)  skin_me  ;;
+  MPlayer-font-*)  font_me  ;;
+esac
