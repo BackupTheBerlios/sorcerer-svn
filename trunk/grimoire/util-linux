@@ -6,7 +6,8 @@
 #      URL="http://ftp.cwi.nl/aeb/util-linux"
        URL="ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux"
   HOMEPAGE="ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux"
-       REQ="e2fsprogs gettext ncurses zlib"
+       REQ=( "e2fsprogs gettext ncurses zlib"
+             "libselinux:--with-selinux::" )
    PROTECT="/usr/bin/column
             /usr/bin/renice"
    EXCLUDE="/etc/fstab
@@ -30,8 +31,12 @@ wall whereis write."
 
 
 build()  {
-  spell_installed  $( get_provider  libselinux  )  &&
-  sed  -i  "s:HAVE_SELINUX=no:HAVE_SELINUX=yes:"  MCONFIG
+  if    echo  "$OPTS"  |  grep  -q  "\--with-selinux"  &&
+        spell_installed  $( get_provider  libselinux  )
+  then  sed  -i  "s:HAVE_SELINUX=no:HAVE_SELINUX=yes:"  MCONFIG
+  unset OPTS
+  fi
+
   sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
             s:\$(OPT)::
             s:_WRITE=no:_WRITE=yes:"  MCONFIG
