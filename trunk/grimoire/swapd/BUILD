@@ -7,10 +7,10 @@
     #  2 GB max swap on linux 2.4.20
     sed  -i  "s:memlimit 16384:memlimit 65536:"  swapd.conf
     sed  -i  "s:swapsize 4096:swapsize 65536:"   swapd.conf
+    sed  -i  "s:pause 1000:pause 250:"           swapd.conf
   fi
 
   sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
-# patch  -p1  <  $SCRIPT_DIR/swapd-0.2.cache_too.patch
 
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
@@ -23,9 +23,9 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
-  mkdir  -p   /swap
-  chmod  700  /swap
-  cp  $SCRIPT_DIR/swapd.sh     /etc/init.d
+  mkdir  -p         /swap
+  chmod  700        /swap
+  cp     $SCRIPT_DIR/swapd.sh  /etc/init.d
   ln  -sf  ../init.d/swapd.sh  /etc/rc0.d/K95swapd 
   ln  -sf  ../init.d/swapd.sh  /etc/rc6.d/K95swapd  
   ln  -sf  ../init.d/swapd.sh  /etc/rcS.d/S95swapd
