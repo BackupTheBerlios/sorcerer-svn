@@ -56,18 +56,25 @@ esac
 # That variable is for packagers.
 
 
-#            --enable-threads=posix      \
-# --enable-threads=posix does not work on x86_64
+case  $MACHTYPE  in
+  x86_64-pc-linux-gnu)  OPTS="$OPTS      \
+              --disable-multilib         \
+              --enable-threads=posix     \
+              --enable-long-long"        ;;
+                    *)  OPTS="$OPTS      \
+              --enable-threads=posix"    ;;
+esac
+
 ./configure  --host=$BUILD               \
              --prefix=/opt/gcc/$VERSION  \
-             --enable-threads            \
              --enable-__cxa_atexit       \
              --enable-clocale=gnu        \
              --enable-shared             \
              --infodir=/usr/info         \
              --mandir=/usr/man           \
              --datadir=/usr/share        \
-             "$ENABLE_LANGS"             &&
+             "$ENABLE_LANGS"             \
+             $OPTS                       &&
 make         bootstrap-lean   "$BF"      \
              "$LCF"  "$LCXF"  "$LDF"     \
              "$LJCF" "$LJCXF"            &&

@@ -1,17 +1,22 @@
    VERSION=( "1.4a12" )
   CATEGORY="network"
  ATTRIBUTE="console"
+    SOURCE="traceroute-$VERSION.tar.gz"
        URL="ftp://ftp.ee.lbl.gov"
   HOMEPAGE="ftp://ftp.ee.lbl.gov"
       DESC="traceroute traces the route Internet packets travel.
-
-traceroute is a system administrators utility to trace the route ip
-packets from the current system take in getting to some destination
-system.
-"
+traceroute is a utility to trace the route ip packets from
+the current system take in getting to some destination system."
 
 
 build() {
-default_build  &&
-chmod  0755  /usr/sbin/traceroute
+  case  $MACHTYPE  in
+    x86_64-pc-linux-gnu)
+      sed  -i  '179i  | x86-* | x86_64-* \\'            config.sub
+      sed  -i  's:i\[34567\]86):i\[34567\]86|x86_64):'  config.sub
+    ;;
+  esac
+
+  default_build  &&
+  chmod  0755  /usr/sbin/traceroute
 }

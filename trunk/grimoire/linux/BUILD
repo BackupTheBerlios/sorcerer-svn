@@ -45,8 +45,13 @@ run_make_menuconfig()  {
 
 symlink_headers()  {
 
+  case  $MACHTYPE  in
+    x86_64-pc-linux-gnu)  ASM="asm-x86_64"  ;;
+                      *)  ASM="asm-i386"    ;;
+  easc
+
                                        [  -e  /usr/include/asm  ]  ||
-  ln  -s  /usr/src/linux/include/asm-i386     /usr/include/asm
+  ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
 
                                        [  -e  /usr/include/asm-generic  ]  ||
   ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic

@@ -12,5 +12,25 @@
       OPTS="--disable-csharp"
   ESTIMATE="841"
       DESC="gettext is the GNU internationalisation library.
-Many programs that have translated messages depend upon this 
+Many programs that have translated messages depend upon this
 library and tools."
+
+
+build()  {
+
+x86_64-pc-linux-gnu-build()  {
+  ./configure  --build=$BUILD        \
+               --prefix=/usr         \
+               --sysconfdir=/etc     \
+               --localstatedir=/var  &&
+  sed -i 's@^\(archive_cmds.*-shared \)\(.*predep_objects.*\)@\1 -nostartfiles -nostdlib \2 @ g' gettext-runtime/libasprintf/libtool  &&
+  make             &&
+  prepare_install  &&
+  make    install
+}
+
+  case  $MACHTYPE  in
+    x86_64-pc-linux-gnu)  x86_64-pc-linux-gnu-build  ;;
+                      *)  default_build              ;;
+  esac
+}

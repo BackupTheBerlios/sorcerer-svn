@@ -1,10 +1,12 @@
-   VERSION=( "0.16.0" )
+   VERSION=( "0.16.17" "0.16.0" )
     IGNORE="^0\.16\.[1-9]"
 # On website author says that version 0.16.16 may be unstable
   CATEGORY="assembler"
  ATTRIBUTE="console"
-    SOURCE="bin86-$VERSION.tar.gz"
-       URL="http://www.cix.co.uk/~mayday/dev86"
+    SOURCE=( "bin86-$VERSION.tar.gz"
+             "x86_64.patch" )
+       URL=( "http://www.cix.co.uk/~mayday/dev86"
+             "http://svn.exactcode.de/t2/trunk/package/x86/bin86" )
   HOMEPAGE="http://www.cix.co.uk/~mayday"
   ESTIMATE="61"
       DESC="a86 and ld86 provide a complete 8086/80386 assembler and loader.
@@ -18,10 +20,11 @@ The syntax is not compatible with the GNU assembler.
 
 
 build()  {
-
-  make  "CFLAGS=$CFLAGS -D_POSIX_SOURCE"  \
-        "LDFLAGS=$LDFLAGS"                \
-                   "PREFIX=/usr"          &&
+  patch -p1 < $( guess_filename ${SOURCE[1]} )	 &&
+#  make  "CFLAGS=$CFLAGS -D_POSIX_SOURCE"  \
+#        "LDFLAGS=$LDFLAGS"                \
+#                   "PREFIX=/usr"          &&
+  make             "PREFIX=/usr"          &&
   prepare_install                         &&
   make    install  "PREFIX=/usr"
 
