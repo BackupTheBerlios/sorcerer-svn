@@ -8,8 +8,7 @@ fix_init_location()  {
              $OPTS                 &&
 fix_init_location                  &&
 make                               &&
-prepare_install                    &&
-make    install                    &&
+make  install                      &&
 
 # replace the redhatish init script ;)  
 cp  -f  $SCRIPT_DIR/rxstack.init   \

@@ -6,8 +6,7 @@ USAM="/usr/share/applnk/Multimedia"
 
 sed  -i  "s:usr/local:usr:"   Makefile
 sed  -i  "s:-O2 -s:$CFLAGS:"  Makefile
-make             &&
-prepare_install  &&
-make    install  &&
+make           &&
+make  install  &&
 mkdir  -p                      $USAM  &&
 cp  $SCRIPT_DIR/AleVT.desktop  $USAM

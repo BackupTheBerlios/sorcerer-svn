@@ -8,7 +8,6 @@ fi
 
 sed  -i  "s:CFLAGS=-O -g:CFLAGS=$CFLAGS:"   Makefile
   
-make             &&
-prepare_install  &&
-make    install  &&
+make           &&
+make  install  &&
 cp  $SCRIPT_DIR/apmd.sh  /etc/init.d

@@ -4,8 +4,7 @@
              --runas_grp=nogroup                  \
              $OPTS                                &&
 make                                              &&
-prepare_install                                   &&
-make    install                                   &&
+make  install                                     &&
 
 # replace the redhatish init script ;)
 cp  -f  $SCRIPT_DIR/dansguardian.init             \
