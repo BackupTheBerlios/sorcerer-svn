@@ -42,6 +42,7 @@ fi
   rm    -rf     fontconfig-2.1.92
   sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
   sed   -i      "s:@FC_FONTPATH@:/usr/share/fonts:"               lib/fontconfig/fonts.conf.in
+  sed   -i      "s:@VERSION@:2.1.92:"                             lib/fontconfig/fontconfig.pc.in
 
   if    spell_installed  "$( get_provider  Linux-PAM  )"
   then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
