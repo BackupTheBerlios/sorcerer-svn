@@ -21,7 +21,6 @@
    
 
     rm  -f  /usr/X11R6/lib/libGL.so*
-    rm  -f  /usr/X11R6/lib/GLU.so*
     rm  -f  /usr/lib/libGL.so*
     rm  -f  /usr/lib/libGLU.so*
     rm  -f  /usr/X11R6/lib/modules/extentions/libglx.*
