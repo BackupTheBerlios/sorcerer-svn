@@ -32,12 +32,14 @@ echo  "$CXXFLAGS"  |
 grep  -q  "\-O"    ||
 export  CXXFLAGS="$CXXFLAGS -O2"
 
-grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
-echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
+grep  -qx  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
+echo       "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
 
 case  $VERSION  in
-  2.3.3)  sed  -i  "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile  ;;
+  2.3.3)  sed  -i  "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
+          patch  -p1  <  $SCRIPT_DIR/glibc-2.3.3-gcc-3.4.patch
+          export  CFLAGS="$CFLAGS -fno-unit-at-a-time"  ;;
 esac
 
 export  LANGUAGE=C
