@@ -2,6 +2,7 @@
 
 case $1 in
   start)         echo  "Starting Apache web server."
+                 mkdir  -p  /var/run/httpd
                  apachectl  startssl
                  ;;
   restart|stop)  echo  "$1ing Apache web server."
