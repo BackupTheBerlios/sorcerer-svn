@@ -1,0 +1,58 @@
+   VERSION=( "1_5_0"  )
+  CATEGORY="interpreter"
+ ATTRIBUTE="x11 noheal x86"
+    SOURCE="jdk-$VERSION-linux-i586.bin"
+       DIR="jdk${VERSION//_/.}"
+  HOMEPAGE="http://java.sun.com/j2se/1.5.0/download.jsp"
+       URL="http://192.18.97.252/ECom/EComTicketServlet/BEGINjsecom15d.sun.com-159a4%3A416ad41d%3Ae2ff62c328625ce/-2147483648/556968735/1/531770/531638/556968735/2ts+/westCoastFSEND/jdk-1.5.0-oth-JPR/jdk-1.5.0-oth-JPR:3/"
+       REQ=( "unzip"
+             "alsa-lib:::for audio output through alsa" )
+# Probably requires x11 as well.
+#      REQ="gtk+-v1.2 unixODBC"
+# XFree86 -> perl -> db -> j2sdk -> gtk+-v1.2 -> XFree86
+# but db no longer optionally requires j2sdk
+#    AVOID="XFree86 db x11 xfree86"
+   ARCHIVE="off"
+  ESTIMATE="5"
+      DESC="jdk is Sun's java development kit."
+
+
+pre_build()  {
+  unzip  -qq  $(  guess_filename  $SOURCE  )
+  true
+}
+
+
+build()  {
+  prepare_install
+  cd  ..
+  set    -x
+  cp     -a           jdk${VERSION//_/.}        /opt/
+  cd                                            /opt/jdk${VERSION//_/.}
+
+  for  FILE  in  /opt/jdk${VERSION//_/.}/bin/*
+  do   ln  -s  $FILE  /usr/bin/${FILE##*/}
+  done
+  if    [   -d  /usr/lib/mozilla/plugins  ]
+  then  ln  -s  /opt/jdk${VERSION//_/.}/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
+                                   /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+  fi
+
+  mkdir  -p  /etc/.java/.systemPrefs
+  touch      /etc/.java/.systemPrefs/.system.lock
+  touch      /etc/.java/.systemPrefs/.systemRootModFile
+  chmod  644 /etc/.java/.systemPrefs/.system*
+
+  find . -name \*.pack  |
+  while  read;  do
+    unpack200  $REPLY  ${REPLY/.pack/.jar}
+    rm  -f     $REPLY
+  done
+
+  if    uname -m | grep -q  "86"
+  then  java  -client  -Xshare:dump
+  fi
+
+  set  +x
+  true
+}
