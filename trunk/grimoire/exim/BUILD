@@ -67,16 +67,13 @@ else
 fi
 
 if  spell_installed  tcp_wrappers;  then
-  echo  "USE_TCP_WRAPPERS=yes"  >> Local/Makefile
-  echo  "EXTRALIBS=-lwrap"      >> Local/Makefile
+  echo  "USE_TCP_WRAPPERS = yes"               >> Local/Makefile
+  echo  "EXTRALIBS = -lwrap"                   >> Local/Makefile
 fi
 
 if  spell_installed  Linux-PAM;  then
-  echo  "SUPPORT_PAM=yes"  >>  Local/Makefile
-  if  spell_installed  tcp_wrappers
-  then  echo  "EXTRALIBS=-lpam -ldl -lwrap"  >>  Local/Makefile  
-  else  echo  "EXTRALIBS=-lpam -ldl"         >>  Local/Makefile  
-  fi
+  echo  "SUPPORT_PAM = yes"                    >>  Local/Makefile
+  echo  "EXTRALIBS += -lpam -ldl"              >>  Local/Makefile  
 fi
 
 if  spell_installed  mysql;  then
@@ -85,19 +82,19 @@ if  spell_installed  mysql;  then
   echo  "LOOKUP_LIBS=-lmysqlclient"            >>  Local/Makefile
 fi
 
-
-echo  "BIN_DIRECTORY=/usr/sbin"          >>  Local/Makefile
-echo  "CONFIGURE_FILE=/etc/exim.conf"    >>  Local/Makefile
-echo  "SPOOL_DIRECTORY=/var/spool/mail"  >>  Local/Makefile
-echo  "CFLAGS=$CFLAGS"                   >>  Local/Makefile
-echo  "EXIM_UID=`id -u mail`"            >>  Local/Makefile
-echo  "EXIM_GID=`id -g mail`"            >>  Local/Makefile
-echo  "EXIM_USER=mail"                   >>  Local/Makefile
-echo  "EXIM_GROUP=mail"                  >>  Local/Makefile
+echo  "BIN_DIRECTORY=/usr/sbin"                >>  Local/Makefile
+echo  "CONFIGURE_FILE=/etc/exim.conf"          >>  Local/Makefile
+echo  "SPOOL_DIRECTORY=/var/spool/mail"        >>  Local/Makefile
+echo  "CFLAGS=$CFLAGS"                         >>  Local/Makefile
+echo  "EXIM_UID=`id -u mail`"                  >>  Local/Makefile
+echo  "EXIM_GID=`id -g mail`"                  >>  Local/Makefile
+echo  "EXIM_USER=mail"                         >>  Local/Makefile
+echo  "EXIM_GROUP=mail"                        >>  Local/Makefile
 
 if    spell_installed  db;  then
 
   echo  "USE_DB=yes"  >>  Local/Makefile
+  echo  "EXTRALIBS += -lpthread"               >>  Local/Makefile
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
     4.1)  sed  -i  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;
