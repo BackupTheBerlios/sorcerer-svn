@@ -1,6 +1,7 @@
 inherit kde
   CATEGORY="utility file-manager terminal-emulator"
        REQ="kdelibs"
+ SOURCE[1]="security_patches/post-3.2.3-kdebase-htmlframes.patch"
     OPT[0]="Linux-PAM:::for pluggable authentication"
     OPT[1]="cdparanoia:::to rip compact disks"
     OPT[2]="lame:::to rip compact disks"
@@ -16,3 +17,22 @@ form the core of the K Desktop Environment like
 the window manager, the terminal emulator, the 
 control center, the file manager, and the panel.
 "
+
+
+build()  {
+  case  $VERSION  in
+    3.2.3)
+    patch  -p0  <  $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/}
+  ;;
+  esac
+  kde_build  &&
+  install_pamd
+}
+
+
+current()  {
+  case  $VERSION  in
+    3.2.3)  bzcat  $COMPILE_LOGS/kdebase.bz2  |
+            grep  -qx  "patching file konqueror/konq_mainwindow.cc"  ;;
+  esac
+}

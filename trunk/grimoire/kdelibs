@@ -1,5 +1,8 @@
 inherit kde
   CATEGORY="development"
+ SOURCE[1]="security_patches/post-3.2.3-kdelibs-dcopserver.patch"
+ SOURCE[2]="security_patches/post-3.2.3-kdelibs-htmlframes.patch"
+ SOURCE[3]="security_patches/post-3.2.3-kdelibs-kstandarddirs.patch"
        REQ="qt-x11-free arts docbook-dtd libpng tiff libxml2 lesstif pcre libxslt"
     OPT[0]="cups::--disable-cups:for intergration with common unix printing system"
     OPT[1]="openssl:::for secure socket layer support"
@@ -13,3 +16,23 @@ kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.
 "
+
+
+build()  {
+  case  $VERSION  in
+    3.2.3)
+    patch  -p0  -d  dcop  <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
+    patch  -p0            <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[2]##*/}
+    patch  -p0            <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[3]##*/}
+  ;;
+  esac
+  kde_build
+}
+
+
+current()  {
+  case  $VERSION  in
+    3.2.3)  bzcat  $COMPILE_LOGS/kdelibs.bz2  |
+            grep  -qx  "patching file dcopserver.cpp"  ;;
+  esac
+}
