@@ -48,6 +48,10 @@
     true
   }
 
+  case  $VERSION  in
+    1.0-4363)  echo  "Building after XFree86/POST_INSTALL fix"  ;;
+  esac
+
   chown  -R  root:root  *
   cd  usr/src/nv
   sed  -i  "s:/sbin/rmmod nvidia:true:"     Makefile
