@@ -9,7 +9,6 @@ APACHE_CONFIGURE=\
               --proxycachedir=/var/cache/apache  \
               --runtimedir=/var/run              \
               --datadir=/usr/share/apache        \
-              --enable-rule=EAPI                 \
               --enable-module=most               \
               --enable-shared=max                \
               --enable-module=auth_db            \
@@ -56,7 +55,9 @@ else
         grep  -q  -w  "openssl"
   then
 
-    APACHE_CONFIGURE="$APACHE_CONFIGURE  --enable-module=ssl"
+    APACHE_CONFIGURE="$APACHE_CONFIGURE    \
+                      --enable-module=ssl  \
+                      --enable-rule=EAPI"
 
     cd  ${DIR[1]}
     ./configure  --with-apache=$BUILD_DIR  &&
