@@ -56,18 +56,21 @@
   cd  usr/src/nv
 
   if  spell_installed  linux;  then
-    VERSION=$(  installed_version  linux  )
-    sed  -i  "s/\$(shell uname -r)/$VERSION/"  Makefile
+    LVER=$(  installed_version  linux  )
+      SM="/usr/src/linux/System.map"
+    sed  -i  "s/\$(shell uname -r)/$LVER/"              Makefile
+    sed  -i  "s:depmod -a:depmod -a -q -F $SM  $LVER:"  Makefile
   fi
 
-  sed  -i  "s:/sbin/rmmod nvidia:true:"     Makefile
-  sed  -i  "s:/sbin/rmmod NVdriver:true:"   Makefile
-  sed  -i  "s:/sbin/modprobe nvidia:true:"  Makefile
-  sed  -i  "s:depmod -a:depmod -a -q -F /usr/src/linux/System.map $LINUX_VERSION:"  Makefile
+  # sed  -i  "s:/sbin/rmmod nvidia:true:"     Makefile
+  # sed  -i  "s:/sbin/rmmod NVdriver:true:"   Makefile
+  # sed  -i  "s/: gcc-check/:/"  Makefile
 
-  sed  -i  "s/: gcc-check/:/"  Makefile
 
-  make             IGNORE_CC_MISMATCH=1  &&
+  sed  -i  "s:nvidia.o rmmod-check:nvidia.o:"  Makefile
+  sed  -i  "s:/sbin/modprobe nvidia:true:"     Makefile
+
+  # make             IGNORE_CC_MISMATCH=1  &&
   prepare_install                        &&
   make    install  IGNORE_CC_MISMATCH=1  &&
   install_libs                           &&
