@@ -20,6 +20,7 @@ activate_voyeur
 
   case  $VERSION  in
     0.74.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
+    0.77.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
   esac
 
   make  PREFIX=/usr           \
