@@ -1,0 +1,58 @@
+   VERSION=( "1.0.0" )
+  CATEGORY="network"
+ ATTRIBUTE="kde new"
+    SOURCE="guidedog-$VERSION.tar.gz"
+  HOMEPAGE="http://www.simonzone.com/software/guidedog"
+       URL="http://www.simonzone.com/software/guidedog"
+       REQ="gawk iptables kdelibs"
+  ESTIMATE="78"
+      DESC="guidedog is an advanced routing/network configuration utility for KDE 2 
+and 3 running on Linux 2.4 based machines. Using guidedog you can easily 
+activate packet routing/forwarding and also more advanced networking 
+such as IP masquerade and Port Forwarding. guidedog is intended to work 
+along side any iptables based firewall, and as such compliments 
+guarddog nicely. The goals for guidedog are:
+
+* Routing support (i.e. turning on IP forwarding/routing).
+* IP masquerade.
+* Activating of NAT modules for FTP and IRC.
+* Port Forwarding"
+
+header(){
+    echo "#!/bin/sh" >>$RC
+    echo "# This scripts starts guidedog." >>$RC
+    echo "#" >>$RC
+    echo "# chkconfig: 2345 20 99" >>$RC
+    echo "# description:  Starts and stops guidedog" >>$RC
+    echo "#" >>$RC
+    echo -n "# $Id: guidedog,v 1.1 2004/12/14 05:46:50 bent Exp $RC
+    echo -n $VERSION >>$RC
+    echo " Exp $" >>$RC
+    echo "#" >>$RC
+}
+install_init() {
+ RC="/etc/rc.guidedog"
+ if [ ! -f $RC ]; then 
+    touch $RC
+    chmod 0755 $RC
+#   header
+ fi
+
+# S30networking and K70networking
+# Start guidedog after networking is started
+# Stop networking after guidedog is stopped
+# Make symbolic links
+  cp -s /etc/rc.guidedog /etc/rc3.d/S31guidedog
+  cp -s /etc/rc.guidedog /etc/rc4.d/S31guidedog
+  cp -s /etc/rc.guidedog /etc/rc5.d/S31guidedog
+  cp -s /etc/rc.guidedog /etc/rc0.d/K69guidedog
+  cp -s /etc/rc.guidedog /etc/rc1.d/K69guidedog
+  cp -s /etc/rc.guidedog /etc/rc2.d/K69guidedog
+  cp -s /etc/rc.guidedog /etc/rc6.d/K69guidedog
+ true
+}
+
+build() {
+ default_build &&
+ install_init
+}
