@@ -4,6 +4,7 @@ case  $VERSION  in
 esac
 
 export  PATH="/opt/bison/1.35/bin:$PATH"
+export  LDFLAGS="$LDFLAGS -L/usr/X11R6/lib"
 
 sed  -i  "s:##name##:##name:"  contrib/src/mmedia/sndcpcm.cpp
 
