@@ -1,0 +1,70 @@
+diff -r -U2 syslinux-3.02/Makefile syslinux-3.02/Makefile
+--- syslinux-3.02/Makefile	2005-01-04 18:01:29.000000000 -0700
++++ syslinux-3.02/Makefile	2005-01-04 18:01:29.000000000 -0700
+@@ -55,6 +55,5 @@
+ 
+ # _bin.c files required by both BTARGET and ITARGET installers
+-BINFILES = bootsect_bin.c ldlinux_bin.c mbr_bin.c \
+-	   extlinux_bss_bin.c extlinux_sys_bin.c 
++BINFILES = bootsect_bin.c ldlinux_bin.c mbr_bin.c
+ 
+ # syslinux.exe is BTARGET so as to not require everyone to have the
+@@ -62,11 +61,10 @@
+ BTARGET  = kwdhash.gen version.gen version.h \
+ 	   ldlinux.bss ldlinux.sys ldlinux.bin \
+-	   pxelinux.0 mbr.bin isolinux.bin isolinux-debug.bin \
+-	   extlinux.bin extlinux.bss extlinux.sys
++	   pxelinux.0 mbr.bin isolinux.bin isolinux-debug.bin
+ BOBJECTS = $(BTARGET) dos/syslinux.com win32/syslinux.exe memdisk/memdisk
+ BSUBDIRS = memdisk dos win32
+ ITARGET  = copybs.com gethostip mkdiskimage
+-IOBJECTS = $(ITARGET) mtools/syslinux unix/syslinux extlinux/extlinux
+-ISUBDIRS = mtools unix extlinux sample com32
++IOBJECTS = $(ITARGET) mtools/syslinux unix/syslinux
++ISUBDIRS = mtools unix sample com32
+ DOCS     = COPYING NEWS README TODO BUGS *.doc sample menu com32
+ OTHER    = Makefile bin2c.pl now.pl genhash.pl keywords findpatch.pl \
+@@ -77,6 +75,4 @@
+ # Things to install in /usr/bin
+ INSTALL_BIN   =	mtools/syslinux gethostip ppmtolss16 lss16toppm
+-# Things to install in /sbin
+-INSTALL_SBIN  = extlinux/extlinux
+ # Things to install in /usr/lib/syslinux
+ INSTALL_AUX   =	pxelinux.0 isolinux.bin isolinux-debug.bin \
+@@ -144,8 +140,4 @@
+ 	$(PERL) checksumiso.pl $@
+ 
+-extlinux.bin: extlinux.asm kwdhash.gen version.gen
+-	$(NASM) -f bin -DDATE_STR="'$(DATE)'" -DHEXDATE="$(HEXDATE)" \
+-		-DMAP=extlinux.map -l extlinux.lst -o extlinux.bin extlinux.asm
+-
+ pxelinux.0: pxelinux.bin
+ 	cp pxelinux.bin pxelinux.0
+@@ -157,10 +149,4 @@
+ 	dd if=$< of=$@ bs=512 skip=1
+ 
+-extlinux.bss: extlinux.bin
+-	dd if=$< of=$@ bs=512 count=1
+-
+-extlinux.sys: extlinux.bin
+-	dd if=$< of=$@ bs=512 skip=1
+-
+ mbr.bin: mbr.asm
+ 	$(NASM) -f bin -l mbr.lst -o mbr.bin mbr.asm
+@@ -178,10 +164,4 @@
+ 	$(PERL) bin2c.pl syslinux_ldlinux < $< > $@
+ 
+-extlinux_bss_bin.c: extlinux.bss bin2c.pl
+-	$(PERL) bin2c.pl extlinux_bootsect < $< > $@
+-
+-extlinux_sys_bin.c: extlinux.sys bin2c.pl
+-	$(PERL) bin2c.pl extlinux_image < $< > $@
+-
+ libsyslinux.a: bootsect_bin.o ldlinux_bin.o mbr_bin.o syslxmod.o
+ 	rm -f $@
+@@ -204,5 +184,4 @@
+ 	install -m 755 -c $(INSTALL_BIN) $(INSTALLROOT)$(BINDIR)
+ 	mkdir -m 755 -p $(INSTALLROOT)$(SBINDIR)
+-	install -m 755 -c $(INSTALL_SBIN) $(INSTALLROOT)$(SBINDIR)
+ 	mkdir -m 755 -p $(INSTALLROOT)$(AUXDIR)
+ 	install -m 644 -c $(INSTALL_AUX) $(INSTALLROOT)$(AUXDIR)
