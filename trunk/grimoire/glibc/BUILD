@@ -28,6 +28,7 @@
         gzip)  gzip   -cd  $HP  |  patch  -p1  ;;
        bzip2)  bzip2  -cd  $HP  |  patch  -p1  ;;
     esac
+    patch  -p1  <  $SCRIPT_DIR/heapprotect-2.3.2-1.3.1-vmalloc.diff
     OPTS="$OPTS  --enable-heap-protection"
   fi
 
