@@ -37,7 +37,10 @@ IVERSION=$(  installed_version  $BSPELL  )
 
   export  MOZILLA_OFFICIAL=1
   export  BUILD_OFFICIAL=1
-  export  MOZ_INTERNAL_LIBART_LGPL=1
+# The following 2 lines stopped working with mozilla 1.4.1
+# the source came without the internal libart library.
+# export  MOZ_INTERNAL_LIBART_LGPL=1
+# ac_add_options --enable-svg
 
   cat  <<  EOF  >  .mozconfig
 ac_add_options --prefix=/usr
@@ -55,7 +58,6 @@ ac_add_options --enable-strip
 ac_add_options --enable-elf-dynstr-gc
 ac_add_options --enable-cpp-rtti
 ac_add_options --enable-xterm-updates
-ac_add_options --enable-svg
 ac_add_options --enable-toolkit-gtk2
 ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-old-abi-compat-wrappers
