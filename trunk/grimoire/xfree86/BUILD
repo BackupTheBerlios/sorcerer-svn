@@ -14,7 +14,9 @@ if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ];  then
     echo  "#define InstallXinitConfig     YES"
     echo  "#define HasFreetype2           YES"
     echo  "#define BuildFreetype2Library  NO"
-    echo  "#define BuildFreeType          NO"
+#   echo  "#define BuildFreeType          NO"
+    echo  "#define UseFreetype2           YES"
+    echo  "#define Freetype2LibDir        /usr/lib"
     
 
   )  >> config/cf/host.def
