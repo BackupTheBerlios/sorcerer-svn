@@ -1,0 +1,46 @@
+   VERSION=( "20040711" "20040704" "20040526" "20040331" "20040214" )
+  CATEGORY="utility"
+ ATTRIBUTE="console"
+       URL="http://www.caliban.org/files/bash"
+  HOMEPAGE="http://www.caliban.org/bash/index.shtml#completion"
+       REQ="bash"
+ FRESHMEAT="bashcompletion"
+  ESTIMATE="5"
+      DESC="bash-completion provides useful scripts for BASH's programmable completion.
+
+bash-completion provides useful scripts for bash's command line completion.
+Since v2.04, bash has allowed you to intelligently 
+program and extend its standard completion behavior 
+to achieve complex command lines with just a few keystrokes.
+
+Imagine typing ssh [Tab] and being able to complete 
+on hosts from your ~/.ssh/known_hosts files.
+
+Or typing man 3 str [Tab] and getting a list 
+of all string handling functions in the UNIX manual.
+
+mount system: [Tab] would complete on all exported
+file-systems from the host called system, 
+
+while make [Tab] would complete on all targets in Makefile.
+
+This project was conceived to produce programmable 
+completion routines for the most common Linux/UNIX
+commands, reducing the amount of typing sysadmins 
+and programmers need to do on a daily basis.
+"
+
+
+build() {
+prepare_install  &&
+(
+  install  -o root  -g root  -m 755  bash_completion  /etc/
+  mkdir    -p  /etc/bash_completion.d
+  cd     contrib
+  for    FILE  in  *;  do
+    if    !  [  -f  /etc/bash_completion.d/$FILE  ]
+    then  install  -m  755  $FILE  /etc/bash_completion.d/
+    fi
+  done
+)
+}

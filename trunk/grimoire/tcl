@@ -1,0 +1,42 @@
+   VERSION=( "8.4.7" "8.4.6" "8.4.5" "8.4.4" "8.4.3" "8.4.2" )
+    IGNORE="^8\.4[ab]\|^8\.5[ab]\|codeweavers\|2001\|sql\|VM\|8[0-9][0-9]\|httpd\|\+\+\|linux\|irix\|hpux\|pro\|Blend\|[0-9][0-9]"
+  CATEGORY="interpreter"
+ ATTRIBUTE="console"
+    SOURCE="tcl/tcl${VERSION}-src.tar.gz"
+  HOMEPAGE="http://www.scriptics.com"
+       URL="$SOURCEFORGE_URL"
+  ESTIMATE="91"
+ FRESHMEAT="tcltk"
+      DESC="tcl provides a multi-platform scripting environment.
+
+tcl provides a portable scripting environment for 
+Unix, Windows, and Macintosh that supports string 
+processing and pattern matching, native file system 
+access, shell-like control over other programs,
+TCP/IP networking, timers, and event-driven I/O.
+Tcl has traditional programming constructs like 
+variables, loops, procedures, namespaces, error 
+handling, script packages, and dynamic loading of DLLs.
+"
+
+
+build() {
+make_shared_lib()  {
+  ld  --whole-archive  -share  -o  $1.so  $1.a
+}
+
+cd  unix                           &&
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             --enable-shared       \
+             --enable-threads      \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+ln  -sf  /usr/bin/tclsh8.4         \
+         /usr/bin/tclsh            &&
+make_shared_lib  /usr/lib/libtclstub8.4
+}

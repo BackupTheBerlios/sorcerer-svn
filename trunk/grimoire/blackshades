@@ -1,0 +1,42 @@
+   VERSION=( "20031203" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+       URL="http://sorcerer.wox.org/download/sources/blackshades/$VERSION"
+  HOMEPAGE="http://icculus.org/blackshades"
+       REQ="SDL openal"
+ FRESHMEAT=""
+  ESTIMATE="74"
+      DESC="blackshades is a psychic/commando personal protection specialist 3d shooter.
+
+Protect the VIP against overwhelming force of plain clothed 
+assassins and on some levels blood thirsty zombies that can 
+only be permantly dispatched with a two bullets to the head.
+Has simple graphics but fun game play after you learn
+the absolutely essential commands in the files:
+IF_THIS_IS_A_README_YOU_HAVE_WON  and  Readme
+
+Maybe they will eventually roll a tar.bz2 
+for distributing this fun shooter?
+Hint: Use the sights on the pistol for decapitating undead.
+"
+
+
+build() {
+  B="blackshades"
+ UL="/usr/libexec"
+ UG="/usr/games"
+ULB="$UL/$B"
+UGB="$UG/$B"
+USB="/usr/share/$B"
+RUN="#!/bin/sh\ncd $USB\n$ULB \$@"
+
+sed  -i  "s:-lGL :-L/usr/X11R6/lib -lGL :"  Makefile
+
+make                              &&
+prepare_install                   &&
+mkdir    -p  $UG   $USB           &&
+install  -m  0755  objs/$B  $ULB  &&
+cp       -a  Data  $USB           &&
+echo     -e  "$RUN"  >      $UGB  &&
+chmod        0755           $UGB
+}

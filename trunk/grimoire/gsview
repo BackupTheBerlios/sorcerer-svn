@@ -1,0 +1,31 @@
+   VERSION=( "4.6" "4.5" "4.3" )
+  CATEGORY="printer"
+ ATTRIBUTE="x11"
+  HOMEPAGE="http://www.cs.wisc.edu/~ghost/gsview"
+       URL="ftp://mirror.cs.wisc.edu/pub/mirrors/ghost/ghostgum"
+       REQ="ghostscript gtk+-v1.2"
+  ESTIMATE="557"
+      DESC="gsview is a nice GUI for viewing PDF & PS files via AFPL ghostscript.
+
+gsview is a graphical interface for Ghostscript, an interpreter for 
+the PostScript page description language used by laser printers. 
+For documents following the Adobe PostScript Document Structuring
+Conventions, it allows selected pages to be viewed or printed. 
+GSview requires AFPL Ghostscript.
+"
+
+
+build() {
+case  $VERSION  in
+ 4.3)  make             GSVIEW_ROOT=/usr  &&
+       prepare_install                    &&
+       make    install  GSVIEW_ROOT=/usr
+       ;;
+ 4.*)  sed   -i  "s:-O :$CFLAGS :
+                  s:/usr/local:/usr:"  srcunx/unx.mak
+       make  -f  srcunx/unx.mak  &&
+       prepare_install           &&
+       make  -f  srcunx/unx.mak  install
+       ;;
+esac
+}

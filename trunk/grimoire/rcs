@@ -1,0 +1,32 @@
+   VERSION=( "5.7" )
+    IGNORE="nt"
+  CATEGORY="development"
+ ATTRIBUTE="console"
+    SOURCE="rcs/rcs-$VERSION.tar.gz"
+  HOMEPAGE="http://www.gnu.org"
+       URL="$GNU_URL"
+      DESC="rcs provides revision control software.
+
+RCS -Revision Control Software,
+is used for keeping revisions of files etc.
+It can be used for system maintenance, BIND zone
+and source code files so that you could keep a tab
+on what happen when or could go back a couple of 
+revisions if something goes bad.
+"
+
+
+build() {
+# Quick note:
+# RCS doesn't like to be compiled as root, as the make is
+# doing several of the tests, and these tests need to be executed
+# as a non-root user :(
+# that's the reason for the chown & su to user bin!!!!
+
+chown    -R  bin:bin  .                   &&
+su  bin  -c  "./configure --prefix=/usr"  && 
+su  bin  -c  make                         &&
+chown    -R  root:root  .                 &&
+prepare_install                           &&
+make    install
+}

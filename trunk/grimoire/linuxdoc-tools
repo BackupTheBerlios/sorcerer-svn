@@ -1,0 +1,37 @@
+   VERSION=( "0.9.21" )
+  CATEGORY="documentation"
+ ATTRIBUTE="console"
+    SOURCE="linuxdoc-tools_$VERSION"
+  HOMEPAGE="ftp://ftp.debian.org/debian/pool/main/l/linuxdoc-tools"
+       URL="ftp://ftp.debian.org/debian/pool/main/l/linuxdoc-tools"
+       REQ="flex openjade"
+  ESTIMATE="1335"
+      DESC="linuxdoc-tools contains SGML conversion tools.
+
+It is a kind of SGML DTD.
+It was created for the Linux HOWTOs,
+and had been used officially by the 
+Linux Documentation Project (LDP).
+This tool set was created on the basis of sgml-tools_v1.
+The main command is linuxdoc, but several other command 
+is provided for users' convenience: sgmlcheck: 
+for syntax checking sgml2html: conversion to html sgml2info: 
+conversion to info sgml2latex: 
+conversion to latex, dvi, and postscript sgml2lyx: 
+conversion to lyx sgml2rtf: conversion to rtf sgml2txt.
+"
+
+
+build() {
+# There is a problem with linuxdoc-tools finding gawk
+# if it isn't /usr/bin/gawk
+
+sed  -i  "s:\$(CFLAGS):\$(CFLAGS) $LDFLAGS:"  rtf-fix/Makefile
+./configure  --build=$BUILD  \
+             --prefix=/usr   \
+             $OPTS           &&
+make    "OPTIMIZE=$CFLAGS"   \
+        "CFLAGS=$CFLAGS"     &&
+prepare_install              &&
+make    install  "PREFIX=/usr"
+}

@@ -1,0 +1,63 @@
+   VERSION=( "1.2.11" "1.2.10" "1.2.9" "1.2.8" "1.2.7a" "1.2.7" "1.2.6a" )
+  CATEGORY="network security"
+ ATTRIBUTE="console"
+  HOMEPAGE="http://netfilter.samba.org"
+       URL="http://netfilter.samba.org/files"
+  ESTIMATE="418"
+      DESC="iptables enables the creation of packet alteration and firwall rules.
+
+iptables is built on top of netfilter,
+the new packet alteration framework for Linux 2.4.
+It is an enhancement on ipchains, and is used
+to control packet filtering, Network Address 
+Translation (masquerading, portforwarding, 
+transparent proxying), and special effects.
+"
+
+
+build() {
+sed_source()  {
+  local  MIS  ONE  TWO  THR  FOU
+
+  MIS="#include <linux/compiler.h>\n#include <linux/types.h>"
+  ONE="#include <iptables.h>"
+  TWO="#include <ip6tables.h>"
+  THR="#include <linux/netfilter_ipv4/ip_tables.h>"
+  FOU="#include <linux/netfilter_ipv6/ip6_tables.h>"
+
+  grep  -rl  "$ONE\|$TWO\|$THR\|$FOU"  *  |
+  while  read
+  do     sed  -i  "\,$ONE,i$MIS
+                   \,$TWO,i$MIS
+                   \,$THR,i$MIS
+                   \,$FOU,i$MIS"  $REPLY
+  done
+}
+
+
+
+header_patch()  {
+  local  LVER
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+
+  case  $LVER  in
+    2.6.7)  sed_source  ;;
+  esac
+}
+
+
+if    [  "$BRANCH"  ==  "grsecurity"  ]
+then  patch  -p1  <  $(  guess_filename  ${SOURCE[1]}  )
+fi
+
+
+header_patch
+
+sed  -i  "s/-O2/$CFLAGS/"  Makefile
+make             LIBDIR=/usr/lib   &&
+prepare_install                    &&
+make    install  LIBDIR=/usr/lib   \
+                 BINDIR=/usr/sbin  \
+                 MANDIR=/usr/man   \
+                 INCDIR=/usr/include
+}

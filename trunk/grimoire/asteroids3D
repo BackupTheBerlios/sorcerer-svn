@@ -1,0 +1,43 @@
+   VERSION=( "0.2.2" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+       URL="http://www.psc.edu/~smp/a3d"
+  HOMEPAGE="http://www.psc.edu/~smp/a3d"
+       REQ="glut"
+  ESTIMATE="31"
+ FRESHMEAT="asteroids3d"
+      DESC="asteroids3d is a 3D first-person game of blowing up asteroids."
+
+
+build() {
+sed  -i  "s/-ggdb -O3/$CFLAGS/"  Makefile
+
+VLA="/var/lib/asteroids3D"
+
+sed  -i  "s:ast_tex0.ppm:$VLA/ast_tex0.ppm:
+          s:ast_tex1.ppm:$VLA/ast_tex1.ppm:
+          s:ast_tex2.ppm:$VLA/ast_tex2.ppm:
+          s:ast_tex3.ppm:$VLA/ast_tex3.ppm:
+          s:ast_tex4.ppm:$VLA/ast_tex4.ppm:
+          s:ast_tex5.ppm:$VLA/ast_tex5.ppm:
+          s:nebula_tex0.ppm:$VLA/nebula_tex0.ppm:
+          s:nebula_tex1.ppm:$VLA/nebula_tex1.ppm:
+          s:nebula_tex2.ppm:$VLA/nebula_tex2.ppm:
+          s:torp_tex0.ppm:$VLA/torp_tex0.ppm:"  texture.c
+
+sed  -i  "s:ast_snd0.ub:$VLA/ast_snd0.ub:
+          s:ast_snd1.ub:$VLA/ast_snd1.ub:
+          s:ast_snd2.ub:$VLA/ast_snd2.ub:
+          s:ast_snd3.ub:$VLA/ast_snd3.ub:
+          s:ast_snd4.ub:$VLA/ast_snd4.ub:
+          s:ast_snd5.ub:$VLA/ast_snd5.ub:
+          s:coll_snd.ub:$VLA/coll_snd.ub:
+          s:ta_snd.ub:$VLA/ta_snd.ub:
+          s:tf_snd.ub:$VLA/tf_snd.ub:"  sound.c
+
+make  &&
+prepare_install  &&
+install  -D  -m 0755  asteroids3D  /usr/games/asteroids3D  &&
+mkdir    -p                      $VLA  &&
+install  -m  0644  *.ppm  *.ub   $VLA
+}

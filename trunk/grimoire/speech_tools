@@ -1,0 +1,37 @@
+   VERSION=( "1.2.2-release" )
+  CATEGORY="audio"
+ ATTRIBUTE="console gcc2"
+       URL="http://www.cstr.ed.ac.uk/download/festival/1.4.2
+            http://festvox.org/packed/festival/1.4.2
+            http://www.speech.cs.cmu.edu/festival/cstr/festival/1.4.2"
+  HOMEPAGE="http://www.cstr.ed.ac.uk/projects/festival"
+      DESC="speech_tools provides tools and libraries for festival.
+
+speech_tools provides tools and libraries for festival
+"
+
+
+build() {
+ST_INST_DIR=/opt/speech_tools/$VERSION
+
+prepare_install
+mkdir  -p     $ST_INST_DIR
+cp     -a  *  $ST_INST_DIR/
+cd            $ST_INST_DIR
+
+sed  -i  "s:-ltermcap:-lncurses:"  config/modules/editline.mak
+sed  -i  "s:-ltermcap:-lncurses:"  lib/est_program_makefile
+
+if    ./configure  --build=$BUILD        \
+                   --prefix=/usr         \
+                   --sysconfdir=/etc     \
+                   --localstatedir=/var  \
+                   $OPTS                 &&
+      make                               &&
+      rm  -f  $(  find . -name \*.o  )   &&
+      rm  -fr  doc
+then  true
+else  rm  -rf  $ST_INST_DIR
+      false
+fi
+}

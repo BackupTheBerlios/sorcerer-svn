@@ -1,0 +1,35 @@
+   VERSION=( "0.96" "0.95" "0.92" "0.91" "0.9" )
+  CATEGORY="game"
+ ATTRIBUTE="new x11"
+#  I don't like how this filename is without an embedded version number.
+#  I don't like it's assumptions about qt file locaitons during build.
+#  I don't like how it installs.
+#  However I do like 3d mahjongg tiles.
+    SOURCE="mahjongg3d.tar.bz2";  disable  scavenge
+       URL="http://www.reto-schoelly.de/mahjongg3d"
+  HOMEPAGE="http://www.reto-schoelly.de/mahjongg3d"
+       REQ="qt-x11-free"
+#FRESHMEAT="mahjongg3d"
+  ESTIMATE="84"
+      DESC="mahjongg3d is a OpenGL tile game.
+The goal of the game is to remove all tiles on the board
+by selecting matching pairs of tiles that have tile 
+adjacent on the left or right side."
+
+
+build() {
+export    CFLAGS="-I/usr/include/qt    $CFLAGS"
+export  CXXFLAGS="-I/usr/include/qt  $CXXFLAGS"
+
+sed    -i  "s:/mkspecs:/share/qt/mkspecs:"  Makefile.doit
+ln     -s  Makefile.doit  Makefile
+
+export  QTDIR=/usr
+make    CC="gcc  $CFLAGS"           \
+        CXX="g++  $CXXFLAGS"        \
+                 PREFIX=/usr/games  &&
+prepare_install                     &&
+make    install  PREFIX=/usr/games  \
+         CC="gcc  $CFLAGS"          \
+        CXX="g++  $CXXFLAGS"
+}

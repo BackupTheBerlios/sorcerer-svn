@@ -1,0 +1,44 @@
+   VERSION=( "1.4.3" )
+# 1.9.x are developmental versions.
+  CATEGORY="graphic"
+ ATTRIBUTE="library"
+       URL="http://www.svgalib.org"
+  HOMEPAGE="http://www.svgalib.org"
+  ESTIMATE="20"
+      DESC="svgalib is a graphics library to provide VGA and SVGA modes in a console.
+
+svgalib is a low-level graphics library that provides VGA and SVGA
+modes in a console. It is not intended as an alternative to X for
+apps, but rather a set of tools for things like VGA games, image
+viewing in modes that X cannot support, etc.
+"
+
+
+build() {
+sed_source()  {
+  sed    -i  "\,#include <linux/pci.h>,itypedef unsigned long kernel_ulong_t;
+              \,#include <linux/pci.h>,i#include <linux/types.h>"  src/et6000.c
+}
+
+
+header_patch()  {
+  local  LVER
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+
+  case  $LVER  in
+    2.6.7)  sed_source  ;;
+  esac
+}
+
+
+header_patch
+
+
+case  $VERSION  in
+  1.4.3)  sed  -i  "s:##::"  src/vga.c  ;;
+esac
+
+make             prefix=/usr  &&
+prepare_install               &&
+make    install  prefix=/usr
+}

@@ -1,0 +1,36 @@
+   VERSION=( "2.5.7" "2.5.6" "2.5.5" "2.5.4" "2.5.3" "2.5.2" )
+    IGNORE="rc6"
+  CATEGORY="encryption"
+ ATTRIBUTE="library"
+    SOURCE="mcrypt/libmcrypt-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://mcrypt.sourceforge.net"
+# HOMEPAGE="http://mcrypt.hellug.gr/#_libmcrypt"
+#      URL="ftp://mcrypt.hellug.gr/pub/mcrypt/libmcrypt"
+       REQ="libtool"
+  ESTIMATE="319"
+      DESC="libmcrypt implements all the algorithms and modes found in mcrypt.
+
+libmcrypt is a library which provides a uniform 
+interface to several symmetric encryption algorithms.
+It is intended to have a simple interface to access 
+encryption algorithms in ofb, cbc, cfb, and ecb modes.
+The algorithms it supports are DES, 3DES, RIJNDAEL, Twofish,
+IDEA, GOST, CAST-256, ARCFOUR, SERPENT, SAFER+, and more.
+The algorithms and modes are also modular so you can add 
+and remove them on the fly without recompiling the library.
+"
+
+
+build() {
+unset   LDFLAGS
+
+sed  -i  "s:<ltdl.h>:</usr/share/libtool/libltdl/ltdl.h>:"  lib/libdefs.h
+
+./configure   --prefix=/usr      \
+              --sysconfdir=/etc  \
+              $OPTS              &&
+make                             &&
+prepare_install                  &&
+make    install
+}

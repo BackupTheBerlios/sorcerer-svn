@@ -1,0 +1,34 @@
+   VERSION=( "3.07pl2" "3.06" )
+    IGNORE="refman"
+  CATEGORY="interpreter"
+ ATTRIBUTE="console x11"
+    SOURCE="ocaml-$VERSION.tar.gz"
+       URL="http://caml.inria.fr/distrib/ocaml-${VERSION:0:4}
+             ftp://ftp.inria.fr/INRIA/caml-light/ocaml-${VERSION:0:4}"
+  HOMEPAGE="http://pauillac.inria.fr/caml"
+       REQ=( "ncurses"
+             "tk::-no-tk:for tcl/tk support"
+             "x11:::to build the graph library" )
+# ocaml 3.06 support for tk 8.4.2 is broken.
+  ESTIMATE="2964"
+      DESC="ocaml Objective Caml is the latest implementation of the Caml dialect of ML.
+ocaml Objective Caml is an implementation of the ML language, 
+based on the Caml Light dialect extended with a complete 
+class-based object system and a powerful module system 
+in the style of Standard ML."
+
+
+build() {
+#            -no-tk                  \
+./configure  -prefix /usr            \
+             -bindir /usr/bin        \
+             -libdir /usr/lib/ocaml  \
+             -mandir /usr/man        \
+             --with-pthread          \
+             $OPTS                   &&
+make    world    &&
+make    opt      &&                          
+make    opt.opt  &&
+prepare_install  &&
+make    install
+}

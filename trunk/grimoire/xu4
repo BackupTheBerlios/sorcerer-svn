@@ -1,0 +1,57 @@
+   VERSION=( "0.9" "0.09" "0.08" )
+    IGNORE="^0\.0"
+  CATEGORY="game emulator"
+ ATTRIBUTE="x11"
+ SOURCE[0]="xu4/xu4-$VERSION"
+ SOURCE[1]="xu4/ultima4.zip"
+ SOURCE[2]="u4upgrad.zip"
+    URL[0]="$SOURCEFORGE_URL"
+    URL[2]="http://www.moongates.com/u4/upgrade/files"
+  HOMEPAGE="http://xu4.sourceforge.net"
+       REQ="SDL_mixer libxml2 unzip"
+  ESTIMATE="74"
+# FRESHMEAT="xu4"
+      DESC="xu4 is an emulator, in development, for running ultima 4.
+
+xu4 is an emulator, currently in development, for running ultima 4.
+"
+
+
+build() {
+   UIFLAGS="UIFLAGS=$(  sdl-config --cflags  )  $CFLAGS"
+    BINDIR="bindir=/usr/games"
+    LIBDIR="libdir=/usr/lib"
+   DATADIR="datadir=/usr/share"
+DESKTOPDIR="desktopdir=/etc/X11/applnk"
+
+
+install_data()  {
+
+  mkdir  -p                                /usr/lib/u4/ultima4
+  cp  $(  guess_filename  ${SOURCE[1]}  )  /usr/lib/u4/ultima4
+  cp  $(  guess_filename  ${SOURCE[2]}  )  /usr/lib/u4/ultima4
+
+  case  $VERSION  in
+    0.9)  echo  -e  "#!/bin/bash\ncd  /usr/lib/u4/ultima4\nu4"  \
+          >            /usr/games/ultima4
+          chmod  0755  /usr/games/ultima4  ;;
+  esac
+
+}
+
+
+cd      src            &&
+make    "$UIFLAGS"     \
+        "$BINDIR"      \
+        "$LIBDIR"      \
+        "$DATADIR"     \
+        "$DESKTOPDIR"  &&
+prepare_install        &&
+mkdir  -p  $BINDIR     &&
+make    install        \
+        "$BINDIR"      \
+        "$LIBDIR"      \
+        "$DATADIR"     \
+        "$DESKTOPDIR"  &&
+install_data
+}

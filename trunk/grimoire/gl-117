@@ -1,0 +1,34 @@
+   VERSION=( "1.3" "1.2" "1.1" "1.0.1-2" "1.0.1" "1.0" "0.9" "0.8.8" "0.8.5" "0.8.2" "0.8" "0.7.5" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="gl-117/gl-117-$VERSION-src.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://home.t-online.de/home/Primetime."
+       REQ="SDL_mixer glut"
+  ESTIMATE="39"
+      DESC="gl-117 is an OpenGL flight stimulator.
+
+gl-117 is an OpenGL and SDL based action flight simulator.
+It provides a random terrain generator, lighting effects, 
+sounds, and joystick support.  Yes the campaign is winnable.
+"
+
+
+build() {
+case  $VERSION  in
+  1.0.1|1.0.1-2)  sed  -i  "s: -lSDLmain::"  configure  ;;
+esac
+
+export    CFLAGS="$CFLAGS    -L/usr/X11R6/lib/"
+export  CXXFLAGS="$CXXFLAGS  -L/usr/X11R6/lib/"
+
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             --bindir=/usr/games   \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install
+}

@@ -1,0 +1,21 @@
+   VERSION=( "2004_03_29" "2004_01_05" "2003_08_05" )
+    IGNORE="^S2000"
+  CATEGORY="utility"
+ ATTRIBUTE="core console"
+    SOURCE="linux-hotplug/hotplug-$VERSION.tar.gz"
+  HOMEPAGE="http://linux-hotplug.sourceforge.net"
+       URL="$SOURCEFORGE_URL"
+  ESTIMATE="5"
+      DESC="hotplug lets you plug in new devices and use them immediately."
+
+
+build() {
+   TH="touch /var/lock/subsys/hotplug"
+MKDIR="s:$TH:mkdir -p /var/lock/subsys; $TH:"
+
+sed  -i  "$MKDIR"  etc/rc.d/init.d/hotplug
+
+prepare_install  &&
+make    install  &&
+ln     -sf  ../init.d/hotplug  /etc/rcS.d/S99hotplug
+}

@@ -1,0 +1,34 @@
+   VERSION=( "0.5" "0.039" "0.035" )
+    IGNORE="bin\|^0\.03\|java\|m\|^0\.0\|iavir\|pre"
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="opende/ode-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://ode.org"
+       REQ=""
+  ESTIMATE="114"
+      DESC="ode is a library for simulatnig Rigid Body Dynamics.
+
+The Open Dynamics Engine (ODE) is a free software 
+library for the simulation of Rigid Body Dynamics.
+"
+
+
+build() {
+make_shared_lib()  {
+  ld  --whole-archive  -share  -o  $1.so.1  $1.a
+  ln  -sf  $1.so.1  $1.so
+}
+
+
+make  configure        &&
+make  ode-lib          &&
+make  drawstuff-lib    &&
+make  ode-test         &&
+make  drawstuff-test   &&
+prepare_install        &&
+cp     -av  include/*  /usr/include  &&
+cp     -av  lib/*      /usr/lib      &&
+make_shared_lib        /usr/lib/libdrawstuff  &&
+make_shared_lib        /usr/lib/libode
+}

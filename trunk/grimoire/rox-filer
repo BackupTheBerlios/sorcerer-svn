@@ -1,0 +1,58 @@
+   VERSION=( "2.1.3" "2.1.2" "2.1.1" )
+    IGNORE="linux"
+  CATEGORY="file-manager"
+ ATTRIBUTE="x11"
+    SOURCE="rox/rox-$VERSION.tgz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://rox.sourceforge.net/phpwiki"
+       REQ="gtk+ shared-mime-info"
+  ESTIMATE="63"
+      DESC="rox-filer is a fast and powerful graphical file manager."
+
+
+build() {
+PLAT="$( uname -m -s | tr ' ' '-' | sed "s:i.86:ix86:" )"
+
+
+make_install()  {
+
+  RUN="#!/bin/sh\nexec  /usr/share/ROX-Filer/AppRun \"\$@\""
+  ROX="/usr/share/ROX-Filer/$PLAT/ROX-Filer"
+
+  cd  ..
+  
+# install  -m 0755  $PLAT/ROX-Filer  /usr/bin
+# ln       -s             ROX-Filer  /usr/bin/rox
+
+  cd  ..
+  install  -m 0644  rox.1            /usr/man/man1
+  bzip2    -9                        /usr/man/man1/rox.1
+  ln       -s       rox.1.bz2        /usr/man/man1/ROX-Filer.1
+
+  install  -m 0744  rox.xml          /usr/share/mime/packages
+  mkdir    -p                        /usr/share/Choices
+  cp       Choices/MIME-types/*      /usr/share/Choices
+
+  rm       -rf      ROX-Filer/src
+  cp       -r       ROX-Filer        /usr/share
+
+  echo     -e       "$RUN"        >  /usr/bin/rox
+  chmod    0755                      /usr/bin/rox  $ROX
+  ln       -s       "$ROX"           /usr/libexec/ROX-Filer
+
+}
+
+
+
+cd  ROX-Filer/src
+./configure  --build=$BUILD         \
+             --enable-rox           \
+             --prefix=/usr          \
+             --sysconfdir=/etc      \
+             --localstatedir=/var   \
+             --with-platform=$PLAT  \
+             $OPTS                  &&
+make                                &&
+prepare_install                     &&
+   make_install
+}

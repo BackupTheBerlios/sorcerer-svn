@@ -1,0 +1,29 @@
+   VERSION=( "0.3.0" "0.1.0" )
+  CATEGORY="utility"
+ ATTRIBUTE="x11"
+       URL="http://user.tninet.se/~uhu537u"
+  HOMEPAGE="http://user.tninet.se/~uhu537u"
+       REQ="SDL"
+      DESC="ps3 is an OpenGL program for displaying process information.
+
+ps3 is an OpenGL program that displays memory size and 
+CPU activity for Linux processes as a 3D bar chart.
+The display can be rotated and scaled interactively.
+"
+
+
+build() {
+set  -x
+
+sed  -i  -e  "s:font/:/usr/share/ps3/font/:
+              s:filename\[5\]:filename[20]:"  png_textures.c
+
+gcc  ps3.c  process_status.c  png_textures.c        \
+     -L/usr/X11R6/lib  -lGL  -lGLU  -lpng  $CFLAGS  \
+     -o  ps3  $(  sdl-config  --cflags  --libs  )   &&
+set  +x                             &&
+prepare_install                     &&
+mkdir    -p        /usr/share/ps3   &&
+mv           font  /usr/share/ps3/  &&
+install  -m 755  -o root  -g root  ps3  /usr/bin/
+}

@@ -1,0 +1,35 @@
+   VERSION=( "1.4.0" )
+  CATEGORY="disk"
+ ATTRIBUTE="console"
+  HOMEPAGE="http://wolfpack.twu.net/utilities.html#ziptool"
+       URL="ftp://wolfpack.twu.net/users/wolfpack"
+      DESC="ziptool contains tools for controlling IOMega JAZ and ZIP drives.
+
+It features locking and unlocking of media (with a password), 
+ejecting, spinning down drives, mounting, and unmounting.
+"
+
+
+build() {
+sed_source()  {
+  sed  -i  "\,#include <scsi/scsi.h>,itypedef unsigned char u8;"  ziptool.c
+}
+
+
+header_patch()  {
+  local  LVER
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+
+  case  $LVER  in
+    2.6.7)  sed_source  ;;
+  esac
+}
+
+
+header_patch
+
+sed  -i  "s:-O2 -g:$CFLAGS:"  Makefile
+make             &&
+prepare_install  &&
+make    install
+}

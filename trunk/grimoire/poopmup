@@ -1,0 +1,39 @@
+   VERSION=( "1.3beta" "1.2" "1.1-Linux" "1.0-Linux" )
+    IGNORE="beta1"
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="poopmup/poopmup-$VERSION"
+  HOMEPAGE="http://sourceforge.net/projects/poopmup"
+       URL="$SOURCEFORGE_URL"
+       REQ="SDL_image"
+  ESTIMATE="16"
+      DESC="poopmup is a bird simulator shoot-em-up game.
+
+poopmup is a game, a sort of a shoot-em-up, but with a twist.
+As a child, you where tortured in the playground.
+You were a victim of the highschool hierarchy.
+You hacked hours on end, and built a 
+machine that transformed you into a bird.
+You are now free (as in speech) to fly
+around the city and poop on passers-by.
+"
+
+
+build() {
+PSP="/usr/share/poopmup"
+PGP="/usr/games/poopmup"
+ULP="/usr/libexec/poopmup"
+ RP="#!/bin/bash\ncd $PSP\n$ULP"
+ CC="CC=g++  $CXXFLAGS  -L/usr/X11R6/lib"
+
+rm     -f  *.o
+chown  -R  root:root  *
+make  "$CC"                  &&
+prepare_install              &&
+mkdir  -p              $PSP  &&
+cp     -a  config      $PSP  &&
+cp     -a  textures    $PSP  &&
+cp     -a  poopmup.o   $ULP  &&
+echo   -e  "$RP"   >   $PGP  &&
+chmod      0755        $PGP
+}

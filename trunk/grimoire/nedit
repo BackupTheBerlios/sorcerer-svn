@@ -1,0 +1,58 @@
+   VERSION=( "5.4" "5.3" )
+  CATEGORY="editor"
+ ATTRIBUTE="x11"
+    SOURCE="v${VERSION/./_}/nedit-$VERSION-source"
+  HOMEPAGE="http://www.nedit.org"
+       URL="http://www.nedit.org/ftp
+             ftp://humbolt.geo.uu.nl/pub/mirror/NEdit"
+       REQ="lesstif"
+  ESTIMATE="102"
+      DESC="nedit is a multi-purpose text editor for the X Window System
+
+nedit is a Unix text editor for programmers and general users.
+It combines a standard, easy-to-use, graphical user 
+interface with the thorough functionality and stability 
+required by users who edit text eight hours a day.
+It includes a macro language with a complete library 
+of editing functions, state-of-the-art syntax highlighting
+for 30 common languages and text processors, and the best
+mouse-interactivity available in a Unix text editor.
+"
+
+
+build() {
+make_install()  {
+
+  strip      source/nedit
+  strip      source/nc
+  cp         source/nc         /usr/bin
+  cp         source/nedit      /usr/bin
+  cp         doc/nc.man        nc.1
+  cp         doc/nedit.man     nedit.1
+  gzip  -9   nc.1
+  gzip  -9   nedit.1
+  cp         nc.1.gz           /usr/man/man1
+  cp         nedit.1.gz        /usr/man/man1
+
+}
+
+cd   makefiles
+# cp   Makefile.linux  Makefile.linux.orig
+# cat  Makefile.linux.orig                      |
+# sed  "s/CFLAGS\=/CFLAGS:=/"                   |
+# sed  "s/-DUSE_LPR_PRINT_CMD/& \$\(CFLAGS\)/"  |
+# sed  "s:,-Bstatic::g"  >  Makefile.linux
+
+export  CFLAGS="$CFLAGS  -DBUILD_UNTESTED_NEDIT"
+
+sed  -i  "s/CFLAGS\=/CFLAGS:=/
+          s/-DUSE_LPR_PRINT_CMD/& \$\(CFLAGS\)/
+          s:,-Bstatic::g"  \
+     Makefile.linux
+cd   ..
+
+echo             |
+make    linux    &&
+prepare_install  &&
+   make_install
+}

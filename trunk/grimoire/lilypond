@@ -1,0 +1,66 @@
+   VERSION=( "2.2.6" "2.2.5" "2.2.4" "2.2.3" "2.2.2" "2.2.1" "2.2.0" )
+  CATEGORY="audio"
+ ATTRIBUTE="broken console"
+ SOURCE=( "lilypond-$VERSION.tar.gz"
+          "lex/flex-2.5.31.tar.bz2" )
+    URL=( "http://lilypond.org/download/v${VERSION:0:3}"
+          "$SOURCEFORGE_URL" )
+  HOMEPAGE="http://lilypond.org/web"
+       REQ=( "Python bison guile mftrace perl rpm2cpio teTeX texinfo"
+             "teTeX::--without-kpathsea:for finding fonts" )
+  ESTIMATE="10415"
+      DESC="lilypond is a music typesetter
+lilypond prints beautiful sheet music.
+It produces music notation from a description file.
+It excels at typesetting classical music, 
+but you can also print pop-songs."
+
+
+build() {
+fix_parser_cc()  {
+# needed for bison 1.875
+
+  FU="s:((__unused__)):((__unused__));:"
+
+  make
+  cd      lily
+  make            out/parser.cc
+  sed  -i  "$FU"  out/parser.cc
+  cd      ..
+
+}
+
+
+build_flex()  {
+
+  BF="$BUILD_DIR/flex"
+
+  cd   flex-*
+  ./configure  --build=$BUILD        \
+               --prefix=$BF          &&
+  make                               &&
+  make    install                    &&
+
+  cd    ..                           &&
+  ln    -s     flex  $BF/bin/lex     &&
+  export       PATH="$BF/bin:$PATH"  &&
+
+  export  CPPFLAGS="-I$BF/include "     &&
+  export  LDFLAGS="$LDFLAGS -L$BF/lib"
+
+}
+
+
+build_flex                         &&
+
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+fix_parser_cc                      &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+rm     -rf  /tmp/have_compress.*
+}

@@ -1,0 +1,30 @@
+   VERSION=( "070" )
+    IGNORE="0701b\|a\|b"
+  CATEGORY="game"
+ ATTRIBUTE="console"
+       URL="http://mangband.org/download"
+  HOMEPAGE="http://mangband.org"
+      DESC="mangband is a multiplayer angband game."
+
+
+build() {
+cd  src
+
+MCFG="/etc/mangband.cfg"
+
+sed  -i  "s:mangband.cfg:$MCFG:"           server/init2.c
+sed  -i  "s:\./lib/:/usr/share/mangband:"  config.h
+
+make             &&
+prepare_install  &&
+cd  ..           &&
+cp     -a  mangband     \
+           mangclient   \
+           mangconsole  \
+           runserv      /usr/games           &&
+mkdir  -p               /usr/share/mangband  &&
+cp     -a  lib/*        /usr/share/mangband  &&
+if     !  [  -f         $MCFG  ]
+then  cp  mangband.cfg  $MCFG
+fi
+}

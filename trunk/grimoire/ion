@@ -1,0 +1,30 @@
+   VERSION=( "2-20040729" "2-20040601" "2-20040407" "20020207" )
+  CATEGORY="window-manager"
+ ATTRIBUTE="x11"
+    SOURCE="ion-$VERSION.tar.gz"
+  HOMEPAGE="http://modeemi.cs.tut.fi/~tuomov/ion"
+       URL="http://modeemi.cs.tut.fi/~tuomov/ion/dl"
+       REQ="libtool lua x11"
+  ESTIMATE="431"
+      DESC="ion is a keyboard-friendly tiling window manager
+
+ion, based on PWM, is a keyboard-friendly window manager 
+with a very text-editorish interface and no overlapping windows.
+"
+
+
+build() {
+echo  "EXTRA_LIBS += `xft-config --libs`"        >>  system.mk
+echo  "EXTRA_INCLUDES += `xft-config --cflags`"  >>  system.mk
+echo  "DEFINES += -DCF_XFT"                      >>  system.mk
+sed  -i  "s:LUA_PATH=/usr/local:LUA_PATH=/usr:
+          s:LUA_DIR=/usr/local:LUA_DIR=/usr:"        system.mk
+
+PRE="PREFIX=/usr"
+ETC="ETCDIR=/etc"
+
+make    depend   $PRE  $ETC  &&
+make             $PRE  $ETC  &&
+prepare_install              &&
+make    install  $PRE  $ETC
+}

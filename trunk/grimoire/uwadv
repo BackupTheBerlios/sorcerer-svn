@@ -1,0 +1,45 @@
+   VERSION=( "0.9_mojito" )
+    IGNORE="cheesecake\|ming\|poppypastry\|grainroll\|musicpack\|whoopie\|ricecraecker"
+  CATEGORY="game emulator"
+ ATTRIBUTE="x11"
+ SOURCE[0]="uwadv/uwadv-$VERSION.tar.gz"
+ SOURCE[1]="uwadv/uwadv-musicpack-2.zip"
+    URL[0]="$SOURCEFORGE_URL"
+  HOMEPAGE="http://uwadv.sourceforge.net"
+       REQ="SDL_mixer"
+  ESTIMATE=""
+      DESC="uwadv provides an emulator for running ultima underworld 1.
+
+For this to run properly you must purchase ultima underworld 1
+and install it's data files in /usr/share/games/uwadv/uw1
+It was one of the first full 3D perspective hack like games
+from the previous century.
+"
+
+
+build() {
+UW1_DIR="/usr/share/games/uwadv/uw1"
+
+
+music_install()  {
+
+cp   -r  "README.music.txt"                      \
+         "Underworld Adventures Soundtrack.m3u"  \
+         "uw1"                                   \
+         /usr/share/games/uwadv
+
+}
+
+
+./configure  --build=$BUILD         \
+             --prefix=/usr          \
+             --bindir=/usr/games    \
+             --with-uw1=$UW1_DIR    \
+             --sysconfdir=/etc      \
+             --localstatedir=/var   \
+             $OPTS                  &&
+make                                &&
+prepare_install                     &&
+make    install                     &&
+  music_install
+}

@@ -1,0 +1,39 @@
+   VERSION=( "1.5.1" "1.5" "1.4" )
+    IGNORE="snap"
+  CATEGORY="documentation"
+ ATTRIBUTE="console"
+    SOURCE="openjade/OpenSP-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://openjade.sourceforge.net"
+       REQ="perl"
+  EPROVIDE="sp"
+  ESTIMATE="700"
+      DESC="opensp is an implementation of DSSSL SGML/XML"
+
+
+build() {
+make_symlinks()  {
+
+  ln  -sf  onsgmls    /usr/bin/nsgmls
+  ln  -sf  osgmlnorm  /usr/bin/sgmlnorm
+  ln  -sf  ospam      /usr/bin/spam
+  ln  -sf  ospent     /usr/bin/spent
+  ln  -sf  osx        /usr/bin/sx
+  ln  -sf  osx        /usr/bin/sgml2xml
+
+}
+
+
+case  $VERSION  in
+  1.5.1)  sed  -i  '\,#include "types.h",i#include "constant.h"'  include/RangeMap.cxx  ;;
+esac
+
+
+./configure  --build=$BUILD  \
+             --prefix=/usr   \
+             $OPTS           &&
+make                         &&
+prepare_install              &&
+make    install              &&
+make_symlinks
+}

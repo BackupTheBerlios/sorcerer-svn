@@ -1,0 +1,45 @@
+   VERSION=( "0.8.3_linux_src-full" "0.8.2_linux_src-full" "0.8.1_linux_src-full" "0.8.1_linux_src-full" "0.8.0_linux_src-full" )
+    IGNORE="minimal\|patch\|tileset\|_linux-full\|data-sound"
+  CATEGORY="game"
+ ATTRIBUTE="noheal x11"
+# This source does something incorrect when it installs.
+# It modifies files such as
+# /usr/lib/noegnud-0.8.0/nethack-3.4.2/logfile
+# /usr/lib/noegnud-0.8.0/nethack-3.4.2/record
+# Data files should be kept under /var and never /usr/lib
+    SOURCE="noegnud/noegnud-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+# HOMEPAGE="http://noegnud.sourceforge.net"
+  HOMEPAGE="http://www.linuxgames.co.za/noeGNUd"
+       REQ="SDL_image SDL_mixer"
+  ESTIMATE="1879"
+      DESC="noegnud provides 2D and 3D tiletsets for playing nethack.
+noegnud aims to be the ultimate User Interface ( UI ) for nethack. 
+comibining character mode, 2D tilesets and 3d graphics, 
+all interchangeable at runtime to allow the serious nethack 
+player ultimate freedom of interface to the game that allows 
+ultimate freedom of gameplay and imagination."
+
+
+build() {
+#    MAKE_TARGETS="data nh341 se006e4f8 lh001"
+# INSTALL_TARGETS="install_data install_nh341 install_se006e4f8 install_lh001"
+
+# building of little hack breaks in noegnud 0.8.2
+#    MAKE_TARGETS="data nh342 se006e4f8"
+# INSTALL_TARGETS="install_data install_nh342 install_se006e4f8"
+
+# building of little hack breaks in noegnud 0.8.3
+   MAKE_TARGETS="data nh343"
+INSTALL_TARGETS="install_data install_nh343"
+
+for  FILE  in  variants/diffs/*.diff
+do   sed  -i  "s:-O2 -ffast-math:$CFLAGS:
+               s:(PREFIX)/bin:(PREFIX)/games:"  $FILE
+done
+
+cd  variants
+make  PREFIX=/usr     $MAKE_TARGETS  &&
+prepare_install                      &&
+make  PREFIX=/usr  $INSTALL_TARGETS
+}

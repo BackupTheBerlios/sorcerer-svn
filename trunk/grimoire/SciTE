@@ -1,0 +1,29 @@
+   VERSION=( "161" "160" "159" "158" "157" "156" "155" "154" )
+  CATEGORY="editor"
+ ATTRIBUTE="x11"
+    SOURCE="scintilla/scite$VERSION.tgz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.scintilla.org/SciTE.html"
+       REQ="glib-v1.2 gtk+"
+  ESTIMATE="90"
+ FRESHMEAT="scite"
+      DESC="SciTE is a SCIntilla based gtk+ text editor
+
+SciTE is a gtk+ text editor.
+SciTE is a SCIntilla based Text Editor.
+Originally built to demonstrate Scintilla, 
+it has grown to be a generally useful editor
+with facilities for building and running programs.
+"
+
+
+build() {
+sed  -i  "s:-Os:$CXXFLAGS:"  scintilla/gtk/makefile
+sed  -i  "s:-Os:$CXXFLAGS:"      scite/gtk/makefile
+
+cd     scintilla/gtk  &&  make  prefix=/usr  GTK2=1  &&
+cd   ../../scite/gtk  &&  make  prefix=/usr  GTK2=1  &&
+mkdir  -p  /usr/share/gnome/apps/Applications  &&
+prepare_install  &&
+make    install  prefix=/usr
+}

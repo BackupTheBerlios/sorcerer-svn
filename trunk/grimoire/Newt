@@ -1,0 +1,38 @@
+   VERSION=( "0.51.6" "0.51.4" "0.50.17" )
+  CATEGORY="utility"
+ ATTRIBUTE="console library"
+    SOURCE="newt_${VERSION}.orig"
+  HOMEPAGE=""
+       URL="ftp://ftp.debian.org/debian/pool/main/n/newt"
+       REQ="Python popt slang tcl"
+  ESTIMATE="70"
+      DESC="Newt is a perl library for text screen widgets.
+
+Newt is a perl library built on top of 
+Red Hat's newt C library for text screen widgets.
+It allows a perl programer to build simple but
+effective text-mode user interfaces with little effort.
+
+It is very usable because it has complete support 
+for all widgets found in newt 0.30, and provides 
+a nice abstraction over the C interface.
+"
+
+
+build() {
+if    [      -f  newt-$VERSION.tar.gz  ]
+then  tar  -zxf  newt-$VERSION.tar.gz
+      cd         newt-$VERSION
+fi
+
+PYVER="$(  installed_version  $(  get_provider  Python  )  )"
+PYVER="${PYVER:0:3}"
+
+TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
+TCLVER="${TCLVER:0:3}"
+
+sed  -i  "s:-static::"                Makefile.in
+sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
+sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
+default_build
+}

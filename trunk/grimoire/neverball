@@ -1,0 +1,41 @@
+   VERSION=( "1.3.7" "1.3.6" "1.3.5" "1.3.4" "1.3.3"  "1.3.2" "1.3.1" "1.3.0" )
+    IGNORE="0805a\|0805b"
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="neverball-$VERSION.tar.gz"
+       URL="http://icculus.org/neverball"
+  HOMEPAGE="http://icculus.org/neverball"
+       REQ="SDL_image SDL_mixer SDL_ttf"
+  ESTIMATE="720"
+      DESC="neverball is a table tilting marble game.
+
+Tilt the floor to roll a ball through an obstacle course.
+In the grand tradition of Marble Madness and Super Monkey Ball, 
+Neverball has you guide a rolling ball through dangerous territory. 
+Balance on narrow bridges, navigate mazes, ride moving platforms, 
+and dodge pushers and shovers to get to the goal.
+Race against the clock to collect coins to earn extra balls.
+"
+
+
+build() {
+USN="/usr/share/neverball"
+
+sed  -i  "s:./data:$USN:"         share/config.h
+sed  -i  "s: -o : $LDFLAGS -o :"  Makefile
+
+CF="CFLAGS=$CFLAGS  -ansi  $(  sdl-config --cflags  )"
+DD=$(  find  data  -type d  )
+
+X11="X11_PATH=-L/usr/X11R6/lib"
+
+echo  "Compiling both neverball and neverputt."
+
+make        "$CF"  "$X11"  &&
+prepare_install            &&
+chmod    -R  a+r     data  &&
+chmod        0755    $DD   &&
+mkdir    -p          $USN  &&
+cp       -a  data/*  $USN  &&
+install  -m  0755  mapc  neverball  neverputt  /usr/games
+}

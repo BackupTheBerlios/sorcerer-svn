@@ -1,0 +1,57 @@
+   VERSION=( "561" "560" "550" "532" )
+    IGNORE="w\|o"
+  CATEGORY="development assembler"
+ ATTRIBUTE="console"
+#   SOURCE="biew/biew-$VERSION"
+    SOURCE="biew/biew$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://biew.sourceforge.net"
+  ESTIMATE="89"
+      DESC="biew is a binary file viewer/editor/disassembler
+
+biew (Binary vIEW) is a free, portable, advanced file viewer with a
+built-in editor for binary, hexadecimal, and disassembler modes.
+It contains a highlight PentiumIII/K7Athlon/Cyrix-M2 disassembler, 
+full preview of MZ, NE, PE, LE, LX, DOS.SYS, NLM, ELF, a.out, 
+arch, coff32, PharLap, and rdoff executable formats, a code guider,
+and lot of other features.
+"
+
+
+build() {
+HC="$CFLAGS"
+
+for  FLAG  in  $(  grep  "^flags"  /proc/cpuinfo  );  do
+  case  $FLAG  in
+         mmx)  HC="$HC -DHAVE_MMX"      ;;
+      mmxext)  HC="$HC -DHAVE_MMX2"     ;;
+         sse)  HC="$HC -DHAVE_SSE"      ;;
+       3dnow)  HC="$HC -DHAVE_3DNOW"    ;;
+    3dnowext)  HC="$HC -DHAVE_3DNOWEX"  ;;
+      sseext)  HC="$HC -DHAVE_SSE2"     ;;
+           *)  true                     ;;
+  esac
+done
+echo  "HC=$HC"
+
+sed  -i  "s/TARGET_OS=unix/TARGET_OS=linux/"             makefile    &&
+# sed  -i  "s/TARGET_PLATFORM=i386/TARGET_PLATFORM=$BOX/"  makefile    &&
+sed  -i  "s/HOST_CFLAGS=/HOST_CFLAGS=$HC/"               makefile    &&
+sed  -i  "s:/usr/local:/usr:"  biewlib/sysdep/generic/unix/os_dep.c  &&
+
+if  spell_installed  gpm  ||
+    spell_held       gpm;
+then  sed  -i  "s/USE_MOUSE=n/USE_MOUSE=y/"  makefile
+fi  &&
+
+make                                          &&
+prepare_install                               &&
+gzip       doc/biew.1                         &&
+cp         doc/biew.1.gz     /usr/man/man1    &&
+cp         biew              /usr/bin         &&
+mkdir  -p                    /usr/share/biew  &&
+cp         bin_rc/skn/*.skn  /usr/share/biew  &&
+cp     -R  bin_rc/xlt        /usr/share/biew  &&
+cp         bin_rc/biew.hlp   /usr/share/biew  &&
+cp     -R  hlp/*             /usr/share/biew
+}

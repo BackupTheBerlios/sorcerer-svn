@@ -1,0 +1,40 @@
+   VERSION=( "dev-2.0" )
+  CATEGORY="game"
+ ATTRIBUTE="new x11"
+    SOURCE="magnant-$VERSION.zip"
+  HOMEPAGE="http://www.insectwar.com"
+       URL="http://linux.insectwar.com/download"
+       REQ="stratagus unzip"
+  ESTIMATE="5"
+      DESC="magnant is a war game between ants."
+
+
+build() {
+change_modes()  {
+  find  .  -type f  |  escape_qs  |  xargs  -l64  chmod  0644
+  find  .  -type d  |  escape_qs  |  xargs  -l64  chmod  0755
+}
+
+
+install_data()  {
+                          USGM="/usr/share/games/magnant"
+  mkdir  -p              $USGM
+  cp     -av  data  doc  $USGM
+}
+
+
+install_launcher()  {
+               MAGNANT="#!/bin/bash\nstratagus -d $USGM/data"
+  mkdir  -p                 /usr/games
+  echo   -e  "$MAGNANT"  >  /usr/games/magnant
+  chmod  0755               /usr/games/magnant
+}
+
+
+[  -d  data  ]    &&
+[  -d  doc   ]    &&
+change_modes      &&
+prepare_install   &&
+install_data      &&
+install_launcher
+}

@@ -1,0 +1,39 @@
+   VERSION=( "1.2.9" )
+    IGNORE="dev\|src"
+  CATEGORY="terminal-emulator"
+ ATTRIBUTE="new x11"
+    SOURCE="vnc-tight/tightvnc-${VERSION}_unixsrc.tar.bz2"
+  HOMEPAGE="http://www.tightvnc.com"
+       URL="$SOURCEFORGE_URL"
+       REQ="jpeg x11"
+  ESTIMATE="4573"
+      DESC="tightvnc is a fork of vnc optimized for use on slow network links.
+
+tightvnc is a remote display system for viewing a 
+computing desktop environment from other boxes.
+It is optimized for faster operation on slow 
+network links such as modem connections,
+provides more configuration options in the server,
+features automatic SSH tunneling in the Unix vncviewer.
+The modified servers and viewers are fully compatible 
+with the original VNC software.
+"
+
+
+build() {
+xmkmf        &&
+make  World  &&
+cd    Xvnc   &&
+./configure  --build=$BUILD          \
+             --prefix=/usr           \
+             --sysconfdir=/etc       \
+             --localstatedir=/var    \
+             --with-installed-zlib   \
+             $OPTS                   &&
+make                                 &&
+cd ..                                &&
+prepare_install                      &&
+./vncinstall   /usr/bin  /usr/man    &&
+mkdir  -p      /usr/bin/vnc.classes  &&
+cp  classes/*  /usr/bin/vnc.classes
+}

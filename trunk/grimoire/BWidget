@@ -1,0 +1,33 @@
+   VERSION=( "1.7.0" )
+  CATEGORY="graphic"
+ ATTRIBUTE="library x11"
+    SOURCE="tcllib/BWidget-$VERSION.tar.gz"
+  HOMEPAGE="http://tcllib.sourceforge.net"
+       URL="$SOURCEFORGE_URL"
+       REQ="tk"
+  ESTIMATE="960"
+ FRESHMEAT="bwidget"
+      DESC="BWidget provides a widget set for tk.
+BWidget is a high-level widget set for tcl/tk 
+that uses native tcl/tk 8.x namespaces.
+They feature a professional look and feel and 
+don't require a compiled extension library."
+
+
+build() {
+TCL_VER=$(  installed_version  $(  get_provider  tcl  )  )
+   DEST="/usr/lib/tcl${TCL_VER:0:3}/BWidget-$VERSION"
+    RUN="package require BWidget\nexit"
+
+[  -f  widget.tcl  ]  &&
+prepare_install       &&
+mkdir  -p      $DEST  &&
+cp     -r ./*  $DEST
+#   &&
+# echo   -e     "$RUN"  >  Install.tcl  &&
+# Maybe wish Install.tcl should be run?
+# Either way it can be run without access to an X server?
+# (  tclsh                 Install.tcl
+#    true
+# )
+}

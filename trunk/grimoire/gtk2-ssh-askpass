@@ -1,0 +1,26 @@
+   VERSION=( "0.3" )
+  CATEGORY="encryption security"
+ ATTRIBUTE="client"
+       URL="http://www.cgabriel.org/sw/gtk2-ssh-askpass"
+  HOMEPAGE="http://www.cgabriel.org/sw/gtk2-ssh-askpass"
+       REQ="gtk+"
+      DESC="gtk2-ssh-askpass is an ssh-askpass replacement.
+
+gtk2-ssh-askpass is a small ssh-askpass replacement written in GTK 2.
+It features a fullscreen ask dialog and a translucent background.
+"
+
+
+build() {
+set  -x                                     &&
+gcc  -o ssh-askpass  gtk2-ssh-askpass.c     \
+     $CFLAGS  $LDFLAGS                      \
+     $(  pkg-config  --libs    gtk+-2.0  )  \
+     $(  pkg-config  --cflags  gtk+-2.0  )  &&
+set  +x                                     &&
+prepare_install                             &&
+set      -x                                 &&
+rm       -f  /usr/libexec/ssh-askpass       &&
+install  -m 755  -o root  -g root  -D       \
+         ssh-askpass  /usr/libexec/ssh-askpass
+}

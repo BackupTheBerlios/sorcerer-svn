@@ -1,0 +1,28 @@
+   VERSION=( "0.2" "0.1" )
+  CATEGORY="audio-mixer"
+ ATTRIBUTE="console"
+  HOMEPAGE="http://www.mcmilk.de/projects/mmix"
+       URL="http://www.mcmilk.de/projects/mmix/dl"
+  ESTIMATE="18"
+      DESC="mmix is a small console audio mixer
+
+mmix is a small OSS audio mixer with a curses-like user interface.
+It compiles against dietlibc, and supports different configurations 
+for all mixer devices which have been found. 
+"
+
+
+build() {
+if    [  -e  /dev/mixer        ];  then  MIXER="/dev/mixer"
+elif  [  -e  /dev/mixer0       ];  then  MIXER="/dev/mixer0"
+elif  [  -e  /dev/sound/mixer  ];  then  MIXER="/dev/sound/mixer"
+                                   else  MIXER="/devices/sound/mixer"
+fi
+
+sed  -i  "s:diet gcc:gcc:
+          s:-Os:$CFLAGS:"              Makefile
+sed  -i  "s:/dev/sound/mixer:$MIXER:"  params.h
+make             &&
+prepare_install  &&
+make    install
+}

@@ -1,0 +1,57 @@
+   VERSION=( "1.4.2-release" )
+# forget about compiling the 1.4.3-release
+  CATEGORY="audio"
+ ATTRIBUTE="broken console gcc2"
+ SOURCE[0]="festival-${VERSION}.tar.gz"
+ SOURCE[1]="speech_tools-1.2.2-release.tar.gz"
+ SOURCE[2]="festlex_CMU.tar.gz"
+ SOURCE[3]="festlex_OALD.tar.gz"
+ SOURCE[4]="festlex_POSLEX.tar.gz"
+ SOURCE[5]="festvox_kallpc16k.tar.gz"
+ SOURCE[6]="festvox_kedlpc16k.tar.gz"
+ SOURCE[7]="festvox_rablpc16k.tar.gz"
+       URL="http://www.cstr.ed.ac.uk/download/festival/${VERSION:0:5}
+            http://festvox.org/packed/festival/${VERSION:0:5}
+            http://www.speech.cs.cmu.edu/festival/cstr/festival/${VERSION:0:5}"
+  HOMEPAGE="http://www.cstr.ed.ac.uk/projects/festival"
+       REQ="speech_tools"
+      DESC="festival is a speech synthesis system.
+
+festival is a general multi-lingual 
+speech synthesis system developed at CSTR.
+It offers a full text to speech system with various APIs, 
+as well an environment for development and research of 
+speech synthesis techniques.
+"
+
+
+build() {
+FEST_INST_DIR=/opt/festival/$VERSION
+
+prepare_install
+
+mkdir  -p     $FEST_INST_DIR
+cp     -a  *  $FEST_INST_DIR/
+cd            $FEST_INST_DIR
+
+
+sed  -i  "s:-ltermcap:-lncurses:"  config/modules/editline.mak
+sed  -i  "s:-ltermcap:-lncurses:"  speech_tools/config/modules/editline.mak
+
+ST_VER=$(  installed_version speech_tools  )
+sed  -i  "s:EST=.*:EST=/opt/speech_tools/$ST_VER:"  config/config.in
+
+
+if    ./configure  --build=$BUILD        \
+                   --prefix=/usr         \
+                   --sysconfdir=/etc     \
+                   --localstatedir=/var  \
+                   $OPTS                 &&
+      make                               &&
+      rm  -f  $(  find . -name \*.o  )   &&
+      rm  -fr  doc
+then  true
+else  rm  -rf  $FEST_INST_DIR
+      false
+fi
+}

@@ -1,0 +1,50 @@
+   VERSION=( "509" "508" "507" "506" )
+      SAFE=( "509" )
+  CATEGORY="documentation"
+ ATTRIBUTE="i386 noheal x11"
+    SOURCE="linux-$VERSION.tar.gz"
+       URL="ftp://ftp.adobe.com/pub/adobe/acrobatreader/unix/5.x"
+  HOMEPAGE="http://www.adobe.com"
+   ARCHIVE="off"
+ FRESHMEAT="acrobatreader"
+  ESTIMATE="11"
+      DESC="acroread provides a precompiled portable document file viewer.
+
+acorread provides an acrobat reader for viewing, 
+navigating and printing Portable Document Format (PDF) files.
+"
+
+
+build() {
+install_files()  {
+         REPLACE="s:REPLACE_ME:/usr/lib/acrobat/Reader:"
+  sed  "$REPLACE"  bin/acroread.sh  >  acroread
+  set      -x
+  install  -o root  -g root  -m 0755   acroread  /usr/bin
+  mkdir    -p     /usr/lib/acrobat
+  cp       -R  *  /usr/lib/acrobat/
+
+          PLUG="Browsers/intellinux/nppdf.so"
+  MOZ_PLUG_DIR="/usr/lib/mozilla/plugins"
+
+  mkdir    -p                                $MOZ_PLUG_DIR
+  install  -o root  -g root  -m 0755  $PLUG  $MOZ_PLUG_DIR
+  set      +x
+}
+
+
+unpack_tars()  {
+  set     -x
+  tar     -xf    COMMON.TAR  2>/dev/null;  rm  -f    COMMON.TAR
+  tar     -xf  LINUXRDR.TAR  2>/dev/null;  rm  -f  LINUXRDR.TAR
+  chown   -R   root:root  *
+  set     +x
+}
+
+
+[  -f    COMMON.TAR  ]  &&
+[  -f  LINUXRDR.TAR  ]  &&
+unpack_tars             &&
+prepare_install
+install_files
+}

@@ -1,0 +1,61 @@
+#  VERSION=( "4.0" "3.3.7" "3.3.6" "3.3.5" "3.3.4" )
+# Xvnc will not compile with vnc version 4.0 and XFree86 4.3.0 source.
+
+# make[2]: Entering directory `/usr/src/sorcery/vnc-4.0-unixsrc/xc/config/imake'
+# gcc DefaultGcc2i386Opt    -I../../include -I../../exports/include/X11  -I../.. -I../../exports/include -I/usr/X11R6/include  -Dlinux -D__i386__ -D_POSIX_C_SOURCE=199309L                               -D_POSIX_SOURCE -D_XOPEN_SOURCE                        -D_BSD_SOURCE -D_SVID_SOURCE -D_GNU_SOURCE                            -DFUNCPROTO=15 -DNARROWPROTO     -DCPP_PROGRAM="\"/usr/bin/cpp\"" -DHAS_MERGE_CONSTANTS=`if gcc -fmerge-constants -xc/dev/null -S -o /dev/null 2> /dev/null 1> /dev/null; then echo 1; else echo 0; fi`           -c -o imake.o imake.c
+# gcc: cannot specify -o with -c or -S and multiple compilations
+# make[2]: *** [imake.o] Error 1
+# make[2]: Leaving directory `/usr/src/sorcery/vnc-4.0-unixsrc/xc/config/imake'
+# make[1]: *** [imake.bootstrap] Error 2
+# make[1]: Leaving directory `/usr/src/sorcery/vnc-4.0-unixsrc/xc'
+# make: *** [World] Error 2
+
+   VERSION=( "3.3.7" "3.3.6" "3.3.5" "3.3.4" )
+  CATEGORY="terminal-emulator"
+ ATTRIBUTE="x11"
+ SOURCE[0]="vnc-${VERSION}-unixsrc"
+# SOURCE[1]="4.4.0/source/XFree86-4.4.0-src-1.tgz"
+# SOURCE[2]="4.4.0/source/XFree86-4.4.0-src-2.tgz"
+# SOURCE[3]="4.4.0/source/XFree86-4.4.0-src-3.tgz"
+# SOURCE[1]="4.3.0/source/X430src-1.tgz"
+# SOURCE[2]="4.3.0/source/X430src-2.tgz"
+# SOURCE[3]="4.3.0/source/X430src-3.tgz"
+  HOMEPAGE="http://www.realvnc.com"
+# HOMEPAGE="http://www.uk.research.att.com/vnc"
+    URL[0]="http://www.realvnc.com/dist"
+    URL[1]="$XFREE86_URL"
+       REQ="x11"
+ FRESHMEAT="virtualnetworkcomputing"
+      DESC="vnc provides virtual network computing.
+
+vnc stands for Virtual Network Computing.
+It is, in essence, a remote display system 
+which allows you to view a computing desktop
+environment not only on the machine where it 
+is running, but from anywhere on the Internet 
+and from a wide variety of machine architectures. 
+"
+
+
+build() {
+[  -f           xc.patch  ]  &&
+patch  -Np0  <  xc.patch
+
+./configure  --build=$BUILD          \
+             --prefix=/usr           \
+             --sysconfdir=/etc       \
+             --localstatedir=/var    \
+             --with-installed-zlib   \
+             $OPTS                   &&
+make                                 &&
+if    [  -d  xc  ]
+then  cd     xc
+else  cd     Xvnc
+fi                                   &&
+make  World                          &&
+cd ..                                &&
+prepare_install                      &&
+./vncinstall   /usr/bin              &&
+mkdir  -p      /usr/bin/vnc.classes  &&
+cp  classes/*  /usr/bin/vnc.classes
+}

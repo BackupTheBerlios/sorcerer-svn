@@ -1,0 +1,39 @@
+   VERSION=( "v0.2.LinuxSource" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="stargun/StarGun.$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://stargun.sourceforge.net"
+       REQ="SDL_mixer SDL_ttf"
+  ESTIMATE="18"
+      DESC="stargun is a verticle scrolling arcade game."
+
+
+build() {
+fix_install()  {
+   USG="/usr/share/stargun"
+  DATA="ariblk.ttf  levels  pics  sounds"
+    UL="/usr/libexec"
+   RUN="#!/bin/bash\ncd $USG\n$UL/stargun"
+
+  cd         src
+  mkdir  -p                    $UL
+  mv         /usr/bin/stargun  $UL
+  mkdir  -p         $USG
+  cp     -a  $DATA  $USG
+  mkdir  -p             /usr/games
+  echo   -e  "$RUN"  >  /usr/games/stargun
+  chmod      0755       /usr/games/stargun
+}
+
+
+./configure  --build=$BUILD         \
+             --prefix=/usr          \
+             --sysconfdir=/etc      \
+             --localstatedir=/var   \
+             $OPTS                  &&
+make                                &&
+prepare_install                     &&
+make    install                     &&
+    fix_install
+}

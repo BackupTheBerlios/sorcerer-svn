@@ -1,0 +1,32 @@
+   VERSION=( "0.61" "0.60" "0.59" "0.58" "0.57" )
+    IGNORE="^~20000507\|~991202"
+  CATEGORY="compiler"
+ ATTRIBUTE="console"
+    SOURCE="tiny-cobol/tinycobol-$VERSION"
+  HOMEPAGE="http://www.tinycobol.org"
+       URL="$SOURCEFORGE_URL"
+       REQ="db ncurses"
+  ESTIMATE="157"
+      DESC="tinycobol is a Cobol compiler for gcc
+
+tinycobol is an effort to bring a free COBOL compiler to Linux.
+It generates GNU assembler for the i386 Linux platform.
+A executable binary is then created using the GNU assembler and linker.
+"
+
+
+build() {
+OPT_SEDITS="s/-Wall/-Wall $CFLAGS/"
+
+sed  -i  "$OPT_SEDITS"  lib/Makefile.in  \
+                      cobpp/Makefile.in  \
+                   compiler/Makefile.in
+
+./configure  --build=$BUILD      \
+             --prefix=/usr       \
+             --enable-debug-all  \
+             $OPTS               &&
+make                             &&
+prepare_install                  &&
+make    install
+}

@@ -1,0 +1,36 @@
+   VERSION=( "1.29" "1.28" "1.27" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="orbital_eunuchs_sniper-$VERSION.tar.gz"
+  HOMEPAGE="http://www.icculus.org/oes"
+       URL="http://filesingularity.timedoctor.org"
+       REQ="SDL_image SDL_mixer"
+      DESC="oesniper is a game to control an orbital laser to protect VIPs.
+
+Orbital Eunuchs Sniper is a simple game 
+in which the player must control 
+an orbital laser to prevent harm 
+from coming to the VIPs (in blue squares)
+in the form of human threats (in red squares).
+
+Avoid killing the neutral humans, 
+however, or else you may be 'retired'. 
+"
+
+
+build() {
+SO="/usr/share/oesniper"
+GO="/usr/games/oesniper"
+
+rm  -f   bin/snipe2d.x86.dynamic
+cd       src     &&
+make             &&
+cd    ../bin     &&
+prepare_install  &&
+mkdir  -p  $SO   &&
+cp     *   $SO   &&
+echo   "#!/bin/sh"                   >  $GO  &&
+echo   "cd  $SO"                    >>  $GO  &&
+echo   "./snipe2d.x86.dynamic \$*"  >>  $GO  &&
+chmod  a+x  $GO
+}

@@ -1,0 +1,30 @@
+   VERSION=( "0.35" "0.34" "0.33" "0.32" "0.31-1" "0.30-1" )
+  CATEGORY="file-transfer kernel"
+ ATTRIBUTE="driver linux-26-module"
+    SOURCE="shfs/shfs-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://shfs.sourceforge.net"
+       REQ="openssh"
+   ARCHIVE="off"
+  ESTIMATE="45"
+      DESC="shfs provides a kernel modules for mounting remote filesystems via ssh.
+
+shfs is a simple and easy-to-use 
+Linux kernel module which allows you 
+to mount remote filesystems using a 
+plain shell (ssh/rsh) connection.
+It supports some nice features like 
+number of different caches for access 
+speedup, target system optimizations, etc.
+"
+
+
+build() {
+KERNEL=$(  installed_version  $(  get_provider linux-kernel  )  )
+
+sed  -i  "s/\$(shell uname -r)/$KERNEL/"  shfs/Makefile 
+
+make             &&
+prepare_install  &&
+make    install
+}

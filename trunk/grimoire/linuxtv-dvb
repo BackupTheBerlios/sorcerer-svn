@@ -1,0 +1,38 @@
+   VERSION=( "1.1.1" "1.1.0" "1.0.1" "1.0.0" )
+  CATEGORY="video"
+ ATTRIBUTE="console"
+       URL="http://www.linuxtv.org/download/dvb"
+  HOMEPAGE="http://linuxtv.org/dvb"
+ FRESHMEAT="dvb"
+  ESTIMATE=""
+      DESC="linuxtv-dvb provides drivers for DVB cards.
+
+linuxtv-dvb the DVB Driver Project has very good drivers for 
+DVB cards by many manufacturers (e.g., Hauppauge WinTV DVB-s 
+and WinTV Nova, Siemens,  Technotrend, Galaxis, and Technisat).
+It supports DVB-s, DVB-t, and DVB-c.
+
+- Make sure that your kernel has enabled:
+
+    Video4Linux Support (CONFIG_VIDEO_DEV)
+      needed by cards with integrated MPEG decoder to display video on screen
+    Input Core Support (CONFIG_INPUT)
+    Event Device Support (CONFIG_INPUT_EVDEV)
+      needed by the DVB remote control driver
+"
+
+
+build() {
+LINVER=$( installed_version $( get_provider linux ) )
+
+grep  -r  "uname -r\|depmod"  *  |
+cut   -d :  -f1                  |
+while  read  FILE
+do     sed  -i  "s:uname -r:echo $LINVER:
+                 s:@depmod:@true:"  $FILE
+done
+
+make             &&
+prepare_install  &&
+make    install
+}

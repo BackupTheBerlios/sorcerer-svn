@@ -1,0 +1,45 @@
+   VERSION=( "1.1.0" "1.0.0" "1.0.0-rc2" "1.0.0-rc1" "0.9.9d" "0.9.9b" )
+    IGNORE="rc"
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="atanks/atanks-$VERSION"
+  HOMEPAGE="http://atanks.sourceforge.net"
+       URL="$SOURCEFORGE_URL"
+       REQ="allegro"
+  ESTIMATE="26"
+      DESC="atanks is a scorched earth clone.
+
+atanks is a multi-platform scorched earth clone similar to Worms. 
+Annihilate the other tanks to earn money, then spend it on bigger 
+and better shields and weapons to wipe out the opposition.
+It features a wide array of weapons, destructible landscape, 
+weather, parachutes, teleports and a wide range of other features.
+"
+
+
+build() {
+install_atanks()  {
+
+  mkdir    -p                $USA
+  install  -m  0755  atanks  $USA
+  mkdir    -p                $USA
+  cp           *.dat         $USA
+  chmod    a+r               $USA/*
+  mkdir    -p                $UG
+  echo     -e  "$RA"  >      $AT
+  chmod    0755              $AT
+
+}
+
+USA="/usr/share/atanks"
+ UG="/usr/games"
+ AT="$UG/atanks"
+ RA="#!/bin/bash\ncd  $USA\n./atanks"
+
+ CF="CFLAGS=$CFLAGS"
+ LF="LDFLAGS=$LDFLAGS $( allegro-config  --libs )"
+
+make  "$CF"  "$LF"  &&
+prepare_install     &&
+        install_atanks
+}

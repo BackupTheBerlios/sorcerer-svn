@@ -1,0 +1,28 @@
+   VERSION=( "v2" )
+  CATEGORY="audio"
+ ATTRIBUTE="console"
+    SOURCE="CMU-Cam_Toolkit_${VERSION}.tar.gz"
+       URL="http://svr-www.eng.cam.ac.uk/~prc14"
+  HOMEPAGE="http://svr-www.eng.cam.ac.uk/~prc14/toolkit.html"
+      DESC="CMU-Cam_Toolkit provides tools for constructing langauge models.
+
+The CMU-Cambridge Statistical Language Modeling toolkit 
+is a suite of UNIX software tools to facilitate the 
+construction and testing of statistical language models.
+"
+
+
+build() {
+if    ./endian.sh  |  grep  -q  "Little-endian"
+then  sed  -i  "s:#BYTESWAP_FLAG:BYTESWAP_FLAG:"  src/Makefile
+fi
+
+cd    src
+make  "OPT_FLAG=$CFLAGS"   &&
+prepare_install            &&
+make    install            &&
+cd    ..                   &&
+cp    bin/*      /usr/bin  &&
+cp    lib/*      /usr/lib  &&
+cp    include/*  /usr/include
+}

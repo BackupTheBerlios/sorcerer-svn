@@ -1,0 +1,31 @@
+   VERSION=( "1_0_5" )
+# 1_0_6 and 1_0_7 have link errors
+    IGNORE="arm\|doc\|1_0_6\|1_0_7"
+  CATEGORY="utility"
+ ATTRIBUTE="new x11"
+    SOURCE="roadmap_${VERSION}_src.tar.gz"
+       URL="http://www.roadmap.digitalomaha.net/roadmap"
+  HOMEPAGE="http://roadmap.digitalomaha.net"
+       REQ="gpsd gtk+ flite popt sqlite"
+  ESTIMATE="101"
+      DESC="roadmap is a navigation program for USA.
+
+roadmap is a navigation program that displays street maps.
+The maps are provided by the US Census Bureau, and thus only cover USA.
+A specific area can be displayed by selecting a street address.
+It interfaces with gpsd to track a GPS position, and has been
+designed to be usable on a desktop, laptop, or PDA computer.
+"
+
+
+build() {
+cd    src
+sed   -i  "s:/appl:/share/appl:
+           s:/usr/local:/usr:"  Makefile  gtk2/Makefile
+
+make  "CFLAGS=$CFLAGS"  runtime  build  icons  &&
+cd    gtk2                                     &&
+make  "STDCFLAGS=$CFLAGS"  all                 &&
+prepare_install                                &&
+make    install
+}

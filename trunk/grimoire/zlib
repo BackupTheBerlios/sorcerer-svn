@@ -1,0 +1,34 @@
+   VERSION=( "1.2.1" "1.1.4" )
+    IGNORE="dll\|121\|delphi\|113"
+  CATEGORY="archive"
+ ATTRIBUTE="core library solo"
+    SOURCE="zlib-$VERSION.tar.gz"
+  HOMEPAGE="http://www.zlib.net"
+       URL="http://www.zlib.net
+            http://www.gzip.org/zlib"
+  ESTIMATE="34"
+      DESC="zlib is a legally unencumbered lossless data compression library.
+
+zlib is designed to be a free, general-purpose, 
+legally unencumbered -- that is, not covered by any patents 
+-- lossless data-compression library 
+for use on virtually any computer hardware and operating system.
+The zlib data format is portable across platforms.
+"
+
+
+build() {
+case  $VERSION  in
+  1.1.4)  patch  -p1  <  $SCRIPT_DIR/zlib-1.1.4-vsnprintf.patch  ;;
+esac
+
+./configure  --prefix=/usr  \
+             --shared       &&
+make  "CFLAGS=$CFLAGS"      &&
+prepare_install             &&
+make  install               &&
+
+./configure  --prefix=/usr  &&
+make  "CFLAGS=$CFLAGS"      &&
+make  install
+}

@@ -1,0 +1,35 @@
+   VERSION=( "7.6a" "7.5" "7.2" )
+      SAFE=( "7.6a" "7.5" )
+  CATEGORY="audio network telephony"
+ ATTRIBUTE="console client server"
+    SOURCE="speak-freely/speak_freely-$VERSION"
+  HOMEPAGE="http://www.fourmilab.ch/speakfree/unix" 
+       URL="$SOURCEFORGE_URL"
+       REQ="ncurses"
+ FRESHMEAT="speakfreely"
+  ESTIMATE="219"
+      DESC="speak_freely is an internet telephone program.
+
+speak_freely is a 100% free Internet telephone
+originally written by John Walker, founder of Autodesk.
+Some of Speak Freely's basic features include encryption, 
+the answering machine, selectable compression, ICQ Integration, 
+and conference mode.
+"
+
+
+build() {
+grep   -r  "\-O3 -fomit-frame-pointer" * |
+cut    -d :  -f1                         |
+xargs  -l64                              |
+sed    -i  "s:\-O3 -fomit-frame-pointer:$CFLAGS:"
+  
+make           INSTDIR=/usr  &&
+prepare_install              &&
+make  install  INSTDIR=/usr  &&
+if    [   -d  CONTRIB/xspeakfree-0.8.1.b  ]
+then  cp  -a  CONTRIB/xspeakfree-0.8.1.b/bin/xspeakfree  /usr/bin
+      cp  -a  CONTRIB/xspeakfree-0.8.1.b/lib/xspeakfree  /usr/lib
+      true
+fi
+}
