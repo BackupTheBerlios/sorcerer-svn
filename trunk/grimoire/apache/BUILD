@@ -34,8 +34,8 @@ db_41_fix()  {  (
   esac
 )  }
 
-if  !  show_depends_of  apache  2>/dev/null  |
-       grep  -q  -w  "openssl\|perl"
+if    !  echo  "apache"  |  rof  2>/dev/null  |
+         grep  -q  -w  "openssl\|perl"
 then
 
   activate_voyeur
@@ -52,7 +52,7 @@ then
 
 else
 
-  if    show_depends_of  apache  2>/dev/null  |
+  if    echo  "apache"  |  rof  2>/dev/null  |
         grep  -q  -w  "openssl"
   then
 
@@ -72,7 +72,7 @@ else
 
   fi  &&
 
-  if    show_depends_of  apache  2>/dev/null  |
+  if    echo  "apache"  |  rof  2>/dev/null  |
         grep  -q  -w  "perl"
   then
 
@@ -112,7 +112,7 @@ fi  &&
 
 (
 
-  if    show_depends_of  apache  2>/dev/null  |
+  if    echo  "apache"  |  rof  2>/dev/null  |
         grep  -q  -w  "openssl"
   then  cp  $SCRIPT_DIR/apache-ssl.sh  /etc/init.d/apache.sh
   else  cp  $SCRIPT_DIR/apache.sh      /etc/init.d/apache.sh

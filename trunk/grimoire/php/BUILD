@@ -45,7 +45,7 @@ build_module()  {
 (
 
   if    spell_installed $( get_provider httpd   ); then build_module apxs2
-  elif  spell_installed $( get_provider apapche ); then build_module apxs
+  elif  spell_installed $( get_provider apache  ); then build_module apxs
   fi    &&
 
   cd           $BUILD_DIR      &&
