@@ -1,5 +1,5 @@
 case  $VERSION  in
-  2.4.2)  sed  -i  "s:rp-pppoe::"  pppd/Makefile.linux  ;;
+  2.4.2)  sed  -i  "s:rp-pppoe::"  pppd/plugins/Makefile.linux  ;;
 esac
 
 grep   -rl   "net/bpf.h"  *  |
