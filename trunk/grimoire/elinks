@@ -1,0 +1,30 @@
+   VERSION=( "0.10.2" )
+  CATEGORY="web"
+ ATTRIBUTE="client console new"
+    SOURCE="elinks-$VERSION.tar.bz2"
+       URL="http://elinks.or.cz/download"
+  HOMEPAGE="http://elinks.or.cz"
+       REQ=( "bzip2 zlib"
+             "expat::--disable-xbel:XML parser for for XBEL bookmark support"
+             "gnutls:--with-gnutls:--without-gnutls:for SSL support via gnutls instead of openssl"
+             "gpm::--disable-mouse --without-gpm:for mouse support"
+             "guile::--without-guile:to write plugins using guile"
+             "lua::--without-lua:for writing plugins using lua interface"
+             "mozilla:--with-spidermonkey:--without-spidermonkey:for javascript support using mozilla spidermonkey"
+             "openssl:--with-ssl:--without-ssl:for HTTPS encrypted connections"
+             "ruby:--with-ruby:--without-ruby:for ruby support"
+             "samba::--disable-smb:for smb protocol support" )
+  ESTIMATE="590"
+      DESC="elinks is a text mode http/ftp brwoser.
+It can render both frames and tables, is highly customizable,
+and can be extended via Lua, Guile, Perl, or Ruby scripts.
+It has limited support for CSS and Javascript."
+
+
+build()  {
+  export    CFLAGS="-I/usr/include/mozilla/js    $CFLAGS"
+  export  CXXFLAGS="-I/usr/include/mozilla/js  $CXXFLAGS"
+  export   LDFLAGS="-L/usr/lib/mozilla  -Wl,-rpath-link,/usr/lib/mozilla  -Wl,-rpath,/usr/lib/mozilla  $LDFLAGS"
+  sed  -i  "s:smjs:jsj:"  configure
+  default_build
+}
