@@ -4,13 +4,11 @@ fi
 
 (
 
-# pornview 0.1.0 gtk+,v1.2 version runs more stable
-#              --with-gtk2           \
-
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --sysconfdir=/etc     \
                --localstatedir=/var  \
+               --with-gtk2           \
                $OPTS                 &&
   make                               &&
   prepare_install                    &&
