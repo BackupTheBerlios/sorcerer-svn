@@ -1,0 +1,259 @@
+   VERSION=( "R6.8.2" "R6.8.1" "R6.7.0" )
+  CATEGORY="xserver"
+ ATTRIBUTE="core solo x11 broken invalid new"
+    SOURCE="src-single/X11${VERSION}-src.tar.bz2"
+       URL=( "ftp://ftp.x.org/pub/X11${VERSION}"
+             "http://ftp.skynet.be/pub/ftp.x.org/pub/X11${VERSION}" )
+  HOMEPAGE="http://www.x.org"
+  EPROVIDE="x11"
+       REQ=( "Xfenc Xfnts bison expat flex freetype libpng ncurses perl"
+             "Linux-PAM:::" )
+   # AVOID="OpenSP db gdbm linuxdoc-tools teTeX"
+  ESTIMATE="81496"
+      DESC="X.org is a free implementation of the X Window System.
+XFree86 is the underlying software that is between the hardware
+and graphical user interface that people see and use.
+If you are using KDE, GNOME, Enlightenment, Blackbox, AfterStep,
+twm or fvwm then you are already using and running X.org as
+these run as our clients.
+X.org is a fork of XFree86 4.4.0."
+
+configure() {
+
+  initialize()  {
+     ON_CARD_DRIVERS="vga vesa v4l"
+    OFF_CARD_DRIVERS="mga glint nv tga s3 s3virge sis rendition 
+                      neomagic i740 tdfx savage 
+                      cirrus vmware tseng trident chips apm
+                      GlideDriver i128 NscDriver
+                      ati i810 ark 
+                      cyrix siliconmotion via 
+                      fbdev dummy imstt newport"
+       SELECTED_CARD=""
+     UNSELECTED_CARD=""
+  
+  
+           ON_DRI=""
+          OFF_DRI="gamma i810 i830 mga r128 radeon r200 sis tdfx ffb"
+     SELECTED_DRI=""
+   UNSELECTED_DRI=""
+  
+     ON_INPUT_DRIVERS="mouse keyboard"
+    OFF_INPUT_DRIVERS="acecad calcomp citron 
+                       digitaledge dmc dynapro elographics tek4957 
+                       microtouch mutouch penmount spaceorb summa 
+                       wacom void magellan hyperpen 
+                       jamstudio fpit palmax"
+          SELECTED_IN=""
+        UNSELECTED_IN=""
+  
+    YES_MISC_OPTIONS="BuildXF86DRI BuildGLULibrary BuildGLXLibrary BuildGlxExt BuildLBX BuildXCSecurity ForceNormalLib HasAgpGart HasCplusplus HasShm XnestServer XprtServer"
+     NO_MISC_OPTIONS="BuildFontServer   InstallFSConfig
+                      BuildServersOnly  BuildPexExt  BuildXF86DRM
+                      BuildXF86RushExt  LinuxFBDevSupport 
+                      XVirtualFramebufferServer"
+       SELECTED_MISC=""
+     UNSELECTED_MISC=""
+  
+    TARGET_CONFIG="$CONFIG_LOGS/$SPELL/host.def"
+  
+  }
+  
+  
+  perform_configuration() {
+    for CARD in $ON_CARD_DRIVERS; do 
+      if    query  "build video driver $CARD? "  y
+      then  SELECTED_CARD="$SELECTED_CARD $CARD"
+      else  UNSELECTED_CARD="$UNSELECTED_CARD $CARD"
+      fi
+    done
+    for CARD in $OFF_CARD_DRIVERS; do 
+      if    query  "build video driver $CARD? "  n
+      then  SELECTED_CARD="$SELECTED_CARD $CARD"
+      else  UNSELECTED_CARD="$UNSELECTED_CARD $CARD"
+      fi
+    done
+    for DRI in $ON_DRI; do 
+      if    query  "build DRI driver $DRI? "  y
+      then  SELECTED_DRI="$SELECTED_DRI $DRI"
+      else  UNSELECTED_DRI="$UNSELECTED_DRI $DRI"
+      fi
+    done
+    for DRI in $OFF_DRI; do 
+      if    query  "build DRI driver $DRI? "  n
+      then  SELECTED_DRI="$SELECTED_DRI $DRI"
+      else  UNSELECTED_DRI="$UNSELECTED_DRI $DRI"
+      fi
+    done
+    for INPUT in $ON_INPUT_DRIVERS; do
+      if    query  "build input driver $INPUT? "  y
+      then  SELECTED_IN="$SELECTED_IN $INPUT"
+      else  UNSELECTED_IN="$UNSELECTED_IN $INPUT"
+      fi
+    done
+    for INPUT in $OFF_INPUT_DRIVERS; do
+      if    query  "build input driver $INPUT?  "  n
+      then  SELECTED_IN="$SELECTED_IN $INPUT"
+      else  UNSELECTED_IN="$UNSELECTED_IN $INPUT"
+      fi
+    done
+    for MISC in $YES_MISC_OPTIONS; do
+      if    query  "build misc option $MISC? "  y
+      then  SELECTED_MISC="$SELECTED_MISC $MISC"
+      else  UNSELECTED_MISC="$UNSELECTED_MISC $MISC"
+      fi
+    done
+    for MISC in $NO_MISC_OPTIONS; do
+      if   query  "build misc option $MISC? "  n
+      then  SELECTED_MISC="$SELECTED_MISC $MISC"
+      else  UNSELECTED_MISC="$UNSELECTED_MISC $MISC"
+      fi
+    done
+    
+  }
+
+  
+  generate_host_def()  {
+    echo  "#define XF86CardDrivers $SELECTED_CARD"  |  tr  '\n' ' '
+    echo
+  
+    if  [  -z  "$SELECTED_DRI"  ]
+    then  echo  "#define DriDrivers /**/"
+    else  echo  "#define DriDrivers $SELECTED_DRI"  |  tr  '\n' ' '
+          echo
+    fi
+  
+    if  [  -z  "$SELECTED_IN"  ]
+    then  echo  "#define XInputDrivers mouse"
+    else  echo  "#define XInputDrivers $SELECTED_IN"  |  tr  '\n' ' '
+          echo
+    fi
+  
+    for  ITEM  in $SELECTED_MISC;  do  echo  "#define $ITEM YES";  done
+    for  ITEM  in $UNSELECTED_MISC;  do  echo  "#define $ITEM  NO";  done
+  }
+  
+  
+  if    !  [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
+  then    
+    initialize
+    perform_configuration
+    generate_host_def  >  $TARGET_CONFIG
+  fi
+
+}
+
+build() {
+  
+  if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
+    cat        $CONFIG_LOGS/$BSPELL/host.def    |
+    sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
+                          config/cf/host.def
+		cat >> config/cf/host.def <<-EOF
+			#define DefaultCCOptions       $CFLAGS
+			#define DefaultGcc2i386Opt     $CFLAGS
+			#define LibraryCDebugFlags     $CFLAGS
+			#define DefaultCDebugFlags     $CFLAGS
+			#define OptimizedCDebugFlags   $CFLAGS
+			#define LOCAL_LDFLAGS          ${LDFLAGS:--Wl,-s}
+			#define HasZlib                YES
+			#define InstallXdmConfig       YES
+			#define InstallXinitConfig     YES
+			#define HasFreetype            YES
+			#define BuildFreetypeLibrary   NO
+			#define UseFreetype            YES
+			#define FreetypeLibDir         /usr/lib
+			#define HasFreetype2           YES
+			#define BuildFreetype2Library  NO
+			#define UseFreetype2           YES
+			#define Freetype2LibDir        /usr/lib
+			#define BuildFonts             YES
+			#define HasExpat               YES
+			#define BuildXinerama          YES
+			#define BuildXineramaLibrary   YES
+			#define NormalLibXinerama      YES
+			#define SharedLibXinerama      YES
+			#define IncRoot /usr/include
+			#define BuildFreeType          NO
+			#define HasFontconfig          YES
+			#define UseFontconfig          YES
+			#define BuildFontconfig        NO
+			#define BuildFontconfigLibrary NO
+			#define FontconfigLibDir       /usr/lib
+			EOF
+    #some other options desactivated
+  
+  fi
+  
+  
+  symlink_install()  {
+  
+    rm     -f  /usr/X11R6/include/zlib.h
+    rm     -f  /usr/X11R6/lib/libz.a
+    mkdir  -p  /usr/X11R6/include/GL
+  
+    if  [  !  -e                /etc/skel/.xsession  ];  then
+      cp  $SCRIPT_DIR/xsession  /etc/skel/.xsession
+      ln  -sf        .xsession  /etc/skel/.xinitrc
+    fi
+  
+    if    [  !  -e                    /usr/bin/X11  ]
+    then  ln    -sf   /usr/X11R6/bin  /usr/bin/X11
+    fi
+  
+    if    [  !  -e          /usr/X11  ]
+    then  ln    -sf  X11R6  /usr/X11
+    fi
+  
+    if    [  !  -e                         /usr/include/X11  ]
+    then  ln    -sf  ../X11R6/include/X11  /usr/include/X11
+    fi
+  
+    if    [  !  -e                     /usr/lib/X11  ]
+    then  ln    -sf  ../X11R6/lib/X11  /usr/lib/X11
+    fi
+  
+  }
+  
+  
+  pkgconf_install()  {
+                ULP="/usr/lib/pkgconfig"
+    mkdir  -p  $ULP
+    cp     -a  /usr/X11R6/lib/pkgconfig/*  $ULP
+  }
+  
+  
+  
+  if    spell_installed  "$( get_provider  Linux-PAM  )"
+  then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
+  fi
+  
+  sed  -i  "s:/usr/bin/cpp:cpp:"  config/cf/linux.cf
+  INCDIR=$( LC_ALL="C"; gcc -print-search-dirs | grep "^install: " | sed "s/install: //" )
+  INCDIR="-I/usr/include -I/opt/gcc/current/include -I$INCDIR/include"
+  echo "#define DependFlags $INCDIR" >> config/cf/site.def
+  
+  make    World        &&
+  prepare_install      &&
+  make    install      &&
+  make    install.man  &&
+  symlink_install      &&
+  pkgconf_install
+
+}
+
+post_install() {
+  unlock_cast
+  
+  if    spell_installed  NVIDIA_GLX  ||
+        spell_installed  NVIDIA-Linux-x86
+  then  cast             NVIDIA-Linux-x86
+  fi
+  
+  if    spell_installed  Xprint
+  then  cast             Xprint
+  fi
+  
+  fc-cache
+  true
+}
