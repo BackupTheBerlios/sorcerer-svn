@@ -1,0 +1,75 @@
+   VERSION=( "1.20" )
+  CATEGORY="email"
+ ATTRIBUTE="console server new"
+    SOURCE="xmail-$VERSION.tar.gz"
+       URL="http://www.xmailserver.org"
+  HOMEPAGE="http://www.xmailserver.org"
+  EPROVIDE="finger mail-transport-agent pop3"
+  ESTIMATE="62"
+      DESC="xmail is an Internet mail server solution.
+xmail features SMTP server, POP3 server, finger server,
+multiple domains support, mail-only accounts, SMTP relay checking,
+RBL/RSS/ORBS/DUL and custom spam protection,
+SMTP authentication (PLAIN, LOGIN, CRAM-MD5,
+POP3-before-SMTP, and custom), aliases, domain aliases,
+a POP3 account synchronizer with external POP3 accounts,
+custom mail processing, local maildrop, custom mail filters,
+mailing lists, remote administration, custom mail exchangers.
+
+xmail may require more initial configuration than other servers."
+
+
+build() {
+
+docs_install()  {
+chown  -R  root:root  docs
+mkdir  -p             /usr/share/doc/xmail
+cp     -av  docs/*    /usr/share/doc/xmail
+true
+}
+
+init_install()  {
+install  -m 0755  -o root  -g root  xmail  /etc/init.d
+ln  -sf  ../init.d/xmail     /etc/rc3.d/S90xmail
+ln  -sf  ../init.d/xmail     /etc/rc4.d/S90xmail
+ln  -sf  ../init.d/xmail     /etc/rc5.d/S90xmail
+
+ln  -sf  ../init.d/xmail     /etc/rc0.d/K10xmail
+ln  -sf  ../init.d/xmail     /etc/rc6.d/K10xmail
+true
+}
+
+xmail_install()  {
+mkdir  -p  /usr/libexec
+chown  -R  root:root MailRoot
+strip  bin/*
+find   bin  -type f  -printf "%P\n"  |
+while  read;  do
+  install  -m 0755  -o root  -g root  bin/$REPLY  /usr/libexec/$REPLY
+  ln       -sf /usr/libexec/$REPLY  MailRoot/bin/$REPLY
+done
+ln     -sf  /usr/libexec/sendmail   /usr/lib/sendmail
+ln     -sf  /usr/libexec/sendmail  /usr/sbin/sendmail
+cp     -av  MailRoot  /var
+true
+}
+
+sed   -i  "s:-O2:$CFLAGS:"  Makefile.lnx
+make  -f                    Makefile.lnx  &&
+prepare_install  &&
+  xmail_install  &&
+   docs_install  &&
+   init_install
+}
+
+post_install()  {
+/etc/init.d/mailx  start
+true
+}
+
+pre_remove() {
+if    [  -x  /etc/init.d/mailx  ]
+then         /etc/init.d/mailx  stop
+fi
+true
+}
