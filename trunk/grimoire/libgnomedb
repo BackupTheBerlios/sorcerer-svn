@@ -8,9 +8,40 @@
        REQ="gtksourceview libgnomeui libgda"
   ESTIMATE="273"
       DESC="libgnomedb provides a unified library for accessing different databases.
-
 libgnomedb is a unified engine for accessing 
 database systems from different database 
 vendors by using a uniform and powerful 
-API based entirely on CORBA.
-"
+API based entirely on CORBA."
+
+
+build()  {
+
+  patch_missing_breaks()  {
+    patch  -p1  <<  EOF
+diff -r -U2 libgnomedb-1.0.4/libgnomedb/gnome-db-form.c libgnomedb-1.0.4/libgnomedb/gnome-db-form.c
+--- libgnomedb-1.0.4/libgnomedb/gnome-db-form.c	2004-01-15 04:57:34.000000000 -0700
++++ libgnomedb-1.0.4/libgnomedb/gnome-db-form.c	2004-01-15 04:57:34.000000000 -0700
+@@ -584,4 +584,5 @@
+ 		break;
+ 	case GNOME_DB_FORM_TYPE_LIST :
++		break;
+ 	}
+ }
+diff -r -U2 libgnomedb-1.0.4/libgnomedb/utils.c libgnomedb-1.0.4/libgnomedb/utils.c
+--- libgnomedb-1.0.4/libgnomedb/utils.c	2003-11-30 04:41:40.000000000 -0700
++++ libgnomedb-1.0.4/libgnomedb/utils.c	2003-11-30 04:41:40.000000000 -0700
+@@ -47,4 +47,5 @@
+ 						   gda_connection_get_errors (cnc));
+ 	default :
++		break;
+ 	}
+ }
+EOF
+  }
+
+
+  case  $VERSION  in
+    1.0.4)  patch_missing_breaks  ;;
+  esac
+  default_build
+}
