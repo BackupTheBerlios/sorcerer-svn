@@ -1,9 +1,10 @@
-   VERSION=( "0.9.6" "0.9.5" )
+   VERSION=( "0.9.8" "0.9.6" "0.9.5" )
     IGNORE="pre"
   CATEGORY="game"
- ATTRIBUTE="broken library"
-# Only broken because fgfs Segmentation faults when run
+ ATTRIBUTE="library"
     SOURCE="fgfs-base-$VERSION.tar.bz2"
+disable  archive
+disable  necropolis
   HOMEPAGE="http://flightgear.sourceforge.net"
        URL="ftp://ftp.flightgear.org/pub/fgfs/Shared
             ftp://ftp.kingmont.com/pub/kingmont/flight_simulators/flightgear/Shared
@@ -20,13 +21,16 @@ for running FlightGear, flight simulator."
 
 
 build() {
-  [      -d  data     ]  &&  cd  data
-  [      -f  version  ]  &&
-  (  find  .  -type f  |  xargs  -l64  chmod  0644
-     find  .  -type d  |  xargs  -l64  chmod  0755
-     true
-  )  &&
-  prepare_install        &&
+  if    [  -d  data  ]
+  then  cd     data
+  fi
+  if    [  -f  version  ]
+  then  find  .  -type f  |  xargs  -l64  chmod  0644  2>/dev/null
+        find  .  -type d  |  xargs  -l64  chmod  0755  2>/dev/null
+        true
+  else  false
+  fi               &&
+  prepare_install  &&
   mkdir  -p      /usr/share/FlightGear  &&
   cp     -rv  *  /usr/share/FlightGear
 }

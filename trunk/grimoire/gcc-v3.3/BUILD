@@ -1,6 +1,5 @@
 finish_install()  {
 
-  ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
   ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
   rm     -f                                /usr/bin/cc
 
