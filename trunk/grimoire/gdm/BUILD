@@ -21,6 +21,9 @@
   make    install                    &&
   mkdir  -p           /var/gdm       &&
   chown  -R  gdm:gdm  /var/gdm       &&
-  chmod  750          /var/gdm
+  chmod  750          /var/gdm       &&
+  if    [  "$VERSION"  ==  "2.4.0.3"  ]
+  then  sedit  "s:else if:elif:"  /etc/gdm/gnomerc
+  fi
 
 ) > $C_FIFO 2>&1
