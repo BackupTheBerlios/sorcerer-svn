@@ -47,6 +47,8 @@
   grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
   echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
+  unset  LANG  LC_CTYPE
+
   mkdir  build
   cd     build
   ../configure  --host=$BUILD                 \
