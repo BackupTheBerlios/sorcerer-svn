@@ -1,48 +1,23 @@
-   VERSION=( "1.4.0" "1.2.8" "1.2.7" "1.2.6" "1.2.5" "1.2.4" )
+   VERSION=( "1.4.1" "1.4.0" )
     IGNORE="config"
   CATEGORY="encryption"
  ATTRIBUTE="library"
     SOURCE="Botan-$VERSION.tgz"
-       URL="http://botan.randombit.net/files"
+       URL="http://files.randombit.net/botan"
   HOMEPAGE="http://botan.randombit.net"
        REQ="bzip2 perl zlib"
+  ESTIMATE="234"
  FRESHMEAT="botan"
-  ESTIMATE="238"
       DESC="Botan is a library of cryptographic algorithms.
-
 Botan (formerly OpenCL) is a library of 
 cryptographic algorithms, written in C++.
 It currently includes a wide selection of 
 block and stream ciphers, public key algorithms, 
 hash functions, and message authentication codes, 
-plus a high level filter-based interface. 
-"
+plus a high level filter-based interface."
 
 
 build() {
-add_ull()  {
-  grep  -E "0x[0-9,A-F]{16}" src/*  |
-  cut   -d :  -f1               |
-  sort                          |
-  uniq                          |
-  while  read  FILE
-  do     echo  "Fixing  $FILE"
-         sed  -r  -i  "s:(0x[0-9,A-F]{16}):\1ULL:g"  $FILE
-  done
-}
-
-gcc_case()  {
-  case  $(  installed_version  $(  get_provider  gcc  )  )  in
-    3.3*)  add_ull  ;;
-  esac
-}
-
-case  $VERSION  in
-  1.2.6)   gcc_case  ;;
-  1.2.7)   gcc_case  ;;
-  1.2.8)   gcc_case  ;;
-esac
-
 ./configure.pl   gcc-linux-generic   &&
 make             "INSTALLROOT=/usr"  \
                  "LIB_OPT=$CFLAGS"   &&

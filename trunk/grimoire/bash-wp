@@ -1,0 +1,47 @@
+   VERSION=( "1.5" )
+        BV=( "3.0" )
+  CATEGORY="shell"
+ ATTRIBUTE="console new"
+    SOURCE=( "bashdiff-$VERSION.tar.gz"
+             "bash-$BV.tar.gz" )
+       URL=( "http://home.eol.ca/~parkw/bashdiff"
+             "ftp://ftp.cwru.edu/pub/bash" )
+  HOMEPAGE="http://home.eol.ca/~parkw"
+       REQ=( "autoconf readline ncurses"
+             ":--debugger::Enable debugging and extdebug shell option" )
+  ESTIMATE="656"
+      DESC="bash-wp provides an extended modified bash by William Park."
+
+
+build()  {
+install_loadables()  {
+  mkdir  -p  /usr/libexec/bash-wp
+  cd   examples/loadables
+  for  FILE  in  *.c
+  do   make     ${FILE%.c}
+       install  -s  -m 0755  -o root  -g root  ${FILE%.c}  /usr/libexec/bash-wp
+  done
+  cd    william
+  make
+  make  install
+  true
+}
+
+
+patch  -p0  <  bashdiff-core-$VERSION.diff
+patch  -p0  <  bashdiff-william-$VERSION.diff
+cd     bash-$BV
+
+autoconf
+
+./configure  --build=$BUILD             \
+             --prefix=/usr              \
+             --bindir=/usr/bin          \
+             --with-installed-readline  \
+             --with-curses   \
+             $OPTS           &&
+make                         &&
+prepare_install              &&
+make    install              &&
+install_loadables
+}
