@@ -1,22 +1,29 @@
    VERSION=( "1.4.2" "1.4.1" "1.4" "1.3.12" )
   CATEGORY="db"
- ATTRIBUTE="kde"
-    SOURCE="mysqlnavigator/mysqlnavigator-$VERSION"
+ ATTRIBUTE="broken depreciated kde"
+# In file included from mainwindowslotschema.cxx:15:../../../include/loglistviewitem.h:18:7: warning: no newline at end of filemainwindowslotschema.cxx: In member function `void MainWindow::slot_create_database(int)':mainwindowslotschema.cxx:518: error: `mysql_create_db' undeclared (first use this function)
+# mainwindowslotschema.cxx:518: error: (Each undeclared identifier is reported only once for each function it appears in.)mainwindowslotschema.cxx: In member function `void MainWindow::slot_delete_database(int)':mainwindowslotschema.cxx:608: error: `mysql_drop_db' undeclared (first use this function)../../../pics/collapse.xpm: At global scope:../../../pics/collapse.xpm:2: warning: 'collapse_xpm' defined but not used ../../../pics/expand.xpm:2: warning: 'expand_xpm' defined but not used
+# make[4]: *** [mainwindowslotschema.lo] Error 1
+# email the software author if you want him to make a new release.
+# mysqlnavigator may not be compatible with current version of mysql.
+    SOURCE="mysqlnavigator/mysqlnavigator-$VERSION.tar.gz"
   HOMEPAGE="http://sql.kldp.org/mysql"
        URL="$SOURCEFORGE_URL"
        REQ="mysql qt-x11-free"
       DESC="mysqlnavigator is a MySQL GUI interface.
-
-The purpose of MySQL Navigator is to provide a useful client 
+The purpose of MySQL Navigator is to provide a useful client
 interface to MySQL database servers, whilst supporting multiple
 operating systems and languages.
-You can currently enter queries, get result sets, edit scripts, 
-run scripts, add, alter, and delete users, and retrieve client 
-and server infomation.
-"
+You can currently enter queries, get result sets, edit scripts,
+run scripts, add, alter, and delete users, and retrieve client
+and server infomation."
 
 
 build() {
+# case  $VERSION  in
+#   1.4.2)  patch  -p1  <  $SCRIPT_DIR/mysqlnavigator-1.4.2.patch  ;;
+# esac
+
 export QTDIR="/usr"
 OPTS="--with-mysql-includes=/usr/include/mysql  --with-qt-includes=/usr/include/qt"
 sed  -i  "s:-lqt:-lqt-mt:g"  src/main/Makefile.in
