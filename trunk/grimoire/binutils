@@ -1,0 +1,43 @@
+   VERSION=( "2.15" "2.14" "2.13.2.1" "2.13.2" "2.13.1" "2.13" "2.12.1" "2.12" )
+  CATEGORY="development"
+ ATTRIBUTE="core console solo"
+    SOURCE="binutils/binutils-$VERSION.tar.bz2"
+  HOMEPAGE="http://sources.redhat.com/binutils"
+       URL="$GNU_URL"
+ FRESHMEAT="binutils"
+  ESTIMATE="587"
+     SHORT="binutils is an essential collection of binary utilities."
+      LONG="
+binutils - Collection of binary utilities
+ld		-the GNU linker
+as		-the portable GNU assembler
+ar		-creates, modifies, and extracts from archives
+nm		-lists symbols from object files
+objcopy		-copies and translates object files
+objdump		-displays information from object files
+ranlib		-indexes the contents of an archive
+size		-lists the section sizes of an object or archive file
+strings		-lists printable strings from files
+strip		-discards symbols
+c++filt		-filter to demangle encoded C++ symbols
+addr2line	-converts addresses to file and line
+nlmconv		-converts object code into an NLM
+"
+
+
+build()  {
+
+  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
+  TD="tooldir=/usr"
+  LDF="LDFLAGS=$LDFLAGS"
+
+  ./configure  --host=$BUILD  \
+               --prefix=/usr  &&
+  make          "$LDF"  $TD   &&
+  prepare_install             &&
+  make    install       $TD   &&
+  make    install-info  $TD
+
+}
