@@ -1,5 +1,5 @@
 sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
-sed  -i  "s:examples::"                               libmysqld/Makefile.in
+sed  -i  "s:examples::"                                 libmysqld/Makefile.in
 
 export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
 export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"

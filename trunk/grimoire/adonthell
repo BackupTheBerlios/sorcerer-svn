@@ -1,10 +1,43 @@
-   VERSION=( "src-0.3.3" )
+   VERSION=( "0.3.4" "src-0.3.3" )
   CATEGORY="game"
  ATTRIBUTE="x11"
     SOURCE="adonthell-$VERSION.tar.gz"
        URL="http://savannah.nongnu.org/download/adonthell"
   HOMEPAGE="http://adonthell.linuxgames.com"
-       REQ="SDL_mixer"
+       REQ="Python SDL_mixer"
       OPTS="--bindir=/usr/games"
-  ESTIMATE="616"
+  ESTIMATE="637"
       DESC="adonthell is a graphical rpg engine."
+
+build() {
+
+case  $VERSION  in
+  0.3.4)  patch  -p1  <<  EOF  ;;
+diff -r -U2 adonthell-0.3.4/src/SDL_ttf.c adonthell-0.3.4/src/SDL_ttf.c
+--- adonthell-0.3.4/src/SDL_ttf.c	2004-10-19 13:17:25.000000000 -0700
++++  adonthell-0.3.4/src/SDL_ttf.c	2004-10-19 13:17:25.000000000 -0700
+@@ -40,8 +40,9 @@
+ #endif
+ 
+-#include <freetype/freetype.h>
+-#include <freetype/ftoutln.h>
+-#include <freetype/ttnameid.h>
+-#include <freetype/internal/ftobjs.h>
++#include <ft2build.h>
++#include FT_FREETYPE_H
++#include FT_OUTLINE_H
++#include FT_TRUETYPE_IDS_H
++#include FT_INTERNAL_OBJECTS_H
+ 
+ #include "SDL.h"
+@@ -173,5 +174,5 @@
+ 	  const char*  err_msg;
+ 	} ft_errors[] = {
+-#include <freetype/fterrors.h>
++#include FT_ERRORS_H
+ 	};
+ 	int i;
+EOF
+esac
+default_build
+}
