@@ -2,6 +2,8 @@ make_locales()  {
 
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset   LD_PRELOAD
+  rm      -rf  /usr/lib/locale
+  mkdir   -p   /usr/lib/locale
   make    localedata/install-locales
   export  LD_PRELOAD="$LD_PRELOAD_OLD"
   touch   $(  find  /usr/lib/locale  )

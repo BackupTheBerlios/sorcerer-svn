@@ -1,0 +1,13 @@
+                       TEMP_MODULES_CONF="/tmp/modules.conf.$$.$RANDOM"
+rm  -rf               $TEMP_MODULES_CONF
+cp  /etc/modules.conf $TEMP_MODULES_CONF
+grep  -v  "alsa"   <  $TEMP_MODULES_CONF  >  /etc/modules.conf
+rm  -rf               $TEMP_MODULES_CONF
+
+MOD="/etc/modules.conf"
+INC="include  /etc/modules.d/alsa"
+
+grep    -q  "$INC"      $MOD  ||
+echo        "$INC"  >>  $MOD
+depmod  -a
+true

@@ -50,12 +50,4 @@ rm  -f  /lib/modules/`installed_version linux`/misc/snd*
     touch        /etc/modules.d/alsa
   fi
 
-  MOD="/etc/modules.conf"
-  INC="include  /etc/modules.d/alsa"
-
-  grep    -q  "$INC"      $MOD  ||
-  echo        "$INC"  >>  $MOD
-  depmod  -a
-  true
-
 )
