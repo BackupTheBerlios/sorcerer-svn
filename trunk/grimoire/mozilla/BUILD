@@ -1,3 +1,5 @@
+IVERSION=$(  installed_version  $BSPELL  )
+
 (
 
   # mozilla doesn't install nss headers by default

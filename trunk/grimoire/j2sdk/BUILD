@@ -1,6 +1,8 @@
 (
 
   DEST_DIR="/opt/j2sdk/$VERSION"
+  MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/javaplugin_oji.so"
+  MOZ_PDIR="/usr/lib/mozilla/plugins"
 
   prepare_install                          &&
   mkdir  -p                 $DEST_DIR      &&
@@ -12,6 +14,10 @@
     then  ln  -sfv  $DEST_DIR/bin/${FILE}  \
                          /usr/bin/${FILE}
     fi
-  done
+  done  &&
+
+  if    [   -d               $MOZ_PDIR  ]
+  then  ln  -vsf  $MOZ_PLUG  $MOZ_PDIR/javaplugin_oji.so
+  fi
 
 ) > $C_FIFO 2>&1
