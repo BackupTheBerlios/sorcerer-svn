@@ -1,0 +1,31 @@
+Sorcerer News for 20030823
+
+Subject:  Switching to strace.
+
+Due to the number of sources for which preloading installwatch 
+crashes the build or installation cast is switching to strace 
+for identifying the modifications made to the file system when 
+a spell is cast.
+
+There are two methods for using strace with cast.
+Enabling the fullstrace option will cause cast to be traced 
+from start to finish incurring approximately a five percent overhead.
+The other method is to attach strace during prepare_install.
+
+While having strace attach to running
+processes during prepare_install results
+in a faster cast than tracing the entire
+cast there are some peculiar consequences.
+
+When code follows the $C_FIFO such as :
+
+) > $C_FIFO 2>&1  &&  (
+
+The following subshell of code beings executing sometime after strace 
+starts but before the previous subshell of code successfully finishes.
+Code following prepare_install within the same subshell is 
+executed with full respect to '&&' chained commands however when 
+the chain finishes executing the return value is always true.
+Detecting errors after prepare_install becomes more challenging.
+Please report problematic spells to the sorcerer-spells email list.
+Meanwhile they should cast fine with fullstrace enabled.
