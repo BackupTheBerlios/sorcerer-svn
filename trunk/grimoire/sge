@@ -1,0 +1,42 @@
+   VERSION=( "030809" )
+  CATEGORY="graphic"
+ ATTRIBUTE="library x11"
+    SOURCE="sge$VERSION.tar.gz"
+  HOMEPAGE="http://www.etek.chalmers.se/~e8cal1/sge/index.html"
+       URL="http://www.etek.chalmers.se/~e8cal1/sge/files"
+       REQ="SDL_image freetype"
+  ESTIMATE="25"
+ FRESHMEAT="sge"
+     SHORT="sge is a graphic extention for the SDL_image library."
+
+
+ft_patch()  {
+  cat  <<  EOF  |  patch  -p1
+diff -r -U2 sge030809/sge_tt_text.cpp sge030809/sge_tt_text.cpp
+--- sge030809/sge_tt_text.cpp	2003-08-08 05:48:08.000000000 -0700
++++ sge030809/sge_tt_text.cpp	2003-08-08 05:48:08.000000000 -0700
+@@ -37,8 +37,9 @@
+ 
+ #ifndef _SGE_NOTTF
+-#include <freetype/freetype.h>
+-#include <freetype/ftoutln.h>
+-#include <freetype/ttnameid.h>
+-#include <freetype/internal/ftobjs.h>
++#include <ft2build.h>
++#include FT_FREETYPE_H
++#include FT_OUTLINE_H
++#include FT_TRUETYPE_IDS_H
++#include FT_INTERNAL_OBJECTS_H
+ 
+ /* The structure used to hold glyph information (cached) */
+EOF
+}
+
+
+build()  {
+  ft_patch
+  sed  -i  "s:-Wall -O3 -ffast-math:$CFLAGS:"  Makefile.conf
+  make  shared-strip  &&
+  prepare_install     &&
+  make    install
+}
