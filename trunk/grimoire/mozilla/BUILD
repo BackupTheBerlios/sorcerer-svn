@@ -26,24 +26,27 @@ IVERSION=$(  installed_version  $BSPELL  )
 
   }
   
-  # already-running patch for running multiple
-  # instances of mozilla without -remote option.
-  bzip2  -cd  $SCRIPT_DIR/already-running.patch.bz2  |  patch -p1
+# already-running patch for running multiple
+# instances of mozilla without -remote option.
+bzip2  -cd  $SCRIPT_DIR/already-running.patch.bz2  |  patch -p1
 
-  export    CFLAGS="${CFLAGS/-ffast-math/}"
-  export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
-  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+export    CFLAGS="${CFLAGS/-ffast-math/}"
+export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
-  export  MOZILLA_OFFICIAL=1
-  export  BUILD_OFFICIAL=1
+export  MOZILLA_OFFICIAL=1
+export  BUILD_OFFICIAL=1
+
 # The following 2 lines stopped working with mozilla 1.4.1
 # the source came without the internal libart library.
 # export  MOZ_INTERNAL_LIBART_LGPL=1
 # ac_add_options --enable-svg
 
-  cat  <<  EOF  >  .mozconfig
+cat  <<  EOF  >  .mozconfig
 ac_add_options --prefix=/usr
+ac_add_options --enable-shared
+ac_add_options --disable-static
 ac_add_options --with-system-jpeg
 ac_add_options --with-system-zlib
 ac_add_options --with-system-png
