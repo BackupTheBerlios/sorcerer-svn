@@ -3,7 +3,9 @@
   # sedit  "s:STMP_FIXINC=stmp-fixinc:STMP_FIXINC=:"        gcc/configure
   # sedit  "s:STMP_FIXPROTO=stmp-fixproto:STMP_FIXPROTO=:"  gcc/configure
 
-  GCC_LANGUAGES=${GCC_LANGUAGES:=c++}
+  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.patch
+
+  ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
   export  LIBCFLAGS="$CFLAGS"
   export  LIBCXXFLAGS="$CXXFLAGS"
@@ -13,7 +15,7 @@
                --enable-threads       \
                --enable-shared        \
                --enable-__cxa_atexit  \
-               --enable-languages=$LANGUAGES  &&
+               $ENABLE_LANGS    &&
   make  bootstrap-lean          &&
   prepare_install               &&
   make	  install  prefix=/usr  &&
