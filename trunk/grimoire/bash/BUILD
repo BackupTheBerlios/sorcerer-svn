@@ -17,8 +17,11 @@ do  patch  -p2  <  \
     ((  CX++  ))
 done
 
-[  -z  "$BUILD"  ]  &&
-         BUILD="$( arch )-pc-linux-gnu"
+# [  -z  "$BUILD"  ]  &&
+#          BUILD="$( arch )-pc-linux-gnu"
+
+[  -d  /isolinux  ]  ||
+BUILD="$( arch )-pc-linux-gnu"
 
 ./configure  --build=$BUILD  \
              --prefix=/usr   \
