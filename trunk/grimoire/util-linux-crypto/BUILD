@@ -3,7 +3,8 @@ sedit  "s/# ADD_RAW=yes/ADD_RAW=yes/"  MCONFIG
 sedit  "s/\$(OPT)//"                   MCONFIG
 (
 
-  patch  -p1  < cryptoapi-2.4.7.0/doc/util-linux-2.11b.patch
+  bzcat  $(  guess_filename  ${SOURCE[1]}  )  |
+  patch  -p1
 
  ./configure  --build=$BUILD           \
               --prefix=/usr            &&
