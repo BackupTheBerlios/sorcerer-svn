@@ -1,7 +1,7 @@
-   VERSION=( "2.4.2" "2.4.1" "2.4.0" "2.0.6" "2.0.4" "2.0.3" "2.0.2" )
+   VERSION=( "2.4.2" "2.4.1" "2.4.0" )
   CATEGORY="utility"
  ATTRIBUTE="gnome"
-    SOURCE="sources/acme/${VERSION:0:3}/acme-$VERSION"
+    SOURCE="sources/acme/${VERSION:0:3}/acme-$VERSION.tar.bz2"
   HOMEPAGE="http://www.gnome.org"
        URL="$GNOME_URL"
        REQ="libgnomeui libwnck startup-notification"
@@ -18,5 +18,14 @@ WWW, Calculator, Record, Close Window,
 Shade Window, Play, Stop, Pause, Previous, 
 Next, Groups, Media, Refresh, and Help buttons.
 It works on all the platforms GNOME supports (laptops and PCs).
-It uses either OSS or ALSA for Volume control.
-"
+It uses either OSS or ALSA for Volume control."
+
+
+build()  {
+  sed  -i  "s:wnck_window_close (focused):wnck_window_close (focused,0):"  \
+       src/acme.c
+  sed  -i  "s:EggVirtualModifierType   mask):GdkModifierType   mask):
+            s:EggVirtualModifierType  \*mask):GdkModifierType  *mask):"  \
+       src/eggcellrendererkeys.h
+  default_build
+}
