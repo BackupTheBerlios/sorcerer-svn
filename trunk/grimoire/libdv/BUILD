@@ -9,6 +9,7 @@ fi
 #            --disable-gtktest  \
 
 ./configure  --prefix=/usr  \
-             --enable-sdl   &&
+             --enable-sdl   \
+             $OPTS          &&
 make                        &&
 make  install
