@@ -1,33 +1,16 @@
-if      [  -f   /usr/lib/libpng.so.3.1.2.5  ];  then
-  if    !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libc"  ||
-        !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libm"  ||
-        !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libz"
-  then  echo            "libpng"  >>  $INSTALL_QUEUE
-  fi
-fi
+# Probably safe to remove.
+# All png's have likely been updated.
+
+# if      [  -f   /usr/lib/libpng.so.3.1.2.5  ];  then
+#   if    !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libc"  ||
+#         !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libm"  ||
+#         !  ldd  /usr/lib/libpng.so.3.1.2.5  |  grep  -q  "libz"
+#   then  echo            "libpng"  >>  $INSTALL_QUEUE
+#   fi
+# fi
 
 
-(
-
-   IVS=$(  installed_version  sorcery  );  DIVS=${IVS:8:8}
-   AVS=$(  available_version  sorcery  );  DAVS=${AVS:8:8}
-
-  if    ((  DIVS  >   20030115  ))  &&
-        ((  DIVS  <   20030120  ))  &&
-        ((  DAVS  >=  20030120  ))  &&
-        !  [  -f  $SOURCE_CACHE/sorcery/$AVS/sorcery-$AVS.tar.bz2  ]
-  then
-    mkdir  -p  $SOURCE_CACHE/sorcery/$AVS
-    cd         $SOURCE_CACHE/sorcery/$AVS
-    echo  "Due to a bug this version of sorcery"    1>&2
-    echo  "is incapable leeching a newer sorcery."  1>&2
-    echo  "Therefore, I am doing so now."           1>&2
-    echo  "Sorry for the inconvenience."            1>&2
-    wget  http://sorcerer.wox.org/download/sorcery/sorcery-$AVS.tar.bz2
-  fi
-
-)
-
+# Already forgot the purpose of this.  It maybe safe to remove.
 if    [  -f   /usr/include/expat.h  ]  &&
       md5sum  /usr/include/expat.h     |
       grep  -q  "19f344fc580bfba1493f098c90172fda"
@@ -35,6 +18,7 @@ then  echo  "expat"  >>  $INSTALL_QUEUE
 fi
 
 
+# Remove if bladeenc is ever updated.
 if    spell_installed  bladeenc             &&
       !  bzcat  $COMPILE_LOGS/bladeenc.bz2  |
       grep  -q  -x  "patching file bladeenc/samplein.c"
@@ -42,11 +26,7 @@ then  echo  "bladeenc"  >>  $INSTALL_QUEUE
 fi
 
 
-if    !  [  -e  /usr/X11R6/lib/X11/fonts/fonts.cache-1  ]  &&
-         [  -x  /usr/bin/fc-cache  ]
-then            /usr/bin/fc-cache
-fi
-
+# Remove whenever
 if    grep  -q       "USE_GDK_XFT"     /etc/profile
 then  echo  "Detected USE_GDK_XFT  in  /etc/profile"
       echo  "export   USE_GDK_XFT=1 will cause gnome 2.2 to malfunction."
@@ -60,7 +40,8 @@ then  echo  "Xft2"  >>  $INSTALL_QUEUE
 fi
 
 
-if    [  "$(  installed_version  gcc  )"  ==  "3.2.2."  ]  &&
+# Remove when gcc is 3.2.3 or higher
+if    [  "$(  installed_version  gcc  )"  ==  "3.2.2"  ]  &&
       [  -h  /opt/gcc/3.2.1/lib  ]
 then  echo  "gcc"  >>  $INSTALL_QUEUE
 fi
@@ -74,6 +55,7 @@ then  echo  "zlib"  >>  $INSTALL_QUEUE
 fi
 
 
+# Remove when XFree86 is 4.3.1 or higher
 X11_VER=$(  installed_version  $(  get_provider  x11  )  )
 if       [  "$X11_VER"  ==  "4.3.0"        ]  &&
       !  [  -f  /usr/lib/pkgconfig/xft.pc  ]
