@@ -40,6 +40,8 @@ linux_sufficient()  {
 sed  -i  "s:/local::
           s:^udevdir = .*:udevdir = /dev:
           s:killall:true:"  Makefile
+sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
+echo     "Configuration fixed so udev mounts on /dev."
 
 linux_sufficient  &&
 make              &&
