@@ -1,0 +1,40 @@
+#!/bin/sh
+
+PID="/var/run/privoxy.pid"
+
+start()  {
+  echo  -n  "Starting privoxy..."
+  /usr/sbin/privoxy  --pidfile  $PID      \
+                     --user  privoxy      \
+		     /etc/privoxy/config 2> /dev/null
+  echo  "done."
+}
+
+stop()  {
+  echo  -n  "Stopping privoxy..."
+  [     -f            $PID  ]  &&
+  kill  -15  $(  cat  $PID  )
+  rm    -f            $PID
+  echo  "done."
+}
+
+status()  {
+  if  [  -f  $PID  ]; then
+    echo  "privoxy is running. pid : $(cat $PID)"
+  else
+    echo  "privoxy is not running."
+  fi
+}
+  
+help()  {
+  echo  "Usage:  $0  {start|stop|restart|status}"
+}
+
+
+case $1 in
+    start)                       start  ;;
+  restart)  stop  &&  sleep  1;  start  ;;
+     stop)  stop                        ;;
+   status)  status                      ;;
+        *)  help                        ;;
+esac

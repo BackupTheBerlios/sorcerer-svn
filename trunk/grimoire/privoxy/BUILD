@@ -22,6 +22,10 @@
   make                                        &&
   prepare_install                             &&
   make -s install USER=privoxy GROUP=privoxy  &&
+
+  # replace the init script 
+  cp  -f  $SCRIPT_DIR/privoxy.init            \
+               /etc/init.d/privoxy            &&
    
   if  $PRIVOXY_BOOT;  then
     ln  -sf  ../init.d/privoxy  /etc/rc0.d/K20privoxy
