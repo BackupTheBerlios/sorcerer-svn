@@ -3,6 +3,7 @@ case  $VERSION  in
   4.3.6)  OPTS="$OPTS  --without-curl"  ;;
 esac
 
+# --with-pcre-regex=/usr        \
 PHP_CONFIGURE="\
 --prefix=/usr                 \
 --sysconfdir=/etc             \
@@ -33,7 +34,6 @@ PHP_CONFIGURE="\
 --with-bz2                    \
 --enable-exif                 \
 --with-regex=system           \
---with-pcre-regex=/usr        \
 $OPTS"
 #  --with-regex=system           \
 #  --with-pcre-regex=/usr        \

@@ -1,0 +1,37 @@
+   VERSION=( "3.7-5989" )
+  CATEGORY="interpreter"
+ ATTRIBUTE="new x11"
+    SOURCE=( "${VERSION:0:3}/unix-linux/Squeak-3.6-3.src.tar.gz"
+             "${VERSION:0:3}/Squeak$VERSION-full.zip"
+             "sources_files/SqueakV3.sources.gz" )
+       URL="ftp://st.cs.uiuc.edu/Smalltalk/Squeak
+            ftp://ftp.cs.uni-magdeburg.de/pub/Smalltalk/Smalltalk/Squeak"
+       REQ="x11"
+  HOMEPAGE="http://squeak.org"
+  ESTIMATE="429"
+      DESC="Squeak is a SmallTalk Development system.
+Squeak is an OpenSource and super-portable implementation of a 
+multi-media capable Smalltalk-80 
+based object-oriented programming environment.
+It is written entirely in Smalltalk and has a 
+high-performance VM, created by compiling the 
+Smalltalk VM code into efficient and portable C code.
+It now uses the Self language's Morphic User Interface 
+but still provides the original MVC GUI as well.
+To run squeak first copy the Image file from /usr/share/squeak 
+to your home directory and call the file squeak.image"
+
+build()  {
+mkdir  bld
+cd     bld
+../platforms/unix/config/configure  --prefix=/usr  &&
+make             &&
+prepare_install  &&
+make    install  &&
+cd      ..       &&
+mkdir   -p                                     /usr/share/squeak  &&
+install -m 0644 Squeak*.changes Squeak*.image  /usr/share/squeak  &&
+install -m 0644 $SOURCE_CACHE/Squeak/$VERSION/${SOURCE[2]##*/}  \
+        /usr/lib/squeak/3.6-3/  &&
+gunzip  /usr/lib/squeak/3.6-3/${SOURCE[2]##*/}
+}
