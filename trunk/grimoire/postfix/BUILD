@@ -38,7 +38,7 @@ fi
 
 if    grep  -q  -x    "mysql"  $OPT_ON_LOGS/postfix  &&
       spell_installed  mysql
-then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -z -lm"
+then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -lz -lm"
       CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
 fi
 

@@ -1,5 +1,16 @@
 #!/bin/sh
 
+start_lvm2()  {
+  if    [  -x  /usr/sbin/vgscan    ]  &&
+        [  -x  /usr/sbin/vgchange  ]
+  then  echo  -n  "Activating LVM2..."
+        /usr/sbin/vgscan
+        /usr/sbin/vgchange -a y
+        echo    "done."
+  fi
+}
+
+
 start() {
 
   !  [  -d  /devices  ]  ||  mount   -n  -t  devfs devfs /devices
@@ -33,6 +44,7 @@ start() {
   mount    -n  -o  remount  /
   touch    /etc/mtab
   mount    -f  -o  remount  /
+  start_lvm2
   mount    -a
   rm       -f  /fastboot  /forcefsck
 
