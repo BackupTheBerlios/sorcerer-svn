@@ -1,31 +1,22 @@
 (
 
-  if    !  gcc  --version  |  grep  "2.95.3";  then
+  bzip2  -cd  $SCRIPT_DIR/gcc-2.95.3-2.patch.bz2  |
+  patch  -p1
 
-    message  "${COLOR_PROBLEM}Tough break!${COLOR_DEFAULT}"  \
-             "$gcc 2.95.3 is required in order to compile."
-    false
+  LANGUAGE[0]="${LANGUAGE[0]// /,}"
+  ENABLE_LANGS="--enable-languages=${LANGUAGE[0]:=c++}"
 
-  else
+  export  LIBCFLAGS="$CFLAGS"
+  export  LIBCXXFLAGS="$CXXFLAGS"
 
-    bzip2  -cd  $SCRIPT_DIR/gcc-2.95.3-2.patch.bz2  |
-    patch  -p1
-
-    LANGUAGE[0]="${LANGUAGE[0]// /,}"
-    ENABLE_LANGS="--enable-languages=${LANGUAGE[0]:=c++}"
-
-    export  LIBCFLAGS="$CFLAGS"
-    export  LIBCXXFLAGS="$CXXFLAGS"
-
-    ./configure  --host=$BUILD               \
-                 --prefix=/usr/gcc-$VERSION  \
-                 --enable-shared             \
-                 --enable-threads            \
-                 "$ENABLE_LANGS"             &&
-    make   -j 2  bootstrap-lean              &&
-    prepare_install                          && 
-    make    install
-  fi
+  ./configure  --host=$BUILD               \
+               --prefix=/usr/gcc-$VERSION  \
+               --enable-shared             \
+               --enable-threads            \
+               "$ENABLE_LANGS"  &&
+  make   -j 2  bootstrap-lean   &&
+  prepare_install               && 
+  make    install
 
 ) > $C_FIFO 2>&1  &&  (
 

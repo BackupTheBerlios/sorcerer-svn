@@ -1,5 +1,10 @@
 (
 
+  case  $VERSION  in
+    1.2.6)  patch  <  $(  guess_filename  ${SOURCE[1]}  )  \
+                      src/kadmin/v4server/kadm_ser_wrap.c  ;;
+  esac
+
   cd  src
   ./configure  --enable-dns-for-kdc    \
                --enable-dns-for-realm  \
