@@ -3,7 +3,7 @@
   sed  -i  "s:/sbin/rmmod nvidia:true:"     Makefile
   sed  -i  "s:/sbin/rmmod NVdriver:true:"   Makefile
   sed  -i  "s:/sbin/modprobe nvidia:true:"  Makefile
-  sed  -i  "s:depmod -a:depmod -a -q -F /boot/System.map:"  Makefile
+  sed  -i  "s:depmod -a:depmod -a -q -F /usr/src/linux/System.map:"  Makefile
 
   if  spell_installed  linux;  then
     VERSION=$(  installed_version  linux  )
