@@ -1,9 +1,8 @@
 case  $VERSION  in
-  2.6.2)  SCX=1
-          while  [  -n                         "${SOURCE[$SCX]}"  ];  do
-            patch  -p0  <  $(  guess_filename  "${SOURCE[$SCX]}"  )
-            ((  SCX++  ))
-          done
+  2.6.2)  patch  -p0  <  $(  guess_filename  "${SOURCE[1]}"  )
+          patch  -p0  <  $(  guess_filename  "${SOURCE[2]}"  )
+          patch  -p1  <  $(  guess_filename  "${SOURCE[3]}"  )
+          echo  "skeychallenge.patch applied."
           ;;
 esac
 
