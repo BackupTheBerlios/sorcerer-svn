@@ -16,9 +16,9 @@
   cp  lib/uuid/libuuid.a  /usr/lib
   cp  lib/uuid/uuid.h     /usr/include/uuid
 
-  cp  $SCRIPT_DIR/mount.sh        /etc/init.d
-  ln      -sf ../init.d/mount.sh  /etc/rcS.d/S10mount
-  ln      -sf ../init.d/mount.sh  /etc/rc0.d/K90mount
-  ln      -sf ../init.d/mount.sh  /etc/rc6.d/K90mount
+  cp      $SCRIPT_DIR/mount.sh  /etc/init.d
+  ln  -sf /etc/init.d/mount.sh  /etc/rcS.d/S10mount
+  ln  -sf /etc/init.d/mount.sh  /etc/rc0.d/K90mount
+  ln  -sf /etc/init.d/mount.sh  /etc/rc6.d/K90mount
 
 )
