@@ -1,3 +1,25 @@
+del_cached_glibc()  {
+
+  smote_old_glibc()  {
+    for  FILE  in  from/glibc*;  do
+      if    [  -f         $FILE  ]
+      then  basenames  <  $FILE  |
+            xargs  -l256  rm  -f
+      fi
+      ldconfig
+    done
+  }
+
+  ldconfig
+  [  -d   ${LIBRARY_CACHE:=/usr/lib.old}       ]  &&
+  cd      ${LIBRARY_CACHE}                        &&  smote_old_glibc
+  [  -d   ${LIBRARY_CACHE_64:=/usr/lib64.old}  ]  &&
+  cd      ${LIBRARY_CACHE_64}                     &&  smote_old_glibc
+  true
+
+}
+
+
 fix_glibc_install_log()  {
   GLIBC=$(  get_provider  glibc  )
   FILE=$INSTALL_LOGS/$GLIBC
@@ -32,9 +54,6 @@ echo  "$CXXFLAGS"  |
 grep  -q  "\-O"    ||
 export  CXXFLAGS="$CXXFLAGS -O2"
 
-grep  -qx  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
-echo       "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
-
 
 case  $VERSION  in
   2.3.3)  sed    -i      "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
@@ -52,10 +71,6 @@ export    LC_ALL=C
 mkdir  -p  $INSTALL_ROOT/etc
 touch      $INSTALL_ROOT/etc/ld.so.conf
 
-echo  "$OPTS"  |
-grep  -q   "\--enable-add-ons=nptl"  ||
-OPTS="$OPTS  --enable-add-ons=linuxthreads"
-
 case  $VERSION  in
   2.3.3)  GCC3_VER=$( installed_version  gcc-v3.3 )
           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"  ;;
@@ -64,16 +79,17 @@ esac
 mkdir  build
 cd     build
 #             --with-selinux                \
+#             --enable-add-ons=linuxthreads \
 ../configure  --host=$BUILD                 \
               --build=$BUILD                \
               --prefix=/usr                 \
               --disable-profile             \
-              --with-elf                    \
               --with-tls                    \
+              --with-elf                    \
               --without-gd                  \
               --without-cvs                 \
               --enable-shared               \
-              --enable-add-ons=linuxthreads \
+              --enable-add-ons              \
               $OPTS                         &&
 make                                        &&
 make    tests                               &&
@@ -83,5 +99,4 @@ cd   ../install                             &&
 rm     -f   etc/{localtime,ld.so.*}         &&
 export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
 cp     -a   *  /                            &&
-ldconfig                                    &&
-rm     -rf  $LIBRARY_CACHE/glibc*
+del_cached_glibc
