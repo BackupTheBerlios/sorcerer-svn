@@ -32,7 +32,7 @@
     rm     -rf      usr/X11R6/lib/X11/xserver/C/print/models/HPDJ1600C
     rm     -rf      usr/X11R6/lib/X11/xserver/C/print/models/HPLJ4family
     mkdir  -p      /usr/X11R6/lib/X11/xserver
-    cp     -av      usr/X11R6/lib/X11/xserver  \
+    cp     -av      usr/X11R6/lib/X11/xserver/*  \
                    /usr/X11R6/lib/X11/xserver
     true
   }
