@@ -1,0 +1,44 @@
+   VERSION=( "0.9.5" "0.9.0" "0.8.0" "0.7.0" )
+    IGNORE="extras"
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+ SOURCE[0]="eboard/eboard-$VERSION.tar.gz"
+ SOURCE[1]="eboard/eboard-extras-1.tar.gz"
+ SOURCE[2]="eboard/eboard-extras-2.tar.gz"
+# extras-1pl1 and extras-1pl2 are aproximations of extras-1
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://eboard.sourceforge.net"
+       REQ="imlib"
+ FRESHMEAT="eboard"
+  ESTIMATE="63"
+     SHORT="eboard is a chess interface for chess engines, FICS, etc."
+      LONG="
+eboard is a graphic based chess interface.
+It provides a chess board interface to ICS 
+(Internet Chess Servers) like FICS and to 
+chess engines like GNU Chess, Sjeng and Crafty.
+"
+
+
+build()  {
+  install_extras()  {
+    cd  $1
+    ./configure  --prefix=/usr
+    prepare_install  &&
+    make    install
+    cd  -
+  }
+
+  sed_makefile()  {  sed  -i  "s:-O6:$CXXFLAGS:"  Makefile;  }
+
+  ./configure  --prefix=/usr  \
+               $OPTS          &&
+  sed_makefile                &&
+  make                        &&
+  prepare_install             &&
+  make    install             \
+          bindir=/usr/games   &&
+  for     DIR  in  eboard-extras*
+  do      install_extras  $DIR
+  done
+}
