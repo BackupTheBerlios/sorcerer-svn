@@ -1,0 +1,38 @@
+select_compilers()  {
+
+  TITLE="Additional Compiler Selection Menu"
+  HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
+
+  GCC_LANGUAGES=$(  dialog  --backtitle  "$BACKTITLE"     \
+                            --title      "$TITLE"         \
+                            --timeout    "$PROMPT_DELAY"  \
+                            --stdout                      \
+                            --separate-output             \
+                            --no-cancel                   \
+                            --checklist  "$HELP"          \
+                            18 55 10                      \
+                    "ada"       "Augusta Ada Lovelace"       "off"  \
+                    "f77"       "Engineering 101"            "off"  \
+                    "java"      "Virtual coffee compiler"    "off"  \
+                    "objc"      "Objectionable C"            "off"  \
+                    "treelang"  "Primate interface example"  "off"
+                 )
+
+}
+
+save_compilers()  {
+
+  GCC_LANGUAGES=="$(  echo  "c++ $GCC_LANGUAGES"  |  tr  '\n' ' ' )"
+  echo  "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
+
+}
+
+
+if    [  -z  "$GCC_LANGUAGES"  ]  &&
+      [  -z  "$BRANCH"         ]
+then
+
+  BACKTITLE="Sorcery GCC Compiler Languages Configuration Menu"
+  select_compilers  &&
+    save_compilers
+fi
