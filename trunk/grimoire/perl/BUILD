@@ -1,5 +1,3 @@
-(
-
 db_41_fix()  {  (
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
@@ -9,12 +7,10 @@ db_41_fix()  {  (
   esac
 )  }
 
-  unset  LANG  LC_CTYPE
+unset  LANG  LC_CTYPE
 
-  db_41_fix
-  ./Configure  -Dprefix=/usr -d -e -Dusethreads
-  make  "OPTIMIZE=$CFLAGS"  &&
-  prepare_install           &&
-  make    install
-
-) > $C_FIFO 2>&1
+db_41_fix
+./Configure  -Dprefix=/usr -d -e -Dusethreads
+make  "OPTIMIZE=$CFLAGS"  &&
+prepare_install           &&
+make    install
