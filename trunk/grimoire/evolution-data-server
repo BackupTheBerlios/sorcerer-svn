@@ -1,11 +1,16 @@
-   VERSION=( "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
-    IGNORE="^1\.1"
+   VERSION=( "1.2.0" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
   CATEGORY="email"
  ATTRIBUTE="gnome library"
     SOURCE="sources/evolution-data-server/${VERSION:0:3}/evolution-data-server-$VERSION.tar.bz2"
        URL="$GNOME_URL"
   HOMEPAGE="http://gnome.org/projects/evolution/stable.shtml"
-       REQ="gnome-vfs libgnome libsoup"
-  ESTIMATE="1675"
+       REQ=( "gnome-vfs libgnome libsoup"
+             "mozilla:::for mozilla-nss" )
+  ESTIMATE="2272"
   GNOMEFTP="evolution-data-server"
       DESC="evolution-data-server provides libraries needed by evolution"
+
+build()  {
+  export  LDFLAGS="-Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla $LDFLAGS"
+  default_build
+}
