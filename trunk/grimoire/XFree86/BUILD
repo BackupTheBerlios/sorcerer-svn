@@ -17,7 +17,13 @@ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
     echo  "#define InstallXdmConfig       YES"
     echo  "#define InstallXinitConfig     YES"
 
-    echo  "#define BuildFreeType          NO"
+# The following group of lines is to enable building of
+# /usr/X11R6/lib/modules/fonts/libfreetype.a
+#   echo  "#define BuildFreeType          NO"
+    echo  "#define HasFreetype            YES"
+    echo  "#define BuildFreetypeLibrary   NO"
+    echo  "#define UseFreetype            YES"
+    echo  "#define FreetypeLibDir         /usr/lib"
 
     echo  "#define HasFreetype2           YES"
     echo  "#define BuildFreetype2Library  NO"
