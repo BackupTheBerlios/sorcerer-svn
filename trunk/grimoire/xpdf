@@ -10,6 +10,7 @@
   HOMEPAGE="http://www.foolabs.com/xpdf"
        REQ="autoconf freetype lesstif t1lib x11"
   ESTIMATE="121"
+EPROVIDE="xpdf"
       DESC="xpdf is a PDF, portable document format, viewer.
 xpdf is a viewer for Portable Document Format (PDF) files.
 It also comes with two other programs: pdftops and pdftotext 
@@ -18,9 +19,15 @@ which convert PDF files to postscript and plain text respectively."
 build() {
   CX=1
   while [  -n  "${SOURCE[$CX]}"  ]
-  do  patch  -p0  -d xpdf  <  $SOURCE_CACHE/xpdf/$VERSION/${SOURCE[$CX]}
+  do  patch  -p0  -d xpdf  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$CX]}
       ((  CX++  ))
   done
+
+# Make sure that xpdf finds freetype2 headers
+  sed    -i  "s:freetype\.h:ft2build.h:"         configure.in 	 
+  sed    -i  "s:#include <freetype/freetype.h>:#include <freetype/ft2build.h>:"         splash/*.h 	 
+  autoconf 	 
+
   default_build
 }
 
