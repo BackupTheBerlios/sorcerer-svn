@@ -17,11 +17,14 @@ mod_conf_message()  {
 
 )  > $C_FIFO 2>&1  &&  (
 
-  cp  $SCRIPT_DIR/modutils.sh     /etc/init.d
+  cp     $SCRIPT_DIR/modutils.sh  /etc/init.d
   ln  -sf  ../init.d/modutils.sh  /etc/rcS.d/S20modutils
 
   mkdir  -p  /etc/modules.d
-  touch      /etc/modules
-  touch      /etc/modules.conf
+
+  #  /etc/modules and /etc/modules.conf
+  #  are files excluded from install logs.
+
+  touch  /etc/modules  /etc/modules.conf
 
 )
