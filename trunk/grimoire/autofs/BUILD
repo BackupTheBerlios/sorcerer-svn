@@ -12,9 +12,9 @@ finish_install()  {
   echo        "$INC"  >>  $MOD
   depmod  -a
 
-  for  FILE  in  auto.home auto.master auto.misc
-  do  [  -f  /etc/$FILE ]  ||  cp  $SCRIPT_DIR/$FILE  /etc
-  done
+#  for  FILE  in  auto.home auto.master auto.misc
+#  do  [  -f  /etc/$FILE ]  ||  cp  $SCRIPT_DIR/$FILE  /etc
+#  done
 
   cp  $SCRIPT_DIR/autofs.sh        /etc/init.d/autofs
  
@@ -30,6 +30,8 @@ DEFAULT_CFLAGS="CFLAGS    = -O3 -fomit-frame-pointer -Wall"
      SA_CFLAGS="CFLAGS    = $CFLAGS  -Wall"
 
 sed  -i  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
+
+chmod  a-x  samples/auto.net
 
 ./configure  --build=$BUILD        \
              --prefix=/usr         \

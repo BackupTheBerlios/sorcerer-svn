@@ -1,3 +1,7 @@
+case  $VERSION  in
+  4.3.5)  OPTS="$OPTS  --without-curl --without-imap"  ;;
+esac
+
 PHP_CONFIGURE="\
 --prefix=/usr                 \
 --sysconfdir=/etc             \
