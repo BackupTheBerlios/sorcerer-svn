@@ -116,13 +116,7 @@ compile_and_install()  {
 }
 
 
-if    [  -z  "$BRANCH"  ]
-then
-  activate_voyeur
-  echo   "$BSPELL  profile installed."  &> $C_FIFO
-else
-  cd  /usr/src/linux-$VERSION
-  restore_linux_configs  &&
-  activate_voyeur        &&
-  compile_and_install           &> $C_FIFO
-fi
+cd  /usr/src/linux-$VERSION
+restore_linux_configs  &&
+activate_voyeur        &&
+compile_and_install    &> $C_FIFO
