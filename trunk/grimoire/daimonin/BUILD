@@ -7,7 +7,6 @@ build_client()  {
   cd  daimonin/client/make/linux
   
   make    "EXTRA_CFLAGS=$CFLAGS"  &&
-  prepare_install                 &&
   make    install                 &&
   cd      ../../../               &&
   rm     -rf  client/{make,src}   &&

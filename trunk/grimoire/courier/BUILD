@@ -28,7 +28,6 @@ sed  -i  's:rootcheck="$withval":rootcheck="$enableval":'  configure
              --disable-root-check                \
              $OPTS                               &&
 make                                             &&
-prepare_install                                  &&
-make    install                                  &&
-make    install-configure                        &&
-        install_init
+make  install                                    &&
+make  install-configure                          &&
+      install_init

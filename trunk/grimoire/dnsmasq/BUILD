@@ -1,9 +1,8 @@
 sed  -i  "s:local::"         Makefile
 sed  -i  "s:-O2:${CFLAGS}:"  Makefile
 
-make             &&
-prepare_install  &&
-make    install  &&
+make           &&
+make  install  &&
   
 cp  $SCRIPT_DIR/dnsmasq.sh       /etc/init.d  &&
 

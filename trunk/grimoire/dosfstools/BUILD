@@ -3,6 +3,5 @@ sed  -i  "1i#include <errno.h>"  mkdosfs/mkdosfs.c
 
 MAKE_OPTS="PREFIX=/usr  MANDIR=/usr/man/man8"
 
-make  $MAKE_OPTS  &&
-prepare_install   &&
-make    install   $MAKE_OPTS
+make            $MAKE_OPTS  &&
+make  install   $MAKE_OPTS

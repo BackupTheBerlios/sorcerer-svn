@@ -8,7 +8,6 @@ sed  -i  's:"playmidi","-v","-v","-e":"playmus","playmus","-r","44100":'  \
              --disable-timidity    \
              $OPTS                 &&
 make             &&
-prepare_install  &&
 make    install  &&
 cp      $SCRIPT_DIR/exult.cfg  /usr/share/exult  &&
 cp      sfx/jmsfx.flx          /usr/share/exult  &&

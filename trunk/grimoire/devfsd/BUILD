@@ -8,7 +8,6 @@ install_init()  {
 }
 
 sed  -i  "s:-O2:$CFLAGS:"  GNUmakefile
-make             &&
-prepare_install  &&
-make    install  &&
-        install_init
+make           &&
+make  install  &&
+      install_init

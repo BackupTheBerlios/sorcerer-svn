@@ -21,7 +21,6 @@ install_init()  {
              --with-root-prefix=  \
              --enable-elf-shlibs  &&
 make  "LDFLAGS=$LDFLAGS"          &&
-prepare_install                   &&
-make    install                   &&
-make    install-libs              &&
-        install_init
+make  install                     &&
+make  install-libs                &&
+      install_init

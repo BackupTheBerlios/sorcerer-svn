@@ -10,8 +10,7 @@ install_inits()  {
 
 
 sed  -i  "s/\/local//"  Makefile.conf
-./configure      &&
-make             &&
-prepare_install  &&
-make    install  &&
+./configure    &&
+make           &&
+make  install  &&
 install_inits
