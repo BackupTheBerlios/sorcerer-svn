@@ -12,6 +12,10 @@
 
   sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
+  case  $VERSION  in
+    0.2)  patch  -p1  <  $SCRIPT_DIR/swapd-0.2.patch  ;;
+  esac
+
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --sysconfdir=/etc     \
