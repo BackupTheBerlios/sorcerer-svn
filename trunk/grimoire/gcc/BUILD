@@ -1,6 +1,6 @@
 (
 
-  LANGUAGE[1]="${LANGUAGE[1]/ /,}"
+  LANGUAGE[1]="${LANGUAGE[1]// /,}"
   ENABLE_LANGS="--enable-languages=${LANGUAGE[1]:=c++}"
 
   export  LIBCFLAGS="$CFLAGS"
