@@ -1,0 +1,126 @@
+      YEAR="$(  date  -u  +%Y  )"
+      WEEK="$(  date  -u  +%V  |  sed  "s:^0*::"  )"
+   VERSION="$YEAR-$WEEK"
+  CATEGORY="grimoire"
+ ATTRIBUTE="grimoire solo"
+    ASSUME="off"
+       DIR="grimoire-cpan"
+  HOMEPAGE="http://sorcerer.wox.org/grimoire"
+  ESTIMATE="5"
+     SHORT="grimoire-cpan generates a catalog for CPAN hosted perl modules."
+      LONG="
+grimoire-cpan is an experiment to provide a grimoire
+of the perl modules available from the
+Comprehensive Perl Archive Network.
+
+This is one massive grimoire.
+Therefore, increase the tmpfs size of 
+/var/state/sorcery to 512M to use this grimoire.
+Otherwise the index generatio will be incomplete.
+
+Since this is an experiment grimoire-cpan could dissapear tomrrow.
+The spells it provide have undocumented requirements.
+They might not compile without custom BUILD scripts.
+And lastly no xdelta upgrade patches are provided
+for spells cast from grimoire-cpan.
+"
+
+
+reorder_data()  {
+  while  read  N  D;  do
+    if    !  [  "$N"  ==  "$NAME"  ]
+    then     [  -n        "$NAME"  ]  &&  echo  "$NAME $DESC"
+          DESC="$D";  NAME="$N"
+    else  DESC="$DESC $D"
+    fi
+  done
+}
+
+
+write_categories()  {
+  local     CAT  BAT
+  for       CAT  in  $DESC
+  do        CAT="cpan-${CAT%%:*}"
+    if  !   [   "$CAT"  ==    "$BAT"  ];  then 
+      if    [           -n    "$BAT"  ]
+      then  echo  -n  " $CAT"
+      else  echo  -n   "$CAT"
+      fi
+      BAT="$CAT"
+    fi
+  done
+}
+
+
+write_details_variables()  {
+  echo      "   VERSION=( \"$VERSION\" )"
+  echo  -n  "  CATEGORY=\"";    write_categories;  echo  "\""
+  echo      " ATTRIBUTE=\"perl-module\""
+  echo      "    SOURCE=\"$SOURCE\""
+  echo      "       URL=\"http://search.cpan.org/CPAN/authors/id\""
+  echo      "  HOMEPAGE=\"http://www.cpan.org\""
+  echo      "       REQ=\"perl\""
+  echo      "     SHORT=\"$SPELL provides perl modules.\""
+  echo      "      LONG=\"\$SHORT"
+  echo  -e  "${DESC// /\n}\""
+}
+
+
+output_spell()  {
+  sed  -r  "s:(.*-)(.*)(\.tar\.gz):\1\2\3 \2:
+            s:(.*[/])(.*)([-][^-]*\.tar\.gz):\1\2\3 \2 :"  |
+  while  read  SOURCE  SPELL  VERSION  DESC;  do
+    if    [  -n  "$SPELL"  ];  then
+      write_details_variables  >  $SPELL
+      chmod  0755  $SPELL
+    fi
+  done
+}
+
+
+rename_conflicts()  {
+  rm  -f  *::*
+  mv  mod_perl  cpan--mod_perl
+  mv  libnet    cpan--libnet
+  mv  gettext   cpan--gettext
+
+  mv  DBI            cpan--DBI
+  mv  CGI-Lite       cpan-CGI-Lite
+  mv  DateManip      cpan-DateManip
+  mv  HTML-Template  cpan-HTML-Template
+  mv  Tk             cpan-Tk
+  mv  GDGraph        cpan-GDGraph
+  mv  XML-Parser     cpan-XML-Parser
+  mv  Mail-Sendmail  cpan-Mail-Sendmail
+  mv  perl           cpan-perl
+  mv  Net-SNMP       cpan-Net-SNMP
+  mv  SDL_perl       cpan-SDL_perl
+  mv  Newt           cpan-Newt
+  mv  Parse-RecDescent  cpan-Parse-RecDescent
+  mv  Spreadsheet-WriteExcel  cpan-Spreadsheet-WriteExcel
+}
+
+
+gather_data()  {
+  curl  -s  --connect-timeout 60 -L  \
+        http://www.cpan.org/modules/02packages.details.txt.gz  |
+  gzip  -cd                       |
+  tr    -s ' '                    |
+  grep  "\.tar\.gz$"              |
+  cut   -d ' '  -f1,3             |
+  sed   -r  "s:(.*) (.*):\2 \1:"  |
+  sort                            |
+  reorder_data                    |
+  output_spell
+  rename_conflicts
+}
+
+
+build()  {
+  gather_data                             &&
+  prepare_install                         &&
+  mkdir      -p  $GRIMOIRE_LIBRARY        &&
+  find       .   -type f  -printf "%P\n"  |
+  grep       -v  "\.ccache/reference"     |
+  tar_files  >   $GRIMOIRE_LIBRARY/$SPELL.tar
+}
