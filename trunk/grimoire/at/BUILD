@@ -4,6 +4,9 @@ SENDMAIL='#define  SENDMAIL  "/usr/sbin/sendmail"'
 
 (
 
+  bzip2  -cd  $SOURCE_CACHE/at_$VERSION-10.2.diff.bz2  |
+  patch  -p1
+
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --sysconfdir=/etc     \
