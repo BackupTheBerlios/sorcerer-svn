@@ -2,6 +2,7 @@
 
 case  $1  in
     start)  echo   "Starting Berkley Internet Name Domain"
+						modprobe capability &&
             named  -u  bind                         ;;
 
   restart)  rndc    stop
