@@ -1,0 +1,34 @@
+   VERSION=( "2.2.3" )
+  CATEGORY="interpreter"
+ ATTRIBUTE="console|x11"
+    SOURCE="Python-$VERSION.tgz"
+       URL="ftp://ftp.python.org/pub/python/$VERSION"
+  HOMEPAGE="http://www.python.org"
+       REQ="expat gmp ncurses readline"
+    OPT[0]="openssl:::for secure socket connections"
+    OPT[1]="tk:::for tk windowing system"
+  EPROVIDE="Python,v2.2"
+     SHORT="Python-v2.2 is an interpreted, interactive, object-oriented programming language."
+
+
+build()  {
+
+  make_shared_lib()  {
+    mkdir  .extract
+    cd     .extract
+    ar     xv  ../libpython2.2.a  1>/dev/null 2>&1
+    cd     ..
+    cc     -shared -o libpython2.2.so .extract/*.o
+    cp     libpython2.2.so  /usr/lib
+    ln     -sf  /usr/lib/libpython2.2.so  \
+                /usr/lib/python2.2/config/libpython2.2.so
+  }
+
+  ./configure  --prefix=/usr  \
+               --enable-ipv6  \
+               $OPTS          &&
+  make  "OPT=$CFLAGS"         &&
+  prepare_install             &&
+  make altinstall             &&
+  make_shared_lib
+}
