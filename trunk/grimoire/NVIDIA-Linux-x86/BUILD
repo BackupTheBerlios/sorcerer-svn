@@ -8,6 +8,10 @@ install_libs()  {
                    X11R6/lib/modules/extentions
   fi
 
+  GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
+  sed  -i  "s:__LIBGL_PATH__:/usr/lib:
+            s,__GENERATED_BY__,$GB,"    lib/libGL.la
+
   /sbin/ldconfig  -n  lib  lib/tls   \
                          X11R6/lib   \
                          X11R6/lib/modules/extensions
