@@ -7,6 +7,9 @@
   LANGUAGE="${LANGUAGE// /,}"
   ENABLE_LANGS="--enable-languages=${LANGUAGE:=c++}"
 
+  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
     LCF="LIBCFLAGS=$CFLAGS"
    LCXF="LIBCXXFLAGS=$CXXFLAGS"
      BF="BOOT_CFLAGS=$CFLAGS"
