@@ -37,8 +37,11 @@ fi
 
 ( 
 
-  echo  "If you use DRM, then enable it within linux, not xfree86."
-  sleep  3
+  echo  "Adding fontconfig-2.1.92"
+  cp    -av     fontconfig-2.1.92/*  lib/fontconfig/
+  rm    -rf     fontconfig-2.1.92
+  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
+  sed   -i      "s:@FC_FONTPATH@:/usr/share/fonts:"               lib/fontconfig/fonts.conf.in
 
   if    spell_installed  "$( get_provider  Linux-PAM  )"
   then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
