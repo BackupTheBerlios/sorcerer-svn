@@ -23,6 +23,16 @@
   export    CFLAGS="${CFLAGS/-O0/}"
   export  CXXFLAGS="${CXXFLAGS/-O0/}"
 
+  export    CFLAGS="${CFLAGS/-O3/-O2}"
+  export  CXXFLAGS="${CXXFLAGS/-03/-O2}"
+
+  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
+  export    CFLAGS="${CFLAGS/-ffast-math/}"
+  export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+
+
   echo  "$CFLAGS"  |
   grep  -q  "\-O"  ||
   export  CFLAGS="$CFLAGS -Os"
@@ -42,6 +52,7 @@
                --with-elf                     \
                --enable-shared                &&
   make                                        &&
+  make    tests                               &&
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
   make    install                             &&
