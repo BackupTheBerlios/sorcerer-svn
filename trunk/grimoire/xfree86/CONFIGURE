@@ -132,16 +132,6 @@ initialize()  {
 }
 
 
-host_def_optimizations()  {
-  echo  "#define DefaultCCOptions      $CFLAGS"
-  echo  "#define DefaultGcc2i386Opt    $CFLAGS"
-  echo  "#define LibraryCDebugFlags    $CFLAGS"
-  echo  "#define DefaultCDebugFlags    $CFLAGS"
-  echo  "#define OptimizedCDebugFlags  $CFLAGS"
-  echo  "#define HasZlib YES"
-}
-
-
 enter_to_space()  {  (
   while  read   ITEM;  do
     echo  -n  "$ITEM "
@@ -151,8 +141,6 @@ enter_to_space()  {  (
 
 
 generate_host_def()  {
-
-  host_def_optimizations
 
   if  [  -z  "$XF86CardDrivers"  ];  then
   XF86CardDrivers="$ON_CARD_DRIVERS"
@@ -190,15 +178,6 @@ save_host_def()  {
           6 60
 
   generate_host_def  >  $TARGET_CONFIG
-
-}
-
-
-auto_save()  {
-
-  if    !  [  -f  $TARGET_CONFIG  ]
-  then  host_def_optimizations  >  $TARGET_CONFIG
-  fi
 
 }
 
@@ -280,7 +259,7 @@ configure_host_def()  {
   do
 
     case  $COMMAND  in
-                 Exit)  auto_save;  break  ;;
+                 Exit)  break  ;;
                  Save)  save_host_def  ;;
                  Edit)  [  -n   "$EDITOR"  ]                   &&
                         $EDITOR  $CONFIG_LOGS/$SPELL/host.def  ||

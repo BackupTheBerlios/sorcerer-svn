@@ -1,7 +1,24 @@
-if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
-then  sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  \
-           $CONFIG_LOGS/$SPELL/host.def           \
-           >         config/cf/host.def
+if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ];  then
+  sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  \
+       $CONFIG_LOGS/$SPELL/host.def           \
+       >         config/cf/host.def
+  (
+    echo  "#define DefaultCCOptions       $CFLAGS"
+    echo  "#define DefaultGcc2i386Opt     $CFLAGS"
+    echo  "#define LibraryCDebugFlags     $CFLAGS"
+    echo  "#define DefaultCDebugFlags     $CFLAGS"
+    echo  "#define OptimizedCDebugFlags   $CFLAGS"
+    echo  "#define LOCAL_LDFLAGS          $LDFLAGS"
+    echo  "#define HasZlib                YES"
+    echo  "#define InstallXdmConfig       YES"
+    echo  "#define InstallXinitConfig     YES"
+    echo  "#define HasFreetype2           YES"
+    echo  "#define BuildFreetype2Library  NO"
+    echo  "#define BuildFreeType          NO"
+    
+
+  )  >> config/cf/host.def
+
 fi
 
 
@@ -9,10 +26,8 @@ fi
 
   echo  "If you use DRM, then enable it within linux, not xfree86."
   sleep  3
-  echo  "#define  InstallXdmConfig    YES"  >>  config/cf/site.def
-  echo  "#define  InstallXinitConfig  YES"  >>  config/cf/site.def
 
-  if  spell_installed  Linux-PAM
+  if    spell_installed  "$( get_provider  Linux-PAM  )"
   then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
   fi
 
