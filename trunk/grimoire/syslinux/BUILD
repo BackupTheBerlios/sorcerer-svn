@@ -2,6 +2,7 @@ case  $VERSION  in
   2.06)  patch  -p1  <  $SCRIPT_DIR/syslinux-2.06.patch  ;;
   2.07)  patch  -p1  <  $SCRIPT_DIR/syslinux-2.06.patch  ;;
   2.08)  patch  -p1  <  $SCRIPT_DIR/syslinux-2.06.patch  ;;
+  2.09)  patch  -p1  <  $SCRIPT_DIR/syslinux-2.06.patch  ;;
 esac
 
 if    spell_installed  gcc,ssp;  then
