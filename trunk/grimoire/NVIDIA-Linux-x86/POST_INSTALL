@@ -1,5 +1,10 @@
-if    !  grep  -q  "nvidia"                /etc/modules.conf
-then  echo  "alias char-major-195 nvidia"  /etc/modules.conf
+case  $BRANCH  in
+  linux-2.6)  MC=/etc/modprobe.conf  ;;
+          *)  MC=/etc/modules.conf
+esac
+
+if    !  grep  -q  "nvidia"                $MC
+then  echo  "alias char-major-195 nvidia"  $MC
 fi
 
 X11_PRO="$(  get_provider  x11  )"
@@ -11,3 +16,5 @@ grep  -v  "/lib/libGL\."             |
 grep  -v  "/extensions/libGLcore\."  |
 grep  -v  "/extensions/libglx\."     > $TMP_LOG
 mv  $TMP_LOG  $INSTALL_LOGS/$X11_PRO
+
+depmod  -a
