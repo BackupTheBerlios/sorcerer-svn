@@ -4,3 +4,32 @@ if    spell_installed  Python                                &&
       !  [  -e  /usr/lib/libpython2.2.so  ]
 then  echo  "Python"  >>  $INSTALL_QUEUE
 fi
+
+
+if    !  [  -d  /var/lib/sorcery/grimoire.merged  ];  then
+
+  echo  "Merged grimoire directory will now be /var/lib/sorcery/grimoire.merged"
+  echo
+  echo  "/var/lib/sorcery/grimoire.local will now contain only local spells"
+  echo  "Setting GRIMOIRE=/var/lib/sorcery/grimoire.merged in /etc/sorcery/local.config"
+
+  mkdir         /var/lib/sorcery/grimoire.merged
+  ln  -s        /var/lib/sorcery/grimoire/*  \
+                /var/lib/sorcery/grimoire.merged/
+
+  if     [  -d  /var/lib/sorcery/grimoire.local  ];  then  
+    for  SP  in  $(  ls  /var/lib/sorcery/grimoire.local  );  do
+      if    ls  -la      /var/lib/sorcery/grimoire.local/$SP  |
+            grep  -q    "/var/lib/sorcery/grimoire/"
+      then  
+        rm  -f  /var/lib/sorcery/grimoire.local/$SP
+      else
+        rm  -f  /var/lib/sorcery/grimoire.merged/$SP
+        ln  -s  /var/lib/sorcery/grimoire.local/$SP  \
+                /var/lib/sorcery/grimoire.local/$SP
+      fi
+    done
+  else  mkdir  /var/lib/sorcery/grimoire.local
+  fi
+  echo  "GRIMOIRE=/var/lib/sorcery/grimoire.merged"  >>  /etc/sorcery/local.config
+fi
