@@ -73,7 +73,7 @@ cd     build
               --without-gd                  \
               --without-cvs                 \
               --enable-shared               \
-              --enable-add-ons              \
+              --enable-add-ons=linuxthreads \
               $OPTS                         &&
 make                                        &&
 make    tests                               &&

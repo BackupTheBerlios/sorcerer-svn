@@ -56,9 +56,11 @@ esac
 # That variable is for packagers.
 
 
+#            --enable-threads=posix      \
+# --enable-threads=posix does not work on x86_64
 ./configure  --host=$BUILD               \
              --prefix=/opt/gcc/$VERSION  \
-             --enable-threads=posix      \
+             --enable-threads            \
              --enable-__cxa_atexit       \
              --enable-clocale=gnu        \
              --enable-shared             \
