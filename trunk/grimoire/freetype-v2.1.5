@@ -1,0 +1,34 @@
+   VERSION=( "2.1.5" )
+    IGNORE="^2\.1\.[6-9]"
+  CATEGORY="font"
+ ATTRIBUTE="library"
+    SOURCE="freetype-$VERSION.tar.bz2"
+       URL="ftp://ftp.freetype.org/freetype/freetype2"
+  HOMEPAGE="http://www.freetype.org"
+       REQ="zlib"
+  EPROVIDE="freetype,v2.1.5"
+  ESTIMATE="157"
+     SHORT="freetype-v2.1.5 is a free, quality, portable font engine."
+
+
+build()  {
+   OF="/opt/freetype"
+  OFL="$OF/lib"
+  ORP="-Wl,-rpath,$OFL -Wl,-rpath-link,$OFL"
+
+  modify_install()  {
+    cp   -a  include/freetype                  $OF/include
+    ln   -s  libfreetype.a                     $OF/lib/libfreetype-2.1.5.a
+    sed  -i  "s:-lfreetype:-lfreetype-2.1.5:"  $OF/bin/freetype-config
+  }
+
+  # make  setup  CFG="--prefix=$OF"  &&
+  ./configure  --prefix=$OF        \
+               --enable-static     \
+               --disable-shared    &&
+  make                             &&
+  mkdir  -p  $OF                   &&
+  prepare_install                  &&
+  make    install                  &&
+   modify_install
+}
