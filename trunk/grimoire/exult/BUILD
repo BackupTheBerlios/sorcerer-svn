@@ -11,6 +11,7 @@
                --sysconfdir=/etc     \
                --localstatedir=/var  \
                --bindir=/usr/games   \
+               --disable-timidity    \
                $OPTS                 &&
   make                               &&
   prepare_install                    &&
