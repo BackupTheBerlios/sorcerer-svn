@@ -29,8 +29,8 @@
 (
 
   mkdir  -p  /usr/share/httpd/logs
+  mkdir  -p  /var/lib/httpd/run
   sedit  "s:/usr/bin:/usr/sbin:"           /usr/sbin/apachectl
-  sedit  "s:run/httpd.pid:log/httpd.pid:"  /usr/sbin/apachectl
   cp  $SCRIPT_DIR/apache.sh       /etc/init.d
 
   if  $APACHE_BOOT;  then
