@@ -18,7 +18,10 @@
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset  LD_PRELOAD
 
-  patch  -p1  <  $SCRIPT_DIR/gcc-$VERSION.patch
+  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch
+
+  # 3.2.2 now supports the DESTDIR Makefile variable
+  # but isn't specifying a prefix good enough?
 
   ./configure  --host=$BUILD               \
                --prefix=/opt/gcc/$VERSION  \
@@ -42,6 +45,17 @@
   cp  -sfa  /opt/gcc/$VERSION/info/*    /usr/info/
   cp  -sfa  /opt/gcc/$VERSION/share/*   /usr/share/
   rm  -f    /usr/bin/cc
+
+  # old .la, libtool archives, will point to other .la files 
+  # that were in /opt/gcc/3.2.1
+
+  mkdir  -p  /opt/gcc/3.2.1/
+  rm     -r  /opt/gcc/3.2.1/lib     2>/dev/null
+  ln     -s  /opt/gcc/$VERSION/lib  /opt/gcc/3.2.1/lib
+
+  if    [   -h  /usr/info/dir  ]
+  then  rm  -f  /usr/info/dir
+  fi
 
   true
 
