@@ -1,5 +1,4 @@
 install_libs()  {
-
   cd  $BUILD_DIR/usr
 
   if    /lib/libc.so.6   |
@@ -48,17 +47,28 @@ make_device_nodes()  {
   rm     -f    $NODE
   mknod        $NODE  c  195  255
   chmod  0666  $NODE
+  install  -m 0744  $SCRIPT_DIR/nvidia.sh  /etc/init.d/
+  ln       -sf      /etc/init.d/nvidia.sh  /etc/rc5.d/S99nvidia
   true
 }
+
+LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+
+if    [  -z  "$LVER"  ]
+then           LVER=$(  uname  -r  )
+fi
 
 chown  -R  root:root  *
 cd  usr/src/nv
 
 rm  -f  makefile         Makefile
-cp      Makefile.nvidia  Makefile
 
-if  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
-then
+case  $LVER  in
+  2.4*)  cp  Makefile.nvidia  Makefile  ;;
+     *)  cp  Makefile.kbuild  Makefile  ;;
+esac
+
+
    SM="/usr/src/linux/System.map"
   SSC="suser-sanity-check"
   RSC="rmmod-sanity-check"
@@ -67,14 +77,10 @@ then
   sed  -i  "s:depmod:true:"               Makefile
   sed  -i  "s:modprobe:true:"             Makefile
   sed  -i  "s:$SSC $RSC:$SSC:"            Makefile
+  sed  -i  "s:install rmmod-sanity-check:install:"    Makefile
 #  sed  -i  "s: rmmod-check::"             Makefile
 #  sed  -i  "s:sh conftest.sh rmmod:true :"   Makefile
 
-else
-  echo  "linux-kernel is not detected as installed."
-  echo  "Please cast linux before casting this spell."
-  false
-fi  &&
 
 prepare_install                        &&
 make    install  IGNORE_CC_MISMATCH=1  &&
