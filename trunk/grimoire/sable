@@ -1,0 +1,28 @@
+  VERSION=( "0.3" )
+  CATEGORY="game"
+ ATTRIBUTE="x11 new"
+    SOURCE="sable-$VERSION-src.tar.gz"
+       URL="http://www.stanford.edu/~mcmartin/sable"
+  HOMEPAGE="http://www.stanford.edu/~mcmartin/sable"
+       REQ="SDL_image SDL_mixer"
+      OPTS="--bindir=/usr/games"
+  ESTIMATE="1153"
+      DESC="sable is a 3d space shooter inspired by After Burner and Space Harrier."
+
+build()  {
+find  sfx textures  -type d  |  xargs  -l64  chmod 0755
+find  sfx textures  -type f  |  xargs  -l64  chmod 0644
+
+USGS="/usr/share/games/sable"
+USDS="/usr/share/doc/sable"
+sed  -i  "s:sfx/:$USGS/sfx/:"            src/sound.cpp
+sed  -i  "s:textures/:$USGS/textures/:"  src/textures.cpp
+sed  -i  "s:CFLAGS = :CFLAGS = $CFLAGS :
+          s:LDFLAGS = :LDFLAGS = $LDFLAGS -L/usr/X11R6/lib :"  src/Makefile
+make                            &&
+prepare_install                 &&
+mkdir  -p         $USDS  $USGS  &&
+cp     -r  sfx textures  $USGS  &&
+install  -m 0755  -o root  -g root  -D sable  /usr/games/sable  &&
+install  -m 0644  -o root  -g root  README    $USDS
+}
