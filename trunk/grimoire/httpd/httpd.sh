@@ -6,10 +6,10 @@ make_dirs()  {
 }
 
 case $1 in
-  start)         echo  "Starting Apache web server."
+  start)         echo  "Starting httpd web server."
                  make_dirs;  apachectl  startssl
                  ;;
-  restart|stop)  echo  "$1ing Apache web server."
+  restart|stop)  echo  "$1ing httpd web server."
                  make_dirs;  apachectl  $1
                  ;;
              *)  echo      "Usage: $0 {start|stop|restart}"
