@@ -7,5 +7,4 @@ unset  LANG  LC_CTYPE
 
 ./Configure  -Dprefix=/usr -d -e -Dusethreads  $SETARCH
 make  "OPTIMIZE=$CFLAGS"  &&
-prepare_install           &&
-make    install
+make  install

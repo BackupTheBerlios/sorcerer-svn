@@ -14,5 +14,4 @@
              --enable-modules=yes  \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install
+make  install

@@ -14,6 +14,5 @@ case  $BRANCH  in
 esac
 
 
-make  -C src     &&
-prepare_install  &&
-make  -C src install
+make  -C src  &&
+make  -C src  install

@@ -3,6 +3,5 @@
              --with-nls                  \
              $OPTS  &&
 make                &&
-prepare_install     &&
-make    install     &&
-make    install-all-headers
+make  install       &&
+make  install-all-headers

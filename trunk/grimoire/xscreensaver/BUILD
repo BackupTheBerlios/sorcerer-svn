@@ -4,5 +4,4 @@
              --localstatedir=/var  \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install  datadir=/usr/share
+make  install  datadir=/usr/share

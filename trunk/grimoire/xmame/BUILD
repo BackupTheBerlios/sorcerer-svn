@@ -25,15 +25,13 @@ activate_voyeur
     0.79.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
   esac
 
-  make  PREFIX=/usr           \
-        BINDIR=/usr/games     \
-        CFLAGS="$CFLAGS"      \
-        CXXFLAGS="$CXXFLAGS"  \
-        -f  makefile.unix     &&
-  prepare_install             &&
-  make  PREFIX=/usr           \
-        BINDIR=/usr/games     \
-        -f  makefile.unix     \
-        install
+  make           PREFIX=/usr           \
+                 BINDIR=/usr/games     \
+                 CFLAGS="$CFLAGS"      \
+                 CXXFLAGS="$CXXFLAGS"  \
+                 -f  makefile.unix     &&
+  make  install  PREFIX=/usr           \
+                 BINDIR=/usr/games     \
+                 -f  makefile.unix
 
 ) &> $C_FIFO

@@ -9,8 +9,7 @@ sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
              --enable-linux-netfilter          \
              $OPTS                             &&
 make                                           &&
-prepare_install                                &&
-make    install                                &&
+make  install                                  &&
 mkdir  -p                  /var/cache/squid    &&
 chown  -R  nobody.nogroup  /var/cache/squid    &&
 cp  $SCRIPT_DIR/squid.sh   /etc/init.d         &&

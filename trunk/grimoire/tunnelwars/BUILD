@@ -6,5 +6,4 @@ export  LDFLAGS="-L$G/lib $LDFLAGS -Wl,-rpath=$G/lib"
              --bindir=/usr/games  \
              $OPTS                &&
 make                              &&
-prepare_install                   &&
-make    install
+make  install

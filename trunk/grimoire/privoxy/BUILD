@@ -18,8 +18,8 @@ autoconf
              --localstatedir=/var       \
              $OPTS                      &&
 make                                    &&
-prepare_install                         &&
-make -s install  USER=privoxy  GROUP=privoxy  &&
+make  install   USER=privoxy            \
+               GROUP=privoxy            &&
 
 # replace the init script 
 cp  -f  $SCRIPT_DIR/privoxy.init  \

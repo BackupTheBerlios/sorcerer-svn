@@ -18,5 +18,4 @@ export  PATH="/opt/bison/1.35/bin:$PATH"
              --disable-hidesetuid  \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install
+make  install

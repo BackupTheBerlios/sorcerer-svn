@@ -10,9 +10,8 @@ sed  -i  "s:-lqt:-lqt-mt:"  xcwcp/Makefile.in
              --sysconfdir=/etc      \
              --localstatedir=/var   \
              $OPTS                  &&
-make        all                     &&
-prepare_install                     &&
-make    install                     &&
+make      all                       &&
+make  install                       &&
 ln  -sf  /usr/man/man1/xcwcp.1.gz   \
          /usr/man/man1/unixcw.1.gz  &&
 cp  $SCRIPT_DIR/unixcw  /usr/bin

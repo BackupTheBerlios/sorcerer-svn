@@ -8,5 +8,4 @@ sed  -i  "s:-Wl,-Bstatic::"  Makefile.in
              --localstatedir=/var  \
              $OPTS                 &&
 make  CFLAGS="${CFLAGS} -DMD_VERSION=\\\"${VERSION}\\\""  &&
-prepare_install  &&
-make    install
+make  install

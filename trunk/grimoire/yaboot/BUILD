@@ -1,3 +1,2 @@
-make             ROOT=  &&
-prepare_install         &&
-make    install  ROOT=  PREFIX=/usr
+make           ROOT=  PREFIX=/usr  &&
+make  install  ROOT=  PREFIX=/usr

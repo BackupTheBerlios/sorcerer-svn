@@ -8,6 +8,5 @@ sed  -i  "1i#define NOT_IN_libc 1"  lib/plasticfs/opendir.cc
              --localstatedir=/var  \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install  HAVE_GROFF=no     &&
-cp     -r  man  /usr/
+make  install  HAVE_GROFF=no       &&
+cp    -r  man  /usr/
