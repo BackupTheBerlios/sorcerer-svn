@@ -20,6 +20,8 @@ install_init()  {
 
 }
 
+sed  -i  's:rootcheck="$withval":rootcheck="$enableval":'  configure
+
 ./configure  --prefix=/usr                       \
              --localstatedir=/var/state/courier  \
              --sysconfdir=/etc/courier           \
