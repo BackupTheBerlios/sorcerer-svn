@@ -22,7 +22,9 @@ fi
 EDITOR=`which $EDITOR  2>/dev/null`  ||
 EDITOR=`which nano`
 
-sed  -i  "s:-O2:$CFLAGS:"  configure
+sed  -i  "s:-O2:$CFLAGS:"                 configure
+sed  -i  "s,next_file:,next_file:\
+;,"  conf.c
 
 ./configure  --prefix=/usr          \
              --with-answer-all=no   \
