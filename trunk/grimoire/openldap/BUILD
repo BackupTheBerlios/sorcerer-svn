@@ -1,5 +1,7 @@
 (
 
+  sedit  "s:ret, name:ret, NULL, name:"  libraries/libldbm/ldbm.c
+
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --sysconfdir=/etc     \
