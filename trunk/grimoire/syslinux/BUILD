@@ -1,6 +1,6 @@
 ( 
 
-  rm  -f  $(  find . -name .depend )
+#  rm  -f  $(  find . -name .depend )
   make             &&
   prepare_install  &&
   make    install
