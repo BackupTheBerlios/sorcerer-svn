@@ -10,12 +10,11 @@ start() {
 
 stop()  {
   echo  -n  "Stopping swapd..."
-  [     -f            $PID  ]  &&
-  kill  -15  $(  cat  $PID  )
-  rm    -f            $PID
+  [     -f        $PID  ]  &&
+  kill  -15  $(<  $PID  )
+  rm    -f        $PID
   echo  "done."
 }
-
 
 case  $1  in
     start)  start  ;;
