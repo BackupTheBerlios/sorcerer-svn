@@ -4,6 +4,7 @@ start() {
 
   !  [  -d  /devices  ]  ||  mount   -n  -t  devfs devfs /devices
 
+  mount   -n      proc
   mount   -n  -o  remount,ro  /
 
   echo    -n  "Activating swap... "
