@@ -1,15 +1,44 @@
-build_apxs2()  {
+PHP_CONFIGURE="\
+--prefix=/usr                 \
+--sysconfdir=/etc             \
+--with-config-file-path=/etc  \
+--disable-static              \
+--disable-debug               \
+--disable-rpath               \
+--enable-inline-optimization  \
+--enable-pic                  \
+--enable-bcmath               \
+--enable-magic-quotes         \
+--enable-track-vars           \
+--enable-safe-mode            \
+--enable-sysvsem              \
+--enable-sysvshm              \
+--enable-force-cgi-redirect   \
+--enable-trans-sid            \
+--enable-yp                   \
+--enable-ftp                  \
+--enable-wddx                 \
+--enable-filepro              \
+--enable-dbase                \
+--with-regex=system           \
+--with-versioning             \
+--with-gettext                \
+--with-mod_charset            \
+--with-layout=GNU             \
+--with-zlib                   \
+--with-x-includes=/usr/X11R6/include  \
+--with-x-libraries=/usr/X11R6/lib"
 
+
+build_apxs2()  {
+    
   rm  -rf             /usr/src/php-$VERSION-apxs2
   cp  -a  $BUILD_DIR  /usr/src/php-$VERSION-apxs2
   cd                  /usr/src/php-$VERSION-apxs2
   sedit  's:!MODULE_MAGIC_AT_LEAST(20020506,0):MODULE_MAGIC_NUMBER < 20020506:' sapi/apache2filter/php_functions.c
-  ./configure  --prefix=/usr                 \
-               --sysconfdir=/etc             \
-               --with-config-file-path=/etc  \
-               --with-gettext                \
-               --with-apxs2                  \
-               $OPTS                         &&
+  ./configure  $PHP_CONFIGURE  \
+               --with-apxs2    \
+               $OPTS           &&
   make
 
 }
@@ -20,13 +49,9 @@ build_apxs()  {
   rm  -rf             /usr/src/php-$VERSION-apxs
   cp  -a  $BUILD_DIR  /usr/src/php-$VERSION-apxs
   cd                  /usr/src/php-$VERSION-apxs
-
-  ./configure  --prefix=/usr                 \
-               --sysconfdir=/etc             \
-               --with-config-file-path=/etc  \
-               --with-gettext                \
-               --with-apxs                   \
-               $OPTS                         &&
+  ./configure  $PHP_CONFIGURE  \
+               --with-apxs     \
+               $OPTS           &&
   make
 
 }
@@ -37,37 +62,42 @@ build_apxs()  {
   APACHE_PROVIDER="$(  get_provider  apache  )"
 
   if    spell_installed  $APACHE_PROVIDER;  then
-
-    APACHE_VERSION="$(  installed_version  $APACHE_PROVIDER  )"
-    if    [  "${APACHE_VERSION:0:1}"  ==  1  ]
-    then  build_apxs
-    else  build_apxs2
-    fi
-
+    case  $APACHE_PROVIDER  in
+      apache)  build_apxs   ;;
+       httpd)  build_apxs2  ;;
+    esac
   fi  &&
 
-  cd  $BUILD_DIR                             &&
-  ./configure  --prefix=/usr                 \
-               --sysconfdir=/etc             \
-               --with-config-file-path=/etc  \
-               --with-gettext                \
-               $WITH_APACHE                  \
-               $OPTS                         &&
-  make                                       &&
-  prepare_install                            &&
-  make    install                            &&
-  if    [  -d  /usr/src/php-$VERSION-apxs  ];  then 
-    cd   /usr/src/php-$VERSION-apxs
-    make   install
-  elif  [  -d  /usr/src/php-$VERSION-apxs2  ];  then 
-    cd   /usr/src/php-$VERSION-apxs2
-    make   install
+  cd  $BUILD_DIR                  &&
+  ./configure  $PHP_CONFIGURE     \
+               $OPTS              &&
+  mv  imagick-0.1.1  ext/imagick  &&
+  cd                 ext/imagick  &&
+  sh  ../../pear/scripts/phpize   &&
+  cd  $BUILD_DIR                  &&
+  rm  -f  configure               &&
+  /usr/bin/aclocal                &&
+  ./buildconf                     &&
+  
+  ./configure  $PHP_CONFIGURE           \
+               --with-imagick           \
+               --with-xpm-dir=/usr/lib  \
+               $OPTS                    &&
+  make                                  &&
+  prepare_install                       &&
+  make    install                       &&
+  if    [  -d  /usr/src/php-$VERSION-apxs   ]
+  then  cd     /usr/src/php-$VERSION-apxs;    make   install
+  elif  [  -d  /usr/src/php-$VERSION-apxs2  ]
+  then  cd     /usr/src/php-$VERSION-apxs2;   make   install
   fi
 
+  
 ) > $C_FIFO 2>&1  &&  (
 
   cd  $BUILD_DIR
-  rm  -rf  /usr/src/php-$VERSION-apxs  /usr/src/php-$VERSION-apxs2
+  rm  -rf  /usr/src/php-$VERSION-apxs  \
+           /usr/src/php-$VERSION-apxs2
 
   if    !   [  -e         /etc/php.ini  ]
   then  cp  php.ini-dist  /etc/php.ini
