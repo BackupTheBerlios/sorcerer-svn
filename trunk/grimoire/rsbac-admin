@@ -1,0 +1,34 @@
+   VERSION=( "v1.2.3" )
+  CATEGORY="security"
+ ATTRIBUTE="console new"
+ SOURCE[0]="rsbac-admin-$VERSION.tar.bz2"
+ SOURCE[1]="rsbac-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.rsbac.org"
+       URL="http://www.rsbac.org/download/code/$VERSION"
+      OPTS="--with-kerneldir=$SOURCE_DIR/rsbac-admin-$VERSION"
+       REQ="dialog"
+  ESTIMATE="230"
+     SHORT="rsbac-admin provides administrations tools for RSBAC."
+      LONG="
+$SHORT
+Rule Set Based Access Control (RSBAC) provides 
+security extension for current Linux kernels.
+It is based on the Generalized Framework for 
+Access Control (GFAC) by Abrams and LaPadula and provides 
+a flexible system of access control based on several modules.
+All security relevant system calls are 
+extended by security enforcement code.
+This code calls the central decision component, 
+which in turn calls all active decision modules 
+and generates a combined decision. 
+This decision is then enforced by the system call extensions.
+"
+
+build()  {
+  case  $(  arch  )  in
+    i?86)   sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-i386.h>"  ./src/syscall_wrapper.c  ;;
+    alpha)  sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-alpha.h>"  ./src/syscall_wrapper.c  ;;
+    ppc)    sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-ppc.h>"  ./src/syscall_wrapper.c  ;;
+  esac
+  default_build
+}
