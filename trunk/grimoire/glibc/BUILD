@@ -20,18 +20,6 @@ del_cached_glibc()  {
 }
 
 
-fix_glibc_install_log()  {
-  GLIBC=$(  get_provider  glibc  )
-  FILE=$INSTALL_LOGS/$GLIBC
-
-  if    [  -f  $FILE  ]  &&
-        !  grep  -qx  "/lib/ld-linux.so.2"      $FILE
-  then  echo          "/lib/ld-linux.so.2"  >>  $FILE
-  fi
-}
-
-fix_glibc_install_log
-
 LD_PRELOAD_OLD="$LD_PRELOAD"
 unset  LD_PRELOAD
 unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
