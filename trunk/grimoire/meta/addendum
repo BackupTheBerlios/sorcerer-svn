@@ -1,73 +1,42 @@
-destroy()  {
-  if    spell_installed   $1;  then
-    dispel  --unsafe      $1
-    rm  -f  $INSTALL_LOGS/$1
-    rm  -f  $COMPILE_LOGS/$1
-    rm  -f  $VERSION_LOGS/$1
-    rm  -f   $MD5SUM_LOGS/$1
-  fi
-}
+guess_filename_new()  {  (
 
-# The following spells have been renamed.
-# The following damage will be healed.
+  BN=$(  basename       $1   )
+  FN=$(  root_filename  $BN  )
 
-destroy  pygtk2
-destroy  gtk+2
-destroy  gtkmm2
-destroy  glib2
-destroy  GConf2
-destroy  gtk-engines2
-destroy  libglade2
-destroy  gnome-vfs2
-destroy  libgda2
-destroy  gnome-db2
-destroy  control-center2
-destroy  eel2
-destroy  freetype2
-destroy  librsvg2
-destroy  libsigc++2
+  find  $SOURCE_CACHE           \
+        $LEECH_DIR              \
+        -name  $FN          -o  \
+        -name  $FN.tar.bz2  -o  \
+        -name  $FN.tar.gz   -o  \
+        -name  $FN.tgz      -o  \
+        -name  $FN.bz2      -o  \
+        -name  $FN.gz       -o  \
+        -name  $FN.zip      -o  \
+        -name  $BN      2>/dev/null  |
+  head  -1
 
-destroy  pygtk1
-destroy  gtk+1
-destroy  gtkmm1
-destroy  glib1
-destroy  GConf1
-destroy  gtk-engines1
-destroy  libglade1
-destroy  gnome-vfs1
-destroy  libgda1
-destroy  gnome-db1
-destroy  control-center1
-destroy  eel1
-destroy  freetype1
-destroy  librsvg1
-destroy  libsigc++1
+)  }
 
 
-(
+if    !  [   -d  $SOURCE_CACHE/sorcery  ];  then
 
-  cd  $INSTALL_LOGS
-  grep  "/usr/lib/libstdc++.la"                \
-        $( find /lib  /usr/lib -name \*.la  )  |
-  cut  -d :  -f1                               |
-  while  read     FILE
-  do     grep  "^$FILE$"  *
-  done            |
-  cut  -d :  -f1  |
-  sort            |
-  uniq            >>  $INSTALL_QUEUE
+  cd  $SOURCE_CACHE
+  mkdir  -p                             TRASH
+  mv  $(  find * -type f -maxdepth 0 )  TRASH
 
-)
+  for  SPELL  in  $(  show_grimoire  );  do
+       VER=$(  available_version  $SPELL  )
+    for  SOURCE  in  $(  sources  $SPELL  );  do
+      FILE=$(  guess_filename_new  $SOURCE  )
 
+      if    [  -n   "$FILE"  ];  then
+        touch        $FILE
+        mkdir  -p           $SPELL/$VER
+        #  echo  "ln $FILE  $SPELL/$VER"
+        ln           $FILE  $SPELL/$VER
+      fi
 
-if    grep  -q  "optimize"  /etc/sorcery/local.config
-then  cp                    /etc/sorcery/local.config  \
-                            /tmp/sorcery.local.config.$$
-      grep  -v  "optimize"  /tmp/sorcery.local.config.$$  \
-                         >  /etc/sorcery/local.config
-      rm    -f              /tmp/sorcery.local.config.$$
-fi
+    done
+  done
 
-if    spell_installed  sorcery,dev
-then  cast  sorcery
 fi
