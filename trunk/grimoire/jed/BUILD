@@ -6,7 +6,8 @@
                  --prefix=/usr   &&
     make                         &&
     make  getmail		 &&
-    if    spell_installed xfree86
+    if    echo      "$OPTS"      |
+          grep  -q  "\--with-x"
     then  make  xjed
     fi                           &&
     prepare_install              &&
