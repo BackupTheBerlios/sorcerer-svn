@@ -37,12 +37,13 @@ fi
 
 ( 
 
-  echo  "Adding fontconfig-2.1.92"
-  cp    -av     fontconfig-2.1.92/*  lib/fontconfig/
-  rm    -rf     fontconfig-2.1.92
-  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
-  sed   -i      "s:@FC_FONTPATH@:<dir>/usr/share/fonts</dir>:"    lib/fontconfig/fonts.conf.in
-  sed   -i      "s:@VERSION@:2.1.92:"                             lib/fontconfig/fontconfig.pc.in
+  echo   "Adding fontconfig-2.2.0"
+  patch  -p0  <  $SCRIPT_DIR/fontconfig-2.2.0.patch
+  cp     -av     fontconfig-2.2.0/*  lib/fontconfig/
+  rm     -rf     fontconfig-2.2.0
+#  sed   -i      "s:@FC_DEFAULT_FONTS@:/usr/X11R6/lib/X11/fonts:"  lib/fontconfig/fonts.conf.in
+#  sed   -i      "s:@FC_FONTPATH@:<dir>/usr/share/fonts</dir>:"    lib/fontconfig/fonts.conf.in
+#  sed   -i      "s:@VERSION@:2.2.0:"                              lib/fontconfig/fontconfig.pc.in
 
   if    spell_installed  "$( get_provider  Linux-PAM  )"
   then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
