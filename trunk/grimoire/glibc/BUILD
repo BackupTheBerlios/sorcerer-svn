@@ -1,5 +1,18 @@
 (
 
+  fix_glibc_install_log()  {
+
+    for  FILE  in  $INSTALL_LOGS/glibc*;  do
+      if    [  -f  $FILE  ]  &&
+            !  grep  -q  -w  "/lib/ld-linux.so.2"      $FILE
+      then  echo             "/lib/ld-linux.so.2"  >>  $FILE
+      fi
+    done
+
+  }
+
+
+  fix_glibc_install_log
   patch -p1  <  $SCRIPT_DIR/glibc-2.3.patch
 
   LD_PRELOAD_OLD="$LD_PRELOAD"
@@ -22,7 +35,6 @@
                --enable-add-ons=linuxthreads  \
                --disable-profile              \
                --with-elf                     \
-               --enable-kernel=2.4.11         \
                --enable-shared                &&
   make                                        &&
   prepare_install                             &&
