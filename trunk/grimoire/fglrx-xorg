@@ -1,0 +1,54 @@
+   VERSION=( "6_8_0-8.10.19-1" "3.12.0" "3.9.0" )
+  CATEGORY="kernel"
+ ATTRIBUTE="linux-26-module x11 x86 new broken"
+# This might never run because
+# /usr/X11R6/lib/modules/dri/fglrx_dri.so
+# requires
+# libstdc++.so.5
+# So unless you have an ancient libstdc++ forget about using this.
+    SOURCE="fglrx_$VERSION.i386.rpm"
+       URL="http://www2.ati.com/drivers/linux"
+  HOMEPAGE="http://www.ati.com/support/drivers/linux/radeon-linux.html"
+       REQ="cpio qt-x11-free rpmunpack"
+  ESTIMATE="34"
+      DESC="fglrx-xorg contains drivers provided by ATI for radeon class graphics cards."
+
+build()  {
+make_install()  {
+  chmod      0755   $(  find  $BUILD_DIR  -type d  )
+  mkdir  -p             $MOD_DIR
+  cp         *.o  *.ko  $MOD_DIR
+  cd                $BUILD_DIR/usr
+  cp     -a  share            /usr
+  cd         $BUILD_DIR/usr
+  cp     -a  X11R6     /usr
+  true
+}
+
+
+LVER=$(  installed_version  $(  get_provider  linux  )  )
+
+if    [  -z  "$LVER"  ]
+then           LVER=$( uname -r )
+fi
+
+case  $LVER  in
+  2.4)  MOD_DIR="/lib/modules/$LVER/kernel/drivers/video"      ;;
+    *)  MOD_DIR="/lib/modules/$LVER/kernel/drivers/char/drm/"  ;;
+esac
+
+
+cd  lib/modules/fglrx/build_mod
+
+chmod  0755  make.sh
+sed  -i  "s:\`uname -r\`:\"$LVER\":"  make.sh
+
+./make.sh        &&
+prepare_install  &&
+   make_install
+}
+
+
+post_install()  {
+depmod  -a  -q  -F  /boot/System.map
+}

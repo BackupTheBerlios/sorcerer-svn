@@ -1,25 +1,12 @@
 make_install()  {
-
   chmod      0755   $(  find  $BUILD_DIR  -type d  )
   mkdir  -p             $MOD_DIR
-  cp     -r  *.o  *.ko  $MOD_DIR
+  cp         *.o  *.ko  $MOD_DIR
   cd                $BUILD_DIR/usr
   cp     -a  share            /usr
-
-# We don't have ancient libpng installed on Sorcerer boxes.
-# ldd fireglcontrol.qt3.gcc3.2 | grep not
-#         libpng10.so.0 => not found
-
-  cd         X11R6/bin
-# mv         fireglcontrol.qt3.gcc3.2.bz2  \
-#            fireglcontrol.bz2
-# bunzip2    fireglcontrol.bz2
-  rm  -f     fireglcontrol.*  LICENSE.*
-
   cd         $BUILD_DIR/usr
   cp     -a  X11R6     /usr
   true
-
 }
 
 
