@@ -5,6 +5,6 @@ unset  REQ  VERSION  ATTRIBUTE
        REQ="quake"
   ESTIMATE="5"
      SHORT="darkplace,mod provides mods for darkplaces game."
-cat << EOF
+stream << EOF
 darkplaces,mod provides mods for darkplaces game.
 EOF
