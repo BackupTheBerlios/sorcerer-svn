@@ -1,14 +1,19 @@
    VERSION=( "2.2.0" )
   CATEGORY="network"
- ATTRIBUTE="kde"
+ ATTRIBUTE="kde new"
     SOURCE="guarddog-$VERSION.tar.gz"
   HOMEPAGE="http://www.simonzone.com/software/guarddog"
        URL="http://www.simonzone.com/software/guarddog"
        REQ="gawk iptables kdelibs"
   ESTIMATE="86"
-      DESC="Guarddog is a firewall configuration utility for Linux systems. Guarddog is aimed at two groups of users. Novice to intermediate users who are not experts in TCP/IP networking and security, and those users who don't want the hassle of dealing with cryptic shell scripts and ipchains/iptables parameters."
+      DESC="guarddog is a firewall configuration utility for Linux systems. 
+guarddog is aimed at two groups of users. Novice to intermediate users 
+who are not experts in TCP/IP networking and security, and those users 
+who don't want the hassle of dealing with cryptic shell scripts and 
+ipchains/iptables parameters."
 
-post_install() {
+
+install_init() {
  touch /etc/rc.firewall				&&
  chmod 0755 /etc/rc.firewall			&&
  cp -s /etc/rc.firewall /etc/rc3.d/S99guarddog	&&
@@ -21,13 +26,19 @@ post_install() {
  cp -s /etc/rc.firewall /etc/rc6.d/K99guarddog
 }
 
-post_remove() {
- rm /etc/rc3.d/S99guarddog	&&
- rm /etc/rc4.d/S99guarddog	&&
- rm /etc/rc5.d/S99guarddog	&&
- rm /etc/rcS.d/S99guarddog	&&
- rm /etc/rc0.d/K99guarddog	&&
- rm /etc/rc1.d/K99guarddog	&&
- rm /etc/rc2.d/K99guarddog	&&
- rm /etc/rc6.d/K99guarddog
+build() {
+ default_build
+ install_init
 }
+
+post_remove() {
+ rm /etc/rc3.d/S99guarddog 2>/dev/null	&&
+ rm /etc/rc4.d/S99guarddog 2>/dev/null	&&
+ rm /etc/rc5.d/S99guarddog 2>/dev/null	&&
+ rm /etc/rcS.d/S99guarddog 2>/dev/null	&&
+ rm /etc/rc0.d/K99guarddog 2>/dev/null	&&
+ rm /etc/rc1.d/K99guarddog 2>/dev/null	&&
+ rm /etc/rc2.d/K99guarddog 2>/dev/null	&&
+ rm /etc/rc6.d/K99guarddog 2>/dev/null
+}
+
