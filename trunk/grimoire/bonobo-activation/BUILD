@@ -1,15 +1,16 @@
 ( 
 
-  mkdir  bison
-  cd     bison-1.35  &&
-  ./configure  --prefix=$BUILD_DIR/bison      &&
-  make  install                               &&
-  cd    ..                                    &&
-  export  PATH="$BUILD_DIR/bison/bin:$PATH"   &&
+
+  if    [  "$PREFIX"  ==  "/usr"  ]
+  then  SCD="/etc"
+  else  SCD="$PREFIX/etc"
+  fi
+
+  export  PATH="/opt/bison/1.35/bin:$PATH"
 
   ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
+               --prefix=$PREFIX      \
+               --sysconfdir=$SCD     \
                --localstatedir=/var  \
                $OPTS                 &&
   make                               &&

@@ -34,12 +34,7 @@ fi
   bzip2  -cd  $(  guess_filename  ${SOURCE[3]}  )  |  patch  -p1
   cat         $(  guess_filename  ${SOURCE[4]}  )  |  patch  -p1
 
-  mkdir  bison
-  cd     bison-1.35  &&
-  ./configure  --prefix=$BUILD_DIR/bison      &&
-  make  install                               &&
-  cd    ..                                    &&
-  export  PATH="$BUILD_DIR/bison/bin:$PATH"   &&
+  export  PATH="/opt/bison/1.35/bin:$PATH"
 
   make  World                      &&
   prepare_install                  &&
