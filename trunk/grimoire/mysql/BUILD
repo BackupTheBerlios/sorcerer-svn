@@ -38,9 +38,9 @@ sed  -i  "s:/libssl.a:/libssl.so:"  configure
              --enable-thread-safe-client     \
              --with-comment="MySQL-MAX-$VERSION "  \
              $OPTS                          &&
-make  pkglibdir=/usr/lib                    &&
+make             pkglibdir=/usr/lib         &&
 prepare_install                             &&
-make  install pkglibdir=/usr/lib  install   &&
+make    install  pkglibdir=/usr/lib         &&
  
 if  ! $CLIENT_ONLY;  then
   mysql_install_db

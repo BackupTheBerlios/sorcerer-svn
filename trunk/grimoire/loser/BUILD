@@ -9,5 +9,4 @@ esac
              --localstatedir=/var   \
              $OPTS                  &&
 make                                &&
-prepare_install                     &&
-make    install
+make  install

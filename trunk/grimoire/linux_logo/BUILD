@@ -15,8 +15,7 @@ echo  "${SCRIPT_DIR}/sorcerer.logo"        >> logo_config
 # echo  "${SCRIPT_DIR}/sorcerer-banner.logo"  >>  logo_config
 
 make                           &&
-prepare_install                &&
-make  DESTDIR=/usr  install    &&
+make  install  DESTDIR=/usr    &&
 cp  $SCRIPT_DIR/linux_logo.sh  \
                /etc/init.d     &&
 

@@ -2,6 +2,5 @@
              --prefix=/usr   \
              $OPTS           &&
 make                         &&
-prepare_install              &&
 make    install              &&
 chmod   a-s  /usr/bin/make

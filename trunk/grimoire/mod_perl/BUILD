@@ -4,5 +4,4 @@ OMIZ="OPTIMIZE=$CFLAGS"
 perl    Makefile.PL  \
         "$MPXS"      &&
 make    "$OMIZ"      &&
-prepare_install      &&
 make    install

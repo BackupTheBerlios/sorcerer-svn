@@ -23,7 +23,6 @@ restore_conf()  {
 save_conf
 ./configure   --build=$BUILD  \
               --prefix=/usr   &&
-make             $WHERE       &&
-prepare_install               &&
-make    install  $WHERE       &&
+make           $WHERE         &&
+make  install  $WHERE         &&
 restore_conf

@@ -11,5 +11,4 @@ fi
 ./configure  --prefix=/usr  \
              --enable-sdl   &&
 make                        &&
-prepare_install             &&
-make    install
+make  install

@@ -1,3 +1,2 @@
-make  PREFIX=/usr  linux    &&
-prepare_install             &&
-make  PREFIX=/usr  install
+make  linux    PREFIX=/usr  &&
+make  install  PREFIX=/usr
