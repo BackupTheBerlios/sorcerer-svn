@@ -1,14 +1,16 @@
 fake_redhat()  {
 
-  if  !  [  -d  /etc/rc.d  ]   ||
-      !  [  -h  /etc/rc.d  ];  then
-      ln  -s  . /etc/rc.d
+  if    !  [  -d  /etc/rc.d  ]   &&
+        !  [  -h  /etc/rc.d  ]
+  then  ln  -s  . /etc/rc.d
   fi
 
 }
 
+
 if  spell_installed  Linux-PAM;  then  OPTS="$OPTS  --enable-pam";  fi
 if  spell_installed  openssl;    then  OPTS="$OPTS  --enable-ssl";  fi
+
 
 (
 

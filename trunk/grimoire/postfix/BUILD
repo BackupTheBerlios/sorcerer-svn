@@ -25,10 +25,15 @@
 
   sedit  "s:/usr/local:/usr:"  src/global/mail_params.h
 
+  DBV="$(  installed_version  $(  get_provider  db  )  )"
+  case  ${DBV:0:3}  in
+    4.1)  sedit  "s:db, db_path:db, NULL, db_path:"  src/util/dict_db.c  ;;
+  esac
+
   make  "CC=gcc"               \
         "OPT=$CFLAGS"          \
         "AUXLIBS=$AUXLIBS"     \
-        "CCARGS=CCARGS"        &&
+        "CCARGS=$CCARGS"       &&
 
   prepare_install              &&
 

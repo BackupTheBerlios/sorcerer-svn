@@ -58,6 +58,16 @@ echo  "EXIM_GID=`id -g mail`"            >>  Local/Makefile
 echo  "EXIM_USER=mail"                   >>  Local/Makefile
 echo  "EXIM_GROUP=mail"                  >>  Local/Makefile
 
+if    spell_installed  db;  then
+
+  echo  "USE_DB=yes"  >>  Local/Makefile
+  DBV="$(  installed_version  $(  get_provider  db  )  )"
+  case  ${DBV:0:3}  in
+    4.1)  sedit  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;
+  esac
+
+fi
+
 (
 
   make             &&
