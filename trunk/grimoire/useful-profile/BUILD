@@ -1,1 +1,1 @@
-echo  >  $C_FIFO
+echo  "$BSPELL installed"
