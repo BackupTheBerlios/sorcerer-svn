@@ -37,11 +37,13 @@ linux_sufficient()  {
 }
 
 
-sed  -i  "s:/local::;s:^udevdir = .*:udevdir = /dev:"  Makefile
+sed  -i  "s:/local::
+          s:^udevdir = .*:udevdir = /dev:
+          s:killall:true:"  Makefile
 
-linux_sufficient            &&
-make                        &&
-prepare_install             &&
-make    install  DESTDIR=/  &&
-example_install             &&
+linux_sufficient  &&
+make              &&
+prepare_install   &&
+make    install   &&
+example_install   &&
    init_install
