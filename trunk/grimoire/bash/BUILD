@@ -27,9 +27,9 @@ BUILD="$( arch )-pc-linux-gnu"
              --prefix=/usr   \
              --bindir=/bin   \
              --with-installed-readline  \
-             --with-curses   &&
+             --with-curses   \
+             $OPTS           &&
 make                         &&
-prepare_install              &&
 prepare_install              &&
 make    install              &&
 ln     -sf  bash  /bin/sh    &&
