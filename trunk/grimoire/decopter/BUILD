@@ -6,7 +6,7 @@
     done
   }
 
-  echo    "utils.cc"                            |
+  echo    "common.cc"                            |
   modify  "/usr/local/games/decopter/textures"  \
           "/usr/share/games/decopter/textures"
 
@@ -26,6 +26,8 @@
 
   echo    "fly.cc"  |
   modify  "3D/"  "/usr/share/games/decopter/3D/"
+
+  sed  -i  "2i#include \"iostream\""  point3d.cc
 
   export  CXXFLAGS="$( sdl-config --cflags )  -I/usr/X11R6/include  $CXXFLAGS"
   export   LDFLAGS="$( sdl-config --libs   )  -L/usr/X11R6/lib  -lSDL_image -lGL -lGLU -lstdc++  $LDFLAGS"
