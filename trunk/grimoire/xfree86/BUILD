@@ -1,22 +1,14 @@
-install_drm()  {
-
-  DRM_DIR="programs/Xserver/hw/xfree86/os-support/linux/drm/kernel"
-  DRM_DEST="/lib/modules/`installed_version  linux`/kernel/drivers/char/drm"
-  mkdir   -p                $DRM_DEST
-  cp          $DRM_DIR/*.o  $DRM_DEST  2>/dev/null
-  depmod  -a
-  true
-
-}
-
-
 if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
-then  cp     $CONFIG_LOGS/$SPELL/host.def  config/cf/host.def
+then  sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  \
+           $CONFIG_LOGS/$SPELL/host.def           \
+           >         config/cf/host.def
 fi
 
 
 ( 
 
+  echo  "If you use DRM, then enable it within linux, not xfree86."
+  sleep  3
   echo  "#define  InstallXdmConfig    YES"  >>  config/cf/site.def
   echo  "#define  InstallXinitConfig  YES"  >>  config/cf/site.def
 
@@ -28,12 +20,11 @@ fi
   patch  -p1  <  $(  guess_filename  ${SOURCE[4]}  )
   patch  -p1  <  $(  guess_filename  ${SOURCE[5]}  )
 
-  make  World                                                    &&
-  prepare_install                                                &&
-  cd    $BUILD_DIR                                               &&
-  make  install                                                  &&
-  make  install.man                                              &&
-        install_drm                                              &&
+  make  World                      &&
+  prepare_install                  &&
+  cd    $BUILD_DIR                 &&
+  make  install                    &&
+  make  install.man                &&
   mkdir  -p  /usr/X11R6/include/GL
 
 
