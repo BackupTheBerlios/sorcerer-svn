@@ -13,8 +13,16 @@ remove_perl_module()  {
 
 }
 
+db_41_fix()  {  (
+  unset  LD_PRELOAD
+  DBV="$(  installed_version  $(  get_provider  db  )  )"
+  case  ${DBV:0:3}  in
+    4.1)  sedit  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c  ;;
+  esac
+)  }
 
-  sedit  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c
+
+db_41_fix
 
   APACHE_CONFIGURE=\
 "./configure  --enable-so                            \

@@ -25,6 +25,15 @@ MOD_PERL_CONFIGURE=\
        EVERYTHING=1           \
        PREP_HTTPD=1"
 
+
+db_41_fix()  {  (
+  unset  LD_PRELOAD
+  DBV="$(  installed_version  $(  get_provider  db  )  )"
+  case  ${DBV:0:3}  in
+    4.1)  sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c  ;;
+  esac
+)  }
+
 if  !  show_depends_of  apache  2>/dev/null  |
        grep  -q  -w  "openssl\|perl"
 then
@@ -33,7 +42,6 @@ then
   (
 
     patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
-    sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
 
     $APACHE_CONFIGURE  &&
     make               &&
@@ -72,7 +80,7 @@ else
     activate_voyeur
 
     (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
-       sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
+       db_41_fix
 
        cd   ${DIR[2]}       &&
        $MOD_PERL_CONFIGURE  &&
@@ -90,7 +98,7 @@ else
 
     activate_voyeur
     (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
-       sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c
+       db_41_fix
 
        $APACHE_CONFIGURE  &&
        make               &&
