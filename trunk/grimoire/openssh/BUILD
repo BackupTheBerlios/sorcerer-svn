@@ -8,7 +8,7 @@ fi
    groupadd    sshd        2>/dev/null
    useradd  -g sshd  sshd  2>/dev/null
    mkdir    -p       /var/empty
-   chmod  775        /var/empty
+   chmod  755        /var/empty
 
   ./configure  --prefix=/usr          \
                --sysconfdir=/etc/ssh  \
