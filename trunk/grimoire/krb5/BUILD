@@ -1,16 +1,23 @@
-  if    [  -f  krb5-$VERSION.tar.gz  ];  then
-    tar  -zxf  krb5-$VERSION.tar.gz
-    cd         krb5-$VERSION
-  fi
+if    [  -f  krb5-$VERSION.tar.gz  ];  then
+  tar  -zxf  krb5-$VERSION.tar.gz
+  cd         krb5-$VERSION
+fi
 
 (
 
+  cd  src
+
+  sed  -i  "1i#include <errno.h>"  include/krb5/k5-config.h
+  sed  -i  "1i#include <errno.h>"  include/kerberosIV/krb.h
+  sed  -i  "1i#include <errno.h>"  util/ss/ss.h
+
   case  $VERSION  in
-    1.2.6)  patch  <  $(  guess_filename  ${SOURCE[1]}  )  \
-                      src/kadmin/v4server/kadm_ser_wrap.c  ;;
+    1.2.7)  patch  <  $(  guess_filename  ${SOURCE[1]}  )  \
+                   lib/rpc/xdr_mem.c
+            bzcat  $SCRIPT_DIR/patch.1.2.7.bz2  |
+            patch  -p0  ;;
   esac
 
-  cd  src
   ./configure  --enable-dns-for-kdc    \
                --enable-dns-for-realm  \
                --prefix=/usr           \
