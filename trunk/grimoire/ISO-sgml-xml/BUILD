@@ -1,23 +1,45 @@
 install_files()  {
 
   mkdir  -p        /usr/share/sgml/iso-entities-8879.1986  &&
-  unzip -o ${SOURCE_CACHE}/$BSPELL/$VERSION/${SOURCE[0]} -d /usr/share/sgml/iso-entities-8879.1986/ &&
+  cp         ISO*  /usr/share/sgml/iso-entities-8879.1986  &&
+
   mkdir  -p        /usr/share/xml/iso-entities-8879.1986   &&
-  unzip -o ${SOURCE_CACHE}/$BSPELL/$VERSION/${SOURCE[1]} -d /usr/share/xml/iso-entities-8879.1986/ &&
+  cp         *ent  /usr/share/xml/iso-entities-8879.1986   &&
 
   mkdir  -p                                              /etc/sgml/sgml.d  &&
   cp         $SCRIPT_DIR/iso-entities-8879.1986.cat      /etc/sgml/sgml.d  &&
+
   mkdir  -p                                              /etc/xml/xml.d    &&
   cp         $SCRIPT_DIR/iso-entities-8879.1986-xml.cat  /etc/xml/xml.d
 
 }
 
+
+merge_xml_catalogs() {
+
+  # Create temporary catalog including all templates from /etc/xml/xml.d
+  cat  /etc/xml/xml.d/*  >  catalog.all
+
+  # Get xml version tag and starting tag
+  versiontag="$(  grep  "<\?xml.*version.*>"  catalog.all  |  head -1  )"
+  catalogtag="$(  grep  "<catalog.*>"         catalog.all  |  head -1  )"
+
+  # Create new merged catalog:
+
+  {  echo  "$versiontag"
+     echo  "$catalogtag"
+     grep  -vE  "<\?xml.*version.*>|<catalog.*>|</catalog>"  catalog.all
+     echo  "</catalog>"
+  }  >  /etc/xml/catalog
+
+}
+
+
 install_catalog()  {
 
-  rm  -f                         /etc/sgml/catalog  &&
-  cat     /etc/sgml/sgml.d/*  >  /etc/sgml/catalog  &&
-  rm  -f                         /etc/xml/catalog   &&
-  cat     /etc/xml/xml.d/*    >  /etc/xml/catalog
+  cat  /etc/sgml/sgml.d/*  >  /etc/sgml/catalog
+# cat  /etc/xml/xml.d/*    >  /etc/xml/catalog
+  merge_xml_catalogs
 
 }
 
