@@ -1,0 +1,46 @@
+   VERSION=( "3.0.1" "3.0.0" )
+    IGNORE="\-200\|current"
+  CATEGORY="printer"
+ ATTRIBUTE="consolet"
+    SOURCE="foomatic-db-engine-$VERSION.tar.gz"
+       URL="http://www.linuxprinting.org/download/foomatic"
+  HOMEPAGE="http://www.linuxprinting.org"
+       REQ="foomatic-filters perl"
+    OPT[0]="foomatic-db-hpijs:::for the HP's HPIJS printers"
+    OPT[1]="foomatic-db:::for all printers"
+    OPT[2]="cups:::to install foomatic printer drivers for use with cups"
+  EPROVIDE="foomatic,db-engine"
+  ESTIMATE="154"
+     SHORT="foomatic-db-engine generates PPD files from foomatic's XML database."
+      LONG="
+foomatic-db-engine generates PPD files 
+from the data in Foomatic's XML database.
+It also contains scripts to directly 
+generate print queues and handle jobs.
+"
+
+
+build()  {
+  compiledb()  {
+    foomatic-compiledb
+
+    echo   "gzip compressing ppd files"
+    find   ppd  -type f  |
+    xargs  -l1  gzip -9 -v
+
+    CUPS_DATADIR=$(  cups-config  --datadir  2>/dev/null  )
+    CUPS_DATADIR=${CUPS_DATADIR:-/usr/share/cups}
+
+    FPPD=/usr/share/foomatic/db/ppd
+    CPPD=$CUPS_DATADIR/model
+
+    echo   "Installing ppd files"
+    cp     -av  ppd  $FPPD
+    mkdir  -p               $CPPD
+    ln     -s        $FPPD  $CPPD/foomatic
+    echo   "Restart cups to select new printers."
+  }
+
+  default_build  &&
+  compiledb
+}
