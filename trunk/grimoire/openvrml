@@ -1,16 +1,17 @@
-   VERSION=( "0.14.3" "0.14.2" "0.14.1" "0.14.0" )
+   VERSION=( "0.15.1" "0.14.3" "0.14.2" "0.14.1" "0.14.0" )
   CATEGORY="graphic"
  ATTRIBUTE="library"
     SOURCE="openvrml/openvrml-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://openvrml.sourceforge.net"
-       REQ=( "glut jpeg libpng"
+       REQ=( "SDL dejagnu glut gtkglext jpeg libpng"
              "doxygen::--without-doxygen --disable-api-docs:for documentation generation"
-             "j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node" )
-  ESTIMATE="666"
+             "jdk:--with-jdk=/opt/jdk1.5.0/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node"
+             "mozilla:::for mozilla openvrml plugin" )
+#            "j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node" )
+  ESTIMATE="431"
       DESC="openvrml is a library for reading and displaying VRML97.
-
-openvrml is a C++ class library that allows applications 
+openvrml is a C++ class library that allows applications
 to read VRML97 .wrl files and view their geometries.
 It is also working toward full ISO VRML97 Specification compliance.
 While still in development, the codebase is quite stable and featureful.
@@ -18,14 +19,19 @@ lookat, a basic Glut VRML viewer is included."
 
 
 build() {
-export    CFLAGS="$CFLAGS    -L/usr/X11R6/lib"
-export  CXXFLAGS="$CXXFLAGS  -L/usr/X11R6/lib"
 
-./configure  --prefix=/usr           \
-             --without-spidermonkey  \
-             --without-jdk           \
-             $OPTS                   &&
-make                                 &&
-prepare_install                      &&
-make    install
+MOZ_INC="-I/usr/include/mozilla"
+MOZ_LIB="-L/usr/lib/mozilla"
+
+JDK_INC="-I/opt/jdk1.5.0/include  -I/opt/jdk1.5.0/include/linux"
+JDK_LIB="-L/opt/jdk1.5.0/jre/lib/i386/server"
+
+export    CFLAGS="$CFLAGS   $JDK_INC   $MOZ_INC"
+export  CXXFLAGS="$CXXFLAGS $JDK_INC   $MOZ_INC"
+export   LDFLAGS="$LDFLAGS  $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
+
+#            --without-jdk           \
+#            --without-spidermonkey  \
+
+default_build
 }
