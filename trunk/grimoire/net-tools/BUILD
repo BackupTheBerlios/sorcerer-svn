@@ -1,13 +1,6 @@
-if  [  -f  $CONFIG_LOGS/$SPELL/config.h  ];  then
-  cp       $CONFIG_LOGS/$SPELL/config.h  config.h
-else
-  ./configure.sh  config.in
-  cp  config.h  $CONFIG_LOGS/$SPELL
-fi
-
-activate_voyeur
-
 (
+
+  cp  $SCRIPT_DIR/config.h  .
 
   sed  -i  "s:-O2:$CFLAGS:"               Makefile
   sed  -i  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
