@@ -13,6 +13,13 @@ useradd   mysql  -g  mysql  2>/dev/null
 
 sed  -i  "s:/libssl.a:/libssl.so:"  configure
 
+
+case  $VERSION  in
+  4.1.9) sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  \
+                  ./include/my_global.h  ;;
+esac
+
+
 ./configure  --prefix=/usr                   \
              --without-bench                 \
              --enable-assembler              \
