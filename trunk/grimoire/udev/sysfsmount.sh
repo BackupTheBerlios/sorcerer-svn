@@ -1,3 +1,3 @@
 #!/bin/sh
-mount -t proc -n none /proc
-mount -t sysfs none /sys 
+mount  -n  -t proc   none  /proc
+mount      -t sysfs  none  /sys 
