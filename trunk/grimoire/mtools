@@ -1,14 +1,23 @@
-   VERSION=( "3.9.9" "3.9.8" )
+   VERSION=( "3.9.10" "3.9.9" "3.9.8" )
   CATEGORY="file-system"
  ATTRIBUTE="console"
     SOURCE="mtools-$VERSION.tar.bz2"
        URL="http://mtools.linux.lu"
-       REQ=( "" "x11:::for floppyd remote access to floppy drive" )
+       REQ=( "e2fsprogs"
+             "x11:::for floppyd remote access to floppy drive" )
   HOMEPAGE="http://mtools.linux.lu"
-  ESTIMATE="93"
+  ESTIMATE="95"
       DESC="mtools is a collection of utilities to access MS-DOS disks.
-mtools is a collection of utilities to access 
+mtools is a collection of utilities to access
 MS-DOS disks from Unix without mounting them.
-It supports Win'95 style long file names, 
-OS/2 Xdf disks, ZIP/JAZ disks and 2m disks 
+It supports Win'95 style long file names,
+OS/2 Xdf disks, ZIP/JAZ disks and 2m disks
 (store up to 1992k on a high density 3 1/2 disk)."
+
+build()  {
+  grep   -rl              "<linux/fs.h>"  *  |
+  xargs  -l32  sed  -i  "s:<linux/fs.h>:<ext2fs/ext2fs.h>\n#define BLKGETSIZE _IO(0x12,96):"
+  grep   -rl              '"linux/fs.h"'  *  |
+  xargs  -l32  sed  -i  's:"linux/fs.h":"ext2fs/ext2fs.h"\n#define BLKGETSIZE _IO(0x12,96):'
+  default_build
+}
