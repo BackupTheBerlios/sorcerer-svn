@@ -6,7 +6,7 @@
     #  Keep at least 64MB of mem+swap available
     #  2 GB max swap on linux 2.4.20
     sed  -i  "s:memlimit 16384:memlimit 65536:"  swapd.conf
-    sed  -i  "s:swapsize 4096:swapsize 262144:"  swapd.conf
+    sed  -i  "s:swapsize 4096:swapsize 65536:"  swapd.conf
     sed  -i  "s:pause 1000:pause 100:"           swapd.conf
   fi
 
