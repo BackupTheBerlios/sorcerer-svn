@@ -1,7 +1,7 @@
 (
 
-  configure  --prefix=$PREFIX         \
-             --bindir=$PREFIX//games  \
+  configure  --prefix=/usr         \
+             --bindir=/usr/games  \
              $OPTS  &&
   make              &&
   prepare_install   &&

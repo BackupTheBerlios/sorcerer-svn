@@ -1,8 +1,8 @@
 (
 
-  GD="GAMEDIR=$PREFIX/share/sasteroids"
-  BD="BINDIR=$PREFIX/games"
-  MD="MANDIR=$PREFIX/man"
+  GD="GAMEDIR=/usr/share/sasteroids"
+  BD="BINDIR=/usr/games"
+  MD="MANDIR=/usr/man"
 
   make             "$GD" "$BD" "$MD"  &&
   prepare_install                     &&

@@ -1,6 +1,6 @@
 (
 
-  ./configure  --prefix=$PREFIX            \
+  ./configure  --prefix=/usr               \
                --enable-integer-datetimes  \
 	       --with-nls                  \
 	       $OPTS  &&

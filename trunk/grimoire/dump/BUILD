@@ -3,7 +3,7 @@
       CC="--with-cc=gcc $CFLAGS"
   LDOPTS="--with-ldopts=$LDFLAGS"
 
-  ./configure  --prefix=$PREFIX    \
+  ./configure  --prefix=/usr       \
                --enable-largefile  \
                --enable-rmt        \
                "$CC"               \

@@ -1,16 +1,10 @@
 ( 
 
-
-  if    [  "$PREFIX"  ==  "/usr"  ]
-  then  SCD="/etc"
-  else  SCD="$PREFIX/etc"
-  fi
-
   export  PATH="$CANTRIP/opt/bison/1.35/bin:$PATH"
 
   ./configure  --build=$BUILD        \
-               --prefix=$PREFIX      \
-               --sysconfdir=$SCD     \
+               --prefix=/usr         \
+               --sysconfdir=/etc     \
                --localstatedir=/var  \
                $OPTS                 &&
   make                               &&

@@ -1,9 +1,6 @@
 (
 
-  if    [  "$PREFIX"  ==  "/usr"  ]
-  then         DEST_DIR="/opt/j2sdk/$VERSION"
-  else  DEST_DIR="$PREFIX/opt/j2sdk/$VERSION"
-  fi
+  DEST_DIR="/opt/j2sdk/$VERSION"
 
   prepare_install                         &&
   mkdir  -p                $DEST_DIR      &&
@@ -13,7 +10,7 @@
     if      [  -f    $FILE  ]  &&
             [  -x    $FILE  ]
     then    ln  -sf  $DEST_DIR/bin/${FILE}  \
-                       $PREFIX/bin/${FILE}
+                          /usr/bin/${FILE}
     fi
   done
 

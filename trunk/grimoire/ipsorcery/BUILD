@@ -4,7 +4,6 @@
   make clean       &&
   make gtk         &&
   prepare_install  &&
-  cp     magic  $PREFIX/bin/ipsorcery
-  chmod  755    $PREFIX/bin/ipsorcery
+  install  magic  -m 755  /usr/bin/ipsorcery 
 
 ) > $C_FIFO 2>&1
