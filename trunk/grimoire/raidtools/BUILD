@@ -1,5 +1,6 @@
 (
  
+  sed  -i  "s:-Wl,-Bstatic::"  Makefile.in
   ./configure  --prefix=/usr         \
                --sysconfdir=/etc     \
                --localstatedir=/var  \
