@@ -1,10 +1,7 @@
 install_conf()  {
 
-  if    [  !  -f  /etc/ftplockout  ]
-  then  cp  pam/ftplockout  /etc
-  fi
-
-  cp  $SCRIPT_DIR/pure-ftpd.sh  /etc/init.d
+  install  -m 0644  -o root  -g root  pam/ftpusers              /etc
+  install  -m 0755  -o root  -g root  $SCRIPT_DIR/pure-ftpd.sh  /etc/init.d
 
   if  $FTPD_BOOT;  then
     ln  -sf  ../init.d/pure-ftpd.sh  /etc/rc0.d/K10pure-ftpd
