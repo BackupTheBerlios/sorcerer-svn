@@ -1,3 +1,8 @@
+  if    [  -f  krb5-$VERSION.tar.gz  ];  then
+    tar  -zxf  krb5-$VERSION.tar.gz
+    cd         krb5-$VERSION
+  fi
+
 (
 
   case  $VERSION  in
