@@ -1,6 +1,6 @@
-unalias  make
-
 (
+
+  unalias  make
 
   ./configure  --prefix=/usr  &&
   make                        &&
