@@ -26,8 +26,10 @@
   mkdir  -p                          /usr/include/mozilla
   cp	 -rL  dist/include/*         /usr/include/mozilla
   cp  $SCRIPT_DIR/mozilla            /usr/bin
-  mkdir  -p                          /usr/include/mozilla/nss
-  cp     -rL  dist/public/security/* /usr/include/mozilla/nss
+  mkdir  -p                          /usr/include/mozilla
+  cp     -rL  dist/public/*          /usr/include/mozilla
+#  mkdir  -p                          /usr/include/mozilla/nss
+#  cp     -rL  dist/public/security/* /usr/include/mozilla/nss
   export  MOZILLA_FIVE_HOME=/usr/lib/mozilla
   export    LD_LIBRARY_PATH=/usr/lib/mozilla:$LD_LIBRARY_PATH
 
