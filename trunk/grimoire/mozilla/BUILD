@@ -3,6 +3,9 @@
   export    CFLAGS="$(  echo  $CFLAGS    |  sed  s/-ffast-math//  )"
   export  CXXFLAGS="$(  echo  $CXXFLAGS  |  sed  s/-ffast-math//  )"
 
+  export  MOZILLA_OFFICIAL=1
+  export  BUILD_OFFICIAL=1
+
   ./configure  --disable-tests              \
                --disable-debug              \
                --enable-optimize="$CFLAGS"  \
