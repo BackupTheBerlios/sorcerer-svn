@@ -157,10 +157,13 @@ if    [  -x  /usr/bin/mail   ]
 then  MAILER=/usr/bin/mail
 elif  [  -x  /usr/bin/mailx  ]
 then  MAILER=/usr/bin/mailx
-else  false
-fi                     &&
-[  -n  "$SORCERER"  ]  &&
-(
-  echo  "New linux kernel installed."
-  echo  "Remember to reboot the box, please."
-)  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
+fi
+
+if    [  -n  "$MAILER"    ]  &&
+      [  -n  "$SORCERER"  ]
+then
+  (
+    echo  "New linux kernel installed."
+    echo  "Remember to reboot the box, please."
+  )  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
+fi
