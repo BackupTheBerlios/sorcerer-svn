@@ -3,13 +3,9 @@ grep  -v  "gcc"           /etc/ld.so.conf  >  $TEMP_LD_SO_CONF
 cp      $TEMP_LD_SO_CONF  /etc/ld.so.conf
 rm  -f  $TEMP_LD_SO_CONF
 
-available_compilers  |
-while  read  COMP;  do
-  if    [  -x  /opt/gcc/$COMP/bin/gcc  ]
-  then  echo  "/opt/gcc/$COMP/lib"     >>  /etc/ld.so.conf
-  else  echo  "/usr/gcc-$COMP/lib"     >>  /etc/ld.so.conf
-  fi
-done
+for           GCC_DIR  in  /opt/gcc/*/lib
+do    echo  "$GCC_DIR"
+done  >>  /etc/ld.so.conf
 
 
 if    [  -z  "$BRANCH"  ];  then
@@ -17,41 +13,65 @@ if    [  -z  "$BRANCH"  ];  then
 
   fix_la()  {
 
-    local  SPELL  LA  OLD  NEW  OLD_MD5  NEW_MD5
+    local  OLD  NEW  OLD_MD5  NEW_MD5
 
-    SPELL="$(  echo  "$1"  |  cut  -d :  -f1  )"
-       LA="$(  echo  "$1"  |  cut  -d :  -f2  )"
       OLD="$2"
       NEW="$3"
 
-    if      grep  -q  "libtool"        $LA;  then
-      if    grep  -q    "$OLD"         $LA;  then
-            sed   -i  "s:$OLD:$NEW:g"  $LA
-            OLD_MD5="$(  grep    "$LA\$"  $MD5SUM_LOGS/$SPELL  )"
-            NEW_MD5="$(  md5sum  "$LA"                         )"
-            sed   -i  "s:$OLD_MD5:$NEW_MD5:g"  $MD5SUM_LOGS/$SPELL
-      fi
+    if    grep  -q  "$OLD"  $LA
+    then
+      sed   -i  "s:$OLD:$NEW:g"  $LA
+      OLD_MD5="$(  grep    "$LA\$"  $MD5SUM_LOGS/$SPELL  )"
+      NEW_MD5="$(  md5sum  "$LA"                         )"
+      sed   -i  "s:$OLD_MD5:$NEW_MD5:g"  $MD5SUM_LOGS/$SPELL
     fi
 
   }
 
 
   VCX=1
-  while  [  -n  "${VERSION[$VCX]}"  ];  do
-    rm  -rf  /opt/gcc/${VERSION[$VCX]}
-    ((  VCX++  ))
+  while  [   -n           "${VERSION[$VCX]}"  ]
+  do     rm  -rf  /opt/gcc/${VERSION[$VCX]}
+         ((  VCX++  ))
   done
 
-  cd  $INSTALL_LOGS
-  grep  "\.la\$" *  |
-  while  read  LINE;  do
-    VCX=0
-    while  [  -n  "${VERSION[$VCX]}"  ];  do
-      fix_la  "$LINE"  "/opt/gcc/${VERSION[$VCX]}/lib"  \
-                       "/opt/gcc/$VERSION/lib"
-      ((  VCX++  ))
-    done
-  done
+  RECAST="$(  
+    cd  $INSTALL_LOGS
+    grep  "\.la\$" *  |
+    tr ':' ' '        |
+    while  read  SPELL  LA;  do
+
+      if     grep  -q  "/opt/gcc"  $LA  &&
+             grep  -q  "libtool"   $LA  &&
+          !  grep  -q  "/opt/gcc/current\|/opt/gcc/2.95.3"  $LA
+      then
+        if    !  spell_held  "$SPELL"
+        then  echo           "$SPELL"
+        fi
+      fi
+
+    done  |  sort  |  uniq
+
+  )"
+
+  if    [  -n  "$RECAST"  ];  then
+    unlock_cast
+    cast       "$RECAST"
+  fi
+
+#      echo  "Fixing  $LA"
+#      VCX=0
+#      while  [  -n  "${VERSION[$VCX]}"  ];  do
+#        fix_la  "$LINE"  "/opt/gcc/${VERSION[$VCX]}/lib"  \
+#                         "/opt/gcc/${VERSION}/lib"
+#        fix_la  "$LINE"  "pc-linux-gnu/${VERSION[$VCX]}"  \
+#                         "pc-linux-gnu/${VERSION}"
+#        ((  VCX++  ))
+#      done
+#    fi
+#  done
 
 )
 fi
+
+true
