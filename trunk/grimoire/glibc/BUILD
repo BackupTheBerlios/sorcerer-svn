@@ -16,8 +16,6 @@
   echo  "$CXXFLAGS"  |
   grep  -q  "\-O"    ||
   export  CXXFLAGS="$CXXFLAGS -Os"
-
-#              --enable-add-ons=linuxthreads,prelink  \
   ./configure  --host=$BUILD                  \
                --build=$BUILD                 \
                --prefix=/usr                  \
@@ -30,7 +28,8 @@
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
   make    install                             &&
-  ln     -sf  ld-2.3.so  /lib/ld-linux.so.2   &&
+  LD="ld-${VERSION}.so"                       &&
+  ln     -sf  $LD  /lib/ld-linux.so.2         &&
   ldconfig
 
 ) > $C_FIFO 2>&1
