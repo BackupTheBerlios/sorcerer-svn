@@ -8,7 +8,7 @@ echo "list-sample:	\"|/usr/sbin/minimalist.pl -d /etc/minimalist list-sample\"" 
 echo "list-sample-owner:	owner@myhost.mydomain.myzone" >> /etc/aliases.minimalist-sample
 
 # Create config files directory
-mkdir /etc/minimalist
+mkdir -p  /etc/minimalist
 
 # Copy sample files
 cp      ./sample/lists.lst /etc/minimalist/lists.lst-sample
@@ -19,12 +19,12 @@ cp      ./minimalist.conf-sample /etc/minimalist/
 cp    ./minimalist.pl  /usr/sbin
 
 # Make spool dir
-mkdir /var/spool/minimalist
-mkdir /var/spool/minimalist/list-sample
+mkdir -p  /var/spool/minimalist
+mkdir -p  /var/spool/minimalist/list-sample
 echo "user@domain.zone" > /var/spool/minimalist/list-sample/list
 chown nobody.nogroup /var/spool/minimalist/list-sample
 chown nobody.nogroup /var/spool/minimalist/list-sample/list
 
 # Copy the help files
-mkdir              /usr/doc/minimalist
+mkdir  -p          /usr/doc/minimalist
 cp     -R  ./docs  /usr/doc/minimalist
