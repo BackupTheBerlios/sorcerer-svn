@@ -1,6 +1,7 @@
 mconf()  {
 
   cat  <<  EOF
+
 options	snd	snd_device_gid=29 snd_device_mode=0660 snd_cards_limit=1
 
 alias	char-major-116		snd
@@ -23,6 +24,7 @@ EOF
 
 remove_old_modules()  {
 
+  LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
   rm  -rf  /lib/modules/$LINUX_VER/kernel/sound/acore
 
 }
@@ -30,12 +32,13 @@ remove_old_modules()  {
 
 case  $VERSION  in
   0.9.0rc3)  rm  include/linux/isapnp.h  ;;
+         *)  case  $CARD  in
+               via686|via8233)  CARD="via82xx"  ;;
+             esac  ;;
 esac
 
 
 (
-  LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
-
   sedit  "s:/sbin/depmod:/bin/true:g"  Makefile
   modprobe  soundcore
   ./configure  --prefix=/usr         \
@@ -56,10 +59,12 @@ esac
   rm  -f   /dev/snd
   ln  -sf  /devices/snd  /dev/snd
   ln  -sf  ../init.d/alsasound  /etc/rcS.d/S99alsasound
-  if  [  !  -f   /etc/modules.d/alsa  ];  then
-    mkdir   -p   /etc/modules.d
-    mconf   >    /etc/modules.d/alsa
-    touch        /etc/modules.d/alsa
+  if    [  -f      /etc/modules.d/alsa  ]
+  then  mv         /etc/modules.d/alsa  \
+                   /etc/modules.d.alsa.old
+  else  mkdir  -p  /etc/modules.d
   fi
+  mconf   >    /etc/modules.d/alsa
+  touch        /etc/modules.d/alsa
 
 )
