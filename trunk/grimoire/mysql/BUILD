@@ -37,6 +37,7 @@ sed  -i  "s:/libssl.a:/libssl.so:"  configure
              --with-embedded-server          \
              --enable-thread-safe-client     \
              --with-comment="MySQL-MAX-$VERSION "  \
+             --with-readline                \
              $OPTS                          &&
 make             pkglibdir=/usr/lib         &&
 prepare_install                             &&
