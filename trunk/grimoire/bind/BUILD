@@ -53,6 +53,5 @@ useradd   bind  -g  bind  2>/dev/null
 make                                 &&
 prepare_install                      &&
 make    install                      &&
-    man_install                      &&
    conf_install                      &&
    init_install
