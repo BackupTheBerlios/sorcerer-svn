@@ -1,15 +1,14 @@
 #!/bin/sh
 
-PID="/var/run/metalog.pid"
-
 start()  {
   echo  -n  "Starting metalog..."
-  /usr/sbin/metalog  --synchronous  &
-  echo  "$!"  >  $PID
+  /usr/sbin/metalog  --sync  --daemonize
   echo  "done."
 }
 
 stop()  {
+  PID="/var/run/metalog.pid"
+
   echo  -n  "Stopping metalog..."
   [     -f            $PID  ]  &&
   kill  -15  $(  cat  $PID  )
