@@ -25,6 +25,12 @@ install_symlinks()  {
 
 }
 
+
+fix_config()  {
+sed  -i  "s:/usr/lib/mozilla-[^ ]*:/usr/lib/mozilla:g"  /usr/bin/mozilla-config
+}
+
+
 IVERSION=$(  installed_version  $BSPELL  )
 
 
@@ -104,4 +110,5 @@ make                &&
 prepare_install     &&
 make    install     &&
 install_security    &&
-install_symlinks
+install_symlinks    &&
+fix_config
