@@ -1,0 +1,30 @@
+   VERSION=( "100" )
+  CATEGORY="game"
+ ATTRIBUTE="x11 new"
+    SOURCE=( "alienBlasterSrc-v$VERSION.tgz"
+             "alienBlasterGamedata-v$VERSION.tgz" )
+       URL="http://www.informatik.uni-bremen.de/~schwardt/alienblaster"
+  HOMEPAGE="http://www.schwardtnet.de/alienblaster"
+       REQ="SDL_mixer"
+      OPTS="--bindir=/usr/games"
+  ESTIMATE="284"
+      DESC="alienblaster is a top down screen scrolling shooting game."
+
+build()  {
+USA=/usr/share/games/alienBlaster
+ULE=/usr/libexec
+RUN="#!/bin/bash\ncd $USA\n$ULE/alienBlaster \"\$@\""
+UGA=/usr/games/alienBlaster
+make  "OPTIMIZATION=$CXXFLAGS"  &&
+prepare_install                 &&
+rm     -r  src  Makefile        &&
+chown  -R  root:root  *         &&
+chmod  -R  a+r        *         &&
+chmod  -R  og-w       *         &&
+mkdir  -p                $ULE   &&
+mv         alienBlaster  $ULE   &&
+mkdir  -p     $USA              &&
+cp     -r  *  $USA              &&
+echo   -e    "$RUN"  >  $UGA    &&
+chmod  0755             $UGA
+}
