@@ -49,7 +49,7 @@ fi
 
 # chatzilla support
 if  ! $CHATZILLA;  then
-  echo 'ac_add_options --enable-extensions="default,-venkman,-inspector,-irc"' >> .mozconfig
+  echo 'ac_add_options --enable-extensions="default,-irc"' >> .mozconfig
 fi  
 
   ./configure  $OPTS  &&
