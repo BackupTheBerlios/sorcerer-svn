@@ -37,10 +37,13 @@ build_apxs()  {
   APACHE_PROVIDER="$(  get_provider  apache  )"
 
   if    spell_installed  $APACHE_PROVIDER;  then
-    case  $APACHE_PROVIDER  in
-      apache)  build_apxs   ;;
-       httpd)  build_apxs2  ;;
-    esac
+
+    APACHE_VERSION="$(  installed_version  $APACHE_PROVIDER  )"
+    if    [  "${APACHE_VERSION:0:1}"  ==  1  ]
+    then  build_apxs
+    else  build_apxs2
+    fi
+
   fi  &&
 
   cd  $BUILD_DIR                             &&
