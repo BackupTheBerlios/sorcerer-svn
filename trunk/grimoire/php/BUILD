@@ -2,7 +2,7 @@
 
   if    spell_installed  apache  ||
         spell_installed  apache-mod_ssl
-  then  WITH_APACHE="--with-apxs"
+  then  WITH_APACHE="--with-apxs2"
   fi
 
   ./configure  --prefix=/usr                 \
