@@ -1,70 +1,9 @@
-(
-
-  ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
-
-  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-  export  CCACHE_DISABLE=1
-
-    LCF="LIBCFLAGS=$CFLAGS"
-   LCXF="LIBCXXFLAGS=$CXXFLAGS"
-     BF="BOOT_CFLAGS=$CFLAGS"
-   LJCF="LIBGCJ_CFLAGS=$CFLAGS"
-  LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
-   LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-    LDF="LDFLAGS=$LDFLAGS"
-
-  LD_PRELOAD_OLD="$LD_PRELOAD"
-  unset  LD_PRELOAD
-
-  case  $VERSION  in
-      3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
-    3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-    3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-    3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-    3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
-  esac
-
-  # 3.2.2 now supports the DESTDIR Makefile variable
-  # but isn't specifying a prefix good enough?
-
-  if  [  -n  "${SOURCE[1]}"  ];  then
-    mv  protector.c  protector.h  gcc
-    patch  -p0  <  protector.dif
-  fi
-
-  ./configure  --host=$BUILD               \
-               --prefix=/opt/gcc/$VERSION  \
-               --enable-threads=posix      \
-               --enable-__cxa_atexit       \
-               --enable-clocale=gnu        \
-               --enable-shared             \
-               --infodir=/usr/info         \
-               --mandir=/usr/man           \
-               --datadir=/usr/share        \
-               "$ENABLE_LANGS"             &&
-  make         bootstrap-lean   "$BF"      \
-               "$LCF"  "$LCXF"  "$LDF"     \
-               "$LJCF" "$LJCXF"            &&
-  prepare_install                          &&
-  export  LD_PRELOAD="$LD_PRELOAD_OLD"     &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
+finish_install()  {
 
   rm     -f                                /opt/gcc/current
   ln     -s    $VERSION                    /opt/gcc/current
   ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
   ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
-#  mkdir  -p                                /usr/man
-#  cp     -af   /opt/gcc/$VERSION/man/*     /usr/man/
-#  rm     -rf   /opt/gcc/$VERSION/man
-#  mkdir  -p                                /usr/info
-#  cp     -af   /opt/gcc/$VERSION/info/*    /usr/info/
-#  rm     -rf   /opt/gcc/$VERSION/info
-#  mkdir  -p                                /usr/share
-#  cp     -af   /opt/gcc/$VERSION/share/*   /usr/share/
-#  rm     -rf   /opt/gcc/$VERSION/share
   rm     -f                                /usr/bin/cc
 
   if    [   -h  /usr/info/dir  ]
@@ -80,4 +19,56 @@
 
   true
 
-)
+}
+
+
+ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
+
+export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+export  CCACHE_DISABLE=1
+
+  LCF="LIBCFLAGS=$CFLAGS"
+ LCXF="LIBCXXFLAGS=$CXXFLAGS"
+   BF="BOOT_CFLAGS=$CFLAGS"
+ LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+ LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+  LDF="LDFLAGS=$LDFLAGS"
+
+LD_PRELOAD_OLD="$LD_PRELOAD"
+unset  LD_PRELOAD
+
+case  $VERSION  in
+    3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
+  3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+  3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+  3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+  3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
+esac
+
+# 3.2.2 now supports the DESTDIR Makefile variable
+# but isn't specifying a prefix good enough?
+
+if  [  -n  "${SOURCE[1]}"  ];  then
+  mv  protector.c  protector.h  gcc
+  patch  -p0  <  protector.dif
+fi
+
+./configure  --host=$BUILD               \
+             --prefix=/opt/gcc/$VERSION  \
+             --enable-threads=posix      \
+             --enable-__cxa_atexit       \
+             --enable-clocale=gnu        \
+             --enable-shared             \
+             --infodir=/usr/info         \
+             --mandir=/usr/man           \
+             --datadir=/usr/share        \
+             "$ENABLE_LANGS"             &&
+make         bootstrap-lean   "$BF"      \
+             "$LCF"  "$LCXF"  "$LDF"     \
+             "$LJCF" "$LJCXF"            &&
+prepare_install                          &&
+export  LD_PRELOAD="$LD_PRELOAD_OLD"     &&
+make    install                          &&
+ finish_install

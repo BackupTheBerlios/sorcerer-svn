@@ -1,15 +1,4 @@
-(
-
-  # fix problems with glibc-2.3.2
-  patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
-
-  make  WRAP_DIR=/usr/lib  &&
-  prepare_install          &&
-  cp  portmap    /sbin     &&
-  cp  pmap_dump  /sbin     &&
-  cp  pmap_set   /sbin
-
-) > $C_FIFO 2>&1  &&  (
+install_init()  {
 
 
   cp  $SCRIPT_DIR/portmap.sh     /etc/init.d
@@ -25,4 +14,14 @@
     ln  -sf  ../init.d/portmap.sh  /etc/rc5.d/S30portmap
   fi
 
-)
+}
+
+# fix problems with glibc-2.3.2
+patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
+
+make  WRAP_DIR=/usr/lib  &&
+prepare_install          &&
+cp  portmap    /sbin     &&
+cp  pmap_dump  /sbin     &&
+cp  pmap_set   /sbin     &&
+install_init

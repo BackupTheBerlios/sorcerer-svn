@@ -1,5 +1,16 @@
+install_symlinks()  {
+  rm  -rf                                    /usr/include/mozilla
+  ln  -sf    /usr/include/mozilla-$MVERSION  /usr/include/mozilla
+
+  rm  -rf                                    /usr/lib/mozilla
+  ln  -sf        /usr/lib/mozilla-$MVERSION  /usr/lib/mozilla
+
+  rm  -rf                                    /usr/share/idl/mozilla
+  ln  -sf  /usr/share/idl/mozilla-$MVERSION  /usr/share/idl/mozilla
+
+}
+
 IVERSION=$(  installed_version  $BSPELL  )
-(
 
 # mozilla doesn't install nss headers by default
 # so we do it manually :^)
@@ -55,17 +66,5 @@ EOF
   ./configure      &&
   make             &&
   prepare_install  &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
-  rm  -rf                                    /usr/include/mozilla
-  ln  -sf    /usr/include/mozilla-$MVERSION  /usr/include/mozilla
-
-  rm  -rf                                    /usr/lib/mozilla
-  ln  -sf        /usr/lib/mozilla-$MVERSION  /usr/lib/mozilla
-
-  rm  -rf                                    /usr/share/idl/mozilla
-  ln  -sf  /usr/share/idl/mozilla-$MVERSION  /usr/share/idl/mozilla
-
-)
+  make    install  &&
+          install_symlinks

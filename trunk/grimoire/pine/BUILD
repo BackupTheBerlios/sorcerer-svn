@@ -1,24 +1,4 @@
-(
-
-  if  spell_installed  openssl;  then
-
-    if    spell_installed  Linux-PAM
-    then  ./build  DEBUG="$CFLAGS"  NOSSL=unix  SSLCERTS=/etc/ssl/certs  SSLINCLUDE=/usr/include/openssl  SSLLIB=/usr/lib  lnp
-    else  ./build  DEBUG="$CFLAGS"  NOSSL=unix  SSLCERTS=/etc/ssl/certs  SSLINCLUDE=/usr/include/openssl  SSLLIB=/usr/lib  slx
-    fi  &&
-    prepare_install
-
-  else
-
-    if    spell_installed  Linux-PAM
-    then  ./build  DEBUG="$CFLAGS"  lnp
-    else  ./build  DEBUG="$CFLAGS"  slx
-    fi  &&
-    prepare_install
-
-  fi
-
-) > $C_FIFO 2>&1  &&  (
+make_install()  {
 
   cd  bin
   cp  imapd   /usr/sbin
@@ -50,4 +30,22 @@
     ln  -sf  stunnel.pem  /etc/ssl/certs/ipop3d.pem
   fi
 
-)
+}
+
+if  spell_installed  openssl;  then
+
+  if    spell_installed  Linux-PAM
+  then  ./build  DEBUG="$CFLAGS"  NOSSL=unix  SSLCERTS=/etc/ssl/certs  SSLINCLUDE=/usr/include/openssl  SSLLIB=/usr/lib  lnp
+  else  ./build  DEBUG="$CFLAGS"  NOSSL=unix  SSLCERTS=/etc/ssl/certs  SSLINCLUDE=/usr/include/openssl  SSLLIB=/usr/lib  slx
+  fi
+
+else
+
+  if    spell_installed  Linux-PAM
+  then  ./build  DEBUG="$CFLAGS"  lnp
+  else  ./build  DEBUG="$CFLAGS"  slx
+  fi
+
+fi               &&
+prepare_install  &&
+   make_install

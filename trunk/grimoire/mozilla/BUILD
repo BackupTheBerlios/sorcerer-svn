@@ -1,6 +1,18 @@
+install_symlinks()  {
+
+  rm  -rf                                   /usr/include/mozilla
+  ln  -sf    /usr/include/mozilla-$VERSION  /usr/include/mozilla
+
+  rm  -rf                                   /usr/lib/mozilla
+  ln  -sf        /usr/lib/mozilla-$VERSION  /usr/lib/mozilla
+
+  rm  -rf                                   /usr/share/idl/mozilla
+  ln  -sf  /usr/share/idl/mozilla-$VERSION  /usr/share/idl/mozilla
+
+}
+
 IVERSION=$(  installed_version  $BSPELL  )
 
-(
 
   # mozilla doesn't install nss headers by default
   # so we do it manually :^)
@@ -66,21 +78,9 @@ if  ! $CHATZILLA;  then
   echo 'ac_add_options --enable-extensions="default,-irc"' >> .mozconfig
 fi  
 
-  ./configure  $OPTS  &&
-  make                &&
-  prepare_install     &&
-  make    install     &&
-  install_security
-
-) > $C_FIFO 2>&1  &&  (
-
-  rm  -rf                                   /usr/include/mozilla
-  ln  -sf    /usr/include/mozilla-$VERSION  /usr/include/mozilla
-
-  rm  -rf                                   /usr/lib/mozilla
-  ln  -sf        /usr/lib/mozilla-$VERSION  /usr/lib/mozilla
-
-  rm  -rf                                   /usr/share/idl/mozilla
-  ln  -sf  /usr/share/idl/mozilla-$VERSION  /usr/share/idl/mozilla
-
-)
+./configure  $OPTS  &&
+make                &&
+prepare_install     &&
+make    install     &&
+install_security    &&
+install_symlinks

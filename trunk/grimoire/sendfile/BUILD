@@ -1,15 +1,4 @@
-(
-
-  cp    makeconfig           makeconfig.original
-  sed  "s:/usr/local:/usr:"  makeconfig.original  >  makeconfig
-
-  ./makeconfig  CONFIG=/etc          \
-                INETDCONF=/dev/null  \
-                SERVICES=/dev/null   &&
-  make                               &&
-  prepare_install
- 
-) > $C_FIFO 2>&1  &&  (
+make_install()  {
 
   cp  src/ewl          /usr/bin
   cp  src/fetchfile    /usr/bin
@@ -36,4 +25,14 @@
     cp  etc/sendfile.deny  /etc
   fi
 
-)
+}
+
+cp    makeconfig           makeconfig.original
+sed  "s:/usr/local:/usr:"  makeconfig.original  >  makeconfig
+
+./makeconfig  CONFIG=/etc          \
+              INETDCONF=/dev/null  \
+              SERVICES=/dev/null   &&
+make                               &&
+prepare_install                    &&
+   make_install

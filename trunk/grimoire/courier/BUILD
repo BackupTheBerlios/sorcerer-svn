@@ -1,20 +1,4 @@
-(
-
-  LD_PRELOAD_OLD="$LD_PRELOAD"
-  unset  LD_PRELOAD
-  ./configure  --prefix=/usr                       \
-               --localstatedir=/var/state/courier  \
-               --sysconfdir=/etc/courier           \
-               --disable-root-check                \
-               $OPTS                               &&
-  make                                             &&
-  prepare_install                                  &&
-  export  LD_PRELOAD="$LD_PRELOAD_OLD"             &&
-  make    install                                  &&
-  make    install-configure
-
-) > $C_FIFO 2>&1 && (
-
+install_init()  {
   clns()  {
     ln  -sf  $1/$2  /etc/rc0.d/K10$2
     ln  -sf  $1/$2  /etc/rc1.d/K10$2
@@ -34,4 +18,18 @@
   if    $POP3_BOOT;   then  clns  /usr/sbin  pop3d;      fi
   if    $POP3S_BOOT;  then  clns  /usr/sbin  pop3d-ssl;  fi
 
-)
+}
+
+LD_PRELOAD_OLD="$LD_PRELOAD"
+unset  LD_PRELOAD
+./configure  --prefix=/usr                       \
+             --localstatedir=/var/state/courier  \
+             --sysconfdir=/etc/courier           \
+             --disable-root-check                \
+             $OPTS                               &&
+make                                             &&
+prepare_install                                  &&
+export  LD_PRELOAD="$LD_PRELOAD_OLD"             &&
+make    install                                  &&
+make    install-configure                        &&
+        install_init

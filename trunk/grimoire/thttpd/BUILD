@@ -1,22 +1,4 @@
-(
-
-  groupadd  thttpd             2>/dev/null
-  useradd   thttpd  -g thttpd  2>/dev/null
-
-  WD="WEBDIR=/usr/share/thttpd"
-  CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
-  WG="WEBGROUP=thttpd"
-
-  ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $OPTS                 &&
-  make             $WD  $CD  $WG     &&
-  prepare_install                    &&
-  make    install  $WD  $CD  $WG
-
-) > $C_FIFO 2>&1  &&  (
+install_init()  {
 
   if  !  [  -f     /etc/thttpd.conf  ]
   then  cp  $SCRIPT_DIR/thttpd.conf  \
@@ -36,4 +18,22 @@
      ln  -sf  ../init.d/thttpd  /etc/rc5.d/S90thttpd
    fi
 
-)
+}
+
+
+groupadd  thttpd             2>/dev/null
+useradd   thttpd  -g thttpd  2>/dev/null
+
+WD="WEBDIR=/usr/share/thttpd"
+CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
+WG="WEBGROUP=thttpd"
+
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+make             $WD  $CD  $WG     &&
+prepare_install                    &&
+make    install  $WD  $CD  $WG     &&
+        install_init

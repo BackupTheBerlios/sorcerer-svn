@@ -1,3 +1,17 @@
+finish_install()  {
+
+  if    !  [  -f                      /etc/init.d/lircd.sh  ]
+  then     cp  $SCRIPT_DIR/lircd.sh   /etc/init.d
+  fi
+
+  if  ! [  -f      /etc/modules.d/lirc  ]
+  then  mkdir  -p  /etc/modules.d
+  mconf   >    /etc/modules.d/lirc
+  else  touch  /etc/modules.d/lirc
+  fi
+
+}
+
 conf()  {
 
   if  !  grep  -q  "driver="  $SPELL_CONFIG;  then
@@ -28,40 +42,25 @@ remove_old_modules()  {
 }
 
 
-(
+groupadd  lirc     2>/dev/null
+rm  -f    /dev/lirc*
   
-  groupadd  lirc     2>/dev/null
-  rm  -f    /dev/lirc*
+conf
+if     !   [  -f  configure.sh  ]
+then   cat  $SPELL_CONFIG  >> configure.sh
+fi
+
+sed -i 's:"$@":--prefix=/usr --sysconfdir=/etc:' configure.sh
+
+sed -i "s:-O2 -g:$CFLAGS:" configure
+sed -i "s:-O2 -g:$CFLAGS:" configure.in
   
-  conf
-  if     !   [  -f  configure.sh  ]
-  then   cat  $SPELL_CONFIG  >> configure.sh
-  fi
-
-  sed -i 's:"$@":--prefix=/usr --sysconfdir=/etc:' configure.sh
-
-  sed -i "s:-O2 -g:$CFLAGS:" configure
-  sed -i "s:-O2 -g:$CFLAGS:" configure.in
-  
-  sh configure.sh                         &&
-  make			                  &&
-  prepare_install                         &&
-  remove_old_modules                      &&
-  make    install                         &&
-  chgrp  lirc  /dev/lirc*                 && 
-  chmod  660   /dev/lirc*                 &&
-  message  "`cat  $SCRIPT_DIR/message.txt`"
-
-) > $C_FIFO 2>&1  &&  (
-
-  if    !  [  -f                      /etc/init.d/lircd.sh  ]
-  then     cp  $SCRIPT_DIR/lircd.sh   /etc/init.d
-  fi
-
-  if  ! [  -f      /etc/modules.d/lirc  ]
-  then  mkdir  -p  /etc/modules.d
-  mconf   >    /etc/modules.d/lirc
-  else  touch  /etc/modules.d/lirc
-  fi
-
-)
+sh configure.sh          &&
+make                     &&
+prepare_install          &&
+remove_old_modules       &&
+make    install          &&
+chgrp  lirc  /dev/lirc*  && 
+chmod  660   /dev/lirc*  &&
+finish_install           &&
+message  "`cat  $SCRIPT_DIR/message.txt`"

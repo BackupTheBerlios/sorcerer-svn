@@ -1,11 +1,4 @@
-(
-
- ./configure  --prefix=/usr  &&
-  make                       &&
-  prepare_install            &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
+install_init()  {
 
   cp  $SCRIPT_DIR/ypbind.sh     /etc/init.d
   if  $YPBIND_BOOT;  then
@@ -19,4 +12,10 @@
     ln  -sf  ../init.d/ypbind.sh  /etc/rc5.d/S40ypbind
   fi
 
-)
+}
+
+./configure  --prefix=/usr  &&
+make                       &&
+prepare_install            &&
+make    install            &&
+        intall_init

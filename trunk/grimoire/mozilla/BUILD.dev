@@ -1,5 +1,17 @@
+install_symlinks()  {
+
+  rm  -rf                                   /usr/include/mozilla
+  ln  -sf    /usr/include/mozilla-$VERSION  /usr/include/mozilla
+
+  rm  -rf                                   /usr/lib/mozilla
+  ln  -sf        /usr/lib/mozilla-$VERSION  /usr/lib/mozilla
+
+  rm  -rf                                   /usr/share/idl/mozilla
+  ln  -sf  /usr/share/idl/mozilla-$VERSION  /usr/share/idl/mozilla
+
+}
+
 IVERSION=$(  installed_version  $BSPELL  )
-(
 
   export    CFLAGS="${CFLAGS/-ffast-math/}"
   export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
@@ -54,17 +66,5 @@ fi
   ./configure      &&
   make             &&
   prepare_install  &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
-  rm  -rf                                   /usr/include/mozilla
-  ln  -sf    /usr/include/mozilla-$VERSION  /usr/include/mozilla
-
-  rm  -rf                                   /usr/lib/mozilla
-  ln  -sf        /usr/lib/mozilla-$VERSION  /usr/lib/mozilla
-
-  rm  -rf                                   /usr/share/idl/mozilla
-  ln  -sf  /usr/share/idl/mozilla-$VERSION  /usr/share/idl/mozilla
-
-)
+  make    install  &&
+          install_symlinks

@@ -1,21 +1,4 @@
-(
-
-  DEFAULT_CFLAGS="CFLAGS    = -O3 -fomit-frame-pointer -Wall"
-       SA_CFLAGS="CFLAGS    = $CFLAGS  -Wall"
-
-  sed  -i  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
-
-  ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $OPTS                 &&
-  make                               &&
-  prepare_install                    &&
-  make    install
-
-) > $C_FIFO 2>&1 && (
-
+finish_install()  {
 
   if  [  !  -f   /etc/modules.d/autofs  ];  then
     mkdir   -p   /etc/modules.d
@@ -40,4 +23,20 @@
   ln     -sf  ../init.d/autofs     /etc/rc0.d/K20autofs
   ln     -sf  ../init.d/autofs     /etc/rc6.d/K20autofs
 
-)
+}
+
+
+DEFAULT_CFLAGS="CFLAGS    = -O3 -fomit-frame-pointer -Wall"
+     SA_CFLAGS="CFLAGS    = $CFLAGS  -Wall"
+
+sed  -i  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
+
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+ finish_install

@@ -1,21 +1,4 @@
-(
-
-  groupadd  irrd           2>/dev/null
-  useradd   irrd  -g  irrd  2>/dev/null
-
-  unset  BUILD
-  cd  src                            &&
-  ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $OPTS                 &&
-  make                               &&
-  prepare_install                    &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
+finish_install()  {
   cp  src/programs/irrdcacher/irrdcacher     /usr/sbin
   cp  src/programs/irrdcacher/ripe2rpsl      /usr/sbin
   cp  src/programs/irrdcacher/update_source  /usr/sbin
@@ -42,4 +25,20 @@
   ln  -sf  ../init.d/irrd.sh  /etc/rc4.d/S40irrd
   ln  -sf  ../init.d/irrd.sh  /etc/rc5.d/S40irrd
 
-)
+}
+
+
+groupadd  irrd           2>/dev/null
+useradd   irrd  -g  irrd  2>/dev/null
+
+unset  BUILD
+cd  src                            &&
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+ finish_install

@@ -1,23 +1,4 @@
-(
-
-  if  spell_installed  Linux-PAM  ||
-      spell_held       Linux-PAM
-  then  WITH_PAM="--with-pam"
-  fi
-
-
-  ./configure  --sysconfdir=/etc  \
-               --prefix=/usr      \
-               --with-largefile   \
-               --with-everything  \
-               $WITH_PAM          \
-               $OPTS              &&
-  make                            &&
-  prepare_install                 &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
+install_conf()  {
 
   if    [  !  -f  /etc/ftplockout  ]
   then  cp  pam/ftplockout  /etc
@@ -36,4 +17,20 @@
     ln  -sf  ../init.d/pure-ftpd.sh  /etc/rc5.d/S90pure-ftpd
   fi
 
-)
+}
+
+if  spell_installed  Linux-PAM  ||
+    spell_held       Linux-PAM
+then  WITH_PAM="--with-pam"
+fi
+
+./configure  --sysconfdir=/etc  \
+             --prefix=/usr      \
+             --with-largefile   \
+             --with-everything  \
+             $WITH_PAM          \
+             $OPTS              &&
+make                            &&
+prepare_install                 &&
+make    install                 &&
+        install_conf

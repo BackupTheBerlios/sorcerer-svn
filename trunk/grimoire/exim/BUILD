@@ -1,3 +1,40 @@
+install_symlinks()  {
+  ln     -sf  ../sbin/exim   /usr/lib/sendmail
+  ln     -sf  exim          /usr/sbin/sendmail
+  ln     -sf  exim          /usr/sbin/mailq
+  ln     -sf  exim          /usr/sbin/rsmtp
+  ln     -sf  exim          /usr/sbin/rmail
+  ln     -sf  exim          /usr/sbin/runq
+  ln     -sf  exim          /usr/sbin/newaliases
+}
+
+
+install_conf()  {
+  if    !  touch  /etc/aliases
+  then  rm  -f    /etc/aliases
+        touch     /etc/aliases
+  fi
+
+  sed  -i  "s:var/mail:var/spool/mail:"         /etc/exim.conf
+  sed  -i  "s/\# group = mail/  group = mail/"  /etc/exim.conf
+  sed  -i  "s/\# mode = 0660/  mode = 0660/"    /etc/exim.conf
+
+  cp  doc/exim.8  /usr/man/man8
+
+}
+
+install_init()  {
+
+  cp     $SCRIPT_DIR/exim.sh     /etc/init.d
+  ln  -sf  ../init.d/exim.sh     /etc/rc3.d/S90exim
+  ln  -sf  ../init.d/exim.sh     /etc/rc4.d/S90exim
+  ln  -sf  ../init.d/exim.sh     /etc/rc5.d/S90exim
+
+  ln  -sf  ../init.d/exim.sh     /etc/rc0.d/K10exim
+  ln  -sf  ../init.d/exim.sh     /etc/rc6.d/K10exim
+
+}
+
 IVER=$( installed_version  exim |  cut  -c1  )
 if    [  "$IVER"  ==  "3"  ]
 then  if    [  -e  /etc/exim.conf  ]
@@ -68,39 +105,9 @@ if    spell_installed  db;  then
 
 fi
 
-(
-
-  make             &&
-  prepare_install  &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
-  ln     -sf  ../sbin/exim   /usr/lib/sendmail
-  ln     -sf  exim          /usr/sbin/sendmail
-  ln     -sf  exim          /usr/sbin/mailq
-  ln     -sf  exim          /usr/sbin/rsmtp
-  ln     -sf  exim          /usr/sbin/rmail
-  ln     -sf  exim          /usr/sbin/runq
-  ln     -sf  exim          /usr/sbin/newaliases
-
-  if    !  touch  /etc/aliases
-  then  rm  -f    /etc/aliases
-        touch     /etc/aliases
-  fi
-
-  sed  -i  "s:var/mail:var/spool/mail:"         /etc/exim.conf
-  sed  -i  "s/\# group = mail/  group = mail/"  /etc/exim.conf
-  sed  -i  "s/\# mode = 0660/  mode = 0660/"    /etc/exim.conf
-
-  cp  doc/exim.8  /usr/man/man8
-
-  cp     $SCRIPT_DIR/exim.sh     /etc/init.d
-  ln  -sf  ../init.d/exim.sh     /etc/rc3.d/S90exim
-  ln  -sf  ../init.d/exim.sh     /etc/rc4.d/S90exim
-  ln  -sf  ../init.d/exim.sh     /etc/rc5.d/S90exim
-
-  ln  -sf  ../init.d/exim.sh     /etc/rc0.d/K10exim
-  ln  -sf  ../init.d/exim.sh     /etc/rc6.d/K10exim
-
-)
+make             &&
+prepare_install  &&
+make    install  &&
+        install_symlinks  &&
+        install_conf      &&
+        install_init

@@ -1,17 +1,4 @@
-(
-
-  # export  CFLAGS="$CFLAGS $LDFLAGS"
-
-  ./configure  --host=$BUILD        \
-               --prefix=/usr        \
-               --with-root-prefix=  \
-               --enable-elf-shlibs  &&
-  make  "LDFLAGS=$LDFLAGS"          &&
-  prepare_install                   &&
-  make    install                   &&
-  make    install-libs
-
-) > $C_FIFO 2>&1  &&  (
+install_init()  {
 
   mkdir  -p  /devices
 
@@ -26,4 +13,15 @@
   ln  -sf  /etc/init.d/mount.sh  /etc/rc0.d/K90mount
   ln  -sf  /etc/init.d/mount.sh  /etc/rc6.d/K90mount
 
-)
+}
+
+
+./configure  --host=$BUILD        \
+             --prefix=/usr        \
+             --with-root-prefix=  \
+             --enable-elf-shlibs  &&
+make  "LDFLAGS=$LDFLAGS"          &&
+prepare_install                   &&
+make    install                   &&
+make    install-libs              &&
+        install_init

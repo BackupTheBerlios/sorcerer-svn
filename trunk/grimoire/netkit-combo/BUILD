@@ -1,14 +1,4 @@
-(
-
-  bunzip2  -cd  $SCRIPT_DIR/netkit-combo-0.17.patch.bz2  |
-  patch    -p1
-
-  ./configure  --prefix=/usr  &&
-  make                        &&
-  prepare_install             &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
+finish_install()  {
 
   cd  netkit-base/etc.sample
   for   FILE  in  *;  do
@@ -51,4 +41,14 @@
   useradd   nobody	2>/dev/null
   true
 
-)
+}
+
+
+bunzip2  -cd  $SCRIPT_DIR/netkit-combo-0.17.patch.bz2  |
+patch    -p1
+
+./configure  --prefix=/usr  &&
+make                        &&
+prepare_install             &&
+make    install             &&
+ finish_install

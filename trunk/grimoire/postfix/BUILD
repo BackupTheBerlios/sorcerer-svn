@@ -1,64 +1,4 @@
-(
-
-  sed  -i  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
-           conf/main.cf
-
-  groupadd  mail                  2>/dev/null
-  groupadd  postdrop              2>/dev/null
-  groupadd  postfix               2>/dev/null
-  useradd   mail     -g  mail     2>/dev/null
-  useradd   postfix  -g  postfix  2>/dev/null
-
-  mkdir  -p         /var/spool/mail
-  chmod  1777       /var/spool/mail
-  chown  mail:mail  /var/spool/mail
-
-
-  if    grep  -q  -x    "openldap"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  openldap
-  then  AUXLIBS="-lldap -llber"
-         CCARGS="-DHAS_LDAP"
-  fi
-
-  if    grep  -q  -x    "Linux-PAM"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  Linux-PAM
-  then  AUXLIBS="$AUXLIBS -lpam -lpam_misc"
-         CCARGS="$CCARGS  -DHAS_PAM"
-  fi
-
-  if    grep  -q  -x    "mysql"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  mysql
-  then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -z -lm"
-        CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
-  fi
-
-  # fix to get man pages to install in /usr/man
-
-  sed  -i  "s:/usr/local:/usr:"  src/global/mail_params.h
-
-  if    [  -f  /etc/postfix/main.cf  ]
-  then  cp     /etc/postfix/main.cf  \
-               /etc/postfix/main.cf.save
-  fi
-
-  make  -f Makefile.init makefiles  \
-        "CC=gcc"                    \
-        "AUXLIBS=$AUXLIBS"          \
-        "CCARGS=$CCARGS"            &&
-  make                              &&
-
-  prepare_install              &&
-
-  sh  ./postfix-install        \
-      -non-interactive         &&
-
-  ln  -sf   ../sbin/sendmail   \
-           /usr/lib/sendmail   &&
-
-  ln  -sf  postfix/aliases     \
-              /etc/aliases
-
-) > $C_FIFO 2>&1  &&  (
+install_init()  {
 
   cp  $SCRIPT_DIR/postfix.sh        /etc/init.d
   ln  -sf  ../init.d/postfix.sh     /etc/rc3.d/S90postfix
@@ -68,4 +8,58 @@
   ln  -sf  ../init.d/postfix.sh     /etc/rc0.d/K10postfix
   ln  -sf  ../init.d/postfix.sh     /etc/rc6.d/K10postfix
 
-)
+}
+
+sed  -i  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
+         conf/main.cf
+
+groupadd  mail                  2>/dev/null
+groupadd  postdrop              2>/dev/null
+groupadd  postfix               2>/dev/null
+useradd   mail     -g  mail     2>/dev/null
+useradd   postfix  -g  postfix  2>/dev/null
+
+mkdir  -p         /var/spool/mail
+chmod  1777       /var/spool/mail
+chown  mail:mail  /var/spool/mail
+
+
+if    grep  -q  -x    "openldap"  $OPT_ON_LOGS/postfix  &&
+      spell_installed  openldap
+then  AUXLIBS="-lldap -llber"
+       CCARGS="-DHAS_LDAP"
+fi
+
+if    grep  -q  -x    "Linux-PAM"  $OPT_ON_LOGS/postfix  &&
+      spell_installed  Linux-PAM
+then  AUXLIBS="$AUXLIBS -lpam -lpam_misc"
+       CCARGS="$CCARGS  -DHAS_PAM"
+fi
+
+if    grep  -q  -x    "mysql"  $OPT_ON_LOGS/postfix  &&
+      spell_installed  mysql
+then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -z -lm"
+      CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
+fi
+
+# fix to get man pages to install in /usr/man
+
+sed  -i  "s:/usr/local:/usr:"  src/global/mail_params.h
+
+if    [  -f  /etc/postfix/main.cf  ]
+then  cp     /etc/postfix/main.cf  \
+             /etc/postfix/main.cf.save
+fi
+
+make  -f Makefile.init makefiles  \
+      "CC=gcc"                    \
+      "AUXLIBS=$AUXLIBS"          \
+      "CCARGS=$CCARGS"            &&
+make                              &&
+prepare_install                   &&
+
+sh  ./postfix-install       -non-interactive    &&
+ln  -sf   ../sbin/sendmail  /usr/lib/sendmail   &&
+ln  -sf  postfix/aliases    /etc/aliases        &&
+
+install_init

@@ -1,14 +1,4 @@
-(
-    
-  if    [  -d  /etc/junkbuster  ]
-  then  cp     /etc/junkbuster/*  .
-  fi
-
-  make             &&
-  prepare_install  &&
-  install -s -m 755 junkbuster /usr/sbin/junkbuster
-
-) > $C_FIFO 2>&1  &&  (
+install_conf()  {
 
   mkdir  -p                 /var/log/junkbuster
   mkdir  -p                 /usr/doc/junkbuster
@@ -30,4 +20,13 @@
   ln     -sf  ../init.d/junkbuster.sh  /etc/rc2.d/K60junkbuster
   ln     -sf  ../init.d/junkbuster.sh  /etc/rc6.d/K60junkbuster
 
-)
+}
+
+if    [  -d  /etc/junkbuster  ]
+then  cp     /etc/junkbuster/*  .
+fi
+
+make             &&
+prepare_install  &&
+install -s -m 755 junkbuster /usr/sbin/junkbuster  &&
+install_conf

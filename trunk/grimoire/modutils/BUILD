@@ -6,17 +6,9 @@ mod_conf_message()  {
 	Execute depmod."
 }
 
+install_conf()  {
 
-(
-
-  ./configure  --build=$BUILD  &&
-  make                         &&
-  prepare_install              &&
-  make    install              &&
   mod_conf_message
-
-)  > $C_FIFO 2>&1  &&  (
-
   cp     $SCRIPT_DIR/modutils.sh  /etc/init.d
   ln  -sf  ../init.d/modutils.sh  /etc/rcS.d/S20modutils
 
@@ -27,4 +19,11 @@ mod_conf_message()  {
 
   touch  /etc/modules  /etc/modules.conf
 
-)
+}
+
+
+./configure  --build=$BUILD  &&
+make                         &&
+prepare_install              &&
+make    install              &&
+        install_conf

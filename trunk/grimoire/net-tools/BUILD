@@ -1,14 +1,4 @@
-(
-
-  cp  $SCRIPT_DIR/config.h  .
-
-  sed  -i  "s:-O2:$CFLAGS:"               Makefile
-  sed  -i  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
-  make             &&
-  prepare_install  &&
-  make  BASEDIR=/  install
-
-) > $C_FIFO 2>&1  &&  (
+install_conf()  {
 
   if  !  [  -e  /etc/init.d/networking.sh  ]
   then   cp  $SCRIPT_DIR/networking.sh  /etc/init.d
@@ -29,4 +19,13 @@
 
   ln     -sf    ../init.d/hostname.sh  /etc/rcS.d/S20hostname
 
-)
+}
+
+cp  $SCRIPT_DIR/config.h  .
+
+sed  -i  "s:-O2:$CFLAGS:"               Makefile
+sed  -i  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
+make             &&
+prepare_install  &&
+make  BASEDIR=/  install  &&
+install_conf

@@ -1,28 +1,4 @@
-(
-
-
-  groupadd  fcron             2>/dev/null
-  useradd   fcron  -g  fcron  2>/dev/null
-
-  if    spell_installed  Linux-PAM
-  then  WITH_PAM="--with-pam=yes"
-  else  WITH_PAM="--with-pam=no"
-  fi
-
-  EDITOR=`which $EDITOR  2>/dev/null`  ||
-  EDITOR=`which nano`
-
-  sed  -i  "s:-O2:$CFLAGS:"  configure
-
-  ./configure  --prefix=/usr          \
-               --with-answer-all=no   \
-               $WITH_PAM              \
-               --with-editor=$EDITOR  &&
-  make                                &&
-  prepare_install                     &&
-  make    install
-
-)  > $C_FIFO 2>&1  &&  (
+install_init()  {
 
   cp  $SCRIPT_DIR/fcron.sh        /etc/init.d
 
@@ -33,4 +9,26 @@
   [ -e /etc/fcron.allow ]  ||  cp  files/fcron.allow  /etc
   [ -e /etc/fcron.deny  ]  ||  cp  files/fcron.deny   /etc
 
-)
+}
+
+groupadd  fcron             2>/dev/null
+useradd   fcron  -g  fcron  2>/dev/null
+
+if    spell_installed  Linux-PAM
+then  WITH_PAM="--with-pam=yes"
+else  WITH_PAM="--with-pam=no"
+fi
+
+EDITOR=`which $EDITOR  2>/dev/null`  ||
+EDITOR=`which nano`
+
+sed  -i  "s:-O2:$CFLAGS:"  configure
+
+./configure  --prefix=/usr          \
+             --with-answer-all=no   \
+             $WITH_PAM              \
+             --with-editor=$EDITOR  &&
+make                                &&
+prepare_install                     &&
+make    install                     &&
+        install_init

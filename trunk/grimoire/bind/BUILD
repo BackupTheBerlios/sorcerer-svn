@@ -1,26 +1,15 @@
-(
-
-  groupadd  bind            2>/dev/null
-  useradd   bind  -g  bind  2>/dev/null
-
-  ./configure  --prefix=/usr           \
-               --sysconfdir=/etc/bind  \
-               --localstatedir=/var    &&
-  make                                 &&
-  prepare_install                      &&
-  make    install
-
-) > $C_FIFO 2>&1  &&
-
-( 
-
-  # Install man pages.
+man_install()  {
 
   for  DIRECTORY in doc/man/*;  do
     for  (( COUNT=1 ; COUNT < 9 ; COUNT++ )); do
       cp  $DIRECTORY/*.$COUNT  /usr/man/man$COUNT  2> /dev/null
     done
   done
+
+}
+
+
+conf_install()  {
 
   SNC="$SCRIPT_DIR/named.conf"
   SNR="$SCRIPT_DIR/named.root"
@@ -33,6 +22,11 @@
   [  -e  /etc/bind/rndc.key    ]  ||  rndc-confgen  -a
 
   chown  -R  bind:bind  /etc/bind
+
+}
+
+
+init_install()  {
 
   cp  $SCRIPT_DIR/named.sh     /etc/init.d
 
@@ -47,4 +41,18 @@
     ln  -sf  ../init.d/named.sh  /etc/rc5.d/S35named
   fi
 
-)
+}
+
+
+groupadd  bind            2>/dev/null
+useradd   bind  -g  bind  2>/dev/null
+
+./configure  --prefix=/usr           \
+             --sysconfdir=/etc/bind  \
+             --localstatedir=/var    &&
+make                                 &&
+prepare_install                      &&
+make    install                      &&
+    man_install                      &&
+   conf_install                      &&
+   init_install
