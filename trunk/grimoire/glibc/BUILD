@@ -45,6 +45,7 @@
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
   make    install                             &&
-  ldconfig
+  ldconfig                                    &&
+  rm     -rf  $LIBRARY_CACHE/glibc
 
 ) > $C_FIFO 2>&1
