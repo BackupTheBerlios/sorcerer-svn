@@ -5,4 +5,16 @@ sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:
 sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:"  \
      lib/roken/ndbm_wrap.c
 
-default_build
+LOG="
+[logging]
+	kdc = FILE:/var/heimdal/kdc.log
+	kdc = SYSLOG:INFO
+	default = SYSLOG:INFO:USER
+"
+
+default_build  &&
+
+if    !  [  -f      /etc/krb5.conf  ];  then
+  cp    krb5.conf   /etc/krb5.conf
+  echo  "$LOG"  >>  /etc/krb5.conf
+fi

@@ -1,0 +1,26 @@
+#!/bin/sh
+
+PID_FILE=/var/run/slapd.pid
+
+stop()  {
+  if    [  -f   $PID_FILE  ];  then
+    PID=$(<     $PID_FILE  )
+    rm     -f   $PID_FILE
+    pkill  -15  $PID
+    echo  "Stopping  slapd."
+    true
+  else
+    false
+  fi
+}
+
+start()  {  /usr/libexec/slapd;  }
+
+
+# 5 seconds may not be long enough for slapd to quit?
+
+case  $1  in
+  start|restart)  stop  &&  sleep  5;  start  ;;
+           stop)  stop  ;;
+              *)  echo  "Usage: $0 {start|stop|restart}"  ;;
+esac
