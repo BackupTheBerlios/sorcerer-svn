@@ -33,6 +33,9 @@
                --enable-__cxa_atexit       \
                --enable-clocale=gnu        \
                --enable-shared             \
+               --infodir=/usr/info         \
+               --mandir=/usr/man           \
+               --datadir=/usr/share        \
                "$ENABLE_LANGS"             &&
   make         bootstrap-lean   "$BF"      \
                "$LCF"  "$LCXF"  "$LDF"     \
@@ -43,14 +46,20 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
-  rm  -f                                /opt/gcc/current
-  ln  -s    $VERSION                    /opt/gcc/current
-  ln  -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
-  ln  -sf   /opt/gcc/$VERSION/bin/gcc   /opt/gcc/$VERSION/bin/cc
-  cp  -sfa  /opt/gcc/$VERSION/man/*     /usr/man/
-  cp  -sfa  /opt/gcc/$VERSION/info/*    /usr/info/
-  cp  -sfa  /opt/gcc/$VERSION/share/*   /usr/share/
-  rm  -f    /usr/bin/cc
+  rm     -f                                /opt/gcc/current
+  ln     -s    $VERSION                    /opt/gcc/current
+  ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
+  ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
+#  mkdir  -p                                /usr/man
+#  cp     -af   /opt/gcc/$VERSION/man/*     /usr/man/
+#  rm     -rf   /opt/gcc/$VERSION/man
+#  mkdir  -p                                /usr/info
+#  cp     -af   /opt/gcc/$VERSION/info/*    /usr/info/
+#  rm     -rf   /opt/gcc/$VERSION/info
+#  mkdir  -p                                /usr/share
+#  cp     -af   /opt/gcc/$VERSION/share/*   /usr/share/
+#  rm     -rf   /opt/gcc/$VERSION/share
+  rm     -f                                /usr/bin/cc
 
   if    [   -h  /usr/info/dir  ]
   then  rm  -f  /usr/info/dir
