@@ -9,22 +9,7 @@ install_conf()  {
 
 }
 
-if    [  -f  /etc/swapd.conf  ]
-then  cp     /etc/swapd.conf  .
-else
-  #  Keep at least 64MB of mem+swap available
-  #  2 GB max swap on linux 2.4.20
-  sed  -i  "s:memlimit 16384:memlimit 65536:"  swapd.conf
-  sed  -i  "s:swapsize 4096:swapsize 65536:"  swapd.conf
-  sed  -i  "s:pause 1000:pause 100:"           swapd.conf
-fi
-
 sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
-
-case  $VERSION  in
-  0.2)  patch  -p1  <  $SCRIPT_DIR/swapd-0.2.patch  ;;
-  0.3) echo "/etc/swapd.conf is now useless, use init script instead see swapd --help"
-esac
 
 ./configure  --build=$BUILD        \
              --prefix=/usr         \
