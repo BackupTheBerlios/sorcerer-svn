@@ -21,10 +21,11 @@ install_conf()  {
 
 }
 
+sed  -i  "s:-O2:$CFLAGS:
+          s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
+
 cp  $SCRIPT_DIR/config.h  .
 
-sed  -i  "s:-O2:$CFLAGS:"               Makefile
-sed  -i  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
 make             &&
 prepare_install  &&
 make  BASEDIR=/  install  &&
