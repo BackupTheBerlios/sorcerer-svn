@@ -28,6 +28,11 @@ remove_old_modules()  {
 }
 
 
+case  $VERSION  in
+  0.9.0rc3)  rm  include/linux/isapnp.h  ;;
+esac
+
+
 (
   LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
 
