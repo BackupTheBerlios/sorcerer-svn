@@ -2,8 +2,8 @@ conf()  {
 
   if  !  grep  -q  "driver="  $SPELL_CONFIG;  then
 
-  bzip2 -dc  $SCRIPT_DIR/lirc-setup.patch.bz2  |  patch  -p0
-  ./setup.sh                                              &&
+  patch  -p 0  <  $SCRIPT_DIR/lirc-setup.patch
+  ./setup.sh                                         &&
   cat configure.sh >>  $SPELL_CONFIG
 
   fi
