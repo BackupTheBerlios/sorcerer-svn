@@ -14,14 +14,22 @@
   chown  mail:mail  /var/spool/mail
 
 
-  if  spell_installed  openldap
+  if    grep  -q  -x    "openldap"  $OPT_ON_LOGS/postfix  &&
+        spell_installed  openldap
   then  AUXLIBS="-lldap -llber"
          CCARGS="-DHAS_LDAP"
   fi
 
-  if  spell_installed  Linux-PAM
+  if    grep  -q  -x    "Linux-PAM"  $OPT_ON_LOGS/postfix  &&
+        spell_installed  Linux-PAM
   then  AUXLIBS="$AUXLIBS -lpam -lpam_misc"
          CCARGS="$CCARGS  -DHAS_PAM"
+  fi
+
+  if    grep  -q  -x    "mysql"  $OPT_ON_LOGS/postfix  &&
+        spell_installed  mysql
+  then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -z -lm"
+        CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
   fi
 
   # fix to get man pages to install in /usr/man
@@ -33,10 +41,11 @@
                /etc/postfix/main.cf.save
   fi
 
-  make  "CC=gcc"               \
-        "OPT=$CFLAGS"          \
-        "AUXLIBS=$AUXLIBS"     \
-        "CCARGS=$CCARGS"       &&
+  make  -f Makefile.init makefiles  \
+        "CC=gcc"                    \
+        "AUXLIBS=$AUXLIBS"          \
+        "CCARGS=$CCARGS"            &&
+  make                              &&
 
   prepare_install              &&
 
