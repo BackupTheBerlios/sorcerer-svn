@@ -1,28 +1,61 @@
 (
 
-  ./configure  --enable-so                            \
-               --enable-ssl                           \
-               --enable-modules=all                   \
-               --enable-mods-shared=all               \
-               --prefix=/usr/share/httpd              \
-               --exec-prefix=/usr/share/httpd         \
-               --bindir=/usr/bin                      \
-               --sbindir=/usr/sbin                    \
-               --libexecdir=/usr/share/httpd/modules  \
-               --datadir=/usr/share/httpd             \
-               --sysconfdir=/etc/httpd                \
-               --sharedstatedir=/usr/share/httpd      \
-               --localstatedir=/var/lib/httpd         \
-               --libdir=/usr/lib                      \
-               --includedir=/usr/include/httpd        \
-               --infodir=/usr/info                    \
-               --mandir=/usr/man                      \
-               --enable-layout=GNU                    \
-               --build=$BUILD                         \
-               $OPTS                                  &&
-  make                                                &&
-  prepare_install                                     &&
-  make    install
+  APACHE_CONFIGURE=\
+"./configure  --enable-so                            \
+              --enable-ssl                           \
+              --enable-modules=all                   \
+              --enable-mods-shared=all               \
+              --prefix=/usr/share/httpd              \
+              --exec-prefix=/usr/share/httpd         \
+              --bindir=/usr/bin                      \
+              --sbindir=/usr/sbin                    \
+              --libexecdir=/usr/share/httpd/modules  \
+              --datadir=/usr/share/httpd             \
+              --sysconfdir=/etc/httpd                \
+              --sharedstatedir=/usr/share/httpd      \
+              --localstatedir=/var/lib/httpd         \
+              --libdir=/usr/lib                      \
+              --includedir=/usr/include/httpd        \
+              --infodir=/usr/info                    \
+              --mandir=/usr/man                      \
+              --enable-layout=GNU                    \
+              --build=$BUILD                         \
+              $OPTS"
+
+  MOD_PERL_CONFIGURE="perl  Makefile.PL MP_AP_PREFIX=$BUILD_DIR"
+
+  add_perl_module()  {
+
+              LPM="LoadModule perl_module modules/mod_perl.so"
+       HTTPD_CONF="/etc/httpd/httpd.conf"
+    HTTPD_MODULES="/usr/share/httpd/modules/"
+
+    cp    src/modules/perl/mod_perl.so  $HTTPD_MODULES
+    if    !  grep  -q  "perl_module"    $HTTPD_CONF
+    then     echo      "$LPM"  >>       $HTTPD_CONF
+    fi
+
+  }
+
+  if    show_depends_of  httpd  2>/dev/null  |
+        grep  -q  -w  "perl"
+  then
+    $APACHE_CONFIGURE    &&
+    make                 &&
+    cd    ${DIR[1]}      &&
+    $MOD_PERL_CONFIGURE  &&
+    make                 &&
+    cd  ..               &&
+    prepare_install      &&
+    make    install      &&
+    cd  ${DIR[1]}        &&
+    make    install      &&
+    add_perl_module
+  else
+    $APACHE_CONFIGURE    &&
+    prepare_install      &&
+    make    install
+  fi
 
 ) > $C_FIFO 2>&1  &&
 
@@ -30,8 +63,8 @@
 
   mkdir  -p  /usr/share/httpd/logs
   mkdir  -p  /var/lib/httpd/run
-  sedit  "s:/usr/bin:/usr/sbin:"           /usr/sbin/apachectl
-  cp  $SCRIPT_DIR/apache.sh       /etc/init.d
+  sedit  "s:/usr/bin:/usr/sbin:"  /usr/sbin/apachectl
+  cp     $SCRIPT_DIR/httpd.sh     /etc/init.d
 
   if  $APACHE_BOOT;  then
     ln  -sf  ../init.d/httpd.sh  /etc/rc0.d/K10httpd

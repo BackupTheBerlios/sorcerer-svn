@@ -15,6 +15,14 @@ APACHE_CONFIGURE=\
               --disable-module=auth_dbm          \
               --with-layout=GNU"
 
+MOD_PERL_CONFIGURE=\
+"perl  Makefile.PL            \
+       APACHE_SRC=$BUILD_DIR  \
+       USE_APACI=1            \
+       DO_HTTPD=1             \
+       EVERYTHING=1           \
+       PREP_HTTPD=1"
+
 if  !  show_depends_of  apache  2>/dev/null  |
        grep  -q  -w  "openssl\|perl"
 then
@@ -57,31 +65,29 @@ else
         grep  -q  -w  "perl"
   then
 
+    APACHE_CONFIGURE="$APACHE_CONFIGURE  --activate-module=src/modules/perl/libperl.a"
     activate_voyeur
-    (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch  &&
-       cd   ${DIR[2]}                    &&
-       perl  Makefile.PL  APACHE_SRC=..  \
-                          USE_APACI=1    \
-                          DO_HTTPD=1     \
-                          EVERYTHING=1   \
-                          PREP_HTTPD=1   &&
-       make                              &&
-       cd  ..                            &&
-       $APACHE_CONFIGURE  --activate-module=src/modules/perl/libperl.a  &&
-       make             &&
-       prepare_install  &&
-       make  install    &&
-       cd  ${DIR[2]}    &&
+
+    (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
+       cd   ${DIR[2]}       &&
+       $MOD_PERL_CONFIGURE  &&
+       make                 &&
+       cd  ..               &&
+       $APACHE_CONFIGURE    &&
+       make                 &&
+       prepare_install      &&
+       make  install        &&
+       cd  ${DIR[2]}        &&
        make  install
     ) > $C_FIFO 2>&1
 
   else
 
     activate_voyeur
-    (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch  &&
-       $APACHE_CONFIGURE  --acitvate-module=src/modules/perl/libperl.a
-       make             &&
-       prepare_install  &&
+    (  patch  -p1  <  $SCRIPT_DIR/apache-1.3.x-db4.patch
+       $APACHE_CONFIGURE  &&
+       make               &&
+       prepare_install    &&
        make    install
     )
 
