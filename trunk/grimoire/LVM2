@@ -7,3 +7,11 @@
        REQ="device-mapper"
   ESTIMATE="268"
       DESC="LVM2 is the userspace toolset that provide logical volume management."
+
+build()  {
+  grep   -rl  "<linux/fs.h>"  *  |
+  xargs  -l64  \
+  sed  -i     "\,#include <linux/fs.h>,i#include <linux/types.h>
+               \,#  include <linux/fs.h>,i#include <linux/types.h>"
+  default_build
+}
