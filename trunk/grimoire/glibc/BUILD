@@ -1,21 +1,10 @@
-make_locales()  {
-
-  LD_PRELOAD_OLD="$LD_PRELOAD"
-  unset   LD_PRELOAD
-  rm      -rf  /usr/lib/locale
-  mkdir   -p   /usr/lib/locale
-  make    localedata/install-locales
-  export  LD_PRELOAD="$LD_PRELOAD_OLD"
-  touch   $(  find  /usr/lib/locale  )
-
-}
-
-
 (
 
-  patch -p1  <  $SCRIPT_DIR/glibc-2.2.5.patch
+  patch -p1  <  $SCRIPT_DIR/glibc-2.3.patch
 
-  unset  LDFLAGS
+  LD_PRELOAD_OLD="$LD_PRELOAD"
+  unset  LD_PRELOAD
+  unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
   export    CFLAGS="${CFLAGS/-O0/}"
   export  CXXFLAGS="${CXXFLAGS/-O0/}"
@@ -28,15 +17,20 @@ make_locales()  {
   grep  -q  "\-O"    ||
   export  CXXFLAGS="$CXXFLAGS -Os"
 
+#              --enable-add-ons=linuxthreads,prelink  \
   ./configure  --host=$BUILD                  \
                --build=$BUILD                 \
                --prefix=/usr                  \
                --enable-add-ons=linuxthreads  \
+               --disable-profile              \
                --with-elf                     \
+               --enable-kernel=2.4.11         \
                --enable-shared                &&
   make                                        &&
   prepare_install                             &&
+  export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
   make    install                             &&
-  make_locales
+  ln     -sf  ld-2.3.so  /lib/ld-linux.so.2   &&
+  ldconfig
 
 ) > $C_FIFO 2>&1

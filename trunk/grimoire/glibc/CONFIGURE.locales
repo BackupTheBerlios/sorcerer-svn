@@ -1,0 +1,44 @@
+locales_checklist()  { 
+  cat  $SCRIPT_DIR/locales  |
+  while  read  LC  DESCRIPTION;  do
+    echo  "$LC"
+    echo  "$DESCRIPTION"
+    echo  "off"
+  done
+}
+
+
+select_locales()  {
+
+  BACKTITLE="Glibc Locale Configuration Menu"
+      TITLE="Locale Selection"
+       HELP="Translated messages are automatically installed, 
+but the locale database that controls other behavior is not.  
+Please select desired locale or locales.
+If none are selected then all will be installed."
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --separate-output          \
+          --checklist  "$HELP"       \
+          0 0 0                      \
+          $(  locales_checklist  )
+
+}
+
+if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null;  then
+  (
+    export  IFS="	
+"
+    if    query  "Select individual locales?"  n
+    then  LOCALES="$(  select_locales  )"
+    fi
+
+    ALL_LOCALES="$(  cat  $SCRIPT_DIR/locales  |  cut  -f1  )"
+    if    [  -n  "$LOCALES"  ]
+    then  echo    "LOCALES=\"$LOCALES\""      >  $SPELL_CONFIG
+    else  echo    "LOCALES=\"$ALL_LOCALES\""  >  $SPELL_CONFIG
+    fi
+  )
+fi
