@@ -105,7 +105,6 @@ remove_extraversion()  {
 compile_and_install()  {
   yes  ""  |  make  oldconfig
   store_config            &&
-  make   dep              &&
   make   bzImage          &&
   make   modules          &&
   backup_modules          &&
