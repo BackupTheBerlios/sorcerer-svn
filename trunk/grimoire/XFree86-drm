@@ -1,0 +1,38 @@
+   VERSION=( "4.4.0" )
+    IGNORE="\-[1-7]"
+  CATEGORY="xserver"
+ ATTRIBUTE="linux-26-module"
+ SOURCE[0]="current/source/XFree86-$VERSION-src-1.tgz"
+ SOURCE[1]="current/source/XFree86-$VERSION-src-3.tgz"
+#SOURCE[1]="current/source/XFree86-$VERSION-src-2.tgz"
+    URL[0]="$XFREE86_URL"
+  HOMEPAGE="http://www.xfree86.org"
+       REQ="XFree86"
+  ESTIMATE="819"
+     SHORT="XFree86-drm provides Direct Rendering Manager kernel modules."
+
+
+build()  {
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+  LVER=${LVER:-2.6.7}
+
+  ln     -s  ../../../../../programs  programs/Xserver/hw/xfree86/os-support
+  cp     -a  include/*                        \
+             programs/Xserver/include
+  cp     -a  programs/Xserver/hw/xfree86/*.h  \
+             programs/Xserver/include
+  cp     -a  programs/Xserver/hw/xfree86/os-support/bus/*.h  \
+             programs/Xserver/include
+  cd         programs/Xserver/hw/xfree86/os-support
+  xmkmf  -a
+  cd         linux/drm
+  make
+  cd         kernel
+  sed    -i  "s:atomic_read(&page->count));:page_count(page));:"  drm_vm.h
+  sed    -i  "s:atomic_inc( &page->count );:get_page(page);:
+              s:atomic_dec( &page->count );:__put_page(page);:"   ati_pcigart.h
+  mkdir  -p  /lib/modules/$LVER/kernel/drivers/char/drm
+  make             -f  Makefile.linux  &&
+  prepare_install                      &&
+  make    install  -f  Makefile.linux
+}  
