@@ -59,8 +59,8 @@ esac
 case  $MACHTYPE  in
   x86_64-pc-linux-gnu)  OPTS="$OPTS      \
               --disable-multilib         \
-              --enable-threads=posix     \
-              --enable-long-long"        ;;
+              --enable-threads=posix"    ;;
+#             --enable-long-long"        ;;
                     *)  OPTS="$OPTS      \
               --enable-threads=posix"    ;;
 esac
@@ -73,6 +73,7 @@ esac
              --infodir=/usr/info         \
              --mandir=/usr/man           \
              --datadir=/usr/share        \
+             --enable-long-long          \
              "$ENABLE_LANGS"             \
              $OPTS                       &&
 make         bootstrap-lean   "$BF"      \
