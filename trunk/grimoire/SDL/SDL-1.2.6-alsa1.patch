@@ -1,0 +1,60 @@
+diff -r -U2 SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.c SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.c
+--- SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.c	2003-08-30 12:13:00.000000000 -0700
++++ SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.c	2004-02-01 20:11:27.284473240 -0700
+@@ -1,5 +1,5 @@
+ /*
+     SDL - Simple DirectMedia Layer
+-    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002  Sam Lantinga
++    Copyright (C) 1997-2004 Sam Lantinga
+ 
+     This library is free software; you can redistribute it and/or
+@@ -46,5 +46,5 @@
+ 
+ /* The default ALSA audio driver */
+-#define DEFAULT_DEVICE	"plughw:0,0"
++#define DEFAULT_DEVICE	"default"
+ 
+ /* Audio driver functions */
+@@ -147,5 +147,5 @@
+ 	int           sample_len;
+ 	signed short *sample_buf;
+-       
++
+ 	sample_len = this->spec.samples;
+ 	sample_buf = (signed short *)mixbuf;
+@@ -154,8 +154,10 @@
+ 		if ( status < 0 ) {
+ 			if ( status == -EAGAIN ) {
++				SDL_Delay(1);
+ 				continue;
+ 			}
+ 			if ( status == -ESTRPIPE ) {
+ 				do {
++					SDL_Delay(1);
+ 					status = snd_pcm_resume(pcm_handle);
+ 				} while ( status == -EAGAIN );
+@@ -317,4 +319,7 @@
+ 	parent = getpid();
+ 
++	/* Switch to blocking mode for playback */
++	snd_pcm_nonblock(pcm_handle, 0);
++
+ 	/* We're ready to rock and roll. :-) */
+ 	return(0);
+diff -r -U2 SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.h SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.h
+--- SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.h	2002-06-08 10:42:11.000000000 -0700
++++ SDL-1.2.6/src/audio/alsa/SDL_alsa_audio.h	2004-02-01 20:11:27.284473240 -0700
+@@ -1,5 +1,5 @@
+ /*
+     SDL - Simple DirectMedia Layer
+-    Copyright (C) 1997, 1998, 1999, 2000, 2001, 2002  Sam Lantinga
++    Copyright (C) 1997-2004 Sam Lantinga
+ 
+     This library is free software; you can redistribute it and/or
+@@ -25,4 +25,6 @@
+ 
+ #include "SDL_sysaudio.h"
++#define ALSA_PCM_OLD_HW_PARAMS_API
++#define ALSA_PCM_OLD_SW_PARAMS_API
+ #include <alsa/asoundlib.h>
+ 
