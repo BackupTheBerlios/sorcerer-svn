@@ -3,33 +3,47 @@
   LANGUAGE[1]="${LANGUAGE[1]// /,}"
   ENABLE_LANGS="--enable-languages=${LANGUAGE[1]:=c++}"
 
-  export  LIBCFLAGS="$CFLAGS"
-  export  LIBCXXFLAGS="$CXXFLAGS"
+    LCF="LIBCFLAGS=$CFLAGS"
+   LCXF="LIBCXXFLAGS=$CXXFLAGS"
+     BF="BOOT_CFLAGS=$CFLAGS -Wl,-dynamic-linker=/opt/glibc/2.2.5/lib/ld-linux.so.2 -Wl,-rpath,/opt/glibc/2.2.5/lib"
+   LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+  LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+   LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+    LDF="LDFLAGS=$LDFLAGS"
+
+  LD_PRELOAD_OLD="$LD_PRELOAD"
+  unset  LD_PRELOAD
+
+  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.patch
 
   ./configure  --host=$BUILD               \
-               --prefix=/usr/gcc-$VERSION  \
+               --prefix=/opt/gcc/$VERSION  \
                --enable-threads=posix      \
-               --enable-shared             \
                --enable-__cxa_atexit       \
                --enable-clocale=gnu        \
+               --enable-shared             \
                "$ENABLE_LANGS"             &&
-  make   -j 2  bootstrap-lean              &&
+  make   -j 2  bootstrap-lean   "$BF"      \
+               "$LCF"  "$LCXF"  "$LDF"     \
+               "$LJCF" "$LJCXF"            &&
   prepare_install                          &&
+  export  LD_PRELOAD="$LD_PRELOAD_OLD"     &&
   make    install
 
 ) > $C_FIFO 2>&1  &&  (
 
-  remove_header()  {  rm  -f  $(  find  /usr/gcc-$VERSION -name $1  );  }
+  find /opt/gcc/3.2 -name lib*.la  |
+  while  read  LA;  do
+    cp  $LA  $LA.old
+    sed  "s:-L/opt/glibc/2.2.5/lib::g"  $LA.old  >  $LA
+  done
 
-  remove_header   curses.h
-  remove_header  ncurses.h
-
-  ln  -sf   /usr/gcc-$VERSION/bin/cpp   /lib/cpp
-  ln  -sf   /usr/gcc-$VERSION/bin/gcc   /usr/gcc-$VERSION/bin/cc
-  cp  -sfa  /usr/gcc-$VERSION/man/*     /usr/man/
-  cp  -sfa  /usr/gcc-$VERSION/info/*    /usr/info/
-  cp  -sfa  /usr/gcc-$VERSION/share/*   /usr/share/
-  rm  -rf   /usr/bin/cc
+  ln  -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
+  ln  -sf   /opt/gcc/$VERSION/bin/gcc   /opt/gcc/$VERSION/bin/cc
+  cp  -sfa  /opt/gcc/$VERSION/man/*     /usr/man/
+  cp  -sfa  /opt/gcc/$VERSION/info/*    /usr/info/
+  cp  -sfa  /opt/gcc/$VERSION/share/*   /usr/share/
+  rm  -f    /usr/bin/cc
 
   true
 
