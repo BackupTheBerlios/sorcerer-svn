@@ -11,65 +11,30 @@ done  >>  /etc/ld.so.conf
 if    [  -z  "$BRANCH"  ];  then
 (
 
-  fix_la()  {
-
-    local  OLD  NEW  OLD_MD5  NEW_MD5
-
-      OLD="$2"
-      NEW="$3"
-
-    if    grep  -q  "$OLD"  $LA
-    then
-      sed   -i  "s:$OLD:$NEW:g"  $LA
-      OLD_MD5="$(  grep    "$LA\$"  $MD5SUM_LOGS/$SPELL  )"
-      NEW_MD5="$(  md5sum  "$LA"                         )"
-      sed   -i  "s:$OLD_MD5:$NEW_MD5:g"  $MD5SUM_LOGS/$SPELL
-    fi
-
-  }
-
-
   VCX=1
   while  [   -n           "${VERSION[$VCX]}"  ]
   do     rm  -rf  /opt/gcc/${VERSION[$VCX]}
          ((  VCX++  ))
   done
 
-  RECAST="$(  
-    cd  $INSTALL_LOGS
-    grep  "\.la\$" *  |
-    tr ':' ' '        |
-    while  read  SPELL  LA;  do
+  cd  $INSTALL_LOGS
+  grep  "\.la\$" *  |
+  tr ':' ' '        |
+  while  read  SPELL  LA;  do
 
-      if     grep  -q  "/opt/gcc"  $LA  &&
-             grep  -q  "libtool"   $LA  &&
-          !  grep  -q  "/opt/gcc/current\|/opt/gcc/2.95.3"  $LA
-      then
-        if    !  spell_held  "$SPELL"
-        then  echo           "$SPELL"
-        fi
+    if     grep  -q  "/opt/gcc"  $LA  &&
+           grep  -q  "libtool"   $LA  &&
+        !  grep  -q  "/opt/gcc/current\|/opt/gcc/2.95.3"  $LA
+    then
+      if    !  spell_held  "$SPELL"
+      then  echo           "$SPELL"
       fi
+    fi
 
-    done  |  sort  |  uniq
-
-  )"
-
-  if    [  -n  "$RECAST"  ];  then
-    unlock_cast
-    cast       "$RECAST"
-  fi
-
-#      echo  "Fixing  $LA"
-#      VCX=0
-#      while  [  -n  "${VERSION[$VCX]}"  ];  do
-#        fix_la  "$LINE"  "/opt/gcc/${VERSION[$VCX]}/lib"  \
-#                         "/opt/gcc/${VERSION}/lib"
-#        fix_la  "$LINE"  "pc-linux-gnu/${VERSION[$VCX]}"  \
-#                         "pc-linux-gnu/${VERSION}"
-#        ((  VCX++  ))
-#      done
-#    fi
-#  done
+  done  |  sort  |  uniq  |  
+  while  read    ITEM
+  do     echo  "$ITEM is to be recompiled in order to fix it's libtool archive files."
+  done  |  pipe_queue  $CAST_QUEUE
 
 )
 fi
