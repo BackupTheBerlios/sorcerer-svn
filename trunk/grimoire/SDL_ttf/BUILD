@@ -1,3 +1,5 @@
+patch  -p1  <  $SCRIPT_DIR/SDL_ttf-2.0.6-freetype.patch
+
 cat  <<  EOF  >>  SDL_ttf.h
 #define  ft_open_memory    FT_OPEN_MEMORY     /* deprecated */
 #define  ft_open_stream    FT_OPEN_STREAM     /* deprecated */
