@@ -23,13 +23,13 @@ EOF
 
 remove_old_modules()  {
 
-  LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
   rm  -rf  /lib/modules/$LINUX_VER/kernel/sound/acore
 
 }
 
 
 (
+  LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
 
   sedit  "s:/sbin/depmod:/bin/true:g"  Makefile
   modprobe  soundcore
@@ -38,11 +38,12 @@ remove_old_modules()  {
                --with-sequencer=yes  \
                --with-oss=yes        \
                --with-debug=none     \
-               --with-cards=$CARD    &&
-  make                               &&
-  prepare_install                    &&
-  remove_old_modules                 &&
-  make    install                    &&
+               --with-cards=$CARD    \
+               --with-kernel=/usr/src/linux  &&
+  make                &&
+  prepare_install     &&
+  remove_old_modules  &&
+  make    install     &&
   ./snddevices
 
 ) > $C_FIFO 2>&1  &&  (
