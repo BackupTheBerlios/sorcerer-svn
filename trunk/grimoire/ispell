@@ -6,12 +6,10 @@
        REQ="bison-v1.35 ncurses"
    ESTIMATE="160"
       DESC="ispell is an interactive spelling checker.
-
-International Ispell is an interactive spell-checking program for
-Unix, which supports a large number of European languages 
+International Ispell is an interactive spell-checking
+program which supports a large number of European languages
 (only English dictionaries are included in the source tarball).
-An emacs interface is available, as well as the standard command-line mode.
-"
+An emacs interface is available, as well as the standard command-line mode."
 
 
 build() {
@@ -30,6 +28,9 @@ for  FILE  in  $(  grep -r "/usr/tmp" * | cut -d : -f1 )
 do   sed  -i  "s:/usr/tmp:/tmp:"  $FILE
 done
 
+sed  -i  "s:tail -1:tail -n 1:"  Makefile
+sed  -i  "/sort/s/+0f -1/-k2f/g
+          /sort/s/+0/-k1/g;"     languages/english/Makefile
 make             &&
 prepare_install  &&
 make    install
