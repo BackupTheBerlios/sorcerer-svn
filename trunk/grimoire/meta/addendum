@@ -82,7 +82,19 @@ then  echo  "gcc"  >>  $INSTALL_QUEUE
 fi
 
 
+# Remove when zlib version is above 1.1.4
 if    !  bzcat  $COMPILE_LOGS/zlib.bz2  |
       grep  -q  -x  "patching file gzio.c"
 then  echo  "zlib"  >>  $INSTALL_QUEUE
+fi
+
+
+X11_VER=$(  installed_version  $(  get_provider  x11  )  )
+if       [  "$X11_VER"  ==  "4.3.0"        ]  &&
+      !  [  -f  /usr/lib/pkgconfig/xft.pc  ]
+then
+  [      -d  /usr/lib/pkgconfig  ]  ||
+  mkdir  -p  /usr/lib/pkgconfig
+  cp   /usr/X11R6/lib/pkgconfig/*  \
+             /usr/lib/pkgconfig
 fi
