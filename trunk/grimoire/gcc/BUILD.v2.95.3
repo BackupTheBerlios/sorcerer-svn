@@ -20,13 +20,16 @@
                --enable-shared             \
                --enable-threads            \
                "$ENABLE_LANGS"             &&
-  make   -j 2  bootstrap-lean   "$BF"      \
+  make         bootstrap-lean   "$BF"      \
                "$LCF"  "$LCXF"  "$LDF"     &&
-  prepare_install                          && 
+  prepare_install                          &&
   make    install                          &&
   ln     -sf  /opt/gcc/$VERSION/bin/gcc    \
               /opt/gcc/$VERSION/bin/cc     &&
-  ln     -sf  /opt/gcc/$VERSION/lib/libstdc++-libc6.2-2.so.3  \
-              /opt/gcc/$VERSION/lib/libstdc++-3-libc6.3-2-2.10.0.so
+  cp     -a   $(  find . -name libstdc++\*so\*  )  \
+              /opt/gcc/$VERSION/lib/
+
+#  ln     -sf  /opt/gcc/$VERSION/lib/libstdc++-libc6.2-2.so.3  \
+#              /opt/gcc/$VERSION/lib/libstdc++-3-libc6.3-2-2.10.0.so
 
 ) > $C_FIFO 2>&1
