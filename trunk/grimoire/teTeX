@@ -1,10 +1,11 @@
-   VERSION=( "2.0.2" "2.0.1" "2.0" )
-      SAFE=( "2.0.2" )
+   VERSION=( "3.0" "2.0.2" "2.0.1" "2.0" )
+      SAFE=( "3.0" "2.0.2" )
   CATEGORY="documentation"
  ATTRIBUTE="console"
     SOURCE="systems/unix/teTeX/current/distrib/tetex-src-$VERSION.tar.gz"
        REQ=( "awk bison dialog ed ghostscript teTeX-texmf texinfo w3c-libwww"
              "libpng:::for png support"
+             "lesstif:::for MOTIF/lesstif support"
              "x11::--without-x11:to build xdvi" )
 # XFree86 -> Linux-PAM -> teTeX -> teTex,src -> x11
 # recursive requirement loop.
@@ -82,20 +83,22 @@
             ftp://uiarchive.uiuc.edu/mirrors/ftp/tug.ctan.org/pub/tex-archive"
   EPROVIDE="teTeX,src"
    PROTECT="/usr/share/texmf/ls-R"
-  ESTIMATE="4832"
+  ESTIMATE="1625"
  FRESHMEAT="tetex"
       DESC="teTeX is a TeX distribution that includes web2c, pdfTeX, e-Tex and more...
-
 TeTex is by far, the best TeX distribution available for Linux,
 includes latest versions of web2c, pdfTeX, e-TeX, Omega, xdvi,
 ps2pk, makeinfo, texinfo, texconfig and lots of fonts and macros."
 
 
 build()  {
-  sed  -i  "s:readlink:readlink-teTeX:"                 Makefile.in
-  sed  -i  "s:readlink:readlink-teTeX:g"  texk/kpathsea/Makefile.in
-  mv       texk/kpathsea/readlink.c       texk/kpathsea/readlink-teTeX.c
-  mv       texk/kpathsea/readlink.man     texk/kpathsea/readlink-teTeX.man
+  case  $VERSION  in
+    2.0*)
+      sed  -i  "s:readlink:readlink-teTeX:"                 Makefile.in  \
+                                              texk/kpathsea/Makefile.in
+      mv       texk/kpathsea/readlink.c       texk/kpathsea/readlink-teTeX.c
+      mv       texk/kpathsea/readlink.man     texk/kpathsea/readlink-teTeX.man  ;;
+  esac
 
   ./configure  --prefix=/usr            \
                --with-system-zlib       \
