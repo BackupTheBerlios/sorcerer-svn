@@ -33,6 +33,7 @@ install_libs()  {
   cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
   cp  -a   share/doc  ..                    2>/dev/null
   cp  -a   include    ../doc                2>/dev/null
+  install  -m 0755  bin/nvidia-settings  /usr/bin
 }
 
 
