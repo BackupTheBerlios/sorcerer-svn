@@ -1,7 +1,6 @@
 (
 
-  if    spell_installed  apache  ||
-        spell_installed  apache-mod_ssl
+  if    spell_installed  apache
   then  WITH_APACHE="--with-apxs2"
   fi
 
