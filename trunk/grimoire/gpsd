@@ -1,11 +1,11 @@
-   VERSION=( "2.0" "1.10" )
+   VERSION=( "2.1" "2.0" "1.10" )
   CATEGORY="utility"
  ATTRIBUTE="console new x11"
     SOURCE="gpsd-$VERSION.tar.gz"
   HOMEPAGE="http://gpsd.berlios.de"
        REQ="lesstif x11"
        URL="http://download.berlios.de/gpsd"
-  ESTIMATE="62"
+  ESTIMATE="69"
       DESC="gpsd is a daemon that listens to GPS or Loran reciever.
 gpsd is a daemon that listens to a GPS or Loran receiver and
 translates the positional data into a simplified format that 
@@ -16,7 +16,11 @@ speedometer.  It can also use DGPS/ip."
 
 
 build() {
-export  LDFLAGS="$LDFLAGS -lm"
-sed  -i  "s:varargs\.h:stdarg.h:"  netlib.c
+case  $VERSION  in
+  2.1)  sed  -i  "1i#include <stdlib.h>"  libgpsd_core.c
+        sed  -i  "1i#include <stdio.h>"   display.c
+        sed  -i  "1i#include <stdio.h>"   gps.c
+        export  LDFLAGS="$LDFLAGS -lm"  ;;
+esac
 default_build
 }
