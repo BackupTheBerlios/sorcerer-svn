@@ -57,9 +57,9 @@ cd  usr/src/nv
 rm  -f  makefile         Makefile
 cp      Makefile.nvidia  Makefile
 
-if  spell_installed           $(  get_provider  linux  );  then
-  LVER=$(  installed_version  $(  get_provider  linux  )  )
-    SM="/usr/src/linux/System.map"
+if  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+then
+   SM="/usr/src/linux/System.map"
   SSC="suser-sanity-check"
   RSC="rmmod-sanity-check"
 
@@ -71,7 +71,7 @@ if  spell_installed           $(  get_provider  linux  );  then
 #  sed  -i  "s:sh conftest.sh rmmod:true :"   Makefile
 
 else
-  echo  "linux spell is not detected as installed."
+  echo  "linux-kernel is not detected as installed."
   echo  "Please cast linux before casting this spell."
   false
 fi  &&
