@@ -19,6 +19,8 @@ case  $VERSION  in
                   ./include/my_global.h  ;;
 esac
 
+sed  -i  "s:Linuxthreads:pthread:"  configure
+sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  include/my_global.h
 
 ./configure  --prefix=/usr                   \
              --without-bench                 \
