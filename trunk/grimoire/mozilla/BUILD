@@ -66,6 +66,7 @@ ac_add_options --enable-default-toolkit=gtk2
 ac_add_options --enable-old-abi-compat-wrappers
 ac_add_options --enable-xft
 ac_add_options --disable-freetype2
+ac_add_options --disable-gnomevfs
 EOF
 
 # mail/news support

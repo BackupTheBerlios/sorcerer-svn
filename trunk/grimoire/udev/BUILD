@@ -28,7 +28,8 @@ linux_sufficient()  {
   if    [  "${KVER:0:3}"  ==  "2.4"  ]
   then  "Linux 2.4 is insufficient for using udev as /dev"
         false
-  elif  !  grep  -q  "CONFIG_HOTPLUG=y"  /usr/src/linux/.config
+  elif                            [  -f  /usr/src/linux/.config  ]  &&
+        !  grep  -q  "CONFIG_HOTPLUG=y"  /usr/src/linux/.config
   then  echo  "Linux must have CONFIG_HOTPLUG enabled when it was built."
         false
   fi
