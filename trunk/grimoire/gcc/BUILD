@@ -42,6 +42,8 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
+  rm  -f                                /opt/gcc/current
+  ln  -s    $VERSION                    /opt/gcc/current
   ln  -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
   ln  -sf   /opt/gcc/$VERSION/bin/gcc   /opt/gcc/$VERSION/bin/cc
   cp  -sfa  /opt/gcc/$VERSION/man/*     /usr/man/
