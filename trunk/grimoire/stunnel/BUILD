@@ -1,6 +1,8 @@
 sed  -i  "s:src doc tools:src doc:"  Makefile.in
 
-if  $CERTIFICATE;  then
+if    $CERTIFICATE  ||
+      !  [  -e  /etc/ssl/certs/stunnel.pem  ]
+then
   rm  -f  /etc/ssl/certs/stunnel.pem          &&
   ./configure  --build=$BUILD                 \
                --prefix=/usr                  \
