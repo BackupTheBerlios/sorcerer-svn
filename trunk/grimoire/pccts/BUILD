@@ -1,4 +1,5 @@
 (
+
   cd  pccts                                        &&
   sedit  "s:\#COPT=-O2:COPT=$CFLAGS:"  makefile    &&
   make                                             &&
@@ -7,7 +8,7 @@
   install  -m  700 bin/dlg    /usr/bin             &&
   install  -m  700 bin/genmk  /usr/bin             &&
   install  -m  700 bin/sor    /usr/bin             &&
-  mkdir                       /usr/include/$SPELL  &&
-  cp       h/*                /usr/include/$SPELL
+  mkdir                       /usr/include/pccts   &&
+  cp       h/*                /usr/include/pccts
 
 ) > $C_FIFO 2>&1
