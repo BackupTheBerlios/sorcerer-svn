@@ -1,0 +1,25 @@
+inherit  bison
+   VERSION=( "1.35" )
+ ATTRIBUTE="console"
+    IGNORE="^1\.875\|^1\.75\|^1\.5"
+    SOURCE="bison/bison-$VERSION.tar.bz2"
+  EPROVIDE="bison,v1.35"
+  ESTIMATE="505"
+
+
+build()  {
+
+  DEST="/opt/bison/$VERSION"
+  YACC="$DEST/bin/yacc"
+
+  [  -d  bison-$VERSION  ]  &&
+  cd     bison-$VERSION
+
+  ./configure  --build=$BUILD  \
+               --prefix=$DEST  &&
+  make                         &&
+  make  install                &&
+  echo  -e  "#!/bin/sh\nexec bison -y  \"\$@\""  >  $YACC  &&
+  chmod  0755  $YACC
+
+}
