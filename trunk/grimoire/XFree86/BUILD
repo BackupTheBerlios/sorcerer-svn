@@ -1,3 +1,6 @@
+export    CFLAGS="${CFLAGS/-O2/-O3}"
+export  CXXFLAGS="${CXXFLAGS/-O2/-O3}"
+
 if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
   cat        $CONFIG_LOGS/$BSPELL/host.def    |
   sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
