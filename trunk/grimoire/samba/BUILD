@@ -3,19 +3,10 @@ then  WITH_PAM="--with-pam  --with-pam_smbpass"
 fi
 
 
-missing_include()  {
-  local      SED="\:#include <linux/smb_fs.h>:i#include <linux/netlink.h>"
-  sed  -i  "$SED"  source/client/smbmount.c  \
-                   source/client/smbumount.c
-}
-
-
 what_linux_ver()  {
-
   case  $(  installed_version  $(  get_provider linux-kernel  )  )  in
-    2.6*)  missing_include  ;;
+    2.6*)  patch  -p1  <  $SCRIPT_DIR/samba-3.0.4.linux-2.6.patch  ;;
   esac
-
 }
 
 
