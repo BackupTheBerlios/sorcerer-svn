@@ -2,7 +2,9 @@
 
   fix_glibc_install_log()  {
 
-    FILE=$INSTALL_LOGS/glibc
+    GLIBC=$(  get_provider  glibc  )
+    FILE=$INSTALL_LOGS/$GLIBC
+
     if    [  -f  $FILE  ]  &&
           !  grep  -q  -w  "/lib/ld-linux.so.2"      $FILE
     then  echo             "/lib/ld-linux.so.2"  >>  $FILE

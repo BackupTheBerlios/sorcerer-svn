@@ -1,9 +1,14 @@
 #!/bin/sh
 
-PID="/var/run/cron.pid"
+   PID="/var/run/cron.pid"
+SOCKET="/var/cron/socket"
 
 start()  {
   echo  -n  "Starting mcron..."
+  if  !  [  -f  $PID     ]  &&
+         [  -S  $SOCKET  ]
+  then   rm -f  $SOCKET
+  fi
   TERM="dumb"  /usr/sbin/cron  --noetc
 }
 
@@ -12,6 +17,7 @@ stop()  {
   [     -f            $PID  ]  &&
   kill  -15  $(  cat  $PID  )
   rm    -f            $PID
+  rm    -f            $SOCKET
 }
 
 help()  {
