@@ -10,3 +10,40 @@ while  read  COMP;  do
   else  echo  "/usr/gcc-$COMP/lib"     >>  /etc/ld.so.conf
   fi
 done
+
+
+if    [  -z  "$BRANCH"  ];  then
+(
+
+  fix_la()  {
+
+    local  SPELL  LA  OLD  NEW  OLD_MD5  NEW_MD5
+
+    SPELL="$(  echo  "$1"  |  cut  -d :  -f1  )"
+       LA="$(  echo  "$1"  |  cut  -d :  -f2  )"
+      OLD="$2"
+      NEW="$3"
+
+    if      grep  -q  "libtool"        $LA;  then
+      if    grep  -q    "$OLD"         $LA;  then
+            sed   -i  "s:$OLD:$NEW:g"  $LA
+            OLD_MD5="$(  grep    "$LA\$"  $MD5SUM_LOGS/$SPELL  )"
+            NEW_MD5="$(  md5sum  "$LA"                         )"
+            sed   -i  "s:$OLD_MD5:$NEW_MD5:g"  $MD5SUM_LOGS/$SPELL
+      fi
+    fi
+
+  }
+
+
+  cd  $INSTALL_LOGS
+  grep  "\.la\$" *  |
+  while  read  LINE;  do
+
+    fix_la  "$LINE"  "/opt/gcc/3.2/lib"    "/opt/gcc/3.2.2/lib"
+    fix_la  "$LINE"  "/opt/gcc/3.2.1/lib"  "/opt/gcc/3.2.2/lib"
+
+  done
+
+)
+fi

@@ -52,9 +52,12 @@
   # old .la, libtool archives, will point to other .la files 
   # that were in /opt/gcc/3.2.1
 
-  mkdir  -p  /opt/gcc/3.2.1/
-  rm     -r  /opt/gcc/3.2.1/lib     2>/dev/null
-  ln     -s  /opt/gcc/$VERSION/lib  /opt/gcc/3.2.1/lib
+  # mkdir  -p  /opt/gcc/3.2.1/
+  # rm     -r  /opt/gcc/3.2.1/lib     2>/dev/null
+  # ln     -s  /opt/gcc/$VERSION/lib  /opt/gcc/3.2.1/lib
+
+  # libtool archives fixed in POST_INSTALL
+  rm  -rf  /opt/gcc/3.2.1
 
   if    [   -h  /usr/info/dir  ]
   then  rm  -f  /usr/info/dir
