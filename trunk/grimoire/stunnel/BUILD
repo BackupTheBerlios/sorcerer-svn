@@ -16,7 +16,7 @@ then
   (  make             &&
      prepare_install  &&
      make    install
-  ) > $C_FIFO 2>&1
+  ) &> $C_FIFO
 else
   (
     cp  /etc/ssl/certs/stunnel.pem  .            &&
@@ -29,5 +29,5 @@ else
      make                &&
      prepare_install     &&
      make    install
-  ) > $C_FIFO 2>&1
+  ) &> $C_FIFO
 fi

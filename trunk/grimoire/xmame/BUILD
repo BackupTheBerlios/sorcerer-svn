@@ -36,4 +36,4 @@ activate_voyeur
         -f  makefile.unix     \
         install
 
-) > $C_FIFO 2>&1
+) &> $C_FIFO
