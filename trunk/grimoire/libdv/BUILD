@@ -4,7 +4,12 @@ then   patch  -p1  <  $SCRIPT_DIR/libdv-mmx.patch
 else   patch  -p1  <  $SCRIPT_DIR/libdv-no-mmx.patch
 fi
 
-./configure --prefix=/usr  &&
-make                       &&
-prepare_install            &&
+#            --disable-xv       \
+#            --disable-gtk  \
+#            --disable-gtktest  \
+
+./configure  --prefix=/usr  \
+             --enable-sdl   &&
+make                        &&
+prepare_install             &&
 make    install
