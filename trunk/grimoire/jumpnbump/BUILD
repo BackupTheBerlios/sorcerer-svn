@@ -1,8 +1,9 @@
 (
 
+  sed  -i  "s:/usr/local:/usr:"  Makefile
+
   make             &&
   prepare_install  &&
-  make    install  &&
-  cp      jumpnbump.6  /usr/man/man6
+  make    install
 
 ) > $C_FIFO 2>&1
