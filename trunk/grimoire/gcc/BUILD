@@ -27,7 +27,7 @@
                --enable-clocale=gnu        \
                --enable-shared             \
                "$ENABLE_LANGS"             &&
-  make   -j 2  bootstrap-lean   "$BF"      \
+  make         bootstrap-lean   "$BF"      \
                "$LCF"  "$LCXF"  "$LDF"     \
                "$LJCF" "$LJCXF"            &&
   prepare_install                          &&
