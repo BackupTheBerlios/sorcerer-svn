@@ -44,8 +44,8 @@ make_device_nodes()  {
   rm     -f    $NODE
   mknod        $NODE  c  195  255
   chmod  0666  $NODE
-  install  -m 0744  $SCRIPT_DIR/nvidia.sh  /etc/init.d/
-  ln       -sf      /etc/init.d/nvidia.sh  /etc/rc5.d/S99nvidia
+# install  -m 0744  $SCRIPT_DIR/nvidia.sh  /etc/init.d/
+# ln       -sf      /etc/init.d/nvidia.sh  /etc/rc5.d/S99nvidia
   true
 }
 
