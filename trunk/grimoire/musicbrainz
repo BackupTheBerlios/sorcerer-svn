@@ -1,11 +1,23 @@
    VERSION=( "1.1.0" "1.0.1" )
   CATEGORY="audio"
  ATTRIBUTE="library"
-  HOMEPAGE="http://www.musicbrainz.org"
+    SOURCE="musicbrainz-$VERSION.tar.bz2"
        URL="ftp://ftp.musicbrainz.org/pub/musicbrainz"
-     SHORT="musicbrainz is the second generation incarnation of the CD Index."
-      LONG="
-musicbrainz is the second generation incarnation of the CD Index.  
-This server is designed to enable Audio CD and MP3/Vorbis players 
-to download metadata about the music they are playing.
-"
+  HOMEPAGE="http://www.musicbrainz.org"
+      DESC=( "musicbrainz is the second generation incarnation of the CD Index."
+"This server is designed to enable Audio CD and MP3/Vorbis players 
+to download metadata about the music they are playing." )
+
+
+build()  {
+  export  LDFLAGS="$LDFLAGS -lstdc++"
+  default_build
+}
+
+
+current()  {
+  case  $VERSION  in
+    1.1.0)  ldd  /usr/lib/libmusicbrainz.so  |
+            grep  -q  "libstdc++"  ;;
+  esac
+}
