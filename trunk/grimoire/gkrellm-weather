@@ -1,0 +1,30 @@
+inherit gkrellm
+   VERSION=( "2.0.5" )
+    IGNORE="^2\.0\.6"
+# 2.0.6 doesn't make.
+  CATEGORY="weather monitor utility"
+    SOURCE="gkrellweather-$VERSION.tgz"
+       URL="http://kmlinux.fjfi.cvut.cz/~makovick/gkrellm"
+  HOMEPAGE="http://kmlinux.fjfi.cvut.cz/~makovick/gkrellm/index.html"
+       REQ="gkrellm wget"
+  EPROVIDE="gkrellm,weather"
+  ESTIMATE="5"
+     SHORT="gkrellm-weather is a weather plugin for gkrellm."
+
+
+build()  {
+
+  make_install()  {
+    PD="/usr/lib/gkrellm2/plugins"
+    mkdir    -p  $PD
+    install  -s  -c  -m 644  gkrellweather.so  $PD
+    install      -c  -m 755  GrabWeather       /usr/bin
+  }
+
+  sed  -i  "s:-O2:$CFLAGS:"               Makefile
+  sed  -i  "s:/usr/local/bin:/usr/bin:"  gkrellweather.c
+
+  make             &&
+  prepare_install  &&
+     make_install
+}
