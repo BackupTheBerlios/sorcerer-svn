@@ -56,6 +56,11 @@ then           LVER=$(  uname  -r  )
 fi
 
 chown  -R  root:root  *
+
+case  $VERSION  in
+1.0-6629)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-6629-02.28.2005.diff.txt  ;;
+esac
+
 cd  usr/src/nv
 
 rm  -f  makefile         Makefile
@@ -83,6 +88,7 @@ EOF
 esac
 ;;
 esac
+
 
    SM="/usr/src/linux/System.map"
   SSC="suser-sanity-check"

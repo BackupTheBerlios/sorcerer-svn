@@ -1,0 +1,1317 @@
+diff -ru usr/src/nv/nv-linux.h usr/src/nv.02282004/nv-linux.h
+--- usr/src/nv/nv-linux.h	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/nv-linux.h	2005-02-28 11:39:24.451728104 +0100
+@@ -155,6 +155,10 @@
+ #endif
+ #endif /* defined(NVCPU_X86) */
+ 
++#ifndef get_cpu
++#define get_cpu() smp_processor_id()
++#define put_cpu()
++#endif
+ 
+ #if !defined (list_for_each)
+ #define list_for_each(pos, head) \
+@@ -429,6 +433,30 @@
+         free_pages(ptr, order); \
+     }
+ 
++#define NV_KMEM_CACHE_CREATE(kmem_cache, name, type)            \
++    {                                                           \
++        kmem_cache = kmem_cache_create(name, sizeof(type),      \
++                        0, 0, NULL, NULL);                      \
++    } 
++
++#define NV_KMEM_CACHE_DESTROY(kmem_cache)                       \
++    {                                                           \
++        kmem_cache_destroy(kmem_cache);                         \
++        kmem_cache = NULL;                                      \
++    } 
++
++#define NV_KMEM_CACHE_ALLOC(ptr, kmem_cache, type)              \
++    {                                                           \
++        (ptr) = kmem_cache_alloc(kmem_cache, GFP_KERNEL);       \
++        KM_ALLOC_RECORD(ptr, sizeof(type), "km_cache_alloc");   \
++    } 
++
++#define NV_KMEM_CACHE_FREE(ptr, type, kmem_cache)               \
++    {                                                           \
++        KM_FREE_RECORD(ptr, sizeof(type), "km_cache_free");     \
++        kmem_cache_free(kmem_cache, ptr);                       \
++    } 
++
+ #endif /* !defined NVWATCH */
+ 
+ 
+@@ -480,12 +508,22 @@
+ #define NV_PCI_RESOURCE_SIZE(dev, bar)  ((dev)->resource[(bar) - 1].end - (dev)->resource[(bar) - 1].start + 1)
+ 
+ #define NV_PCI_BUS_NUMBER(dev)        (dev)->bus->number
+-#define NV_PCI_SLOT_NUMBER(dev)       PCI_SLOT((dev)->devfn)
++#define NV_PCI_DEVFN(dev)             (dev)->devfn
++#define NV_PCI_SLOT_NUMBER(dev)       PCI_SLOT(NV_PCI_DEVFN(dev))
+ 
+ #ifdef NV_PCI_GET_CLASS_PRESENT
+ #define NV_PCI_DEV_PUT(dev)                    pci_dev_put(dev)
+ #define NV_PCI_GET_DEVICE(vendor,device,from)  pci_get_device(vendor,device,from)
+-#define NV_PCI_GET_SLOT(bus,devfn)             pci_get_slot(pci_find_bus(0,bus),devfn)
++#define NV_PCI_GET_SLOT(bus,devfn)                                       \
++   ({                                                                    \
++        struct pci_dev *__dev = NULL;                                    \
++        while ((__dev = pci_get_device(PCI_ANY_ID, PCI_ANY_ID, __dev)))  \
++        {                                                                \
++            if (NV_PCI_BUS_NUMBER(__dev) == bus                          \
++                    && NV_PCI_DEVFN(__dev) == devfn) break;              \
++        }                                                                \
++        __dev;                                                           \
++    })
+ #define NV_PCI_GET_CLASS(class,from)           pci_get_class(class,from)
+ #else
+ #define NV_PCI_DEV_PUT(dev)
+@@ -533,6 +571,7 @@
+  */
+ #if defined(CONFIG_SWIOTLB)
+ #define NV_SWIOTLB 1
++#define NV_SWIOTLB_MAX_RETRIES 16
+ extern int nv_swiotlb;
+ #endif
+ 
+@@ -565,11 +604,6 @@
+ #define PCI_CAP_ID_EXP 0x10
+ #endif
+ 
+-#if defined(KERNEL_2_6) && defined(AGPGART)
+-typedef struct agp_kern_info agp_kern_info;
+-typedef struct agp_memory agp_memory;
+-#endif
+-
+ #if defined(CONFIG_DEVFS_FS)
+ #  if defined(KERNEL_2_6)
+      typedef void* devfs_handle_t;
+@@ -627,75 +661,109 @@
+ #define NV_REMAP_PAGE_RANGE(x...) remap_page_range(x)
+ #endif
+ 
++
++#define NV_PGD_OFFSET(address, kernel, mm)              \
++   ({                                                   \
++        pgd_t *__pgd;                                   \
++        if (!kernel)                                    \
++            __pgd = pgd_offset(mm, address);            \
++        else                                            \
++            __pgd = pgd_offset_k(address);              \
++        __pgd;                                          \
++    })
++
++#define NV_PGD_PRESENT(pgd)                             \
++   ({                                                   \
++         if ((pgd != NULL) &&                           \
++             (pgd_bad(*pgd) || pgd_none(*pgd)))         \
++            /* static */ pgd = NULL;                    \
++         pgd != NULL;                                   \
++    })
++
+ #if defined(pmd_offset_map)
+-#define NV_PMD_OFFSET(addres, pg_dir, pg_mid_dir) \
+-    { \
+-        pg_mid_dir = pmd_offset_map(pg_dir, address); \
+-    }
+-#define NV_PMD_UNMAP(pg_mid_dir) \
+-    { \
+-        pmd_unmap(pg_mid_dir); \
+-    }
+-#else
+-#define NV_PMD_OFFSET(addres, pg_dir, pg_mid_dir) \
+-    { \
+-        pg_mid_dir = pmd_offset(pg_dir, address); \
+-    }
+-#define NV_PMD_UNMAP(pg_mid_dir)
++#define NV_PMD_OFFSET(address, pgd)                     \
++   ({                                                   \
++        pmd_t *__pmd;                                   \
++        __pmd = pmd_offset_map(pgd, address);           \
++   })
++#define NV_PMD_UNMAP(pmd) pmd_unmap(pmd);
++#else
++#if defined(PUD_SHIFT) /* 4-level pgtable */
++#define NV_PMD_OFFSET(address, pgd)                     \
++   ({                                                   \
++        pmd_t *__pmd = NULL;                            \
++        pud_t *__pud;                                   \
++        __pud = pud_offset(pgd, address);               \
++        if ((__pud != NULL) &&                          \
++            !(pud_bad(*__pud) || pud_none(*__pud)))     \
++            __pmd = pmd_offset(__pud, address);         \
++        __pmd;                                          \
++    })
++#else /* 3-level pgtable */
++#define NV_PMD_OFFSET(address, pgd)                     \
++   ({                                                   \
++        pmd_t *__pmd;                                   \
++        __pmd = pmd_offset(pgd, address);               \
++    })
++#endif
++#define NV_PMD_UNMAP(pmd)
+ #endif
+ 
+-#define NV_PMD_PRESENT(pg_mid_dir) \
+-    ({ \
+-        if ( (pg_mid_dir) && (pmd_none(*pg_mid_dir))) { \
+-            NV_PMD_UNMAP(pg_mid_dir); pg_mid_dir = NULL; \
+-        } pg_mid_dir != NULL; \
++#define NV_PMD_PRESENT(pmd)                             \
++   ({                                                   \
++        if ((pmd != NULL) &&                            \
++            (pmd_bad(*pmd) || pmd_none(*pmd)))          \
++        {                                               \
++            NV_PMD_UNMAP(pmd);                          \
++            pmd = NULL; /* mark invalid */              \
++        }                                               \
++        pmd != NULL;                                    \
+     })
+ 
+ #if defined(pte_offset_atomic)
+-#define NV_PTE_OFFSET(addres, pg_mid_dir, pte) \
+-    { \
+-        pte = pte_offset_atomic(pg_mid_dir, address); \
+-        NV_PMD_UNMAP(pg_mid_dir); \
+-    }
+-#define NV_PTE_UNMAP(pte) \
+-    { \
+-        pte_kunmap(pte); \
+-    }
++#define NV_PTE_OFFSET(address, pmd)                     \
++   ({                                                   \
++        pte_t *__pte;                                   \
++        __pte = pte_offset_atomic(pmd, address);        \
++        NV_PMD_UNMAP(pmd); __pte;                       \
++    })
++#define NV_PTE_UNMAP(pte) pte_kunmap(pte);
+ #elif defined(pte_offset)
+-#define NV_PTE_OFFSET(addres, pg_mid_dir, pte) \
+-    { \
+-        pte = pte_offset(pg_mid_dir, address); \
+-        NV_PMD_UNMAP(pg_mid_dir); \
+-    }
++#define NV_PTE_OFFSET(address, pmd)                     \
++   ({                                                   \
++        pte_t *__pte;                                   \
++        __pte = pte_offset(pmd, address);               \
++        NV_PMD_UNMAP(pmd); __pte;                       \
++    })
+ #define NV_PTE_UNMAP(pte)
+ #else
+-#define NV_PTE_OFFSET(addres, pg_mid_dir, pte) \
+-    { \
+-        pte = pte_offset_map(pg_mid_dir, address); \
+-        NV_PMD_UNMAP(pg_mid_dir); \
+-    }
+-#define NV_PTE_UNMAP(pte) \
+-    { \
+-        pte_unmap(pte); \
+-    }
++#define NV_PTE_OFFSET(address, pmd)                     \
++   ({                                                   \
++        pte_t *__pte;                                   \
++        __pte = pte_offset_map(pmd, address);           \
++        NV_PMD_UNMAP(pmd); __pte;                       \
++    })
++#define NV_PTE_UNMAP(pte) pte_unmap(pte);
+ #endif
+ 
+-#define NV_PTE_PRESENT(pte) \
+-    ({ \
+-        if (pte) { \
+-            if (!pte_present(*pte)) { \
+-                NV_PTE_UNMAP(pte); pte = NULL; \
+-            } \
+-        } pte != NULL; \
++#define NV_PTE_PRESENT(pte)                             \
++   ({                                                   \
++        if ((pte != NULL) && !pte_present(*pte))        \
++        {                                               \
++            NV_PTE_UNMAP(pte);                          \
++            pte = NULL; /* mark invalid */              \
++        }                                               \
++        pte != NULL;                                    \
+     })
+ 
+-#define NV_PTE_VALUE(pte) \
+-    ({ \
+-        unsigned long __pte_value = pte_val(*pte); \
+-        NV_PTE_UNMAP(pte); \
+-        __pte_value; \
++#define NV_PTE_VALUE(pte)                               \
++   ({                                                   \
++        unsigned long __pte_value = pte_val(*pte);      \
++        NV_PTE_UNMAP(pte);                              \
++        __pte_value;                                    \
+     })
+ 
++
+ #define NV_PAGE_ALIGN(addr)             ( ((addr) + PAGE_SIZE - 1) / PAGE_SIZE)
+ #define NV_MASK_OFFSET(addr)            ( (addr) & (PAGE_SIZE - 1) )
+ 
+@@ -729,12 +797,21 @@
+         return order;
+     }
+ 
++/* mark memory UC-, rather than UC (don't use _PAGE_PWT) */
++static inline pgprot_t pgprot_noncached_weak(pgprot_t old_prot)
++    {
++        pgprot_t new_prot = old_prot;
++        if (boot_cpu_data.x86 > 3)
++            new_prot = __pgprot(pgprot_val(old_prot) | _PAGE_PCD);
++        return new_prot;
++    }
++
+ #if !defined (pgprot_noncached)
+ static inline pgprot_t pgprot_noncached(pgprot_t old_prot)
+     {
+         pgprot_t new_prot = old_prot;
+         if (boot_cpu_data.x86 > 3)
+-            new_prot = __pgprot(pgprot_val(old_prot) | _PAGE_PCD);
++            new_prot = __pgprot(pgprot_val(old_prot) | _PAGE_PCD | _PAGE_PWT);
+         return new_prot;
+     }
+ #endif
+@@ -776,6 +853,9 @@
+     unsigned long   phys_addr;
+     unsigned long   virt_addr;
+     dma_addr_t      dma_addr;
++#ifdef NV_SG_MAP_BUFFERS
++    struct scatterlist sg_list;
++#endif
+ #ifdef CONFIG_SWIOTLB
+     unsigned long   orig_phys_addr;
+     unsigned long   orig_virt_addr;
+@@ -789,15 +869,11 @@
+     unsigned int   num_pages;
+     unsigned int   order;
+     unsigned int   size;
+-    nv_pte_t      *page_table;          /* list of physical pages allocated */
++    nv_pte_t     **page_table;          /* list of physical pages allocated */
+     void          *key_mapping;         /* mapping used as a key for finding this nv_alloc_t */
+                                         /*   may be the same as page_table                   */
+     unsigned int   class;
+     void          *priv_data;
+-#if defined(NV_SG_MAP_BUFFERS)
+-    struct pci_dev *dev;
+-    struct scatterlist *sg_list;        /* list of physical pages allocated */
+-#endif
+ } nv_alloc_t;
+ 
+ 
+@@ -939,21 +1015,60 @@
+ #if defined(NV_SG_MAP_BUFFERS)
+ static inline int nv_sg_map_buffer(
+     struct pci_dev     *dev,
+-    struct scatterlist *sg_ptr,
++    nv_pte_t          **page_list,
+     void               *base,
+     unsigned int        num_pages
+ )
+ {
+-    int i;
++    struct scatterlist *sg_ptr = &page_list[0]->sg_list;
++    unsigned int i;
+ 
+     sg_ptr->page = virt_to_page(base);
+     sg_ptr->offset = (unsigned long)base & ~PAGE_MASK;
+     sg_ptr->length  = num_pages * PAGE_SIZE;
+ 
++#if defined(NV_SWIOTLB)
++    i = NV_SWIOTLB_MAX_RETRIES;
++    do {
++        if (pci_map_sg(dev, sg_ptr, 1, PCI_DMA_BIDIRECTIONAL) == 0)
++            return 1;
++
++        if (sg_ptr->dma_address & ~PAGE_MASK)
++        {
++            struct scatterlist sg_tmp;
++            pci_unmap_sg(dev, sg_ptr, num_pages, PCI_DMA_BIDIRECTIONAL);
++
++            memset(&sg_tmp, 0, sizeof(struct scatterlist));
++            sg_tmp.page = sg_ptr->page;
++            sg_tmp.offset = sg_ptr->offset;
++            sg_tmp.length = 2048;
++
++            if (pci_map_sg(dev, &sg_tmp, 1, PCI_DMA_BIDIRECTIONAL) == 0)
++                return 1;
++
++            if (pci_map_sg(dev, sg_ptr, 1, PCI_DMA_BIDIRECTIONAL) == 0)
++            {
++                pci_unmap_sg(dev, &sg_tmp, num_pages, PCI_DMA_BIDIRECTIONAL);
++                return 1;
++            }
++
++            pci_unmap_sg(dev, &sg_tmp, num_pages, PCI_DMA_BIDIRECTIONAL);
++        }
++    } while (i-- && sg_ptr->dma_address & ~PAGE_MASK);
++#else
+     if (pci_map_sg(dev, sg_ptr, 1, PCI_DMA_BIDIRECTIONAL) == 0)
+     {
+         return 1;
+     }
++#endif
++
++    if (sg_ptr->dma_address & ~PAGE_MASK)
++    {
++        nv_printf(NV_DBG_ERRORS,
++            "NVRM: VM: nv_sg_map_buffer: failed to obtain aligned mapping\n");
++        pci_unmap_sg(dev, sg_ptr, num_pages, PCI_DMA_BIDIRECTIONAL);
++        return 1;
++    }
+ 
+     NV_FIXUP_SWIOTLB_VIRT_ADDR_BUG(sg_ptr->dma_address);
+ 
+@@ -966,7 +1081,7 @@
+     // note we start with index 1, since index 0 is already correct
+     for (i = 1; i < num_pages; i++)
+     {
+-        sg_ptr[i].dma_address = sg_ptr[0].dma_address + (i * PAGE_SIZE);
++        page_list[i]->sg_list.dma_address = sg_ptr->dma_address + (i * PAGE_SIZE);
+     }
+ 
+     return 0;
+diff -ru usr/src/nv/nv-vm.c usr/src/nv.02282004/nv-vm.c
+--- usr/src/nv/nv-vm.c	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/nv-vm.c	2005-02-28 11:39:24.447728712 +0100
+@@ -53,12 +53,13 @@
+  * conflicts. we try to rely on the kernel's provided interfaces when possible,
+  * but need additional flushing on earlier kernels.
+  */
+-
++#if defined(KERNEL_2_4)
+ /* wrap CACHE_FLUSH so we can pass it to smp_call_function */
+ static void cache_flush(void *p)
+ {
+     CACHE_FLUSH();
+ }
++#endif
+ 
+ /*
+  * 2.4 kernels handle flushing in the change_page_attr() call, but kernels 
+@@ -138,13 +139,18 @@
+  */
+ 
+ int nv_vm_malloc_pages(
+-    nv_alloc_t       *at
++    nv_state_t *nv,
++    nv_alloc_t *at
+ )
+ {
+     /* point page_ptr at the start of the actual page list */
+-    nv_pte_t *page_ptr = at->page_table;
++    nv_pte_t *page_ptr = *at->page_table;
+     int i;
+     unsigned long virt_addr = 0, phys_addr;
++#if defined(NV_SG_MAP_BUFFERS)
++    nv_linux_state_t *nvl = NV_GET_NVL_FROM_NV_STATE(nv);
++    struct pci_dev *dev = nvl->dev;
++#endif
+ 
+     nv_printf(NV_DBG_MEMINFO, "NVRM: VM: nv_vm_malloc_pages: %d pages\n",
+         at->num_pages);
+@@ -175,8 +181,7 @@
+         // for amd 64-bit platforms, remap pages to make them 32-bit addressable
+         // in this case, we need the final remapping to be contiguous, so we
+         // have to do the whole mapping at once, instead of page by page
+-        if (nv_sg_map_buffer(at->dev, &at->sg_list[0],
+-                             (void *) virt_addr, at->num_pages))
++        if (nv_sg_map_buffer(dev, at->page_table, (void *) virt_addr, at->num_pages))
+         {
+             nv_printf(NV_DBG_ERRORS,
+                 "NVRM: VM: nv_vm_malloc_pages: failed to sg map contiguous pages\n");
+@@ -224,7 +229,7 @@
+         /* lock the page for dma purposes */
+         SetPageReserved(NV_GET_PAGE_STRUCT(phys_addr));
+ 
+-        page_ptr = &at->page_table[i];
++        page_ptr = at->page_table[i];
+         page_ptr->phys_addr = phys_addr;
+         page_ptr->virt_addr = virt_addr;
+         page_ptr->dma_addr = page_ptr->phys_addr;
+@@ -235,7 +240,7 @@
+ #if defined(NV_SG_MAP_BUFFERS)
+         if (!NV_ALLOC_MAPPING_CONTIG(at->flags))
+         {
+-            if (nv_sg_map_buffer(at->dev, &at->sg_list[i], 
++            if (nv_sg_map_buffer(dev, &at->page_table[i],
+                                  __va(page_ptr->phys_addr), 1))
+             {
+                 nv_printf(NV_DBG_ERRORS,
+@@ -243,7 +248,7 @@
+                 goto failed;
+             }
+         }
+-        nv_sg_load(&at->sg_list[i], page_ptr);
++        nv_sg_load(&at->page_table[i]->sg_list, page_ptr);
+ #endif
+         virt_addr += PAGE_SIZE;
+     }
+@@ -258,7 +263,7 @@
+ 
+     for (; i >= 0; i--)
+     {
+-        page_ptr = &at->page_table[i];
++        page_ptr = at->page_table[i];
+ 
+         // if we failed when allocating this page, skip over it
+         // but if we failed pci_map_sg, make sure to free this page
+@@ -267,7 +272,7 @@
+             NV_UNLOCK_PAGE(page_ptr);
+ #if defined(NV_SG_MAP_BUFFERS)
+             if (!NV_ALLOC_MAPPING_CONTIG(at->flags))
+-                nv_sg_unmap_buffer(at->dev, &at->sg_list[i], page_ptr);
++                nv_sg_unmap_buffer(dev, &at->page_table[i]->sg_list, page_ptr);
+ #endif
+             if (!NV_ALLOC_MAPPING_CACHED(at->flags))
+                 NV_SET_PAGE_ATTRIB_CACHED(page_ptr);
+@@ -279,15 +284,15 @@
+ 
+     if (NV_ALLOC_MAPPING_CONTIG(at->flags))
+     {
+-        page_ptr = at->page_table;
++        page_ptr = *at->page_table;
+ #if defined(NV_SG_MAP_BUFFERS)
+-        nv_sg_unmap_buffer(at->dev, &at->sg_list[0], page_ptr);
++        nv_sg_unmap_buffer(dev, &at->page_table[0]->sg_list, page_ptr);
+ #endif
+         NV_FREE_PAGES(page_ptr->virt_addr, at->order);
+     }
+     else if (NV_ALLOC_MAPPING_VMALLOC(at->flags))
+     {
+-        page_ptr = at->page_table;
++        page_ptr = *at->page_table;
+         NV_VFREE((void *) page_ptr->virt_addr, at->size);
+     }
+ 
+@@ -296,7 +301,7 @@
+ 
+ // unlock the pages we've locked down for dma purposes
+ void nv_vm_unlock_pages(
+-    nv_alloc_t       *at
++    nv_alloc_t *at
+ )
+ {
+     nv_pte_t *page_ptr;
+@@ -315,17 +320,22 @@
+ 
+     for (i = 0; i < at->num_pages; i++)
+     {
+-        page_ptr = &at->page_table[i];
++        page_ptr = at->page_table[i];
+         NV_UNLOCK_PAGE(page_ptr);
+     }
+ }
+ 
+ void nv_vm_free_pages(
+-    nv_alloc_t       *at
++    nv_state_t *nv,
++    nv_alloc_t *at
+ )
+ {
+     nv_pte_t *page_ptr;
+     int i;
++#if defined(NV_SG_MAP_BUFFERS)
++    nv_linux_state_t *nvl = NV_GET_NVL_FROM_NV_STATE(nv);
++    struct pci_dev *dev = nvl->dev;
++#endif
+ 
+     nv_printf(NV_DBG_MEMINFO, "NVRM: VM: nv_vm_free_pages: %d pages\n",
+         at->num_pages);
+@@ -339,10 +349,10 @@
+ 
+     for (i = 0; i < at->num_pages; i++)
+     {
+-        page_ptr = &at->page_table[i];
++        page_ptr = at->page_table[i];
+ #if defined(NV_SG_MAP_BUFFERS)
+         if (!NV_ALLOC_MAPPING_CONTIG(at->flags))
+-            nv_sg_unmap_buffer(at->dev, &at->sg_list[i], page_ptr);
++            nv_sg_unmap_buffer(dev, &at->page_table[i]->sg_list, page_ptr);
+ #endif
+         if (!NV_ALLOC_MAPPING_CACHED(at->flags))
+             NV_SET_PAGE_ATTRIB_CACHED(page_ptr);
+@@ -353,15 +363,15 @@
+ 
+     if (NV_ALLOC_MAPPING_CONTIG(at->flags))
+     {
+-        page_ptr = at->page_table;
++        page_ptr = *at->page_table;
+ #if defined(NV_SG_MAP_BUFFERS)
+-        nv_sg_unmap_buffer(at->dev, &at->sg_list[0], page_ptr);
++        nv_sg_unmap_buffer(dev, &at->page_table[0]->sg_list, page_ptr);
+ #endif
+         NV_FREE_PAGES(page_ptr->virt_addr, at->order);
+     }
+     else if (NV_ALLOC_MAPPING_VMALLOC(at->flags))
+     {
+-        page_ptr = at->page_table;
++        page_ptr = *at->page_table;
+         NV_VFREE((void *) page_ptr->virt_addr, at->size);
+     }
+ }
+diff -ru usr/src/nv/nv-vm.h usr/src/nv.02282004/nv-vm.h
+--- usr/src/nv/nv-vm.h	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/nv-vm.h	2005-02-28 11:39:24.434730688 +0100
+@@ -11,9 +11,9 @@
+ #ifndef _NV_VM_H_
+ #define _NV_VM_H_
+ 
+-int      nv_vm_malloc_pages(nv_alloc_t *);
++int      nv_vm_malloc_pages(nv_state_t *, nv_alloc_t *);
+ void     nv_vm_unlock_pages(nv_alloc_t *);
+-void     nv_vm_free_pages(nv_alloc_t *);
++void     nv_vm_free_pages(nv_state_t *, nv_alloc_t *);
+ 
+ #if defined(NV_DBG_MEM)
+ void     nv_vm_list_page_count(nv_pte_t *, unsigned long);
+@@ -21,11 +21,12 @@
+ #define  nv_vm_list_page_count(page_ptr, num_pages)
+ #endif
+ 
+-#define nv_vm_unlock_and_free_pages(at_count, at) \
+-    if (at->page_table) {                         \
+-        if (at_count == 0)                        \
+-            nv_vm_unlock_pages(at);               \
+-        nv_vm_free_pages(at);                     \
++#define NV_VM_UNLOCK_AND_FREE_PAGES(nv, at_count, at)   \
++    if (at->page_table)                                 \
++    {                                                   \
++        if (at_count == 0)                              \
++            nv_vm_unlock_pages(at);                     \
++        nv_vm_free_pages(nv, at);                       \
+     }
+ 
+ #endif
+diff -ru usr/src/nv/nv.c usr/src/nv.02282004/nv.c
+--- usr/src/nv/nv.c	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/nv.c	2005-02-28 11:39:24.452727952 +0100
+@@ -63,6 +63,8 @@
+ int nv_swiotlb = 0;
+ #endif
+ 
++static kmem_cache_t *nv_pte_t_cache = NULL;
++
+ // allow an easy way to convert all debug printfs related to events
+ // back and forth between 'info' and 'errors'
+ #if defined(NV_DBG_EVENTS)
+@@ -266,42 +268,41 @@
+ )
+ {
+     nv_alloc_t *at;
+-    int pt_size;
++    unsigned int pt_size, i;
+ 
+     NV_KMALLOC(at, sizeof(nv_alloc_t));
+     if (at == NULL)
+     {
+-        nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate alloc_t\n");
++        nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate alloc info\n");
+         return NULL;
+     }
+ 
+     memset(at, 0, sizeof(nv_alloc_t));
+ 
+-    pt_size = num_pages *  sizeof(nv_pte_t);
+-    NV_KMALLOC(at->page_table, pt_size);
+-    if (at->page_table == NULL)
++    pt_size = num_pages *  sizeof(nv_pte_t *);
++    if (os_alloc_mem((void **)&at->page_table, pt_size) != RM_OK)
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate page table\n");
+         NV_KFREE(at, sizeof(nv_alloc_t));
+         return NULL;
+     }
++
+     memset(at->page_table, 0, pt_size);
+     at->num_pages = num_pages;
+     NV_ATOMIC_SET(at->usage_count, 0);
+ 
+-#if defined(NV_SG_MAP_BUFFERS)
+-    at->dev = dev;
+-    pt_size = num_pages * sizeof(struct scatterlist);
+-    NV_KMALLOC(at->sg_list, pt_size);
+-    if (at->sg_list == NULL)
++    for (i = 0; i < at->num_pages; i++)
+     {
+-        nv_printf(NV_DBG_ERRORS, "NVRM: failed to allocate scatter gather list\n");
+-        NV_KFREE(at->page_table, pt_size);
+-        NV_KFREE(at, sizeof(nv_alloc_t));
+-        return NULL;
++        NV_KMEM_CACHE_ALLOC(at->page_table[i], nv_pte_t_cache, nv_pte_t);
++        if (at->page_table[i] == NULL)
++        {
++            nv_printf(NV_DBG_ERRORS,
++                      "NVRM: failed to allocate page table entry\n");
++            nvos_free_alloc(at);
++            return NULL;
++        }
++        memset(at->page_table[i], 0, sizeof(nv_pte_t));
+     }
+-    memset(at->sg_list, 0, pt_size);
+-#endif
+ 
+     return at;
+ }
+@@ -311,6 +312,8 @@
+     nv_alloc_t *at
+ )
+ {
++    unsigned int pt_size, i;
++
+     if (at == NULL)
+         return -1;
+ 
+@@ -320,13 +323,16 @@
+     // we keep the page_table around after freeing the pages
+     // for bookkeeping reasons. Free the page_table and assume
+     // the underlying pages are already unlocked and freed.
+-    if (at->page_table)
+-        NV_KFREE(at->page_table, at->num_pages * sizeof(nv_pte_t));
+-
+-#if defined(NV_SG_MAP_BUFFERS)
+-    if (at->sg_list)
+-        NV_KFREE(at->sg_list, at->num_pages * sizeof(struct scatterlist));
+-#endif
++    if (at->page_table != NULL)
++    {
++        for (i = 0; i < at->num_pages; i++)
++        {
++            if (at->page_table[i] != NULL)
++                NV_KMEM_CACHE_FREE(at->page_table[i], nv_pte_t, nv_pte_t_cache);
++        }
++        pt_size = at->num_pages * sizeof(nv_pte_t *);
++        os_free_mem(at->page_table);
++    }
+ 
+     NV_KFREE(at, sizeof(nv_alloc_t));
+ 
+@@ -594,7 +600,7 @@
+             int i;
+             for (i = 0; i < at->num_pages; i++)
+             {
+-                unsigned long offset = at->page_table[i].phys_addr;
++                unsigned long offset = at->page_table[i]->phys_addr;
+                 if ((address >= offset) &&
+                     (address < (offset + PAGE_SIZE)))
+                     return at;
+@@ -931,6 +937,13 @@
+     }
+ #endif
+ 
++    NV_KMEM_CACHE_CREATE(nv_pte_t_cache, "nv_pte_t", nv_pte_t);
++    if (nv_pte_t_cache == NULL)
++    {
++        nv_printf(NV_DBG_ERRORS, "NVRM: pte cache allocation failed\n");
++        goto failed;
++    }
++ 
+     // Init the resource manager
+     if (!rm_init_rm())
+     {
+@@ -972,6 +985,14 @@
+     return 0;
+ 
+ failed:
++    if (nv_pte_t_cache != NULL)
++        NV_KMEM_CACHE_DESTROY(nv_pte_t_cache);
++
++#if defined(NV_PM_SUPPORT_APM)
++    for (i = 0; i < num_nv_devices; i++)
++        if (apm_nv_dev[i] != NULL) pm_unregister(apm_nv_dev[i]);
++#endif
++
+ #ifdef CONFIG_DEVFS_FS
+     NV_DEVFS_REMOVE_CONTROL();
+     for (i = 0; i < num_nv_devices; i++)
+@@ -1101,6 +1122,8 @@
+     nv_printf(NV_DBG_ERRORS, "NVRM: final mem usage: vm 0x%x km 0x%x fp 0x%x\n",
+         vm_usage, km_usage, fp_usage);
+ #endif
++
++    NV_KMEM_CACHE_DESTROY(nv_pte_t_cache);
+ }
+ 
+ module_init(nvidia_init_module);
+@@ -1249,15 +1272,15 @@
+     index = (address - vma->vm_start)>>PAGE_SHIFT;
+ 
+     // save that index into our page list (make sure it doesn't already exist)
+-    if (at->page_table[index].phys_addr)
++    if (at->page_table[index]->phys_addr)
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: page slot already filled in nopage handler!\n");
+         os_dbg_breakpoint();
+     }
+ 
+-    at->page_table[index].phys_addr = (page_to_pfn(page_ptr) << PAGE_SHIFT);
+-    at->page_table[index].dma_addr  = (page_to_pfn(page_ptr) << PAGE_SHIFT);
+-    at->page_table[index].virt_addr = (unsigned long) __va(page_to_pfn(page_ptr) << PAGE_SHIFT);
++    at->page_table[index]->phys_addr = (page_to_pfn(page_ptr) << PAGE_SHIFT);
++    at->page_table[index]->dma_addr  = (page_to_pfn(page_ptr) << PAGE_SHIFT);
++    at->page_table[index]->virt_addr = (unsigned long) __va(page_to_pfn(page_ptr) << PAGE_SHIFT);
+ 
+     return page_ptr;
+ #endif
+@@ -1551,7 +1574,7 @@
+     /* NV fb space */
+     else if (IS_FB_OFFSET(nv, NV_VMA_OFFSET(vma), vma->vm_end - vma->vm_start))
+     {
+-        vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
++        vma->vm_page_prot = pgprot_noncached_weak(vma->vm_page_prot);
+         if (NV_REMAP_PAGE_RANGE(vma->vm_start,
+                              NV_VMA_OFFSET(vma),
+                              vma->vm_end - vma->vm_start,
+@@ -1604,9 +1627,8 @@
+         }
+         nv_vm_list_page_count(at->page_table, at->num_pages);
+ 
+-        /* prevent the swapper from swapping it out */
+-        /* mark the memory i/o so the buffers aren't dumped on core dumps */
+-        vma->vm_flags |= (VM_LOCKED | VM_IO);
++        // mark it as IO so that we don't dump it on core dump
++        vma->vm_flags |= VM_IO;
+     }
+ 
+     /* Magic allocator */
+@@ -1670,7 +1692,7 @@
+         start = vma->vm_start;
+         while (pages--)
+         {
+-            page = (unsigned long) at->page_table[i++].phys_addr;
++            page = (unsigned long) at->page_table[i++]->phys_addr;
+             if (NV_REMAP_PAGE_RANGE(start, page, PAGE_SIZE, vma->vm_page_prot))
+                 return -EAGAIN;
+             start += PAGE_SIZE;
+@@ -2368,8 +2390,8 @@
+ 
+         for (i = 0; i < at->num_pages; i++)
+         {
+-            if (address == at->page_table[i].phys_addr)
+-                return (void *)(at->page_table[i].virt_addr + offset);
++            if (address == at->page_table[i]->phys_addr)
++                return (void *)(at->page_table[i]->virt_addr + offset);
+         }
+     }
+ 
+@@ -2400,8 +2422,8 @@
+ 
+         for (i = 0; i < at->num_pages; i++)
+         {
+-            if (address == at->page_table[i].phys_addr)
+-                return (unsigned long)at->page_table[i].dma_addr + offset;
++            if (address == at->page_table[i]->phys_addr)
++                return (unsigned long)at->page_table[i]->dma_addr + offset;
+         }
+     }
+ 
+@@ -2427,9 +2449,9 @@
+             unsigned long address = dma_address & PAGE_MASK;
+             for (i = 0; i < at->num_pages; i++)
+             {
+-                if (address == at->page_table[i].dma_addr)
++                if (address == at->page_table[i]->dma_addr)
+                 {
+-                    return at->page_table[i].phys_addr + offset;
++                    return at->page_table[i]->phys_addr + offset;
+                 }
+             }
+         }
+@@ -2466,7 +2488,7 @@
+         int i;
+         for (i = 0; i < at->num_pages; i++)
+         {
+-            if (address == (unsigned long) at->page_table[i].dma_addr)
++            if (address == (unsigned long) at->page_table[i]->dma_addr)
+             {
+                 return (void *)((unsigned long) at->key_mapping + 
+                     (i * PAGE_SIZE));
+@@ -2492,26 +2514,23 @@
+ )
+ {
+     struct mm_struct *mm;
+-    pgd_t *pg_dir;
+-    pmd_t *pg_mid_dir;
+-    pte_t *pte;
++    pgd_t *pgd = NULL;
++    pmd_t *pmd = NULL;
++    pte_t *pte = NULL;
+     unsigned long retval;
+ 
+     mm = (kern) ? &init_mm : current->mm;
+     spin_lock(&mm->page_table_lock);
+ 
+-    if (kern) pg_dir = pgd_offset_k(address);
+-    else pg_dir = pgd_offset(mm, address);
+-
+-    if (!pg_dir || pgd_none(*pg_dir))
++    pgd = NV_PGD_OFFSET(address, kern, mm);
++    if (!NV_PGD_PRESENT(pgd))
+         goto failed;
+ 
+-    NV_PMD_OFFSET(address, pg_dir, pg_mid_dir);
+-    if (!NV_PMD_PRESENT(pg_mid_dir))
++    pmd = NV_PMD_OFFSET(address, pgd);
++    if (!NV_PMD_PRESENT(pmd))
+         goto failed;
+ 
+-    NV_PTE_OFFSET(address, pg_mid_dir, pte);
+-
++    pte = NV_PTE_OFFSET(address, pmd);
+     if (!NV_PTE_PRESENT(pte))
+         goto failed;
+ 
+@@ -2630,7 +2649,7 @@
+             nvl_add_alloc(nvl, at);
+         } else {
+             /* use nvidia's nvagp support */
+-            if (nv_vm_malloc_pages(at))
++            if (nv_vm_malloc_pages(nv, at))
+                 goto failed;
+ 
+             at->class = class;
+@@ -2654,7 +2673,7 @@
+             if (rm_status)
+             {
+                 nvl_remove_alloc(nvl, at);
+-                nv_vm_unlock_and_free_pages(NV_ATOMIC_READ(at->usage_count), at);
++                NV_VM_UNLOCK_AND_FREE_PAGES(nv, NV_ATOMIC_READ(at->usage_count), at);
+                 goto failed;
+             }
+             at->priv_data = *priv_data;
+@@ -2666,12 +2685,12 @@
+     else 
+     {
+ 
+-        if (nv_vm_malloc_pages(at))
++        if (nv_vm_malloc_pages(nv, at))
+             goto failed;
+ 
+         if (kernel)
+         {
+-            *pAddress = (void *) at->page_table[0].virt_addr;
++            *pAddress = (void *) at->page_table[0]->virt_addr;
+         }
+         else
+         {
+@@ -2679,7 +2698,7 @@
+              * so use the first page, which is page-aligned. this way, our 
+              * allocated page table does not need to be page-aligned
+              */
+-            *pAddress = (void *) at->page_table[0].phys_addr;
++            *pAddress = (void *) at->page_table[0]->phys_addr;
+         }
+ 
+         nvl_add_alloc(nvl, at);
+@@ -2743,7 +2762,7 @@
+             rmStatus = rm_free_agp_pages(nv, pAddress, priv_data);
+             if (rmStatus == RM_OK)
+             {
+-                nv_vm_unlock_and_free_pages(NV_ATOMIC_READ(at->usage_count), at);
++                NV_VM_UNLOCK_AND_FREE_PAGES(nv, NV_ATOMIC_READ(at->usage_count), at);
+             }
+         }
+     } else {
+@@ -2759,7 +2778,7 @@
+ 
+         NV_ATOMIC_DEC(at->usage_count);
+ 
+-        nv_vm_unlock_and_free_pages(NV_ATOMIC_READ(at->usage_count), at);
++        NV_VM_UNLOCK_AND_FREE_PAGES(nv, NV_ATOMIC_READ(at->usage_count), at);
+     }
+ 
+     if (NV_ATOMIC_READ(at->usage_count) == 0)
+@@ -2769,21 +2788,13 @@
+ }
+ 
+ 
+-/* avoid compiler warnings on UP kernels, 
+- * when spinlock macros are defined away 
+- */
+-#define NO_COMPILER_WARNINGS(nvl) \
+-    if (nvl == NULL) return
+-
+-
+ static void nv_lock_init_locks
+ ( 
+     nv_state_t *nv
+ )
+ {
+-    nv_linux_state_t *nvl = NV_GET_NVL_FROM_NV_STATE(nv);
+-
+-    NO_COMPILER_WARNINGS(nvl);
++    nv_linux_state_t *nvl;
++    nvl = NV_GET_NVL_FROM_NV_STATE(nv);
+ 
+     spin_lock_init(&nvl->rm_lock);
+ 
+@@ -2799,28 +2810,33 @@
+     nv_state_t *nv
+ )
+ {
+-    nv_linux_state_t *nvl = NV_GET_NVL_FROM_NV_STATE(nv);
+-    NO_COMPILER_WARNINGS(nvl);
++    nv_linux_state_t *nvl;
++    int cpu;
++
++    nvl = NV_GET_NVL_FROM_NV_STATE(nv);
++    cpu = get_cpu();
+ 
+-    if (nvl->rm_lock_cpu == smp_processor_id())
++    if (nvl->rm_lock_cpu == cpu)
+     {
+         nvl->rm_lock_count++;
++        put_cpu();
+         return;
+     }
+ 
++    put_cpu();
+     spin_unlock_wait(&nvl->rm_lock);
+     spin_lock_irq(&nvl->rm_lock);
+ 
+-   nvl->rm_lock_cpu = smp_processor_id();
+-   nvl->rm_lock_count = 1;
++    nvl->rm_lock_cpu = smp_processor_id();
++    nvl->rm_lock_count = 1;
+ }
+ 
+ void NV_API_CALL nv_unlock_rm(
+     nv_state_t *nv
+ )
+ {
+-    nv_linux_state_t *nvl = NV_GET_NVL_FROM_NV_STATE(nv);
+-    NO_COMPILER_WARNINGS(nvl);
++    nv_linux_state_t *nvl;
++    nvl = NV_GET_NVL_FROM_NV_STATE(nv);
+ 
+     if (--nvl->rm_lock_count)
+         return;
+@@ -2987,32 +3003,47 @@
+      */
+     if ( (!NV_AGP_ENABLED(nv)) && (config & NVOS_AGP_CONFIG_NVAGP) )
+     {
+-        /* make sure the user does not have agpgart loaded */
+-        if (inter_module_get("drm_agp")) {
++#if defined(KERNEL_2_4)
++        if (inter_module_get("drm_agp"))
++        {
+             inter_module_put("drm_agp");
+-            nv_printf(NV_DBG_WARNINGS, "NVRM: not using NVAGP, AGPGART is loaded!!\n");
+-        } else {
+-#if defined(CONFIG_X86_64) && defined(CONFIG_GART_IOMMU)
++            nv_printf(NV_DBG_WARNINGS, "NVRM: not using NVAGP, AGPGART is loaded!\n");
++            return status;
++        }
++#elif defined(AGPGART)
++        int error;
++        /*
++         * We can only safely use NvAGP when no backend has been
++         * registered with the AGPGART frontend. This condition
++         * is only met when the acquire function returns -EINVAL.
++         *
++         * Other return codes indicate that a backend is present
++         * and was either acquired, busy or else unavailable.
++         */
++        if ((error = agp_backend_acquire()) != -EINVAL)
++        {
++            if (!error) agp_backend_release();
+             nv_printf(NV_DBG_WARNINGS,
+-                "NVRM: not using NVAGP, kernel was compiled with GART_IOMMU support!!\n");
+-#else
+-            status = rm_init_agp(nv);
+-            if (status == RM_OK)
+-            {
+-                nv->agp_config = NVOS_AGP_CONFIG_NVAGP;
+-                nv->agp_status = NV_AGP_STATUS_ENABLED;
+-            }
++                      "NVRM: not using NVAGP, an AGPGART backend is loaded!\n");
++            return status;
++        }
+ #endif
++#if defined(CONFIG_X86_64) && defined(CONFIG_GART_IOMMU)
++        nv_printf(NV_DBG_WARNINGS,
++            "NVRM: not using NVAGP, kernel was compiled with GART_IOMMU support!\n");
++#else
++        status = rm_init_agp(nv);
++        if (status == RM_OK)
++        {
++            nv->agp_config = NVOS_AGP_CONFIG_NVAGP;
++            nv->agp_status = NV_AGP_STATUS_ENABLED;
+         }
++#endif
+     }
+ 
+     if (NV_AGP_ENABLED(nv))
+         old_error = 0; /* report new errors */
+ 
+-    nv_printf(NV_DBG_SETUP, 
+-        "NVRM: agp_init finished with status 0x%x and config %d\n",
+-        status, nv->agp_config);
+-
+     return status;
+ }
+ 
+@@ -3036,9 +3067,6 @@
+     nv->agp_config = NVOS_AGP_CONFIG_DISABLE_AGP;
+     nv->agp_status = NV_AGP_STATUS_DISABLED;
+ 
+-    nv_printf(NV_DBG_SETUP, "NVRM: teardown finished with status 0x%x\n", 
+-        status);
+-
+     return status;
+ }
+ 
+@@ -3065,7 +3093,7 @@
+     }
+ 
+     /* get the physical address of this page */
+-    *paddr = (U032) ((NV_UINTPTR_T)at->page_table[index].dma_addr);
++    *paddr = (U032) ((NV_UINTPTR_T)at->page_table[index]->dma_addr);
+ 
+     return RM_OK;
+ }
+diff -ru usr/src/nv/os-agp.c usr/src/nv.02282004/os-agp.c
+--- usr/src/nv/os-agp.c	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/os-agp.c	2005-02-28 11:39:24.453727800 +0100
+@@ -25,6 +25,13 @@
+ 
+ #ifdef AGPGART
+ 
++#if defined(KERNEL_2_6)
++typedef struct agp_kern_info agp_kern_info;
++typedef struct agp_memory agp_memory;
++#elif defined(KERNEL_2_4)
++const drm_agp_t *drm_agp_p; /* functions */
++#endif
++
+ typedef struct {
+     agp_memory *ptr;
+     int num_pages;
+@@ -45,7 +52,6 @@
+ 
+ agp_kern_info         agpinfo;
+ agp_gart              gart;
+-const drm_agp_t       *drm_agp_p;
+ 
+ #if defined(CONFIG_MTRR)
+ #define MTRR_DEL(gart) if ((gart).mtrr > 0) mtrr_del((gart).mtrr, 0, 0);
+@@ -53,6 +59,26 @@
+ #define MTRR_DEL(gart)
+ #endif
+ 
++#if defined(KERNEL_2_6)
++#define NV_AGPGART_BACKEND_ACQUIRE(o) agp_backend_acquire()
++#define NV_AGPGART_BACKEND_ENABLE(o,mode) agp_enable(mode)
++#define NV_AGPGART_BACKEND_RELEASE(o) agp_backend_release()
++#define NV_AGPGART_COPY_INFO(o,p) agp_copy_info(p)
++#define NV_AGPGART_ALLOCATE_MEMORY(o,count,type) agp_allocate_memory(count,type)
++#define NV_AGPGART_FREE_MEMORY(o,p) agp_free_memory(p)
++#define NV_AGPGART_BIND_MEMORY(o,p,offset) agp_bind_memory(p,offset)
++#define NV_AGPGART_UNBIND_MEMORY(o,p) agp_unbind_memory(p)
++#elif defined(KERNEL_2_4)
++#define NV_AGPGART_BACKEND_ACQUIRE(o) ({ (o)->acquire(); 0; })
++#define NV_AGPGART_BACKEND_ENABLE(o,mode) (o)->enable(mode)
++#define NV_AGPGART_BACKEND_RELEASE(o) ((o)->release())
++#define NV_AGPGART_COPY_INFO(o,p) ({ (o)->copy_info(p); 0; })
++#define NV_AGPGART_ALLOCATE_MEMORY(o,count,type) (o)->allocate_memory(count,type)
++#define NV_AGPGART_FREE_MEMORY(o,p) (o)->free_memory(p)
++#define NV_AGPGART_BIND_MEMORY(o,p,offset) (o)->bind_memory(p,offset)
++#define NV_AGPGART_UNBIND_MEMORY(o,p) (o)->unbind_memory(p)
++#endif
++
+ #endif /* AGPGART */
+ 
+ BOOL KernInitAGP(
+@@ -73,8 +99,10 @@
+ 
+     memset( (void *) &gart, 0, sizeof(agp_gart));
+ 
++#if defined(KERNEL_2_4)
+     if (!(drm_agp_p = inter_module_get_request("drm_agp", "agpgart")))
+         return 1;
++#endif
+ 
+     /* NOTE: from here down, return an error code of '-1'
+      * that indicates that agpgart is loaded, but we failed to use it
+@@ -82,11 +110,10 @@
+      * the memory controller.
+      */
+ 
+-    if (drm_agp_p->acquire())
++    if (NV_AGPGART_BACKEND_ACQUIRE(drm_agp_p))
+     {
+-        nv_printf(NV_DBG_ERRORS, "NVRM: AGPGART: backend in use\n");
+-        inter_module_put("drm_agp");
+-        return -1;
++        nv_printf(NV_DBG_INFO, "NVRM: AGPGART: no backend available\n");
++        goto bailout;
+     }
+ 
+     if (rm_read_registry_dword(nv, "NVreg", "ReqAGPRate", &agp_rate) == RM_ERROR)
+@@ -101,21 +128,12 @@
+         agp_fw = 1;
+     agp_fw &= 0x00000001;
+ 
+-#if defined(KERNEL_2_4)
+-    /*
+-     * The original Linux 2.4 AGP GART driver interface declared copy_info to
+-     * return nothing. This changed in Linux 2.5, which reports unsupported
+-     * chipsets via this function. If this Linux 2.4 kernels behaves the same
+-     * way, we have no way to know.
+-     */
+-    drm_agp_p->copy_info(&agpinfo);
+-#else
+-    if (drm_agp_p->copy_info(&agpinfo)) {
++    if (NV_AGPGART_COPY_INFO(drm_agp_p, &agpinfo))
++    {
+         nv_printf(NV_DBG_ERRORS,
+             "NVRM: AGPGART: kernel reports chipset as unsupported\n");
+         goto failed;
+     }
+-#endif
+ 
+ #ifdef CONFIG_MTRR
+     /*
+@@ -170,7 +188,7 @@
+     if (!(agp_rate & 0x00000004)) agpinfo.mode &= ~0x00000004;
+     if (!(agp_rate & 0x00000002)) agpinfo.mode &= ~0x00000002;
+     
+-    drm_agp_p->enable(agpinfo.mode);
++    NV_AGPGART_BACKEND_ENABLE(drm_agp_p, agpinfo.mode);
+ 
+     *ap_phys_base   = (void*) agpinfo.aper_base;
+     *ap_mapped_base = (void*) gart.aperture;
+@@ -182,8 +200,11 @@
+ 
+ failed:
+     MTRR_DEL(gart); /* checks gart.mtrr */
+-    drm_agp_p->release();
++    NV_AGPGART_BACKEND_RELEASE(drm_agp_p);
++bailout:
++#if defined(KERNEL_2_4)
+     inter_module_put("drm_agp");
++#endif
+ 
+     return -1;
+ 
+@@ -213,9 +234,10 @@
+         NV_IOUNMAP(gart.aperture, RM_PAGE_SIZE);
+     }
+ 
+-    drm_agp_p->release();
+-
++    NV_AGPGART_BACKEND_RELEASE(drm_agp_p);
++#if defined(KERNEL_2_4)
+     inter_module_put("drm_agp");
++#endif
+ 
+     if (rm_clear_agp_bitmap(nv, &bitmap))
+     {
+@@ -244,7 +266,6 @@
+     return RM_ERROR;
+ #else
+     agp_memory *ptr;
+-    int err;
+     agp_priv_data *data;
+     RM_STATUS status;
+ 
+@@ -262,7 +283,7 @@
+         return RM_ERROR;
+     }
+ 
+-    ptr = drm_agp_p->allocate_memory(PageCount, AGP_NORMAL_MEMORY);
++    ptr = NV_AGPGART_ALLOCATE_MEMORY(drm_agp_p, PageCount, AGP_NORMAL_MEMORY);
+     if (ptr == NULL)
+     {
+         *pAddress = (void*) 0;
+@@ -270,8 +291,7 @@
+         return RM_ERR_NO_FREE_MEM;
+     }
+     
+-    err = drm_agp_p->bind_memory(ptr, *Offset);
+-    if (err)
++    if (NV_AGPGART_BIND_MEMORY(drm_agp_p, ptr, *Offset))
+     {
+         // this happens a lot when the aperture itself fills up..
+         // not a big deal, so don't alarm people with an error message
+@@ -280,14 +300,11 @@
+         goto fail;
+     }
+ 
+-    /* return the agp aperture address */ 
+-    *pAddress = (void *) (agpinfo.aper_base + (*Offset << PAGE_SHIFT));
+-
+     status = os_alloc_mem((void **)&data, sizeof(agp_priv_data));
+     if (status != RM_OK)
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: AGPGART: memory allocation failed\n");
+-        drm_agp_p->unbind_memory(ptr);
++        NV_AGPGART_UNBIND_MEMORY(drm_agp_p, ptr);
+         goto fail;
+     }
+ 
+@@ -302,7 +319,7 @@
+     return RM_OK;
+ 
+ fail:
+-    drm_agp_p->free_memory(ptr);
++    NV_AGPGART_FREE_MEMORY(drm_agp_p, ptr);
+     *pAddress = (void*) 0;
+ 
+     return RM_ERROR;
+@@ -342,7 +359,7 @@
+     {
+         nv_printf(NV_DBG_ERRORS, "NVRM: AGPGART: unable to remap %lu pages\n",
+             (unsigned long)agp_data->num_pages);
+-        drm_agp_p->unbind_memory(agp_data->ptr);
++        NV_AGPGART_UNBIND_MEMORY(drm_agp_p, agp_data->ptr);
+         goto fail;
+     }
+     
+@@ -441,8 +458,8 @@
+     {
+         size_t pages = ptr->page_count;
+ 
+-        drm_agp_p->unbind_memory(ptr);
+-        drm_agp_p->free_memory(ptr);
++        NV_AGPGART_UNBIND_MEMORY(drm_agp_p, ptr);
++        NV_AGPGART_FREE_MEMORY(drm_agp_p, ptr);
+ 
+         nv_printf(NV_DBG_INFO, "NVRM: AGPGART: freed %ld pages\n",
+             (unsigned long)pages);
+diff -ru usr/src/nv/os-interface.c usr/src/nv.02282004/os-interface.c
+--- usr/src/nv/os-interface.c	2004-11-03 22:53:00.000000000 +0100
++++ usr/src/nv.02282004/os-interface.c	2005-02-28 11:39:24.445729016 +0100
+@@ -732,10 +732,17 @@
+ //
+ inline void NV_API_CALL out_string(const char *str)
+ {
++#if DEBUG
+     static int was_newline = 0;
+ 
+-    if (was_newline) printk("%d: %s", smp_processor_id(), str);
+-    else             printk("%s", str);
++    if (NV_NUM_CPUS() > 1 && was_newline)
++    {
++        printk("%d: %s", get_cpu(), str);
++        put_cpu();
++    }
++    else
++#endif
++        printk("%s", str);
+ 
+ #if DEBUG
+     if (NV_NUM_CPUS() > 1)
+@@ -866,7 +873,8 @@
+ )
+ {
+     struct pci_dev *dev;
+-    dev = NV_PCI_GET_SLOT(bus, PCI_DEVFN(slot, function));
++    unsigned int devfn = PCI_DEVFN(slot, function);
++    dev = NV_PCI_GET_SLOT(bus, devfn);
+     if (dev) {
+         if (vendor) *vendor = dev->vendor;
+         if (device) *device = dev->device;
