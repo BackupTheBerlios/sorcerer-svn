@@ -1,0 +1,40 @@
+   VERSION=( "5.1.1" "5.1" "5.0.9" "5.0.8" "5.0.7" "5.0.6" )
+      SAFE=( "5.1.1" "5.1" "5.0.9" )
+    IGNORE="HP-UX\|rc"
+  CATEGORY="network"
+ ATTRIBUTE="console"
+    SOURCE="net-snmp/net-snmp-$VERSION.tar.gz"
+  HOMEPAGE="http://www.net-snmp.org"
+       URL="ftp://ftp.freesnmp.org/mirrors
+            http://rtfm.uni-svishtov.bg
+             ftp://ftp.ayamura.org/pub
+             ftp://ftp.mpg.goe.ni.schule.de/pub/internet
+             ftp://sunsite.cnlab-switch.ch/mirror/ucd-snmp"
+       REQ=( "autoconf automake libelf"
+             "openssl:::for secure socket connections" )
+  ESTIMATE="1043"
+      DESC="net-snmp is a simple network managment protocol agent, libraries and utilities
+net-snmp provides tools and libraries relating to 
+SNMP (the Simple NetworkManagement Protocol) including:
+ - An extensible agent
+ - An SNMP library
+ - tools to request or set information from SNMP agents
+ - tools to generate and handle SNMP traps, etc."
+
+
+build() {
+SYS_CONTACT="--with-sys-contact=root@`hostname -f`"
+ PERSISTENT="--with-persistent-directory=/var/state/ucd-snmp"
+   DEFAULTS="--with-defaults"
+
+./configure  --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $SYS_CONTACT          \
+             $PERSISTENT           \
+             $DEFAULTS             \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install
+}

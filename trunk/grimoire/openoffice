@@ -1,0 +1,40 @@
+   VERSION=( "1.1.0" "1.0.3.1" )
+  CATEGORY="office"
+ ATTRIBUTE="i386 noheal x11"
+    SOURCE="openoffice_net_install-${VERSION}.tar.bz2"
+       URL="http://sorcerer.wox.org/download/sources/openoffice/$VERSION"
+  HOMEPAGE="http://www.openoffice.org"
+   ARCHIVE="off"
+       REQ=( "unzip x11 zip"
+             "j2sdk:::for java support" )
+      DESC="openoffice provides the Open Source Office Suite.
+openofice provides an open source office suite that
+runs on all major platforms and provide access to
+all functionality and data through open-component
+based APIs and an XML-based file format.
+It can open M$ Office Documents.
+
+Note
+====
+Network installation archive.
+Run 'soffice' to make workstation
+installation for each user."
+
+
+build() {
+install_oo()  {
+  if    !  [   -f  /opt/openoffice ]
+  then  mkdir  -p  /opt/openoffice
+  fi
+  tar  -cpf  -  -C  $BUILD_DIR  .  |         \
+  tar  -xpf  -  -C  /opt/openoffice
+  for  APP  in  swriter  scalc sdraw          \
+                simpress smath soffice
+  do  ln  -vsf  /opt/openoffice/program/$APP  \
+                /usr/bin/$APP
+  done
+}
+
+prepare_install  &&
+install_oo
+}

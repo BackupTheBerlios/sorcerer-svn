@@ -1,0 +1,63 @@
+   VERSION=( "0.7.2" "0.7.1" "0.7.0" "0.6.2" "0.6.1" "0.6.0" )
+  CATEGORY="video-player dvd-player"
+ ATTRIBUTE="kde"
+    SOURCE="vlc-$VERSION.tar.bz2"
+       URL="http://www.videolan.org/pub/videolan/vlc/$VERSION"
+  HOMEPAGE="http://www.videolan.org"
+       REQ=( "a52dec gettext gtk+-v1.2 libdvbpsi libxml2"
+             "aalib:--enable-aa::for aalib output support"
+             "arts:--enable-arts::for aRts sound server support"
+             "alsa-lib:--enable-alsa::for alsa sound support"
+             "esound:--enable-esd::for Esound library support"
+             "libdv:--enable-dv::for DV decoder support"
+             "libdvdread::--disable-dvdread:for DVD decryption support"
+             "libdvdplay:--enable-dvdplay:--disable-dvdplay:for DVD menu navigation support (experimental)"
+             "libvorbis:::for ogg/vorbis support"
+             "mad:::for a 24 bit capable mpeg3 decoder"
+             "mozilla:--enable-mozilla::to build a vlc-based Mozilla plugin"
+             "SDL::--disable-sdl:for SDL support"
+             "svgalib:--enable-svgalib:--disable-svgalib:for SVGAlib support"
+             "fribidi:--enable-fribidi:--disable-fribidi:for bidirectional unicode"
+             "libcddb:::for accessing data on access data on a CDDB server" )
+
+#            "libmpeg2:--enable-libmpeg2:--disable-libmpeg2: for decoding MPEG-1 and MPEG-2 streams"
+#            "ffmpeg:--enable-ffmpeg:--disable-ffmpeg:for WMA,SVQ 1,H263,H263i,MJPEG A/B and other ffmpeg codecs support"
+CONFLICTS="libdvdnav"
+#            "libdvdnav:--enable-dvdnav:--disable-dvdnav::for DVD navigation support"
+# 0.7.2 and 0.7.1 have an unsual link error when it comes to libdvdnav
+   # vlc wants developmental 1.1 versions of speex?
+   # name servers for speex.org are unreachable at Sun May 30 21:25:02 UTC 2004
+#             "speex:--enable-speex:--disable-speex:for voice quality audio codec"
+
+  ESTIMATE="1406"
+      DESC="vlc is the videolan client multimedia player.
+vlc the VideoLAN Client is an MPEG, MPEG2, VCD and DVD player.
+It can play MPEG streams from a file, from a 
+network source, or directly from a VCD or DVD.
+There is video support for X11/XVideo, GGI, SDL, 
+the Linux framebuffer device, DirectX, BeOS, and 
+QNX, audio support for OSS, Esound, ALSA, and
+GNOME, GTK+, Qt and KDE interfaces."
+
+
+build() {
+unset  CFLAGS
+unset  CXXFLAGS
+
+# a sufficiently current version of libmpeg is not currently available
+# at vlc version 0.6.0
+# requires cvs version of ffmpeg, but the cvs version failed to compile.
+
+# libdvdnav fails linking, better avoid it?
+
+./configure  --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             --disable-libmpeg2    \
+             --disable-ffmpeg      \
+             --disable-libdvdnav   \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install
+}

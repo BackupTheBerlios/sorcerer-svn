@@ -1,0 +1,30 @@
+   VERSION=( "0.9" "0.8" )
+  CATEGORY="security"
+ ATTRIBUTE="console"
+    SOURCE="aide-$VERSION.tar.gz"
+  HOMEPAGE="http://www.cs.tut.fi/~rammer/aide.html"
+       URL="ftp://ftp.cs.tut.fi/pub/src/gnu"
+       REQ=( "bison-v1.35 libgcrypt"
+             "mhash:--with-mhash::for mhash lib instead of built-in"
+             "zlib:--with-zlib:--without-zlib:for compression support" )
+  ESTIMATE="57"
+      DESC="aide (Advanced Intrusion Detection Environment) is a file integrity checker
+It creates a database from the regular expression 
+rules that it finds from the config file.
+Once this database is initialized it can be 
+used to verify the integrity of the files."
+
+
+build()  {
+cd  src
+for  FILE in  *;  do
+  if    [  -f  $FILE  ]
+  then  sed  -i  's:"db.h":"../include/db.h":g'  $FILE
+  fi
+done
+cd  ..
+
+# sed  -i  "s:\$LD_STATIC_FLAG::g"  configure
+export  PATH="/opt/bison/1.35/bin:$PATH"
+default_build
+}

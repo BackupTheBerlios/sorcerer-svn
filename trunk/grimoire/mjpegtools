@@ -1,0 +1,38 @@
+   VERSION=( "1.6.2" "1.6.1" )
+    IGNORE="debsrc\|1\.6\.1\.9"
+  CATEGORY="video"
+ ATTRIBUTE="library x11"
+    SOURCE="mjpeg/mjpegtools-$VERSION.tar.gz"
+  HOMEPAGE="http://mjpeg.sourceforge.net"
+       URL="$SOURCEFORGE_URL"
+       REQ="SDL avifile gtk+-v1.2 libdv libmovtar libquicktime"
+# Selecting no to optional requirements breaks compilation of 
+# mjpegtools 1.6.1
+#   "libmovtar::--without-movtar:to support the movtar video codec"
+#   "libdv::--without-dv:for Quasar video codec"
+  ESTIMATE="871"
+      DESC="mjpegtools contain video record and playback tools and library.
+The mjpeg programs are a set of tools that can do 
+recording of videos and playback, simple cut-and-paste 
+editing and the MPEG compression of audio and video under Linux.
+
+Recording is supported for the Zoran based cards 
+like the Buz (Iomega), DC10 (MIRO, Pinnacle), 
+Matrox Marvel cards and the LML33 (Linux Media Labs).
+The recorded videos can be converted to MPEG streams.
+The software playback of MPEG streams works 
+with almost every player and every OS.
+You can produce special forms of MPEG streams 
+like VCD (Video CD) and SVCD for hardware playback."
+
+
+build()  {
+  case  $VERSION  in
+    1.6.1)  sed  -i  "s:avifile/::"  lavtools/libavifile.h  ;;
+    1.6.2)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  lavtools/lavvideo.c
+            sed  -i  "s,KEEP_SOURCE:,KEEP_SOURCE:\
+;,"  lavtools/lavpipe.c
+            sed  -i  "s:(uint8_t \*):uint8_t * :"  mpeg2enc/picture.cc  ;;
+  esac
+  default_build
+}

@@ -1,0 +1,26 @@
+   VERSION=( "0.7.11" "0.7.10" "0.7.9" "0.7.4" )
+  CATEGORY="web"
+ ATTRIBUTE="library"
+    SOURCE="sources/soup/${VERSION:0:3}/soup-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.gnome.org"
+       URL="$GNOME_URL"
+       REQ=( "glib-v1.2 libxml popt zlib"
+             "openssl:--enable-ssl::for secure socket layer support" )
+  ESTIMATE="701"
+      DESC="soup is the simple object access protocol library."
+
+
+build() {
+#            --enable-glib2        \
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+case  $VERSION  in
+  0.7.11)  sed  -i  "s:httpd;;:httpd :"  src/libsoup-apache/Makefile  ;;
+esac  &&
+make                               &&
+prepare_install                    &&
+make    install
+}

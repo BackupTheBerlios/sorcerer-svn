@@ -1,0 +1,53 @@
+   VERSION=( "6.3.016" "6.3.014" "6.3.001" "6.3" "6.2.532" "6.2.466" "6.2.421" "6.2.252" "6.2.154" "6.2.145" "6.2" "6.1.405" "6.1" )
+    IGNORE="^6\.2[1-2]^6\.1[1-2]\|-rt\|-src\|^6\.0\|6\.1\....[1-2]"
+  CATEGORY="editor"
+ ATTRIBUTE="console x11"
+    SOURCE=( "vim-${VERSION:0:3}.tar.bz2"
+             "vim-${VERSION:0:3}-lang.tar.gz" )
+  SCX=2
+  for  ((PCX=1;PCX<10;PCX++));  do
+    SOURCE[$SCX]="${VERSION:0:3}.00$PCX"
+    ((  SCX++  ))
+  done
+# for  ((PCX=10;PCX<100;PCX++));  do
+  for  ((PCX=10;PCX<17;PCX++));  do
+    SOURCE[$SCX]="${VERSION:0:3}.0$PCX"
+    ((  SCX++  ))
+  done
+# for  ((PCX=100;PCX<=${VERSION:4:7};PCX++));  do
+#   SOURCE[$SCX]="${VERSION:0:3}.$PCX"
+#   ((  SCX++  ))
+# done
+    unset  SCX  PCX  VPAT
+       URL=( "ftp://ftp.vim.org/pub/vim/unix"
+             "ftp://ftp.vim.org/pub/vim/extra"
+             "ftp://ftp.vim.org/pub/vim/patches/${VERSION:0:3}" )
+       REQ=( "ncurses"
+             "gtk+:--enable-gui=gtk2:--enable-gui=no --without-x:for a graphical user interface"
+             "gpm::--disable-gpm:for mouse support in linux console" )
+      OPTS="--bindir=/bin"
+  HOMEPAGE="http://vim.sourceforge.net"
+  EPROVIDE="vi"
+  ESTIMATE="171"
+      DESC="vim is an improved version of vi.
+VIM adds many of the features that you would expect in an editor:
+Unlimited undo, syntax coloring, split windows, visual selection,
+graphical user interface (read: menus, mouse control, scrollbars, 
+text selection), and much much more."
+
+build()  {
+echo  "Patches for the win/mac sources will fail to apply."
+echo  "Do not worry about failed hunks."
+
+CX=2
+while  [  -n                 "${SOURCE[$CX]}"  ];  do
+# bzcat  $(  guess_filename  "${SOURCE[$CX]}"  )  |  patch  -p0
+    cat  $(  guess_filename  "${SOURCE[$CX]}"  )  |  patch  -p0
+  ((  CX++  ))
+done
+
+default_build  &&
+if    !  [  -e       /bin/vi  ]
+then  ln    -s  vim  /bin/vi
+fi
+}

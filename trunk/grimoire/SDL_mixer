@@ -1,0 +1,34 @@
+   VERSION=( "1.2.5" "1.2.4" "1.2.1" )
+    IGNORE="devel"
+  CATEGORY="audio-player audio-mixer"
+ ATTRIBUTE="library x11"
+    SOURCE=( "release/SDL_mixer-$VERSION.tar.gz"
+             "timidity/timidity.tar.gz" )
+       URL="http://www.libsdl.org/projects/SDL_mixer"
+  HOMEPAGE="http://www.libsdl.org/projects/SDL_mixer"
+       REQ=( "audiofile SDL"
+             "libvorbis:::to play ogg/vorbis files"
+             "smpeg:::to play mpeg movies and mp3 audio" )
+ FRESHMEAT="sdl_mixer"
+  ESTIMATE="645"
+      DESC="SDL_mixer is a simple multi-channel audio mixer.
+It supports 8 channels of 16 bit stereo audio, 
+plus a single channel of music, mixed by the
+popular MikMod MOD, Timidity MIDI, Ogg Vorbis, 
+and SMPEG MP3 libraries."
+
+
+build()  {
+sed  -i  "s:local/::"  timidity/config.h  &&
+
+./configure  --prefix=/usr      \
+             --disable-sdltest  \
+             $OPTS  &&
+make                &&
+prepare_install     &&
+make    install     &&
+set      -x         &&
+cp       -R      timidity        /usr/lib/  &&
+install  -m 755  .libs/playmus   /usr/bin/  &&
+install  -m 755  .libs/playwave  /usr/bin/
+}

@@ -1,0 +1,31 @@
+   VERSION=( "2.33.2" "2.33" "2.32" "2.31" "2.30" )
+    IGNORE="^2000-"
+  CATEGORY="interpreter"
+ ATTRIBUTE="console"
+    SOURCE="clisp/clisp-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"       
+  HOMEPAGE="http://clisp.cons.org"
+       REQ=(  ""
+              "postgresql:::for postgresql support"
+              "x11:::for XFree86 support"
+              "readline:--with-readline::for GNU readline support"
+              "gettext:--with-gettext::for 18n support" )
+  ESTIMATE="1368"
+      DESC="clisp is an ANSI Common Lisp interpreter, compiler and debugger."
+
+
+build()  {
+make_CLISP() {
+  ./configure  --prefix=/usr
+  cd  src      
+  ./makemake   --prefix=/usr       \
+               --with-dynamic-ffi  \
+               $OPTS  >  Makefile     
+  make config.lisp
+  make
+}
+  
+make_CLISP       &&
+prepare_install  &&
+make    install
+}

@@ -1,0 +1,43 @@
+   VERSION=( "$( date  -u  +%Y%U  )" )
+  CATEGORY="security"
+ ATTRIBUTE="console core solo"
+    SOURCE="exploit.db";  disable  scavenge
+#      URL="http://www.h07.org/projects/aexpl"
+# HOMEPAGE="http://www.h07.org/projects/aexpl"
+       URL="http://www.hzeroseven.org/projects/aexpl"
+  HOMEPAGE="http://www.hzeroseven.org/projects/aexpl"
+       REQ=( ""
+             ":scan_root::to scan / for suspcious files?" )
+  ESTIMATE=""
+#FRESHMEAT="aexpl"
+      DESC="aexpl-db provides a weekly updated database of md5sum identified exploit files.
+To make full use of this you should also enable the 
+aexpl feature within the sorcery options feature menu."
+
+
+build()  {
+
+make_install()  {
+  mkdir    -p   $(  dirname   $AEXPL_DB  )
+  install  -m 0666  $SOURCE   $AEXPL_DB
+  echo  "$SOURCE installed to $AEXPL_DB"
+}
+
+
+scan_root()  {
+  if    echo  "$OPTS"  |  grep  -q  scan_root;  then
+    echo  "Scanning / for suspicious files."
+    echo  "This may take a few minutes to find all files."
+    echo  "Files with md5sums matching known exploits will be printed."
+    aexpl_check  /
+    true
+  fi
+}
+
+
+cp  $SOURCE_CACHE/$BSPELL/$VERSION/$SOURCE  .  &&
+prepare_install  &&
+   make_install  &&
+   scan_root
+
+}

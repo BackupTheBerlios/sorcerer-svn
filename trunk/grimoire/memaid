@@ -1,0 +1,33 @@
+   VERSION=( "0.4.10" "0.4.9" "0.4.8" "0.4.7" "0.4.6" "0.4.5" "0.4.4" )
+  CATEGORY="utility"
+ ATTRIBUTE="console"
+    SOURCE="memaid/memaid_$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://memaid.sourceforge.net"
+# Optional requirement on an old version of fox.
+# Use kmemaid if you want a GUI
+#            "fox:fox::for GUI version" )
+  ESTIMATE="14"
+      DESC="memaid is a software to enhance optimize one's learning.
+memaid is a software designed to predict optimal time 
+of repetitions (computes best possible intervals between 
+reviews, using an Artificial Neural Network).
+It may be used in learning anything.
+It makes your learning process much more effective: 
+less time wasted, more things you remember."
+
+
+build() {
+cd      src
+sed     -i  "s:/usr/local:/usr:"  extras/nix_installer
+# sed     -i  "s:/usr/local/include/fox:/usr/include/fox-1.2:"  Makefile
+# sed     -i  "s:FXMenubar.h:FXMenuBar.h:
+#              s:FXStatusbar.h:FXStatusBar.h:
+#              s:FXStatusline.h:FXStatusLine.h:"  fox.h
+make    clean
+make    $OPTS  plain  api  conv  \
+        "CFLAGS=$CFLAGS"         \
+        "CXXFLAGS=$CXXFLAGS"     &&
+prepare_install                  &&
+make    install
+}

@@ -1,0 +1,52 @@
+   VERSION=( "3.2.8" "3.2.7" "3.2.6" "3.2.5" "3.2.4" )
+  CATEGORY="utility kernel"
+ ATTRIBUTE="console"
+    SOURCE="pcmcia-cs/pcmcia-cs-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://pcmcia-cs.sourceforge.net"
+       REQ=( "psmisc"
+             "dhcpcd:::for getting an IP address dynamically assigned from a DHCP server" )
+# Can optionally use gtk+-v1.2, but not specified because pcmcia-cs
+# is available on the Install/Rescue disk, but not everything else.
+   ARCHIVE="off"
+  ESTIMATE="96"
+      DESC="pcmcia-cs provides pcmcia card services, but not linux modules.
+pcmcia-cs installs the Card Services applications program interface, 
+a set of client drivers for specific cards, and a card manager 
+daemon that can respond to card insertion and removal events, 
+loading and unloading drivers on demand.
+It supports hot swapping of most card types, 
+so cards can be safely inserted and ejected at any time."
+
+
+build() {
+install_conf()  {
+
+  ln  -s  ../init.d/pcmcia  /etc/rc3.d/S25pcmcia
+  ln  -s  ../init.d/pcmcia  /etc/rc4.d/S25pcmcia
+  ln  -s  ../init.d/pcmcia  /etc/rc5.d/S25pcmcia
+
+  ln  -s  ../init.d/pcmcia  /etc/rc0.d/K75pcmcia
+  ln  -s  ../init.d/pcmcia  /etc/rc6.d/K75pcmcia
+
+}
+
+# sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network.opts
+# sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network
+# sed  -i  "s:	/sbin/depmod -a:	/sbin/depmod -a -q -F /boot/System.map:"  etc/install-etc
+
+sed  -i  "s:/var/run/dhcpcd:/etc/dhcpc/dhcpcd:" etc/network
+sed  -i  "s:/sbin/depmod -a::"                  etc/install-etc
+sed  -i  "s:modules clients wireless::"         Makefile
+sed  -i  "s:-O3:$CFLAGS:"                       rules.mk
+
+# make    oldconfig  &&
+
+make    clean      &&
+./Configure  --noprompt  \
+             --srctree   &&
+make    all              &&
+prepare_install          &&
+make    install          &&
+        install_conf
+}

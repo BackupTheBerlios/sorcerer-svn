@@ -1,0 +1,32 @@
+   VERSION=( "0.14.3" "0.14.2" "0.14.1" "0.14.0" )
+  CATEGORY="graphic"
+ ATTRIBUTE="library"
+    SOURCE="openvrml/openvrml-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://openvrml.sourceforge.net"
+       REQ=( "glut jpeg libpng"
+             "doxygen::--without-doxygen:for documentation generation"
+             "j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node"
+             "doxygen::--disable-api-docs:for building documentation" )
+  ESTIMATE="666"
+      DESC="openvrml is a library for reading and displaying VRML97.
+
+openvrml is a C++ class library that allows applications 
+to read VRML97 .wrl files and view their geometries.
+It is also working toward full ISO VRML97 Specification compliance.
+While still in development, the codebase is quite stable and featureful.
+lookat, a basic Glut VRML viewer is included."
+
+
+build() {
+export    CFLAGS="$CFLAGS    -L/usr/X11R6/lib"
+export  CXXFLAGS="$CXXFLAGS  -L/usr/X11R6/lib"
+
+./configure  --prefix=/usr           \
+             --without-spidermonkey  \
+             --without-jdk           \
+             $OPTS                   &&
+make                                 &&
+prepare_install                      &&
+make    install
+}

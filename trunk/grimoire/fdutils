@@ -1,0 +1,56 @@
+   VERSION=( "5.4" )
+  CATEGORY="disk"
+ ATTRIBUTE="console"
+    SOURCE="fdutils-$VERSION.tar.gz"
+       URL="http://fdutils.linux.lu"
+  HOMEPAGE="http://fdutils.linux.lu"
+       REQ=( "e2fsprogs"
+             "texinfo:::for documentation" )
+      DESC="fdutils contains floppy disk formatting utilities.
+
+superformat	formats high capacity disks of (up to 1992k for high
+		density disks or up to 3984k for extra density disks)
+fdmount		automatically mounts/unmounts disks when they
+		are inserted/removed.
+xdfcopy		formats, reads and writes OS/2's XDF disks.
+MAKEFLOPPIES	creates the floppy devices in /dev
+getfdprm	prints the current disk geometry (number of sectors,
+		track and heads etc)
+setfdprm	sets the current disk geometry
+fdrawcmd	sends raw commands to the floppy driver
+floppycontrol	configure the floppy driver"
+
+
+build()  {
+sed_source()  {
+
+  grep   -rl  "#include <linux/fd.h>"  *  |
+  while  read
+  do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
+  done
+
+  sed    -i  "s:#include <linux/ext2_fs.h>:#include <ext2fs/ext2fs.h>:"  src/fdmount.c
+
+}
+
+
+header_patch()  {
+  local  LVER
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+
+  case  $LVER  in
+    2.6.7)  sed_source  ;;
+  esac
+}
+
+
+
+header_patch
+
+if  !  spell_installed  texinfo;  then
+   sed  -i  "s/comp-doc//"     Makefile.in
+   sed  -i  "s/install-doc//"  Makefile.in
+fi
+
+default_build
+}

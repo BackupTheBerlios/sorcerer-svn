@@ -1,0 +1,34 @@
+   VERSION=( "0.0.7-20040202" "0.0.6-20031213" "0.0.6" )
+  CATEGORY="audio-player audio-mixer"
+ ATTRIBUTE="library x11"
+    SOURCE="openal-$VERSION.tar.bz2"
+       URL="http://sorcerer.wox.org/download/openal/$VERSION"
+  HOMEPAGE="http://www.openal.org"
+       REQ=( "automake"
+             "alsa-lib:--enable-alsa::for alsa support"
+             "arts:--enable-arts::for arts support"
+             "esound:--enable-esd::for esd support"
+             "SDL:--enable-sdl::for SDL backend"
+             "libvorbis:--enable-vorbis::for vorbis support"
+             "smpeg:--enable-smpeg::for smpeg support" )
+      DESC="openal is a cross-platform audio library.
+
+openal is a joint effort to create an open, vendor-neutral, 
+cross-platform API for interactive, primarily spatialized audio.
+Its primary audience is made up of application developers 
+and desktop users that rely on portable standards like 
+OpenGL for games and other multimedia applications."
+
+
+build() {
+cd  linux
+./autogen.sh
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install
+}

@@ -1,0 +1,44 @@
+   VERSION=( "1.4.6" "1.4.5" )
+    IGNORE="^1\.5"
+ DBVERSION="3.1.17"
+  CATEGORY="email office time"
+ ATTRIBUTE="client gnome"
+    SOURCE=( "sources/evolution/${VERSION:0:3}/evolution-$VERSION.tar.bz2"
+             "db-$DBVERSION.tar.gz" )
+       URL=( "$GNOME_URL"
+             "http://ftp.sleepycat.com/update/snapshot" )
+  HOMEPAGE="http://www.ximian.com/products/ximian_evolution"
+   PROVIDE="email-client"
+#      REQ="evolution-data-server gtkhtml psmisc"
+       REQ=( "gtkhtml libsoup psmisc"
+             "mozilla:--enable-nss=yes --with-nspr-includes=/usr/include/mozilla/nspr --with-nspr-libs=/usr/lib/mozilla --with-nss-includes=/usr/include/mozilla/nss --with-nss-libs=/usr/lib/mozilla::to use mozilla's nss/nspr for ssl support" )
+# ESTIMATE="1950"
+  ESTIMATE="4057"
+      DESC="evolution by Ximian is an information management solution.
+evolution Ximian Evolution^(TM), is a personal 
+and workgroup information management solution.
+The software seamlessly integrates email, 
+calendaring, meeting scheduling, contact management 
+and online task lists in a single application."
+
+
+build()  {
+mkdir  evolution-db3                                  &&
+cd  db-$DBVERSION/build_unix                          &&
+../dist/configure  --prefix=$BUILD_DIR/evolution-db3  \
+                   --disable-dynamic                  &&
+make                                                  &&
+make  install                                         &&
+
+cd  $BUILD_DIR                                        &&
+
+./configure  --prefix=/usr                            \
+             --sysconfdir=/etc                        \
+             --localstatedir=/var                     \
+             --with-db3=$BUILD_DIR/evolution-db3      \
+             --disable-gtk-doc                        \
+             $OPTS                                    &&
+make                                                  &&
+prepare_install                                       &&
+make    install
+}

@@ -1,0 +1,48 @@
+   VERSION=( "0.4.8" "0.4.7" "0.4.6" "0.4.5" )
+    IGNORE="2002\|cvs\|snapshot\|pre"
+  CATEGORY="video"
+ ATTRIBUTE="console"
+    SOURCE="ffmpeg/ffmpeg-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://ffmpeg.sourceforge.net"
+       REQ=( ""
+             "nasm::--disable-mmx:for MMX support"
+             "a52dec:--enable-a52bin:--disable-a52:for a52 support"
+             "libvorbis:--enable-vorbis::to decode ogg/vorbis streams"
+             "lame:--enable-mp3lame::to enable mp3 encoding via lame"
+             "SDL:::for output through SDL" )
+# ffmpeg 1.0 is incompatibile with MPlayer 1.0pre1
+#   "MPlayer:--enable-shared-pp:--disable-pp:for post processing"
+  ESTIMATE="193"
+      DESC="ffmpeg is complete video and audio broadcasting solution
+ffmpeg is a complete and free Internet live audio 
+and video broadcasting solution for Linux/Unix.
+It also includes a digital VCR. 
+It can encode in real time in many formats including 
+MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash."
+
+
+build()  {
+export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-funroll-loops// )"
+export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-funroll-loops// )"
+
+ if  !  grep      "flags"  <  /proc/cpuinfo  |
+       grep  -q  "mmx"
+then  OPTS="$OPTS  --disable-mmx"
+fi
+
+# ffmpeg 1.0 is incompatibile with MPlayer 1.0pre1
+# thus we have --disable-pp until they work together again.
+
+./configure  --prefix=/usr       \
+             --enable-shared     \
+             --enable-pp         \
+             $OPTS               &&
+make                             &&
+prepare_install                  &&
+make    install                  &&
+  
+if    [  !  -f               /etc/ffserver.conf  ]
+then  cp  doc/ffserver.conf  /etc/ffserver.conf
+fi
+}

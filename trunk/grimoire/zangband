@@ -1,0 +1,35 @@
+   VERSION=( "2.7.4c" "2.7.4b" "2.7.4" "2.7.2" )
+    IGNORE="x11-gtk"
+  CATEGORY="game"
+ ATTRIBUTE="console x11"
+    SOURCE="zangband-$VERSION.tar.gz"
+       URL="ftp://ftp.sunet.se/pub/games/Angband/Variant/ZAngband
+            ftp://clockwork.dementia.org/angband/Variant/ZAngband
+            ftp://ftp.planetmirror.com/pub/angband/Variant/ZAngband"
+  HOMEPAGE="http://www.zangband.org"
+       REQ=( "ncurses"
+             "x11:--with-x:--disable-x:for x11 graphical interface"
+             "gtk+-v1.2::--with-gtk=no:for gtk+-v1.2 interface"
+             "tk::--with-tk=no:for a tk interface" )
+  ESTIMATE="160"
+      DESC="zangband is a modified angband, single player CRPG.
+
+zangband is a modified angband, a single-player 
+rogue-like dungeon exploration game"
+
+build() {
+groupadd  games  2>/dev/null
+
+./configure  --build=$BUILD          \
+             --prefix=/usr           \
+             --bindir=/usr/games     \
+             --datadir=/usr/share    \
+             --sysconfdir=/etc       \
+             --localstatedir=/var    \
+             --with-setgid=games     \
+             $OPTS                   &&
+make                                 &&
+mkdir  -p  /usr/share/games          &&
+prepare_install                      &&
+make    install
+}

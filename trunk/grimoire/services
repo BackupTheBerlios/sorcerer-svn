@@ -1,0 +1,27 @@
+   VERSION=( "$(  date  -u  "+%Y-%m"  )" )
+  CATEGORY="network"
+ ATTRIBUTE="core"
+    SOURCE="port-numbers"
+       URL="http://www.iana.org/assignments"
+  HOMEPAGE="http://www.iana.org"
+disable scavenge
+       REQ=""
+  ESTIMATE="5"
+      DESC="protocols translates the port numbers assigned by IANA to /etc/services"
+
+
+build() {
+PN=$SOURCE_CACHE/$BSPELL/$VERSION/port-numbers
+[  -f  $PN  ]    &&
+prepare_install  &&
+cat    $PN       |
+while  read  KEYWORD  DECIMAL  DESCRIPTION;  do
+  if      echo       $DECIMAL  |
+          grep  -q  "[[:digit:]]/tcp\|[[:digit:]]/udp"
+  then    echo "$KEYWORD|$DECIMAL|# $DESCRIPTION"
+  fi
+done                   | 
+tr       -d '\r'       |
+column   -s '|'    -t  >        services  &&
+install  -m  0644  -b  -S .old  services  /etc
+}

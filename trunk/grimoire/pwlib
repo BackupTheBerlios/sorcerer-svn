@@ -1,0 +1,41 @@
+   VERSION=( "v1_6_5-src" "1.6.3" )
+      SAFE=( "v1_6_5-src" )
+  CATEGORY="utility"
+ ATTRIBUTE="library"
+    SOURCE="pwlib-$VERSION.tar.gz"
+  HOMEPAGE="http://www.openh323.org"
+#      URL="http://www.openh323.org/bin"
+       URL="http://www.gnomemeeting.org/admin/downloads/latest/sources/sources"
+       REQ=( "SDL bison-v1.35 openldap openssl"
+             ":--enable-firewiredc::to enable Firewire support for DC cameras"
+             ":--enable-firewireavc::to enable Firewire support for AVC cameras" )
+  ESTIMATE="161"
+      DESC="pwlib is the portable windows library.
+
+pwlib is a moderately large class library that was 
+originally designed as a method to produce applications 
+that run on both Microsoft Windows and Unix/X11 systems.
+It includes classes for I/O portability, multi-threading 
+portability, aid in producing Unix daemons and NT
+services portably, and all sorts of Internet protocols.
+It also offers basic container classes such as arrays, 
+linear lists, sorted lists (RB Tree), and dictionaries 
+(hash tables) which were all created before the STL.
+This library is used by the OpenH323 library."
+
+
+build() {
+export  PATH="/opt/bison/1.35/bin:$PATH"
+
+./configure  --build=$BUILD        \
+             --prefix=/usr         \
+             --sysconfdir=/etc     \
+             --localstatedir=/var  \
+             --enable-plugins      \
+             $OPTS                 &&
+make    optshared                  &&
+rm      -f  /usr/bin/ptlib-config  \
+            /usr/share/pwlib/make/ptlib-config  &&
+prepare_install  &&
+make    install
+}

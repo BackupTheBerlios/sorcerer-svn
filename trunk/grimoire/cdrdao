@@ -1,0 +1,39 @@
+   VERSION=( "1.1.9" "1.1.8" "1.1.7.src" "1.1.5.src" )
+    IGNORE="rc"
+  CATEGORY="cd"
+ ATTRIBUTE="console"
+    SOURCE="cdrdao/cdrdao-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://cdrdao.sourceforge.net"
+       REQ=( ""
+             "gtkmm-v1.2:::to build xcdrdao"
+             "lame:::to build toc2mp3" )
+      OPTS="--disable-gtkmmtest --without-gnome"
+# broken
+#   "gnomemm:::for gnome support"
+  ESTIMATE="621"
+      DESC="cdrdao is a program to burn DAO audio or data cdrs
+cdrdao records audio/data CD-Rs in disk-at-once (DAO) mode 
+based on a textual description of the CD contents (toc-file).
+Features include full control over length and 
+contents of pre-gaps (pause areas between tracks).
+Pre-gaps may be completely omitted, e.g. 
+for dividing live recordings into tracks.
+Control over sub-channel data like catalog numbers, 
+copy, pre-emphasis, 2-/4-channel flags, ISRC
+code, and index marks are provided as well.
+Cdrdao also has support for exact audio CD copying.
+Tracks may be composed of different audio 
+files supporting non-destructive cuts."
+
+
+build()  {
+  export    CFLAGS="${CFLAGS/-funroll-loops/}"
+  export  CXXFLAGS="${CXXFLAGS/-funroll-loops/}"
+  case  $VERSION  in
+    1.1.8)  sed  -i  "66i#include <linux/compiler.h>
+                      66itypedef unsigned char u8;"  scsilib/libscg/scsi-linux-sg.c
+            ;;
+  esac
+  default_build
+}

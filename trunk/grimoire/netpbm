@@ -1,0 +1,60 @@
+   VERSION=( "10.24" "10.23" "10.22" "10.20" "10.19" "10.18.2" )
+# Release Numbering from http://netpbm.sourceforge.net
+# Latest Netpbm releases are two numbers, e.g. 9.11, 
+# and Stable Netpbm releases are three numbers, e.g. 9.11.1.
+  CATEGORY="graphic"
+ ATTRIBUTE="console"
+    SOURCE="netpbm/netpbm-$VERSION.tgz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://netpbm.sourceforge.net"
+       REQ=( "jpeg libpng perl tiff"
+             "svgalib:::for output to svgalib" )
+  ESTIMATE="2481"
+      DESC="netpbm contains 220 programs that convert graphics formats.
+netpbm contains over 220 programs that convert from one graphics 
+format to another and do simple editing and analysis of images.
+Over 80 graphics formats are handled, including JPEG, 
+PNG, GIF, TIFF, BMP, XWD, XBM, G3 fax, and special 
+formats used by digital cameras and handheld computers.
+Over 40 editing functions include scaling, cropping, 
+quantization and dithering, colorizing and 
+uncolorizing, blurring, and dimming."
+
+
+build()  {
+make_install()  {
+
+  cd       /tmp/netpbm
+  cp  -a   bin/*             /usr/bin      2>/dev/null
+  cp  -a   include/*         /usr/include  2>/dev/null
+  cp  -a   lib/*             /usr/lib      2>/dev/null
+  cp  -a   link/libnetpbm.a  /usr/lib      2>/dev/null
+  cp  -a   man/*             /usr/man      2>/dev/null
+  rm  -rf  /tmp/netpbm
+
+}
+
+echo  -e  "
+gnu
+regular
+shared
+y
+libjpeg.so
+/usr/include
+libtiff.so
+/usr/include
+libpng.so
+/usr/include
+libz.so
+/usr/include
+
+
+"  |
+./configure             &&
+make  "CFLAGS=$CFLAGS"  &&
+rm  -rf  /tmp/netpbm    &&
+make     package        &&
+prepare_install         &&
+   make_install
+
+}

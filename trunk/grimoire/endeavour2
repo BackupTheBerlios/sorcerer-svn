@@ -1,0 +1,37 @@
+   VERSION=( "2.4.5" "2.4.4" "2.4.3" "2.4.2" "2.4.1" "2.3.11" "2.3.10" "2.3.8" )
+  CATEGORY="file-manager"
+ ATTRIBUTE="x11"
+    SOURCE=( "endeavour-$VERSION.tar.bz2"
+             "endeavour2-mimetypes" )
+       URL="ftp://wolfpack.twu.net/users/wolfpack"
+  HOMEPAGE="http://wolfpack.twu.net/Endeavour2"
+       REQ=( "imlib iv"
+             "ziptool:::for controlling IOMega JAZ/ZIP drives" )
+  ESTIMATE="216"
+      DESC="endeavour2 is a gtk+-v1.2 file manager.
+endeavour2 is a file browser/file manager with an image browser, 
+a recycled objects system, and an archiver front end.
+It features all the common UNIX file operations for 
+all types of disk objects found the UNIX realm.
+It also supports disk drive mounting, a fully customizable 
+window appearance, a MIME Types system, and inter-application 
+drag & drop support for KDE and GNOME compatability
+(although KDE and GNOME are not required)."
+
+
+build()  {
+sed  -i  "s:glib-config:gtk-config:g"  endeavour2/utils/Makefile
+echo "// empty header" > include/xsw_ctype.h
+
+sed  -i  "s:MAKE = gmake:MAKE = make:"  Makefile
+
+./configure  Linux               \
+             "--prefix=/usr"     \
+             "--CFLAGS=$CFLAGS"  &&
+make                             &&
+prepare_install                  &&
+make    install                  &&
+[  -f  /usr/share/endeavour2/mimetypes.ini  ]  ||
+cp      endeavour2-mimetypes/mimetypes.ini  \
+       /usr/share/endeavour2/mimetypes.ini
+}

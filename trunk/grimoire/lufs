@@ -1,0 +1,43 @@
+   VERSION=( "0.9.6" "0.9.5" "0.9.4" "0.9.3" "0.9.2" )
+    IGNORE="^0\.9\.7"
+# 0.9.7 upon successful compilation has many unresolved symbols
+# when the Makefile attempts to load the lufs module.
+  CATEGORY="utility"
+ ATTRIBUTE="console kernel"
+    SOURCE="lufs/lufs-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://lufs.sourceforge.net"
+       REQ=( "automake libtool"
+             "gnome-vfs-v1.0:::to build (gnome 1) GVFS" )
+#   "libchipcard:--enable-cardfs::for Card File System"
+   ARCHIVE="off"
+  ESTIMATE="503"
+      DESC="lufs is a hybrid userspace filesystem framework supporting filesystems.
+lufs is a hybrid userspace filesystem framework 
+supporting an indefinite number of filesystems 
+(localfs, sshfs, ftpfs, httpfs, socketfs, 
+freenetfs, nutellafs, gvfs, and gnetfs) transparently 
+for any application.
+It can be regarded as doing the same job as the 
+VFS (virtual filesystem switch) in the kernel: 
+it is a switch, distributing the filesystem 
+calls to its supported filesystems.
+However, LUFS filesystems are implemented in 
+userspace.
+This would be a drawback for local filesystems 
+where the access speed is important, but proves 
+to be a huge advantage for networked filesystems 
+where the userland flexibility is most important."
+
+
+build() {
+KVER="$(  installed_version  $(  get_provider linux  )  )"
+
+aclocal
+automake     -afc
+autoconf
+libtoolize   --force
+
+OPTS="$OPTS --with-kernel=$KVER"
+default_build
+}

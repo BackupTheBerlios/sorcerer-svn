@@ -1,0 +1,64 @@
+   VERSION=( "3.3.3" "3.3.2" "3.3.1" "3.3.0" "3.2.3" "3.1.2" "3.1.1" "3.1.0" )
+      SAFE=( "3.3.3" )
+    IGNORE="\.0b"
+  CATEGORY="graphic"
+ ATTRIBUTE="library kde"
+    SOURCE="qt-x11-free-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.trolltech.com/qt"
+       URL="ftp://ftp.trolltech.com/qt/source"
+       REQ=( "cups jpeg libmng libpng x11"
+             "cups:-cups:-no-cups:for common unix printing support"
+             "freetype:-freetype:-no-freetype:quality font engine"
+             ":-qt-gif:-no-gif:for gif support" )
+# qt-x11-free does not support nas network audio.
+ FRESHMEAT="qt"
+  ESTIMATE="1795"
+      DESC="qt-x11-free simplifies the task of writing and maintaining GUI applications."
+
+
+build()  {
+echo  $OPTS           |
+grep  -q  "\-qt-gif"  &&
+sed   -i  "s:READER 0:READER 1:"  src/kernel/qgif.h
+
+
+export  QTDIR=$BUILD_DIR
+sed  -i  "s/sub-tutorial sub-examples//"  Makefile
+rm   -rf  examples tutorial
+
+unset  LD_LIBRARY_PATH
+
+#                            -cups            \
+echo  "yes"  |  ./configure  -v               \
+                             -release         \
+                             -shared          \
+                             -thread          \
+                             -system-libmng   \
+                             -system-libpng   \
+                             -system-libjpeg  \
+                             -system-zlib     \
+                             -xinerama        \
+                             -xft             \
+                             -no-g++-exceptions     \
+                             -prefix /usr/share/qt  \
+                             -bindir /usr/bin       \
+                             -libdir /usr/lib       \
+                             -R$BUILD_DIR/lib       \
+                             -headerdir /usr/include/qt  \
+                             $OPTS  &&
+make                       &&
+prepare_install            &&
+rm     -f  /usr/bin/qmake  &&
+rm     -f  /usr/bin/\*     &&
+make    install            &&
+cp     -R   doc/man  /usr  &&
+rm     -f  /usr/bin/qmake  &&
+install  -m 0755  bin/qmake  /usr/bin
+}
+
+
+current()  {
+  case  $VERSION  in
+    3.3.3)  [  -e  /usr/bin/qmake  ]  ;;
+  esac
+}

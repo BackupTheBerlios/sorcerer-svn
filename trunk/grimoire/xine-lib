@@ -1,0 +1,36 @@
+   VERSION=( "1-rc5" "1-rc4a" "1-rc4" "1-rc3c" "1-rc3b" "1-rc3a" "1-rc3" )
+      SAFE=( "1-rc5" "1-rc4a" "1-rc4" )
+  CATEGORY="video"
+ ATTRIBUTE="library x11"
+    SOURCE="xine/xine-lib-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://xine.sourceforge.net"
+# doesn't work with aalib-1.2
+       REQ=( "libmng libpng x11"
+             "libcaca:::for color ascii rendering"
+             "aalib-dev:::for ascii art rendering"
+             "arts:::for arts audio mixing"
+             "SDL:::for output through SDL"
+             "esound:::for output through esound"
+             "XviD:--with-xvid-prefix=/usr::for mpeg 4 decoding"
+             "flac:::for FLAC support"
+             "w32codec:--with-w32-path=/usr/lib/win32::for more codecs support"
+             "speex:::to enable SPX decoding"
+             "gnome-vfs:::for gnome-vfs plugin"
+             "glut:::for output through OpenGL"
+             "libvorbis:::for support of the ogg vorbis audio codec" )
+#  OPT[10]="libdvdnav:::to navigate DVDs"
+# xine-lib 1-rc2 contains its own libdvdnav.
+# has possibile optional requirement on libtheora when libtheora compiles.
+ FRESHMEAT="xine"
+  ESTIMATE="2061"
+      DESC="xine-lib contains the libraries for xine, a free video player."
+
+
+build()  {
+  grep   -rl  "<linux/videodev.h>"  *  |
+  xargs  -l64  \
+  sed    -i   "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"
+  unset  CFLAGS  CXXFLAGS
+  default_build
+}

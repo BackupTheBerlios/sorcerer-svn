@@ -1,0 +1,43 @@
+   VERSION=( "0.7.8-1" "0.6.5-1" "0.6.3-1" "0.6.2-1" "0.6.1-2" "0.4.1" )
+    IGNORE="^0\.7\|docs\|examples"
+  CATEGORY="graphic"
+ ATTRIBUTE="library x11"
+    SOURCE="clanlib/ClanLib-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+#      URL="http://clanlib.org/download/files"
+  HOMEPAGE="http://clanlib.org"
+#      REQ="Hermes SDL_gfx autoconf automake freetype jpeg libpng perl x11"
+# ClanLib 0.6.5-1 is not compatibile with DirectFB 0.9.20
+       REQ=( "SDL autoconf automake freetype jpeg libpng perl x11"
+             "DirectFB:--disable-directfb:--disable-directfb:for output to frame buffer"
+             "libvorbis:::to play ogg/vorbis audio files"
+             "libmikmod:::to play amiga mod audio files" )
+  ESTIMATE="1905"
+ FRESHMEAT="clanlib"
+      DESC="ClanLib is a multi-platform game development library
+Clanlib is a medium level development kit.
+At its lowest level it provides a platform 
+independent way of dealing with display, sound,
+input, networking, files, threadding and such."
+
+
+build()  {
+export    CFLAGS="${CFLAGS/-O3/-O2}"
+export  CXXFLAGS="${CXXFLAGS/-O3/-O2}"
+export   LDFLAGS="-lz $LDFLAGS"
+
+#  fix for DirectFb 0.9.16 or later
+sed  -i  "s:DSPF_RGB15:DSPF_ARGB1555:g"  Sources/Display/Display/DirectFB/target_directfb.cpp
+#  fix for XFree86 4.3.0
+sed  -i  "1i#define GLX_GLXEXT_LEGACY"   Sources/GL/GLX/displaycard_glx.h
+
+# fix for gcc 3.3.2
+sed  -i  '26i#include "assert.h"'        Sources/Core/IOData/Unix/directory_scanner_unix.h
+
+./autogen.sh
+./configure  --prefix=/usr  \
+             $OPTS          &&
+make                        &&
+prepare_install             &&
+make    install
+}

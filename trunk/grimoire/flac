@@ -1,0 +1,38 @@
+   VERSION=( "1.1.0" "1.0.4" "1.0.3" )
+    IGNORE="flac\|123\|win\|beta\|sparc"
+  CATEGORY="audio-editor"
+ ATTRIBUTE="library"
+    SOURCE="flac/flac-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://flac.sourceforge.net"
+       REQ=( ""
+             "libogg:::to enable ogg stream support"
+             "nasm:--enable-asm-optimizations::for MMX support"
+             "xmms:::to build xmms support" )
+  ESTIMATE="1897"
+      DESC="flac is an open-source, patent-free lossless audio codec.
+flac is comprised of 1) 'libFLAC', a library which implements
+reference encoders and decoders, licensed under the GNU Lesser
+General Public Licence (LGPL); 2) 'flac', a command-line program for
+encoding and decoding files, licensed under the GNU General Public
+License (GPL); 3) 'metaflac', a command-line program for editing
+FLAC metadata, licensed under the GPL; 4) player plugins for XMMS
+and Winamp, licensed under the GPL; and 5) documentation, licensed
+under the GNU Free Documentation License."
+
+
+build()  {
+if    grep      "flags"  /proc/cpuinfo  |
+      grep  -q  "sse"
+then  OPTS="$OPTS  --enable-sse"
+else  OPTS="$OPTS  --disable-sse"
+fi
+
+if    grep      "flags"  /proc/cpuinfo  |
+      grep  -q  "3dnow"
+then  OPTS="$OPTS  --enable-3dnow"
+else  OPTS="$OPTS  --disable-3dnow"
+fi
+
+default_build
+}
