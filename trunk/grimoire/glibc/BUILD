@@ -14,7 +14,7 @@
 
   fix_glibc_install_log
 
-  patch -p1  <  $SCRIPT_DIR/glibc-2.3.1.patch
+  # patch -p1  <  $SCRIPT_DIR/glibc-2.3.1.patch
 
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset  LD_PRELOAD
