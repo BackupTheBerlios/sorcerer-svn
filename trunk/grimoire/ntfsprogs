@@ -1,10 +1,10 @@
-   VERSION=( "1.9.1" "1.9.0" "1.8.5" "1.8.4" "1.8.3" "1.8.2" "1.8.1" "1.8.0" "1.8.0beta2" "1.8.0beta" "1.7.1" )
+   VERSION=( "1.9.2" "1.9.1" "1.9.0" "1.8.5" "1.8.4" "1.8.3" "1.8.2" )
   CATEGORY="file-system"
  ATTRIBUTE="console"
-    SOURCE="linux-ntfs/ntfsprogs-$VERSION"
+    SOURCE="linux-ntfs/ntfsprogs-$VERSION.tar.gz"
   HOMEPAGE="http://linux-ntfs.sourceforge.net"
        URL="$SOURCEFORGE_URL"
-  ESTIMATE="158"
+  ESTIMATE="167"
  FRESHMEAT="linuxntfs"
      SHORT="ntfsprogs provides a library for NTFS modification."
       LONG="
@@ -15,3 +15,12 @@ It also provides support for the Logical Disk Manager
 (LDM) that controls Windows' Dynamic Disks and is used 
 to create software Mirrors, Stripes, RAID, etc.
 "
+
+
+build()  {
+  grep  -rl  "include <linux/fd.h>"  *  |
+  while  read
+  do     sed  -i  "\,include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
+  done
+  default_build
+}
