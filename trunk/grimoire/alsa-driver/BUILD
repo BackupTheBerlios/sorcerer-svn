@@ -25,7 +25,7 @@ EOF
 remove_old_modules()  {
 
   LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
-  rm  -rf  /lib/modules/$LINUX_VER/kernel/sound/acore
+  rm  -rf  /lib/modules/$LINUX_VER/kernel/sound
 
 }
 

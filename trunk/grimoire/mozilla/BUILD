@@ -28,6 +28,7 @@ ac_add_options --enable-xterm-updates
 ac_add_options --enable-svg
 ac_add_options --enable-toolkit-gtk
 ac_add_options --enable-default-toolkit=gtk
+ac_add_options --enable-old-abi-compat-wrappers
 EOF
 
   ./configure      &&
