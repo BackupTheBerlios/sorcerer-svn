@@ -1,31 +1,25 @@
-   VERSION=( "v3.6.1" "v3.5.7" )
+   VERSION=( "3.7.0" "v3.6.1" "v3.5.7" )
+      SAFE=( "3.7.0" )
     IGNORE="alpha"
   CATEGORY="graphic"
  ATTRIBUTE="library"
-  HOMEPAGE="http://www.libtiff.org"
+    SOURCE="tiff-$VERSION.tar.gz"
        URL="ftp://ftp.remotesensing.org/libtiff"
+       REQ=( "automake libtool glut zlib"
+             "jpeg::--disable-jpeg:for JPEG compression" )
+  HOMEPAGE="http://www.libtiff.org"
+  ESTIMATE="380"
  FRESHMEAT="libtiff"
-  ESTIMATE="279"
       DESC="tiff provides support for the Tag Image File Format.
-
 tiff provides support for the Tag Image File Format (TIFF), 
-a widely used format for storing image data.
-"
+a widely used format for storing image data."
 
 
-build() {
-cat  <<  EOF  >>  config.site
-DIR_BIN="/usr/bin"
-DIR_LIB="/usr/lib"
-DIR_INC="/usr/include"
-DIR_MAN="/usr/man"
-DIR_HTML="/usr/doc/tiff"
-GCOPTS=""
-OPTIMIZER="$CFLAGS"
-EOF
+build()  {
+# 3.7.0 had broken included libtool, installed elf libraries without .so
+  case  $VERSION  in
+    3.7.0)  rm  configure;  aclocal;  automake  -acf;  autoconf;  libtoolize  --force  ;;
+  esac
 
-./configure  --noninteractive  &&
-make                           &&
-prepare_install                &&
-make    install
+  default_build
 }
