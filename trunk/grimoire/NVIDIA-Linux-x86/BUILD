@@ -28,9 +28,9 @@
     rm  -f  /usr/X11R6/lib/modules/extentions/libGLcore.*
 
     cp  -av  lib  X11R6  /usr/
+    cp  -av  include/GL  /usr/X11R6/include/
     cp  -a   share/doc  ..
     cp  -a   include    ../doc
-
   }
 
   make_device_nodes()  {
