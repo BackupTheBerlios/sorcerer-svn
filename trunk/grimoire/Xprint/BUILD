@@ -45,4 +45,15 @@
   make    install  DESTDIR=$BUILD_DIR/dest  &&
   install_files
 
+  if  $XPRINT_BOOT;  then
+     
+      ln  -sf  /etc/init.d/xprint  /etc/rc0.d/K10xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc1.d/K10xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc6.d/K10xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc2.d/S99xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc3.d/S99xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc4.d/S99xprint
+      ln  -sf  /etc/init.d/xprint  /etc/rc5.d/S99xprint
+  fi
+
 ) > $C_FIFO 2>&1
