@@ -1,13 +1,13 @@
 # keep back-up of old issue, issue.net files
-if    [  -f  /etc/issue  ]
-then  cp  /etc/issue     \
-          /etc/issue.save
-fi
-  
-if    [  -f  /etc/issue.net  ]
-then  cp  /etc/issue.net     \
-          /etc/issue.net.save
-fi
+# if    [  -f  /etc/issue  ]
+# then  cp  /etc/issue     \
+#           /etc/issue.save
+# fi
+
+# if    [  -f  /etc/issue.net  ]
+# then  cp  /etc/issue.net     \
+#           /etc/issue.net.save
+# fi
   
 sed  -i  "s:-O2 -Wall:${CFLAGS}:"  Makefile
   
