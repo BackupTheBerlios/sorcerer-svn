@@ -19,5 +19,4 @@ sed  -i  "1i#ifndef FLTK_1_0_COMPAT
              --enable-shared       \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install
+make  install

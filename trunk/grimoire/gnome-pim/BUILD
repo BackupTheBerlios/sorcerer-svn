@@ -5,5 +5,4 @@ patch  -p1  <  $SCRIPT_DIR/gnome-pim.patch
              --localstatedir=/var  \
              $OPTS                 &&
 make                               &&
-prepare_install                    &&
-make    install
+make  install

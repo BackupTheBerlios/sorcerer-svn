@@ -7,7 +7,6 @@ make_shared_lib()  {
              --prefix=/usr       \
              $OPTS               &&
 make  "LDFLAGS=$LDFLAGS"         &&
-prepare_install                  &&
-make    install                  &&
+make  install                    &&
 # make_shared_lib  /usr/lib/libfl  &&
 ln  -sf  flex    /usr/bin/lex

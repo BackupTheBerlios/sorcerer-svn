@@ -7,6 +7,5 @@ make  getmail		 &&
 if    echo      "$OPTS"      |
       grep  -q  "\--with-x"
 then  make  xjed
-fi                           &&
-prepare_install              &&
-make    install
+fi    &&
+make  install

@@ -5,7 +5,6 @@
 #  patch  -p1  <  $SCRIPT_DIR/tappin3a.patch
 #  patch  -p1  <  $SCRIPT_DIR/tappin3b.patch
 make                                          &&
-prepare_install                               &&
 install -m 755 -o root bplay_gramo  /usr/bin  &&
 install -m 755 -o root brec_gramo   /usr/bin  &&
 install -m 755 -o root gramofile    /usr/bin
