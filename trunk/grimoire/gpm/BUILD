@@ -1,4 +1,5 @@
-sed  -i  "s:doc contrib:contrib:"  Makefile.in
+sed  -i  "s:doc contrib:contrib:"      Makefile.in
+sed  -i  "40iLIBS  = -lm"          src/Makefile.in
 
 ./configure  --prefix=/usr         \
              --sysconfdir=/etc     \
