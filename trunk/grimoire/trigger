@@ -1,8 +1,14 @@
-   VERSION=( "0.5.1c" "0.5.1b" "0.5.1a" "0.5.1" )
+   VERSION=( "0.5.1d" "0.5.1c" "0.5.1b" "0.5.1a" "0.5.1" )
     IGNORE="data"
   CATEGORY="game"
  ATTRIBUTE="broken x11 new"
+# 0.5.1d introduces the erronous requirement for -lopengl32
+# because some M$ windoze jockey modified the source.
 # Game segmentation faults when run.
+# I will not put forth effort on this spell to
+# correct their source problems until they make
+# a decent release that is capable of compilation
+# and running without errors.
     SOURCE=( "trigger-$VERSION-src.tar.bz2"
              "trigger-$VERSION-data.tar.bz2" )
        URL="http://files.scapecaster.com/posit"
@@ -14,9 +20,12 @@
 
 build() {
 
+  export    CFLAGS="-L/usr/X11R6/lib   $CFLAGS"
+  export  CXXFLAGS="-L/usr/X11R6/lib $CXXFLAGS"
+  # export     LDFLAGS="-L/usr/X11R6/lib $LDFLAGS"
   sed  -i  "s:#include <AL/alu.h>:// #include <AL/alu.h>:"  \
        src/pengine/audio.cpp
-  ./configure  --datadir=/usr/share/games/trigger-$VERSION-data
+  ./configure  --datadir=/usr/share/games/trigger-$VERSION-data  &&
   jam  &&
   prepare_install  &&
   mkdir  -p        /usr/games  &&
