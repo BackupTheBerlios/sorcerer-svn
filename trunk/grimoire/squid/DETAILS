@@ -1,11 +1,13 @@
    VERSION=( "2.5.STABLE6" "2.5.STABLE5" "2.5.STABLE4" )
-      SAFE=( "2.5.STABLE6" "2.5.STABLE5" )
+      SAFE=( "2.5.STABLE6" )
     IGNORE="2003\|2004"
   CATEGORY="web ftp"
  ATTRIBUTE="server"
-    SOURCE="squid-$VERSION.tar.gz"
+    SOURCE=( "squid-$VERSION.tar.gz"
+             "squid-2.5.STABLE6-ntlm_fetch_string.patch" )
   HOMEPAGE="http://www.squid-cache.org"
-       URL="http://www.squid-cache.org/Versions/v${VERSION:0:1}/${VERSION:0:3}"
+       URL=( "http://www.squid-cache.org/Versions/v${VERSION:0:1}/${VERSION:0:3}"
+             "http://www.squid-cache.org/Versions/v2/2.5/bugs" )
        REQ=( "" "openssl:--enable-ssl::support SSL proxying" )
   ESTIMATE="321"
       DESC="squid is a full-featured Web proxy cache
@@ -23,3 +25,10 @@ Squid supports...
   * HTTP server acceleration
   * SNMP
   * caching of DNS lookups"
+
+
+current()  {
+  case  $VERSION  in
+    2.5.STABLE6)  bzgrep  -qx  "patching file lib/ntlmauth.c"  $COMPILE_LOGS/squid.bz2  ;;
+  esac
+}

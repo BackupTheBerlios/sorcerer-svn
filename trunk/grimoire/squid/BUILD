@@ -1,3 +1,7 @@
+case  $VERSION  in
+  2.5.STABLE6)  patch  -p1  <  $SOURCE_CACHE/squid/$VERSION/${SOURCE[1]}  ;;
+esac
+
 sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
          src/Makefile.in
 
