@@ -2,23 +2,25 @@ cp  /bin/bash  /tmp
 
 (
 
-  ./configure  --build=$BUILD    \
-               --prefix=$PREFIX  \
+  ./configure  --build=$BUILD  \
+               --prefix=/usr   \
+               --bindir=/bin   \
                --with-installed-readline  \
                --with-curses  &&
   make                        &&
-  prepare_install             &&
-  make    install
+  prepare_install
 
 ) > $C_FIFO 2>&1  &&  (
 
-  ln  -sf  bash  $PREFIX/bin/sh
+  cp  -f  bash     /bin
+  cp  -f  bashbug  /bin
+  ln  -sf  bash    /bin/sh
 
-  if    [  "$UID"  ==   "0"  ];  then
-    rm  -f         /usr/bin/bash
-    cp  -f   bash  /bin
-    ln  -sf  bash  /bin/sh
-    true
-  fi
+  cd  doc
+
+  for  MANPAGE  in  `ls  *.1`;  do
+    gzip  -9  $MANPAGE
+    cp  $MANPAGE.gz  /usr/man/man1
+  done
 
 )
