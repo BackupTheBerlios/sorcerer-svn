@@ -102,6 +102,10 @@ if    spell_installed  db;  then
 
 fi
 
+
+sed  -i  "s:tail -1:tail -n 1:"  scripts/Configure-config.h
+
+
 make             &&
 prepare_install  &&
 make    install  &&
