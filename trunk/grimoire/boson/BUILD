@@ -1,8 +1,6 @@
 if    [  -z   "$BRANCH"  ]
-then  echo  >  $C_FIFO
+then  echo
 else
-(
-
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
                --bindir=/usr/games   \
@@ -12,6 +10,4 @@ else
   make                               &&
   prepare_install                    &&
   make    install
-
-) > $C_FIFO 2>&1
 fi
