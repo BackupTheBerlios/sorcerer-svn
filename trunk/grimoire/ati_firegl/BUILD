@@ -6,11 +6,15 @@ make_install()  {
   cd                $BUILD_DIR/usr
   cp     -a  share            /usr
 
+# We don't have ancient libpng installed on Sorcerer boxes.
+# ldd fireglcontrol.qt3.gcc3.2 | grep not
+#         libpng10.so.0 => not found
+
   cd         X11R6/bin
-  mv         fireglcontrol.qt3.gcc3.2.bz2  \
-             fireglcontrol.bz2
-  bunzip2    fireglcontrol.bz2
-  rm         fireglcontrol.*  LICENSE.*
+#   mv         fireglcontrol.qt3.gcc3.2.bz2  \
+#              fireglcontrol.bz2
+#   bunzip2    fireglcontrol.bz2
+  rm  -f     fireglcontrol.*  LICENSE.*
 
   cd         $BUILD_DIR/usr
   cp     -a  X11R6     /usr
@@ -23,8 +27,10 @@ LINUX_VER=$(  installed_version  $(  get_provider  linux  )  )
   MOD_DIR="/lib/modules/$LINUX_VER/kernel/drivers/video"
 
 cd  lib/modules/fglrx/build_mod
+
+chmod  0755  make.sh
 sed  -i  "s:\`uname -r\`:\"$LINUX_VER\":"  make.sh
 
-bash  ./make.sh  &&
+./make.sh        &&
 prepare_install  &&
    make_install
