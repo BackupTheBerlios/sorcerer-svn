@@ -1,2 +1,5 @@
 default_build  &&
-touch  /usr/bin/egrep  /usr/bin/fgrep
+
+if    [  "$PREFIX"  ==  "/usr"  ]
+then  touch  /usr/bin/egrep  /usr/bin/fgrep
+fi

@@ -1,7 +1,7 @@
 (
 
   ./configure  --host=$BUILD        \
-               --prefix=/usr        \
+               --prefix=$PREFIX     \
                --with-root-prefix=  \
                --enable-elf-shlibs  &&
   make                              &&
@@ -12,9 +12,9 @@
 ) > $C_FIFO 2>&1  &&  (
 
   mkdir  -p  /devices
-  mkdir  -p  /usr/include/uuid
-  cp  lib/uuid/libuuid.a  /usr/lib
-  cp  lib/uuid/uuid.h     /usr/include/uuid
+  mkdir  -p  $PREFIX/include/uuid
+  cp  lib/uuid/libuuid.a  $PREFIX/lib
+  cp  lib/uuid/uuid.h     $PREFIX/include/uuid
 
   cp      $SCRIPT_DIR/mount.sh  /etc/init.d
   ln  -sf /etc/init.d/mount.sh  /etc/rcS.d/S10mount
