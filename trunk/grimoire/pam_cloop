@@ -1,0 +1,37 @@
+   VERSION=( "0.1.0-1" )
+  CATEGORY="authentication encryption"
+ ATTRIBUTE="client new"
+    SOURCE="pam_cloop-$VERSION.tar.bz2"
+       URL="http://readme.gzipped.org/download/pam_cloop/v${VERSION:0:3}"
+  HOMEPAGE="http://readme.gzipped.org/projects/pam_cloop"
+       REQ="Linux-PAM"
+  ESTIMATE="13"
+ FRESHMEAT="pam_cloop"
+     SHORT="pam_cloop is a PAM module for mounting encrypted partitions."
+      LONG="
+pam_cloop is a Pluggable Authentication Module (PAM) which mounts 
+encrypted partitions in the authentication phase using a passphrase 
+entered by the user.
+
+Edit the file /etc/security/cloop.conf.
+Configure PAM to use pam_cloop.so as an authentication module;
+edit /etc/pam.d/* and insert:
+auth required pam_cloop.so
+
+This line should be before pam_unix.so 
+(or any other primary authentication module you are using).
+pam_cloop.so should never be the only authentication module, 
+because it always returns success after the first successful 
+login (everything already mounted) or when there is no 
+configuration for the requested user.
+"
+
+
+build()  {
+sed  -i  "s:-O2:$CFLAGS:"  src/Makefile
+make             &&
+prepare_install  &&
+mkdir    -p  /lib/security  /etc/security                            &&
+install  -m 0755  -o root  -g root  src/pam_cloop.so  /lib/security  &&
+install  -m 0644  -o root  -g root  cloop.conf        /etc/security
+}
