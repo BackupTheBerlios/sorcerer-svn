@@ -25,9 +25,7 @@ PHP_CONFIGURE="\
 --with-gettext                \
 --with-mod_charset            \
 --with-layout=GNU             \
---with-zlib                   \
---with-x-includes=/usr/X11R6/include  \
---with-x-libraries=/usr/X11R6/lib     \
+--with-zlib
 $OPTS"
 
 
@@ -67,23 +65,8 @@ build_apxs()  {
     esac
   fi  &&
 
-  cd  $BUILD_DIR                  &&
-  ./configure  $PHP_CONFIGURE     &&
-  make                            &&
-  prepare_install                 &&
-  make    install                 &&
-
-  mv  imagick-0.1.1  ext/imagick  &&
-  cd                 ext/imagick  &&
-  phpize                          &&
-  cd  $BUILD_DIR                  &&
-  rm  -f  configure               &&
-  /usr/bin/aclocal                &&
-  ./buildconf                     &&
-  
-  ./configure  $PHP_CONFIGURE           \
-               --with-imagick           \
-               --with-xpm-dir=/usr/lib  &&
+  cd           $BUILD_DIR               &&
+  ./configure  $PHP_CONFIGURE           &&
   make                                  &&
   make    install                       &&
   if    [  -d  /usr/src/php-$VERSION-apxs   ]
