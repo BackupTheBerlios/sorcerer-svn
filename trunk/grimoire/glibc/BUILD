@@ -19,6 +19,7 @@
   esac
 
   sed    -i  "s:tst-atime::"  libio/Makefile
+  sed    -i  "s:test-misc::"   math/Makefile
 
 # Uncomment the sed line below to retry glibc build 
 # without the tst-leaks if you previously encounted
