@@ -1,7 +1,9 @@
 (
 
   ./configure  --prefix=/usr            \
-               --with-libs="-lncurses"  &&
+               --with-libs="-lncurses"  \
+	       --with-CXX               \
+	       $OPTS                    &&
   make                                  &&
   prepare_install                       &&
   make    install                       &&
