@@ -1,0 +1,32 @@
+   VERSION=( "3.3.2" )
+  CATEGORY="audio"
+ ATTRIBUTE="library new"
+    SOURCE="rplay-$VERSION.tar.gz"
+  HOMEPAGE="http://rplay.doit.org/dist"
+       URL="http://rplay.doit.org/dist"
+#      REQ="audiofile"
+#      OPT="alsa-lib:--enable-alsa:--disable-alsa:for output using ALSA"
+  ESTIMATE="205"
+ FRESHMEAT="rplay"
+     SHORT="rplay is a network audio system that can use either UDP or TCP."
+
+
+build()  {
+patch  -p1  <<  EOF
+diff -r -U2 rplay-3.3.2/devrplay/devrplay.c rplay-3.3.2/devrplay/devrplay.c
+--- rplay-3.3.2/devrplay/devrplay.c	1999-03-20 17:44:48.000000000 -0700
++++ rplay-3.3.2/devrplay/devrplay.c	1999-03-20 17:44:48.000000000 -0700
+@@ -47,5 +47,10 @@
+ #include <sys/soundcard.h>
+ #include <dlfcn.h>
++/* #define REAL_LIBC RTLD_NEXT */
++#if defined(RTLD_NEXT)         
+ #define REAL_LIBC RTLD_NEXT
++#else
++#define REAL_LIBC ((void *) -1L)
++#endif
+ 
+ static int rplay_fd = -1;
+EOF
+default_build
+}
