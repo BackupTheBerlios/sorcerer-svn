@@ -10,8 +10,6 @@
   groupadd  gdm           2>/dev/null
   useradd   gdm  -g  gdm  2>/dev/null
 
-  # patch  -p 0  <  $SCRIPT_DIR/gdm.patch  &&
-
   ./configure  --prefix=/usr         \
                --localstatedir=/var  \
                --sysconfdir=/etc     \
@@ -21,9 +19,6 @@
   make    install                    &&
   mkdir  -p           /var/gdm       &&
   chown  -R  gdm:gdm  /var/gdm       &&
-  chmod  750          /var/gdm       &&
-  if    [  "$VERSION"  ==  "2.4.0.3"  ]
-  then  sedit  "s:else if:elif:"  /etc/gdm/gnomerc
-  fi
+  chmod  750          /var/gdm
 
 ) > $C_FIFO 2>&1
