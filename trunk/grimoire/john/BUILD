@@ -1,6 +1,6 @@
 make_install()  {
 
-  cd  run
+  cd  ../run
   cp  -d  john  mailer  unshadow  unique  unafs  /usr/sbin
 
   mkdir  -p                /usr/share/john
