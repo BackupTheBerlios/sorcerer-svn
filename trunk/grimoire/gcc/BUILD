@@ -21,7 +21,12 @@
   LD_PRELOAD_OLD="$LD_PRELOAD"
   unset  LD_PRELOAD
 
-  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch
+  case  $VERSION  in
+      3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
+    3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+    3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+    3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+  esac
 
   # 3.2.2 now supports the DESTDIR Makefile variable
   # but isn't specifying a prefix good enough?
@@ -57,9 +62,6 @@
   # mkdir  -p  /opt/gcc/3.2.1/
   # rm     -r  /opt/gcc/3.2.1/lib     2>/dev/null
   # ln     -s  /opt/gcc/$VERSION/lib  /opt/gcc/3.2.1/lib
-
-  # libtool archives fixed in POST_INSTALL
-  rm  -rf  /opt/gcc/3.2.1
 
   if    [   -h  /usr/info/dir  ]
   then  rm  -f  /usr/info/dir
