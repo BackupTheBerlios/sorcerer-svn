@@ -23,9 +23,16 @@
        REQ=( "bzip2 freetype jpeg libmng libpng libtool libxml2 tiff"
              "x11:--with-x:--without-x:to enable ImageMagick's X11 support so that animate, display, and import will work"
              "perl::--without-perl:to make PerlMagick" )
-      OPTS="--enable-shared --with-modules"
+      OPTS="--enable-shared --with-modules --enable-ltdl-install=no"
   ESTIMATE="373"
  FRESHMEAT="imagemagick"
       DESC="ImageMagick does automated and interactive maniupation of images.
 It supports the display and interactive manipulation 
 of images when used with the X Window System."
+
+
+post_install()  {
+  if    grep  -q  "libltdl"  $INSTALL_LOGS/ImageMagick
+  then  unlock_cast;  cast  -c  libtool
+  fi
+}
