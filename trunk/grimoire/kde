@@ -1,0 +1,92 @@
+[  -z  $VERSION  ]
+   VERSION=( "3.2.3" )
+      SAFE=( "3.2.3" )
+  CATEGORY="profile"
+ ATTRIBUTE="kde x11"
+  HOMEPAGE="http://www.kde.org"
+    ASSUME="off"
+       URL="$KDE_URL"
+       REQ="x11 qt-x11-free arts kdelibs kdebase kdegames kdegraphics kdeartwork kdepim kdeutils kdemultimedia kdenetwork kdeadmin kdetoys kdeaddons kdeedu"
+    OPT[0]="kdevelop:::for creating and development of software projects"
+    OPT[1]="kdesdk:::for applications and tools used by KDE developers"
+    OPT[2]="kdebindings:::for DCOP and kdejava bindings"
+    OPT[3]="kdeaccessibility:::for kmag, kmousetool, and kmouth"
+ FRESHMEAT="kde"
+  ESTIMATE="5"
+     SHORT="kde provides the K desktop environment."
+      LONG="
+$SHORT
+It combines ease of use, contemporary 
+functionality and outstanding graphical design.
+KDE is a completely new desktop, incorporating 
+a large suite of applications.
+While KDE includes a window manager, file manager, 
+panel, control center and many other components 
+that one would expect to be part of a contemporary 
+desktop environment, the true strength of this 
+exceptional environment lies in the 
+interoperability of its components.
+"
+
+
+kde_build()  {
+  ./configure  --prefix=/usr        \
+               --sysconfdir=/etc    \
+               --localstatedir=/var \
+               --with-xinerama      \
+               --disable-debug      \
+               --enable-final       \
+               $OPTS                &&
+  make                              &&
+  prepare_install                   &&
+  make    install
+}
+
+
+bindings_build() {
+  cd        dcoppython/lib
+  unexpand  pydcop.py   >  pydcop.py.new
+  mv        pydcop.py.new  pydcop.py
+  cd  -
+  kde_build
+}
+
+
+install_pamd() {
+  mkdir  -p  /etc/pam.d
+cat  >  /etc/pam.d/kde  <<  EOF
+auth		required	pam_unix.so
+auth		optional	pam_group.so
+account		requisite	pam_time.so
+account		required	pam_unix.so
+password	required	pam_unix.so shadow md5 nullok
+session		required	pam_unix.so
+EOF
+
+  echo  "auth		required	pam_unix.so"  \
+        >  /etc/pam.d/kscreensaver
+  chmod  0644  /etc/pam.d/kde  /etc/pam.d/kscreensaver
+}
+
+
+build()  {
+  case  $SPELL  in
+    kdebindings)  bindings_build  ;;
+        kdebase)  kde_build
+                  install_pamd    ;;
+              *)  kde_build;
+  esac
+}
+
+
+case  $SPELL  in
+        kde)  :  ;;
+  kde-i18n*)  unset  REQ  OPT  LONG
+              CATEGORY="data"
+              EPROVIDE="kde,${SPELL:4}"
+              SOURCE="stable/latest/src/kde-i18n/$SPELL-${VERSION}.tar.bz2"
+              SHORT="$SPELL provides translated KDE messages."    ;;
+          *)  unset  REQ  OPT  LONG
+              EPROVIDE="kde,${SPELL:3}"
+              SOURCE="stable/latest/src/$SPELL-$VERSION.tar.bz2"  ;;
+esac
