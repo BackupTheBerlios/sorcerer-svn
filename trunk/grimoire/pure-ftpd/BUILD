@@ -19,18 +19,30 @@ install_conf()  {
 
 }
 
+
+install_contrib()  {
+
+  cp  -rv  contrib  /usr/share/pure-ftpd
+
+}
+
+
 if  spell_installed  Linux-PAM  ||
     spell_held       Linux-PAM
 then  WITH_PAM="--with-pam"
 fi
 
-./configure  --sysconfdir=/etc  \
-             --prefix=/usr      \
-             --with-largefile   \
-             --with-everything  \
-             $WITH_PAM          \
-             $OPTS              &&
-make                            &&
-prepare_install                 &&
-make    install                 &&
-        install_conf
+
+./configure  --sysconfdir=/etc     \
+             --prefix=/usr         \
+             --with-largefile      \
+             --with-everything     \
+             --without-banner      \
+             --with-virtualchroot  \
+             $WITH_PAM             \
+             $OPTS                 &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+        install_conf               &&
+        install_contrib
