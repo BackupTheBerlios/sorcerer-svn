@@ -1,11 +1,9 @@
 #!/bin/sh
 
 if  [  -x  /sbin/depmod  ];  then
-
-  echo    -n  "depmod -a ... "
+  echo    -n    "depmod  -a  ... "
   depmod  -a
-  echo  "done."
-
+  echo          "done."
 fi
 
 if  [  -e  /etc/modules    ]   &&

@@ -1,17 +1,20 @@
 install_conf()  {
 
-  cp     $SCRIPT_DIR/modutils.sh     /etc/init.d
-  ln  -sf  ../init.d/modutils.sh     /etc/rcS.d/S20modutils
+  cp     $SCRIPT_DIR/module-init-tools.sh     /etc/init.d
+  ln  -sf  ../init.d/module-init-tools.sh     /etc/rcS.d/S20module-init-tools
 
   mkdir  -p  /etc/modules.d
-
-  #  /etc/modules and /etc/modprobe.conf 
-  #  are files excluded from install logs.
-
-  touch  /etc/modules  /etc/modprobe.conf
+  touch      /etc/modules  \
+             /etc/modprobe.conf
 
 }
 
+sed  -i  "s:share/man/man:man/man:"  Makefile.in
+
+cd      modutils-$MUVERSION        &&
+./configure  --build=$BUILD        &&
+make                               &&
+cd      ..                         &&
 ./configure  --build=$BUILD        \
              --prefix=/            \
              --sysconfdir=/etc     \
@@ -19,5 +22,9 @@ install_conf()  {
              $OPTS                 &&
 make                               &&
 prepare_install                    &&
+cd      modutils-$MUVERSION        &&
+make    install                    &&
+cd      ..                         &&
+make    moveold                    &&
 make    install                    &&
         install_conf
