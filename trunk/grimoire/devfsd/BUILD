@@ -8,8 +8,8 @@
 ) > $C_FIFO 2>&1  &&  (
 
   cp  $SCRIPT_DIR/devfsd.sh     /etc/init.d
-  ln  -sf  ../init.d/devfsd.sh  /etc/rc0.d/K95devfsd 
-  ln  -sf  ../init.d/devfsd.sh  /etc/rc6.d/K95devfsd  
-  ln  -sf  ../init.d/devfsd.sh  /etc/rcS.d/S05devfsd
+  ln  -sf  ../init.d/devfsd.sh  /etc/rc0.d/K85devfsd 
+  ln  -sf  ../init.d/devfsd.sh  /etc/rc6.d/K85devfsd  
+  ln  -sf  ../init.d/devfsd.sh  /etc/rcS.d/S15devfsd
 
 )
