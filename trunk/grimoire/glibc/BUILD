@@ -1,13 +1,11 @@
 fix_glibc_install_log()  {
-
   GLIBC=$(  get_provider  glibc  )
   FILE=$INSTALL_LOGS/$GLIBC
 
   if    [  -f  $FILE  ]  &&
-        !  grep  -q  -w  "/lib/ld-linux.so.2"      $FILE
-  then  echo             "/lib/ld-linux.so.2"  >>  $FILE
+        !  grep  -qx  "/lib/ld-linux.so.2"      $FILE
+  then  echo          "/lib/ld-linux.so.2"  >>  $FILE
   fi
-
 }
 
 fix_glibc_install_log
@@ -72,12 +70,21 @@ export  CXXFLAGS="$CXXFLAGS -O2"
 grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
 echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
-unset  LANG  LC_CTYPE
+
+case  $VERSION  in
+  2.3.3)  sed  -i  "s: $(objpfx)tst-numeric.out::"  localedata/Makefile  ;;
+esac
+
+# unset  LANG  LC_CTYPE
+export  LANGUAGE=C
+export    LC_ALL=C
+
+# thread-local storage is available in newer 2.5.x kernels.
+# and is built by default on in glibc 2.3.3 if system supports it.
+#              --with-tls                     \
 
 mkdir  build
 cd     build
-# thread-local storage is available in newer 2.5.x kernels.
-#              --with-tls                     \
 ../configure  --host=$BUILD                 \
              --build=$BUILD                 \
              --prefix=/usr                  \
