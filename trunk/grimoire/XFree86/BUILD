@@ -2,6 +2,7 @@ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
   cat        $CONFIG_LOGS/$BSPELL/host.def    |
   sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
                         config/cf/host.def
+
   (
     echo  "#define DefaultCCOptions       $CFLAGS"
     echo  "#define DefaultGcc2i386Opt     $CFLAGS"

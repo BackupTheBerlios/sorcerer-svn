@@ -1,9 +1,6 @@
-default_build  &&
-(
+if  default_build;  then
 
-  mkdir  -p  /var/log/xinetd
-
-  cp  $SCRIPT_DIR/xinetd.sh     /etc/init.d
+  cp     $SCRIPT_DIR/xinetd.sh  /etc/init.d
 
   ln  -sf  ../init.d/xinetd.sh  /etc/rc0.d/K60xinetd
   ln  -sf  ../init.d/xinetd.sh  /etc/rc1.d/K60xinetd
@@ -14,4 +11,11 @@ default_build  &&
   ln  -sf  ../init.d/xinetd.sh  /etc/rc4.d/S40xinetd
   ln  -sf  ../init.d/xinetd.sh  /etc/rc5.d/S40xinetd
 
-)
+  mkdir  -p       /var/log/xinetd
+  mkdir  -p       /etc/xinetd.d
+  ID="includedir  /etc/xinetd.d"
+  [  -f           /etc/xinetd.conf  ]  ||
+  echo  "$ID"  >  /etc/xinetd.conf
+else
+  false
+fi
