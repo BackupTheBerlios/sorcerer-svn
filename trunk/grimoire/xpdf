@@ -7,8 +7,7 @@
              "xpdf-${VERSION}pl1.patch" ) 
        URL="ftp://ftp.foolabs.com/pub/xpdf"
   HOMEPAGE="http://www.foolabs.com/xpdf"
-       REQ="freetype lesstif t1lib x11"
-      OPTS="--with-freetype2-includes=/usr/include/freetype2"
+       REQ="autoconf freetype lesstif t1lib x11"
   ESTIMATE="121"
       DESC="xpdf is a PDF, portable document format, viewer.
 xpdf is a viewer for Portable Document Format (PDF) files.
@@ -46,7 +45,11 @@ diff -r -U2 xpdf-3.00/xpdf/Catalog.cc xpdf-3.00/xpdf/Catalog.cc
  	pageRefs = (Ref *)grealloc(pageRefs, pagesSize * sizeof(Ref));
 EOF
 patch  -d xpdf  <  $SOURCE_CACHE/xpdf/$VERSION/${SOURCE[1]}
-  
+sed    -i  "s:freetype\.h:ft2build.h:"         configure.in
+sed    -i  "s:#include <freetype/freetype.h>:\
+              #include <freetype/ft2build.h>\
+              #include FT_FREETYPE_H:"         splash/*.h
+autoconf
 ;;
 esac
 default_build
