@@ -1,10 +1,10 @@
 (
 
-  case  $VERSION  in
-    3.1.11)  sed  -i  "s://extern:extern:" proc/sysinfo.c  ;;
-  esac
+  LD="-Wl,-warn-common"
 
-  make   -e        &&
+  sed  -i  "s:-O2 -g3:$CFLAGS:
+            s:$LD:$LD $LDFLAGS:"  Makefile
+  make             &&
   prepare_install  &&
   make    install  -e  XSCPT=''  DESTDIR=
 
