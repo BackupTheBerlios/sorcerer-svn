@@ -1,5 +1,5 @@
-if    [  -f  $CONFIG_CACHE/$SPELL/makefile.unix  ]
-then  cp     $CONFIG_CACHE/$SPELL/makefile.unix  .
+if    [  -f  $CONFIG_LOGS/$SPELL/makefile.unix  ]
+then  cp     $CONFIG_LOGS/$SPELL/makefile.unix  .
 fi
 
 while  $EDIT_MAKEFILE;  do
@@ -11,8 +11,8 @@ while  $EDIT_MAKEFILE;  do
 done
 
 (
-  mkdir  -p          $CONFIG_CACHE/$SPELL
-  cp  makefile.unix  $CONFIG_CACHE/$SPELL
+  mkdir  -p          $CONFIG_LOGS/$SPELL
+  cp  makefile.unix  $CONFIG_LOGS/$SPELL
   make  PREFIX=/usr           \
         BINDIR=/usr/games     \
         CFLAGS="$CFLAGS"      \

@@ -10,8 +10,8 @@ install_drm()  {
 }
 
 
-if    [  -f  $CONFIG_CACHE/host.def  ]
-then  cp     $CONFIG_CACHE/host.def  config/cf/host.def
+if    [  -f  $CONFIG_LOGS/host.def  ]
+then  cp     $CONFIG_LOGS/host.def  config/cf/host.def
 fi
 
 message  "Building XFree86 takes a very long time."

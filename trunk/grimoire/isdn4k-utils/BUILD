@@ -1,11 +1,11 @@
 store_config()  {
-  mkdir  -p    $CONFIG_CACHE/$SPELL
-  cp  .config  $CONFIG_CACHE/$SPELL
+  mkdir  -p    $CONFIG_LOGS/$SPELL
+  cp  .config  $CONFIG_LOGS/$SPELL
 }
 
 restore_config()  {
-  if    [  -f  $CONFIG_CACHE/$SPELL/.config  ]
-  then  cp     $CONFIG_CACHE/$SPELL/.config  .
+  if    [  -f  $CONFIG_LOGS/$SPELL/.config  ]
+  then  cp     $CONFIG_LOGS/$SPELL/.config  .
   fi
 }
 

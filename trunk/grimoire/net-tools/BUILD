@@ -1,8 +1,8 @@
-if  [  -f  $CONFIG_CACHE/net-tools.config.h  ];  then
-  cp       $CONFIG_CACHE/net-tools.config.h  config.h
+if  [  -f  $CONFIG_LOGS/net-tools.config.h  ];  then
+  cp       $CONFIG_LOGS/net-tools.config.h  config.h
 else
   ./configure.sh  config.in
-  cp  config.h  $CONFIG_CACHE/net-tools.config.h
+  cp  config.h  $CONFIG_LOGS/net-tools.config.h
 fi
 
 (
