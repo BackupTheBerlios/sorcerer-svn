@@ -32,7 +32,6 @@ install_libs()  {
   cp  -a   include    ../doc                2>/dev/null
 }
 
-
 make_device_nodes()  {
   for  ((CX=0;CX<8;CX++));  do
     NODE="/dev/nvidia$CX"
@@ -50,19 +49,25 @@ make_device_nodes()  {
 chown  -R  root:root  *
 cd  usr/src/nv
 
-if  spell_installed           $(  get_provider  linux  );  then
-  LVER=$(  installed_version  $(  get_provider  linux  )  )
-    SM="/usr/src/linux/System.map"
-  sed  -i  "s/\$(shell uname -r)/$LVER/"  Makefile
-  sed  -i  "s:depmod:true:"               Makefile
-  sed  -i  "s:modprobe:true:"             Makefile
-  sed  -i  "s: rmmod-check::"             Makefile
-else
-  echo  "linux spell is not detected as installed."
-  echo  "Please cast linux before casting this spell."
-  false
-fi  &&
+bzip2  -cd  $(  guess_filename  ${SOURCE[1]}  )  |
+patch  -p1
 
+LVER=$(  installed_version  $(  get_provider  linux  )  )
+
+if    !  [  "${LVER:0:3}"  ==  "2.6"  ]
+then           LVER="2.6.0"
+fi
+
+sed  -i  "s/\$(shell uname -r)/$LVER/"              Makefile.kbuild
+sed  -i  "s/\$(shell uname -r)/$LVER/"              Makefile.nvidia
+sed  -i  "s:install rmmod-sanity-check:install:"    Makefile.kbuild
+sed  -i  "s:nvidia.o rmmod-sanity-check:nvidia.o:"  Makefile.nvidia
+sed  -i  "s:/sbin/modprobe:true:"                   Makefile.kbuild
+sed  -i  "s:/sbin/modprobe:true:"                   Makefile.nvidia
+sed  -i  "s:/sbin/depmod:true:"                     Makefile.kbuild
+sed  -i  "s:/sbin/depmod:true:"                     Makefile.nvidia
+
+cp  Makefile.kbuild  Makefile
 prepare_install                        &&
 make    install  IGNORE_CC_MISMATCH=1  &&
 install_libs                           &&
