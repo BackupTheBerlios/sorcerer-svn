@@ -40,6 +40,7 @@
       --enable-modules=all      \
       --enable-mods-shared=all  \
       --build=$BUILD            \
+      --with-mpm=worker         \
       $OPTS"
 
   ./configure  $AC  &&
