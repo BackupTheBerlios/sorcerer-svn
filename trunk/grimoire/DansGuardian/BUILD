@@ -3,8 +3,9 @@
              --runas_usr=nobody                   \
              --runas_grp=nogroup                  \
              $OPTS                                &&
-make                                              &&
-make  install                                     &&
+make             OPTIMISE="$CFLAGS"               &&
+prepare_install                                   &&
+make    install                                   &&
 
 # replace the redhatish init script ;)
 cp  -f  $SCRIPT_DIR/dansguardian.init             \
