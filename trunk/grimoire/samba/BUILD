@@ -20,4 +20,8 @@ make    install                    &&
 if  [  -d  /usr/private  ];  then
   rmdir    /usr/private
   true
+fi                                 &&
+if  [  -f  /usr/lib/samba/libsmbclient.so  ];  then
+  ln   -s           samba/libsmbclient.so  \
+                 /usr/lib/libsmbclient.so
 fi
