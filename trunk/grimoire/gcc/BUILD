@@ -17,6 +17,13 @@ finish_install()  {
   do   sed  -i  "$SEDIT"  $FILE
   done
 
+  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+
+  if        [  -f             ${STRSTREAM}    ]  &&
+        !   [  -f             ${STRSTREAM}.h  ]
+  then  ln     -s  strstream  ${STRSTREAM}.h
+  fi
+
   true
 
 }

@@ -8,4 +8,12 @@ case  $VERSION  in
 
 esac
 
+gcc_case()  {
+  case  $(  installed_version  $(  get_provider  gcc  )  )  in
+    3.3*)  patch  -p1  <  $SCRIPT_DIR/SDL-1.2.6.patch  ;;
+  esac
+}
+
+gcc_case
+
 default_build
