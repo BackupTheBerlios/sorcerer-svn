@@ -10,6 +10,7 @@
   fi
 
   sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
+# patch  -p1  <  $SCRIPT_DIR/swapd-0.2.cache_too.patch
 
   ./configure  --build=$BUILD        \
                --prefix=/usr         \
