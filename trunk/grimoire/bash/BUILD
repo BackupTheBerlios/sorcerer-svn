@@ -6,7 +6,8 @@ do  patch  -p2  <  \
     ((  CX++  ))
 done
 
-BUILD="$( arch )-pc-linux-gnu"
+[  -z  "$BUILD"  ]  &&
+         BUILD="$( arch )-pc-linux-gnu"
 
 ./configure  --build=$BUILD  \
              --prefix=/usr   \
