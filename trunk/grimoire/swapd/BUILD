@@ -5,11 +5,11 @@
   else
     #  Keep at least 64MB of mem+swap available
     #  2 GB max swap on linux 2.4.20
-    sedit  "s:memlimit 16384:memlimit 65536:"  swapd.conf
-    sedit  "s:swapsize 4096:swapsize 65536:"   swapd.conf
+    sed  -i  "s:memlimit 16384:memlimit 65536:"  swapd.conf
+    sed  -i  "s:swapsize 4096:swapsize 65536:"   swapd.conf
   fi
 
-  sedit  "s:/usr/local/etc/:/etc/:"  config.h
+  sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
   ./configure  --build=$BUILD        \
                --prefix=/usr         \

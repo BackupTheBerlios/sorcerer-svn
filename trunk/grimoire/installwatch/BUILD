@@ -9,9 +9,9 @@
   else  unset   LDFLAGS
   fi
 
-  sedit  "s:PREFIX=/usr/local:PREFIX=/usr:"  Makefile
-  sedit  "s:gcc :gcc $CFLAGS :"              Makefile
-  sedit  "s:ld :ld $LDFLAGS :"               Makefile
+  sed  -i  "s:PREFIX=/usr/local:PREFIX=/usr:"  Makefile
+  sed  -i  "s:gcc :gcc $CFLAGS :"              Makefile
+  sed  -i  "s:ld :ld $LDFLAGS :"               Makefile
 
   make                                  &&
   prepare_install                       &&

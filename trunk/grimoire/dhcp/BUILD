@@ -1,6 +1,6 @@
 (
 
-  sedit  "s/\/local//"  Makefile.conf
+  sed  -i  "s/\/local//"  Makefile.conf
   ./configure                    &&
   make                           &&
   prepare_install                &&

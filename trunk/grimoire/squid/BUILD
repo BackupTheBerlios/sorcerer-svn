@@ -1,7 +1,7 @@
 (
 
- sedit  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
-         src/Makefile.in
+ sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
+          src/Makefile.in
 
   ./configure  --prefix=/usr                     \
                --sysconfdir=/etc/squid           \

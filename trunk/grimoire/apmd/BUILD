@@ -4,9 +4,9 @@
   then  patch  -p1  <  $SCRIPT_DIR/apmd.Makefile.nox11.diff
   fi
 
-  sedit "s:CFLAGS=-O -g:CFLAGS=$CFLAGS:"   Makefile   &&	      
-  make                                                &&
-  prepare_install                                     &&
+  sed  -i  "s:CFLAGS=-O -g:CFLAGS=$CFLAGS:"   Makefile
+  make             &&
+  prepare_install  &&
   make    install
 
 ) > $C_FIFO 2>&1

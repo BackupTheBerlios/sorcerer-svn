@@ -23,7 +23,7 @@
 
   # fix to get man pages to install in /usr/man
 
-  sedit  "s:/usr/local:/usr:"  src/global/mail_params.h
+  sed  -i  "s:/usr/local:/usr:"  src/global/mail_params.h
 
 #  mkdir  db
 #  cd     db-$DBVERSION/build_unix  &&
@@ -35,7 +35,7 @@
 #  cd    $BUILD_DIR                               &&
 #  rm   -rf  db/lib/*.so                          &&
 #  CFLAGS="$CFLAGS  -I$PWD/db/include"            &&
-#  sedit  "s:-ldb:-L$PWD/db/lib -ldb:"  makedefs  &&
+#  sed  -i  "s:-ldb:-L$PWD/db/lib -ldb:"  makedefs  &&
 
   make  "CC=gcc"               \
         "OPT=$CFLAGS"          \
@@ -63,7 +63,7 @@
   ln  -sf  ../init.d/postfix.sh     /etc/rc0.d/K10postfix
   ln  -sf  ../init.d/postfix.sh     /etc/rc6.d/K10postfix
 
-  sedit  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
+  sed  -i  "s:#mail_spool_directory = /var/spool/mail:mail_spool_directory = /var/spool/mail:"  \
          /etc/postfix/main.cf
 
 )

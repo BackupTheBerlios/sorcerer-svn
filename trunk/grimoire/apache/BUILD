@@ -29,7 +29,7 @@ db_41_fix()  {  (
   unset  LD_PRELOAD
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
-    4.1)  sedit  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c  ;;
+    4.1)  sed  -i  "s:f, auth:f, NULL, auth:"  src/modules/standard/mod_auth_db.c  ;;
   esac
 )  }
 

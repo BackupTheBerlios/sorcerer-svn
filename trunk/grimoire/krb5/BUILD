@@ -35,7 +35,7 @@
   fi
 
   if    [  "$MASTER"  ==  "y"  ]
-  then  sedit  "s:# /usr:/usr:"  /etc/init.d/krb5.sh
+  then  sed  -i  "s:# /usr:/usr:"  /etc/init.d/krb5.sh
   fi
 
   if    !  [  -f  /etc/krb5.conf  ]
@@ -43,7 +43,7 @@
   fi
 
   if    !  [  -f  /etc/kdc.conf  ]
-  then  sedit  "s:local/::g"  src/config-files/kdc.conf
+  then  sed  -i  "s:local/::g"  src/config-files/kdc.conf
         cp  src/config-files/kdc.conf  /etc/init.d/
   fi
 

@@ -1,7 +1,7 @@
 (
 
   cd  pccts                                        &&
-  sedit  "s:\#COPT=-O2:COPT=$CFLAGS:"  makefile    &&
+  sed  -i  "s:\#COPT=-O2:COPT=$CFLAGS:"  makefile  &&
   make                                             &&
   prepare_install                                  &&
   install  -m  700 bin/antlr  /usr/bin             &&

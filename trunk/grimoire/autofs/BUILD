@@ -3,7 +3,7 @@
   DEFAULT_CFLAGS="CFLAGS    = -O3 -fomit-frame-pointer -Wall"
        SA_CFLAGS="CFLAGS    = $CFLAGS  -Wall"
 
-  sedit  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
+  sed  -i  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
 
   ./configure  --build=$BUILD        \
                --prefix=/usr         \

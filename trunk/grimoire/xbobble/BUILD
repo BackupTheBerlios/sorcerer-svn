@@ -1,7 +1,7 @@
 (
 
   mv  libayq-0.01/include/ayq .
-  sedit  "s:-lGLU:-L/usr/X11R6/lib -lGLU:"  GNUmakefile
+  sed  -i  "s:-lGLU:-L/usr/X11R6/lib -lGLU:"  GNUmakefile
   make  &&
   prepare_install
 

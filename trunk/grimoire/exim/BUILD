@@ -63,7 +63,7 @@ if    spell_installed  db;  then
   echo  "USE_DB=yes"  >>  Local/Makefile
   DBV="$(  installed_version  $(  get_provider  db  )  )"
   case  ${DBV:0:3}  in
-    4.1)  sedit  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;
+    4.1)  sed  -i  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;
   esac
 
 fi
@@ -89,9 +89,9 @@ fi
         touch     /etc/aliases
   fi
 
-  sedit  "s:var/mail:var/spool/mail:"         /etc/exim.conf
-  sedit  "s/\# group = mail/  group = mail/"  /etc/exim.conf
-  sedit  "s/\# mode = 0660/  mode = 0660/"    /etc/exim.conf
+  sed  -i  "s:var/mail:var/spool/mail:"         /etc/exim.conf
+  sed  -i  "s/\# group = mail/  group = mail/"  /etc/exim.conf
+  sed  -i  "s/\# mode = 0660/  mode = 0660/"    /etc/exim.conf
 
   cp  doc/exim.8  /usr/man/man8
 

@@ -1,6 +1,6 @@
 (
 
-  sedit  "s/read a/a=0/"  scripts/adsl-setup.in
+  sed  -i  "s/read a/a=0/"  scripts/adsl-setup.in
   cd  src
   ./configure  --build=$BUILD        \
                --prefix=/usr         \

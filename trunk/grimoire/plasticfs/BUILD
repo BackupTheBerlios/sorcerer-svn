@@ -1,6 +1,6 @@
 (
 
-  sedit  "s:-version-info:-lc -ldl -lstdc++ $LDFLAGS -version-info:"  Makefile.in
+  sed  -i  "s:-version-info:-lc -ldl -lstdc++ $LDFLAGS -version-info:"  Makefile.in
 
   ./configure  --build=$BUILD        \
                --prefix=/usr         \

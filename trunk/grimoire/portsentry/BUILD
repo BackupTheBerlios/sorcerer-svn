@@ -17,7 +17,7 @@
   mkdir  -p        /etc/portsentry  &&
 
   if  !  [  -f  /etc/portsentry/portsentry.conf    ];  then
-    sedit  "s:/usr/local/psionic:/etc:"  portsentry.conf
+    sed  -i  "s:/usr/local/psionic:/etc:"  portsentry.conf
     cp  portsentry.conf  /etc/portsentry
   fi  &&
 

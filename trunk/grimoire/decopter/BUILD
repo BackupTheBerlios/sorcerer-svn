@@ -1,8 +1,8 @@
 (
 
   modify()  {
-    while  read                FILE
-    do     sedit  "s:$1:$2:"  $FILE
+    while  read                  FILE
+    do     sed  -i  "s:$1:$2:"  $FILE
     done
   }
 

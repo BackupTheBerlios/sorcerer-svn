@@ -1,17 +1,17 @@
 (
 
-  if    [  "$PREFIX"  ==  "/usr"  ]
-  then  CLD="/opt/ClanLib/0.5.3-1"
-  else  CLD="$PREFIX/opt/ClanLib/0.5.3-1"
-  fi
+#  if    [  "$PREFIX"  ==  "/usr"  ]
+#  then  CLD="/opt/ClanLib/0.5.3-1"
+#  else  CLD="$PREFIX/opt/ClanLib/0.5.3-1"
+#  fi
 
   export    CFLAGS="$CFLAGS    -I$CLD/include"
   export  CXXFLAGS="$CXXFLAGS  -I$CLD/include"
   export   LDFLAGS="$LDFLAGS   -L$CLD/lib  -Wl,-rpath,$CLD/lib"
 
-  sedit  "s:-o \.\./race :$LDFLAGS -o ../race :"  src/Makefile.in
-  sedit  "s:-g -O3 -Wall::"  src/Makefile.in
-  sedit  "s:-O3 -Wall::"         Makefile.in
+  sed  -i  "s:-o \.\./race :$LDFLAGS -o ../race :"  src/Makefile.in
+  sed  -i  "s:-g -O3 -Wall::"  src/Makefile.in
+  sed  -i  "s:-O3 -Wall::"         Makefile.in
 
   CX=1
   while  [  -n  "${SOURCE[$CX]}"  ]

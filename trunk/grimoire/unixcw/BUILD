@@ -6,7 +6,7 @@
   ln  -s /usr/lib         qt/lib
   export QTDIR=$PWD/qt
 
-  sedit  "s:-lqt:-lqt-mt:"  xcwcp/Makefile.in
+  sed  -i  "s:-lqt:-lqt-mt:"  xcwcp/Makefile.in
 
   ./configure  --prefix=/usr          \
                --sysconfdir=/etc      \

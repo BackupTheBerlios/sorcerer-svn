@@ -1,6 +1,6 @@
 (
 
-  sedit  "s/const char \*what/__const char \*what/"  portmap.c  &&
+  sed  -i  "s/const char \*what/__const char \*what/"  portmap.c  &&
 
   make  WRAP_DIR=/usr/lib  &&
   prepare_install          &&

@@ -1,6 +1,6 @@
 (
 
-  sedit  "s:-O2:$CFLAGS:g"  Makefile
+  sed  -i  "s:-O2:$CFLAGS:g"  Makefile
   make clean       &&
   make gtk         &&
   prepare_install  &&

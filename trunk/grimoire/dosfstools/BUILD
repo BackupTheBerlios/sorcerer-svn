@@ -1,6 +1,6 @@
 (
 
-#  sedit  "s/-O2 -fomit-frame-pointer/$CFLAGS/"  Makefile
+#  sed  -i  "s/-O2 -fomit-frame-pointer/$CFLAGS/"  Makefile
 
   MAKE_OPTS="PREFIX=/usr  MANDIR=/usr/man/man8"
 

@@ -9,8 +9,8 @@ activate_voyeur
 
 (
 
-  sedit  "s:-O2:$CFLAGS:"               Makefile
-  sedit  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
+  sed  -i  "s:-O2:$CFLAGS:"               Makefile
+  sed  -i  "s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
   make             &&
   prepare_install  &&
   make  BASEDIR=/  install

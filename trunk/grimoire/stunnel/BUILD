@@ -1,4 +1,4 @@
-sedit  "s:src doc tools:src doc:"  Makefile.in
+sed  -i  "s:src doc tools:src doc:"  Makefile.in
 
 if  $CERTIFICATE;  then
   rm  -f  /etc/ssl/certs/stunnel.pem          &&

@@ -7,9 +7,9 @@
 ) > $C_FIFO 2>&1  &&  (
 
   if  !  [  -e  /etc/syslog.conf  ];  then
-    sedit  "s/usr/var/"  syslog.conf
-    sedit  "s/adm/log/"  syslog.conf
-    cp                   syslog.conf  /etc
+    sed  -i  "s/usr/var/"  syslog.conf
+    sed  -i  "s/adm/log/"  syslog.conf
+    cp                     syslog.conf  /etc
   fi
 
   cp  $SCRIPT_DIR/sysklogd.sh        /etc/init.d

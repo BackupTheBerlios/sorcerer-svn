@@ -1,4 +1,4 @@
-sedit  "s/-O2/$CFLAGS/"  configure
+sed  -i  "s/-O2/$CFLAGS/"  configure
 default_build  &&
 
 (

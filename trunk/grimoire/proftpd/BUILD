@@ -4,7 +4,7 @@
     ENABLE_PAM="--enable-pam"
   fi
 
-  sedit  "s/	standalone/	inetd/"    \
+  sed  -i  "s/	standalone/	inetd/"    \
          sample-configurations/basic.conf  &&
   ./configure  --prefix=/usr               \
                --sysconfdir=/etc           \

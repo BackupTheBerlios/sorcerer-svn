@@ -6,7 +6,7 @@
   }
 
   cd  Xft
-  sedit  "s:-lXft:-Wl,-rpath,/opt/Xft2/lib -lXft:"  xft.pc.in
+  sed  -i  "s:-lXft:-Wl,-rpath,/opt/Xft2/lib -lXft:"  xft.pc.in
   ./configure  --build=$BUILD          \
                --prefix=/opt/Xft2      \
                --bindir=/usr/bin       \

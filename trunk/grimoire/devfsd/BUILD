@@ -1,6 +1,6 @@
 (
 
-  sedit "s:-O2:$CFLAGS:"  GNUmakefile
+  sed  -i  "s:-O2:$CFLAGS:"  GNUmakefile
   make             &&
   prepare_install  &&
   make    install

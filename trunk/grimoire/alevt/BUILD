@@ -4,8 +4,8 @@
     1.6.0)  patch  -p1  <  $SCRIPT_DIR/alevt-1.6.0.patch  ;;
   esac
 
-  sedit  "s:usr/local:usr:"   Makefile
-  sedit  "s:-O2 -s:$CFLAGS:"  Makefile
+  sed  -i  "s:usr/local:usr:"   Makefile
+  sed  -i  "s:-O2 -s:$CFLAGS:"  Makefile
   make             &&
   prepare_install  &&
   make    install
