@@ -56,21 +56,25 @@ echo  "$OPTS"  |
 grep  -q   "\--enable-add-ons=nptl"  ||
 OPTS="$OPTS  --enable-add-ons=linuxthreads"
 
-GCC3_VER=$( installed_version  gcc-v3.3 )
-
-export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+case  $VERSION  in
+  2.3.3)  GCC3_VER=$( installed_version  gcc-v3.3 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"  ;;
+esac
 
 mkdir  build
 cd     build
+#             --with-selinux                \
 ../configure  --host=$BUILD                 \
-             --build=$BUILD                 \
-             --prefix=/usr                  \
-             --disable-profile              \
-             --with-elf                     \
-             --without-gd                   \
-             --without-cvs                  \
-             --enable-shared                \
-             $OPTS                          &&
+              --build=$BUILD                \
+              --prefix=/usr                 \
+              --disable-profile             \
+              --with-elf                    \
+              --with-tls                    \
+              --without-gd                  \
+              --without-cvs                 \
+              --enable-shared               \
+              --enable-add-ons              \
+              $OPTS                         &&
 make                                        &&
 make    tests                               &&
 prepare_install                             &&
