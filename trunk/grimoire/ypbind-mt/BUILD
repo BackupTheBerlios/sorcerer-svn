@@ -15,7 +15,7 @@ install_init()  {
 }
 
 ./configure  --prefix=/usr  &&
-make                       &&
-prepare_install            &&
-make    install            &&
-        intall_init
+make                        &&
+prepare_install             &&
+make    install             &&
+        install_init
