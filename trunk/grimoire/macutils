@@ -1,7 +1,7 @@
    VERSION=( "2.0b3" )
   CATEGORY="archive"
  ATTRIBUTE="console"
-    SOURCE="$SPELL"
+    SOURCE="macutils.tar.gz"
        URL="ftp://ibiblio.org/pub/linux/utils/compress
             ftp://ftp.sun.ac.za/pub/linux/sunsite
             ftp://ftp.is.co.za/linux/sunsite
@@ -52,11 +52,19 @@
      DESC="This package contains utilities for mac (de)compression
 
 This package contains the following utilities:
-macunpack, hexbin, macsave, macstream, binhex, tomac, frommac.
-"
+macunpack, hexbin, macsave, macstream, binhex, tomac, frommac."
 
 
 build() {
+
+
+case  $VERSION  in
+  2.0b3)  sed  -i  "s:extern char \*malloc();:#include <malloc.h>:
+                    s:extern char \*realloc();::"  hexbin/buffer.c  ;;
+esac
+
+
+
 CF="-DTYPES_H -DDIRENT_H -DTERMIOS_H -DNODOT -DAPPLEDOUBLE"
 
 make             CF="$CF"         &&

@@ -7,11 +7,71 @@
   ESTIMATE="378"
  FRESHMEAT="cmusphinx"
       DESC="sphinx2 is a voice recognition engine.
-
 The Sphinx Group at Carnegie Mellon University is committed to
 releasing the long-time, DARPA-funded Sphinx projects widely, 
 in order to stimulate the creation of speech-using tools and
 applications, and to advance the state of the art both directly 
 in speech recognition, as well as in related areas including 
-dialog systems and speech synthesis.
-"
+dialog systems and speech synthesis."
+
+
+build()  {
+source_patch()  {
+cat  <<  EOF
+diff -r -U2 sphinx2-0.5/src/libsphinx2/cdcn_update.c sphinx2-0.5/src/libsphinx2/cdcn_update.c
+--- sphinx2-0.5/src/libsphinx2/cdcn_update.c	2004-07-15 17:57:11.000000000 -0700
++++ sphinx2-0.5/src/libsphinx2/cdcn_update.c	2004-07-15 17:57:11.000000000 -0700
+@@ -38,4 +38,35 @@
+ #include "cdcn.h"
+ 
++
++/* Declare the static functions so that gcc does not complain */
++static float
++initialize (float data[][NUM_COEFF+1],	/* The observation cepstrum vectors */
++	    int	num_frames,		/* Number of frames in utterance */
++	    float *noise,		/* Cepstrum vector for the noise */
++	    float tilt[],
++	    float speech_threshold,	/* Threshold for speech and noise */
++	    float codebook[][NUM_COEFF+1],
++	    float *prob,
++	    float var[][NUM_COEFF+1],
++	    int ncodes);
++static
++void correction(float *tilt, 	/* The spectral tilt cepstrum vector */
++		float *noise, 	/* The noise cepstrum vector */
++		float *codebook,/* The codebook */
++		float *corrbook,/* The correction cepstrum vectors */
++		int num_codes);  /* The number of codewords in the codebook */
++static
++float max_q (float *variance,   /* Speech cepstral variances of the modes */
++	     float *prob,       /* Ratio of a-priori probabilities of the codes 
++				   and the mod of their variances*/
++	     float *noise,      /* Cepstrum vector for the noise */
++	     float *tilt,       /* Spectral tilt cepstrum */
++	     float *codebook,   /* The cepstrum codebook */
++	     float *corrbook,   /* The correction factor's codebook */
++	     int  num_codes,    /* Number of codewords in codebook */
++	     float *z,          /* The input cepstrum */
++	     int num_frames);    /* Number of frames in utterance */
++
++
+ /*************************************************************************
+  *
+@@ -58,9 +89,4 @@
+     int 	num_codes;
+     /* Multidimensional arrays, gar gar gar */
+-    static float initialize (float *, int, float *, float *, float,
+-			     float *, float *, float *, int);
+-    static void correction(float *, float *, float *, float *, int);
+-    static float max_q (float *, float *, float *, float *, float *,
+-			float *, int, float *, int);
+ 
+     /*
+EOF
+}
+
+case  $VERSION  in
+  0.5)  source_patch  |  patch  -p1  ;;
+esac
+default_build
+}
