@@ -1,21 +1,17 @@
 init_install()  {
-  install  -m 0744  $SCRIPT_DIR/sysfsmount.sh  /etc/init.d
-  install  -m 0744  extras/start_udev          /etc/init.d
-  ln       -fs      ../init.d/start_udev       /etc/rcS.d/S05udev
-  ln       -fs      ../init.d/sysfsmount.sh    /etc/rcS.d/S00sysfsmount
-  install  -m 0444  etc/udev/udev.permissions.gentoo  /etc/udev/permissions.d/gentoo.permissions
-  install  -m 0444  etc/udev/udev.rules.gentoo        /etc/udev/rules.d/gentoo.rules
-  mkdir    -p                                         /etc/udev/scripts
-  install  -m 0755  extras/ide-devfs.sh               /etc/udev/scripts
-  install  -m 0755  extras/scsi-devfs.sh              /etc/udev/scripts
-}
+  install  -m 0744  $SCRIPT_DIR/sysfsmount.sh     /etc/init.d
+  install  -m 0744  extras/start_udev             /etc/init.d
+  ln       -fs      ../init.d/start_udev          /etc/rcS.d/S05udev
+  ln       -fs      ../init.d/sysfsmount.sh       /etc/rcS.d/S00sysfsmount
 
+  mkdir  -p                                       /etc/udev/examples
+  cp     -a  etc/udev/*                           /etc/udev/examples
+  ln     -s  ../examples/gentoo/udev.permissions  /etc/udev/permissions.d
+  ln     -s  ../examples/gentoo/udev.rules        /etc/udev/rules.d
 
-example_install()  {
-  mkdir  -p                    /etc/udev/example
-  for  FILE  in                 etc/udev/*
-  do   install -m 0444  $FILE  /etc/udev/example
-  done
+  mkdir    -p                                     /etc/udev/scripts
+  install  -m 0755  extras/ide-devfs.sh           /etc/udev/scripts
+  install  -m 0755  extras/scsi-devfs.sh          /etc/udev/scripts
 }
 
 
@@ -41,11 +37,9 @@ sed  -i  "s:/local::
           s:^udevdir = .*:udevdir = /dev:
           s:killall:true:"  Makefile
 sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
-echo     "Configuration fixed so udev mounts on /dev."
 
 linux_sufficient  &&
 make              &&
 prepare_install   &&
 make    install   &&
-example_install   &&
    init_install
