@@ -9,9 +9,30 @@
       DESC="LVM2 is the userspace toolset that provide logical volume management."
 
 build()  {
-#   grep   -rl  "<linux/fs.h>"  *  |
-#   xargs  -l64  \
-#   sed  -i     "\,#include <linux/fs.h>,i#include <linux/types.h>
-#                \,#  include <linux/fs.h>,i#include <linux/types.h>"
-  default_build
+patch_source()  {
+patch  -p1  <<  EOF
+diff -r -U2 LVM2.2.00.32/lib/device/dev-io.c LVM2.2.00.32/lib/device/dev-io.c
+--- LVM2.2.00.32/lib/device/dev-io.c	2004-12-21 13:23:16.000000000 -0700
++++ LVM2.2.00.32/lib/device/dev-io.c	2004-12-21 13:23:16.000000000 -0700
+@@ -32,5 +32,10 @@
+ #  undef WNOHANG		/* Avoid redefinition */
+ #  undef WUNTRACED		/* Avoid redefinition */
++#  ifndef pgoff_t
++#    define pgoff_t unsigned long
++#  endif
++#  undef stack
+ #  include <linux/fs.h>		/* For block ioctl definitions */
++#  define stack log_debug("<backtrace>")
+ #  define BLKSIZE_SHIFT SECTOR_SHIFT
+ #  ifndef BLKGETSIZE64		/* fs.h out-of-date */
+EOF
+}
+
+local  LVER
+LVER=$( installed_version  $( get_provider linux-kernel ) )
+case  $LVER  in
+  2.6.10)  patch_source  ;;
+esac
+
+default_build
 }
