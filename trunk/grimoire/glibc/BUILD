@@ -34,6 +34,8 @@
   grep  -q  -x  "/lib/ld-linux.so.2"      $INSTALL_LOGS/glibc  ||
   echo          "/lib/ld-linux.so.2"  >>  $INSTALL_LOGS/glibc
 
+  rm  -rf  $LIBRARY_CACHE
+
   ./configure  --host=$BUILD                  \
                --build=$BUILD                 \
                --prefix=/usr                  \
@@ -44,12 +46,7 @@
   make                                        &&
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
-  make    install
-
-) > $C_FIFO 2>&1  &&  (
-
-  LD="ld-${VERSION}.so"
+  make    install                             &&
   ldconfig
-  ln    -sf  $LD  /lib/ld-linux.so.2
 
-)
+) > $C_FIFO 2>&1
