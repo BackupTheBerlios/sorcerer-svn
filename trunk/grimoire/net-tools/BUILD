@@ -21,6 +21,11 @@ install_conf()  {
 
 }
 
+case  $VERSION  in
+  1.60)  sed  -i  "\,default:,abreak;"  hostname.c  lib/inet_sr.c  ;;
+esac
+
+
 sed  -i  "s:-O2:$CFLAGS:
           s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
 
