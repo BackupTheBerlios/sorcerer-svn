@@ -13,10 +13,24 @@
   fix_glibc_install_log
 
   case  $VERSION  in
-    2.3.2)  patch  -p1  <  $SCRIPT_DIR/glibc-2.3.2-xdr_mem.c.patch
-            patch  -p1  <  $SCRIPT_DIR/glibc-2.3.2.sscanf.patch
+    2.3.2)  patch  -p1  <  $SCRIPT_DIR/glibc-2.3.2.sscanf.patch
+#           patch  -p1  <  $SCRIPT_DIR/glibc-2.3.2-xdr_mem.c.patch
+# xdr_mem patch not needed with glibc 2.3.2
             ;;
   esac
+
+
+  if    [  "$BRANCH"  ==  "heapprotect"  ]  &&
+        [  -n  "${SOURCE[2]}"            ];  then
+    HP=$(  guess_filename  ${SOURCE[2]}  $SOURCE_CACHE/$BSPELL/$VERSION  )
+    echo  "Applying heapprotect-2.3.2-1.3.1.diff"
+    case  $(  compressor   $HP  )  in
+        gzip)  gzip   -cd  $HP  |  patch  -p1  ;;
+       bzip2)  bzip2  -cd  $HP  |  patch  -p1  ;;
+    esac
+    OPTS="$OPTS  --enable-heap-protection"
+  fi
+
 
   sed    -i  "s:tst-atime::"  libio/Makefile
   sed    -i  "s:test-misc::"   math/Makefile
@@ -70,13 +84,14 @@
                --enable-add-ons=linuxthreads  \
                --disable-profile              \
                --with-elf                     \
-               --enable-shared                &&
+               --enable-shared                \
+               $OPTS                          &&
   make                                        &&
   make    tests                               &&
   prepare_install                             &&
   export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
   make    install                             &&
   ldconfig                                    &&
-  rm     -rf  $LIBRARY_CACHE/glibc
+  rm     -rf  $LIBRARY_CACHE/glibc*
 
 ) > $C_FIFO 2>&1
