@@ -1,0 +1,35 @@
+   VERSION=( "20041116" )
+    IGNORE="linux"
+  CATEGORY="emulator"
+ ATTRIBUTE="broken console new"
+# undefined reference to memcpy when making in node-pc/simulator
+# It explicitly does not use standard libraries and
+# #define memcmp __builtin_memcmp
+# yet __bultin_memcmp doesn't exist anywhere.
+    SOURCE="faumachine-$VERSION.src.tar.gz"
+       URL="http://www3.informatik.uni-erlangen.de/Research/FAUmachine/$VERSION/tar"
+  HOMEPAGE="http://www3.informatik.uni-erlangen.de/Research/FAUmachine"
+       REQ=""
+# REQ is incomplete because source does not compile/link yet.
+  ESTIMATE="213"
+      DESC="faumachine is a virtual machine that emulates a PC.
+It runs as a normal user process (no root privileges or
+kernel modules needed) on top of Linux on i386 hardware.
+FAUmachine supports networking and FAUmachines can be
+connected transparently to the local network to which
+their host machine is attached.
+If the appropriate servers are running on the FAUmachine,
+login from any real machine is possible, once the network is set up.
+faumachine used to be known as user mode linux."
+
+build()  {
+
+case  $VERSION  in
+  20041116)
+    sed  -i  "s,		used:,used:;,"      launcher/node.c
+    sed  -i  "s,	default:,default: break;,"  node-pc/simulator/cpu_alu.c
+    unset  LDFLAGS
+  ;;
+esac
+default_build
+}
