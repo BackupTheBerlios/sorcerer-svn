@@ -1,0 +1,17 @@
+diff -r -U2 glibc-2.3.2/sunrpc/xdr_mem.c glibc-2.3.2/sunrpc/xdr_mem.c
+--- glibc-2.3.2/sunrpc/xdr_mem.c	2002-12-16 16:56:35.000000000 -0700
++++ glibc-2.3.2/sunrpc/xdr_mem.c	2002-12-16 16:56:35.000000000 -0700
+@@ -80,5 +80,5 @@
+   xdrs->x_ops = (struct xdr_ops *) &xdrmem_ops;
+   xdrs->x_private = xdrs->x_base = addr;
+-  xdrs->x_handy = size;
++  xdrs->x_handy = (size > INT_MAX) ? INT_MAX : size; /* XXX */
+ }
+ INTDEF(xdrmem_create)
+@@ -196,5 +196,5 @@
+   int32_t *buf = 0;
+ 
+-  if (xdrs->x_handy >= len)
++  if (len >= 0 && xdrs->x_handy >= len)
+     {
+       xdrs->x_handy -= len;
