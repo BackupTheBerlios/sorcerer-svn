@@ -4,5 +4,11 @@ esac
 
 patch  -p1  <  $SCRIPT_DIR/lilo-22.5.9.patch
 
-make                             ROOT=  &&
-make  install  MAN_DIR=/usr/man  ROOT=
+grep  -rl  "#include <linux/fd.h>"  *  |
+while  read
+do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
+done
+
+make                               ROOT=  &&
+prepare_install                           &&
+make    install  MAN_DIR=/usr/man  ROOT=

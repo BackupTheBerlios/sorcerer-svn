@@ -16,6 +16,12 @@ install_init()  {
 }
 
 
+grep  -rl  "#include <linux/fd.h>"  *  |
+while  read
+do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
+done
+
+
 ./configure  --host=$BUILD        \
              --prefix=/usr        \
              --with-root-prefix=  \
