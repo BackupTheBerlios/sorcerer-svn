@@ -1,11 +1,6 @@
 (
 
-  if    [  -f             $CONFIG_LOGS/DEFAULT/$VERSION/LANGUAGE  ]
-  then  LANGUAGE=$(  cat  $CONFIG_LOGS/DEFAULT/$VERSION/LANGAUGE  )
-  fi
-
-  LANGUAGE="${LANGUAGE// /,}"
-  ENABLE_LANGS="--enable-languages=${LANGUAGE:=c++}"
+  ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
   export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
   export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
