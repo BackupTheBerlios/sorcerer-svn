@@ -18,13 +18,8 @@
 
 ) > $C_FIFO 2>&1  &&  (
 
-  cp  $SCRIPT_DIR/exult.cfg  \
-             /usr/share/exult
-
-  cd  sfx
-  ../tools/expack -i drbg
-  ../tools/expack -i drsi
-  cp  drbgsfx.flx  /usr/share/exult
-  cp  drsisfx.flx  /usr/share/exult
+  cp  $SCRIPT_DIR/exult.cfg  /usr/share/exult
+  cp  sfx/jmsfx.flx          /usr/share/exult
+  cp  sfx/jmsisfx.flx        /usr/share/exult
 
 )
