@@ -21,14 +21,14 @@ esac
 sed  -i  "s:Linuxthreads:pthread:"  configure
 
 case  $VERSION  in
- 4.1.10*)  mkdir  -p                     system/asm
-           sed  "s/new/nneww/"     /usr/include/asm/system.h  >  \
-                                         system/asm/system.h
-           export    CFLAGS="-isystem $PWD/system $CFLAGS"
-           export  CXXFLAGS="-isystem $PWD/system $CXXFLAGS"
-           sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  \
-                    ./include/my_global.h
-           ;;
+ 4.1.1[0-1])  mkdir  -p                     system/asm
+              sed  "s/new/nneww/"     /usr/include/asm/system.h  >  \
+                                            system/asm/system.h
+              export    CFLAGS="-isystem $PWD/system $CFLAGS"
+              export  CXXFLAGS="-isystem $PWD/system $CXXFLAGS"
+              sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  \
+                       ./include/my_global.h
+              ;;
 esac
 
 ./configure  --prefix=/usr                   \
