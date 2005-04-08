@@ -80,7 +80,7 @@ cd     build
               --enable-add-ons              \
               $OPTS                         &&
 make                                        &&
-make    tests                               &&
+# make    tests                               &&
 prepare_install                             &&
 make    install install_root=$INSTALL_ROOT  &&
 cd   ../install                             &&
