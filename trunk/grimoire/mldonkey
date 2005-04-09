@@ -1,8 +1,11 @@
    VERSION=( "2.5.22" "2.5.21" "2.5.19" "2.5.18" "2.5.16" "2-5-12" )
-    IGNORE="static\|shared\|s$"
+    IGNORE="static\|shared\|s$\|^2\.5\.30"
+# 2.5.30-4 must be linked with libpthread however
+# the Makefiles do not do that and therefore it fails
+# compilation at the end when it links.
   CATEGORY="file-share"
  ATTRIBUTE="console x11"
-    SOURCE="mldonkey-$VERSION.tar.gz"
+    SOURCE="mldonkey-$VERSION.tar.bz2"
        URL="http://savannah.nongnu.org/download/mldonkey"
   HOMEPAGE="http://www.nongnu.org/mldonkey"
        REQ=( "ocaml"
@@ -23,7 +26,10 @@ Other GUIs have also been created for mldonkey."
 
 build() {
 # OCAML=$(  installed_version  $(  get_provider  ocaml  )  )
-  
+# export  CFLAGS="$CFLAGS -lpthread"
+# export  CXXFLAGS="$CXXFLAGS -lpthread"
+# export  LDFLAGS="$LDFLAGS -lpthread"
+
 #            --enable-ocamlver=$OCAML    \
 ./configure  --prefix=/usr               \
              --sysconfdir=/etc/mldonkey  \
