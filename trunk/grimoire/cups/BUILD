@@ -8,6 +8,16 @@ fake_redhat()  {
 }
 
 
+check_for_smb_backend() {
+  if    spell_installed  samba;  then  
+    echo "Setting smb backend for cups"
+    if   !  [ -e                   /usr/lib/cups/backend/smb ];
+    then   ln -s /usr/bin/smbspool /usr/lib/cups/backend/smb
+    fi
+  fi
+}
+
+
 if  spell_installed  Linux-PAM;  then  OPTS="$OPTS  --enable-pam";  fi
 if  spell_installed  openssl;    then  OPTS="$OPTS  --enable-ssl";  fi
 
@@ -29,4 +39,5 @@ cp     -R  usr/*  /usr    &&
 cp     -R  var/*  /var    &&
 cd         var/cups/conf  &&
 mkdir  -p  /etc/cups      &&
-cp     *   /etc/cups
+cp     *   /etc/cups      &&
+check_for_smb_backend
