@@ -17,7 +17,9 @@
             ftp://ftp.net.lut.ac.uk/openldap           
             ftp://ftp.plig.org/pub/OpenLDAP
             http://www.openldap.org/software/download/OpenLDAP"
-       REQ="cyrus-sasl db libtool ncurses openssl"
+       REQ=( "cyrus-sasl db libtool ncurses openssl" )
+#            "heimdal:--with-kerberos:--without-kerberos:for keberos support" )
+# Enabling heimdal as optional requirement creates recursive requirement loop
 # maybe this has requirement on freetype, but maybe it does not?
 #   "heimdal:--with-kerberos:--without-kerberos:for kerberos 5 authentication"
 # Optional requirement on heimdal creates recursive 
@@ -27,3 +29,10 @@
 openldap is a fully featured open source LDAP software suite.
 OpenLDAP Software provides a complete LDAP implementation including
 server, clients, C SDK, and associated tools."
+
+build()  {
+  if    is_installed heimdal
+  then  OPTS="$OPTS --with-kerberos"
+  fi
+  default_build
+}
