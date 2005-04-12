@@ -1,0 +1,81 @@
+   VERSION=( "0.79" "0.78" "0.77" "0.76" "0.75" )
+      SAFE=( "0.79" "0.78" "0.77" "0.76" )
+    IGNORE="Beta\|s"
+  CATEGORY="authentication"
+ ATTRIBUTE="core library solo"
+    SOURCE="pub/linux/libs/pam/pre/library/Linux-PAM-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.kernel.org/pub/linux/libs/pam"
+       URL="$KERNEL_URL"
+       REQ="gdbm"
+#            "linuxdoc-tools:::to build documentation"
+#            "OpenSP:::to build documentation"
+#            "teTeX:::to build documentation"
+# Attempting to avoid recursive requirement loops.
+   PROTECT="/etc/security"
+ FRESHMEAT="linux-pam"
+  ESTIMATE="301"
+      DESC="Linux-PAM provides a flexibile authentication mechanism."
+make_symlinks()  {
+  ln  -sf  libpam.so.$VERSION       /lib/libpam.so
+  ln  -sf  libpam.so.$VERSION       /lib/libpam.so.0
+  ln  -sf  libpam_misc.so.$VERSION  /lib/libpam_misc.so
+  ln  -sf  libpam_misc.so.$VERSION  /lib/libpam_misc.so.0
+  ln  -sf  libpamc.so.$VERSION      /lib/libpamc.so
+  ln  -sf  libpamc.so.$VERSION      /lib/libpamc.so.0
+}
+
+install_security() {
+	cp -Rp $SCRIPT_DIR/security /etc
+	chown root /etc/security
+}
+
+selinux_patches()  {
+  SCX=1
+  while  [  -n                    "${SOURCE[$SCX]}"    ]
+  do     zcat  $(  guess_filename  ${SOURCE[$SCX]}  )  |
+         patch  -p1
+         ((  SCX++  ))
+  done
+  patch  -p1  <  $SCRIPT_DIR/Linux-PAM-selinux.patch
+  autoconf
+  OPTS="--enable-unix  --enable-selinux"
+
+}
+
+build() {
+	case  $BRANCH  in
+		selinux)  selinux_patches  ;;
+	esac
+
+
+	if    !  spell_installed  linuxdoc-tools  ||
+		!  spell_installed  teTeX           ||
+		!  spell_installed  sp
+	then  export  HAVE_SGML2LATEX=no
+		sed  -i  "s: doc examples::g"      Makefile
+	else  sed  -i  "s: doc examples: doc:g"  Makefile
+	fi
+
+
+	for   DIR  in  $(  find  .  -type d  )
+	do    touch  $DIR/.ignore_age
+	done
+
+	export  ac_cv_lib_crack_FascistCheck=no
+	export  HAVE_LIBCRACK=no
+	sed  -i  's:CRACKLIB_DICTPATH="":CRACKLIB_DICTPATH="/usr/lib":'  configure
+
+	./configure  --enable-read-both-confs  \
+	$OPTS                                  &&
+	make                                   &&
+	prepare_install                        &&
+	make    install                        &&
+	make_symlinks                          &&
+	install_security
+}
+
+post_install() {
+	message  "${MESSAGE_COLOR}If Linux-PAM is being permenantly removed"  \
+	"then all pam aware spells must be re-cast for"              \
+	"authentication to continue working.${DEFAULT_COLOR}"
+}
