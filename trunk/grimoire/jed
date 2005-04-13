@@ -1,0 +1,33 @@
+   VERSION=( "0.99-16" "B0.99-15" )
+    IGNORE="099"
+  CATEGORY="editor"
+ ATTRIBUTE="console x11"
+    SOURCE="jed-$VERSION.tar.bz2"
+       URL="ftp://ftp.uni-stuttgart.de/pub/unix/misc/slang/jed/v${VERSION:0:4}
+            ftp://ftp.fu-berlin.de/pub/unix/editors/jed/v${VERSION:0:4}
+            ftp://ftp.ntua.gr/pub/lang/slang/jed/v${VERSION:0:4}"
+  HOMEPAGE="http://www.jedsoft.org/jed"
+       REQ=( "slang"
+             "x11:--with-x::for xjed" )
+  ESTIMATE="151"
+      DESC="jed is a powerful editor with both terminal and X11 interfaces.
+Color syntax highlighting is one of its strong suits,
+along with emulation of GNU Emacs, Wordstar, EDT and Brief.
+It also supports use of GPM on Linux consoles.
+Jed has a multitude of programming modes and couples
+with the Slang library for powerful extensions."
+
+build() {
+	cp  $SCRIPT_DIR/jed.rc lib   &&
+	JED_ROOT=/var/lib/jed        \
+	./configure  --build=$BUILD  \
+	--prefix=/usr   &&
+	make                         &&
+	make  getmail		 &&
+	if    echo      "$OPTS"      |
+		grep  -q  "\--with-x"
+	then  make  xjed
+	fi    &&
+	make  install
+}
+

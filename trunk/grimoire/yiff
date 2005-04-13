@@ -1,0 +1,30 @@
+   VERSION=( "2.14.2" "2.14.1" )
+  CATEGORY="audio game"
+ ATTRIBUTE="library"
+    SOURCE="yiff-$VERSION.tar.bz2"
+       URL="ftp://wolfpack.twu.net/users/wolfpack"
+  HOMEPAGE="http://wolfpack.twu.net/YIFF"
+       REQ="gtk+-v1.2"
+  ESTIMATE="116"
+      DESC="yiff is a network transparent multiclient sound server.
+yiff is a network transparent multiclient
+sound server for Linux games and applications.
+The YIFF server comes with a GUI
+interface and a documented library.
+It gives you full control over the sound card,
+including explicit cycle rate tunning, mizers
+if any, and buffer fragmentation sizes."
+
+
+build() {
+	case  $VERSION  in
+		2.14.2)  patch  -p1  <  $SCRIPT_DIR/yiff-2.14.2.patch  ;;
+	esac
+
+	CF="CFLAGS=$CFLAGS $(  gtk-config --cflags  )"
+
+	make    linux    "$CF"  &&
+	prepare_install  &&
+	make    install
+}
+

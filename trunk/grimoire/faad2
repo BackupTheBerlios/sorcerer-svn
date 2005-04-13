@@ -1,0 +1,28 @@
+   VERSION=( "2.0" "1.1" )
+    IGNORE="2003\|rc"
+  CATEGORY="audio"
+ ATTRIBUTE="console"
+    SOURCE="faac/faad2-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+#      URL="http://faac.sourceforge.net/files"
+  HOMEPAGE="http://faac.sourceforge.net"
+       REQ=( "automake libsndfile libtool id3lib"
+             "xmms:--with-xmms:--without-xmms:to compile XMMS plugins"
+             ":--with-drm:--without-drm:to compile libfaad with DRM support"
+             ":--with-mp4v2:--without-mp4v2:to compile libmp4v2" )
+  ESTIMATE="1183"
+      DESC="faad2 is the freeware advanced audio decoder 2."
+			
+build() {
+	case  $VERSION  in
+		1.1)  patch  -p1  <  $SCRIPT_DIR/faad2-1.1.patch  ;;
+		2.0)  patch  -p1  <  $SCRIPT_DIR/faad2-2.0.patch
+					sed    -i      "2,9d"  Makefile.am  ;;
+	esac
+
+	# ./bootstrap
+	autoreconf -vif
+	# sed  -i  "600,605d"  Makefile
+	default_build
+}
+

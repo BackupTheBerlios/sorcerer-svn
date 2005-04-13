@@ -1,0 +1,26 @@
+   VERSION=( "2.0.0" "1.0.2" "1.0.1" )
+  CATEGORY="file-system"
+ ATTRIBUTE="console"
+    SOURCE="ms-sys/ms-sys-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://ms-sys.sourceforge.net"
+  ESTIMATE="27"
+      DESC="ms-sys installs Microsoft compatibile boot records.
+ms-sys does the same as Microsoft's fdisk /mbr
+to a hard disk or sys d: to a floppy or FAT32 partition,
+except that it does not copy any system files
+(only the boot record is written)."
+
+build() {
+	case  $VERSION  in
+		2.0.0)  patch  -p1  <  $SCRIPT_DIR/ms-sys-2.0.0-linux-2.6.patch  ;;
+	esac
+
+	sed  -i  "s:/usr/local:/usr:"                           Makefile
+	sed  -i  "s:EXTRA_CFLAGS =:EXTRA_CFLAGS = $CFLAGS:"     Makefile
+	sed  -i  "s?EXTRA_LDFLAGS =?EXTRA_LDFLAGS = $LDFLAGS?"  Makefile
+
+	make  &&
+	make  install
+}
+

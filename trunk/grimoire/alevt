@@ -1,0 +1,35 @@
+   VERSION=( "1.6.1" "1.6.0" )
+  CATEGORY="television"
+ ATTRIBUTE="x11"
+    SOURCE="alevt-$VERSION.tar.gz"
+  HOMEPAGE="http://www.goron.de/~froese"
+       URL="http://www.goron.de/~froese/alevt
+            http://www.ibiblio.org/pub/Linux/apps/video"
+       REQ="libpng x11"
+  ESTIMATE="52"
+      DESC="alevt is a teletext/videotext decoder and browser for the bttv driver (/dev/vbi) and X11.
+
+alevt is a teletext/videotext decoder and 
+browser for the bttv driver (/dev/vbi) and X11.
+It features multiple windows, a page cache, 
+regexp searching, built-in manual, and more.
+There's also a program to get the time from teletext 
+and one to capture teletext pages from scripts.
+"
+
+build() {
+	case  $VERSION  in
+		1.6.0)  patch  -p1  <  $SCRIPT_DIR/alevt-1.6.0.patch  ;;
+	esac
+
+	USAM="/usr/share/applnk/Multimedia"
+
+	sed  -i  "s:usr/local:usr:"   Makefile
+	sed  -i  "s:-O2 -s:$CFLAGS:"  Makefile
+	make           &&
+	make  install  &&
+	mkdir  -p                      $USAM  &&
+	cp  $SCRIPT_DIR/AleVT.desktop  $USAM
+}
+
+

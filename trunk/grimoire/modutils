@@ -1,0 +1,45 @@
+   VERSION=( "2.4.27" "2.4.26" "2.4.25" "2.4.24" "2.4.23" "2.4.22" )
+  CATEGORY="kernel"
+ ATTRIBUTE="core console"
+    SOURCE="pub/linux/utils/kernel/modutils/v2.4/modutils-$VERSION.tar.bz2"
+  HOMEPAGE="ftp://ftp.kernel.org/pub/linux/utils/kernel/modutils/v2.4"
+       URL="$KERNEL_URL"
+   EXCLUDE="/etc/modprobe.conf
+            /etc/modules
+            /etc/modules.conf"
+  EPROVIDE="linux-module-tools"
+  ESTIMATE="154"
+      DESC="modutils contains utilities essential for a modular Linux kernel."
+
+mod_conf_message()  {
+  echo  "
+	Customize /etc/modules.conf
+	List all modules that should load
+	during boot in /etc/modules
+	Execute depmod."
+}
+
+install_conf()  {
+
+  mod_conf_message
+  cp     $SCRIPT_DIR/modutils.sh  /etc/init.d
+  ln  -sf  ../init.d/modutils.sh  /etc/rcS.d/S20modutils
+
+  mkdir  -p  /etc/modules.d
+
+  #  /etc/modules and /etc/modules.conf
+  #  are files excluded from install logs.
+
+  touch  /etc/modules  /etc/modules.conf
+
+}
+
+##########################################################33
+build() {
+	./configure  --build=$BUILD  &&
+	make                         &&
+	prepare_install              &&
+	make    install              &&
+	install_conf
+}
+

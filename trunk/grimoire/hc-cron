@@ -1,0 +1,47 @@
+   VERSION=( "0.14" )
+    IGNORE="^0\.85\|^0\.86"
+  CATEGORY="time"
+ ATTRIBUTE="console"
+    SOURCE="hc-cron-$VERSION.tar.bz2"
+       URL="ftp://ftp.berlios.de/pub/hc-cron"
+  HOMEPAGE="ftp://ftp.berlios.de/pub/hc-cron"
+  EPROVIDE="cron"
+       REQ="mutt"
+ FRESHMEAT="hc-cron"
+   ESTIMATE="25"
+      DESC="hc-cron is a modified vixie cron periodic scheduler
+hc-cron is a cron daemon for 'home computers'.
+It runs specified jobs at periodic intervals and will remember
+the time when it was shut down and catch up jobs that have
+occurred during down time when it is started again.
+Hc-cron is based on the widely used vixie-cron and
+uses the same crontab format so that it can be used
+as a drop-in replacement for that program."
+
+build() {
+	install_init()  {
+		cp  $SCRIPT_DIR/crond.sh        /etc/init.d
+		ln     -sf  ../init.d/crond.sh  /etc/rcS.d/S80crond
+		ln     -sf  ../init.d/crond.sh  /etc/rc0.d/K20crond
+		ln     -sf  ../init.d/crond.sh  /etc/rc6.d/K20crond
+	}
+
+	cp   compat.h  compat.h.old          &&
+	sed  "s/SYS_TIME_H 1/SYS_TIME_H 0/"  \
+	compat.h.old > compat.h         &&
+	make                                 &&
+	prepare_install                      &&
+	make    install                      &&
+	install_init
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/crond.sh  start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/crond.sh  stop
+}
+

@@ -1,0 +1,74 @@
+inherit glibc
+unset  SOURCE  URL  REQ
+  CATEGORY="i18n"
+ ATTRIBUTE="data"
+    ASSUME="off"
+  EPROVIDE="glibc,locales"
+  ESTIMATE="5"
+      DESC="glibc-locales provides locale databases for translating messages."
+
+
+			
+locales_checklist()  { 
+  cat  $SCRIPT_DIR/locales  |
+  while  read  LC  DESCRIPTION;  do
+    echo  "$LC"
+    echo  "$DESCRIPTION"
+    echo  "off"
+  done
+}
+
+
+select_locales()  {
+
+  BACKTITLE="Glibc Locale Configuration Menu"
+      TITLE="Locale Selection"
+       HELP="Translated messages are automatically installed, 
+but the locale database that controls other behavior is not.  
+Please select desired locale or locales.
+If none are selected then all will be installed."
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --separate-output          \
+          --checklist  "$HELP"       \
+          0 0 0                      \
+          $(  locales_checklist  )
+
+}
+
+configure() {
+
+
+	if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null;  then
+		(
+		export  IFS=$'\n'
+		if    query  "Select individual locales?"  n
+		then  LOCALES="$(  select_locales  )"
+		fi
+
+		ALL_LOCALES="$(  cat  $SCRIPT_DIR/locales  |  cut  -f1  )"
+		if    [  -n  "$LOCALES"  ]
+		then  echo    "LOCALES=\"$LOCALES\""      >  $SPELL_CONFIG
+		else  echo    "LOCALES=\"$ALL_LOCALES\""  >  $SPELL_CONFIG
+		fi
+		)
+	fi
+}
+
+build() {
+	prepare_install
+	rm     -rf  /usr/lib/locale
+	mkdir  -p   /usr/lib/locale
+	echo  "$LOCALES"  |
+	while  read  LC;  do
+		NAME="$(  echo  $LC  |  cut  -d /  -f1  )"
+		CHARMAP="$(  echo  $LC  |  cut  -d /  -f2  )"
+		echo       -n  "$NAME.$CHARMAP..."
+		localedef  -i   $NAME  -c  -f $CHARMAP  $NAME
+		echo           " done"
+	done
+	touch  /usr/lib/locale/locale-archive
+}
+

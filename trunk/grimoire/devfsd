@@ -1,0 +1,42 @@
+   VERSION=( "1.3.25" )
+  CATEGORY="utility"
+ ATTRIBUTE="console"
+    SOURCE="devfsd-v$VERSION.tar.gz"
+        URL="ftp://ftp.atnf.csiro.au/pub/people/rgooch/linux/daemons/devfsd
+           ftp://ftp.ras.ucalgary.ca/pub/people/rgooch/linux/daemons/devfsd"
+  HOMEPAGE="http://www.atnf.csiro.au/people/rgooch/linux"
+   EXCLUDE="/dev
+            /devices"
+   ESTIMATE="17"
+      DESC="devfsd provides configurable management of device nodes using the Linux Device Filesystem."
+
+build() {
+	install_init()  {
+
+		cp  $SCRIPT_DIR/devfsd.sh     /etc/init.d
+		ln  -sf  ../init.d/devfsd.sh  /etc/rc0.d/K85devfsd 
+		ln  -sf  ../init.d/devfsd.sh  /etc/rc6.d/K85devfsd  
+		ln  -sf  ../init.d/devfsd.sh  /etc/rcS.d/S15devfsd
+
+	}
+
+	sed  -i  "s:-O2:$CFLAGS:"  GNUmakefile
+	make             &&
+	prepare_install  &&
+	make    install  &&
+	install_init
+}
+
+post_install() {
+	default_post_install
+	[  -x  /usr/sbin/sorcerer.install  ]  ||
+	/etc/init.d/devfsd.sh  start
+	true
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/devfsd.sh  stop
+	true
+}
+

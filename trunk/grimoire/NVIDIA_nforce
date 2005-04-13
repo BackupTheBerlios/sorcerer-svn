@@ -1,0 +1,43 @@
+   VERSION=( "1.0-0292" "1.0-0261" "1.0-0256" )
+  CATEGORY="audio network kernel"
+ ATTRIBUTE="x86"
+#   SOURCE="NVIDIA_nforce-${VERSION}"
+    SOURCE="NFORCE-Linux-x86-$VERSION-pkg1.run"
+disable archive
+disable necropolis
+       URL="http://download.nvidia.com/XFree86/nforce/${VERSION}"
+  HOMEPAGE="http://www.nvidia.com"
+       REQ="mktemp"
+      DESC="NVIDIA_nforce contains audio & NIC drivers for NForce1/2-based motherboards.
+NVIDIA_nforce contains network driver and an
+audio driver, then place them in the appropriate
+locations for loadable kernel modules.
+The network driver is from NVIDIA, the audio driver
+is based on the open source i810 audio driver but
+has been modified to work with NVIDIA hardware."
+
+fix_source_files()  {
+	sed  -i "s:if(REMAP_NEW):if(!REMAP_NEW):"            nvsound/main/nvmain.c
+	sed  -i "s:priv->pdev, priv->pci_state:priv->pdev:"         nvnet/nvenet.c
+}
+
+
+##########################################################
+pre_build()  {
+		cd  $BUILD_DIR
+			bash -- $(  guess_filename  $SOURCE  )  --extract-only
+}
+
+build() {
+
+
+		LV=$(  installed_version  linux  )
+
+			[  -d  NFORCE-Linux-x86-$VERSION-pkg1 ]  &&
+			cd     NFORCE-Linux-x86-$VERSION-pkg1 ]  &&
+			fix_source_files                         &&
+			prepare_install                          &&
+			./nforce-installer  -a  -q  -s           \
+			--ui=none            \
+			--kernel-name=$LV
+}

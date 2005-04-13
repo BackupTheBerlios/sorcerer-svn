@@ -1,0 +1,84 @@
+   VERSION=( "2.8.0.4" "2.8.0.3" "2.8.0.2" "2.8.0-0" "2.4.6-8" )
+  CATEGORY="web"
+ ATTRIBUTE="server"
+#   SOURCE="2/Stable/DansGuardian-$VERSION.source.tar.gz"
+    SOURCE="2/Stable/dansguardian-$VERSION.source.tar.gz"
+  HOMEPAGE="http://dansguardian.org"
+       URL="http://mirror.dansguardian.org/downloads
+            http://dansguardian.niesc.com/downloads
+	    http://mirror3.dansguardian.org/downloads
+	    http://dansguardian.origintech.net/downloads
+	    http://sun.dansguardian.org/downloads
+	    http://dansguardian.org/downloads
+	    http://mirror2.dansguardian.org/downloads
+	    http://dansguardian.learnpoint.fi/downloads
+	    http://ukmirror.dansguardian.org/downloads
+	    http://dansguardian.ababa.org/downloads
+	    http://parent.dansguardian.org/downloads"
+       REQ=( "zlib"
+             ":DG_BOOT::Invoke during boot"
+           )
+  ESTIMATE="42"
+ FRESHMEAT="dansguardian"
+      DESC="DansGuardian is a censorship web proxy.
+
+DansGuardian is not free for commercial use.
+DansGuardian is a web content filter.
+It filters the actual content of pages 
+based on many methods including phrase matching, 
+PICS filtering and URL filtering.
+It does not purely filter based on a banned list 
+of sites like lesser totally commercial filters.
+DansGuardian is designed to be completely flexible 
+and allows you to tailor the filtering to your exact needs.
+It can be as draconian or as unobstructive as you want.
+The default settings are geared towards what a primay 
+school might want but DansGuardian puts you in control
+of what you want to block.
+DansGuardian is a true web content filter. 
+---
+It needs running web (eg. httpd) & proxy (eg. squid) 
+servers in order to function.
+Also consider putting a line like :
+0 3 * * sun /etc/dansguardian/logrotation
+in root's crontab to rotate the logs once a week."
+
+build() {
+	./configure  --sysvdir=/etc/init.d/               \
+							 --cgidir=/usr/share/httpd/cgi-bin/   \
+							 --runas_usr=nobody                   \
+							 --runas_grp=nogroup                  &&
+	make         OPTIMISE="$CFLAGS"                   &&
+	prepare_install                                   &&
+	make    install                                   &&
+
+	# replace the redhatish init script
+	cp  -f  $SCRIPT_DIR/dansguardian.init             \
+					/etc/init.d/dansguardian                  &&
+
+	if  [  "$DG_BOOT"  ==  "true"  ]  ||
+			echo  "$OPTS"  |  grep  -q  "DG_BOOT"
+	then
+		ln  -sf  ../init.d/dansguardian  /etc/rc0.d/K35dansguardian
+		ln  -sf  ../init.d/dansguardian  /etc/rc1.d/K35dansguardian
+		ln  -sf  ../init.d/dansguardian  /etc/rc2.d/K35dansguardian
+		ln  -sf  ../init.d/dansguardian  /etc/rc6.d/K35dansguardian
+
+		ln  -sf  ../init.d/dansguardian  /etc/rc3.d/S92dansguardian
+		ln  -sf  ../init.d/dansguardian  /etc/rc4.d/S92dansguardian
+		ln  -sf  ../init.d/dansguardian  /etc/rc5.d/S92dansguardian
+	fi
+}
+
+post_install() {
+	default_post_install
+	if  $DG_BOOT  
+	then  /etc/init.d/dansguardian  start 
+	fi  
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/dansguardian  stop
+}
+

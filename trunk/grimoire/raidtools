@@ -1,0 +1,41 @@
+   VERSION=( "1.00.3" )
+  CATEGORY="disk utility"
+ ATTRIBUTE="console"
+    SOURCE="raidtools-$VERSION.tar.gz"
+       URL="http://people.redhat.com/mingo/raidtools"
+  HOMEPAGE="http://people.redhat.com/mingo/raidtools"
+       REQ="popt"
+  ESTIMATE="42"
+      DESC="raidtools provide RAID 0/1/4/5 utilities.
+raidtools package includes the system utilities
+required to set up and maintain a software RAID device
+(using two or more disk drives in combination for fault
+tolerance and improved performance) on a Linux system."
+
+missing_include()  {
+  patch  -p1  <  $SCRIPT_DIR/raidtools-1.00.3-linux-2.6.patch
+}
+  
+  
+what_linux_ver()  {
+  case  $(  installed_version  $(  get_provider linux-kernel  )  )  in
+    2.6*)  missing_include  ;;
+  esac
+}
+ 
+###########################################333
+build() {
+	case  $VERSION  in
+		1.00.3)  patch  -p1  <  $SCRIPT_DIR/raidtools-1.00.3.patch
+						 what_linux_ver  ;;
+	esac
+
+	sed  -i  "s:-Wl,-Bstatic::"  Makefile.in
+	./configure  --prefix=/usr         \
+							 --sysconfdir=/etc     \
+							 --localstatedir=/var  \
+							 $OPTS                 &&
+	make  CFLAGS="${CFLAGS} -DMD_VERSION=\\\"${VERSION}\\\""  &&
+	make  install
+}
+

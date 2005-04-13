@@ -1,0 +1,28 @@
+   VERSION=( "0.75" )
+  CATEGORY="utility db"
+ ATTRIBUTE="console"
+    SOURCE="cdb-$VERSION.tar.gz"
+       URL="http://cr.yp.to/cdb"
+  HOMEPAGE="http://cr.yp.to/cdb.html"
+      DESC="cdb is a fast, reliable, lightweight package for creating and reading constant databases.
+cdb is a fast, reliable, lightweight package for creating and reading
+constant databases. It features fast lookups, low overhead, no random
+limits, fast atomic database replacement, and fast database dumps.
+cdb is designed to be used in mission-critical applications like email.
+Database replacement is safe against system crashes. Readers don't have
+to pause during a rewrite."
+
+build() {
+	echo  "gcc ${CFLAGS}"  >  conf-cc
+	echo  "/usr/"          >  conf-home
+	echo  "gcc"            >  conf-ld
+
+	case  $VERSION  in
+		0.75)  patch  -p0  <  $SCRIPT_DIR/cdb-0.75-errno.patch
+	esac
+
+	make              &&
+	prepare_install   &&
+	make setup check
+}
+

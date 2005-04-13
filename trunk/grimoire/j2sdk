@@ -1,0 +1,59 @@
+   VERSION=( "1.4.2-rc1-linux-i586-gcc3.2" "1.4.1-01-linux-i586-gcc3.2" "1.4.1-beta-linux-i586" "1.3.1" )
+  CATEGORY="interpreter"
+ ATTRIBUTE="x11 noheal x86 broken"
+# cast jdk instead.
+# 1.4.2 requires obsolete libstdc++.so.5
+#   SOURCE="JDK-${VERSION:0:5}/i386/${VERSION:6:2}/j2sdk-${VERSION}.bin"
+    SOURCE="j2sdk-$VERSION.bin"
+       DIR="j2sdk${VERSION:0:5}"
+  HOMEPAGE="http://www.blackdown.org/java-linux/java2-status"
+#      URL="$J2SDK_URL"
+       URL="ftp://ftp.tux.org/pub/java/JDK-1.4.2/i386/rc1"
+       REQ="gtk+-v1.2 unixODBC"
+# XFree86 -> perl -> db -> j2sdk -> gtk+-v1.2 -> XFree86
+# but db no longer optionally requires j2sdk
+     AVOID="XFree86 db x11 xfree86"
+   ARCHIVE="off"
+ FRESHMEAT="j2se"
+  ESTIMATE="2125"
+  EPROVIDE="java"
+      DESC="j2sdk is the Blackdown port of Sun's Java virtual machine.
+j2sdk is the Java 2 Standard Edition (J2SE) is a 
+feature complete development and deployment platform.
+Blackdown provides both a SDK (J2SDK, formerly known as JDK) 
+and a runtime  environment (J2RE) for Linux on various 
+architectures (ix86, Sparc, PPC, S/390, ARM, m68k).
+Both the J2SDK and the J2RE contain the Java Plug-In 
+for Netscape 4.x and Mozilla/Netscape 6.x."
+
+pre_build()  {
+	FN=$(  guess_filename  $SOURCE  )
+	SKIP=$(  grep -a    "skip="  $FN  |
+	sed      "s:skip=::"     )
+
+	tail  -n +$SKIP  $FN  |
+	bzip2  -cd            |
+	tar    -xf  -
+}
+
+build() {
+	DEST_DIR="/opt/j2sdk/$VERSION"
+	MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so"
+	MOZ_PDIR="/usr/lib/mozilla/plugins"
+
+	prepare_install                          &&
+	mkdir  -p                 $DEST_DIR      &&
+	cp     -R   $BUILD_DIR/*  $DEST_DIR      &&
+	cd                        $DEST_DIR/bin  &&
+	for  FILE  in  *;  do
+		if    [  -f     $FILE  ]  &&
+			[  -x     $FILE  ]
+		then  ln  -sfv  $DEST_DIR/bin/${FILE}  \
+			/usr/bin/${FILE}
+		fi
+	done  &&
+
+	if    [   -d               $MOZ_PDIR  ]
+	then  ln  -vsf  $MOZ_PLUG  $MOZ_PDIR/libjavaplugin_oji.so
+	fi
+}

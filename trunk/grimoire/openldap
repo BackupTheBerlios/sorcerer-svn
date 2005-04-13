@@ -1,0 +1,66 @@
+   VERSION=( "2.2.24" "2.2.23" "2.2.22" "2.2.21" "2.2.20" )
+  CATEGORY="utility"
+ ATTRIBUTE="console"
+    SOURCE="openldap-release/openldap-$VERSION.tgz"
+  HOMEPAGE="http://www.openldap.org"
+       URL="ftp://ftp.openldap.org/pub/OpenLDAP
+            http://www.planetmirror.com/pub/openldap
+            ftp://gd.tuwien.ac.at/infosys/network/OpenLDAP
+            ftp://ftp.ucr.ac.cr/pub/Unix/openldap
+            ftp://ftp.ntua.gr/mirror/OpenLDAP
+            ftp://ftp.dti.ad.jp/pub/net/OpenLDAP
+            ftp://ftp.u-aizu.ac.jp/pub/net/openldap
+            ftp://ftp.nl.uu.net/pub/unix/db/openldap
+            ftp://ftp.plug.pt/pub/OpenLDAP
+            ftp://ftp.si.uniovi.es/mirror/OpenLDAP
+            ftp://sunsite.cnlab-switch.ch/mirror/OpenLDAP
+            ftp://ftp.net.lut.ac.uk/openldap           
+            ftp://ftp.plig.org/pub/OpenLDAP
+            http://www.openldap.org/software/download/OpenLDAP"
+       REQ=( "cyrus-sasl db libtool ncurses openssl" )
+#            "heimdal:--with-kerberos:--without-kerberos:for keberos support" )
+# Enabling heimdal as optional requirement creates recursive requirement loop
+# maybe this has requirement on freetype, but maybe it does not?
+#   "heimdal:--with-kerberos:--without-kerberos:for kerberos 5 authentication"
+# Optional requirement on heimdal creates recursive 
+# requirement loop between hemidal and openldap.
+  ESTIMATE="1548"
+      DESC="openldap is a fully featured open source LDAP software suite.
+openldap is a fully featured open source LDAP software suite.
+OpenLDAP Software provides a complete LDAP implementation including
+server, clients, C SDK, and associated tools."
+
+old_build()  {
+	if    is_installed heimdal
+	then  OPTS="$OPTS --with-kerberos"
+	fi
+	default_build
+}
+
+build() {
+	#             --enable-bdb          \
+	#             --with-bdb-module=dynamic  \
+	#             --enable-dnssrv       \
+	#             --with-dnssrv-module=dynamic
+	# can build dynamic modules advantageous
+	# for binary based distros, but probably not sorcerer.
+
+	./configure  --build=$BUILD        \
+	             --prefix=/usr         \
+							 --sysconfdir=/etc     \
+							 --localstatedir=/var  \
+							 --enable-shell        \
+							 --enable-dynamic      \
+							 --enable-modules=yes  \
+							 $OPTS                 &&
+	make                               &&
+	make  install
+}
+
+post_install() {
+	default_post_install
+	if    [  -x  /etc/init.d/slapd  ]
+	then         /etc/init.d/slapd  restart
+	fi
+}
+

@@ -1,0 +1,64 @@
+   VERSION=( "2.1a" )
+    IGNORE="^2001"
+  CATEGORY="file-transfer"
+ ATTRIBUTE="console"
+    SOURCE="sendfile-$VERSION.tar.gz"
+       URL="ftp://ftp.belwue.de/pub/unix/sendfile"
+  HOMEPAGE="http://www.belwue.de/aktivitaeten/projekte/saft/index-us.html"
+       REQ=( "" "xinetd:::for running server" )
+ FRESHMEAT="saftsendfile"
+      DESC="sendfile is a simple asynchronous file transfer program.
+Sendfile is a SAFT implementation for UNIX and serves 
+as a tool for asynchronous transfer of files through 
+the Internet which conserves file attributes.
+The sendfile client transfers files to the 
+sendfile daemon of the recipient's host.
+The sendfiled takes the files, 
+stores them in a local spool area, 
+and informs the recipient that files have been spooled.
+The recipient can then invoke the receive client which 
+will copy the files into the local directory, 
+deleting the file from the spool area."
+
+make_install()  {
+
+  cp  src/ewl          /usr/bin
+  cp  src/fetchfile    /usr/bin
+  cp  src/pussy        /usr/bin
+  cp  src/receive      /usr/bin
+  cp  src/sendfile     /usr/bin
+  cp  src/sendfiled    /usr/sbin
+  cp  src/sendmsg      /usr/bin
+  cp  src/utf7encode   /usr/bin
+  cp  src/wlock        /usr/bin
+  cp  etc/sf_cleanup   /usr/bin
+  cp  etc/sfconf       /usr/bin
+  cp  etc/sfdconf      /usr/bin
+  ln  -sf  utf7encode  /usr/bin/utf7decode
+  ln  -sf  sendfile    /usr/bin/sf
+  ln  -sf  receive     /usr/bin/rf
+  ln  -sf  sendmsg     /usr/bin/sm
+
+  if  !  [  -f  /etc/sendfile.cf  ];  then
+    cp  etc/sendfile.cf  /etc
+  fi
+
+  if  !  [  -f  /etc/sendfile.deny  ];  then
+    cp  etc/sendfile.deny  /etc
+  fi
+
+}
+
+##############################################33
+build() {
+	cp    makeconfig           makeconfig.original
+	sed  "s:/usr/local:/usr:"  makeconfig.original  >  makeconfig
+
+	./makeconfig  CONFIG=/etc          \
+								INETDCONF=/dev/null  \
+								SERVICES=/dev/null   &&
+	make                               &&
+	prepare_install                    &&
+	make_install
+}
+

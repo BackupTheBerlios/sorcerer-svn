@@ -1,0 +1,107 @@
+   VERSION=( "9.3.1" "9.3.0" "9.2.3" "9.2.2-P3" "9.2.2" "9.2.1" )
+  CATEGORY="dns network"
+ ATTRIBUTE="console client server"
+    SOURCE="bind9/$VERSION/bind-$VERSION.tar.gz"
+       URL="ftp://ftp.isc.org/isc"
+#      URL="$ISC_URL"
+  HOMEPAGE="http://www.isc.org/products/BIND"
+       REQ="openssl"
+   PROTECT="/etc/bind/rndc.key
+            /etc/rndc.conf
+            /etc/rndc.key"
+  ESTIMATE="646"
+      DESC="bind contains a DNS server and dig
+bind (Berkeley Internet Name Domain) is an implementation
+of the Domain Name System (DNS) protocols and provides an
+openly redistributable reference implementation of the
+major components of the Domain Name System, including:
+
+* a Domain Name System server (named)
+* a Domain Name System resolver library
+* tools for verifying the proper operation of the DNS server"
+
+configure() {
+	if  !  grep  -q  "BIND_BOOT="  $SPELL_CONFIG;  then
+
+		if    query  "Invoke BIND at boot?" n
+		then  echo   "BIND_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo   "BIND_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+
+	fi
+}
+
+build() {
+	man_install()  {
+
+		for  DIRECTORY in doc/man/*;  do
+			for  (( COUNT=1 ; COUNT < 9 ; COUNT++ )); do
+				cp  $DIRECTORY/*.$COUNT  /usr/man/man$COUNT  2> /dev/null
+			done
+		done
+
+	}
+
+
+	conf_install()  {
+
+		SNC="$SCRIPT_DIR/named.conf"
+		SNR="$SCRIPT_DIR/named.root"
+		RES="$SCRIPT_DIR/resolv.conf"
+
+		[  -d  /etc/bind             ]  ||  mkdir     /etc/bind
+		[  -e  /etc/bind/named.conf  ]  ||  cp  $SNC  /etc/bind
+		[  -e  /etc/bind/named.root  ]  ||  cp  $SNR  /etc/bind
+		[  -e  /etc/resolv.conf      ]  ||  cp  $RES  /etc
+		[  -e  /etc/bind/rndc.key    ]  ||  rndc-confgen  -a
+
+		chown  -R  bind:bind  /etc/bind
+
+	}
+
+
+	init_install()  {
+
+		cp  $SCRIPT_DIR/named.sh     /etc/init.d
+
+		if  $BIND_BOOT;  then
+			ln  -sf  ../init.d/named.sh  /etc/rc0.d/K50named
+			ln  -sf  ../init.d/named.sh  /etc/rc6.d/K50named
+
+			ln  -sf  ../init.d/named.sh  /etc/rc1.d/S35named
+			ln  -sf  ../init.d/named.sh  /etc/rc2.d/S35named
+			ln  -sf  ../init.d/named.sh  /etc/rc3.d/S35named
+			ln  -sf  ../init.d/named.sh  /etc/rc4.d/S35named
+			ln  -sf  ../init.d/named.sh  /etc/rc5.d/S35named
+		fi
+
+	}
+
+
+	groupadd  bind            2>/dev/null
+	useradd   bind  -g  bind  2>/dev/null
+
+	./configure  --prefix=/usr           \
+	             --sysconfdir=/etc/bind  \
+	             --localstatedir=/var    &&
+	make                                 &&
+	prepare_install                      &&
+	make    install                      &&
+	conf_install                      &&
+	init_install
+}
+
+post_install() {
+	default_post_install
+	if    [  -x  /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named  ]
+	then         /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named start
+	fi
+}
+
+pre_remove() {
+	default_pre_remove
+	if    [  -x  /etc/init.d/named.sh  ]
+	then         /etc/init.d/named.sh  stop
+	fi
+}
+

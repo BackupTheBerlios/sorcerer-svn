@@ -1,0 +1,46 @@
+   VERSION=( "2.6.2" )
+  CATEGORY="ftp"
+ ATTRIBUTE="server console"
+    SOURCE=( "wu-ftpd-$VERSION.tar.gz"
+             "connect-dos.patch"
+             "realpath.patch"
+             "skeychallenge.patch" )
+       URL=( "ftp://ftp.wu-ftpd.org/pub/wu-ftpd"
+             "ftp://ftp.wu-ftpd.org/pub/wu-ftpd/patches/apply_to_current" )
+  HOMEPAGE="http://www.wu-ftpd.org"
+  EPROVIDE="ftpd"
+       REQ=( "bison-v1.35 xinetd"
+             "Linux-PAM:--enable-pam::for pluggable authentication" )
+  ESTIMATE="193"
+      DESC="wu-ftpd is a FTP server.
+WU-FTPD's features include logging of transfers, 
+logging of commands, on the fly compression and archiving, 
+classification of users' type and location, per class limits, 
+per directory upload permissions, restricted guest accounts, 
+system wide and per directory messages, directory aliases, 
+cdpath, filename filters, and virtual host support."
+
+build() {
+	case  $VERSION  in
+		2.6.2)  patch  -p0  <  $(  guess_filename  "${SOURCE[1]}"  )
+		patch  -p0  <  $(  guess_filename  "${SOURCE[2]}"  )
+		patch  -p1  <  $(  guess_filename  "${SOURCE[3]}"  )
+		echo  "skeychallenge.patch applied."
+		;;
+	esac
+
+	export  PATH="/opt/bison/1.35/bin:$PATH"
+	./configure  --build=$BUILD        \
+	--prefix=/usr         \
+	--sysconfdir=/etc     \
+	--localstatedir=/var  \
+	--enable-chmod        \
+	--enable-passwd       \
+	--disable-daemon      \
+	--enable-ls           \
+	--disable-hidesetuid  \
+	$OPTS                 &&
+	make                               &&
+	make  install
+}
+

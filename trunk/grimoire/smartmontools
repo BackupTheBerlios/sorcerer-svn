@@ -1,0 +1,29 @@
+   VERSION=( "5.33" "5.32" "5.31" "5.30" )
+  CATEGORY="disk utility"
+ ATTRIBUTE="console"
+  HOMEPAGE="http://smartmontools.sourceforge.net"
+    SOURCE="smartmontools/smartmontools-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  ESTIMATE="32"
+      DESC="smartmontools is a hard drive utility toolset.
+smartmontools contains two utility programs 
+(smartctl and smartd) to control and monitor storage 
+systems using the Self-Monitoring, Analysis and Reporting 
+Technology System (S.M.A.R.T.) built into most modern ATA 
+and SCSI hard disks.
+It is derived from the smartsuite package, 
+and includes  support for ATA/ATAPI-5 disks."
+
+build() {
+	init_script()  {
+		cp  -f  $SCRIPT_DIR/smartd.init  \
+		/etc/init.d/smartd       
+		ln  -sf   ../init.d/smartd  /etc/rcS.d/S30smartd
+		ln  -sf   ../init.d/smartd  /etc/rc0.d/K70smartd
+		ln  -sf   ../init.d/smartd  /etc/rc6.d/K70smartd
+	}
+
+	default_build  &&
+	init_script
+}
+

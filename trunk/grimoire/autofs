@@ -1,0 +1,85 @@
+   VERSION=( "4.1.4" "4.1.3" "4.1.2" "4.1.1" "4.1.0" )
+    IGNORE="module\|deb\|beta"
+  CATEGORY="disk"
+ ATTRIBUTE="console"
+    SOURCE="pub/linux/daemons/autofs/v4/autofs-$VERSION.tar.bz2"
+       URL="$KERNEL_URL"
+  HOMEPAGE="ftp://ftp.kernel.org/pub/linux/daemons/autofs/testing-v4"
+       REQ="mktemp openldap"
+  ESTIMATE="88"
+      DESC="autofs is the kernel automounter userspace daemon.
+autofs is a kernel-based automounter for Linux.
+It performs a job similar to amd(8) but relies on a small
+stub of kernel code instead of pretending to be an NFS server.
+The result is simpler code, better reliability, and much faster
+operation in the common case (everything already mounted.)"
+
+build() {
+	finish_install()  {
+
+		if  [  !  -f   /etc/modules.d/autofs  ];  then
+			mkdir   -p   /etc/modules.d
+			cp           $SCRIPT_DIR/modules.d/*  /etc/modules.d
+		fi
+
+		MOD="/etc/modules.conf"
+		INC="include  /etc/modules.d/autofs"
+
+		grep    -q  "$INC"      $MOD  ||
+		echo        "$INC"  >>  $MOD
+		depmod  -a
+
+		#  for  FILE  in  auto.home auto.master auto.misc
+		#  do  [  -f  /etc/$FILE ]  ||  cp  $SCRIPT_DIR/$FILE  /etc
+		#  done
+
+		cp  $SCRIPT_DIR/autofs.sh        /etc/init.d/autofs
+
+		ln     -sf  ../init.d/autofs     /etc/rcS.d/S80autofs
+
+		ln     -sf  ../init.d/autofs     /etc/rc0.d/K20autofs
+		ln     -sf  ../init.d/autofs     /etc/rc6.d/K20autofs
+
+	}
+
+
+	DEFAULT_CFLAGS="CFLAGS    = -O3 -fomit-frame-pointer -Wall"
+	SA_CFLAGS="CFLAGS    = $CFLAGS  -Wall"
+
+	sed  -i  "s/$DEFAULT_CFLAGS/$SA_CFLAGS/"  Makefile.rules
+
+	chmod  a-x  samples/auto.net
+
+	./configure  --build=$BUILD        \
+								--prefix=/usr         \
+								--sysconfdir=/etc     \
+								--localstatedir=/var  \
+								$OPTS                 &&
+	make                               &&
+	prepare_install                    &&
+	make    install                    &&
+	finish_install
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/autofs start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/autofs stop
+}
+
+post_remove() {
+	default_post_remove
+	MOD="/etc/modules.conf"
+	TMP="/tmp/modules.conf"
+	INC="include  /etc/modules.d/autofs"
+
+	cp           $MOD   $TMP
+	grep    -v  "$INC"  $TMP  >  $MOD
+	rm                  $TMP
+	depmod  -a
+}
+

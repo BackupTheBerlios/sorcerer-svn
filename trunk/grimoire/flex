@@ -1,0 +1,40 @@
+#  VERSION=( "2.5.31" "2.5.4a" )
+#   SOURCE="lex/flex-$VERSION.tar.bz2"
+#      URL="$SOURCEFORGE_URL"
+# HOMEPAGE="http://lex.sourceforge.net"
+
+   VERSION=( "2.5.4a" )
+  CATEGORY="development"
+ ATTRIBUTE="console core"
+    SOURCE="non-gnu/flex/flex-$VERSION.tar.gz"
+  HOMEPAGE="http://www.gnu.org/software/flex/flex.html"
+       URL="$GNU_URL"
+  ESTIMATE="226"
+      DESC="flex is a fast lexical analyser generator.
+flex is a fast lexical analyser generator.
+It is a tool for generating programs
+that perform pattern-matching on text.
+There are many applications for Flex,
+including writing  compilers in
+conjunction with GNU Bison.
+Flex is a free implementation
+of the well known Lex program.
+It features a Lex compatibility mode,
+and also provides several new features
+such as exclusive start conditions."
+
+build() {
+	make_shared_lib()  {
+		ld  --whole-archive  -share  -o  $1.so.1  $1.a
+		ln  -sf  $1.so.1  $1.so
+	}
+
+	./configure  --build=$BUILD      \
+							 --prefix=/usr       \
+							 $OPTS               &&
+	make  "LDFLAGS=$LDFLAGS"         &&
+	make  install                    &&
+	# make_shared_lib  /usr/lib/libfl  &&
+	ln  -sf  flex    /usr/bin/lex
+}
+

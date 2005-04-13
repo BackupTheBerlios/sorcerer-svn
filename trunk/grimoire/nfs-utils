@@ -1,0 +1,98 @@
+   VERSION=( "1.0.6" "1.0.5" )
+      SAFE=( "1.0.6" "1.0.5" )
+    IGNORE="pre\|^1\.0\.7"
+# 1.0.7 has compile errors
+  CATEGORY="file-transfer"
+ ATTRIBUTE="console client server"
+    SOURCE="nfs/nfs-utils-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://sourceforge.net/projects/nfs"
+       REQ="libevent nfsidmap portmap"
+  ESTIMATE="207"
+      DESC="nfs-utils provides utilities for the NFS, Network File System.
+
+nfs-utils provides utilities for the NFS, Network File System.
+The Network File System (NFS) was developed to allow machines to mount
+a disk partition on a remote machine as if it were on a local hard drive.
+This allows for fast, seamless sharing of files across a network.
+
+It also gives the potential for unwanted people to
+access your hard drive over the network (and thereby
+possibly read your email and delete all your files as
+well as break into your system) if you set it up incorrectly.
+So please read the Security section of the NFS-HOWTO
+carefully if you intend to implement an NFS setup."
+
+
+######################################################33
+configure() {
+	if  !  grep  -q  "NFS_BOOT="  $SPELL_CONFIG;  then
+
+		if    query  "Invoke NFS at boot?"  n
+		then  echo   "NFS_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo   "NFS_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+
+		if    $NFS_BOOT
+		then  echo   "NFSLOCK_BOOT=false"  >>  $SPELL_CONFIG
+		elif  query  "Invoke NFSLOCK at boot?"  n
+		then  echo   "NFSLOCK_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo   "NFSLOCK_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+
+	fi
+}
+
+build() {
+	unalias  make
+
+	# export    CFLAGS="-I /usr/include/et $CFLAGS"
+	# export  CXXFLAGS="-I /usr/include/et $CXXFLAGS"
+
+	./configure  --prefix=/usr  &&
+	make                        &&
+	make  install               &&
+
+	cp  $SCRIPT_DIR/nfslock.sh  /etc/init.d  &&
+	cp  $SCRIPT_DIR/nfs.sh      /etc/init.d  &&
+
+	if    $NFS_BOOT;  then
+		ln  -sf  ../init.d/nfs.sh  /etc/rc0.d/K60nfs
+		ln  -sf  ../init.d/nfs.sh  /etc/rc1.d/K60nfs
+		ln  -sf  ../init.d/nfs.sh  /etc/rc2.d/K60nfs
+		ln  -sf  ../init.d/nfs.sh  /etc/rc6.d/K60nfs
+
+		ln  -sf  ../init.d/nfs.sh  /etc/rc3.d/S40nfs
+		ln  -sf  ../init.d/nfs.sh  /etc/rc4.d/S40nfs
+		ln  -sf  ../init.d/nfs.sh  /etc/rc5.d/S40nfs
+	elif  $NFSLOCK_BOOT;  then
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc0.d/K60nfslock
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc1.d/K60nfslock
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc2.d/K60nfslock
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc6.d/K60nfslock
+
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc3.d/S40nfslock
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc4.d/S40nfslock
+		ln  -sf  ../init.d/nfslock.sh  /etc/rc5.d/S40nfslock
+	fi
+}
+
+post_install() {
+	default_post_install
+	case  $NFS_BOOT  in
+		y|Y|j|J)  /etc/init.d/nfs.sh  start  ;;
+		*)  true                       ;;
+	esac
+
+	case  $NFSLOCK_BOOT  in
+		y|Y|j|J)  /etc/init.d/nfslock.sh  start  ;;
+		*)  true                           ;;
+	esac
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/nfs.sh      stop
+	/etc/init.d/nfslock.sh  stop
+}
+

@@ -1,0 +1,42 @@
+   VERSION=( "1.2.10" "1.2.9" "1.2.8p" )
+      SAFE=( "1.2.10" "1.2.9" )
+    IGNORE="\.bz2\|rc"
+  CATEGORY="ftp"
+ ATTRIBUTE="server console"
+    SOURCE="proftpd-$VERSION.tar.bz2"
+       URL="ftp://ftp.proftpd.org/distrib/source"
+  HOMEPAGE="http://www.proftpd.org"
+  EPROVIDE="ftpd"
+       REQ=( "ncurses"
+             "Linux-PAM:::"
+             "xinetd:::for running server" )
+  ESTIMATE="97"
+      DESC="proftpd is a ftp server.
+proftpd is a proven, high-performance, scalable
+FTP server written from scratch, with a focus
+toward simplicity, security, and ease of configuration.
+It features a very Apache-like configuration syntax,
+modules, and a highly customizable server infrastructure,
+including support for multiple 'virtual' FTP servers,
+anonymous FTP, and permission-based directory visibility."
+
+
+build() {
+	if    spell_installed  Linux-PAM
+	then  ENABLE_PAM="--enable-pam"
+	fi
+
+	sed  -i  "s/	standalone/	inetd/"  \
+	sample-configurations/basic.conf    &&
+	./configure  --prefix=/usr               \
+	--sysconfdir=/etc           \
+	--localstatedir=/var        \
+	--enable-shadow             \
+	$ENABLE_PAM                 \
+	$OPTS                       &&
+	make                                     &&
+	prepare_install                          &&
+	make    install                          &&
+	cp  -R  sample-configurations  doc
+}
+

@@ -1,0 +1,37 @@
+   VERSION=( "3.5" "3.4" )
+  CATEGORY="network"
+ ATTRIBUTE="console"
+    SOURCE="rp-pppoe-$VERSION.tar.gz"
+       URL="http://www.roaringpenguin.com/pppoe"
+  HOMEPAGE="http://www.roaringpenguin.com/pppoe"
+       REQ="ppp"
+      DESC="rp-pppoe is a PPP over Ethernet client/server suite.
+rp-pppoe, Roaring Penguin, is a PPPoE client and server
+suite for Linux, NetBSD, Solaris, and Mac OS X Beta.
+It is fully RFC-compliant and supports cookies, relay-IDs,
+and multiple simultaneous PPPoE discovery phases.
+It is cleanly coded and fairly efficient,
+and supports kernel-mode PPPoE on Linux 2.4.x."
+
+
+build() {
+	sed  -i  "s/read a/a=0/"  scripts/adsl-setup.in
+	cd  src
+	./configure  --build=$BUILD        \
+							 --prefix=/usr         \
+							 --sysconfdir=/etc     \
+							 --localstatedir=/var  \
+							 $OPTS                 &&
+	make                               &&
+	cd  ../gui                         &&
+	make                               &&
+	prepare_install                    &&
+	make  install                      &&
+	cd  ../src                         &&
+	make  install                      &&
+	mkdir  -p  /usr/share/applnk/Internet  &&
+	mkdir  -p  /usr/share/gnome/apps/Internet  &&
+	cp  $SCRIPT_DIR/tkpppoe.kdelnk   /usr/share/applnk/Internet  &&
+	cp  $SCRIPT_DIR/tkpppoe.desktop  /usr/share/gnome/apps/Internet
+}
+

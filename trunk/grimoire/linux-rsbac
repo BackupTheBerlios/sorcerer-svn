@@ -1,0 +1,57 @@
+   VERSION=( "2.6.11" "2.6.10" "2.6.7" )
+  RVERSION="v1.2.4"
+  CATEGORY="kernel"
+ ATTRIBUTE="core solo new"
+#            "pre/patch-$VERSION-$RVERSION.gz"
+    SOURCE=( "pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
+             "code/$RVERSION/rsbac-$RVERSION.tar.bz2"
+             "patches/$RVERSION/patch-$VERSION-$RVERSION.gz"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-1.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-2-2.6.diff" )
+       URL=( "$KERNEL_URL"
+             "http://www.rsbac.org/download" )
+  HOMEPAGE="http://www.rsbac.org"
+       REQ=( "" "module-init-tools:::for tools for modular kernel" )
+  EPROVIDE="linux-kernel"
+  ESTIMATE="2386"
+ FRESHMEAT="linux"
+      DESC="linux-rsbac provides RSBAC enhanced 2.6.x stable kernels.
+
+Please read
+http://www.rsbac.org/documentation/instadm.php
+before installing this or you may lock youself out.
+
+The following is a paraphrase of the most important information.
+
+For the first boot configure the kernel to enable softmode.
+Then, boot using the kernel parameter
+rsbac_softmode
+
+When booting with AUTH model use kernel parameter
+rsbac_auth_enable_login
+or you will not be able to login."
+
+build() {
+	# prepare_install  $C_FIFO
+	.  $GRIMOIRE/linux/BUILD
+}
+
+pre_build() {
+	default_pre_build
+	. $GRIMOIRE/linux/PRE_BUILD
+
+	decompress  $(  guess_filename  ${SOURCE[2]}  )  |  patch   -p1
+
+	SCX=3
+	while  [  -n  "${SOURCE[$SCX]}"  ]
+	do  cat  $(  guess_filename  ${SOURCE[$SCX]}  )  |  patch  -p1
+		((  SCX++  ))
+	done
+	sed  -i  "s:^EXTRAVERSION:# EXTRAVERSION:"  Makefile
+}
+
+post_install() {
+	default_post_install
+	.  $GRIMOIRE/linux/POST_INSTALL
+}
+

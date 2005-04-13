@@ -1,0 +1,181 @@
+   VERSION=( "2.0.53" "2.0.52" "2.0.51" "2.0.50" )
+      SAFE=( "2.0.53" "2.0.52" )
+    IGNORE="beta"
+  CATEGORY="web"
+ ATTRIBUTE="console server"
+    SOURCE="httpd/httpd-$VERSION.tar.gz"
+       URL="$APACHE_URL"
+  HOMEPAGE="http://httpd.apache.org"
+       REQ=( "db zlib"
+             "openssl:--enable-ssl::for https enabled server"
+             "gdbm:::for unix like dbm support"
+             "expat:::for fast non-validating stream-oriented XML parsing" 
+             ":openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support" )
+#            ":--enable-mem-cache:: to enable memory caching module"
+#            ":--enable-file-cache:: to enable disk caching module" )
+  PROTECT="/etc/httpd
+            /usr/share/httpd/htdocs
+            /usr/share/httpd/error"
+  EPROVIDE="web-server"
+ FRESHMEAT="apache"
+  ESTIMATE="795"
+      DESC="httpd is a popular HTTP server."
+
+
+configure() {
+
+	if ! [ -f $SPELL_CONFIG ]; then 
+		touch $SPELL_CONFIG;
+	fi
+	if  !  grep  -q  "configured"  $SPELL_CONFIG; then
+		if query "do you want to perform semi-auto httpd ssl configuration?" n; then
+			echo "APACHE_SSL=true" >> $SPELL_CONFIG
+		fi
+	fi
+
+	if  !  grep  -q  "APACHE_BOOT="  $SPELL_CONFIG;  then
+
+		if    query  "Invoke httpd during boot?" y
+		then  echo   "APACHE_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo   "APACHE_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+
+	fi
+}
+
+build() {
+
+	finish_install()  {
+
+		mkdir  -p  /usr/share/httpd/cgi-bin.ssl
+		mkdir  -p  /usr/share/httpd/htdocs.ssl
+		mkdir  -p  /usr/share/httpd/logs
+		mkdir  -p    /var/lib/httpd/run
+		cp        $SCRIPT_DIR/httpd.sh  /etc/init.d
+
+		if  $APACHE_BOOT;  then
+			ln  -sf   ../init.d/httpd.sh  /etc/rc0.d/K10httpd
+			ln  -sf   ../init.d/httpd.sh  /etc/rc1.d/K10httpd
+			ln  -sf   ../init.d/httpd.sh  /etc/rc2.d/K10httpd
+			ln  -sf   ../init.d/httpd.sh  /etc/rc6.d/K10httpd
+
+			ln  -sf   ../init.d/httpd.sh  /etc/rc3.d/S90httpd
+			ln  -sf   ../init.d/httpd.sh  /etc/rc4.d/S90httpd
+			ln  -sf   ../init.d/httpd.sh  /etc/rc5.d/S90httpd
+		fi
+
+	}
+
+	fix_ssl_conf()  {
+
+		cd  docs/conf
+
+		SR="@@ServerRoot@@"
+		CONF="/etc/httpd"
+		CGI="/usr/share/httpd/cgi-bin.ssl"
+		HTDOCS="/usr/share/httpd/htdocs.ssl"
+		cp  ssl-std.conf  ssl-std.conf.b4
+		sed  "s:$SR/conf:/etc/httpd:
+		s:$SR/cgi-bin:/$CGI:
+		s:$SR/htdocs:$HTDOCS:
+		s:logs/:/var/log/httpd:"  \
+		ssl-std.conf.b4  >  ssl-std.conf
+		cd  ../..
+
+	}
+
+	db_41_fix()  { (
+		DBV="$(  installed_version  $(  get_provider  db  )  )"
+		case  ${DBV:0:3}  in
+			4.1)  sed  -i  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c  ;;
+		esac
+		) }
+
+
+		db_41_fix
+
+		cat  $SCRIPT_DIR/layout      >>                  config.layout
+		cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
+		cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
+
+		fix_ssl_conf
+
+		AC="--enable-layout=Sorcerer  \
+		--enable-so               \
+		--enable-modules=all      \
+		--enable-cache            \
+		--enable-cgi              \
+		--enable-deflate          \
+		--enable-mime-magic       \
+		--enable-proxy            \
+		--enable-mods-shared=all  \
+		--build=$BUILD            \
+		--with-mpm=worker         \
+		$OPTS"
+
+		./configure  $AC  &&
+		make              &&
+		prepare_install   &&
+		make    install   &&
+		finish_install    
+	}
+
+	post_install() {
+		default_post_install
+		generate_certificates() {
+			if  ! grep -q "configured" $SPELL_CONFIG; then
+				echo "configured=1" >>$SPELL_CONFIG
+				if grep -q "APACHE_SSL=true" $SPELL_CONFIG; then
+					echo the passphrase will be asked several time by the tools, this is normal
+					for I in 1 2 3 4 5; do
+						dd if=/dev/urandom of=file${I} count=20
+					done
+					openssl genrsa -des3 -rand file1:file2:file3:file4:file5 -out server.key 1024 2>&1 &&
+					openssl req -new -key server.key -out server.csr  2>&1 &&
+					openssl rsa -in server.key -out server.pem 2>&1 2>&1 &&
+					openssl x509 -req -days 1000 -in server.csr -signkey server.key -out server.crt 2>&1 &&
+					chown root\:root  server.csr server.key server.crt server.pem 2>&1 &&
+					chmod go-rwx server.csr server.key server.crt server.pem 2>&1 &&
+					mkdir -p /etc/httpd/ssl.crt &&
+					mkdir -p /etc/httpd/ssl.key &&
+					mv server.crt /etc/httpd/ssl.crt &&
+					mv server.pem /etc/httpd/ssl.key &&
+					sed -i "s:^#SSLCertificateFile /etc/httpd/ssl.crt/server.crt:SSLCertificateFile /etc/httpd/ssl.crt/server.crt:" /etc/httpd/ssl.conf &&
+					sed -i "s:^#SSLCertificateKeyFile /etc/httpd/ssl.key/server.key:SSLCertificateKeyFile /etc/httpd/ssl.key/server.pem" /etc/httpd/ssl.conf
+				fi
+			fi
+		}
+
+
+
+
+
+		recast()  {
+			PRO="$(  get_provider    "$1"    )"
+			if      [  -n            "$PRO"  ]  &&
+				spell_installed  "$PRO"     &&
+				! spell_held       "$PRO"
+			then  cast               "$PRO"
+			fi
+		}
+
+
+		generate_certificates
+		unlock_cast
+
+		recast  php
+		recast  mod_perl
+
+		/etc/init.d/httpd.sh  start
+		true
+	}
+
+	pre_remove() {
+		default_pre_remove
+		if    [  -x  /etc/init.d/apache.sh  ]
+		then         /etc/init.d/apache.sh  stop
+		elif  [  -x  /etc/init.d/httpd.sh   ]
+		then         /etc/init.d/httpd.sh  stop
+		fi
+	}
+

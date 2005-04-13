@@ -1,0 +1,47 @@
+   VERSION=( "1.0.1" "1.0.0" )
+  CATEGORY="time"
+ ATTRIBUTE="console new"
+    SOURCE="mcron/mcron-$VERSION.tar.gz"
+       URL="$GNU_URL"
+       REQ="ed guile mail-transport-agent"
+  HOMEPAGE="http://www.gnu.org/software/mcron"
+  EPROVIDE="cron"
+  ESTIMATE="10"
+      DESC="mcron is a 100% compatible Vixie cron replacement.
+mcron is a 100% compatible Vixie cron replacement implemented using guile.
+It accepts traditional crontabs and configuration files written in Scheme."
+
+
+install_init()  {
+
+  [  -f  /usr/bin/cron  ]  &&
+  mv     /usr/bin/cron  /usr/sbin/cron
+
+  mkdir  -p  /var/cron/tabs
+
+  cp  $SCRIPT_DIR/mcron.sh        /etc/init.d
+
+  ln     -sf  ../init.d/mcron.sh  /etc/rcS.d/S80mcron
+  ln     -sf  ../init.d/mcron.sh  /etc/rc0.d/K20mcron
+  ln     -sf  ../init.d/mcron.sh  /etc/rc6.d/K20mcron
+
+}
+
+############################################################3
+build() {
+	sed  -i  "s:\$HEAD -1:\$HEAD -n 1:"  configure
+
+	default_build  &&
+	install_init
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/mcron.sh  start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/mcron.sh  stop
+}
+

@@ -1,0 +1,40 @@
+   VERSION=( "1.3.13" "1.3.12" "1.3.11" "1.3.10" )
+  CATEGORY="disk bootloader"
+ ATTRIBUTE="ppc"
+    SOURCE="yaboot-$VERSION.tar.gz"
+       URL="http://penguinppc.org/bootloaders/yaboot"
+  HOMEPAGE="http://penguinppc.org/bootloaders/yaboot"
+ FRESHMEAT="httppenguinppc.orgprojectsyaboot"
+      DESC="yaboot is a bootloader for NewWorld PowerMacs and IBM CHRP hardware arch.
+yaboot is a Boot loader for Linux/ppc
+and other powerpc operating systems.
+Yaboot is responsible for loading your
+Linux kernel from either a floppy or a
+hard drive and giving it control of the system.
+It can also be used to boot many other
+operating sysetms, including the BSD variants,
+Mac OS, and Mac OSX."
+
+configure() {
+	if  !  grep  -q  "RUN_YBIN"  $SPELL_CONFIG;  then
+
+		if    query  "Run bootloader automatically upon upgrades?" n
+		then  echo   "RUN_YBIN=true"   >>  $SPELL_CONFIG
+		else  echo   "RUN_YBIN=false"  >>  $SPELL_CONFIG
+		fi
+
+	fi
+}
+
+build() {
+	make           ROOT=  PREFIX=/usr  &&
+	make  install  ROOT=  PREFIX=/usr
+}
+
+post_install() {
+	default_post_install
+	if    $RUN_YBIN
+	then  /usr/sbin/ybin
+	fi
+}
+

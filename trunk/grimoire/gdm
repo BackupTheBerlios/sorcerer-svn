@@ -1,0 +1,40 @@
+   VERSION=( "2.6.0.8" "2.6.0.7" "2.6.0.6" "2.6.0.5" "2.6.0.4" "2.6.0.3" "2.6.0.2" "2.6.0.1" "2.6.0.0" )
+  CATEGORY="window-manager"
+ ATTRIBUTE="gnome"
+    SOURCE="sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.jirka.org/gdm.html"
+       URL="$GNOME_URL"
+       REQ=( "bzip2 libgnomeui libgsf librsvg scrollkeeper"
+             "Linux-PAM:::"
+             "libselinux:--with-selinux:--without-selinux:for selinux support"
+             "tcp_wrappers:--with-tcp-wrappers=yes:--with-tcp-wrappers=no:to control allowed remote connections using tcp_wrappers" )
+  GNOMEFTP="gdm"
+  ESTIMATE="299"
+ FRESHMEAT="gnomedisplaymanager"
+      DESC="gdm, Gnome Display Manager, is an improved xdm.
+gdm the Gnome Display Manager is a re-implementation
+of the well known xdm program."
+
+build() {
+	if    spell_installed  Linux-PAM;  then  SCHEME="pam"
+	elif  spell_installed  shadow;     then  SCHEME="shadow"
+	else  SCHEME="auto"
+	fi
+
+	AUTH_SCHEME="--enable-authentication-scheme=$SCHEME"
+
+	groupadd  gdm           2>/dev/null
+	useradd   gdm  -g  gdm  2>/dev/null
+
+	./configure  	--prefix=/usr         \
+	  						--localstatedir=/var  \
+								--sysconfdir=/etc     \
+								$AUTH_SCHEME          &&
+	make                               &&
+	prepare_install                    &&
+	make    install                    &&
+	mkdir  -p           /var/gdm       &&
+	chown  -R  gdm:gdm  /var/gdm       &&
+	chmod  750          /var/gdm
+}
+

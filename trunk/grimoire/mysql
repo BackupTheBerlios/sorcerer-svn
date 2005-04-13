@@ -1,0 +1,133 @@
+   VERSION=( "4.1.11" "4.1.10a" "4.1.10" "4.1.8" "4.1.7" "4.0.22" )
+      SAFE=( "4.1.11" "4.1.10a" )
+    IGNORE="\-apple-\|-dec-\|-hp-\|-ibm-\|-sgi-\|-unknown-\|-x86\|^4\.1\.8a"
+  CATEGORY="db"
+ ATTRIBUTE="console"
+    SOURCE="MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz"
+       URL="$MYSQL_URL"
+  HOMEPAGE="http://www.mysql.com"
+       REQ="ncurses openssl perl zlib"
+   EXCLUDE="/var/lib/mysql"
+  ESTIMATE="3900"
+      DESC="mysql is a widely used and fast SQL database server.
+mysql is a widely used and fast SQL database server.
+It is a client/server implementation that consists
+of a server daemon (mysqld) and many different
+client programs/libraries."
+
+configure() {
+	if  !  grep  -q  "CLIENT_ONLY"  $SPELL_CONFIG
+	then
+
+		if    query  "Install client only? " n
+		then  echo   "CLIENT_ONLY=true"   >>  $SPELL_CONFIG
+		else  echo   "CLIENT_ONLY=false"  >>  $SPELL_CONFIG 
+			if    query  "Invoke mysqld at boot?" y
+			then  echo   "MYSQL_BOOT=true"   >>  $SPELL_CONFIG
+			else  echo   "MYSQL_BOOT=false"  >>  $SPELL_CONFIG
+			fi
+		fi
+
+	fi
+}
+
+build() {
+	sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
+	sed  -i  "s:examples::"                                 libmysqld/Makefile.in
+
+	export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
+	export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
+
+	if    $CLIENT_ONLY
+	then  OPTS="$OPTS --without-server"
+	fi
+
+	groupadd  mysql             2>/dev/null
+	useradd   mysql  -g  mysql  2>/dev/null
+
+	sed  -i  "s:/libssl.a:/libssl.so:"  configure
+
+
+	case  $VERSION  in
+		4.1.9)
+	esac
+
+	sed  -i  "s:Linuxthreads:pthread:"  configure
+
+	case  $VERSION  in
+		4.1.1[0-1])  mkdir  -p                     system/asm
+		sed  "s/new/nneww/"     /usr/include/asm/system.h  >  \
+		system/asm/system.h
+		export    CFLAGS="-isystem $PWD/system $CFLAGS"
+		export  CXXFLAGS="-isystem $PWD/system $CXXFLAGS"
+		sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  \
+		./include/my_global.h
+		;;
+	esac
+
+	./configure  --prefix=/usr                   \
+	             --without-bench                 \
+							 --enable-assembler              \
+							 --localstatedir=/var/lib/mysql  \
+							 --enable-shared                 \
+							 --with-mysqld-user=mysql        \
+							 --with-berkeley-db              \
+							 --with-openssl                  \
+							 --with-server-suffix='-Max'     \
+							 --with-mysqld-user=mysql        \
+							 --with-unix-socket-path=/var/lib/mysql/mysql.sock  \
+							 --with-extra-charsets=complex   \
+							 --with-vio                      \
+							 --with-innodb                   \
+							 --exec-prefix=/usr              \
+							 --libexecdir=/usr/sbin          \
+							 --sysconfdir=/etc               \
+							 --datadir=/usr/share            \
+							 --infodir=/usr/info             \
+							 --includedir=/usr/include       \
+							 --mandir=/usr/man               \
+							 --with-embedded-server          \
+							 --enable-thread-safe-client     \
+							 --with-comment="MySQL-MAX-$VERSION "  \
+							 --with-readline                \
+							 $OPTS                          &&
+	make             pkglibdir=/usr/lib         &&
+	prepare_install                             &&
+	make    install  pkglibdir=/usr/lib         &&
+
+	if  ! $CLIENT_ONLY;  then
+		mysql_install_db
+
+		chown    -R  mysql.mysql                     /var/lib/mysql
+		install  -m 755  support-files/mysql.server  /etc/init.d/
+		if    !  [  -f  /etc/my.cnf  ]
+		then  install   support-files/my-medium.cnf  /etc/my.cnf
+		fi
+
+		if  $MYSQL_BOOT;  then
+
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc0.d/K10mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc1.d/K10mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc6.d/K10mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc2.d/S90mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc3.d/S90mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc4.d/S90mysql
+			ln  -sf  /etc/init.d/mysql.server  /etc/rc5.d/S90mysql
+		fi
+	fi
+}
+
+post_install() {
+	default_post_install
+	if    [  -x  /etc/rc$(runlevel  |  cut  -d ' ' -f2).d/S90mysql  ]
+	then         /etc/rc$(runlevel  |  cut  -d ' ' -f2).d/S90mysql  start
+	fi
+}
+
+pre_remove() {
+	default_pre_remove
+	if  [  -x  /etc/init.d/mysql.server  ]; then
+		/etc/init.d/mysql.server stop
+	fi
+}
+

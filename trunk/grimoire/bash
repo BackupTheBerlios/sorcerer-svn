@@ -1,0 +1,95 @@
+   VERSION=( "3.0.016" "3.0" "2.05b" "2.05a" )
+  CATEGORY="shell"
+ ATTRIBUTE="core console solo"
+    SOURCE="bash-${VERSION:0:3}.tar.gz"
+       URL="ftp://ftp.cwru.edu/pub/bash"
+  case  $VERSION  in
+    3.0*)
+         PATCHES=${VERSION:4:3}
+         for  ((SCX=1; SCX < 10; SCX++))
+         do   SOURCE[$SCX]="bash-3.0-patches/bash30-00$SCX"
+         done
+         for  ((SCX=10; SCX < PATCHES; SCX++))
+         do   SOURCE[$SCX]="bash-3.0-patches/bash30-0$SCX"
+         done  ;;
+  esac
+  HOMEPAGE="http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html"
+       REQ=( "ncurses readline" )
+#             ":--debugger::Enable debugging and extdebug shell option" )
+   PROTECT="/bin/bash
+            /bin/sh"
+  ESTIMATE="373"
+ FRESHMEAT="gnubash"
+      DESC="bash is the shell of the GNU operating system.
+
+Bash is an sh-compatible shell that incorporates useful
+features from the Korn shell (ksh) and C shell (csh).
+It is intended to conform to the
+IEEE POSIX P1003.2/ISO 9945.2 Shell and Tools standard.
+It offers functional improvements over sh for both
+programming and interactive use; these include command
+line editing, unlimited size command history, job control,
+shell functions and aliases, indexed arrays of unlimited size,
+and integer arithmetic in any base from two to sixty-four.
+In addition, most sh scripts can be run by Bash without modification."
+
+build() {
+	install_loadables()  {
+		mkdir  -p  /usr/libexec/bash
+		cd   examples/loadables
+		for  FILE  in  *.c
+		do  
+		 	make     ${FILE%.c}
+			install  -s  -m 0755  -o root  -g root  ${FILE%.c}  /usr/libexec/bash
+		done
+		true
+	}
+
+
+	CX=1
+	while  [  -n  "${SOURCE[$CX]}"  ]
+	do  patch  -p0  <  \
+		$(  guess_filename  "${SOURCE[$CX]}"  \
+		${SOURCE_CACHE}/$BSPELL/$VERSION  )
+		((  CX++  ))
+	done
+
+
+	case  $VERSION  in
+		3.0*)  patch  -p0  <  $SCRIPT_DIR/wcontinued.patch  ;;
+	esac
+
+
+	# [  -z  "$BUILD"  ]  &&
+	#          BUILD="$( arch )-pc-linux-gnu"
+
+	[  -d  /isolinux  ]  ||
+	BUILD="$( arch )-pc-linux-gnu"
+
+	./configure --build=$BUILD  \
+							--prefix=/usr   \
+							--bindir=/bin   \
+							--with-installed-readline  \
+							--with-curses   \
+							$OPTS           &&
+	make                         &&
+	prepare_install              &&
+	make    install              &&
+	ln     -sf  bash  /bin/sh    &&
+	install_loadables
+}
+
+post_install() {
+	default_post_install
+	mkdir  -p  /etc/skel
+	if  !  [  -e  /etc/profile             ];  then  cp  $SCRIPT_DIR/profile      /etc;                     fi
+	if  !  [  -e  /etc/skel/.bash_profile  ];  then  cp  /etc/profile                   /etc/skel/.bash_profile;  fi
+	if  !  [  -e  /etc/skel/.bash_logout   ];  then  cp  $SCRIPT_DIR/bash_logout  /etc/skel/.bash_logout;   fi
+	if  !  [  -e  /etc/skel/.bashrc        ];  then  ln  -sf  .bash_profile             /etc/skel/.bashrc;        fi
+}
+
+post_remove() {
+	default_post_remove
+	install-info  --delete bash  --info-dir /usr/info
+}
+

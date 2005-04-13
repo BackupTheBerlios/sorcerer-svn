@@ -1,0 +1,70 @@
+   VERSION=( "2.2.6" "2.2.5" "2.2.3" "2.2.2" "2.2.1" "2.2.0" )
+  CATEGORY="network"
+ ATTRIBUTE="server"
+    SOURCE="irrd$VERSION.tgz"
+  HOMEPAGE="http://www.irrd.net"
+       URL="http://www.irrd.net"
+       REQ=( "gnupg perl wget"
+             "gdbm:--with-gdbm::to support gnu gdm databse files" )
+  ESTIMATE="214"
+      DESC="irrd provides an Internet Routing Registry database server.
+irrd is a streamlined, stand-alone Internet Routing Registry
+database server which supports both RIPE-181 and RPSL
+routing registry syntax.
+The IRRd package includes additional utilities, tools, and
+services to securely manage and maintain the database."
+
+build() {
+	finish_install()  {
+		cp  src/programs/irrdcacher/irrdcacher     /usr/sbin
+		cp  src/programs/irrdcacher/ripe2rpsl      /usr/sbin
+		cp  src/programs/irrdcacher/update_source  /usr/sbin
+
+		if    !  [  -f  /etc/irrd.conf  ]
+		then  cp     samples/irrd.conf.sample  \
+			/etc/irrd.conf
+		fi
+
+		mkdir  -p        /usr/doc/irrd
+		cp  irrd-user.*  /usr/doc/irrd
+
+		mkdir  -p             /var/spool/irr_database
+		chown  -R  irrd:irrd  /var/spool/irr_database
+
+		[  -f  /etc/init.d/irrd.sh  ]  ||
+		cp  $SCRIPT_DIR/irrd.sh  /etc/init.d/
+
+		ln  -sf  ../init.d/irrd.sh  /etc/rc0.d/K50irrd
+		ln  -sf  ../init.d/irrd.sh  /etc/rc6.d/K50irrd
+
+		ln  -sf  ../init.d/irrd.sh  /etc/rc2.d/S40irrd
+		ln  -sf  ../init.d/irrd.sh  /etc/rc3.d/S40irrd
+		ln  -sf  ../init.d/irrd.sh  /etc/rc4.d/S40irrd
+		ln  -sf  ../init.d/irrd.sh  /etc/rc5.d/S40irrd
+
+	}
+
+
+	groupadd  irrd           2>/dev/null
+	useradd   irrd  -g  irrd  2>/dev/null
+
+	unset  BUILD
+	cd  src                            &&
+	./configure  --build=$BUILD        \
+	             --prefix=/usr         \
+							 --sysconfdir=/etc     \
+							 --localstatedir=/var  \
+							 $OPTS                 &&
+	make                               &&
+	prepare_install                    &&
+	make    install                    &&
+	finish_install
+}
+
+post_install() {
+	default_post_install
+	if    [  -x   /etc/init.d/irrd.sh  ]
+	then  cd  /;  /etc/init.d/irrd.sh  start
+	fi
+}
+

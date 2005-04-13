@@ -1,0 +1,27 @@
+   VERSION=( "3.2.5" "3.2.4" "3.2.3" "3.2.2" )
+    IGNORE="^207-"
+  CATEGORY="utility"
+ ATTRIBUTE="core console solo"
+    SOURCE="procps-$VERSION.tar.gz"
+  HOMEPAGE="http://procps.sourceforge.net"
+       URL="http://procps.sourceforge.net"
+       REQ="ncurses"
+   PROTECT="/bin/kill
+            /bin/ps"
+  ESTIMATE="56"
+      DESC="procps contains utilities to report the state of the box.
+procps is a package of utilities which reports on the state of the system, 
+including the states of running processes, amount of memory available and 
+currently logged in users."
+
+build() {
+	LD="-Wl,-warn-common"
+
+	sed  -i  "s:-O2 -g3:$CFLAGS:
+	s:$LD:$LD $LDFLAGS:"  Makefile
+	make  &&
+	make  install  -e  XSCPT=''  DESTDIR=      &&
+	cp  $SCRIPT_DIR/sysctl.sh     /etc/init.d  &&
+	ln  -sf  ../init.d/sysctl.sh  /etc/rcS.d/S99sysctl
+}
+

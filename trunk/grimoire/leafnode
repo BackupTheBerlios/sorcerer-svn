@@ -1,0 +1,42 @@
+   VERSION=( "1.11.0.rel" "1.10.8.rel" "1.10.7.rel" "1.10.6.rel" )
+    IGNORE="^2\.0b\|^1\.9\."
+  CATEGORY="news"
+ ATTRIBUTE="server console"
+    SOURCE="leafnode/leafnode-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.leafnode.org"
+       REQ="pcre"
+  ESTIMATE="101"
+      DESC="leafnode is a NNTP sever for small site
+leafnode is a news server, suitable for small, limited-bandwidth
+sites with only a few users (and useful for offline news reading).
+Leafnode keeps track of which groups are being
+read and downloads only articles in those groups.
+Leafnode has been designed to require
+no maintenance and to be easy to set up."
+
+install_conf()  {
+  if    !      [  -f  /etc/leafnode/config  ];  then
+    cp                /etc/leafnode/config.example  \
+                      /etc/leafnode/config
+    chown  news:news  /etc/leafnode/config
+    chmod  -R  664    /etc/leafnode/config
+  fi
+}
+
+##############################################
+build() {
+	groupadd  news            2>/dev/null
+	useradd   news  -g  news  2>/dev/null
+
+	./configure  --build=$BUILD              \
+							 --prefix=/usr               \
+							 --sysconfdir=/etc/leafnode  \
+							 --localstatedir=/var        \
+							 $OPTS                       &&
+	make                                     &&
+	prepare_install                          &&
+	make    install                          &&
+					install_conf
+}
+

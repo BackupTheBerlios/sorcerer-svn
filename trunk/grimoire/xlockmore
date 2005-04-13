@@ -1,0 +1,41 @@
+   VERSION=( "5.16" "5.15" "5.14.1" "5.13" "5.12" )
+    IGNORE="ALPHA\|BETA"
+  CATEGORY="graphic security"
+ ATTRIBUTE="x11"
+    SOURCE="xlockmore-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.tux.org/~bagleyd/xlockmore.html"
+       URL="ftp://ftp.tux.org/pub/tux/bagleyd/xlockmore
+            ftp://ibiblio.org/pub/Linux/X11/screensavers
+           http://www.tux.org/~bagleyd/latest"
+       REQ=( "glut"
+             "gtk+::--without-gtk2 --without-gtk:for xglock"
+             "Linux-PAM::--disable-pam:for pluggable authentication"
+             "freetype-v1.3::--without-freetype:for feeetype font engine"
+             "lesstif::--without-motif:for lesstif graphic support"
+             "esound::--without-esound:for enlightenment sound mixer support"
+             ":--enable-nice-only::for low cpu modes"
+             ":--enable-blank-only::for screen blanking only" )
+  ESTIMATE="226"
+      DESC="xlockmore is an enhanced version of xlock.
+It incorporates several new commandline options,
+which allow you to run it in a window, in the root
+window, in a different size/location, change the
+size of the iconified window, to install a new
+colormap and delay locking for use with xautolock."
+
+
+build() {
+	if    spell_installed  Linux-PAM
+	then  ENABLE_PAM="--enable-pam"
+	fi
+
+	./configure  --prefix=/usr         \
+							 --sysconfdir=/etc     \
+							 --localstatedir=/var  \
+							 $ENABLE_PAM           \
+							 $OPTS                 &&
+	make                               &&
+	prepare_install                    &&
+	make    install
+}
+

@@ -1,0 +1,84 @@
+  VERSION=( "2.25b" "2.25" "2.24" "2.23beta1" )
+      SAFE=( "2.25b" "2.25" "2.24" )
+    IGNORE="beta"
+  CATEGORY="web"
+ ATTRIBUTE="console server"
+    SOURCE="thttpd-$VERSION.tar.gz"
+       URL="http://www.acme.com/software/thttpd"
+  HOMEPAGE="http://www.acme.com/software/thttpd"
+       REQ="init-functions"
+  EPROVIDE="web-server"
+  ESTIMATE="40"
+      DESC="thttpd is a throttling httpd server.
+thttpd is a simple, small, fast and secure HTTP server.
+It doesn't have a lot of special features
+but it suffices for most uses of the web.
+It is faster than Apache and it has one extremely useful feature
+(URL-traffic-based throttling) that no other server currently has."
+
+configure() {
+	if  !  grep  -q  "THTTPD_BOOT="  $SPELL_CONFIG;  then
+
+		if    query  "Invoke thttpd during boot?" y
+		then  echo   "THTTPD_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo   "THTTPD_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+
+	fi
+}
+
+build() {
+	install_init()  {
+
+		if  !  [  -f     /etc/thttpd.conf  ]
+		then  cp  $SCRIPT_DIR/thttpd.conf  \
+			/etc/thttpd.conf
+		fi
+
+		cp     $SCRIPT_DIR/thttpd    /etc/init.d
+
+		if  $THTTPD_BOOT;  then
+			ln  -sf  ../init.d/thttpd  /etc/rc0.d/K10thttpd
+			ln  -sf  ../init.d/thttpd  /etc/rc1.d/K10thttpd
+			ln  -sf  ../init.d/thttpd  /etc/rc2.d/K10thttpd
+			ln  -sf  ../init.d/thttpd  /etc/rc6.d/K10thttpd
+
+			ln  -sf  ../init.d/thttpd  /etc/rc3.d/S90thttpd
+			ln  -sf  ../init.d/thttpd  /etc/rc4.d/S90thttpd
+			ln  -sf  ../init.d/thttpd  /etc/rc5.d/S90thttpd
+		fi
+
+	}
+
+
+	groupadd  thttpd             2>/dev/null
+	useradd   thttpd  -g thttpd  2>/dev/null
+
+	WD="WEBDIR=/usr/share/thttpd"
+	CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
+	WG="WEBGROUP=thttpd"
+
+	./configure  --build=$BUILD        \
+	--prefix=/usr         \
+	--sysconfdir=/etc     \
+	--localstatedir=/var  \
+	$OPTS                 &&
+	make             $WD  $CD  $WG     &&
+	prepare_install                    &&
+	make    install  $WD  $CD  $WG     &&
+	install_init
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/thttpd  stop
+	/etc/init.d/thttpd  start
+	true
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/thttpd  stop
+	true
+}
+

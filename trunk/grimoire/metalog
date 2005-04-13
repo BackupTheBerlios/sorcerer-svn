@@ -1,0 +1,48 @@
+   VERSION=( "0.7" "0.6" )
+    IGNORE="beta\|rc"
+  CATEGORY="log"
+ ATTRIBUTE="server console"
+    SOURCE="metalog/metalog-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://metalog.sourceforge.net"
+  EPROVIDE="system-logger"
+       REQ="pcre"
+      DESC="metalog is a modern replacement for syslogd and klogd.
+The logged messages can be dispatched according
+to their facility, urgency, program name,
+and/or Perl-compatible regular expressions.
+Log files can be automatically rotated
+when they exceed a certain size or age.
+External shell scripts (e.g., mail)
+can be launched when specific patterns are found.
+Metalog is easier to configure than syslogd and syslog-ng,
+accepts an unlimited number of rules, and has (switchable)
+memory bufferization for maximal performance."
+
+build() {
+	default_build  &&
+
+	(
+
+	if  [  !  -f  /etc/metalog.conf  ];  then
+		cp  metalog.conf  /etc
+	fi
+
+	cp  $SCRIPT_DIR/metalog.sh        /etc/init.d
+	ln      -sf ../init.d/metalog.sh  /etc/rcS.d/S20metalog
+	ln      -sf ../init.d/metalog.sh  /etc/rc0.d/K70metalog
+	ln      -sf ../init.d/metalog.sh  /etc/rc6.d/K70metalog
+
+	)
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/metalog.sh  start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/metalog.sh  stop
+}
+

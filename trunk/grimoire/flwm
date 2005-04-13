@@ -1,0 +1,59 @@
+   VERSION=( "1.00" )
+    IGNORE="x86"
+  CATEGORY="window-manager"
+ ATTRIBUTE="x11"
+    SOURCE="flwm-$VERSION.tgz"
+       URL="http://flwm.sourceforge.net"
+  HOMEPAGE="http://flwm.sourceforge.net"
+       REQ="fltk"
+      DESC="flwm is a fast light window manager.
+flwm is an X window manager designed to be user friendly
+and use the absolute minimum amount of screen real estate.
+It has no icons, using a pop-up menu to select
+hidden or new windows, and sideways titlebars.
+Flwm is also designed to achieve Gnome, KDE, and Motif
+compatibility simultaneously and has also been tested
+with many SGI programs that normally require 4DWM."
+
+configure() {
+	if  !  grep  -q  "EDIT_CONFIG"  $SPELL_CONFIG;  then
+		if    query "Would you like to edit config.h?" "n";  then
+			cp  $SCRIPT_DIR/config.h  $CONFIG_LOGS/$BSPELL
+			${EDITOR:=nano}           $CONFIG_LOGS/$BSPELL/config.h
+		fi
+		echo  "EDIT_CONFIG=true"  >>  $SPELL_CONFIG
+	fi
+
+	if    !  grep  -q  "DYN_MENU"  $SPELL_CONFIG;  then
+		if    query "Would you like to apply the dynamic menu patch?" "n"
+		then  echo  "DYN_MENU=true"   >>  $SPELL_CONFIG
+		else  echo  "DYN_MENU=false"  >>  $SPELL_CONFIG
+		fi
+	fi
+}
+
+build() {
+	export  LDFLAGS="$LDFLAGS -lGL"
+
+	if    [  -e  $CONFIG_LOGS/$BSPELL/config.h  ]
+	then  cp     $CONFIG_LOGS/$BSPELL/config.h  .
+	fi
+
+	if    $DYM_MENU
+	then  patch Menu.C  $SCRIPT_DIR/Menu.C.diff
+	fi
+
+	sed  -i  "1i#ifndef FLTK_1_0_COMPAT
+	1i#define FLTK_1_0_COMPAT
+	1i#endif"  main.C
+
+	./configure  --build=$BUILD        \
+								--prefix=/usr         \
+								--sysconfdir=/etc     \
+								--localstatedir=/var  \
+								--enable-shared       \
+								$OPTS                 &&
+	make                               &&
+	make  install
+}
+

@@ -1,0 +1,80 @@
+   VERSION=( "1.60" )
+  CATEGORY="network"
+ ATTRIBUTE="core console"
+    SOURCE="net-tools-$VERSION.tar.bz2"
+       URL="http://www.tazenda.demon.co.uk/phil/net-tools"
+  HOMEPAGE="http://www.tazenda.demon.co.uk/phil/net-tools"
+  ESTIMATE="149"
+      DESC="net-tools contains essential tools for networking.
+
+net-tools contains the arp, hostname, ifconfig,
+netstat, plipconfig rarp, route, and slattach programs.
+
+arp is used to manipulate the kernel's ARP cache, usually
+to add or delete an entry, or to dump the ARP cache.
+
+hostname, with its symlinks domainname, dnsdomainname,
+nisdomainname, ypdomainname, and nodename, is used to
+set or show the system's hostname.
+
+The ifconfig command is the general command used to
+configure network interfaces.
+
+netstat is a multi-purpose tool used to print the
+network connections, routing tables, interface statistics,
+masquerade connections, and multicast memberships.
+
+plipconfig is used to fine-tune the PLIP device parameters,
+hopefully making it faster.
+
+rarp, akin to the arp program, manipulates the system's RARP table.
+
+route is the general utility which is used to manipulate the IP routing table.
+
+slattach attaches a network interface to a serial line,
+i.e.. puts a normal terminal line into one of several
+network modes."
+
+install_conf()  {
+
+  if  !  [  -e  /etc/init.d/networking.sh  ]
+  then   cp  $SCRIPT_DIR/networking.sh  /etc/init.d
+  fi
+
+  if  !  [  -e  /etc/init.d/hostname.sh    ]
+  then  cp  $SCRIPT_DIR/hostname.sh    /etc/init.d
+  fi
+
+  ln     -sf  ../init.d/networking.sh  /etc/rc0.d/K70networking
+  ln     -sf  ../init.d/networking.sh  /etc/rc1.d/K70networking
+  ln     -sf  ../init.d/networking.sh  /etc/rc2.d/K70networking
+  ln     -sf  ../init.d/networking.sh  /etc/rc6.d/K70networking
+
+  ln     -sf  ../init.d/networking.sh  /etc/rc3.d/S30networking
+  ln     -sf  ../init.d/networking.sh  /etc/rc4.d/S30networking
+  ln     -sf  ../init.d/networking.sh  /etc/rc5.d/S30networking
+
+  ln     -sf    ../init.d/hostname.sh  /etc/rcS.d/S20hostname
+
+}
+
+
+
+######################################################3
+build() {
+	case  $VERSION  in
+		1.60)  sed  -i  "\,default:,abreak;"  hostname.c  lib/inet_sr.c  ;;
+	esac
+
+
+	sed  -i  "s:-O2:$CFLAGS:
+	s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
+
+	cp  $SCRIPT_DIR/config.h  .
+
+	make             &&
+	prepare_install  &&
+	make  BASEDIR=/  install  &&
+	install_conf
+}
+

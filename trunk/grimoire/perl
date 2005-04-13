@@ -1,0 +1,48 @@
+   VERSION=( "5.8.6" "5.8.5" "5.8.4" "5.8.3" "5.8.2" "5.8.1" )
+      SAFE=( "5.8.6" "5.8.5" "5.8.4" "5.8.3" "5.8.2" "5.8.1" )
+    IGNORE="\-slides\|^5\.9\."
+# 5.9.x is developmental version
+  CATEGORY="interpreter"
+ ATTRIBUTE="core console"
+    SOURCE="perl-$VERSION.tar.bz2"
+       URL="http://www.cpan.org/src"
+       REQ=( "coreutils"
+             "gdbm:::for database support"
+             "db:::for database support" )
+   EXCLUDE="perllocal.pod"
+#    AVOID="j2sdk"
+  HOMEPAGE="http://www.perl.org"
+  ESTIMATE="3322"
+      DESC="perl is Larry Wall's practical extraction and reporting language.
+perl is a high-level, general-purpose programming language.
+It is optimized for scanning arbitrary
+text files and system administration.
+It has built-in extended regular expression
+matching and replacement, a dataflow mechanism
+to improve security with setuid scripts and is
+extendable via modules that can interface to C libraries."
+
+build()  {
+	if    echo  "$CFLAGS"  |  grep  -q  "march=i586"
+	then         SETARCH="-Darchname=i586-linux"
+	else  unset  SETARCH
+	fi
+
+	unset  LANG  LC_CTYPE
+
+
+	./Configure  -Dprefix=/usr -d -e -Dusethreads                    \
+							 -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \
+							 $SETARCH
+	make  "OPTIMIZE=$CFLAGS"  &&
+	prepare_install           &&
+	make    install
+}
+
+post_install()  {
+	unlock_cast
+	cast  -c  $(  show_installed  perl-module  )
+	if     !  spell_installed  XML-Parser
+	then                 cast  XML-Parser
+	fi
+}

@@ -1,0 +1,51 @@
+   VERSION=( "2.22" "2.21" "2.20" "2.19" "2.18" "2.17" )
+  CATEGORY="dns network"
+ ATTRIBUTE="console server"
+    SOURCE="dnsmasq-$VERSION.tar.gz"
+  HOMEPAGE="http://www.thekelleys.org.uk/dnsmasq/doc.html"
+       URL="http://www.thekelleys.org.uk/dnsmasq"
+  ESTIMATE="20"
+      DESC="dnsmasq is a DNS forwarder for NAT firewalls.
+dnsmasq is lightweight, easy to configure DNS forwarder
+designed to provide DNS (domain name) services to a
+small network where using BIND would be overkill.
+It can have its upstream DNS servers automatically
+configured by PPP or DHCP, and it can serve the names
+of local machines which are not in the global DNS.
+It can integrate with the ISC DHCP daemon to serve the
+names of local machines which are configured using DHCP.
+Dnsmasq is ideal for networks behind NAT routers and
+connected via modem, ISDN, ADSL, or cable-modem connections."
+
+
+
+configure() {
+	if  !  grep  -q  "DNSMASQ_BOOT"  $SPELL_CONFIG; then
+		if    query  "Invoke dnsmasq at boot? " y
+		then  echo  "DNSMASQ_BOOT=true"   >>  $SPELL_CONFIG
+		else  echo  "DNSMASQ_BOOT=false"  >>  $SPELL_CONFIG
+		fi
+	fi
+}
+
+build() {
+	sed  -i  "s:local::"         Makefile
+	sed  -i  "s:-O2:${CFLAGS}:"  Makefile
+
+	make           &&
+	make  install  &&
+		
+	cp  $SCRIPT_DIR/dnsmasq.sh       /etc/init.d  &&
+
+	if  $PRIVOXY_BOOT;  then
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc0.d/K50dnsmasq
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc1.d/K50dnsmasq
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc2.d/K50dnsmasq
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc6.d/K50dnsmasq
+			
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc3.d/S35dnsmasq
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc4.d/S35dnsmasq
+		ln  -sf  ../init.d/dnsmasq.sh  /etc/rc5.d/S35dnsmasq
+	fi
+}
+

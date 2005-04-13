@@ -1,0 +1,30 @@
+   VERSION=( "0.9.0" )
+  CATEGORY="game"
+ ATTRIBUTE="x11"
+    SOURCE="kiki/kiki-src-$VERSION.tgz"
+  HOMEPAGE="http://kiki.sourceforge.net"
+       URL="$SOURCEFORGE_URL"
+       REQ="Python SDL_image SDL_mixer"
+  ESTIMATE=""
+      DESC="kiki is a 3D OpenGL puzzle game.
+
+kiki the nano bot is a 3D puzzle game, 
+a mixture of Sokoban and Kula-World.
+Your task is to help kiki, a small robot 
+living in the nano world, repair its Maker.
+"
+
+build() {
+	cd  kodilib/linux     &&
+	make                  &&
+	cd  ../../kiki/linux  &&
+	make  "GLLIBS=-L/usr/X11R6/lib -lglut -lGLU -lGL $LDFLAGS"  &&
+	prepare_install       &&
+	mkdir  -p                     /usr/games      &&
+	cp     kiki                   /usr/games      &&
+	cp     $SCRIPT_DIR/play-kiki  /usr/games      &&
+	cd     ..                                     &&
+	mkdir  -p              /usr/share/games/kiki  &&
+	cp     -a  py  sounds  /usr/share/games/kiki
+}
+

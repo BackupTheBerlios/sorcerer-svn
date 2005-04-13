@@ -1,0 +1,82 @@
+   VERSION=( "v3.2p1" "v3.1pre1" )
+  CATEGORY="network"
+ ATTRIBUTE="console"
+    SOURCE="utils/isdn4k-utils.$VERSION.tar.bz2"
+  HOMEPAGE="http://www.isdn4linux.org"
+       URL="ftp://ftp.isdn4linux.de/pub/isdn4linux
+            ftp://ftp.gwdg.de/pub/linux/isdn/isdn4linux
+            ftp://ftp.cs.tu-berlin.de/pub/net/isdn/isdn4linux
+            ftp://ftp.leo.org/pub/comp/os/unix/linux/isdn/isdn4linux
+            ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/isdn4linux"
+      DESC="isdn4k-utils contains utilitiles to make use of ISDN specific features.
+isdn4linux is a set of kernel modules which are part of the Linux kernel.
+It consists of the main module isdn and the actual hardware driver that
+control some specific card.In addition, the package isdn4k-utils
+contains utilities to make use of ISDN specific features."
+
+store_config()  {
+	mkdir  -p    $CONFIG_LOGS/$SPELL
+	cp  .config  $CONFIG_LOGS/$SPELL
+}
+
+
+restore_config()  {
+	if    [  -f  $CONFIG_LOGS/$SPELL/.config  ]
+	then  cp     $CONFIG_LOGS/$SPELL/.config  .
+	fi
+}
+
+
+make_menuconfig()  {
+
+	restore_config
+
+	wiz_kill
+
+	while  $CONFIG_ISDN;  do
+		make  testconfig
+		if    query  "Repeat  config?"  n
+		then  CONFIG_ISDN="true"
+		else  CONFIG_ISDN="false"
+		fi
+	done
+
+}
+
+
+make_install()  {
+
+	yes   ""         |
+	make  subconfig  &&
+	store_config     &&
+	make             &&
+	prepare_install  &&
+	make    install
+
+}
+
+####################################################################333
+
+configure() {
+	if  [  -f  $CONFIG_LOGS/$SPELL/.config  ];  then
+		if    query  "Configure isdn4k-utils?"  n
+		then  CONFIG_ISDN=true
+		else  CONFIG_ISDN=false
+		fi
+	else
+		CONFIG_ISDN="true"
+	fi
+
+	TEMP=$(  grep  -v  "CONFIG_ISDN="     $SPELL_CONFIG  )
+	echo  "$TEMP"                      >  $SPELL_CONFIG
+	echo  "CONFIG_ISDN=$CONFIG_ISDN"  >>  $SPELL_CONFIG
+}
+
+build() {
+	
+	# patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
+	make_menuconfig  &&
+	activate_voyeur  &&
+	make_install  &>  $C_FIFO
+}
+

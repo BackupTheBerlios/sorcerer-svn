@@ -1,0 +1,53 @@
+   VERSION=( "1.37" "1.36" "1.35" "1.34" "1.33" "1.32" "1.30" )
+    IGNORE="WIP\|compr\|rc"
+  CATEGORY="file-system"
+ ATTRIBUTE="core console"
+    SOURCE="e2fsprogs/e2fsprogs-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://e2fsprogs.sourceforge.net"
+       REQ="gawk"
+  ESTIMATE="374"
+      DESC="e2fsprogs contains the required utilities for the EXT2 file system.
+e2fsprogs - The EXT2 file system utilities and libraries.
+EXT2 stands for \"Extended Filesystem\", version 2.
+It is a hard drive filesystem used on GNU Linux boxes.
+This package contains programs for creating, checking,
+and maintaining EXT2 filesystems, and the generic fsck wrapper.
+The ext2fsprogs package contains essential ext2 filesystem utilities
+which consists of e2fsck, mke2fs, debugfs, dumpe2fs, tune2fs,
+and most of the other core ext2 filesystem utilities."
+
+build() {
+	install_init()  {
+
+		cp         lib/uuid/libuuid.a  /usr/lib
+		mkdir  -p                      /usr/include/uuid
+		cp         lib/uuid/uuid.h     /usr/include/uuid
+
+		[  -e                          /etc/init.d/mount.sh  ]  ||
+		cp       $SCRIPT_DIR/mount.sh  /etc/init.d
+
+		ln  -sf  /etc/init.d/mount.sh  /etc/rcS.d/S10mount
+		ln  -sf  /etc/init.d/mount.sh  /etc/rc0.d/K90mount
+		ln  -sf  /etc/init.d/mount.sh  /etc/rc6.d/K90mount
+
+	}
+
+
+	grep  -rl  "#include <linux/fd.h>"  *  |
+	while  read
+	do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
+	done
+
+
+	./configure  --host=$BUILD        \
+	             --prefix=/usr        \
+							 --with-root-prefix=  \
+							 --enable-elf-shlibs  &&
+	make  "LDFLAGS=$LDFLAGS"          &&
+	prepare_install                   &&
+	make    install                   &&
+	make    install-libs              &&
+	install_init
+}
+

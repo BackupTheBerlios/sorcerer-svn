@@ -1,0 +1,67 @@
+   VERSION=( "2.3.13" "2.3.12" "2.3.11" "2.3.10" )
+      SAFE=( "2.3.13" )
+  CATEGORY="network"
+ ATTRIBUTE="server"
+    SOURCE="xinetd-$VERSION.tar.gz"
+       URL="http://www.xinetd.org"
+  HOMEPAGE="http://www.xinetd.org"
+  ESTIMATE="117"
+      DESC="xinetd is a replacement for inetd, the internet services daemon.
+xinetd is a replacement for inetd,
+the internet services daemon.
+Anybody can use it to start servers
+that don't require privileged ports
+because xinetd does not require that
+the services in its configuration
+file be listed in /etc/services.
+It can do access control on all
+services based on the address of
+the remote host and time of access.
+Access control works on all services,
+whether multi-threaded or single-threaded
+and for both the TCP and UDP protocols.
+xinetd supports both internal access
+control, and the use of the libwrap library.
+IPv6 with access control is also supported."
+
+build() {
+	install_init()  {
+
+		cp     $SCRIPT_DIR/xinetd.sh  /etc/init.d
+
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc0.d/K60xinetd
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc1.d/K60xinetd
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc2.d/K60xinetd
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc6.d/K60xinetd
+
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc3.d/S40xinetd
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc4.d/S40xinetd
+		ln  -sf  ../init.d/xinetd.sh  /etc/rc5.d/S40xinetd
+
+	}
+
+
+	install_conf()  {
+		mkdir  -p       /var/log/xinetd
+		mkdir  -p       /etc/xinetd.d
+		ID="includedir  /etc/xinetd.d"
+		echo  "$ID"  >  /etc/xinetd.conf
+		touch           /etc/xinetd.conf
+	}
+
+
+	default_build  &&
+	install_init   &&
+	install_conf
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/xinetd.sh  start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/xinetd.sh  stop
+}
+

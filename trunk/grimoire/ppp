@@ -1,0 +1,71 @@
+   VERSION=( "2.4.3" "2.4.2" "2.4.1" )
+    IGNORE=".b."
+  CATEGORY="network ppp"
+ ATTRIBUTE="client server console"
+    SOURCE="ppp-$VERSION.tar.gz"
+  HOMEPAGE="http://www.samba.org/ppp"
+       URL="ftp://ftp.samba.org/pub/ppp"
+       REQ=( "libpcap"
+             ":CHAPMS=1 USE_CRYPT=1::compile ppp with chapms support" )
+   PROTECT="/etc/ppp"
+ FRESHMEAT="pppd"
+  ESTIMATE="136"
+      DESC="ppp provides a server/client for for point to point protocol.
+ppp Daemon for Linux, Solaris 2, *BSD, SunOS 4,
+Digital Unix, SVR4, NeXTStep, and Ultrix.
+This allows Unix machines to connect to the
+internet through dialup lines, using the
+PPP protocol, as a PPP server or client.
+Works with 'chat', 'dip', and 'diald',
+among (many) others.
+Supports IP, TCP, UDP and (for Linux) IPX (Novell)."
+
+build() {
+	case  $VERSION  in
+		2.4.2)  sed  -i  "s:rp-pppoe::"  pppd/plugins/Makefile.linux  ;;
+	esac
+
+	grep   -rl   "net/bpf.h"  *  |
+	while  read  FILE
+	do     sed   -i  "s:net/bpf.h:pcap-bpf.h:"  $FILE
+	done
+
+
+	./configure  --build=$BUILD          \
+	             --prefix=/usr           \
+							 --sysconfdir=/etc       \
+							 --localstatedir=/var    &&
+	make             $OPTS               &&
+	prepare_install                      &&
+	make    install  $OPTS
+}
+
+post_build() {
+	default_post_build
+	place_file()  {
+		[  -f   $2  ]  ||
+		cp  $SCRIPT_DIR/$1  $2
+	}
+
+	mkdir  -p  /etc/ppp/peers
+	mkdir  -p  /etc/ppp/chat
+
+	ln  -f  /etc/ppp/resolv.conf /etc/resolv.conf
+
+	cp  $SCRIPT_DIR/pon   /usr/bin
+	cp  $SCRIPT_DIR/poff  /usr/bin
+
+	place_file  options   /etc/ppp/options
+	place_file  peers     /etc/ppp/peers/isp
+	place_file  isp       /etc/ppp/chat/isp
+
+	cat  $SCRIPT_DIR/message
+
+	chown  root:ppp     /usr/sbin/pppd
+	chmod  4750         /usr/sbin/pppd
+	chown  -R root:ppp  /etc/ppp
+	chmod  600          /etc/ppp/*-secrets
+
+	default_post_build
+}
+

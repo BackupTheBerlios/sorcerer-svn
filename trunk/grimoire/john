@@ -1,0 +1,43 @@
+   VERSION=( "1.6" )
+    IGNORE="d\|patch\|w\|1\.6\.37\|vms"
+  CATEGORY="encryption security"
+ ATTRIBUTE="console"
+    SOURCE="john-$VERSION.tar.gz"
+       URL="http://www.openwall.com/john"
+  HOMEPAGE="http://www.openwall.com/john"
+  ESTIMATE="134"
+      DESC="john the Ripper is a fast password cracker.
+john the Ripper is a fast password cracker, currently available
+for many flavors of Unix (11 are officially supported, not
+counting different architectures), DOS, Win32, and BeOS.
+Its primary purpose is to detect weak Unix passwords,
+but a number of other hash types are supported as well."
+
+make_install()  {
+
+  cd  ../run
+  cp  -d  john  mailer  unshadow  unique  unafs  /usr/sbin
+
+  mkdir  -p                /usr/share/john
+  cp  *.chr  *.lst  *.ini  /usr/share/john
+
+}
+
+########################################################
+build() {
+	cd   src
+
+	sed  -i  "s/-c -Wall -O2 -fomit-frame-pointer/-c -Wall $CFLAGS/"  Makefile
+	sed  -i  "s/ -m486//"  Makefile
+
+	make  generic    &&
+	prepare_install  &&
+		 make_install
+}
+
+post_install() {
+	default_post_install
+	message  "You need to copy /usr/share/john/john.ini to your working directory before proceeding."
+	message  "All other necessary files are also under /usr/share/john"
+}
+

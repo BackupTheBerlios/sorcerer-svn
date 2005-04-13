@@ -1,0 +1,68 @@
+   VERSION=( "1.08g" )
+    IGNORE="^\.\|^1\.09[a-d]"
+# 1.08g is newer than 1.09d
+  CATEGORY="log"
+ ATTRIBUTE="server new"
+    SOURCE="msyslog/msyslog-v$VERSION-src.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://sourceforge.net/projects/msyslog"
+  EPROVIDE="system-logger"
+  ESTIMATE="29"
+      DESC="msyslog allows for an easy implementation of input and output modules.
+
+The modules that mantain compatibility with its precursor are 
+included in the standard distribution along with four modules:
+om_peo (an implementation of PEO-1 and L-PEO, two algorithmic 
+protocols for integrity checking), om_mysql and om_pgsql 
+(modules that sends output to a mysql and postgresql database, 
+respectively) and om_regex (a module that allows output 
+redirection using regular expressions).
+It is a near drop in replacement for sysklog, sysklogd or syslog.
+"
+
+install_init()  {
+  cp    $SCRIPT_DIR/msyslog.sh  /etc/init.d
+  ln  -sf ../init.d/msyslog.sh  /etc/rcS.d/S20msyslog
+  ln  -sf ../init.d/msyslog.sh  /etc/rc0.d/K70msyslog
+  ln  -sf ../init.d/msyslog.sh  /etc/rc6.d/K70msyslog
+}
+
+
+install_etc()  {
+
+  cp   $SCRIPT_DIR/syslog.conf    /etc
+
+  mkdir  -p  /etc/syslog.conf.examples
+
+  for  FILE  in  src/examples/syslog.conf.*
+  do   install  -m 0444  -o root  -g root  \
+                $FILE  /etc/syslog.conf.examples
+  done
+
+}
+
+###########################################################
+
+
+build() {
+
+	case  $(  uname  -r  )  in
+		2.6*)  sed  -i  "s:ksyms:kallsyms:"  src/modules/im_linux.c  ;;
+	esac
+
+
+	default_build  &&
+	install_init   &&
+	install_etc
+}
+
+post_install() {
+	default_post_install
+	/etc/init.d/msyslog.sh  start
+}
+
+pre_remove() {
+	default_pre_remove
+	/etc/init.d/msyslog.sh  stop
+}
+
