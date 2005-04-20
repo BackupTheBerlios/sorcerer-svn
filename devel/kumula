@@ -1,0 +1,49 @@
+   VERSION=( "2004.09" )
+  CATEGORY="database"
+ ATTRIBUTE="x11 kde new"
+    SOURCE=("11997-kumula-$VERSION.tar.gz")
+#           11997-kumula-2004.09.tar.gz
+       URL="http://www.kde-apps.org/content/download.php?content=11997&id=1"
+  HOMEPAGE="http://www.kumula.org/"
+ FRESHMEAT=""
+  ESTIMATE="5"
+#also requires PyQt now supplied by kdebindings
+       REQ=( "qt-x11-free kde Python mysql"
+             "Imaging:::Python Imaging Library (PIL)"
+             "reportlab:::to create PDF files on the fly"
+             "PyXML:::PyXML for charting")
+      DESC=("Kumula is designed to become a complete software suite for business needs."
+"Started as software for consultants, it is flexible enough to be used 
+by almost any class of business. It provides a small CRM (Clients) and 
+a Mini-DMS (Documents), enhanced by some other applications. Everybody 
+is invited to use it or enhance it. 
+Kumula is written in Qt, PyQt and Python using the fabulous Eric3
+development environment.")
+
+
+database_install(){
+# This install script requires the installer to enter their password (-p)
+# This will of course hang if left unattended
+# The databases need only be installed once so I added the hack "true|database_install"
+# to prevent a mysql error the second time around
+   cd sql/                           &&
+   mysql -u root -p < kumula.sql     &&
+   mysql -u root -p < clients.sql    &&
+   mysql -u root -p < documents.sql  &&
+   mysql -u root -p < journal.sql   
+}
+
+fix_pyqt(){
+	sed -i "s:QSizePolicy(7,0,:QSizePolicy(QSizePolicy.Expanding, QSizePolicy.Fixed,:g" \
+			/opt/kumula/lib/configurator/ConfigWindow.py
+}
+
+build(){
+		prepare_install &&
+		mkdir -p /opt/kumula &&
+		cp -a * /opt/kumula/ &&
+		true || database_install &&
+		case $VERSION in
+			2004.09) fix_pyqt ;;
+		esac
+}

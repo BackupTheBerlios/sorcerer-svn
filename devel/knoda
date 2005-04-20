@@ -1,0 +1,56 @@
+   VERSION=( "0.7.3-test2" "0.7.2" )
+  CATEGORY="db"
+ ATTRIBUTE="kde new"
+    SOURCE=("knoda/knoda-$VERSION.tar.bz2")
+  HOMEPAGE="http://www.knoda.org"
+       URL="$SOURCEFORGE_URL"
+       REQ="qt-x11-free hk_classes kde"
+  ESTIMATE=396
+      DESC=("knoda is a database frontend for KDE. "
+"It is based on hk_classes and is released under the GNU General Public License
+ (GPL).
+
+Knoda allows you to:
+
+    * define and delete databases;
+    * create, alter and delete tables and indices;
+    * add, change and delete data in tables;
+    * define, execute and store sql queries;
+    * define, execute and store queries with a \"query by example\" GUI;
+    * import and export CSV data;
+    * define and use forms;
+    * define and print reports; and
+    * write your own extensions using the integrated Python interpreter as scripting 
+      language
+
+Its driver concept allows a uniform connection to different database servers 
+(Mysql , Postgresql , SQLite or ODBC).
+
+")
+
+
+
+build() {
+
+	export QTDIR="/usr"
+	OPTS="--with-mysql-includes=/usr/include/mysql  --with-qt-includes=/usr/include/qt"
+
+
+	if    [  -z  "${SOURCE}"  ]
+	then  prepare_install  &&  echo  "Profile $BSPELL installed."
+	else
+
+		LD_PRELOAD_OLD=$LD_PRELOAD
+		unset           LD_PRELOAD
+
+		./configure  --build=$BUILD         \
+		--prefix=/usr                       \
+		--sysconfdir=/etc                   \
+		--localstatedir=/var                \
+		$OPTS                               &&
+		make                                &&
+		prepare_install                     &&
+		export  LD_PRELOAD=$LD_PRELOAD_OLD  &&
+		make    install
+	fi
+}

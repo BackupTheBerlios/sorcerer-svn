@@ -1,0 +1,43 @@
+ VERSION=( "1.62-gpl-1.5" )
+  CATEGORY="library python"
+ ATTRIBUTE="development new"
+  HOMEPAGE="http://www.riverbankcomputing.co.uk/qscintilla/index.php"
+       URL="http://www.river-bank.demon.co.uk/download/QScintilla"
+    SOURCE="qscintilla-$VERSION.tar.gz"
+       REQ="Python qt-x11-free"
+  ESTIMATE="79"
+   PROVIDE=""
+ FRESHMEAT=""
+      DESC=("QScintilla is a port to Qt Scintilla C++ editor class."
+"As well as features found in standard text editing components, 
+QScintilla includes features especially useful when editing and 
+debugging source code. These include support for syntax styling, 
+error indicators, code completion and call tips. The selection 
+margin can contain markers like those used in debuggers to indicate
+breakpoints and the current line. Styling choices are more open 
+than with many editors, allowing the use of proportional fonts,
+bold and italics, multiple foreground and background colours 
+and multiple fonts.")
+
+build(){
+	export QTDIR=/usr 
+	sed -i "s:INCLUDEPATH = . ../include ../src:INCLUDEPATH = . ../include ../src /usr/include/qt:" qt/qscintilla.pro &&
+	echo "INCLUDEPATH = . ../include ../src /usr/include/qt" >>designer/designer.pro &&
+	sed -i "s:<qextscintillabase.h>:\"qextscintillabase.h\":"         qt/*.h
+	sed -i "s:<qextscintilladocument.h>:\"qextscintilladocument.h\":" qt/*.h
+	sed -i "s:<qextscintillaglobal.h>:\"qextscintillaglobal.h\":"     qt/*.h
+	sed -i "s:<qextscintillalexer.h>:\"qextscintillalexer.h\":"       qt/*.h
+	sed -i "s:<qextscintillalexercpp.h>:\"qextscintillalexercpp.h\":" qt/*.h
+	sed -i "s:<qextscintilla.h>:\"qextscintilla.h\":"                 qt/*.h
+	cd qt                                   &&
+	qmake qscintilla.pro                    &&
+	make                                    &&
+	cd ../designer                          &&
+	qmake designer                          &&
+	make                                    &&
+	cd ../qt                                &&
+	prepare_install                         &&
+	cp qextscintilla*.h $QTDIR/include/qt   &&
+	mkdir -p $QTDIR/translations            &&
+	cp qscintilla*.qm $QTDIR/translations
+}

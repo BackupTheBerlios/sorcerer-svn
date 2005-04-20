@@ -1,0 +1,46 @@
+   VERSION=( "1.4.1" )
+  CATEGORY="accounting"
+ ATTRIBUTE="new"
+    SOURCE=("quasar-${VERSION}_GPL.tgz")
+       URL="ftp://ftp.linuxcanada.com/pub/Quasar/1.4.1/source"
+  HOMEPAGE="http://www.linuxcanada.com/index.shtml"
+ FRESHMEAT=""
+  ESTIMATE=""
+       REQ=("qt-x11-free tk tcl autoconf make gcc")
+      DESC=("Quasar is a full function, stand-alone business accounting package."
+"You may elect to use Quasar Accounting with the open source GNU GPL 
+which is available free of charge. Or, you may elect to purchase our
+commercial license for a nominal fee.
+With Quasar it is extremely easy to set up remote access to multiple 
+servers from multiple workstations. You can run Quasar on both Windows
+and/or Linux on the same network. For example, you can maintain a Linux
+server and access the data from a Windows workstation.")
+
+fix_qt_include_dir()
+{
+	patch project.def.in <<-EOF
+		37c
+		INCLUDEPATH     += @TCL_INCLUDE_PATH@ @TK_INCLUDE_PATH@ /usr/include/qt
+		.
+		26a
+		QTINCDIR=@QTDIR@/include/qt
+		.
+		EOF
+	sed -i "s:element_factory.cpp::" repgen/repgen.pro.in
+	sed -i "s:interp.cpp::"          repgen/repgen.pro.in
+}
+
+
+build(){
+   export QTDIR="/usr"                  &&
+   fix_qt_include_dir                   &&
+   ./configure   --build=$BUILD         \
+                 --prefix=/usr          \
+                 --sysconfdir=/etc      \
+                 --localstatedir=/var   \
+                 --disable-debug        \
+                 $OPTS                  &&
+    make                                &&
+    prepare_install                     &&
+    make    install
+}

@@ -1,0 +1,85 @@
+   VERSION=( "2005-02-10" "2004-12-24" )
+  PLATFORM="i686-pc-linux-gnu"
+  CATEGORY="science distributed_computing"
+ ATTRIBUTE="new"
+  HOMEPAGE="http://boinc.berkeley.edu"
+       URL="http://boinc.berkeley.edu/source/nightly"
+    SOURCE="boinc_public-cvs-$VERSION.tar.gz"
+       REQ=("mysql gtk+ glut x11 wxGTK" 
+            ":--enable-client:to build BOINC client")
+  ESTIMATE="301"
+      DESC=("Berkeley Open Infrastructure for Network Computing."
+"
+ A software platform for distributed computing using volunteered computer
+resources. 
+BOINC-based distributed computing projects include: 
+
+Climateprediction.net: Improve the accuracy of long-term climate prediction. 
+Einstein@home: search data from the Laser Interferometer Gravitational
+wave Observatory (LIGO) in the US and from the GEO 600 gravitational wave 
+observatory in Germany for signals coming from rapidly rotating neutron 
+stars, known as pulsars. 
+LHC@home: improve the design of the CERN LHC particle accelerator. 
+Predictor@home: Solve biomedical questions and investigate protein-related
+diseases. 
+SETI@home: Analyze radio-telescope data, looking for evidence of 
+extraterrestrial life. ")
+ 
+
+
+graphics_patch(){
+
+cp Makefile Makefile.graphics &&
+#must escape $ and \
+#
+
+   patch << EOF
+diff -U2 Makefile.graphics Makefile.graphics
+--- Makefile.graphics	2004-12-26 22:53:29.318359448 -0500
++++ Makefile.graphics	2004-12-26 20:51:33.482535544 -0500
+@@ -74,5 +74,5 @@
+ ENABLE_SERVER_TRUE = 
+ EXEEXT = 
+-GRXLIBS =  -lGL
++GRXLIBS =  -lGL -lboincglut
+ INSTALL_DATA = \${INSTALL} -m 644
+ INSTALL_PROGRAM = \${INSTALL}
+@@ -168,4 +168,5 @@
+         -I\$(top_srcdir)/tools			\\
+         -I\$(top_srcdir)/sched			\\
++        -I\$(top_srcdir)/boincglut/include       \\
+         \$(MYSQL_CFLAGS)				\\
+         -include \$(top_builddir)/config.h
+@@ -208,5 +209,7 @@
+ am_libboinc_api_a_OBJECTS = boinc_api.\$(OBJEXT) app_ipc.\$(OBJEXT) \\
+ 	base64.\$(OBJEXT) diagnostics.\$(OBJEXT) exception.\$(OBJEXT) \\
+-	parse.\$(OBJEXT) shmem.\$(OBJEXT) synch.\$(OBJEXT) util.\$(OBJEXT)
++	parse.\$(OBJEXT) shmem.\$(OBJEXT) synch.\$(OBJEXT) util.\$(OBJEXT) \\
++        x_opengl.\$(OBJEXT) graphics_data.\$(OBJEXT) graphics_api.\$(OBJEXT) \\
++        reduce.\$(OBJEXT) gutil.\$(OBJEXT)
+ libboinc_api_a_OBJECTS = \$(am_libboinc_api_a_OBJECTS)
+ EXTRA_PROGRAMS = api_app\$(EXEEXT) api_test\$(EXEEXT)
+EOF
+}
+
+
+
+old_build() {
+ ./configure --enable-client &&
+
+ cd boincglut/lib/glut &&
+ make &&
+
+ cd - &&
+ make &&
+
+ cd api &&
+ graphics_patch &&
+ make -f Makefile.graphics &&
+
+ cd - &&
+ prepare_install &&
+ make install
+}
+
+

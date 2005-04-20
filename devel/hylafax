@@ -1,0 +1,46 @@
+   VERSION=( "4.2.1" )
+  CATEGORY="fax"
+ ATTRIBUTE="new"
+    SOURCE=("hylafax-$VERSION.tar.gz")
+  HOMEPAGE="http://www.hylafax.org"
+       URL="ftp://ftp.hylafax.org/source"
+       REQ=("tiff ghostscript zlib awk mail-transport-agent"
+           "uuencode:::for optional use in fax-to-mail gateways."
+           "Linux-PAM:--disable-pam::disable all PAM support")
+  ESTIMATE="625"
+      DESC=("HylaFAX? is for sending and receiving facsimiles like pages."
+" The software is designed around a client-server architecture. Fax 
+modems may reside on a single machine on a network and clients can 
+submit an outbound job from any other machine on the network. Client
+ software is designed to be lightweight and easy to port.
+
+HylaFAX? is designed to be very robust and reliable. The fax server 
+is designed to guard against unexpected failures in the software, 
+in the configuration, in the hardware and in general use. HylaFAX?
+ can support multiple modems and a heavy traffic load.
+
+If you expect to send more than a few facsimiles a day, then HylaFAX?
+is the fax package for you!!")
+
+
+build() {
+	export DIR_MAN=/usr/share/man
+	if    [  -z  "${SOURCE}"  ]
+	then  prepare_install  &&  echo  "Profile $BSPELL installed."
+	else
+
+		LD_PRELOAD_OLD=$LD_PRELOAD
+		unset           LD_PRELOAD
+
+		./configure  --target=$BUILD       \
+		--with-DIR_BIN=/usr/bin            \
+		--with-DIR_SBIN=/usr/sbin          \
+		--with-DIR_LIB=/usr/lib            \
+		--with-DIR_LIBDATA=/usr/lib/fax    \
+		$OPTS                  &&
+		make                                &&
+		prepare_install                     &&
+		export  LD_PRELOAD=$LD_PRELOAD_OLD  &&
+		make    install
+	fi
+}
