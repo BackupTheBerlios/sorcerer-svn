@@ -2,15 +2,16 @@
   CATEGORY="shell"
  ATTRIBUTE="core console solo"
     SOURCE="bash-${VERSION:0:3}.tar.gz"
-       URL="ftp://ftp.cwru.edu/pub/bash"
+       URL=( "ftp://ftp.cwru.edu/pub/bash"
+             "ftp://ftp.cwru.edu/pub/bash/bash-3.0-patches" )
   case  $VERSION  in
     3.0*)
          PATCHES=${VERSION:5:2}
          for  ((SCX=1; SCX < 10; SCX++))
-         do   SOURCE[$SCX]="bash-3.0-patches/bash30-00$SCX"
+         do   SOURCE[$SCX]="bash30-00$SCX"
          done
          for  ((SCX=10; SCX <= PATCHES; SCX++))
-         do   SOURCE[$SCX]="bash-3.0-patches/bash30-0$SCX"
+         do   SOURCE[$SCX]="bash30-0$SCX"
          done  ;;
   esac
   HOMEPAGE="http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html"
@@ -18,10 +19,9 @@
 #             ":--debugger::Enable debugging and extdebug shell option" )
    PROTECT="/bin/bash
             /bin/sh"
-  ESTIMATE="373"
+  ESTIMATE="376"
  FRESHMEAT="gnubash"
       DESC="bash is the shell of the GNU operating system.
-
 Bash is an sh-compatible shell that incorporates useful
 features from the Korn shell (ksh) and C shell (csh).
 It is intended to conform to the
@@ -32,6 +32,13 @@ line editing, unlimited size command history, job control,
 shell functions and aliases, indexed arrays of unlimited size,
 and integer arithmetic in any base from two to sixty-four.
 In addition, most sh scripts can be run by Bash without modification."
+
+current()  {
+  case  $VERSION  in   
+    3.0.16)  grep  -qx  "patching file ../bash-3.0/tests/jobs4.sub"  $COMPILE_LOGS/bash  ;;
+  esac
+}
+
 
 build() {
 	install_loadables()  {
@@ -48,10 +55,8 @@ build() {
 
 	CX=1
 	while  [  -n  "${SOURCE[$CX]}"  ]
-	do  patch  -p0  <  \
-		$(  guess_filename  "${SOURCE[$CX]}"  \
-		${SOURCE_CACHE}/$BSPELL/$VERSION  )
-		((  CX++  ))
+	do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$CX]}
+        ((  CX++  ))
 	done
 
 

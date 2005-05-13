@@ -1,15 +1,24 @@
-   VERSION=( "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
-        BV=( "3.0" )
+   VERSION=( "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
+        BV=( "3.0.016" )
   CATEGORY="shell"
  ATTRIBUTE="console new"
     SOURCE=( "bashdiff-$VERSION.tar.gz"
-             "bash-$BV.tar.gz" )
+             "bash-${BV:0:3}.tar.gz" )
        URL=( "http://home.eol.ca/~parkw/bashdiff"
-             "ftp://ftp.cwru.edu/pub/bash" )
+             "ftp://ftp.cwru.edu/pub/bash"
+             "ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches" )
+         PATCHES=${VERSION:5:2}
+         SCX=2
+         for  ((PCX=1; PCX < 10; PCX++))
+         do   SOURCE[$SCX]="bash30-00$PCX"; ((SCX++))
+         done
+         for  ((PCX=10; PCX <= PATCHES; PCX++))
+         do   SOURCE[$SCX]="bash-3.0-patches/bash30-0$PCX"; ((SCX++))
+         done
   HOMEPAGE="http://home.eol.ca/~parkw"
        REQ=( "autoconf expat ncurses readline"
              ":--debugger::Enable debugging and extdebug shell option" )
-  ESTIMATE="378"
+  ESTIMATE="685"
       DESC="bash-wp provides an extended modified bash by William Park."
 
 
@@ -28,9 +37,15 @@ install_loadables()  {
 }
 
 
+SCX=2
+while  [ -n "${SOURCE[$SCX]}" ]
+do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$CX]}
+    (( SCX++ ))
+done
+
 patch  -p0  <  bashdiff-core-$VERSION.diff
 patch  -p0  <  bashdiff-william-$VERSION.diff
-cd     bash-$BV
+cd     bash-${BV:0:3}
 
 autoconf
 
