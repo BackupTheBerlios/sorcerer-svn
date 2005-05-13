@@ -2,40 +2,36 @@
     IGNORE="2001\|20001\|w"
   CATEGORY="game emulator"
  ATTRIBUTE="x11"
- SOURCE[0]="exult/exult-$VERSION.tar.gz"
- SOURCE[1]="exult/jmsfx.zip"
- SOURCE[2]="exult/jmsfxsi.zip"
- SOURCE[3]="exult/U7MusicOGG_1of2.zip"
- SOURCE[4]="exult/U7MusicOGG_2of2.zip"
+    SOURCE=( "exult/exult-$VERSION.tar.gz"
+             "exult/jmsfx.zip"
+             "exult/jmsfxsi.zip"
+             "exult/U7MusicOGG_1of2.zip"
+             "exult/U7MusicOGG_2of2.zip" )
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://exult.sourceforge.net"
        REQ="SDL_mixer flex unzip"
   ESTIMATE="662"
       DESC="exult is an open-source game engine for playing Ultima7
-
-exult is an open-source game engine for playing Ultima7 on modern
-operating systems, using the game's original data files.
 If you don't own Ultima 7 this engine will be of no use to you.
 To get sound & midi working on this you will likely have to shut
-down artsd and run esd before starting exult.
-"
+down artsd and run esd before starting exult."
 
 build() {
- sed  -i  's:"playmidi","-v","-v","-e":"playmus","playmus","-r","44100":'  \
- audio/midi_drivers/forked_player.cc
+sed  -i  's:"playmidi","-v","-v","-e":"playmus","playmus","-r","44100":'  \
+     audio/midi_drivers/forked_player.cc
 
- ./configure --prefix=/usr         \
-             --sysconfdir=/etc     \
-              --localstatedir=/var  \
-       --bindir=/usr/games   \
-       --disable-timidity    \
-       $OPTS                 &&
- make             &&
- make    install  &&
- cp      $SCRIPT_DIR/exult.cfg  /usr/share/exult  &&
- cp      sfx/jmsfx.flx          /usr/share/exult  &&
- cp      sfx/jmsisfx.flx        /usr/share/exult  &&
- cp  -a  music                  /usr/share/exult
+./configure --prefix=/usr         \
+            --sysconfdir=/etc     \
+            --localstatedir=/var  \
+            --bindir=/usr/games   \
+            --disable-timidity    \
+            $OPTS                 &&
+make             &&
+make    install  &&
+cp      $SCRIPT_DIR/exult.cfg  /usr/share/exult  &&
+cp      sfx/jmsfx.flx          /usr/share/exult  &&
+cp      sfx/jmsisfx.flx        /usr/share/exult  &&
+cp  -a  music                  /usr/share/exult
 }
 
 pre_build() {
@@ -53,13 +49,11 @@ pre_build() {
 }
 
 post_install() {
- default_post_install
- cat  <<-  EOF
- When you are ready to play, copy /usr/share/exult.cfg to ~/.exult.cfg.
- Make appropriate modifications and install the gamedata files and enjoy.
- Note:  You may also have to start esd, enlightenment sound daemon, in
- order to get sound and music.  And if you don't own Ultima 7, then exult
- will be of no use to you.
- EOF
+cat  <<  EOF
+When you are ready to play, copy /usr/share/exult.cfg to ~/.exult.cfg.
+Make appropriate modifications and install the gamedata files and enjoy.
+Note:  You may also have to start esd, enlightenment sound daemon, in
+order to get sound and music.  And if you don't own Ultima 7, then exult
+will be of no use to you.
+EOF
 }
-
