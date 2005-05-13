@@ -23,51 +23,51 @@ You can also set a nice value to a job, run it
 depending on the system load average, and much more."
 
 build() {
-	install_init()  {
+ install_init()  {
 
-		cp  $SCRIPT_DIR/fcron.sh        /etc/init.d
+  cp  $SCRIPT_DIR/fcron.sh        /etc/init.d
 
-		ln     -sf  ../init.d/fcron.sh  /etc/rcS.d/S80fcron
-		ln     -sf  ../init.d/fcron.sh  /etc/rc0.d/K20fcron
-		ln     -sf  ../init.d/fcron.sh  /etc/rc6.d/K20fcron
+  ln     -sf  ../init.d/fcron.sh  /etc/rcS.d/S80fcron
+  ln     -sf  ../init.d/fcron.sh  /etc/rc0.d/K20fcron
+  ln     -sf  ../init.d/fcron.sh  /etc/rc6.d/K20fcron
 
-		[ -e /etc/fcron.allow ]  ||  cp  files/fcron.allow  /etc
-		[ -e /etc/fcron.deny  ]  ||  cp  files/fcron.deny   /etc
+  [ -e /etc/fcron.allow ]  ||  cp  files/fcron.allow  /etc
+  [ -e /etc/fcron.deny  ]  ||  cp  files/fcron.deny   /etc
 
-	}
+ }
 
-	groupadd  fcron             2>/dev/null
-	useradd   fcron  -g  fcron  2>/dev/null
+ groupadd  fcron             2>/dev/null
+ useradd   fcron  -g  fcron  2>/dev/null
 
-	if    spell_installed  Linux-PAM
-	then  WITH_PAM="--with-pam=yes"
-	else  WITH_PAM="--with-pam=no"
-	fi
+ if    spell_installed  Linux-PAM
+ then  WITH_PAM="--with-pam=yes"
+ else  WITH_PAM="--with-pam=no"
+ fi
 
-	EDITOR=`which $EDITOR  2>/dev/null`  ||
-	EDITOR=`which nano`
+ EDITOR=`which $EDITOR  2>/dev/null`  ||
+ EDITOR=`which nano`
 
-	sed  -i  "s:-O2:$CFLAGS:"                 configure
-	sed  -i  "s,next_file:,next_file:\
-	;,"  conf.c
+ sed  -i  "s:-O2:$CFLAGS:"                 configure
+ sed  -i  "s,next_file:,next_file:\
+ ;,"  conf.c
 
-	./configure --prefix=/usr          \
-							--with-answer-all=no   \
-							$WITH_PAM              \
-							--with-editor=$EDITOR  &&
-	make                                &&
-	prepare_install                     &&
-	make    install                     &&
-	install_init
+ ./configure --prefix=/usr          \
+       --with-answer-all=no   \
+       $WITH_PAM              \
+       --with-editor=$EDITOR  &&
+ make                                &&
+ prepare_install                     &&
+ make    install                     &&
+ install_init
 }
 
 post_install() {
-	default_post_install
-	/etc/init.d/fcron.sh  start
+ default_post_install
+ /etc/init.d/fcron.sh  start
 }
 
 pre_remove() {
-	default_pre_remove
-	/etc/init.d/fcron.sh  stop
+ default_pre_remove
+ /etc/init.d/fcron.sh  stop
 }
 

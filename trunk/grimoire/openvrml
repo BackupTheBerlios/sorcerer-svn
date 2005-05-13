@@ -1,17 +1,15 @@
-   VERSION=( "0.15.5" "0.15.4" "0.15.3" "0.15.2" )
-    IGNORE="^0\.15\.6"
-# 0.15.6 has compile error.
+   VERSION=( "0.15.7" "0.15.5" "0.15.4" "0.15.3" "0.15.2" )
   CATEGORY="graphic"
  ATTRIBUTE="library"
     SOURCE="openvrml/openvrml-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://openvrml.sourceforge.net"
-       REQ=( "SDL dejagnu glut gtkglext jpeg libpng"
+       REQ=( "SDL boost glut gtkglext jpeg libpng"
              "doxygen::--without-doxygen --disable-api-docs:for documentation generation"
-             "jdk:--with-jdk=/opt/jdk1.5.0/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node"
-             "mozilla:::for mozilla openvrml plugin" )
+             "jdk:--with-jdk=/opt/jdk1.5.0_02/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node"
+             "mozilla::--disable-mozilla-plugin:for mozilla openvrml plugin" )
 #            "j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node" )
-  ESTIMATE="586"
+  ESTIMATE="574"
       DESC="openvrml is a library for reading and displaying VRML97.
 openvrml is a C++ class library that allows applications
 to read VRML97 .wrl files and view their geometries.
@@ -22,18 +20,22 @@ lookat, a basic Glut VRML viewer is included."
 
 build() {
 
-MOZ_INC="-I/usr/include/mozilla"
+MOZ_INC="-I/usr/include/mozilla -I/usr/include/mozilla/nspr"
 MOZ_LIB="-L/usr/lib/mozilla"
 
-JDK_INC="-I/opt/jdk1.5.0/include  -I/opt/jdk1.5.0/include/linux"
-JDK_LIB="-L/opt/jdk1.5.0/jre/lib/i386/server"
+JDK_INC="-I/opt/jdk1.5.0_02/include  -I/opt/jdk1.5.0_02/include/linux"
+JDK_LIB="-L/opt/jdk1.5.0_02/jre/lib/i386/server"
 
-export    CFLAGS="$CFLAGS   $JDK_INC   $MOZ_INC"
-export  CXXFLAGS="$CXXFLAGS $JDK_INC   $MOZ_INC"
+BST_INC="-I/usr/include/boost-1_32"
+
+export    CFLAGS="$CFLAGS   $JDK_INC   $MOZ_INC  $BST_INC"
+export  CXXFLAGS="$CXXFLAGS $JDK_INC   $MOZ_INC  $BST_INC"
 export   LDFLAGS="$LDFLAGS  $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
 
 #            --without-jdk           \
 #            --without-spidermonkey  \
+
+sed  -i  "s:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:"  tests/Makefile*
 
 default_build
 }

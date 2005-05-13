@@ -27,33 +27,33 @@ Both the J2SDK and the J2RE contain the Java Plug-In
 for Netscape 4.x and Mozilla/Netscape 6.x."
 
 pre_build()  {
-	FN=$(  guess_filename  $SOURCE  )
-	SKIP=$(  grep -a    "skip="  $FN  |
-	sed      "s:skip=::"     )
+ FN=$(  guess_filename  $SOURCE  )
+ SKIP=$(  grep -a    "skip="  $FN  |
+ sed      "s:skip=::"     )
 
-	tail  -n +$SKIP  $FN  |
-	bzip2  -cd            |
-	tar    -xf  -
+ tail  -n +$SKIP  $FN  |
+ bzip2  -cd            |
+ tar    -xf  -
 }
 
 build() {
-	DEST_DIR="/opt/j2sdk/$VERSION"
-	MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so"
-	MOZ_PDIR="/usr/lib/mozilla/plugins"
+ DEST_DIR="/opt/j2sdk/$VERSION"
+ MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so"
+ MOZ_PDIR="/usr/lib/mozilla/plugins"
 
-	prepare_install                          &&
-	mkdir  -p                 $DEST_DIR      &&
-	cp     -R   $BUILD_DIR/*  $DEST_DIR      &&
-	cd                        $DEST_DIR/bin  &&
-	for  FILE  in  *;  do
-		if    [  -f     $FILE  ]  &&
-			[  -x     $FILE  ]
-		then  ln  -sfv  $DEST_DIR/bin/${FILE}  \
-			/usr/bin/${FILE}
-		fi
-	done  &&
+ prepare_install                          &&
+ mkdir  -p                 $DEST_DIR      &&
+ cp     -R   $BUILD_DIR/*  $DEST_DIR      &&
+ cd                        $DEST_DIR/bin  &&
+ for  FILE  in  *;  do
+  if    [  -f     $FILE  ]  &&
+   [  -x     $FILE  ]
+  then  ln  -sfv  $DEST_DIR/bin/${FILE}  \
+   /usr/bin/${FILE}
+  fi
+ done  &&
 
-	if    [   -d               $MOZ_PDIR  ]
-	then  ln  -vsf  $MOZ_PLUG  $MOZ_PDIR/libjavaplugin_oji.so
-	fi
+ if    [   -d               $MOZ_PDIR  ]
+ then  ln  -vsf  $MOZ_PLUG  $MOZ_PDIR/libjavaplugin_oji.so
+ fi
 }

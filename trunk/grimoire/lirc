@@ -1,4 +1,4 @@
-   VERSION=( "0.7.0" "0.6.6" )
+   VERSION=( "0.7.1" "0.7.0" "0.6.6" )
     IGNORE="xmms-plugin\|services\|alpha"
   CATEGORY="kernel"
  ATTRIBUTE="driver library"
@@ -75,66 +75,66 @@ update_cvs_source()  {
 
 build() {
 
-	groupadd  lirc     2>/dev/null
-	rm  -f    /dev/lirc*
+ groupadd  lirc     2>/dev/null
+ rm  -f    /dev/lirc*
 
-	update_cvs_source  &&
-	conf               &&
-	activate_voyeur    &&
-	save_configure_sh  &&
-	sed_source         &&
+ update_cvs_source  &&
+ conf               &&
+ activate_voyeur    &&
+ save_configure_sh  &&
+ sed_source         &&
 
 
-	{
-		libtoolize  --force
-		sh  configure.sh         &&
-		make                     &&
-		prepare_install          &&
-		make    install          &&
-		chgrp  lirc  /dev/lirc*  && 
-		chmod  660   /dev/lirc*  &&
-		finish_install
-	} &> $C_FIFO
+ {
+  libtoolize  --force
+  sh  configure.sh         &&
+  make                     &&
+  prepare_install          &&
+  make    install          &&
+  chgrp  lirc  /dev/lirc*  && 
+  chmod  660   /dev/lirc*  &&
+  finish_install
+ } &> $C_FIFO
 }
 
 post_install() {
-	default_post_install
-	INC="include  /etc/modules.d/lirc"
-	grep  -q  "$INC"  /etc/modules.conf   ||  echo  "$INC"  >>  /etc/modules.conf
-	grep  -q  "$INC"  /etc/modprobe.conf  ||  echo  "$INC"  >>  /etc/modprobe.conf
+ default_post_install
+ INC="include  /etc/modules.d/lirc"
+ grep  -q  "$INC"  /etc/modules.conf   ||  echo  "$INC"  >>  /etc/modules.conf
+ grep  -q  "$INC"  /etc/modprobe.conf  ||  echo  "$INC"  >>  /etc/modprobe.conf
 
-	depmod  -a  -q
+ depmod  -a  -q
 
-	if    [  -x  /etc/init.d/lircd.sh  ]
-	then         /etc/init.d/lircd.sh  start
-	fi
+ if    [  -x  /etc/init.d/lircd.sh  ]
+ then         /etc/init.d/lircd.sh  start
+ fi
 
-	true
+ true
 }
 
 pre_remove() {
-	default_pre_remove
-	if    [  -x  /etc/init.d/lircd.sh  ]
-	then         /etc/init.d/lircd.sh  stop
-	fi
+ default_pre_remove
+ if    [  -x  /etc/init.d/lircd.sh  ]
+ then         /etc/init.d/lircd.sh  stop
+ fi
 
-	INC="include  /etc/modules.d/lirc"
-	sed  -i  "\:$INC:d"  /etc/modules.conf   2>/dev/null
-	sed  -i  "\:$INC:d"  /etc/modprobe.conf  2>/dev/null
+ INC="include  /etc/modules.d/lirc"
+ sed  -i  "\:$INC:d"  /etc/modules.conf   2>/dev/null
+ sed  -i  "\:$INC:d"  /etc/modprobe.conf  2>/dev/null
 
-	true
+ true
 }
 
 post_remove() {
-	default_post_remove
-	MOD="/etc/modules.conf"
-	TMP="/tmp/modules.conf"
-	INC="include  /etc/modules.d/lirc"
+ default_post_remove
+ MOD="/etc/modules.conf"
+ TMP="/tmp/modules.conf"
+ INC="include  /etc/modules.d/lirc"
 
-	cp           $MOD   $TMP
-	grep    -v  "$INC"  $TMP  >  $MOD
-	rm                  $TMP
-	depmod  -a  -q
-	true
+ cp           $MOD   $TMP
+ grep    -v  "$INC"  $TMP  >  $MOD
+ rm                  $TMP
+ depmod  -a  -q
+ true
 }
 

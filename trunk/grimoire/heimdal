@@ -1,5 +1,5 @@
-   VERSION=( "0.6.3" "0.6.2" "0.6.1" "0.6" )
-      SAFE=( "0.6.3" )
+   VERSION=( "0.6.4" "0.6.3" "0.6.2" "0.6.1" "0.6" )
+      SAFE=( "0.6.4" )
     IGNORE="^200"
   CATEGORY="authentication encryption security"
  ATTRIBUTE="console"
@@ -11,12 +11,24 @@
        REQ=( "bison db e2fsprogs flex gawk ncurses openssl"
              "x11:::for for forwarding X connections and for locking the screen"
              "openldap:--with-openldap::for storing the database in LDAP" )
-# heimdal 0.6 fails compilation if it is compiled while it is installed.
-#CONFLICTS="heimdal"
   ESTIMATE="1418"
-    	DESC="heimdal is a free implementation of Kerberos 5."
+      DESC="heimdal is a free implementation of Kerberos 5."
 
-			
+build() {
+sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:
+          s:db, db->name, NULL,:db, NULL, db->name, NULL,:"  \
+     lib/hdb/db3.c
+
+sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:"  \
+     lib/roken/ndbm_wrap.c
+
+LOG="
+[logging]
+ kdc = FILE:/var/heimdal/kdc.log
+ kdc = SYSLOG:INFO
+ default = SYSLOG:INFO:USER
+"
+
 copy_headers()  {
   mkdir  -p                   save
   cp  /usr/include/glob.h     save
@@ -38,43 +50,24 @@ restore_headers()  {
   chk_or_cp  ss/ss.h    ss.h
   true
 
-}		
-
-
-build() {
-	sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:
-						s:db, db->name, NULL,:db, NULL, db->name, NULL,:"  \
-			 lib/hdb/db3.c
-
-	sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:"  \
-			 lib/roken/ndbm_wrap.c
-
-	LOG="
-	[logging]
-		kdc = FILE:/var/heimdal/kdc.log
-		kdc = SYSLOG:INFO
-		default = SYSLOG:INFO:USER
-	"
-
-
-
-
-	# export  ac_cv_func_glob_working=yes
-
-	./configure  --build=$BUILD         \
-							 --prefix=/usr          \
-							 --sysconfdir=/etc      \
-							 --localstatedir=/var   \
-							 $OPTS                  &&
-	make                                &&
-	prepare_install                     &&
-		 copy_headers                     &&
-	make    install                     &&
-	restore_headers                     &&
-
-	if    !  [  -f      /etc/krb5.conf  ];  then
-		cp    krb5.conf   /etc/krb5.conf
-		echo  "$LOG"  >>  /etc/krb5.conf
-	fi
 }
 
+
+# export  ac_cv_func_glob_working=yes
+
+./configure  --build=$BUILD         \
+             --prefix=/usr          \
+             --sysconfdir=/etc      \
+             --localstatedir=/var   \
+             $OPTS                  &&
+make                                &&
+prepare_install                     &&
+   copy_headers                     &&
+make    install                     &&
+restore_headers                     &&
+
+if    !  [  -f      /etc/krb5.conf  ];  then
+  cp    krb5.conf   /etc/krb5.conf
+  echo  "$LOG"  >>  /etc/krb5.conf
+fi
+}

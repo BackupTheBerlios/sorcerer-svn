@@ -312,90 +312,90 @@ pkgconf_install()  {
 
 ##########################################################
 configure() {
-	if    !  [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
-	then  configure_host_def
-	fi
+ if    !  [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
+ then  configure_host_def
+ fi
 }
 
 build() {
-	if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
-		cat        $CONFIG_LOGS/$BSPELL/host.def    |
-		sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
-		config/cf/host.def
+ if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
+  cat        $CONFIG_LOGS/$BSPELL/host.def    |
+  sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
+  config/cf/host.def
 
-		(
-		echo  "#define DefaultCCOptions       $CFLAGS"
-		echo  "#define DefaultGcc2i386Opt     $CFLAGS"
-		echo  "#define LibraryCDebugFlags     $CFLAGS"
-		echo  "#define DefaultCDebugFlags     $CFLAGS"
-		echo  "#define OptimizedCDebugFlags   $CFLAGS"
-		echo  "#define LOCAL_LDFLAGS          ${LDFLAGS:--Wl,-s}"
-		echo  "#define HasZlib                YES"
-		echo  "#define InstallXdmConfig       YES"
-		echo  "#define InstallXinitConfig     YES"
+  (
+  echo  "#define DefaultCCOptions       $CFLAGS"
+  echo  "#define DefaultGcc2i386Opt     $CFLAGS"
+  echo  "#define LibraryCDebugFlags     $CFLAGS"
+  echo  "#define DefaultCDebugFlags     $CFLAGS"
+  echo  "#define OptimizedCDebugFlags   $CFLAGS"
+  echo  "#define LOCAL_LDFLAGS          ${LDFLAGS:--Wl,-s}"
+  echo  "#define HasZlib                YES"
+  echo  "#define InstallXdmConfig       YES"
+  echo  "#define InstallXinitConfig     YES"
 
-		# The following group of lines is to enable building of
-		# /usr/X11R6/lib/modules/fonts/libfreetype.a
-		#   echo  "#define BuildFreeType          NO"
-		echo  "#define HasFreetype            YES"
-		echo  "#define BuildFreetypeLibrary   NO"
-		echo  "#define UseFreetype            YES"
-		echo  "#define FreetypeLibDir         /usr/lib"
+  # The following group of lines is to enable building of
+  # /usr/X11R6/lib/modules/fonts/libfreetype.a
+  #   echo  "#define BuildFreeType          NO"
+  echo  "#define HasFreetype            YES"
+  echo  "#define BuildFreetypeLibrary   NO"
+  echo  "#define UseFreetype            YES"
+  echo  "#define FreetypeLibDir         /usr/lib"
 
-		echo  "#define HasFreetype2           YES"
-		echo  "#define BuildFreetype2Library  NO"
-		echo  "#define UseFreetype2           YES"
-		echo  "#define Freetype2LibDir        /usr/lib"
+  echo  "#define HasFreetype2           YES"
+  echo  "#define BuildFreetype2Library  NO"
+  echo  "#define UseFreetype2           YES"
+  echo  "#define Freetype2LibDir        /usr/lib"
 
-		#    echo  "#define HasFontconfig          YES"
-		#    echo  "#define UseFontconfig          YES"
-		#    echo  "#define BuildFontconfigLibrary NO"
-		#    echo  "#define FontconfigLibDir       /usr/lib"
+  #    echo  "#define HasFontconfig          YES"
+  #    echo  "#define UseFontconfig          YES"
+  #    echo  "#define BuildFontconfigLibrary NO"
+  #    echo  "#define FontconfigLibDir       /usr/lib"
 
-		#    echo  "#define BuildXftLibrary        NO"
-		#    echo  "#define BuildXft1Library       NO"
+  #    echo  "#define BuildXftLibrary        NO"
+  #    echo  "#define BuildXft1Library       NO"
 
-		echo  "#define BuildFonts             NO"
+  echo  "#define BuildFonts             NO"
 
-		echo  "#define HasExpat               YES"
+  echo  "#define HasExpat               YES"
 
-		echo  "#define BuildXinerama          YES"
-		echo  "#define BuildXineramaLibrary   YES"
-		echo  "#define NormalLibXinerama      YES"
-		echo  "#define SharedLibXinerama      YES"
+  echo  "#define BuildXinerama          YES"
+  echo  "#define BuildXineramaLibrary   YES"
+  echo  "#define NormalLibXinerama      YES"
+  echo  "#define SharedLibXinerama      YES"
 
-		)  >> config/cf/host.def
+  )  >> config/cf/host.def
 
-	fi
+ fi
 
-	if    spell_installed  "$( get_provider  Linux-PAM  )"
-	then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
-	fi
+ if    spell_installed  "$( get_provider  Linux-PAM  )"
+ then  echo  "#define  HasPam  YES"  >>  config/cf/site.def
+ fi
 
-	sed  -i  "s:/usr/bin/cpp:cpp:"  config/cf/linux.cf
+ sed  -i  "s:/usr/bin/cpp:cpp:"  config/cf/linux.cf
 
-	make    World        &&
-	prepare_install      &&
-	make    install      &&
-	make    install.man  &&
-	symlink_install      &&
-	pkgconf_install
+ make    World        &&
+ prepare_install      &&
+ make    install      &&
+ make    install.man  &&
+ symlink_install      &&
+ pkgconf_install
 }
 
 post_install() {
-	default_post_install
-	unlock_cast
+ default_post_install
+ unlock_cast
 
-	if    spell_installed  NVIDIA_GLX  ||
-		spell_installed  NVIDIA-Linux-x86
-	then  cast             NVIDIA-Linux-x86
-	fi
+ if    spell_installed  NVIDIA_GLX  ||
+  spell_installed  NVIDIA-Linux-x86
+ then  cast             NVIDIA-Linux-x86
+ fi
 
-	if    spell_installed  Xprint
-	then  cast             Xprint
-	fi
+ if    spell_installed  Xprint
+ then  cast             Xprint
+ fi
 
-	fc-cache
-	true
+ fc-cache
+ true
 }
 

@@ -36,10 +36,10 @@ install_init()  {
 configure() {
 if  !  grep  -q  "YPBIND_BOOT="  $SPELL_CONFIG;  then
 
-	if    query  "Invoke YPBIND at boot?" n
-	then  echo   "YPBIND_BOOT=true"   >>  $SPELL_CONFIG
-	else  echo   "YPBIND_BOOT=false"  >>  $SPELL_CONFIG
-	fi
+ if    query  "Invoke YPBIND at boot?" n
+ then  echo   "YPBIND_BOOT=true"   >>  $SPELL_CONFIG
+ else  echo   "YPBIND_BOOT=false"  >>  $SPELL_CONFIG
+ fi
 
 fi
 }
@@ -47,28 +47,28 @@ fi
 build() {
 
 
-	./configure  --prefix=/usr  &&
-	make                        &&
-	prepare_install             &&
-	make    install             &&
-	install_init
+ ./configure  --prefix=/usr  &&
+ make                        &&
+ prepare_install             &&
+ make    install             &&
+ install_init
 }
 
 post_install() {
-	default_post_install
-	RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
+ default_post_install
+ RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
-	if    [  -x  /etc/rc$RUNLEVEL.d/S40ypbind  ]
-	then         /etc/rc$RUNLEVEL.d/S40ypbind  start
-	fi
+ if    [  -x  /etc/rc$RUNLEVEL.d/S40ypbind  ]
+ then         /etc/rc$RUNLEVEL.d/S40ypbind  start
+ fi
 }
 
 pre_remove() {
-	default_pre_remove
-	RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
+ default_pre_remove
+ RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
-	if    [  -x  /etc/rc$RUNLEVEL.d/K60ypbind  ]
-	then         /etc/rc$RUNLEVEL.d/K60ypbind  stop
-	fi
+ if    [  -x  /etc/rc$RUNLEVEL.d/K60ypbind  ]
+ then         /etc/rc$RUNLEVEL.d/K60ypbind  stop
+ fi
 }
 

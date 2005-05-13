@@ -1,0 +1,29 @@
+   VERSION=( "0.6.8" )
+    IGNORE="linux\|exe\|Linux\|hpux"
+  CATEGORY="game"
+ ATTRIBUTE="broken x11 new"
+# Compile error
+# g++ -c table.draw.cpp
+# table.draw.cpp: In member function `void UI_GTKMM_NS::Table::draw_party_summary()':table.draw.cpp:574: error: `pow' is not a member of `std'
+    SOURCE="free-doko/FreeDoko_$VERSION.src.zip"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://free-doko.sourceforge.net"
+       REQ="gtkmm-v2.2"
+      OPTS="--bindir=/usr/games"
+  ESTIMATE="300"
+      DESC="FreeDoko is a Doppelkopf card game.
+The game Doppelkopf is a card game for four 
+or more players similar to Skat or xskat."
+
+build()  {
+[  -d  FreeDoko_$VERSION  ]  &&
+cd     FreeDoko_$VERSION
+cd     src                   &&
+#sed   -i  "s:-2.0:-2.4:g"    \
+#      Makefile.os            &&
+make  OSTYPE=linux-gnu       \
+      CXXFLAGS="$CXXFLAGS"   &&
+cd    ..                     &&
+prepare_install              &&
+make    install
+}

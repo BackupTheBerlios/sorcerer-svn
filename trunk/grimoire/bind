@@ -21,87 +21,87 @@ major components of the Domain Name System, including:
 * tools for verifying the proper operation of the DNS server"
 
 configure() {
-	if  !  grep  -q  "BIND_BOOT="  $SPELL_CONFIG;  then
+ if  !  grep  -q  "BIND_BOOT="  $SPELL_CONFIG;  then
 
-		if    query  "Invoke BIND at boot?" n
-		then  echo   "BIND_BOOT=true"   >>  $SPELL_CONFIG
-		else  echo   "BIND_BOOT=false"  >>  $SPELL_CONFIG
-		fi
+  if    query  "Invoke BIND at boot?" n
+  then  echo   "BIND_BOOT=true"   >>  $SPELL_CONFIG
+  else  echo   "BIND_BOOT=false"  >>  $SPELL_CONFIG
+  fi
 
-	fi
+ fi
 }
 
 build() {
-	man_install()  {
+ man_install()  {
 
-		for  DIRECTORY in doc/man/*;  do
-			for  (( COUNT=1 ; COUNT < 9 ; COUNT++ )); do
-				cp  $DIRECTORY/*.$COUNT  /usr/man/man$COUNT  2> /dev/null
-			done
-		done
+  for  DIRECTORY in doc/man/*;  do
+   for  (( COUNT=1 ; COUNT < 9 ; COUNT++ )); do
+    cp  $DIRECTORY/*.$COUNT  /usr/man/man$COUNT  2> /dev/null
+   done
+  done
 
-	}
-
-
-	conf_install()  {
-
-		SNC="$SCRIPT_DIR/named.conf"
-		SNR="$SCRIPT_DIR/named.root"
-		RES="$SCRIPT_DIR/resolv.conf"
-
-		[  -d  /etc/bind             ]  ||  mkdir     /etc/bind
-		[  -e  /etc/bind/named.conf  ]  ||  cp  $SNC  /etc/bind
-		[  -e  /etc/bind/named.root  ]  ||  cp  $SNR  /etc/bind
-		[  -e  /etc/resolv.conf      ]  ||  cp  $RES  /etc
-		[  -e  /etc/bind/rndc.key    ]  ||  rndc-confgen  -a
-
-		chown  -R  bind:bind  /etc/bind
-
-	}
+ }
 
 
-	init_install()  {
+ conf_install()  {
 
-		cp  $SCRIPT_DIR/named.sh     /etc/init.d
+  SNC="$SCRIPT_DIR/named.conf"
+  SNR="$SCRIPT_DIR/named.root"
+  RES="$SCRIPT_DIR/resolv.conf"
 
-		if  $BIND_BOOT;  then
-			ln  -sf  ../init.d/named.sh  /etc/rc0.d/K50named
-			ln  -sf  ../init.d/named.sh  /etc/rc6.d/K50named
+  [  -d  /etc/bind             ]  ||  mkdir     /etc/bind
+  [  -e  /etc/bind/named.conf  ]  ||  cp  $SNC  /etc/bind
+  [  -e  /etc/bind/named.root  ]  ||  cp  $SNR  /etc/bind
+  [  -e  /etc/resolv.conf      ]  ||  cp  $RES  /etc
+  [  -e  /etc/bind/rndc.key    ]  ||  rndc-confgen  -a
 
-			ln  -sf  ../init.d/named.sh  /etc/rc1.d/S35named
-			ln  -sf  ../init.d/named.sh  /etc/rc2.d/S35named
-			ln  -sf  ../init.d/named.sh  /etc/rc3.d/S35named
-			ln  -sf  ../init.d/named.sh  /etc/rc4.d/S35named
-			ln  -sf  ../init.d/named.sh  /etc/rc5.d/S35named
-		fi
+  chown  -R  bind:bind  /etc/bind
 
-	}
+ }
 
 
-	groupadd  bind            2>/dev/null
-	useradd   bind  -g  bind  2>/dev/null
+ init_install()  {
 
-	./configure  --prefix=/usr           \
-	             --sysconfdir=/etc/bind  \
-	             --localstatedir=/var    &&
-	make                                 &&
-	prepare_install                      &&
-	make    install                      &&
-	conf_install                      &&
-	init_install
+  cp  $SCRIPT_DIR/named.sh     /etc/init.d
+
+  if  $BIND_BOOT;  then
+   ln  -sf  ../init.d/named.sh  /etc/rc0.d/K50named
+   ln  -sf  ../init.d/named.sh  /etc/rc6.d/K50named
+
+   ln  -sf  ../init.d/named.sh  /etc/rc1.d/S35named
+   ln  -sf  ../init.d/named.sh  /etc/rc2.d/S35named
+   ln  -sf  ../init.d/named.sh  /etc/rc3.d/S35named
+   ln  -sf  ../init.d/named.sh  /etc/rc4.d/S35named
+   ln  -sf  ../init.d/named.sh  /etc/rc5.d/S35named
+  fi
+
+ }
+
+
+ groupadd  bind            2>/dev/null
+ useradd   bind  -g  bind  2>/dev/null
+
+ ./configure  --prefix=/usr           \
+              --sysconfdir=/etc/bind  \
+              --localstatedir=/var    &&
+ make                                 &&
+ prepare_install                      &&
+ make    install                      &&
+ conf_install                      &&
+ init_install
 }
 
 post_install() {
-	default_post_install
-	if    [  -x  /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named  ]
-	then         /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named start
-	fi
+ default_post_install
+ if    [  -x  /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named  ]
+ then         /etc/rc$(runlevel  |  cut  -d ' ' -f2  ).d/S35named start
+ fi
 }
 
 pre_remove() {
-	default_pre_remove
-	if    [  -x  /etc/init.d/named.sh  ]
-	then         /etc/init.d/named.sh  stop
-	fi
+ default_pre_remove
+ if    [  -x  /etc/init.d/named.sh  ]
+ then         /etc/init.d/named.sh  stop
+ fi
 }
 

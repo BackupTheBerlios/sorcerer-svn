@@ -1,4 +1,4 @@
-   VERSION=( "2.1.2-200503041846" "2.1.1-200501222316" "2.1.0-200501051044" "2.0.1" "2.0" )
+   VERSION=( "2.1.5-200504081812" "2.1.2-200503041846" "2.1.1-200501222316" "2.1.0-200501051044" "2.0.1" "2.0" )
   CATEGORY="security"
  ATTRIBUTE="console"
     SOURCE="gradm-$VERSION.tar.gz"
@@ -8,21 +8,19 @@
   ESTIMATE="49"
  FRESHMEAT="grsecurity"
       DESC="gradm contains ACL administration tools for grsecurity enabled boxes."
-			
+
 build() {
-	sed  -i  "s:-O2:$CFLAGS:
-	          s:-static:-static $LDFLAGS:
-						s:/usr/bin/gcc:gcc:
-						s:/sbin/\$(GRADM_BIN) -P:true:"  Makefile
-	make           &&
-	make  install  &&
-	echo  "Run '/sbin/gradm -P' to set the ACL password."
+sed  -i  "s:-O2:$CFLAGS:
+          s:-static:-static $LDFLAGS:
+          s:/usr/bin/gcc:gcc:
+          s:/sbin/\$(GRADM_BIN) -P:true:"  Makefile
+make           &&
+make  install  &&
+echo  "Run '/sbin/gradm -P' to set the ACL password."
 }
 
 post_install() {
-	default_post_install
-	if    !  [   -c        /dev/gsec  ]
-	then  mknod  -m  0622  /dev/grsec  c  1  10
-	fi
+if    !  [   -c        /dev/gsec  ]
+then  mknod  -m  0622  /dev/grsec  c  1  10
+fi
 }
-

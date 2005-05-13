@@ -1,4 +1,4 @@
-   VERSION=( "3.3.5" "3.3.4" )
+   VERSION=( "3.3.6" "3.3.5" "3.3.4" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|^3\.4\."
   CATEGORY="compiler"
  ATTRIBUTE="console core library"
@@ -9,9 +9,7 @@
   EPROVIDE="gcc-v3.3.4"
   ESTIMATE="2060"
       DESC="gcc-v3.3 provides gcc version 3.3.x"
-
-
-			
+   
 finish_install()  {
 
   ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
@@ -38,64 +36,64 @@ finish_install()  {
 
 
 build() {
-	ENABLE_LANGS="--enable-languages=c"
+ ENABLE_LANGS="--enable-languages=c"
 
-	export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-	export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-	export  CCACHE_DISABLE=1
+ export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export  CCACHE_DISABLE=1
 
-		LCF="LIBCFLAGS=$CFLAGS"
-	 LCXF="LIBCXXFLAGS=$CXXFLAGS"
-		 BF="BOOT_CFLAGS=$CFLAGS"
-	 LJCF="LIBGCJ_CFLAGS=$CFLAGS"
-	LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
-	 LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-		LDF="LDFLAGS=$LDFLAGS"
+  LCF="LIBCFLAGS=$CFLAGS"
+  LCXF="LIBCXXFLAGS=$CXXFLAGS"
+   BF="BOOT_CFLAGS=$CFLAGS"
+  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+  LDF="LDFLAGS=$LDFLAGS"
 
-	patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch
+ patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch
 
-	# 3.2.2 now supports the DESTDIR Makefile variable
-	# That variable is for packagers.
+ # 3.2.2 now supports the DESTDIR Makefile variable
+ # That variable is for packagers.
 
-	find  .  -name configure  |
-	xargs  -l64  sed  -i  "s:/bin/sh:/bin/bash:g"
-	export  CONFIG_SHELL=/bin/bash
+ find  .  -name configure  |
+ xargs  -l64  sed  -i  "s:/bin/sh:/bin/bash:g"
+ export  CONFIG_SHELL=/bin/bash
 
-	./configure  --host=$BUILD               \
-							 --prefix=/opt/gcc/$VERSION  \
-							 --enable-threads=posix      \
-							 --enable-__cxa_atexit       \
-							 --enable-clocale=gnu        \
-							 --enable-shared             \
-							 --infodir=/usr/info         \
-							 --mandir=/usr/man           \
-							 --datadir=/usr/share        \
-							 "$ENABLE_LANGS"             &&
-	make         bootstrap-lean   "$BF"      \
-							 "$LCF"  "$LCXF"  "$LDF"     \
-							 "$LJCF" "$LJCXF"            &&
-	prepare_install                          &&
-	make    install                          &&
-	 finish_install
+ ./configure  --host=$BUILD               \
+        --prefix=/opt/gcc/$VERSION  \
+        --enable-threads=posix      \
+        --enable-__cxa_atexit       \
+        --enable-clocale=gnu        \
+        --enable-shared             \
+        --infodir=/usr/info         \
+        --mandir=/usr/man           \
+        --datadir=/usr/share        \
+        "$ENABLE_LANGS"             &&
+ make         bootstrap-lean   "$BF"      \
+        "$LCF"  "$LCXF"  "$LDF"     \
+        "$LJCF" "$LJCXF"            &&
+ prepare_install                          &&
+ make    install                          &&
+  finish_install
 }
 
 post_install() {
-	default_post_install
-	sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
+ default_post_install
+ sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
 
-	for           GCC_DIR  in  /opt/gcc/*/lib
-	do    [  -d  $GCC_DIR  ]  &&
-		echo  "$GCC_DIR"
-	done  >>  /etc/ld.so.conf
+ for           GCC_DIR  in  /opt/gcc/*/lib
+ do    [  -d  $GCC_DIR  ]  &&
+  echo  "$GCC_DIR"
+ done  >>  /etc/ld.so.conf
 }
 
 post_remove() {
-	default_post_remove
-	sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
+ default_post_remove
+ sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
 
-	for           GCC_DIR  in  /opt/gcc/*/lib
-	do    [  -d  $GCC_DIR  ]  &&
-		echo  "$GCC_DIR"
-	done  >>  /etc/ld.so.conf
+ for           GCC_DIR  in  /opt/gcc/*/lib
+ do    [  -d  $GCC_DIR  ]  &&
+  echo  "$GCC_DIR"
+ done  >>  /etc/ld.so.conf
 }
 

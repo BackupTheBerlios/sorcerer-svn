@@ -34,45 +34,45 @@ install_init()  {
 
 ##############################################
 configure() {
-	if  !  grep  -q  "PORTMAP_BOOT="  $SPELL_CONFIG;  then
+ if  !  grep  -q  "PORTMAP_BOOT="  $SPELL_CONFIG;  then
 
-		if    query  "Invoke portmap at boot?" n
-		then  echo   "PORTMAP_BOOT=true"   >>  $SPELL_CONFIG
-		else  echo   "PORTMAP_BOOT=false"  >>  $SPELL_CONFIG
-		fi
+  if    query  "Invoke portmap at boot?" n
+  then  echo   "PORTMAP_BOOT=true"   >>  $SPELL_CONFIG
+  else  echo   "PORTMAP_BOOT=false"  >>  $SPELL_CONFIG
+  fi
 
-	fi
+ fi
 }
 
 build() {
 
 
-	# fix problems with glibc-2.3.2
-	patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
+ # fix problems with glibc-2.3.2
+ patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
 
-	make  WRAP_DIR=/usr/lib  &&
-	prepare_install          &&
-	cp  portmap    /sbin     &&
-	cp  pmap_dump  /sbin     &&
-	cp  pmap_set   /sbin     &&
-	install_init
+ make  WRAP_DIR=/usr/lib  &&
+ prepare_install          &&
+ cp  portmap    /sbin     &&
+ cp  pmap_dump  /sbin     &&
+ cp  pmap_set   /sbin     &&
+ install_init
 }
 
 post_install() {
-	default_post_install
-	RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
+ default_post_install
+ RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
-	if    [   -x  /etc/rc$RUNLEVEL.d/S30portmap  ]
-	then          /etc/rc$RUNLEVEL.d/S30portmap  start
-	fi
+ if    [   -x  /etc/rc$RUNLEVEL.d/S30portmap  ]
+ then          /etc/rc$RUNLEVEL.d/S30portmap  start
+ fi
 }
 
 pre_remove() {
-	default_pre_remove
-	RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
+ default_pre_remove
+ RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
-	if    [  -x  /etc/rc$RUNLEVEL.d/K70portmap  ]
-	then         /etc/rc$RUNLEVEL.d/K70portmap  stop
-	fi
+ if    [  -x  /etc/rc$RUNLEVEL.d/K70portmap  ]
+ then         /etc/rc$RUNLEVEL.d/K70portmap  stop
+ fi
 }
 

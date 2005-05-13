@@ -6,15 +6,15 @@
   HOMEPAGE="http://dansguardian.org"
        URL="http://mirror.dansguardian.org/downloads
             http://dansguardian.niesc.com/downloads
-	    http://mirror3.dansguardian.org/downloads
-	    http://dansguardian.origintech.net/downloads
-	    http://sun.dansguardian.org/downloads
-	    http://dansguardian.org/downloads
-	    http://mirror2.dansguardian.org/downloads
-	    http://dansguardian.learnpoint.fi/downloads
-	    http://ukmirror.dansguardian.org/downloads
-	    http://dansguardian.ababa.org/downloads
-	    http://parent.dansguardian.org/downloads"
+     http://mirror3.dansguardian.org/downloads
+     http://dansguardian.origintech.net/downloads
+     http://sun.dansguardian.org/downloads
+     http://dansguardian.org/downloads
+     http://mirror2.dansguardian.org/downloads
+     http://dansguardian.learnpoint.fi/downloads
+     http://ukmirror.dansguardian.org/downloads
+     http://dansguardian.ababa.org/downloads
+     http://parent.dansguardian.org/downloads"
        REQ=( "zlib"
              ":DG_BOOT::Invoke during boot"
            )
@@ -44,41 +44,41 @@ Also consider putting a line like :
 in root's crontab to rotate the logs once a week."
 
 build() {
-	./configure  --sysvdir=/etc/init.d/               \
-							 --cgidir=/usr/share/httpd/cgi-bin/   \
-							 --runas_usr=nobody                   \
-							 --runas_grp=nogroup                  &&
-	make         OPTIMISE="$CFLAGS"                   &&
-	prepare_install                                   &&
-	make    install                                   &&
+ ./configure  --sysvdir=/etc/init.d/               \
+        --cgidir=/usr/share/httpd/cgi-bin/   \
+        --runas_usr=nobody                   \
+        --runas_grp=nogroup                  &&
+ make         OPTIMISE="$CFLAGS"                   &&
+ prepare_install                                   &&
+ make    install                                   &&
 
-	# replace the redhatish init script
-	cp  -f  $SCRIPT_DIR/dansguardian.init             \
-					/etc/init.d/dansguardian                  &&
+ # replace the redhatish init script
+ cp  -f  $SCRIPT_DIR/dansguardian.init             \
+     /etc/init.d/dansguardian                  &&
 
-	if  [  "$DG_BOOT"  ==  "true"  ]  ||
-			echo  "$OPTS"  |  grep  -q  "DG_BOOT"
-	then
-		ln  -sf  ../init.d/dansguardian  /etc/rc0.d/K35dansguardian
-		ln  -sf  ../init.d/dansguardian  /etc/rc1.d/K35dansguardian
-		ln  -sf  ../init.d/dansguardian  /etc/rc2.d/K35dansguardian
-		ln  -sf  ../init.d/dansguardian  /etc/rc6.d/K35dansguardian
+ if  [  "$DG_BOOT"  ==  "true"  ]  ||
+   echo  "$OPTS"  |  grep  -q  "DG_BOOT"
+ then
+  ln  -sf  ../init.d/dansguardian  /etc/rc0.d/K35dansguardian
+  ln  -sf  ../init.d/dansguardian  /etc/rc1.d/K35dansguardian
+  ln  -sf  ../init.d/dansguardian  /etc/rc2.d/K35dansguardian
+  ln  -sf  ../init.d/dansguardian  /etc/rc6.d/K35dansguardian
 
-		ln  -sf  ../init.d/dansguardian  /etc/rc3.d/S92dansguardian
-		ln  -sf  ../init.d/dansguardian  /etc/rc4.d/S92dansguardian
-		ln  -sf  ../init.d/dansguardian  /etc/rc5.d/S92dansguardian
-	fi
+  ln  -sf  ../init.d/dansguardian  /etc/rc3.d/S92dansguardian
+  ln  -sf  ../init.d/dansguardian  /etc/rc4.d/S92dansguardian
+  ln  -sf  ../init.d/dansguardian  /etc/rc5.d/S92dansguardian
+ fi
 }
 
 post_install() {
-	default_post_install
-	if  $DG_BOOT  
-	then  /etc/init.d/dansguardian  start 
-	fi  
+ default_post_install
+ if  $DG_BOOT  
+ then  /etc/init.d/dansguardian  start 
+ fi  
 }
 
 pre_remove() {
-	default_pre_remove
-	/etc/init.d/dansguardian  stop
+ default_pre_remove
+ /etc/init.d/dansguardian  stop
 }
 

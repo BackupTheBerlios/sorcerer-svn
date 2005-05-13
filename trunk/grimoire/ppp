@@ -21,51 +21,51 @@ among (many) others.
 Supports IP, TCP, UDP and (for Linux) IPX (Novell)."
 
 build() {
-	case  $VERSION  in
-		2.4.2)  sed  -i  "s:rp-pppoe::"  pppd/plugins/Makefile.linux  ;;
-	esac
+ case  $VERSION  in
+  2.4.2)  sed  -i  "s:rp-pppoe::"  pppd/plugins/Makefile.linux  ;;
+ esac
 
-	grep   -rl   "net/bpf.h"  *  |
-	while  read  FILE
-	do     sed   -i  "s:net/bpf.h:pcap-bpf.h:"  $FILE
-	done
+ grep   -rl   "net/bpf.h"  *  |
+ while  read  FILE
+ do     sed   -i  "s:net/bpf.h:pcap-bpf.h:"  $FILE
+ done
 
 
-	./configure  --build=$BUILD          \
-	             --prefix=/usr           \
-							 --sysconfdir=/etc       \
-							 --localstatedir=/var    &&
-	make             $OPTS               &&
-	prepare_install                      &&
-	make    install  $OPTS
+ ./configure  --build=$BUILD          \
+              --prefix=/usr           \
+        --sysconfdir=/etc       \
+        --localstatedir=/var    &&
+ make             $OPTS               &&
+ prepare_install                      &&
+ make    install  $OPTS
 }
 
 post_build() {
-	default_post_build
-	place_file()  {
-		[  -f   $2  ]  ||
-		cp  $SCRIPT_DIR/$1  $2
-	}
+ default_post_build
+ place_file()  {
+  [  -f   $2  ]  ||
+  cp  $SCRIPT_DIR/$1  $2
+ }
 
-	mkdir  -p  /etc/ppp/peers
-	mkdir  -p  /etc/ppp/chat
+ mkdir  -p  /etc/ppp/peers
+ mkdir  -p  /etc/ppp/chat
 
-	ln  -f  /etc/ppp/resolv.conf /etc/resolv.conf
+ ln  -f  /etc/ppp/resolv.conf /etc/resolv.conf
 
-	cp  $SCRIPT_DIR/pon   /usr/bin
-	cp  $SCRIPT_DIR/poff  /usr/bin
+ cp  $SCRIPT_DIR/pon   /usr/bin
+ cp  $SCRIPT_DIR/poff  /usr/bin
 
-	place_file  options   /etc/ppp/options
-	place_file  peers     /etc/ppp/peers/isp
-	place_file  isp       /etc/ppp/chat/isp
+ place_file  options   /etc/ppp/options
+ place_file  peers     /etc/ppp/peers/isp
+ place_file  isp       /etc/ppp/chat/isp
 
-	cat  $SCRIPT_DIR/message
+ cat  $SCRIPT_DIR/message
 
-	chown  root:ppp     /usr/sbin/pppd
-	chmod  4750         /usr/sbin/pppd
-	chown  -R root:ppp  /etc/ppp
-	chmod  600          /etc/ppp/*-secrets
+ chown  root:ppp     /usr/sbin/pppd
+ chmod  4750         /usr/sbin/pppd
+ chown  -R root:ppp  /etc/ppp
+ chmod  600          /etc/ppp/*-secrets
 
-	default_post_build
+ default_post_build
 }
 

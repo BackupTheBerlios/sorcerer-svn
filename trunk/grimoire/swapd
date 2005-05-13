@@ -18,40 +18,40 @@ just taking up disk space; and (b) provide
 a limited amount of virtual memory."
 
 build() {
-	install_conf()  {
+ install_conf()  {
 
-		mkdir  -p         /swap
-		chmod  700        /swap
-		cp     $SCRIPT_DIR/swapd.sh  /etc/init.d
-		ln  -sf  ../init.d/swapd.sh  /etc/rc0.d/K95swapd 
-		ln  -sf  ../init.d/swapd.sh  /etc/rc6.d/K95swapd  
-		ln  -sf  ../init.d/swapd.sh  /etc/rcS.d/S95swapd
+  mkdir  -p         /swap
+  chmod  700        /swap
+  cp     $SCRIPT_DIR/swapd.sh  /etc/init.d
+  ln  -sf  ../init.d/swapd.sh  /etc/rc0.d/K95swapd 
+  ln  -sf  ../init.d/swapd.sh  /etc/rc6.d/K95swapd  
+  ln  -sf  ../init.d/swapd.sh  /etc/rcS.d/S95swapd
 
-	}
+ }
 
-	sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
+ sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
-	./configure  --build=$BUILD        \
-	--prefix=/usr         \
-	--sysconfdir=/etc     \
-	--localstatedir=/var  \
-	$OPTS                 &&
-	make  "CFLAGS=$CFLAGS -I."         &&
-	prepare_install                    &&
-	make    install                    &&
-	install_conf
+ ./configure  --build=$BUILD        \
+ --prefix=/usr         \
+ --sysconfdir=/etc     \
+ --localstatedir=/var  \
+ $OPTS                 &&
+ make  "CFLAGS=$CFLAGS -I."         &&
+ prepare_install                    &&
+ make    install                    &&
+ install_conf
 }
 
 post_install() {
-	default_post_install
-	[  -x  /usr/sbin/sorcerer.install  ]  ||
-	/etc/init.d/swapd.sh  start
-	true
+ default_post_install
+ [  -x  /usr/sbin/sorcerer.install  ]  ||
+ /etc/init.d/swapd.sh  start
+ true
 }
 
 pre_remove() {
-	default_pre_remove
-	/etc/init.d/swapd.sh  stop
-	true
+ default_pre_remove
+ /etc/init.d/swapd.sh  stop
+ true
 }
 

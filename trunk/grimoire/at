@@ -13,46 +13,46 @@ to be schedule to run at a later date or when system load permits.
 "
 
 build() {
-	mkdir  -p  /var/spool/atjobs
+ mkdir  -p  /var/spool/atjobs
 
-	SENDMAIL='#define  SENDMAIL  "/usr/sbin/sendmail"'
-
-
-	init_install()  {
-		cp       $SCRIPT_DIR/atd.sh     /etc/init.d
-		ln       -sf  ../init.d/atd.sh  /etc/rcS.d/S80atd
-		ln       -sf  ../init.d/atd.sh  /etc/rc0.d/K20atd
-		ln       -sf  ../init.d/atd.sh  /etc/rc6.d/K20atd
-		install  -m 0644  -o root  -g root  at.deny  /etc
-	}
+ SENDMAIL='#define  SENDMAIL  "/usr/sbin/sendmail"'
 
 
-	./configure  --build=$BUILD        \
-	--prefix=/usr         \
-	--sysconfdir=/etc     \
-	--localstatedir=/var  \
-	$OPTS                 &&
-	echo  "$SENDMAIL"  >>  config.h    &&
-	make                               &&
-	prepare_install                    &&
-	make    install                    &&
-	init_install
+ init_install()  {
+  cp       $SCRIPT_DIR/atd.sh     /etc/init.d
+  ln       -sf  ../init.d/atd.sh  /etc/rcS.d/S80atd
+  ln       -sf  ../init.d/atd.sh  /etc/rc0.d/K20atd
+  ln       -sf  ../init.d/atd.sh  /etc/rc6.d/K20atd
+  install  -m 0644  -o root  -g root  at.deny  /etc
+ }
+
+
+ ./configure  --build=$BUILD        \
+ --prefix=/usr         \
+ --sysconfdir=/etc     \
+ --localstatedir=/var  \
+ $OPTS                 &&
+ echo  "$SENDMAIL"  >>  config.h    &&
+ make                               &&
+ prepare_install                    &&
+ make    install                    &&
+ init_install
 }
 
 pre_build() {
-	default_pre_build
-	unpack  ${SOURCE[0]}
+ default_pre_build
+ unpack  ${SOURCE[0]}
 }
 
 post_install() {
-	default_post_install
-	/etc/init.d/atd.sh  start
-	true
+ default_post_install
+ /etc/init.d/atd.sh  start
+ true
 }
 
 pre_remove() {
-	default_pre_remove
-	/etc/init.d/atd.sh  stop
-	true
+ default_pre_remove
+ /etc/init.d/atd.sh  stop
+ true
 }
 

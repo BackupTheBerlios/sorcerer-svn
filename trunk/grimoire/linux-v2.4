@@ -9,315 +9,315 @@
   EPROVIDE="linux-kernel linux,v2.4"
   ESTIMATE="4073"
       DESC="linux-v2.4 provides old 2.4.x stable kernels."
-			
+   
 build() {
-	backup_modules()  {
+ backup_modules()  {
 
-		if    [  -d  /lib/modules/$VERSION      ];  then
-			rm   -rf   /lib/modules/$VERSION.old
-			mv         /lib/modules/$VERSION      \
-			/lib/modules/$VERSION.old
-		fi
+  if    [  -d  /lib/modules/$VERSION      ];  then
+   rm   -rf   /lib/modules/$VERSION.old
+   mv         /lib/modules/$VERSION      \
+   /lib/modules/$VERSION.old
+  fi
 
-	}
-
-
-	store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/linux-config;  }
+ }
 
 
-	install_kernel()  {
-
-		SM="System.map"
-		BV="${VERSION}"
-		BZ=$(  find  .  -name  bzImage  )
-
-		rm     -rf                  /boot/$BV
-		mkdir  -p                   /boot/$BV
-		cp          $BZ             /boot/$BV/linux
-		cp              System.map  /boot/$BV
-		rm     -f                   /boot/System.map
-		ln     -s   $BV/System.map  /boot/System.map
-
-	}
+ store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/linux-config;  }
 
 
-	run_make_menuconfig()  {
+ install_kernel()  {
 
-		wiz_kill
+  SM="System.map"
+  BV="${VERSION}"
+  BZ=$(  find  .  -name  bzImage  )
 
-		CONFIG_KERNEL="true"
-		while  $CONFIG_KERNEL; do
-			make  menuconfig
-			if    query  "Repeat menuconfig?" n
-			then  CONFIG_KERNEL=true
-			else  CONFIG_KERNEL=false
-			fi
-		done
-	}
+  rm     -rf                  /boot/$BV
+  mkdir  -p                   /boot/$BV
+  cp          $BZ             /boot/$BV/linux
+  cp              System.map  /boot/$BV
+  rm     -f                   /boot/System.map
+  ln     -s   $BV/System.map  /boot/System.map
 
-
-	symlink_headers()  {
-
-		[  -e  /usr/include/asm  ]  ||
-		ln  -s  /usr/src/linux/include/asm-i386     /usr/include/asm
-
-		[  -e  /usr/include/asm-generic  ]  ||
-		ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
-
-		[  -e  /usr/include/linux  ]  ||
-		ln  -s  /usr/src/linux/include/linux        /usr/include/linux
-
-	}
+ }
 
 
-	restore_linux_configs()  {
+ run_make_menuconfig()  {
 
-		CURRENT="$CONFIG_LOGS/$BSPELL/linux-config"
-		OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
-		LINUX="/usr/src/linux-$VERSION/.config"
+  wiz_kill
 
-		symlink_headers
-
-		if    [  -f   $CURRENT  ];  then  cp  $CURRENT  $LINUX
-		elif  [  -f   $OLD      ];  then  cp  $OLD      $LINUX;  run_make_menuconfig
-		else  run_make_menuconfig
-		fi
-
-	}
-
-
-	install_headers()  {
-
-		install_header_dir()  {
-			if    [   -h   /usr/include/$1  ]
-			then  rm  -f   /usr/include/$1
-			elif  [   -d   /usr/include/$1  ]
-			then  rm  -rf  /usr/include/$1
-			fi
-
-			mkdir  -p   /usr/include/$1
-			cp     -R        include/$1/*   \
-			/usr/include/$1
-		}
-
-		install_header_dir  asm
-		install_header_dir  asm-generic
-		install_header_dir  linux
-		true
-
-	}
+  CONFIG_KERNEL="true"
+  while  $CONFIG_KERNEL; do
+   make  menuconfig
+   if    query  "Repeat menuconfig?" n
+   then  CONFIG_KERNEL=true
+   else  CONFIG_KERNEL=false
+   fi
+  done
+ }
 
 
-	remove_extraversion()  {
+ symlink_headers()  {
 
-		sed  -i  "s:EXTRAVERSION = .*:EXTRAVERSION =:"  Makefile
+  [  -e  /usr/include/asm  ]  ||
+  ln  -s  /usr/src/linux/include/asm-i386     /usr/include/asm
 
-	}
+  [  -e  /usr/include/asm-generic  ]  ||
+  ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
 
+  [  -e  /usr/include/linux  ]  ||
+  ln  -s  /usr/src/linux/include/linux        /usr/include/linux
 
-	compile_and_install()  {
-		yes  ""  |  make  oldconfig
-		store_config            &&
-		make   dep              &&
-		make   bzImage          &&
-		make   modules          &&
-		backup_modules          &&
-		prepare_install         &&
-		make   modules_install  &&
-		install_kernel          &&
-		install_headers
-	}
+ }
 
 
-	cd  /usr/src/linux-$VERSION
-	restore_linux_configs  &&
-	activate_voyeur        &&
-	compile_and_install    &> $C_FIFO
+ restore_linux_configs()  {
+
+  CURRENT="$CONFIG_LOGS/$BSPELL/linux-config"
+  OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
+  LINUX="/usr/src/linux-$VERSION/.config"
+
+  symlink_headers
+
+  if    [  -f   $CURRENT  ];  then  cp  $CURRENT  $LINUX
+  elif  [  -f   $OLD      ];  then  cp  $OLD      $LINUX;  run_make_menuconfig
+  else  run_make_menuconfig
+  fi
+
+ }
+
+
+ install_headers()  {
+
+  install_header_dir()  {
+   if    [   -h   /usr/include/$1  ]
+   then  rm  -f   /usr/include/$1
+   elif  [   -d   /usr/include/$1  ]
+   then  rm  -rf  /usr/include/$1
+   fi
+
+   mkdir  -p   /usr/include/$1
+   cp     -R        include/$1/*   \
+   /usr/include/$1
+  }
+
+  install_header_dir  asm
+  install_header_dir  asm-generic
+  install_header_dir  linux
+  true
+
+ }
+
+
+ remove_extraversion()  {
+
+  sed  -i  "s:EXTRAVERSION = .*:EXTRAVERSION =:"  Makefile
+
+ }
+
+
+ compile_and_install()  {
+  yes  ""  |  make  oldconfig
+  store_config            &&
+  make   dep              &&
+  make   bzImage          &&
+  make   modules          &&
+  backup_modules          &&
+  prepare_install         &&
+  make   modules_install  &&
+  install_kernel          &&
+  install_headers
+ }
+
+
+ cd  /usr/src/linux-$VERSION
+ restore_linux_configs  &&
+ activate_voyeur        &&
+ compile_and_install    &> $C_FIFO
 }
 
 pre_build() {
-	default_pre_build
-	mkdir  -p  /usr/src
-	cd         /usr/src
-	rm     -rf            linux-$VERSION
-	unpack     $SOURCE
-	rm     -f                             linux
-	chown  -R  root:root  linux-$VERSION
-	ln     -s             linux-$VERSION  linux
-	cd                    linux-$VERSION
+ default_pre_build
+ mkdir  -p  /usr/src
+ cd         /usr/src
+ rm     -rf            linux-$VERSION
+ unpack     $SOURCE
+ rm     -f                             linux
+ chown  -R  root:root  linux-$VERSION
+ ln     -s             linux-$VERSION  linux
+ cd                    linux-$VERSION
 }
 
 post_install() {
-	default_post_install
-	lilo_image_entry()  {
+ default_post_install
+ lilo_image_entry()  {
 
-		cat  <<-  EOF
+  cat  <<-  EOF
 
-		image			=	/boot/$VERSION/linux
-		label		=	$VERSION
-		read-only
-		restricted
+  image   = /boot/$VERSION/linux
+  label  = $VERSION
+  read-only
+  restricted
 
-		EOF
+  EOF
 
-	}
-
-
-	update_lilo()  {
+ }
 
 
-		if    !  [  -f  /etc/lilo.conf  ]
-		then  return
-		fi
-
-		if    !  grep  -q  -w  "$VERSION"  /etc/lilo.conf
-		then
-
-			IFS_OLD=$IFS
-			export  IFS="$ENTER_IFS"
-
-			rm     -rf  /etc/lilo.conf.old
-			touch       /etc/lilo.conf.old
-			chmod  600  /etc/lilo.conf.old
-
-			rm     -rf  /etc/lilo.conf.new
-			touch       /etc/lilo.conf.new
-			chmod  600  /etc/lilo.conf.new
-
-			cp  /etc/lilo.conf  /etc/lilo.conf.old
-
-			(( IMAGE_COUNT=0  ))
-
-			for  LINE  in  `cat /etc/lilo.conf`;  do
-
-				if   echo  "$LINE"  |  grep  -q -w "image\|other";  then
-					if    (( IMAGE_COUNT  == 0  ))
-					then  lilo_image_entry  >>  /etc/lilo.conf.new
-					fi
-					((  IMAGE_COUNT++  ))
-				fi
-
-				if    ((  IMAGE_COUNT == 14  ))
-				then  break
-				fi
-
-				echo  "$LINE"  >>  /etc/lilo.conf.new
-
-			done
-
-			if    ((  IMAGE_COUNT ==  0  ))
-			then  lilo_image_entry  >>  /etc/lilo.conf.new
-			fi
-
-			cp  /etc/lilo.conf.new  /etc/lilo.conf
-			rm  /etc/lilo.conf.new
-
-			export  IFS=$IFS_OLD
-
-		fi
-
-		/sbin/lilo
-
-	}
+ update_lilo()  {
 
 
-	update_yaboot()  {
+  if    !  [  -f  /etc/lilo.conf  ]
+  then  return
+  fi
 
-		if    !  [  -f  /etc/yaboot.conf  ]
-		then  return
-		fi
+  if    !  grep  -q  -w  "$VERSION"  /etc/lilo.conf
+  then
 
-		if    !  grep  -q  -w  "$VERSION"  /etc/yaboot.conf
-		then
+   IFS_OLD=$IFS
+   export  IFS="$ENTER_IFS"
 
-			IFS_OLD=$IFS
-			export  IFS="$ENTER_IFS"
+   rm     -rf  /etc/lilo.conf.old
+   touch       /etc/lilo.conf.old
+   chmod  600  /etc/lilo.conf.old
 
-			rm     -rf  /etc/yaboot.conf.old
-			touch       /etc/yaboot.conf.old
-			chmod  600  /etc/yaboot.conf.old
+   rm     -rf  /etc/lilo.conf.new
+   touch       /etc/lilo.conf.new
+   chmod  600  /etc/lilo.conf.new
 
-			rm     -rf  /etc/yaboot.conf.new
-			touch       /etc/yaboot.conf.new
-			chmod  600  /etc/yaboot.conf.new
+   cp  /etc/lilo.conf  /etc/lilo.conf.old
 
-			cp  /etc/yaboot.conf  /etc/lilo.conf.old
+   (( IMAGE_COUNT=0  ))
 
-			(( IMAGE_COUNT=0  ))
+   for  LINE  in  `cat /etc/lilo.conf`;  do
 
-			for  LINE  in  `cat /etc/yaboot.conf`;  do
+    if   echo  "$LINE"  |  grep  -q -w "image\|other";  then
+     if    (( IMAGE_COUNT  == 0  ))
+     then  lilo_image_entry  >>  /etc/lilo.conf.new
+     fi
+     ((  IMAGE_COUNT++  ))
+    fi
 
-				if   echo  "$LINE"  |  grep  -q -w  "image\|other";  then
+    if    ((  IMAGE_COUNT == 14  ))
+    then  break
+    fi
 
-					if    (( IMAGE_COUNT  == 0  ))
-					then  lilo_image_entry  >>  /etc/yaboot.conf.new
-					fi
-					((  IMAGE_COUNT++  ))
-				fi
+    echo  "$LINE"  >>  /etc/lilo.conf.new
 
-				if    ((  IMAGE_COUNT == 14  ))
-				then  break
-				fi
+   done
 
-				echo  "$LINE"  >>  /etc/yaboot.conf.new
+   if    ((  IMAGE_COUNT ==  0  ))
+   then  lilo_image_entry  >>  /etc/lilo.conf.new
+   fi
 
-			done
+   cp  /etc/lilo.conf.new  /etc/lilo.conf
+   rm  /etc/lilo.conf.new
 
-			if    ((  IMAGE_COUNT ==  0  ))
-			then  lilo_image_entry  >>  /etc/yaboot.conf.new
-			fi
+   export  IFS=$IFS_OLD
 
-			cp  /etc/yaboot.conf.new  /etc/yaboot.conf
+  fi
 
-			export  IFS=$IFS_OLD
+  /sbin/lilo
 
-		fi
-
-		/usr/sbin/ybin
-
-	}
+ }
 
 
-	case  $BUILD  in
-		powerpc-linux-gnu)  update_yaboot  ;;
-		*)  update_lilo    ;;
-	esac
+ update_yaboot()  {
+
+  if    !  [  -f  /etc/yaboot.conf  ]
+  then  return
+  fi
+
+  if    !  grep  -q  -w  "$VERSION"  /etc/yaboot.conf
+  then
+
+   IFS_OLD=$IFS
+   export  IFS="$ENTER_IFS"
+
+   rm     -rf  /etc/yaboot.conf.old
+   touch       /etc/yaboot.conf.old
+   chmod  600  /etc/yaboot.conf.old
+
+   rm     -rf  /etc/yaboot.conf.new
+   touch       /etc/yaboot.conf.new
+   chmod  600  /etc/yaboot.conf.new
+
+   cp  /etc/yaboot.conf  /etc/lilo.conf.old
+
+   (( IMAGE_COUNT=0  ))
+
+   for  LINE  in  `cat /etc/yaboot.conf`;  do
+
+    if   echo  "$LINE"  |  grep  -q -w  "image\|other";  then
+
+     if    (( IMAGE_COUNT  == 0  ))
+     then  lilo_image_entry  >>  /etc/yaboot.conf.new
+     fi
+     ((  IMAGE_COUNT++  ))
+    fi
+
+    if    ((  IMAGE_COUNT == 14  ))
+    then  break
+    fi
+
+    echo  "$LINE"  >>  /etc/yaboot.conf.new
+
+   done
+
+   if    ((  IMAGE_COUNT ==  0  ))
+   then  lilo_image_entry  >>  /etc/yaboot.conf.new
+   fi
+
+   cp  /etc/yaboot.conf.new  /etc/yaboot.conf
+
+   export  IFS=$IFS_OLD
+
+  fi
+
+  /usr/sbin/ybin
+
+ }
 
 
-	unlock_cast
+ case  $BUILD  in
+  powerpc-linux-gnu)  update_yaboot  ;;
+  *)  update_lilo    ;;
+ esac
 
-	#  Reinstall packages that add their own kernel modules
 
-	# pcmcia-cs no longer installs modules
-	# if  spell_installed  pcmcia-cs      ;  then  cast  pcmcia-cs;      fi
+ unlock_cast
 
-	if  spell_installed  NVIDIA-Linux-x86; then  cast  NVIDIA-Linux-x86;  fi
-	if  spell_installed  alsa-driver    ;  then  cast  alsa-driver;    fi
-	if  spell_installed  cvsfs          ;  then  cast  cvsfs;          fi
-	if  spell_installed  shfs           ;  then  cast  shfs;           fi
-	if  spell_installed  ftpfs          ;  then  cast  ftpfs;          fi
-	if  spell_installed  lm_sensors     ;  then  cast  lm_sensors;     fi
-	if  spell_installed  lufs           ;  then  cast  lufs;           fi
-	if  spell_installed  lirc           ;  then  cast  lirc;           fi
-	if  spell_installed  NVIDIA_nforce  ;  then  cast  NVIDIA_nforce;  fi
-	if  spell_installed  freeswan       ;  then  cast  freeswan;       fi
-	if  spell_installed  hostap-driver  ;  then  cast  hostap-driver;  fi
+ #  Reinstall packages that add their own kernel modules
 
-	backup_lib
+ # pcmcia-cs no longer installs modules
+ # if  spell_installed  pcmcia-cs      ;  then  cast  pcmcia-cs;      fi
 
-	if    [  -x  /usr/bin/mail   ]
-	then  MAILER=/usr/bin/mail
-	elif  [  -x  /usr/bin/mailx  ]
-	then  MAILER=/usr/bin/mailx
-	fi
+ if  spell_installed  NVIDIA-Linux-x86; then  cast  NVIDIA-Linux-x86;  fi
+ if  spell_installed  alsa-driver    ;  then  cast  alsa-driver;    fi
+ if  spell_installed  cvsfs          ;  then  cast  cvsfs;          fi
+ if  spell_installed  shfs           ;  then  cast  shfs;           fi
+ if  spell_installed  ftpfs          ;  then  cast  ftpfs;          fi
+ if  spell_installed  lm_sensors     ;  then  cast  lm_sensors;     fi
+ if  spell_installed  lufs           ;  then  cast  lufs;           fi
+ if  spell_installed  lirc           ;  then  cast  lirc;           fi
+ if  spell_installed  NVIDIA_nforce  ;  then  cast  NVIDIA_nforce;  fi
+ if  spell_installed  freeswan       ;  then  cast  freeswan;       fi
+ if  spell_installed  hostap-driver  ;  then  cast  hostap-driver;  fi
 
-	if    [  -n  "$MAILER"    ]  &&
-		[  -n  "$SORCERER"  ]
-	then
-		(
-		echo  "New linux kernel installed."
-		echo  "Remember to reboot the box, please."
-		)  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
-	fi
+ backup_lib
+
+ if    [  -x  /usr/bin/mail   ]
+ then  MAILER=/usr/bin/mail
+ elif  [  -x  /usr/bin/mailx  ]
+ then  MAILER=/usr/bin/mailx
+ fi
+
+ if    [  -n  "$MAILER"    ]  &&
+  [  -n  "$SORCERER"  ]
+ then
+  (
+  echo  "New linux kernel installed."
+  echo  "Remember to reboot the box, please."
+  )  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
+ fi
 }
 

@@ -15,68 +15,68 @@ control some specific card.In addition, the package isdn4k-utils
 contains utilities to make use of ISDN specific features."
 
 store_config()  {
-	mkdir  -p    $CONFIG_LOGS/$SPELL
-	cp  .config  $CONFIG_LOGS/$SPELL
+ mkdir  -p    $CONFIG_LOGS/$SPELL
+ cp  .config  $CONFIG_LOGS/$SPELL
 }
 
 
 restore_config()  {
-	if    [  -f  $CONFIG_LOGS/$SPELL/.config  ]
-	then  cp     $CONFIG_LOGS/$SPELL/.config  .
-	fi
+ if    [  -f  $CONFIG_LOGS/$SPELL/.config  ]
+ then  cp     $CONFIG_LOGS/$SPELL/.config  .
+ fi
 }
 
 
 make_menuconfig()  {
 
-	restore_config
+ restore_config
 
-	wiz_kill
+ wiz_kill
 
-	while  $CONFIG_ISDN;  do
-		make  testconfig
-		if    query  "Repeat  config?"  n
-		then  CONFIG_ISDN="true"
-		else  CONFIG_ISDN="false"
-		fi
-	done
+ while  $CONFIG_ISDN;  do
+  make  testconfig
+  if    query  "Repeat  config?"  n
+  then  CONFIG_ISDN="true"
+  else  CONFIG_ISDN="false"
+  fi
+ done
 
 }
 
 
 make_install()  {
 
-	yes   ""         |
-	make  subconfig  &&
-	store_config     &&
-	make             &&
-	prepare_install  &&
-	make    install
+ yes   ""         |
+ make  subconfig  &&
+ store_config     &&
+ make             &&
+ prepare_install  &&
+ make    install
 
 }
 
 ####################################################################333
 
 configure() {
-	if  [  -f  $CONFIG_LOGS/$SPELL/.config  ];  then
-		if    query  "Configure isdn4k-utils?"  n
-		then  CONFIG_ISDN=true
-		else  CONFIG_ISDN=false
-		fi
-	else
-		CONFIG_ISDN="true"
-	fi
+ if  [  -f  $CONFIG_LOGS/$SPELL/.config  ];  then
+  if    query  "Configure isdn4k-utils?"  n
+  then  CONFIG_ISDN=true
+  else  CONFIG_ISDN=false
+  fi
+ else
+  CONFIG_ISDN="true"
+ fi
 
-	TEMP=$(  grep  -v  "CONFIG_ISDN="     $SPELL_CONFIG  )
-	echo  "$TEMP"                      >  $SPELL_CONFIG
-	echo  "CONFIG_ISDN=$CONFIG_ISDN"  >>  $SPELL_CONFIG
+ TEMP=$(  grep  -v  "CONFIG_ISDN="     $SPELL_CONFIG  )
+ echo  "$TEMP"                      >  $SPELL_CONFIG
+ echo  "CONFIG_ISDN=$CONFIG_ISDN"  >>  $SPELL_CONFIG
 }
 
 build() {
-	
-	# patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
-	make_menuconfig  &&
-	activate_voyeur  &&
-	make_install  &>  $C_FIFO
+ 
+ # patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
+ make_menuconfig  &&
+ activate_voyeur  &&
+ make_install  &>  $C_FIFO
 }
 

@@ -1,37 +1,21 @@
-   VERSION=( "3.2.06" )
+   VERSION=( "3.3.01" "3.3.00" "3.2.06" )
   CATEGORY="editor"
  ATTRIBUTE="console"
     SOURCE="ispell-$VERSION.tar.gz"
        URL="http://ficus-www.cs.ucla.edu/geoff/tars"
   HOMEPAGE="http://ficus-www.cs.ucla.edu/geoff/ispell.html"
-       REQ="bison-v1.35 ncurses"
-   ESTIMATE="160"
+       REQ="ncurses"
+  ESTIMATE="106"
       DESC="ispell is an interactive spelling checker.
 International Ispell is an interactive spell-checking
 program which supports a large number of European languages
 (only English dictionaries are included in the source tarball).
 An emacs interface is available, as well as the standard command-line mode."
 
-
 build() {
-export  PATH="/opt/bison/1.35/bin:$PATH"
-
-sed  -i  "s:/usr/local/lib:/usr/share/ispell:"  local.h.samp
-sed  -i  "s:/usr/local/lib:/usr/share/ispell:"  config.X
-
-sed  -i  "s:#undef USG:#define USG:"  local.h.samp
-sed  -i  "s:/usr/local:/usr:"         local.h.samp
-sed  -i  "s:/usr/local:/usr:"         config.X
-sed  -i  "s:-ltermcap:-lncurses:"     config.X
-sed  -i  "s:-O:$CFLAGS:"              config.X
-
-for  FILE  in  $(  grep -r "/usr/tmp" * | cut -d : -f1 )
-do   sed  -i  "s:/usr/tmp:/tmp:"  $FILE
-done
-
-sed  -i  "s:tail -1:tail -n 1:"  Makefile
-sed  -i  "/sort/s/+0f -1/-k2f/g
-          /sort/s/+0/-k1/g;"     languages/english/Makefile
+sed      "s:/usr/local:/usr:" local.h.linux > local.h
+sed  -i  "s:fixispell-a\$\$MAN1EXT::
+          s:fixispell-a::"            Makefile
 make             &&
 prepare_install  &&
 make    install

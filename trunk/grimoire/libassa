@@ -1,13 +1,21 @@
-   VERSION=( "3.3.0" "3.2.0" "3.1.0" "3.0.0" )
+   VERSION=( "3.3.1" "3.3.0" "3.2.0" "3.1.0" "3.0.0" )
   CATEGORY="network"
- ATTRIBUTE="broken library"
-# has broken installation
+ ATTRIBUTE="library"
+# has broken installation.
+# I tried to avert the make failure.
     SOURCE="libassa/libassa-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://libassa.sourceforge.net"
-  ESTIMATE="320"
+  ESTIMATE="318"
       DESC="libassa is a networking library.
 libassa is a networking library based on some of the design
 patterns such as Configurator, Reactor, Acceptor, and Connector
 collectively known as Adaptive Communication Patterns described
 in various papers published by Dr. D. C. Schmidt."
+
+build() {
+  sed    -i  "/-rm -rf html/d"  doc/Makefile.in
+  mkdir  doc/html
+  touch  doc/html/index.html
+  default_build
+}

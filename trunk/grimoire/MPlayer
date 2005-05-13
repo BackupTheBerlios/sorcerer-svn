@@ -1,6 +1,6 @@
    [  -z  "$VERSION"  ]  &&
-   VERSION=( "1.0pre6a" "1.0pre6" "1.0pre5try2" "1.0pre5" "0.93" )
-      SAFE=( "1.0pre6a" "1.0pre6" )
+   VERSION=( "1.0pre7" "1.0pre6a" "1.0pre6" "1.0pre5try2" "1.0pre5" "0.93" )
+      SAFE=( "1.0pre7" )
     IGNORE="rc\|pre"
   CATEGORY="video-player dvd-player"
  ATTRIBUTE="x11"
@@ -18,8 +18,10 @@
              "MPlayer-Skin:::to install skins for GUI"
              "MPlayer-font:::to install fonts"
              "SDL:--enable-sdl::to use SDL audio/video output"
-             "alsa-lib:::for alsa sound support"
              "aalib:::for ascii art video output rendering"
+             "alsa-lib::--disable-alsa:for alsa sound support"
+             "arts::--disable-arts:for sound output through arts"
+             "esound::--disable-esd:for sound output through esound"
              "cdparanoia:::for playing/reading audio CDs"
              "freetype::--disable-freetype:for anti-aliased osd/subs support"
              "lame:::to use lame mp3 codec"
@@ -32,19 +34,18 @@
              "faad2:--enable-external-faad::for aac decoding support" )
       OPTS="--disable-shared-pp"
  FRESHMEAT="mplayer"
-  ESTIMATE="1259"
+  ESTIMATE="1295"
       DESC="MPlayer is a movie and animation player.
-MPlayer is a movie and animation player that supports a wide 
+MPlayer is a movie and animation player that supports a wide
 range of file formats, including ASF, Quicktime, and Vivo.
-It has many MMX/SSE/3Dnow optimized native audio and video 
-codecs, but allows using XAnim's binary codec plugins, and 
+It has many MMX/SSE/3Dnow optimized native audio and video
+codecs, but allows using XAnim's binary codec plugins, and
 Win32 codec DLLs.
-It has basic VCD/DVD playback functionality, including DVD 
+It has basic VCD/DVD playback functionality, including DVD
 subtitles, but supports many text-based subtitle formats too.
 For video output, nearly every existing interface is supported.
-It's also able to convert any supported files to raw/divx/mpeg4 
+It's also able to convert any supported files to raw/divx/mpeg4
 AVI (pcm/mp3 audio), and even video grabbing from V4L devices."
-
 
 install_skin()  {
   BASE=$(  basename  $BUILD_DIR  )
@@ -55,7 +56,6 @@ install_skin()  {
   cp     -Rv  *  $SKIN
 }
 
-
 install_font()  {
   FONT="/usr/share/mplayer/fonts"
   chmod  a+r  *           &&
@@ -64,9 +64,7 @@ install_font()  {
   cp     -Rv  *  $FONT
 }
 
-
 install_mplayer()  {
-
 
   install_conf()  {
 
@@ -106,13 +104,11 @@ install_mplayer()  {
 
 }
 
-
 set_data()  {
   unset  SAFE  ATTRIBUTE  REQ
   ATTRIBUTE="data"
    ESTIMATE="5"
 }
-
 
 skin_me()  {
   set_data
@@ -120,7 +116,6 @@ skin_me()  {
    PROVIDE="MPlayer-Skin"
       DESC="$SPELL provides a Skin for MPlayer's GUI."
 }
-
 
 font_me()  {
   set_data
@@ -130,7 +125,6 @@ VERSION=( "1.0" )
       DESC="$SPELL provides a default font for MPlayer's GUI."
 }
 
-
 build()  {
   case  ${SPELL:8}  in
     Skin-*)  install_skin     ;;
@@ -138,7 +132,6 @@ build()  {
          *)  install_mplayer  ;;
   esac
 }
-
 
 case  ${SPELL:8}  in
   Skin-*)  skin_me  ;;
