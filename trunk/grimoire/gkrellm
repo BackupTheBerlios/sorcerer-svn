@@ -1,28 +1,32 @@
-   VERSION=( "2.2.5" "2.2.4" "2.2.2" "2.2.1" "2.2.0" "2.1.28" "2.1.27" "2.1.26" )
+   VERSION=( "2.2.6" "2.2.5" "2.2.4" "2.2.2" "2.2.1" "2.2.0" "2.1.28" "2.1.27" "2.1.26" )
   CATEGORY="utility time monitor"
  ATTRIBUTE="x11"
     SOURCE="gkrellm-$VERSION.tar.bz2"
   HOMEPAGE="http://www.gkrellm.net"
        URL="http://members.dslextreme.com/users/billw/gkrellm"
-#      URL="http://web.wt.net/~billw/gkrellm"
-       REQ=( "gettext gtk+"
-             "openssl:::for imap over ssl support" )
+       REQ="gettext gnutls gtk+"
   ESTIMATE="86"
       DESC="gkrellm is a stacked monitor program.
-gkrellm is a gtk+ based stacked monitor program 
-that charts SMP CPUs, disks, load, 
+gkrellm is a gtk+ based stacked monitor program
+that charts SMP CPUs, disks, load,
 active net interfaces, and internet connections.
-There are also builtin monitors for memory and swap, 
-file systems with mount/umount feature, 
-mailbox checking including POP3 and IMAP,clock/calendar, 
-laptop battery, sensors (temperatures, voltages, and fans), 
-and uptime.
-It has LEDs for the net monitors and an 
+There are also builtin monitors for memory and swap,
+file systems with mount/umount feature,
+mailbox checking including POP3 and IMAP,clock/calendar,
+laptop battery, sensors (temperatures, voltages, and fans), and uptime.
+It has LEDs for the net monitors and an
 on/off button and online timer for PPP.
-There is a GUI popup for configuration, plugin extensions 
+There is a GUI popup for configuration, plugin extensions
 can be installed, and many themes are available.
 It also features a client/server monitoring capability."
 
+case  $SPELL  in
+  gkrellm-*)  unset  REQ;
+              REQ="gkrellm";  ESTIMATE="7"  ;;
+esac
+
+
+build() {
 
 install_gkrellm()  {
   sed  -i  "s:/usr/local:/usr:"  Makefile
@@ -31,7 +35,6 @@ install_gkrellm()  {
   prepare_install  &&
   make    install
 }
-
 
 install_plugin()  {
   sed  -i  "s:-O2:$CFLAGS:
@@ -47,16 +50,8 @@ install_plugin()  {
   make    install  $NLS  $PPD
 }
 
-
-build()  {
   case  $SPELL  in
     gkrellm-*)  install_plugin   ;;
             *)  install_gkrellm  ;;
   esac
 }
-
-
-case  $SPELL  in
-  gkrellm-*)  unset  REQ;
-              REQ="gkrellm";  ESTIMATE="7"  ;;
-esac

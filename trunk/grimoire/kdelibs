@@ -6,6 +6,9 @@ case  $VERSION  in
  SOURCE[2]="security_patches/post-3.3.2-kdelibs-kio.diff"
  SOURCE[3]="security_patches/post-3.3.2-kdelibs-kioslave.patch"
  ;;
+  3.4.0)
+ SOURCE[1]="security_patches/post-3.4.0-kdelibs-kimgio.diff"
+ ;;
 esac
        REQ=( "arts bzip2 docbook-dtd e2fsprogs lesstif libpng libxml2 libxslt pcre qt-x11-free tiff"
              "cups::--disable-cups:for intergration with common unix printing system"
@@ -28,6 +31,9 @@ build()  {
     patch  -p0  -d kio/kio  <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[2]##*/}
     patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[3]##*/}
   ;;
+    3.4.0)
+    patch  -p0  -d kimgio   <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
+  ;;
   esac
   kde_build
 }
@@ -35,6 +41,7 @@ build()  {
 
 current()  {
   case  $VERSION  in
-    3.3.2)  grep  -qx  "patching file kioslave/ftp/ftp.cc"  $COMPILE_LOGS/kdelibs  ;;
+    3.3.2) grep -qx "patching file kioslave/ftp/ftp.cc" $COMPILE_LOGS/kdelibs ;;
+    3.4.0) grep -qx "patching file xview.cpp"           $COMPILE_LOGS/kdelibs ;;
   esac
 }

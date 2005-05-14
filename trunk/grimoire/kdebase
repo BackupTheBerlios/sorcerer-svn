@@ -4,6 +4,10 @@ case  $VERSION  in
   3.3.2)
  SOURCE[1]="security_patches/post-3.3.2-kdebase-htmlframes2.patch"
   ;;
+  3.4.0)
+ SOURCE[1]="hal_050.patch"
+    URL[1]="http://svn.exactcode.de/t2/trunk/package/kde/kdebase"
+  ;;
 esac
        REQ=( "kdelibs"
              "Linux-PAM:::for pluggable authentication"
@@ -23,9 +27,8 @@ control center, the file manager, and the panel."
 
 build()  {
   case  $VERSION  in
-    3.3.2)
-    patch  -p0  <  $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/}
-  ;;
+    3.3.2) patch -p0 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
+    3.4.0) patch -p1 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
   esac
   kde_build  &&
   install_pamd
@@ -35,5 +38,6 @@ build()  {
 current()  {
   case  $VERSION  in
     3.3.2)  grep  -qx  "patching file konqueror/konq_mainwindow.cc"  $COMPILE_LOGS/kdebase  ;;
+    3.4.0)  grep  -qx  "patching file kioslave/media/kdedmodule/halbackend.cpp"  $COMPILE_LOGS/kdebase  ;;
   esac
 }

@@ -1,4 +1,9 @@
 inherit kde
+case  $VERSION  in
+  3.4.0)
+  SOURCE[1]="security_patches/post-3.4.0-kdewebdev-kommander.diff"
+  ;;
+esac
   CATEGORY="web"
        REQ="kdelibs"
   ESTIMATE="1670"
@@ -11,3 +16,18 @@ kdewebdev contains:
  KXSLDbg:          an XSL debugger
  KImageMapEditor:  an image map editor
  KLinkStatus:      a link validity checker"
+
+build()  {
+  case  $VERSION  in
+    3.4.0)  patch  -p0  <  $SOURCE_CACHE/kdewebdev/$VERSION/${SOURCE[1]##*/} ;;
+  esac
+  kde_build
+}
+  
+current()  {
+  case $VERSION  in
+    3.4.0) grep  -qx  "patching file kommander/executor/instance.cpp" \
+           $COMPILE_LOGS/kdebase ;;
+  esac
+}
+
