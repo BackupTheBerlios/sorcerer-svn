@@ -189,7 +189,7 @@ build() {
   symlink_install()  {
   
     rm     -f  /usr/X11R6/include/zlib.h
-    rm     -f  /usr/X11R6/lib/libz.a
+    rm     -f  /usr/X11R6/lib{,64}/libz.a
 		cp -Rp  /usr/X11R6/include/* /usr/include
     rm -rf  /usr/X11R6/include
     ls -fs ../include /usr/X11R6/include
@@ -215,16 +215,27 @@ build() {
     if    [  !  -e                     /usr/lib/X11  ]
     then  ln    -sf  ../X11R6/lib/X11  /usr/lib/X11
     fi
+
+    if    [  -e            /usr/lib64  ]
+    then  if    [  !  -e   /usr/lib64/X11  ]
+          then  ln    -sf  ../X11R6/lib64/X11  /usr/lib64/X11
+          fi
+    fi
   
   }
   
-  
+
   pkgconf_install()  {
-                ULP="/usr/lib/pkgconfig"
+    ULP="/usr/lib/pkgconfig"
+    if  [ -e  /usr/X11R6/lib/pkgconfig ]; then
+        XLP="/usr/X11R6/lib/pkgconfig"
+    else  if  [ -e  /usr/X11R6/lib64/pkgconfig ]; then
+        XLP="/usr/X11R6/lib64/pkgconfig"
+          fi
+    fi
     mkdir  -p  $ULP
-    cp     -a  /usr/X11R6/lib/pkgconfig/*  $ULP
+    [  "$XLP" == "x"  ]  ||  cp -a  $XLP/*  $ULP
   }
-  
   
   
   if    spell_installed  "$( get_provider  Linux-PAM  )"
