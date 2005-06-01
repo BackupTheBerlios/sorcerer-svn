@@ -1,0 +1,32 @@
+#!/bin/bash
+#inherit glibc
+
+
+export DEST_ARCH=x86_64
+ASSUME=off
+  VERSION=( "0.0.1" )
+  CATEGORY="library crosscompile"
+ ATTRIBUTE="console core library solo crosscompile"
+ REQ="glibc linux-cross-${DEST_ARCH} gcc-cross-${DEST_ARCH}-firststage"
+      DESC="glibc headers for creation of the crosscompile chain"
+	CONF_ARCH=/etc/sorcery/$DEST_ARCH/local.config
+			
+
+export CROSS_CHAIN=true
+
+pre_build() {
+	return 0
+}
+
+build() {	
+	unlock_cast
+	augur arch $DEST_ARCH
+	export TERM=dumb
+  cast -c glibc-restricted
+  RETURN=$?
+	augur arch
+	prepare_install
+	return $RETURN
+}
+
+

@@ -1,4 +1,6 @@
-   VERSION=( "1.0.2" )
+#!/bin/bash
+
+   VERSION=( "1.1.0" "1.0.2" )
   CATEGORY="ftp"
  ATTRIBUTE="server console"
    #SOURCE="bsdftpd-6.0-ssl-$VERSION.tar.gz"
@@ -53,6 +55,16 @@ configure() {
 
 
 build() {
+	fix_sources() {
+		case $VERSION in
+			1.0.2)
+				sed  -i  "s:/usr/local:/usr:"   Makefile &&
+				patch -p1 < $SCRIPT_DIR/bsdftpd-ssl.patch
+				;;
+			*)
+		esac
+	}
+
 	install_conf() {
 		cp  $SCRIPT_DIR/bsdftpd-ssl.sh  /etc/init.d
 		
@@ -79,8 +91,7 @@ build() {
 	
 	export PATH="$CANTRIP/opt/byacc:$PATH"
 	./config.sh `uname` &&
-	sed  -i  "s:/usr/local:/usr:"   Makefile &&
-	patch -p1 < $SCRIPT_DIR/bsdftpd-ssl.patch
+	fix_sources         &&
 	make                   &&
 	prepare_install        &&
 	make    install        &&	

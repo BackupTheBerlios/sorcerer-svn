@@ -1,0 +1,23 @@
+#!/bin/sh
+
+export DEST_ARCH=x86_64
+export CROSS_CHAIN=true
+
+. /etc/sorcery/$DEST_ARCH/local.config
+DESTDIR_BCKP=$DESTDIR
+unset DESTDIR
+
+
+inherit gcc 
+ATTRIBUTE="console library solo"
+REQ="glibc binutils-cross-${DEST_ARCH} linux-cross-x86_64 $REQ"
+
+
+build() {
+	set -x
+	export PATH="/opt/$DEST_ARCH/bin:$PATH"
+	OPTS="$OPTS --disable-multilib"
+	export FIRSTSTAGE=true    &&
+	gcc_build                 
+}
+

@@ -1,0 +1,24 @@
+#!/bin/bash
+DEST_ARCH=x86_64
+CROSS_CHAIN=true
+export HEADERS_STEP=true
+
+inherit linux
+EPROVIDE=""
+REQ="$REQ filesystem-$DEST_ARCH"
+
+CONF_ARCH=/etc/sorcery/$DEST_ARCH/local.config
+. $CONF_ARCH
+
+build() {
+	set -x
+	local RESULT=0
+	test -e $CONF_ARCH || echo no $CONF_ARCH file
+  test -e $CONF_ARCH  || return 1; 
+	augur arch $DEST_ARCH
+	headers_build
+	RESULT=$?
+	augur arch
+	set +x
+ 	return $RESULT
+}

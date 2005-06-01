@@ -1,0 +1,42 @@
+#!/bin/bash 
+
+   VERSION=( "1" )
+  CATEGORY="crosscompilers"
+ ATTRIBUTE="profile new"
+    ASSUME="off"
+  ESTIMATE=""
+	DESC=("file system creator and sorcery configuration for crosscompile") 
+	ARCH_CONFIG=/etc/sorcery/$DEST_ARCH/local.config
+
+pre_build() {
+	return 0
+}
+	
+configure() {
+	export CROSS_CONFIG=/etc/sorcery/cross-config
+	touch $CROSS_CONFIG
+
+	if ! [ -f "$ARCH_CONFIG" ]; then
+		echo -n "give target filesystem path :"
+		read
+		echo export DESTDIR=$REPLY >>$ARCH_CONFIG
+		echo export OPTS=\"\$OPTS --target=${DEST_ARCH}-pc-linux-gnu\" >>$ARCH_CONFIG
+	fi
+
+}
+
+#TODO make sanity check on DESTDIR...
+
+build() {
+	. $ARCH_CONFIG
+	mkdir -p $DESTDIR/usr/include          &&
+	mkdir -p $DESTDIR/usr/src              &&
+	prepare_install   &&
+  mkdir -p 	/etc/sorcery/$DEST_ARCH &&
+	#put here installation of configuration files
+	return 0 
+ }
+
+
+
+
