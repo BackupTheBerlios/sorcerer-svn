@@ -1,6 +1,8 @@
-   VERSION=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
-      SAFE=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
-    IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|^4\.0\.0"
+#!/bin/bash
+
+   VERSION=( "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+      SAFE=( "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+    IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite"
   CATEGORY="compiler"
  ATTRIBUTE="console core library solo"
     SOURCE="gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2"
@@ -10,7 +12,7 @@
        REQ="automake binutils coreutils libtool"
   HOMEPAGE="http://gcc.gnu.org"
   disable lib64
-  ESTIMATE="2877"
+  ESTIMATE="2797"
       DESC="gcc is the GNU compiler collection.
 gcc - GNU Compiler Collection.
 The GNU Compiler Collection is a suite of compilers
@@ -18,157 +20,234 @@ that compile C, C++, Objective C, Fortran, Java,
 and Ada for a wide variety of architectures."
 
 configure() {
- select_compilers()  {
+	select_compilers()  {
 
-  TITLE="Additional Compiler Selection Menu"
-  HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
+		TITLE="Additional Compiler Selection Menu"
+		HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
 
-  GCC_LANGUAGES=$(  dialog  --backtitle  "$BACKTITLE"     \
-                            --title      "$TITLE"         \
-               --timeout    "$PROMPT_DELAY"  \
-               --stdout                      \
-               --separate-output             \
-               --no-cancel                   \
-               --checklist  "$HELP"          \
-               18 55 10                      \
-               "ada"       ""  "off"  \
-               "f77"       ""  "off"  \
-               "f95"       ""  "off"  \
-               "java"      ""  "off"  \
-               "objc"      ""  "off"  \
-  )
+		GCC_LANGUAGES=$(  dialog  --backtitle  "$BACKTITLE"     \
+                          		--title      "$TITLE"         \
+															--timeout    "$PROMPT_DELAY"  \
+															--stdout                      \
+															--separate-output             \
+															--no-cancel                   \
+															--checklist  "$HELP"          \
+															18 55 10                      \
+															"ada"       ""  "off"  \
+															"f77"       ""  "off"  \
+															"f95"       ""  "off"  \
+															"java"      ""  "off"  \
+															"objc"      ""  "off"  \
+		)
 
- }
+	}
 
- save_compilers()  {
-  if    [  -n  "$GCC_LANGUAGES"  ]
-  then           GCC_LANGUAGES="${GCC_LANGUAGES//$LF/,},c++"
-  else           GCC_LANGUAGES="c++"
-  fi
-  echo          "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
- }
+	save_compilers()  {
+		if    [  -n  "$GCC_LANGUAGES"  ]
+		then           GCC_LANGUAGES="${GCC_LANGUAGES//$LF/,},c++"
+		else           GCC_LANGUAGES="c++"
+		fi
+		echo          "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
+	}
 
 
- if    [  -z  "$GCC_LANGUAGES"  ]  &&
-  [  -z  "$BRANCH"         ]
- then
+	if    [  -z  "$GCC_LANGUAGES"  ]  &&
+		[  -z  "$BRANCH"         ]
+	then
 
-  BACKTITLE="Sorcery GCC Compiler Languages Configuration Menu"
-  select_compilers  &&
-  save_compilers
- fi
+		BACKTITLE="Sorcery GCC Compiler Languages Configuration Menu"
+		select_compilers  &&
+		save_compilers    &&
+		env |grep  'PROCESSOR=\|TARGET=|TARGETFS=' >> $OPT_ON_LOGS/$BSPELL
+
+	fi
+}
+
+gcc_build() {
+	finish_cross_install() {
+		SEDIT="s:-L/usr/src/sorcery[^ ]*::g"
+
+		sed  -i  "$SEDIT"  /opt/$DEST_ARCH/gcc/$VERSION/lib/lib*.la  2>/dev/null
+
+		STRSTREAM=/opt/$DEST_ARCH/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+
+		if    [  -f             ${STRSTREAM}    ]  &&
+			!   [  -f             ${STRSTREAM}.h  ]
+		then  ln     -s  strstream  ${STRSTREAM}.h
+		fi
+
+		true
+
+	}
+	
+	finish_install()  {
+		rm     -f                                $DESTDIR/opt/gcc/current
+		ln     -s    $VERSION                    $DESTDIR/opt/gcc/current
+		ln     -sf   /opt/gcc/$VERSION/bin/cpp   $DESTDIR/lib/cpp
+		ln     -sf   gcc                         $DESTDIR/opt/gcc/$VERSION/bin/cc
+		rm     -f                                $DESTDIR/usr/bin/cc
+
+		if    [   -h  $DESTDIR/usr/info/dir  ]
+		then  rm  -f  $DESTDIR/usr/info/dir
+		fi
+
+		SEDIT="s:-L/usr/src/sorcery[^ ]*::g
+		s:${VERSION//./\\.}:current:g"
+
+		sed  -i  "$SEDIT"  $DESTDIR/opt/gcc/$VERSION/lib/lib*.la  2>/dev/null
+
+		STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+
+		if        [  -f             ${STRSTREAM}    ]  &&
+			!   [  -f             ${STRSTREAM}.h  ]
+		then  ln     -s  strstream  ${STRSTREAM}.h
+		fi
+
+		true
+	}
+
+		#in case of crosscompile $OPTS will contain --target
+		OPTS="$OPTS \
+			  --enable-__cxa_atexit       \
+				"
+
+
+		if [ -n "$FIRSTSTAGE" ]; then
+			OPTS="$OPTS \
+				--with-newlib \
+				--disable-multilib \
+				--enable-languages=c                    \
+				--enable-symvers=gnu                    \
+				--disable-nls                           \
+				--disable-shared                        \
+				--enable-threads=no      "
+		else
+			OPTS="$OPTS                   \
+				--enable-clocale=gnu        \
+				--enable-shared             \
+				--enable-long-long          \
+				--enable-threads=posix      \
+				--enable-languague=${GCC_LANGUAGES:=c++}"
+		fi
+
+		if [ -n "$CROSS_CHAIN" ]; then
+			OPTS="$OPTS                                  \
+			      --prefix=/opt/$DEST_ARCH               \
+			      --with-local-prefix=$DESTDIR_BCKP      \
+					  --with-sysroot=$DESTDIR_BCKP	"
+		else
+			OPTS="$OPTS                                \
+			      --infodir=/usr/info                  \
+						--mandir=/usr/man                    \
+						--datadir=/usr/share                 \
+			      --prefix=/opt/$DEST_ARCH/gcc/$VERSION"
+		fi
+	
+				
+		case  $MACHTYPE  in
+			x86_64-pc-linux-gnu)  OPTS="$OPTS      \
+					--disable-multilib                 \
+					"    ;;
+			*)  OPTS="$OPTS"      
+		esac
+
+	export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+	export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+	export  CCACHE_DISABLE=1
+
+	LCF="LIBCFLAGS=$CFLAGS"
+	LCXF="LIBCXXFLAGS=$CXXFLAGS"
+	BF="BOOT_CFLAGS=$CFLAGS"
+	LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+	LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+	LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+	LDF="LDFLAGS=$LDFLAGS"
+
+
+	
+	export SCRIPT_DIR=/var/state/sorcery/grimoire/gcc.d/
+	case  $VERSION  in
+		3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
+		3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+		3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+		3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
+		3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
+		3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
+		3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
+		3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
+#					patch -p1 <$SCRIPT_DIR/cross-compile.patch 
+#					patch -p1 <$SCRIPT_DIR/new.patch;;
+	esac
+
+	# 3.2.2 now supports the DESTDIR Makefile variable
+	# That variable is for packagers.
+
+	env	
+	echo OPTS=$OPTS
+	echo FIRSTSTAGE=$FIRSTSTAGE
+
+#	if  [ -n "$TARGET" ]; then
+#		mkdir ${TARGET/--target=/}
+#		ln -s  ../include ${TARGET/--target=/}/include
+#	fi	
+
+	mkdir builddir													&&
+	cd builddir                             &&
+	../configure $OPTS                       &&
+	if [ -z "$FIRSTSTAGE" ]; then
+		make        all  "$BF"      \
+		"$LCF"  "$LCXF"  "$LDF"                  \
+		"$LJCF" "$LJCXF"             
+	else
+		make      all-gcc    "$BF"               \
+		"$LCF"  "$LCXF"  "$LDF"                  \
+		"$LJCF" "$LJCXF"             
+
+	fi	&&
+	prepare_install                         &&
+	if [ -z "$FIRSTSTAGE" ]; then 
+		make    install               
+	else
+		make install-gcc
+	fi  &&
+	if [ -z "$CROSS_CHAIN" ]; then
+		finish_install
+	else
+		finish_cross_install
+	fi
 }
 
 build() {
- finish_install()  {
-
-  rm     -f                                /opt/gcc/current
-  ln     -s    $VERSION                    /opt/gcc/current
-  ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
-  ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
-  rm     -f                                /usr/bin/cc
-
-  if    [   -h  /usr/info/dir  ]
-  then  rm  -f  /usr/info/dir
-  fi
-
-  SEDIT="s:-L/usr/src/sorcery[^ ]*::g
-  s:${VERSION//./\\.}:current:g"
-
-  sed  -i  "$SEDIT"  /opt/gcc/$VERSION/lib/lib*.la  2>/dev/null
-
-  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
-
-  if        [  -f             ${STRSTREAM}    ]  &&
-        !   [  -f             ${STRSTREAM}.h  ]
-  then  ln     -s  strstream  ${STRSTREAM}.h
-  fi
-
-  true
-
- }
-
-
- ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
-
- export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
- export  CCACHE_DISABLE=1
-
- LCF="LIBCFLAGS=$CFLAGS"
- LCXF="LIBCXXFLAGS=$CXXFLAGS"
- BF="BOOT_CFLAGS=$CFLAGS"
- LJCF="LIBGCJ_CFLAGS=$CFLAGS"
- LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
- LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
- LDF="LDFLAGS=$LDFLAGS"
-
- case  $VERSION  in
-  3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
-  3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
-  3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-  3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-  3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
- esac
-
- # 3.2.2 now supports the DESTDIR Makefile variable
- # That variable is for packagers.
-
-
- case  $MACHTYPE  in
-  x86_64-pc-linux-gnu)  OPTS="$OPTS      \
-                             --disable-multilib         \
-                --enable-threads=posix"    ;;
-  #             --enable-long-long"        ;;
-  *)  OPTS="$OPTS      \
-       --enable-threads=posix"    ;;
- esac
-
- ./configure --host=$BUILD               \
-       --prefix=/opt/gcc/$VERSION  \
-       --enable-__cxa_atexit       \
-       --enable-clocale=gnu        \
-       --enable-shared             \
-       --infodir=/usr/info         \
-       --mandir=/usr/man           \
-       --datadir=/usr/share        \
-       --enable-long-long          \
-       "$ENABLE_LANGS"             \
-       $OPTS                       &&
- make         bootstrap-lean   "$BF"      \
- "$LCF"  "$LCXF"  "$LDF"     \
- "$LJCF" "$LJCXF"            &&
- prepare_install                          &&
- make    install                          &&
- finish_install
+	gcc_build
 }
 
 post_install() {
- default_post_install
- sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
+	default_post_install
+	if [ -z "$CROSS_CHAIN" ]; then
+		sed  -i  "\,/opt/gcc/,d"  $DESTDIR/etc/ld.so.conf
 
- for           GCC_DIR  in  /opt/gcc/*/lib  \
-  /opt/gcc/*/lib64
- do    [  -d  $GCC_DIR  ]  &&
-  echo  "$GCC_DIR"
- done  >>  /etc/ld.so.conf
+		for           GCC_DIR  in  $DESTDIR/opt/gcc/*/lib  \
+			/opt/gcc/*/lib64
+		do    [  -d  $GCC_DIR  ]  &&
+			echo  "${GCC_DIR/$DESTDIR/}"
+		done  >>  $DESTDIR/etc/ld.so.conf
 
- rm    -f  $CCACHE_CACHE/*
- unlock_cast
- cast  -c  libtool
- true
+		rm    -f  $CCACHE_CACHE/*
+		unlock_cast
+		cast  -c  libtool
+		true
+	fi
 }
 
 post_remove() {
- default_post_remove
- sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
+	default_post_remove
+	if [ -z "$CROSS_CHAIN" ]; then
+		sed  -i  "\,/opt/gcc/,d"  $DESTDIR/etc/ld.so.conf
 
- for           GCC_DIR  in  /opt/gcc/*/lib
- do    [  -d  $GCC_DIR  ]  &&
-  echo  "$GCC_DIR"
- done  >>  /etc/ld.so.conf
+		for           GCC_DIR  in  $DESTDIR/opt/gcc/*/lib
+		do    [  -d  $GCC_DIR  ]  &&
+			echo  "${GCC_DIR/$DESTDIR/}"
+		done  >>  $DESTDIR/etc/ld.so.conf
+	fi
 }
 

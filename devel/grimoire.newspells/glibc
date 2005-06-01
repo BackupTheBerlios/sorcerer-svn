@@ -1,3 +1,5 @@
+#!/bin/sh
+
    VERSION=( "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
       SAFE=( "2.3.5" "2.3.4" )
     IGNORE="ref\|2001"
@@ -8,32 +10,16 @@
             "glibc/glibc-libidn-$VERSION.tar.bz2" )
        URL="$GNU_URL"
   HOMEPAGE="http://www.gnu.org/software/libc"
-case  $VERSION  in
+#	echo VERSION=${VERSION}
+#	echo CROSS_CHAIN=${CROSS_CHAIN}
+case  ${VERSION}${CROSS_CHAIN}  in
   2.3.3)  REQ=( "gcc-v3.3 perl" )  ;;
+	#we don't want to have requirement fullfilled when creating the crosstoolchain
+	*true)  unset REQ ;;
       *)  REQ=( "perl"
                 "libselinux:--with-selinux:--without-selinux:for selinux support" )  ;;
 esac
-
 #            ":--enable-add-ons=nptl::for linux 2.6.x only NP thread library" )
-   EXCLUDE="/etc/ld.so.cache
-            /etc/ld.so.conf
-            /etc/localtime
-            /etc/nsswitch.conf"
-   PROTECT="/etc/hostname
-            /etc/hosts
-            /etc/host.conf
-            /etc/hosts
-            /etc/hosts.allow
-            /etc/hosts.deny
-            /etc/hosts.equiv
-            /etc/hosts.lpd
-            /etc/networks
-            /etc/resolv.conf
-            /lib/ld-linux.so.2
-            /lib64/ld-linux-x86-64.so.2
-            /sbin/ldconfig
-            /usr/include/bits/syscall.h
-            /usr/include/gnu/stubs.h"
   disable  lib64
   ESTIMATE="11239"
       DESC="glibc is a C library for use with GNU/Hurd and GNU/Linux.
@@ -47,101 +33,224 @@ gd libpng and zlib are optional requirements for
 building memusagestat, a program to generate graphic
 from memory profiling data."
 
-build() {
- del_cached_glibc()  {
-
-  smote_old_glibc()  {
-   for  FILE  in  from/glibc*;  do
-    if    [  -f         $FILE  ]
-    then  basenames  <  $FILE  |
-     xargs  -l256  rm  -f
-    fi
-    ldconfig
-   done
-  }
-
-  ldconfig
-  [  -d   ${LIBRARY_CACHE:=/usr/lib.old}       ]  &&
-  cd      ${LIBRARY_CACHE}                        &&  smote_old_glibc
-  [  -d   ${LIBRARY_CACHE_64:=/usr/lib64.old}  ]  &&
-  cd      ${LIBRARY_CACHE_64}                     &&  smote_old_glibc
-  true
-
- }
 
 
- LD_PRELOAD_OLD="$LD_PRELOAD"
- unset  LD_PRELOAD
- unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+##################### HELPER FUNCTIONS #########################
+del_cached_glibc()  {
 
- export    CFLAGS="${CFLAGS/-O?/-O2}"
- export  CXXFLAGS="${CXXFLAGS/-O?/-O2}"
+	smote_old_glibc()  {
+		for  FILE  in  from/glibc*;  do
+			if    [  -f         $FILE  ]
+			then  basenames  <  $FILE  |
+				xargs  -l256  rm  -f
+			fi
+			ldconfig
+		done
+	}
 
- export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+	ldconfig
+	[  -d   ${LIBRARY_CACHE:=/usr/lib.old}       ]  &&
+	cd      ${LIBRARY_CACHE}                        &&  smote_old_glibc
+	[  -d   ${LIBRARY_CACHE_64:=/usr/lib64.old}  ]  &&
+	cd      ${LIBRARY_CACHE_64}                     &&  smote_old_glibc
+	true
 
- export    CFLAGS="${CFLAGS/-ffast-math/}"
- export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
-
-
- echo  "$CFLAGS"  |
- grep  -q  "\-O"  ||
- export  CFLAGS="$CFLAGS -O2"
-
- echo  "$CXXFLAGS"  |
- grep  -q  "\-O"    ||
- export  CXXFLAGS="$CXXFLAGS -O2"
-
-
- case  $VERSION  in
-  2.3.3)  sed    -i      "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
-  # patch  -p1  <  $SCRIPT_DIR/glibc-2.3.3-gcc-3.4.patch
-  # grep   -rl     "\-fno-inline-functions" csu linuxthreads  |
-  # xargs  -l64  \
-  # sed    -i  "s:-fno-inline-functions:-fno-inline-functions -fno-unit-at-a-time:"
-  ;;
- esac
-
- export  LANGUAGE=C
- export    LC_ALL=C
-
- INSTALL_ROOT=$PWD/install
- mkdir  -p  $INSTALL_ROOT/etc
- touch      $INSTALL_ROOT/etc/ld.so.conf
-
- case  $VERSION  in
-  2.3.3)  GCC3_VER=$( installed_version  gcc-v3.3 )
-  export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"  ;;
- esac
-
- mkdir  build
- cd     build
- #             --with-selinux                \
- #             --enable-add-ons=linuxthreads \
- ../configure  --host=$BUILD                 \
-        --build=$BUILD                \
-        --prefix=/usr                 \
-        --disable-profile             \
-        --with-tls                    \
-        --with-elf                    \
-        --without-gd                  \
-        --without-cvs                 \
-        --enable-shared               \
-        --enable-add-ons              \
-        $OPTS                         &&
- make                                        &&
- # make    tests                               &&
- prepare_install                             &&
- make    install install_root=$INSTALL_ROOT  &&
- cd   ../install                             &&
- rm     -f   etc/{localtime,ld.so.*}         &&
- export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
- cp     -a   *  /                            &&
- del_cached_glibc
 }
 
-post_install() {
- default_post_install
- backup_lib
+
+sanitize_env() {
+	LD_PRELOAD_OLD="$LD_PRELOAD"
+	unset  LD_PRELOAD
+	unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+
+	export    CFLAGS="${CFLAGS/-O?/-O2}"
+	export  CXXFLAGS="${CXXFLAGS/-O?/-O2}"
+
+	export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+	export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
+	export    CFLAGS="${CFLAGS/-ffast-math/}"
+	export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+
+
+	echo  "$CFLAGS"  |
+	grep  -q  "\-O"  ||
+	export  CFLAGS="$CFLAGS -O2"
+
+	echo  "$CXXFLAGS"  |
+	grep  -q  "\-O"    ||
+	export  CXXFLAGS="$CXXFLAGS -O2"
+	export  LANGUAGE=C
+	export    LC_ALL=C
+	INSTALL_ROOT=$PWD/install
+	mkdir  -p  $INSTALL_ROOT/etc
+	touch      $INSTALL_ROOT/etc/ld.so.conf
+
+	case  $VERSION  in
+		2.3.3)  GCC3_VER=$( installed_version  gcc-v3.3 )
+		export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"  ;;
+	esac
+
 }
 
+fix_sources() {
+		case  $VERSION  in
+			2.3.3)  sed    -i      "s: \$(objpfx)tst-numeric.out::"  localedata/Makefile
+			# patch  -p1  <  $SCRIPT_DIR/glibc-2.3.3-gcc-3.4.patch
+			# grep   -rl     "\-fno-inline-functions" csu linuxthreads  |
+			# xargs  -l64  \
+			# sed    -i  "s:-fno-inline-functions:-fno-inline-functions -fno-unit-at-a-time:"
+						;;
+		esac
+	patch -p1 < ${SCRIPT_DIR}/make-install-lib-all.patch
+}
+
+
+##################### MAIN FUNCTIONS ###########################
+OPTS="$OPTS --build=$BUILD          \
+--host=${TARGET:=$BUILD}      \
+--prefix=/usr                 \
+--disable-profile             "
+#      --with-selinux                \
+#      --enable-add-ons=linuxthreads \
+	
+if [ -z "$CROSS_CHAIN" ]; then
+	#not creating the chain : normal mode
+	EXCLUDE="/etc/ld.so.cache
+					/etc/ld.so.conf
+					/etc/localtime
+					/etc/nsswitch.conf"
+	PROTECT="/etc/hostname
+					/etc/hosts
+					/etc/host.conf
+					/etc/hosts
+					/etc/hosts.allow
+					/etc/hosts.deny
+					/etc/hosts.equiv
+					/etc/hosts.lpd
+					/etc/networks
+					/etc/resolv.conf
+					/lib/ld-linux.so.2
+					/lib64/ld-linux-x86-64.so.2
+					/sbin/ldconfig
+					/usr/include/bits/syscall.h
+					/usr/include/gnu/stubs.h"
+	OPTS="$OPTS \
+				--with-tls                    \
+				--with-elf                    \
+				--without-gd                  \
+				--without-cvs                 \
+				--enable-shared               \
+				--enable-add-ons              "
+
+	build() {
+
+    sanitize_env
+    fix_sources
+
+		env
+		mkdir  build
+		cd     build
+		../configure $OPTS                          &&
+		make                                        &&
+		# make    tests                               &&
+		prepare_install                             &&
+		make    install install_root=$INSTALL_ROOT  &&
+		cd   ../install                             &&
+		rm     -f   etc/{localtime,ld.so.*}         &&
+		export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
+		cp     -a   *  $DESTDIR/                    &&
+		del_cached_glibc
+	}
+
+	post_install() {
+		default_post_install
+		if [ -z "$ARCH" ]; then
+			backup_lib
+		fi
+	}
+else
+	#were creating the cross chain
+	#if [ -n "$HEADERS_STEP" ]; then
+	#	#were creating headers
+	#	build() {
+	#		
+	#		OPTS="$OPTS --enable-hacker-mode"
+	#		sanitize_env
+	#		fix_sources
+	#		mkdir build
+	#		cd build
+	#		set -x
+	#		env
+	#		../configure $OPTS                                            &&
+	#		mkdir  stdio-common/																					&&
+	#		touch stdio-common/errlist-compat.c                           &&
+	#		make cross-compiling=yes install_root=${DESTDIR} install-headers &&
+	#		mkdir -p ${DESTDIR}/usr/include/gnu
+	#		touch ${DESTDIR}/usr/include/gnu/stubs.h
+	#		## Building the bootstrap gcc requires either setting inhibit_libc, or
+	#		## having a copy of stdio_lim.h... see
+	#		## http://sources.redhat.com/ml/libc-alpha/2003-11/msg00045.html
+	#		cp bits/stdio_lim.h ${DESTDIR}/usr/include/bits/stdio_lim.h
+	#		result=$?
+	#		set +x
+	#	}
+	#else
+		#were creating the lib
+		OPTS="$OPTS \
+		      --with-headers=${DESTDIR}/usr/include \
+					--without-tls                 \
+					--with-elf                    \
+					--without-gd                  \
+					--without-cvs                 \
+					--enable-shared               \
+					--disable-profile             \
+					--disable-debug               \
+					--without-tls                 \
+					--without-__thread            \
+					--enable-add-ons=linuxthreads  "
+
+		build() {
+
+			set -x
+			sanitize_env
+			fix_sources
+
+			mkdir  build
+			cd     build
+			../configure $OPTS                          &&
+			make lib                                   &&
+			# make    tests                             &&
+			prepare_install                             &&
+			make   install_root=$INSTALL_ROOT install-lib-all install-headers  &&
+			cp bits/stdio_lim.h $INSTALL_ROOT/usr/include/bits  &&
+			cp ../include/gnu/*.h $INSTALL_ROOT/usr/include/gnu &&
+			cd   ../install                             &&
+			rm     -f   etc/{localtime,ld.so.*}         &&
+			export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
+			cp     -a   *  $DESTDIR/                    &&
+			del_cached_glibc
+			RETURN=$?	
+			read
+			set +x
+						return $RETURN
+
+			#for file in libc.so libpthread.so libgcc_s.so; do
+			#	for lib in lib lib64 usr/lib usr/lib64; do
+			#		if test -f ${SYSROOT}/$lib/$file && test ! -h ${SYSROOT}/$lib/$file; then
+			#			mv ${SYSROOT}/$lib/$file ${SYSROOT}/$lib/${file}_orig
+			#			if test -z "$USE_SYSROOT"; then
+			#				sed 's,/usr/lib/,,g;s,/usr/lib64/,,g;s,/lib/,,g;s,/lib64/,,g;/BUG in libc.scripts.output-format.sed/d' < ${SYSROOT}/$lib/${file}_orig > ${SYSROOT}/$lib/$file
+			#			else
+			#				sed '/BUG in libc.scripts.output-format.sed/d' < ${SYSROOT}/$lib/${file}_orig > ${SYSROOT}/$lib/$file
+			#			fi
+			#		fi
+			#	done
+			#done
+
+			#test -f ${SYSROOT}/lib/libc.a || test -f ${SYSROOT}/lib64/libc.a || test -f ${SYSROOT}/usr/lib/libc.a || test -f ${SYSROOT}/usr/lib64/libc.a || abort Building libc failed
+
+		}
+
+	#fi
+fi

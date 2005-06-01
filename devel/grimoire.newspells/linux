@@ -1,5 +1,7 @@
-   VERSION=( "2.6.11.11" "2.6.11.10" "2.6.11.9" "2.6.11.8" "2.6.11.7" "2.6.11.6" "2.6.11.5" "2.6.11.4" "2.6.11.3" "2.6.11.2" "2.6.11" "2.6.10" "2.6.8.1" "2.6.9" "2.6.8.1" )
-      SAFE=( "2.6.11.11" "2.6.11.10" "2.6.11.9" "2.6.11.8" "2.6.11.7" "2.6.11.6" )
+#!/bin/sh
+
+   VERSION=( "2.6.11.10" "2.6.11.9" "2.6.11.8" "2.6.11.7" "2.6.11.6" "2.6.11.5" "2.6.11.4" "2.6.11.3" "2.6.11.2" "2.6.11" "2.6.10" "2.6.8.1" "2.6.9" "2.6.8.1" )
+      SAFE=( "2.6.11.10" "2.6.11.9" "2.6.11.8" "2.6.11.7" "2.6.11.6" )
   CATEGORY="kernel"
  ATTRIBUTE="core solo"
     SOURCE="pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
@@ -23,6 +25,34 @@ virtual memory, shared libraries,
 demand loading, shared copy-on-write
 executables, proper memory management,
 and TCP/IP networking."
+
+
+
+
+############################ Helper functions #######################
+
+install_headers()  {
+
+  install_header_dir()  {
+    if    [   -h   $DESTDIR/usr/include/$1  ]
+    then  rm  -f   $DESTDIR/usr/include/$1
+    elif  [   -d   $DESTDIR/usr/include/$1  ]
+    then  rm  -rf  $DESTDIR/usr/include/$1
+    fi
+
+    mkdir  -p   $DESTDIR/usr/include/$1
+    cp     -R        include/$1/*   \
+                $DESTDIR/usr/include/$1
+  }
+
+  install_header_dir  asm
+  install_header_dir  asm-generic
+  install_header_dir  linux
+  true
+
+}
+
+
 
 backup_modules()  {
 
@@ -69,24 +99,6 @@ run_make_menuconfig()  {
 }
 
 
-symlink_headers()  {
-
-  case  $MACHTYPE  in
-    x86_64-pc-linux-gnu)  ASM="asm-x86_64"  ;;
-                      *)  ASM="asm-i386"    ;;
-  esac
-
-                                       [  -e  /usr/include/asm  ]  ||
-  ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
-
-                                       [  -e  /usr/include/asm-generic  ]  ||
-  ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
-
-                                       [  -e  /usr/include/linux  ]  ||
-  ln  -s  /usr/src/linux/include/linux        /usr/include/linux
-
-}
-
 
 restore_linux_configs()  {
 
@@ -94,7 +106,6 @@ restore_linux_configs()  {
       OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
     LINUX="/usr/src/linux-$VERSION/.config"
 
-  symlink_headers
 
   if    [  -f   $CURRENT  ];  then  cp  $CURRENT  $LINUX
   elif  [  -f   $OLD      ];  then  cp  $OLD      $LINUX;  run_make_menuconfig
@@ -103,27 +114,6 @@ restore_linux_configs()  {
 
 }
 
-
-install_headers()  {
-
-  install_header_dir()  {
-    if    [   -h   /usr/include/$1  ]
-    then  rm  -f   /usr/include/$1
-    elif  [   -d   /usr/include/$1  ]
-    then  rm  -rf  /usr/include/$1
-    fi
-
-    mkdir  -p   /usr/include/$1
-    cp     -R        include/$1/*   \
-                /usr/include/$1
-  }
-
-  install_header_dir  asm
-  install_header_dir  asm-generic
-  install_header_dir  linux
-  true
-
-}
 
 
 remove_extraversion()  {
@@ -287,19 +277,12 @@ update_yaboot()  {
 }
 
 
-#####################################################################3
-build() {
-
- cd  /usr/src/linux-$VERSION
- restore_linux_configs  &&
- activate_voyeur        &&
- compile_and_install    &> $C_FIFO
-}
+###################### SPELL API ####################################3
 
 pre_build() {
  default_pre_build
- mkdir  -p  /usr/src
- cd         /usr/src
+ mkdir  -p  $DESTDIR/usr/src
+ cd         $DESTDIR/usr/src
  rm     -rf            linux-$VERSION
  unpack     $SOURCE
  rm     -f                             linux
@@ -308,37 +291,67 @@ pre_build() {
  cd                    linux-$VERSION
 }
 
-post_install() {
- default_post_install
+if [ -n "$HEADERS_STEP" ]; then
+
+	headers_build() {
+		set -x
+		if [ -n "$DEST_ARCH" ]; then
+			local ARCHITECHTURE="ARCH=$DEST_ARCH"
+		fi
+		cd $DESTDIR/usr/src/linux-$VERSION                   &&
+		make $ARCHITECHTURE defconfig                &&
+		make $ARCHITECHTURE include/asm              &&
+		make $ARCHITECHTURE include/linux/version.h  &&
+		prepare_install                              &&
+		install_headers
+		set +x
+	}
+
+	build () {
+		headers_build
+	}
+
+else	
+
+	build() {
+
+		cd  /usr/src/linux-$VERSION
+		restore_linux_configs  &&
+		activate_voyeur        &&
+		compile_and_install    &> $C_FIFO
+	}
+
+	post_install() {
+		default_post_install
+
+		case  $BUILD  in
+			powerpc-linux-gnu)  update_yaboot  ;;
+			*)  update_lilo    ;;
+		esac
 
 
- case  $BUILD  in
-  powerpc-linux-gnu)  update_yaboot  ;;
-  *)  update_lilo    ;;
- esac
+		RECAST=$(  show_installed  linux-26-module  )
+		if    [  -n  "$RECAST"  ]
+		then  unlock_cast;  cast  -c  $RECAST
+		fi
 
+		backup_lib
 
- RECAST=$(  show_installed  linux-26-module  )
- if    [  -n  "$RECAST"  ]
- then  unlock_cast;  cast  -c  $RECAST
- fi
+		if    [  -x  /usr/bin/mail   ]
+		then  MAILER=/usr/bin/mail
+		elif  [  -x  /usr/bin/mailx  ]
+		then  MAILER=/usr/bin/mailx
+		fi
 
- backup_lib
+		if    [  -n  "$MAILER"    ]  &&
+			[  -n  "$SORCERER"  ]
+		then
+			(
+			echo  "New linux kernel installed."
+			echo  "Remember to reboot the box, please."
+			)  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
+		fi
 
- if    [  -x  /usr/bin/mail   ]
- then  MAILER=/usr/bin/mail
- elif  [  -x  /usr/bin/mailx  ]
- then  MAILER=/usr/bin/mailx
- fi
-
- if    [  -n  "$MAILER"    ]  &&
-  [  -n  "$SORCERER"  ]
- then
-  (
-  echo  "New linux kernel installed."
-  echo  "Remember to reboot the box, please."
-  )  |  $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
- fi
-
-}
-
+	}
+	
+fi
