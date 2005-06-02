@@ -6,16 +6,16 @@
     SOURCE=( "bashdiff-$VERSION.tar.gz"
              "bash-${BV:0:3}.tar.gz" )
        URL=( "http://home.eol.ca/~parkw/bashdiff"
-             "ftp://ftp.cwru.edu/pub/bash"
-             "ftp://ftp.cwru.edu/pub/bash/bash-${BV:0:3}-patches" )
-         PATCHES=${BV:5:2}
-         SCX=2
-         for  ((PCX=1; PCX < 10; PCX++))
-         do   SOURCE[$SCX]="bash30-00$PCX"; ((SCX++))
-         done
-         for  ((PCX=10; PCX <= PATCHES; PCX++))
-         do   SOURCE[$SCX]="bash30-0$PCX"; ((SCX++))
-         done
+             "ftp://ftp.cwru.edu/pub/bash" )
+#            "ftp://ftp.cwru.edu/pub/bash/bash-${BV:0:3}-patches" )
+#        PATCHES=${BV:5:2}
+#        SCX=2
+#        for  ((PCX=1; PCX < 10; PCX++))
+#        do   SOURCE[$SCX]="bash30-00$PCX"; ((SCX++))
+#        done
+#        for  ((PCX=10; PCX <= PATCHES; PCX++))
+#        do   SOURCE[$SCX]="bash30-0$PCX"; ((SCX++))
+#        done
   HOMEPAGE="http://home.eol.ca/~parkw"
        REQ=( "autoconf expat ncurses readline"
              ":--debugger::Enable debugging and extdebug shell option" )
@@ -39,12 +39,14 @@ install_loadables()  {
 
 cd  bash-${BV:0:3}
 
-# bash-wp incompatible with official bash patches?
-SCX=2
-while  [ -n "${SOURCE[$SCX]}" ]
-do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$SCX]}
-    (( SCX++ ))
-done
+# bash-wp does not require official bash patches,
+# according to William  Park.
+
+# SCX=2
+# while  [ -n "${SOURCE[$SCX]}" ]
+# do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$SCX]}
+#     (( SCX++ ))
+# done
 
 patch  -p2  <  ../bashdiff-core-$VERSION.diff
 patch  -p2  <  ../bashdiff-william-$VERSION.diff
@@ -55,10 +57,10 @@ autoconf
              --prefix=/usr              \
              --bindir=/usr/bin          \
              --with-installed-readline  \
-             --with-curses   \
-             $OPTS           &&
-make                         &&
-prepare_install              &&
-make    install              &&
+             --with-curses  \
+             $OPTS          &&
+make                        &&
+prepare_install             &&
+make    install             &&
 install_loadables
 }
