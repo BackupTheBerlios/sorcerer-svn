@@ -1,18 +1,13 @@
-   VERSION=( "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
-    IGNORE="^1\.16"
+   VERSION=( "1.17" "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
         BV=( "3.0.016" )
-# 1.16 has compile errors
     IGNORE="rc"
   CATEGORY="shell"
- ATTRIBUTE="console new broken"
-# I don't know preciselyw hat is wrong with this,
-# but it is probably in the patch application part
-# I'll fix it sometime later when I have time.
+ ATTRIBUTE="console new"
     SOURCE=( "bashdiff-$VERSION.tar.gz"
              "bash-${BV:0:3}.tar.gz" )
        URL=( "http://home.eol.ca/~parkw/bashdiff"
              "ftp://ftp.cwru.edu/pub/bash"
-             "ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches" )
+             "ftp://ftp.cwru.edu/pub/bash/bash-${BV:0:3}-patches" )
          PATCHES=${BV:5:2}
          SCX=2
          for  ((PCX=1; PCX < 10; PCX++))
@@ -45,14 +40,14 @@ install_loadables()  {
 cd  bash-${BV:0:3}
 
 # bash-wp incompatible with official bash patches?
-# SCX=2
-# while  [ -n "${SOURCE[$SCX]}" ]
-# do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$SCX]}
-#     (( SCX++ ))
-# done
+SCX=2
+while  [ -n "${SOURCE[$SCX]}" ]
+do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$SCX]}
+    (( SCX++ ))
+done
 
 patch  -p2  <  ../bashdiff-core-$VERSION.diff
-patch  -p1  <  ../bashdiff-william-$VERSION.diff
+patch  -p2  <  ../bashdiff-william-$VERSION.diff
 
 autoconf
 
