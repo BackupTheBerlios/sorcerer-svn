@@ -1,7 +1,7 @@
 #!/bin/bash
 
-   VERSION=( "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
-      SAFE=( "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+   VERSION=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+      SAFE=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite"
   CATEGORY="compiler"
  ATTRIBUTE="console core library solo"
@@ -112,30 +112,16 @@ gcc_build() {
 				"
 
 
-		if [ -n "$FIRSTSTAGE" ]; then
-			OPTS="$OPTS \
-				--with-newlib \
-				--disable-multilib \
-				--enable-languages=c                    \
-				--enable-symvers=gnu                    \
-				--disable-nls                           \
-				--disable-shared                        \
-				--enable-threads=no      "
-		else
-			OPTS="$OPTS                   \
+		if [ -z "$FIRSTSTAGE" ]; then
+				OPTS="$OPTS                   \
 				--enable-clocale=gnu        \
 				--enable-shared             \
 				--enable-long-long          \
 				--enable-threads=posix      \
-				--enable-languague=${GCC_LANGUAGES:=c++}"
+				--enable-languages=${GCC_LANGUAGES:=c++}"
 		fi
 
-		if [ -n "$CROSS_CHAIN" ]; then
-			OPTS="$OPTS                                  \
-			      --prefix=/opt/$DEST_ARCH               \
-			      --with-local-prefix=$DESTDIR_BCKP      \
-					  --with-sysroot=$DESTDIR_BCKP	"
-		else
+		if [ -z "$CROSS_CHAIN" ]; then
 			OPTS="$OPTS                                \
 			      --infodir=/usr/info                  \
 						--mandir=/usr/man                    \
@@ -175,21 +161,14 @@ gcc_build() {
 		3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
 		3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
 		3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-#					patch -p1 <$SCRIPT_DIR/cross-compile.patch 
-#					patch -p1 <$SCRIPT_DIR/new.patch;;
 	esac
 
 	# 3.2.2 now supports the DESTDIR Makefile variable
 	# That variable is for packagers.
 
-	env	
 	echo OPTS=$OPTS
 	echo FIRSTSTAGE=$FIRSTSTAGE
 
-#	if  [ -n "$TARGET" ]; then
-#		mkdir ${TARGET/--target=/}
-#		ln -s  ../include ${TARGET/--target=/}/include
-#	fi	
 
 	mkdir builddir													&&
 	cd builddir                             &&

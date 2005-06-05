@@ -2,3 +2,60 @@
 inherit glibc
 SCRIPT_DIR=${MERGED_GRIMOIRE}/glibc.d
 DESC="restricted compile version of glibc, used for creating crossgcc"
+
+
+
+OPTS="$OPTS \
+		 --with-headers=${DESTDIR}/usr/include \
+		 --without-tls                 \
+		 --with-elf                    \
+		 --without-gd                  \
+		 --without-cvs                 \
+		 --enable-shared               \
+		 --disable-profile             \
+		 --disable-debug               \
+		 --without-tls                 \
+		 --without-__thread            \
+		 --enable-add-ons=linuxthreads  "
+
+build() {
+
+	sanitize_env
+	fix_sources
+
+
+
+	mkdir  build
+	cd     build
+	../configure $OPTS                          &&
+	make lib                                   &&
+	# make    tests                             &&
+	prepare_install                             &&
+	make   install_root=$INSTALL_ROOT install-lib-all install-headers  &&
+	#don't copy other includes : this will break gcc build
+	#those are workarounds : we can't produce thoses so simply provide fakes
+	cp bits/stdio_lim.h $INSTALL_ROOT/usr/include/bits  &&
+	touch $INSTALL_ROOT/usr/include/gnu/stubs.h &&
+	touch $INSTALL_ROOT/usr/include/bits/syscall.h &&
+	cd   ../install                             &&
+	rm     -f   etc/{localtime,ld.so.*}         &&
+	export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
+	cp     -a   *  $DESTDIR/                    &&
+	del_cached_glibc
+	#for file in libc.so libpthread.so libgcc_s.so; do
+	# for lib in lib lib64 usr/lib usr/lib64; do
+	#   if test -f ${SYSROOT}/$lib/$file && test ! -h ${SYSROOT}/$lib/$file; then
+	#     mv ${SYSROOT}/$lib/$file ${SYSROOT}/$lib/${file}_orig
+	#     if test -z "$USE_SYSROOT"; then
+	#       sed 's,/usr/lib/,,g;s,/usr/lib64/,,g;s,/lib/,,g;s,/lib64/,,g;/BUG in libc.            scripts.output-format.sed/d' < ${SYSROOT}/$lib/${file}_orig > ${SYSROOT}/$lib/$file
+	#     else
+	#       sed '/BUG in libc.scripts.output-format.sed/d' < ${SYSROOT}/$lib/                     ${file}_orig > ${SYSROOT}/$lib/$file
+	#     fi
+	#   fi
+	# done
+	#done
+
+	#test -f ${SYSROOT}/lib/libc.a || test -f ${SYSROOT}/lib64/libc.a || test -f                  ${SYSROOT}/usr/lib/libc.a || test -f ${SYSROOT}/usr/lib64/libc.a || abort Building libc             failed
+
+}
+

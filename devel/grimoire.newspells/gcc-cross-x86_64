@@ -3,6 +3,10 @@
 export DEST_ARCH=x86_64
 export CROSS_CHAIN=true
 
+#reorganize the PATH
+export PATH="$(echo $PATH | awk '{gsub(":?[^:]*x86_64[^:]*:?",":"); print}')"
+export PATH="$PATH:/opt/$DEST_ARCH/bin"
+
 . /etc/sorcery/$DEST_ARCH/local.config
 DESTDIR_BCKP=$DESTDIR
 unset DESTDIR
@@ -11,19 +15,13 @@ unset DESTDIR
 inherit gcc 
 ATTRIBUTE="console library solo"
 REQ="glibc binutils-cross-${DEST_ARCH} glibc-cross-${DEST_ARCH} $REQ"
+OPTS="$OPTS \
+			--prefix=/opt/$DEST_ARCH               \
+			--with-local-prefix=$DESTDIR_BCKP      \
+			--with-sysroot=$DESTDIR_BCKP           \
+			--disable-multilib                     \
+			"
+			#--disable-libgcj"
 
 
-build() {
-	set -x
-	export PATH="$PATH:/opt/$DEST_ARCH/bin"
-	#strip the path of unwanted directories
-	PATH=$(echo $PATH | awk '{gsub(":?[^:]*x86_64[^:]*:?",":"); print}')
-	PATH="$PATH:/opt/${DEST_ARCH}/bin"
-
-	OPTS=${OPTS/--target=${DEST_ARCH}-pc-/--target=${DEST_ARCH}-unknown-}
-
-	OPTS="$OPTS --disable-multilib --with-sysroot=$DESTDIR_BCKP"
-	OPTS="$OPTS --disable-libgcj"
-	gcc_build                 
-}
 

@@ -143,25 +143,6 @@ if [ -z "$CROSS_CHAIN" ]; then
 				--enable-shared               \
 				--enable-add-ons              "
 
-	build() {
-
-    sanitize_env
-    fix_sources
-
-		env
-		mkdir  build
-		cd     build
-		../configure $OPTS                          &&
-		make                                        &&
-		# make    tests                               &&
-		prepare_install                             &&
-		make    install install_root=$INSTALL_ROOT  &&
-		cd   ../install                             &&
-		rm     -f   etc/{localtime,ld.so.*}         &&
-		export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
-		cp     -a   *  $DESTDIR/                    &&
-		del_cached_glibc
-	}
 
 	post_install() {
 		default_post_install
@@ -169,88 +150,26 @@ if [ -z "$CROSS_CHAIN" ]; then
 			backup_lib
 		fi
 	}
-else
-	#were creating the cross chain
-	#if [ -n "$HEADERS_STEP" ]; then
-	#	#were creating headers
-	#	build() {
-	#		
-	#		OPTS="$OPTS --enable-hacker-mode"
-	#		sanitize_env
-	#		fix_sources
-	#		mkdir build
-	#		cd build
-	#		set -x
-	#		env
-	#		../configure $OPTS                                            &&
-	#		mkdir  stdio-common/																					&&
-	#		touch stdio-common/errlist-compat.c                           &&
-	#		make cross-compiling=yes install_root=${DESTDIR} install-headers &&
-	#		mkdir -p ${DESTDIR}/usr/include/gnu
-	#		touch ${DESTDIR}/usr/include/gnu/stubs.h
-	#		## Building the bootstrap gcc requires either setting inhibit_libc, or
-	#		## having a copy of stdio_lim.h... see
-	#		## http://sources.redhat.com/ml/libc-alpha/2003-11/msg00045.html
-	#		cp bits/stdio_lim.h ${DESTDIR}/usr/include/bits/stdio_lim.h
-	#		result=$?
-	#		set +x
-	#	}
-	#else
-		#were creating the lib
-		OPTS="$OPTS \
-		      --with-headers=${DESTDIR}/usr/include \
-					--without-tls                 \
-					--with-elf                    \
-					--without-gd                  \
-					--without-cvs                 \
-					--enable-shared               \
-					--disable-profile             \
-					--disable-debug               \
-					--without-tls                 \
-					--without-__thread            \
-					--enable-add-ons=linuxthreads  "
-
-		build() {
-
-			set -x
-			sanitize_env
-			fix_sources
-
-			mkdir  build
-			cd     build
-			../configure $OPTS                          &&
-			make lib                                   &&
-			# make    tests                             &&
-			prepare_install                             &&
-			make   install_root=$INSTALL_ROOT install-lib-all install-headers  &&
-			cp bits/stdio_lim.h $INSTALL_ROOT/usr/include/bits  &&
-			cp ../include/gnu/*.h $INSTALL_ROOT/usr/include/gnu &&
-			cd   ../install                             &&
-			rm     -f   etc/{localtime,ld.so.*}         &&
-			export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
-			cp     -a   *  $DESTDIR/                    &&
-			del_cached_glibc
-			RETURN=$?	
-			read
-			set +x
-						return $RETURN
-
-			#for file in libc.so libpthread.so libgcc_s.so; do
-			#	for lib in lib lib64 usr/lib usr/lib64; do
-			#		if test -f ${SYSROOT}/$lib/$file && test ! -h ${SYSROOT}/$lib/$file; then
-			#			mv ${SYSROOT}/$lib/$file ${SYSROOT}/$lib/${file}_orig
-			#			if test -z "$USE_SYSROOT"; then
-			#				sed 's,/usr/lib/,,g;s,/usr/lib64/,,g;s,/lib/,,g;s,/lib64/,,g;/BUG in libc.scripts.output-format.sed/d' < ${SYSROOT}/$lib/${file}_orig > ${SYSROOT}/$lib/$file
-			#			else
-			#				sed '/BUG in libc.scripts.output-format.sed/d' < ${SYSROOT}/$lib/${file}_orig > ${SYSROOT}/$lib/$file
-			#			fi
-			#		fi
-			#	done
-			#done
-
-			#test -f ${SYSROOT}/lib/libc.a || test -f ${SYSROOT}/lib64/libc.a || test -f ${SYSROOT}/usr/lib/libc.a || test -f ${SYSROOT}/usr/lib64/libc.a || abort Building libc failed
-
-		}
-
-	#fi
 fi
+
+
+
+build() {
+
+	sanitize_env
+	fix_sources
+
+	mkdir  build																&&
+	cd     build																&&
+	../configure $OPTS                          &&
+	make                                        &&
+	# make    tests                               &&
+	prepare_install                             &&
+	make    install install_root=$INSTALL_ROOT  &&
+	cd   ../install                             &&
+	rm     -f   etc/{localtime,ld.so.*}         &&
+	export  LD_PRELOAD="$LD_PRELOAD_OLD"        &&
+	cp     -a   *  $DESTDIR/                    &&
+	del_cached_glibc
+}
+
