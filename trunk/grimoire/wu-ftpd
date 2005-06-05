@@ -13,34 +13,43 @@
              "Linux-PAM:--enable-pam::for pluggable authentication" )
   ESTIMATE="193"
       DESC="wu-ftpd is a FTP server.
-WU-FTPD's features include logging of transfers, 
-logging of commands, on the fly compression and archiving, 
-classification of users' type and location, per class limits, 
-per directory upload permissions, restricted guest accounts, 
-system wide and per directory messages, directory aliases, 
+WU-FTPD's features include logging of transfers,
+logging of commands, on the fly compression and archiving,
+classification of users' type and location, per class limits,
+per directory upload permissions, restricted guest accounts,
+system wide and per directory messages, directory aliases,
 cdpath, filename filters, and virtual host support."
 
 build() {
- case  $VERSION  in
-  2.6.2)  patch  -p0  <  $(  guess_filename  "${SOURCE[1]}"  )
-  patch  -p0  <  $(  guess_filename  "${SOURCE[2]}"  )
-  patch  -p1  <  $(  guess_filename  "${SOURCE[3]}"  )
-  echo  "skeychallenge.patch applied."
-  ;;
- esac
 
- export  PATH="/opt/bison/1.35/bin:$PATH"
- ./configure  --build=$BUILD        \
- --prefix=/usr         \
- --sysconfdir=/etc     \
- --localstatedir=/var  \
- --enable-chmod        \
- --enable-passwd       \
- --disable-daemon      \
- --enable-ls           \
- --disable-hidesetuid  \
- $OPTS                 &&
- make                               &&
- make  install
+case  $VERSION  in
+2.6.2)  patch  -p0  <  $(  guess_filename  "${SOURCE[1]}"  )
+        patch  -p0  <  $(  guess_filename  "${SOURCE[2]}"  )
+        patch  -p1  <  $(  guess_filename  "${SOURCE[3]}"  )
+        echo  "skeychallenge.patch applied."
+        ;;
+esac
+
+export  PATH="/opt/bison/1.35/bin:$PATH"
+
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+--enable-chmod        \
+--enable-passwd       \
+--disable-daemon      \
+--enable-ls           \
+--disable-hidesetuid  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
+make    install
 }
 
+current() {
+case  $VERSION  in
+  2.6.2)  grep  -qx  "skeychallenge.patch applied."  $COMPILE_LOGS/wu-ftpd  ;;
+esac
+}

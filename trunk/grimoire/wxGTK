@@ -1,4 +1,4 @@
-   VERSION=( "2.6.0" "2.4.2" "2.5.3" "2.4.2" "2.4.1" "2.4.0" "2.2.7" )
+   VERSION=( "2.6.1" "2.6.0" "2.4.2" "2.4.1" "2.4.0" )
     IGNORE="demos\|samples\|^2\.5\."
 # 2.5.x are developmental versions.
   CATEGORY="graphic"
@@ -6,63 +6,36 @@
     SOURCE="wxwindows/wxGTK-$VERSION.tar.bz2"
   HOMEPAGE="http://www.wxwindows.org"
        URL="$SOURCEFORGE_URL"
-       REQ=( "bison-v1.35 esound gtk+ gtk+-v1.2"
+       REQ=( "esound gtk+ gtk+-v1.2"
              "libpng:::for png graphic support"
              "jpeg:::for jpeg graphic support"
              "tiff:::for tiff graphic support" )
 #            "glut:--with-opengl::for opengl support" )
-  ESTIMATE="752"
+  ESTIMATE="609"
  FRESHMEAT="wxwindowsgtk"
       DESC="wxGTK is a GTK+ verion of wxWindows API.
 wxWindows provides online help, network programming, 
 streams, clipboard and drag and drop, multithreading, 
 image loading and saving in a variety of formats, 
-database support, HTML viewing and printing.
-Quite good for a GUI API."
-
-
+database support, HTML viewing and printing."
 
 build() {
 
- case  $VERSION  in
-  2.4.2)  patch  -p1  <  $SCRIPT_DIR/wxGTK-2.4.2.patch  ;;
- esac
+export  LDFLAGS="$LDFLAGS -L/usr/X11R6/lib"
 
- export  PATH="/opt/bison/1.35/bin:$PATH"
- export  LDFLAGS="$LDFLAGS -L/usr/X11R6/lib"
+sed  -i  "s:##name##:##name:"  contrib/src/mmedia/sndcpcm.cpp
 
- sed  -i  "s:##name##:##name:"  contrib/src/mmedia/sndcpcm.cpp
-
- ./configure --prefix=/usr            \
-       --with-gtk               \
-       --enable-zipstream       \
-       $OPTS                    &&
- make                                 &&
- cd  contrib/src                      &&
- ( cd  canvas     &&  make )          &&
- ( cd  fl         &&  make )          &&
- ( cd  gizmos     &&  make )          &&
- ( cd  mmedia     &&  make )          &&
- ( cd  net        &&  make )          &&
- ( cd  ogl        &&  make )          &&
- ( cd  plot       &&  make )          &&
- ( cd  stc        &&  make )          &&
- ( cd  svg        &&  make )          &&
- ( cd  xrc        &&  make )          &&
- cd  ../../                           &&
- prepare_install                      &&
- make    install                      &&
- cd  contrib/src                      &&
- ( cd  canvas     &&  make  install ) &&
- ( cd  fl         &&  make  install ) &&
- ( cd  gizmos     &&  make  install ) &&
- ( cd  mmedia     &&  make  install ) &&
- ( cd  net        &&  make  install ) &&
- ( cd  ogl        &&  make  install ) &&
- ( cd  plot       &&  make  install ) &&
- ( cd  stc        &&  make  install ) &&
- ( cd  svg        &&  make  install ) &&
- ( cd  xrc        &&  make  install )
-
+./configure         \
+--prefix=/usr       \
+--with-gtk          \
+--enable-zipstream  \
+$OPTS               &&
+make                &&
+cd      contrib     &&
+make                &&
+cd  ..              &&
+prepare_install     &&
+make    install     &&
+cd      contrib     &&
+make    install
 }
-
