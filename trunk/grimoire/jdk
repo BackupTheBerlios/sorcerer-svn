@@ -1,7 +1,11 @@
+case $( arch ) in
+  x86_64)  JARCH=amd64 ;;
+       *)  JARCH=i586  ;;
+esac
    VERSION=( "1_5_0_03" "1_5_0_02" "1_5_0_01" "1_5_0"  )
   CATEGORY="interpreter"
  ATTRIBUTE="x11 noheal x86"
-    SOURCE="jdk-$VERSION-linux-i586.bin"
+    SOURCE="jdk-$VERSION-linux-$JARCH.bin"
        DIR="jdk1.5.0_03"
   HOMEPAGE="http://java.sun.com/j2se/1.5.0/download.jsp"
        URL="http://192.18.97.152/ECom/EComTicketServlet/BEGIN27EE5BD45E1A2B6C45B0E454348BEF61/-2147483648/887026143/1/615302/615170/887026143/2ts+/westCoastFSEND/jdk-1.5.0_03-oth-JPR/jdk-1.5.0_03-oth-JPR:4"
@@ -36,7 +40,7 @@ build()  {
   do   ln  -s  $FILE  /usr/bin/${FILE##*/}
   done
   if    [   -d  /usr/lib/mozilla/plugins  ]
-  then  ln  -s  /opt/$DIR/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
+  then  ln  -sf /opt/$DIR/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
                      /usr/lib/mozilla/plugins/libjavaplugin_oji.so
   fi
 
@@ -51,7 +55,7 @@ build()  {
     rm  -f     $REPLY
   done
 
-  if    uname -m | grep -q  "86"
+  if    uname -m | grep -q  "[[:digit:]]86"
   then  java  -client  -Xshare:dump
   fi
 
