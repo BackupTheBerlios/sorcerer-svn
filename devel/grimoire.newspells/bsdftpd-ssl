@@ -24,30 +24,31 @@ TLS/SSL-aware and standard clients simultaneously)." )
 
 
 configure() { 	
-	if ! test -f  $OPT_ON_LOGS/$BSPELL
+	if ! test -f  $SPELL_CONFIG
 	then
 	
 		if    query  "Invoke bsdftpd during boot? "  n
-		then  echo   "FTPD_BOOT"   >>  $OPT_ON_LOGS/$BSPELL
-		else  echo   "FTPD_BOOT"  >>  $OPT_OFF_LOGS/$BSPELL
+		then  echo   "FTPD_BOOT=yes"   >>  $SPELL_CONFIG
+		else  echo   "FTPD_BOOT=no"    >>  $SPELL_CONFIG
 		fi
 	fi
 	
-	if ! test -f  $OPT_ON_LOGS/$BSPELL
+	if ! test -f  $SPELL_CONFIG
 	then
 		if    query  "Invoke bsdftpd in secure mode only? "  n
-		then  echo   "FTPD_SECURE"   >>  $OPT_ON_LOGS/$BSPELL
-		echo ""
-		echo ""
-		echo "dummy certificate creation : use with care"
-		echo "will cause queries on build step which will stop build process"
-		echo "if you want to build a certificate after compile, untar the sources"
-		echo "and go to cert directory, see doc too :) "
-		if query "create dummy certificate?" n
-		then echo "FTPD_DUMMY" >> $OPT_ON_LOGS/$BSPELL
-		else echo "FTPD_DUMMY" >> $OPT_OFF_LOGS/$BSPELL
-		fi
-		else  echo   "FTPD_SECURE"  >> $OPT_OFF_LOGS/$BSPELL
+		then  
+			echo   "FTPD_SECURE=yes"   >>  $SPELL_CONFIG
+			echo ""
+			echo ""
+			echo "dummy certificate creation : use with care"
+			echo "will cause queries on build step which will stop build process"
+			echo "if you want to build a certificate after compile, untar the sources"
+			echo "and go to cert directory, see doc too :) "
+			if query "create dummy certificate?" n
+				then echo "FTPD_DUMMY=yes" >> $SPELL_CONFIG
+				else echo "FTPD_DUMMY=no" >> $SPELL_CONFIG
+			fi
+		else  echo   "FTPD_SECURE=no"  >> $SPELL_CONFIG
 		fi
 	fi
 
@@ -68,14 +69,14 @@ build() {
 	install_conf() {
 		cp  $SCRIPT_DIR/bsdftpd-ssl.sh  /etc/init.d
 		
-		if grep -q "FTPD_SECURE" $OPT_ON_LOGS/$BSPELL; then
+		if [ "FTPD_SECURE" == "yes" ]; then
 			cp $SCRIPT_DIR/ftpd-secure /etc/xinetd.d/ftp
 		else 
 			cp $SCRIPT_DIR/ftp /etc/xinetd.d/
 		fi
 		
 		
-		if ! grep -q "xinietd" $OPT_ON_LOGS/$BSPELL;  then
+		if ! grep -q "xinetd" $OPT_ON_LOGS/$BSPELL;  then
 			ln  -sf  ../init.d/bsdftpd-ssl.sh  /etc/rc0.d/K10bsdftpd-ssl
 			ln  -sf  ../init.d/bsdftpd-ssl.sh  /etc/rc1.d/K10bsdftpd-ssl
 			ln  -sf  ../init.d/bsdftpd-ssl.sh  /etc/rc2.d/K10bsdftpd-ssl
@@ -96,14 +97,12 @@ build() {
 	prepare_install        &&
 	make    install        &&	
 	install_conf           &&
-	if grep -q "FTPD_DUMMY" $OPT_ON_LOGS/$BSPELL &&
-			! grep -q postconfdone $OPT_ON_LOGS/$BSPELL
-	then
+	if [ "FTPD_DUMMY" == "yes" ] && [ -z "postconfdone" ]; then
 		cd $SOURCE_DIR/$BSPELL*
 		cert/cert-dummy.sh
 		mv ./cert-dummy.pem /etc/ssl/certs/ftpd.pem
 		cd -
-		echo postconfdone >>$OPT_ON_LOGS/$BSPELL
+		echo "postconfdone=yes" >>$OPT_ON_LOGS/$BSPELL
 	fi
 
 }
