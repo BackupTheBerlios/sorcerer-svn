@@ -1,3 +1,4 @@
+#!/bin/sh
    VERSION=( "0.79" "0.78" "0.77" "0.76" "0.75" )
       SAFE=( "0.79" "0.78" "0.77" "0.76" )
     IGNORE="Beta\|s"
@@ -15,6 +16,9 @@
  FRESHMEAT="linux-pam"
   ESTIMATE="301"
       DESC="Linux-PAM provides a flexibile authentication mechanism."
+
+
+
 make_symlinks()  {
   ln  -sf  libpam.so.$VERSION       /lib/libpam.so
   ln  -sf  libpam.so.$VERSION       /lib/libpam.so.0
@@ -27,6 +31,9 @@ make_symlinks()  {
 install_security() {
 	cp -Rp $SCRIPT_DIR/security /etc
 	chown root /etc/security
+	if [ -n "$PROCESS_LIMIT" ]; then
+		sed -i "s:nproc.*1000:nproc $PROCESS_LIMIT:g" /etc/security/limits.conf
+	fi
 }
 
 selinux_patches()  {
@@ -40,6 +47,18 @@ selinux_patches()  {
   autoconf
   OPTS="--enable-unix  --enable-selinux"
 
+}
+
+############################# Main API ############################
+configure() {
+	if ! [ -e $SPELL_CONFIG ]; then
+		if query "do you want to change default security process limits? (default 1000)" y
+		then 
+			echo "please enter new number :"
+			read
+			echo "PROCESS_LIMIT=$REPLY" > $SPELL_CONFIG
+		fi
+	fi
 }
 
 build() {
