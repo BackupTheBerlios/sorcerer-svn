@@ -1,0 +1,31 @@
+   VERSION=( "1.0.1" )
+  CATEGORY="game"
+ ATTRIBUTE="x11 new broken"
+# 1.0.1 has compile errors.
+    SOURCE="sdb-$VERSION.tar.gz"
+  HOMEPAGE="http://sdb.gamecreation.org/"
+       URL="http://gcsociety.sp.cs.cmu.edu/~frenzy"
+       REQ="SDL_image SDL_mixer"
+  ESTIMATE="42"
+      DESC="sdb is the game called shotgun debugger.
+It is a 2D, top-down action game.
+It is The Future, and your habit of computer
+network exploration has finally done you in.
+You are captured and taken to a strange
+underground complex populated by robot soldiers.
+Your task is to escape the facility--but the hordes
+of walking death machines aren't just gonna let you."
+
+build() {
+install_files() {
+mkdir    -p            /usr/libexec      /usr/share/sdb
+install  -m 0755  sdb  /usr/libexec
+cp       -rv  levels models snd sprites  /usr/share/sdb
+}
+
+cd      src
+sed  -i "/#include <stdlib.h>/i#include <math.h>"    sdb.h
+make             &&
+prepare_install  &&
+install_files
+}
