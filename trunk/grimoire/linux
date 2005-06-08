@@ -24,114 +24,107 @@ demand loading, shared copy-on-write
 executables, proper memory management,
 and TCP/IP networking."
 
+pre_build() {
+ [      -h  /var/tmp  ]  &&
+ rm     -f  /var/tmp
+ mkdir  -p  /var/tmp/src
+ cd         /var/tmp/src
+ rm     -rf            linux-$VERSION
+ unpack     $SOURCE
+ chown  -R  root:root  linux-$VERSION
+ rm     -f                                          /usr/src/linux
+ ln     -s             /var/tmp/src/linux-$VERSION  /usr/src/linux
+}
+
+apply_linux_patch() { :; }
+
+build() {
 backup_modules()  {
-
-  if    [  -d  /lib/modules/$VERSION      ];  then
-    rm   -rf   /lib/modules/$VERSION.old
-    mv         /lib/modules/$VERSION      \
-               /lib/modules/$VERSION.old
-  fi
-
+ if    [  -d  /lib/modules/$VERSION      ];  then
+   rm   -rf   /lib/modules/$VERSION.old
+   mv         /lib/modules/$VERSION      \
+              /lib/modules/$VERSION.old
+ fi
 }
 
 
 store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/linux-config;  }
 
-
 install_kernel()  {
+ SM="System.map"
+ BV="${VERSION}"
+ BZ=$(  find  .  -name  bzImage  )
 
-  SM="System.map"
-  BV="${VERSION}"
-  BZ=$(  find  .  -name  bzImage  )
-
-  rm     -rf                  /boot/$BV
-  mkdir  -p                   /boot/$BV
-  cp          $BZ             /boot/$BV/linux
-  cp              System.map  /boot/$BV
-  rm     -f                   /boot/System.map
-  ln     -s   $BV/System.map  /boot/System.map
-
+ rm     -rf                  /boot/$BV
+ mkdir  -p                   /boot/$BV
+ cp          $BZ             /boot/$BV/linux
+ cp              System.map  /boot/$BV
+ rm     -f                   /boot/System.map
+ ln     -s   $BV/System.map  /boot/System.map
 }
 
-
 run_make_menuconfig()  {
-
-  wiz_kill
-
-  CONFIG_KERNEL="true"
-  while  $CONFIG_KERNEL; do
-    make  menuconfig
-    if    query  "Repeat menuconfig?" n
-    then  CONFIG_KERNEL=true
-    else  CONFIG_KERNEL=false
-    fi
-  done
+ wiz_kill
+ CONFIG_KERNEL="true"
+ while  $CONFIG_KERNEL; do
+   make  menuconfig
+   if    query  "Repeat menuconfig?" n
+   then  CONFIG_KERNEL=true
+   else  CONFIG_KERNEL=false
+   fi
+ done
 }
 
 
 symlink_headers()  {
+ case  $MACHTYPE  in
+   x86_64-pc-linux-gnu)  ASM="asm-x86_64"  ;;
+                     *)  ASM="asm-i386"    ;;
+ esac
+                                      [  -e  /usr/include/asm  ]  ||
+ ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
 
-  case  $MACHTYPE  in
-    x86_64-pc-linux-gnu)  ASM="asm-x86_64"  ;;
-                      *)  ASM="asm-i386"    ;;
-  esac
+                                      [  -e  /usr/include/asm-generic  ]  ||
+ ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
 
-                                       [  -e  /usr/include/asm  ]  ||
-  ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
-
-                                       [  -e  /usr/include/asm-generic  ]  ||
-  ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
-
-                                       [  -e  /usr/include/linux  ]  ||
-  ln  -s  /usr/src/linux/include/linux        /usr/include/linux
-
+                                      [  -e  /usr/include/linux  ]  ||
+ ln  -s  /usr/src/linux/include/linux        /usr/include/linux
 }
 
 
 restore_linux_configs()  {
+ local  CUR  OLD
+ CUR="$CONFIG_LOGS/$BSPELL/linux-config"
+ OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
 
-  CURRENT="$CONFIG_LOGS/$BSPELL/linux-config"
-      OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
-    LINUX="/usr/src/linux-$VERSION/.config"
+ symlink_headers
 
-  symlink_headers
-
-  if    [  -f   $CURRENT  ];  then  cp  $CURRENT  $LINUX
-  elif  [  -f   $OLD      ];  then  cp  $OLD      $LINUX;  run_make_menuconfig
-  else  run_make_menuconfig
-  fi
-
+ if    [  -f   $CUR  ];  then  cp  $CUR  .config
+ elif  [  -f   $OLD  ];  then  cp  $OLD  .config
+       run_make_menuconfig
+ else  run_make_menuconfig
+ fi
 }
 
 
 install_headers()  {
+ install_header_dir()  {
+  if    [   -h   /usr/include/$1  ]
+  then  rm  -f   /usr/include/$1
+  elif  [   -d   /usr/include/$1  ]
+  then  rm  -rf  /usr/include/$1
+  fi
 
-  install_header_dir()  {
-    if    [   -h   /usr/include/$1  ]
-    then  rm  -f   /usr/include/$1
-    elif  [   -d   /usr/include/$1  ]
-    then  rm  -rf  /usr/include/$1
-    fi
+  mkdir  -p   /usr/include/$1
+  cp     -R        include/$1/*   \
+              /usr/include/$1
+ }
 
-    mkdir  -p   /usr/include/$1
-    cp     -R        include/$1/*   \
-                /usr/include/$1
-  }
-
-  install_header_dir  asm
-  install_header_dir  asm-generic
-  install_header_dir  linux
-  true
-
+ install_header_dir  asm
+ install_header_dir  asm-generic
+ install_header_dir  linux
+ true
 }
-
-
-remove_extraversion()  {
-
-  sed  -i  "s:EXTRAVERSION = .*:EXTRAVERSION =:"  Makefile
-
-}
-
 
 make_modules()  {
   if    grep  -q  "CONFIG_MODULES=y"  .config
@@ -139,25 +132,31 @@ make_modules()  {
   fi
 }
 
-
 make_modules_install() {
-  if    grep  -q  "CONFIG_MODULES=y"  .config
-  then  make   modules_install
-  fi
+ if    grep  -q  "CONFIG_MODULES=y"  .config
+ then  make   modules_install
+ fi
 }
-
 
 compile_and_install()  {
-  yes  ""  |  make  oldconfig
-  store_config            &&
-  make   bzImage          &&
-  make_modules            &&
-  prepare_install         &&
-  make_modules_install    &&
-  install_kernel          &&
-  install_headers
+ yes  ""  |  make  oldconfig
+ store_config         &&
+ make   bzImage       &&
+ make_modules         &&
+ prepare_install      &&
+ make_modules_install &&
+ install_kernel       &&
+ install_headers
 }
 
+ cd  /usr/src/linux    &&
+ apply_linux_patch     &&
+ restore_linux_configs &&
+ activate_voyeur       &&
+ compile_and_install    &> $C_FIFO
+}
+
+post_install() {
 lilo_image_entry()  {
 
 cat  <<  EOF
@@ -286,37 +285,10 @@ update_yaboot()  {
 
 }
 
-
-#####################################################################3
-build() {
-
- cd  /usr/src/linux-$VERSION
- restore_linux_configs  &&
- activate_voyeur        &&
- compile_and_install    &> $C_FIFO
-}
-
-pre_build() {
- default_pre_build
- mkdir  -p  /usr/src
- cd         /usr/src
- rm     -rf            linux-$VERSION
- unpack     $SOURCE
- rm     -f                             linux
- chown  -R  root:root  linux-$VERSION
- ln     -s             linux-$VERSION  linux
- cd                    linux-$VERSION
-}
-
-post_install() {
- default_post_install
-
-
  case  $BUILD  in
   powerpc-linux-gnu)  update_yaboot  ;;
   *)  update_lilo    ;;
  esac
-
 
  RECAST=$(  show_installed  linux-26-module  )
  if    [  -n  "$RECAST"  ]
@@ -341,4 +313,3 @@ post_install() {
  fi
 
 }
-

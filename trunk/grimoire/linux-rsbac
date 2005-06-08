@@ -1,15 +1,18 @@
+inherit  linux
    VERSION=( "2.6.11" "2.6.10" "2.6.7" )
   RVERSION="v1.2.4"
   CATEGORY="kernel"
  ATTRIBUTE="core solo new"
-#            "pre/patch-$VERSION-$RVERSION.gz"
     SOURCE=( "pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
              "code/$RVERSION/rsbac-$RVERSION.tar.bz2"
              "patches/$RVERSION/patch-$VERSION-$RVERSION.gz"
              "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-1.diff"
-             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-2-2.6.diff" )
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-2-2.6.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-3-2.6.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-4.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-5.diff" )
        URL=( "$KERNEL_URL"
-             "http://www.rsbac.org/download" )
+             "http://download.rsbac.org" )
   HOMEPAGE="http://www.rsbac.org"
        REQ=( "" "module-init-tools:::for tools for modular kernel" )
   EPROVIDE="linux-kernel"
@@ -31,27 +34,13 @@ When booting with AUTH model use kernel parameter
 rsbac_auth_enable_login
 or you will not be able to login."
 
-build() {
- # prepare_install  $C_FIFO
- .  $GRIMOIRE/linux/BUILD
-}
-
-pre_build() {
- default_pre_build
- . $GRIMOIRE/linux/PRE_BUILD
-
- decompress  $(  guess_filename  ${SOURCE[2]}  )  |  patch   -p1
-
- SCX=3
+apply_linux_patch()  {
+ unpack  "${SOURCE[1]}"
+ SCX=2
  while  [  -n  "${SOURCE[$SCX]}"  ]
  do  cat  $(  guess_filename  ${SOURCE[$SCX]}  )  |  patch  -p1
   ((  SCX++  ))
  done
- sed  -i  "s:^EXTRAVERSION:# EXTRAVERSION:"  Makefile
+ # sed  -i  "s:^EXTRAVERSION:# EXTRAVERSION:"  Makefile
+ sed  -i  "s:-rsbac::"  Makefile
 }
-
-post_install() {
- default_post_install
- .  $GRIMOIRE/linux/POST_INSTALL
-}
-
