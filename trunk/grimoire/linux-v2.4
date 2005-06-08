@@ -10,15 +10,25 @@
   ESTIMATE="4073"
       DESC="linux-v2.4 provides old 2.4.x stable kernels."
    
+pre_build() {
+ mkdir  -p  /var/src
+ cd         /var/src
+ rm     -rf            linux-$VERSION
+ unpack     $SOURCE
+ chown  -R  root:root  linux-$VERSION
+ rm     -f                                      /usr/src/linux
+ ln     -s             /var/src/linux-$VERSION  /usr/src/linux
+}
+
+apply_linux_patch() { :; }
+
 build() {
  backup_modules()  {
-
   if    [  -d  /lib/modules/$VERSION      ];  then
-   rm   -rf   /lib/modules/$VERSION.old
-   mv         /lib/modules/$VERSION      \
-   /lib/modules/$VERSION.old
+   rm     -rf  /lib/modules/$VERSION.old
+   mv          /lib/modules/$VERSION      \
+               /lib/modules/$VERSION.old
   fi
-
  }
 
 
@@ -26,7 +36,6 @@ build() {
 
 
  install_kernel()  {
-
   SM="System.map"
   BV="${VERSION}"
   BZ=$(  find  .  -name  bzImage  )
@@ -37,14 +46,11 @@ build() {
   cp              System.map  /boot/$BV
   rm     -f                   /boot/System.map
   ln     -s   $BV/System.map  /boot/System.map
-
  }
 
 
  run_make_menuconfig()  {
-
   wiz_kill
-
   CONFIG_KERNEL="true"
   while  $CONFIG_KERNEL; do
    make  menuconfig
@@ -57,21 +63,16 @@ build() {
 
 
  symlink_headers()  {
-
-  [  -e  /usr/include/asm  ]  ||
+                                       [  -e  /usr/include/asm          ]  ||
   ln  -s  /usr/src/linux/include/asm-i386     /usr/include/asm
-
-  [  -e  /usr/include/asm-generic  ]  ||
+                                       [  -e  /usr/include/asm-generic  ]  ||
   ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
-
-  [  -e  /usr/include/linux  ]  ||
+                                       [  -e  /usr/include/linux        ]  ||
   ln  -s  /usr/src/linux/include/linux        /usr/include/linux
-
  }
 
 
  restore_linux_configs()  {
-
   CURRENT="$CONFIG_LOGS/$BSPELL/linux-config"
   OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
   LINUX="/usr/src/linux-$VERSION/.config"
@@ -82,12 +83,10 @@ build() {
   elif  [  -f   $OLD      ];  then  cp  $OLD      $LINUX;  run_make_menuconfig
   else  run_make_menuconfig
   fi
-
  }
 
 
  install_headers()  {
-
   install_header_dir()  {
    if    [   -h   /usr/include/$1  ]
    then  rm  -f   /usr/include/$1
@@ -104,16 +103,7 @@ build() {
   install_header_dir  asm-generic
   install_header_dir  linux
   true
-
  }
-
-
- remove_extraversion()  {
-
-  sed  -i  "s:EXTRAVERSION = .*:EXTRAVERSION =:"  Makefile
-
- }
-
 
  compile_and_install()  {
   yes  ""  |  make  oldconfig
@@ -128,23 +118,11 @@ build() {
   install_headers
  }
 
-
- cd  /usr/src/linux-$VERSION
+ cd  /usr/src/linux     &&
+ apply_linux_patch      &&
  restore_linux_configs  &&
  activate_voyeur        &&
  compile_and_install    &> $C_FIFO
-}
-
-pre_build() {
- default_pre_build
- mkdir  -p  /usr/src
- cd         /usr/src
- rm     -rf            linux-$VERSION
- unpack     $SOURCE
- rm     -f                             linux
- chown  -R  root:root  linux-$VERSION
- ln     -s             linux-$VERSION  linux
- cd                    linux-$VERSION
 }
 
 post_install() {
