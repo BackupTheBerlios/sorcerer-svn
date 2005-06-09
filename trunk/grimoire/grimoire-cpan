@@ -10,13 +10,13 @@ disable scavenge
   HOMEPAGE="http://sorcerer.wox.org/grimoire"
   ESTIMATE="5"
       DESC="grimoire-cpan generates a catalog for CPAN hosted perl modules.
-grimoire-cpan is an experiment to provide a grimoire
-of the perl modules available from the
-Comprehensive Perl Archive Network.
+grimoire-cpan is an experiment to provide
+a grimoire of the perl modules available
+from the Comprehensive Perl Archive Network.
 
 This is one massive grimoire.
 Therefore, increase the tmpfs size of /var/state/sorcery 
-to 512M and increase innodes to use this grimoire
+to 256M and increase innodes to use this grimoire
 Otherwise the index generation will be incomplete.
 
 Since this is an experiment grimoire-cpan could dissapear tomrrow.
@@ -25,6 +25,7 @@ They might not compile without custom BUILD scripts.
 And lastly no xdelta upgrade patches are provided
 for spells cast from grimoire-cpan."
 
+build()  {
 
 reorder_data()  {
   while  read  N  D;  do
@@ -35,7 +36,6 @@ reorder_data()  {
     fi
   done
 }
-
 
 write_categories()  {
   local     CAT  BAT
@@ -113,12 +113,10 @@ gather_data()  {
   rename_conflicts
 }
 
-
-build()  {
-  gather_data                             &&
-  prepare_install                         &&
-  mkdir      -p  $GRIMOIRE_LIBRARY        &&
-  find       .   -type f  -printf "%P\n"  |
-  grep       -v  "\.ccache/reference"     |
+  gather_data                                  &&
+  prepare_install                              &&
+  mkdir      -p  $GRIMOIRE_LIBRARY             &&
+  find       .   -type f  -printf "%P\n"       |
+  grep       -v  "\.ccache/reference\|\.log$"  |
   tar_files  >   $GRIMOIRE_LIBRARY/$SPELL.tar
 }
