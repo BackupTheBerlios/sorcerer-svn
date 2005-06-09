@@ -1,28 +1,27 @@
 #!/bin/bash
 
-PFILE="/var/run/xinetd.pid"
+. /lib/lsb/init-functions
 
+PIDF="/var/run/xinetd.pid"
+SERV="/usr/sbin/xinetd"
 
 start()  {
-  echo  -n  "Starting xinetd..."
-  /usr/sbin/xinetd -reuse  -pidfile  $PFILE
-  echo  "done."
+  log_warning_msg  "xinetd about to start"
+  start_daemon     -p $PIDF $SERV -reuse -pidfile $PIDF  &&
+  log_success_msg  "xinetd started"                      ||
+  log_failure_msg  "xinetd not started; maybe already running"
 }
-
 
 stop()  {
-  echo  -n  "Stopping xinetd..."
-  [     -f        $PFILE  ]  &&
-  kill  -15  $(<  $PFILE  )
-  rm    -f        $PFILE
-  echo  "done."
+  log_warning_msg "xinetd about to stop"
+  killproc        -p $PIDF -s 15  $SERV  &&
+  log_success_msg "xinetd stopped"       ||
+  log_failure_msg "xinetd was not running"
 }
-
 
 help()  {
   echo   "Usage: $0 {start|stop|restart}"
 }
-
 
 case  $1  in
     start)                       start  ;;
