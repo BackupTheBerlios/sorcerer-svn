@@ -1,0 +1,65 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: postfix
+# Required-Start: $local_fs $network $remote_fs
+# Required-Stop: $local_fs $network $remote_fs
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: postfix is a MTA
+# Description: postfix is a mail transport agent
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV="/usr/sbin/postfix"
+NAME="postfix"
+
+status()  {
+  PIDS="$( pidofproc $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  if    newaliases  &&
+        start_daemon      $SERV
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  if    killproc         -s 15  $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|force-reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac

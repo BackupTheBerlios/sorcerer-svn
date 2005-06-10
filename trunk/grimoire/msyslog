@@ -9,31 +9,20 @@
   EPROVIDE="system-logger"
   ESTIMATE="29"
       DESC="msyslog allows for an easy implementation of input and output modules.
-
-The modules that mantain compatibility with its precursor are 
+The modules that mantain compatibility with its precursor are
 included in the standard distribution along with four modules:
-om_peo (an implementation of PEO-1 and L-PEO, two algorithmic 
-protocols for integrity checking), om_mysql and om_pgsql 
-(modules that sends output to a mysql and postgresql database, 
-respectively) and om_regex (a module that allows output 
+om_peo (an implementation of PEO-1 and L-PEO, two algorithmic
+protocols for integrity checking), om_mysql and om_pgsql
+(modules that sends output to a mysql and postgresql database,
+respectively) and om_regex (a module that allows output
 redirection using regular expressions).
-It is a near drop in replacement for sysklog, sysklogd or syslog.
-"
+It is a near drop in replacement for sysklog, sysklogd or syslog."
 
-install_init()  {
-  cp    $SCRIPT_DIR/msyslog.sh  /etc/init.d
-  ln  -sf ../init.d/msyslog.sh  /etc/rcS.d/S20msyslog
-  ln  -sf ../init.d/msyslog.sh  /etc/rc0.d/K70msyslog
-  ln  -sf ../init.d/msyslog.sh  /etc/rc6.d/K70msyslog
-}
-
-
+build() {
 install_etc()  {
-
-  cp   $SCRIPT_DIR/syslog.conf    /etc
-
-  mkdir  -p  /etc/syslog.conf.examples
-
+  install -m 0755  $SCRIPT_DIR/msyslog      /etc/init.d
+  install -m 0644  $SCRIPT_DIR/syslog.conf  /etc
+  mkdir   -p             /etc/syslog.conf.examples
   for  FILE  in  src/examples/syslog.conf.*
   do   install  -m 0444  -o root  -g root  \
                 $FILE  /etc/syslog.conf.examples
@@ -41,10 +30,6 @@ install_etc()  {
 
 }
 
-###########################################################
-
-
-build() {
  case  $(  arch  )  in
   x86_64)
 	export CFLAGS="$CFLAGS -fPIC"
@@ -57,17 +42,17 @@ build() {
  esac
 
  default_build  &&
- install_init   &&
  install_etc
 }
 
 post_install() {
- default_post_install
- /etc/init.d/msyslog.sh  start
+  /lib/lsb/install_initd /etc/init.d/msyslog
+  /etc/init.d/msyslog start
+  true
 }
 
 pre_remove() {
- default_pre_remove
- /etc/init.d/msyslog.sh  stop
+  /lib/lsb/remove_initd /etc/init.d/msyslog
+  /etc/init.d/msyslog stop
+  true
 }
-
