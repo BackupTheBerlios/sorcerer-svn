@@ -17,26 +17,38 @@
 PIDF="/var/run/xinetd.pid"
 SERV="/usr/sbin/xinetd"
 
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "xinetd is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "xinetd is dead and $PIDF exists"; return 1
+                       else log_warning_msg "xinetd is not running"; return 3
+  fi
+}
+
 start()  {
   log_warning_msg  "xinetd about to start"
-  start_daemon     -p $PIDF $SERV -reuse -pidfile $PIDF  &&
-  log_success_msg  "xinetd started"                      ||
-  log_failure_msg  "xinetd not started; maybe already running"
+  if    start_daemon     -p $PIDF $SERV -reuse -pidfile $PIDF
+  then  log_success_msg  "xinetd started"
+  else  log_failure_msg  "xinetd not started"
+        status
+  fi
 }
 
 stop()  {
   log_warning_msg "xinetd about to stop"
-  killproc        -p $PIDF -s 15  $SERV  &&
-  log_success_msg "xinetd stopped"       ||
-  log_failure_msg "xinetd was not running"
+  if    killproc        -p $PIDF -s 15  $SERV
+  then  log_success_msg "xinetd stopped"
+  else  log_failure_msg "xinetd not stopped"
+        status
+        return 0
+  fi
 }
 
 restart() {  stop  &&  sleep  1;  start;  }
 
 try_restart() {
-  pidofproc -p $PIDF $SERV  >/dev/null  &&
-  restart                               ||
-  log_failure_msg  "xinetd was not running"
+  status  &&  restart
+  return 0
 }
 
 reload()  {
@@ -44,14 +56,6 @@ reload()  {
   if    [ -n            "$PIDS" ]
   then  kill  -s SIGHUP  $PIDS  &&
         log_success_msg "xinetd configuration reloaded"
-  fi
-}
-
-status()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if    [  -n  "$PIDS"  ];  then  log_success_msg "xinetd is running"; exit 0
-  elif  [  -f  "$PIDF"  ];  then  log_success_msg "xinetd is dead and $PIDF exists"; exit 1
-                            else  log_success_msg "xinetd is not running"; exit 3
   fi
 }
 
