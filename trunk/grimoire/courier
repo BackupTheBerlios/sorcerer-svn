@@ -4,6 +4,8 @@
  ATTRIBUTE="client console server"
     SOURCE="courier/courier-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
+# May require client daemon support pop3 pop3s imap imaps, etc...
+# added to courier.d/courier it's startup script.
        REQ=( "autoconf automake courier-authlib db docbook-dtd gettext openjade perl"
              "ispell::--without-ispell:for spell checking"
              "openldap:::for ldap address book"
@@ -22,115 +24,55 @@ Individual components can be enabled or disabled at will.
 Courier implements basic Web-based calendaring and scheduling
 services integrated in the Webmail module."
 
-configure() {
- cfg_item()  {
-
-  if  !  grep  -q  "$1"  $SPELL_CONFIG
-  then
-   if    query  "$2"  n
-   then  echo   "$1=true"   >>  $SPELL_CONFIG
-   else  echo   "$1=false"  >>  $SPELL_CONFIG
-   fi
-  fi
-
- }
-
- cfg_item  IMAP_BOOT   "Invoke imapd during boot?"
- cfg_item  POP3_BOOT   "Invoke pop3d during boot?"
- cfg_item  IMAPS_BOOT  "Invoke secure imapd during boot?"
- cfg_item  POP3S_BOOT  "Invoke secure pop3d during boot?"
-}
-
 build() {
- install_init()  {
-  clns()  {
-   ln  -sf  $1/$2  /etc/rc0.d/K10$2
-   ln  -sf  $1/$2  /etc/rc1.d/K10$2
-   ln  -sf  $1/$2  /etc/rc2.d/K10$2
-   ln  -sf  $1/$2  /etc/rc6.d/K10$2
+   sed  -i  's:rootcheck="$withval":rootcheck="$enableval":'  configure
 
-   ln  -sf  $1/$2  /etc/rc3.d/S90$2
-   ln  -sf  $1/$2  /etc/rc4.d/S90$2
-   ln  -sf  $1/$2  /etc/rc5.d/S90$2
-  }
-
-  cp    $SCRIPT_DIR/courier.sh  /etc/init.d
-  clns  /etc/init.d courier.sh
-
-  if    $IMAP_BOOT;   then  clns  /usr/sbin  imapd;      fi
-  if    $IMAPS_BOOT;  then  clns  /usr/sbin  imapd-ssl;  fi
-  if    $POP3_BOOT;   then  clns  /usr/sbin  pop3d;      fi
-  if    $POP3S_BOOT;  then  clns  /usr/sbin  pop3d-ssl;  fi
-
- }
-
- sed  -i  's:rootcheck="$withval":rootcheck="$enableval":'  configure
-
- ./configure  --prefix=/usr                       \
-        --localstatedir=/var/state/courier  \
-        --sysconfdir=/etc/courier           \
-        --disable-root-check                \
-        $OPTS                               &&
- make                                             &&
- prepare_install                                  &&
- make    install                                  &&
- make    install-configure                        &&
-     install_init
+   ./configure                         \
+   --prefix=/usr                       \
+   --localstatedir=/var/state/courier  \
+   --sysconfdir=/etc/courier           \
+   --disable-root-check                \
+   $OPTS                               &&
+  make                                 &&
+  prepare_install                      &&
+  make    install                      &&
+  make    install-configure            &&
+  install  -m 0755  $SCRIPT_DIR/courier  /etc/init.d
 }
 
 post_install() {
- default_post_install
- makealiases
- makesmtpaccess
- makesmtpaccess-msa
+  makealiases
+  makesmtpaccess
+  makesmtpaccess-msa
 
- if     !  [  -d     /etc/skel/Maildir  ]
- then   maildirmake  /etc/skel/Maildir
- fi
-
- (
- cd  /home  &&
- for  WHO  in  *;  do
-  if    !  [   -d        $WHO/Maildir  ]
-  then  maildirmake      $WHO/Maildir
-   chown  -R  $WHO  $WHO/Maildir
+  if     !  [  -d     /etc/skel/Maildir  ]
+  then   maildirmake  /etc/skel/Maildir
   fi
- done
- )
 
- if    !  [  -f           /etc/courier/hosteddomains  ]
- then  cp  /etc/hostname  /etc/courier/hosteddomains
-  makehosteddomains
- fi
+ ( cd  /home  &&
+   for  WHO  in  *;  do
+     if    !  [   -d        $WHO/Maildir  ]
+     then  maildirmake      $WHO/Maildir
+           chown  -R  $WHO  $WHO/Maildir
+     fi
+   done )
 
- if  [  -x  /usr/bin/openssl  ];  then
-  if  !  [  -f  /usr/share/esmtpd.pem  ];  then  mkesmtpdcert;  fi
-  if  !  [  -f  /usr/share/pop3d.pem   ];  then  mkpop3dcert;   fi
-  if  !  [  -f  /usr/share/imapd.pem   ];  then  mkimapdcert;   fi
- fi
+  if    !  [  -f       /etc/courier/hosteddomains  ];  then
+    cp  /etc/hostname  /etc/courier/hosteddomains
+                                makehosteddomains
+  fi
 
- RUNLEVEL=$(  runlevel  |  cut  -d ' ' -f2  )
- RLS="/etc/rc$RUNLEVEL.d/S90"
+  if  [  -x  /usr/bin/openssl  ];  then
+    if  !  [  -f  /usr/share/esmtpd.pem  ];  then  mkesmtpdcert;  fi
+    if  !  [  -f  /usr/share/pop3d.pem   ];  then  mkpop3dcert;   fi
+    if  !  [  -f  /usr/share/imapd.pem   ];  then  mkimapdcert;   fi
+  fi
 
- /etc/init.d/courier.sh  start
-
- if    [  -x  ${RLS}imapd      ];  then  ${RLS}imapd      start;  fi
- if    [  -x  ${RLS}imapd-ssl  ];  then  ${RLS}imapd-ssl  start;  fi
- if    [  -x  ${RLS}pop3d      ];  then  ${RLS}pop3d      start;  fi
- if    [  -x  ${RLS}pop3d-ssl  ];  then  ${RLS}pop3d-ssl  start;  fi
+  /lib/lsb/install_initd /etc/init.d/courier
+  /etc/init.d/courier  start
 }
 
 pre_remove() {
- default_pre_remove
- RLS="/etc/rc0.d/K10"
-
- if    [  -x  ${RLS}imapd      ];  then  ${RLS}imapd      stop;  fi
- if    [  -x  ${RLS}imapd-ssl  ];  then  ${RLS}imapd-ssl  stop;  fi
- if    [  -x  ${RLS}pop3d      ];  then  ${RLS}pop3d      stop;  fi
- if    [  -x  ${RLS}pop3d-ssl  ];  then  ${RLS}pop3d-ssl  stop;  fi
-
- if    [  -x  /etc/init.d/courier.sh  ]
- then  /etc/init.d/courier.sh  stop
- fi
+  /etc/init.d/courier  stop
+  /lib/lsb/remove_initd /etc/init.d/courier
 }
-
