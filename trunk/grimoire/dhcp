@@ -1,7 +1,7 @@
    VERSION=( "3.0.3b3" "3.0.3b2" "3.0.3b1" "3.0.2" "3.0.2rc2" "3.0.1" "3.0pl2" "3.0pl1" )
     IGNORE="rc"
   CATEGORY="network"
- ATTRIBUTE="console client server"
+ ATTRIBUTE="console client server old_init"
     SOURCE="dhcp-$VERSION.tar.gz"
 case  $VERSION  in
   3.0.2)  SOURCE[1]="dhcp-3.0.1-fix_gcc_3.4.3_compile_error-1.patch"
@@ -18,29 +18,19 @@ DHCP is a protocol for automatically configuring nodes on an IP network.
 The ISC DHCP server and client are well known for being extremely
 configurable, reasonably easy to use, and quite efficient."
 
-
-
 build() {
- install_inits()  {
-  [  -f  /etc/init.d/dhcpd.sh  ]  ||
-  cp     $SCRIPT_DIR/dhcpd.sh  /etc/init.d
+  install_inits()  {
+    install -m 0755 $SCRIPT_DIR/dhcpd     /etc/init.d
+    install -m 0755 $SCRIPT_DIR/dhclient  /etc/init.d
+  }
 
-  [  -f  /etc/init.d/dhclient.sh  ]  ||
-  cp     $SCRIPT_DIR/dhclient.sh  /etc/init.d
+  case  $VERSION  in
+    3.0.2)  patch  -p1  <  ${SOURCE_CACHE}/dhcp/3.0.2/${SOURCE[1]}  ;;
+  esac
 
-  true
- }
-
-
- case  $VERSION  in
-  3.0.2)  patch  -p1  <  ${SOURCE_CACHE}/dhcp/3.0.2/${SOURCE[1]}  ;;
- esac
-
-
- sed  -i  "s/\/local//"  Makefile.conf
- ./configure      &&
- make             &&
- prepare_install  &&
- make    install  &&
- install_inits
+  sed  -i  "s/\/local//"  Makefile.conf
+  ./configure      &&
+  make             &&
+  prepare_install  &&
+  make    install
 }
