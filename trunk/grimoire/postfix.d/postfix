@@ -26,7 +26,7 @@ status()  {
 start()  {
   log_warning_msg  "$NAME about to start"
   if    newaliases  &&
-        start_daemon      $SERV
+        start_daemon      $SERV start
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
@@ -35,12 +35,14 @@ start()  {
 
 stop()  {
   log_warning_msg "$NAME about to stop"
-  if    killproc         -s 15  $SERV
-  then  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
+  $SERV stop
+  log_success_msg "$NAME stopped"
+#  if    killproc         -s 15  $SERV
+#  then  log_success_msg "$NAME stopped"
+#  else  log_failure_msg "$NAME not stopped"
+#        status
+#        return 0
+#  fi
 }
 
 restart() {  stop  &&  sleep  1;  start;  }

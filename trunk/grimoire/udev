@@ -10,37 +10,29 @@
   ESTIMATE="47"
       DESC="udev provides an auto-populating /dev.
 
-Add custom permissions for udev nodes to the file:
-/etc/udev/permissions.d/1st.permissions
-
 Add custom rules for udev nodes to the file:
-/etc/udev/permissions.d/1st.rules
+/etc/udev/rules.d/1st.rules
 
 Some rules I use for 1st.rules are:
-KERNEL=\"adsp\",		NAME=\"sound/%k\",	SYMLINK=\"dsp\"
-KERNEL=\"dsp\",		NAME=\"sound/%k\",	SYMLINK=\"dsp0\"
-KERNEL=\"psaux\",		NAME=\"misc/%k\",		SYMLINK=\"%k mouse\"
-KERNEL=\"sr0\",		NAME=\"%k\",		SYMLINK=\"cdrom\"
-KERNEL=\"video[0-9]*\",	NAME=\"v4l/video%n\",	SYMLINK=\"%k\""
+KERNEL=\"adsp\",  NAME=\"sound/%k\",  SYMLINK=\"dsp\",  GROUP=\"audio\"
+KERNEL=\"dsp\",	  NAME=\"sound/%k\",  SYMLINK=\"dsp0\", GROUP=\"audio\"
+KERNEL=\"psaux\", NAME=\"misc/%k\",   SYMLINK=\"%k mouse\""
 
 build() {
-
 init_install()  {
-  install  -m 0744  $SCRIPT_DIR/udev              /etc/init.d
-  install  -m 0744  extras/start_udev             /etc/init.d
-  ln       -fs      ../init.d/udev                /etc/rcS.d/S00udev
+  install  -m 0744  $SCRIPT_DIR/udev         /etc/init.d
+  install  -m 0744  extras/start_udev        /etc/init.d
+  ln       -fs      ../init.d/udev           /etc/rcS.d/S00udev
 
-  mkdir  -p                                           /etc/udev/examples
-  cp     -a   etc/udev/*                              /etc/udev/examples
-  ln     -sf  ../examples/slackware/udev.permissions  /etc/udev/permissions.d
-  ln     -sf  ../examples/gentoo/udev.rules           /etc/udev/rules.d
+  mkdir  -p                                  /etc/udev/examples
+  cp     -a   etc/udev/*                     /etc/udev/examples
+  ln     -sf  ../examples/gentoo/udev.rules  /etc/udev/rules.d
 
-  mkdir  -p                                           /etc/udev/scripts
+  mkdir  -p                                  /etc/udev/scripts
   for  FILE in extras/*.sh
-  do  install -m 0755 $FILE                           /etc/udev/scripts
+  do  install -m 0755 $FILE                  /etc/udev/scripts
   done
 }
-
 
 linux_sufficient()  {
   KVER="$(  installed_version  $(  get_provider  linux-kernel  )  )"
