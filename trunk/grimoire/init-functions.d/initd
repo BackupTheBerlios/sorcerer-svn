@@ -1,0 +1,178 @@
+#!/bin/bash
+# LSB-compliant install_initd and remove_initd script
+# for use with the distribution sorcerer only!
+# Copyright Kyle Sallee 2005.  All rights reserved.
+
+INIT_DIR=/etc/rc.d
+INIT_NEW=/etc/rc.d.new
+INIT_OLD=/etc/rc.d.old
+
+req_start()  {
+  grep      "#"  /etc/init.d/$1                 |
+  grep  -i  "Required-Start: \|Should-Start: "  |
+  cut   -d ':'  -f2                             |
+  tr    -d '$'
+}
+
+req_this()  {
+  while [ -n "$1"  ];  do
+    grep  -r "$1"  /etc/init.d              |
+    grep  "#"                               |
+    grep  "Required-Stop: \|Should-Stop: "  |
+    cut   -d ':'  -f1                       |
+    sed      "s:.*[/]::"
+    shift 1
+  done
+}
+
+def_start()  {
+  grep      "#"  /etc/init.d/$1  |
+  grep  -i  "Default-Start: "    |
+  cut   -d ':'  -f2
+}
+
+def_stop()  {
+  grep      "#"  /etc/init.d/$1  |
+  grep  -i  "Default-Stop: "     |
+  cut   -d ':'  -f2
+}
+
+get_provides()  {
+  grep  -r  "#"  /etc/init.d  |
+  grep  -i  "Provides: "      |
+  grep  -i  "$1"              |
+  cut   -d  ':'  -f1          |
+  tr    -d  '$'               |
+  sed       "s:.*[/]::"
+}
+
+this_provides()  {
+  grep  -r  "# " /etc/init.d/$1  |
+  grep  -i  "Provides: "         |
+  cut   -d  ':'  -f2             |
+  tr    -d  '$'
+}
+
+make_slinks() {
+  ( grep  -r  "#"  /etc/init.d                  |
+    grep  -i  "Provides: "                      |
+    cut   -d ':'  --output-delimiter=' ' -f1,3  |
+    sed      "s:.*[/]::"                        |
+    while  read  WHAT  PROS;  do
+      for  PRO  in  $PROS
+      do  echo  "$WHAT $PRO"
+      done
+    done
+    grep   -r "#" /etc/init.d                    |
+    grep   -i "Required-Start: \|Should-Start: " |
+    cut    -d ':'  --output-delimiter=' ' -f1,3  |
+    sed       "s:.*[/]::"                        |
+    while  read  WHAT  REQS;  do
+      for  REQ  in  $REQS
+      do   echo  "$REQ $WHAT"
+      done
+    done
+  ) |
+  tr     -d '$'  |
+  tsort          |
+
+  while  read  SCRIPT;  do
+    if  [  -x     /etc/init.d/$SCRIPT  ];  then
+      REQ_START="$( req_start $SCRIPT )"
+      DEF_START="$( def_start $SCRIPT )"
+      for LEVEL in  $DEF_START;  do
+        RANK=0
+        for  REQ  in  $REQ_START;  do
+          PRO="$(  get_provides  "$REQ"  )"
+          for  SYML in $INIT_NEW/rc$LEVEL.d/S?$PRO; do
+            if    [  -h  "$SYML"  ]
+            then     NRANK="${SYML##*/}"
+                     NRANK="${NRANK:1:1}"
+                  (( NRANK++ ))
+              if  (( NRANK > RANK ));  then  RANK=$NRANK;  fi
+            fi
+          done
+        done
+        ln  -s  /etc/init.d/$SCRIPT  $INIT_NEW/rc$LEVEL.d/S${RANK}${SCRIPT}
+      done
+    fi
+  done
+}
+
+make_klinks() {
+  ( grep  -r  "#"  /etc/init.d                  |
+    grep  -i  "Provides: "                      |
+    cut   -d ':'  --output-delimiter=' ' -f1,3  |
+    sed      "s:.*[/]::"                        |
+    while  read  WHAT  PROS;  do
+      for  PRO  in  $PROS
+      do  echo  "$PRO $WHAT"
+      done
+    done
+    grep   -r "#" /etc/init.d                    |
+    grep   -i "Required-Stop: \|Should-Stop: "   |
+    cut    -d ':'  --output-delimiter=' ' -f1,3  |
+    sed       "s:.*[/]::"                        |
+    while  read  WHAT  REQS;  do
+      for  REQ  in  $REQS
+      do   echo  "$WHAT $REQ"
+      done
+    done
+  ) |
+  tr     -d '$'  |
+  tsort          |
+
+  while  read  SCRIPT;  do
+    if  [  -x    /etc/init.d/$SCRIPT  ];  then
+      REQ_THIS="$( req_this  $SCRIPT $( this_provides $SCRIPT ) )"
+      DEF_STOP="$( def_stop  $SCRIPT )"
+      for LEVEL in  $DEF_STOP;  do
+        RANK=0
+        for  REQ  in  $REQ_THIS;  do
+          for  SYML in $INIT_NEW/rc$LEVEL.d/K?$REQ; do
+            if    [  -h  "$SYML"  ]
+            then     NRANK="${SYML##*/}"
+                     NRANK="${NRANK:1:1}"
+                  (( NRANK++ ))
+              if  (( NRANK > RANK ));  then  RANK=$NRANK;  fi
+            fi
+          done
+        done
+        ln  -s  /etc/init.d/$SCRIPT  $INIT_NEW/rc$LEVEL.d/K${RANK}${SCRIPT}
+      done
+    fi
+  done
+}
+
+make_links() {
+  [   -h       INIT_DIR ]  &&
+  rm  -f      $INIT_DIR
+  mkdir  -p   $INIT_DIR  $INIT_NEW
+  rm     -rf             $INIT_NEW
+  mkdir  -p              $INIT_NEW/rc{0..6}.d
+  make_slinks
+  make_klinks
+  rm     -rf                $INIT_OLD
+  mv             $INIT_DIR  $INIT_OLD
+  mv  $INIT_NEW  $INIT_DIR
+}
+
+remove_initd()  {
+  echo  "removing $1"
+  chmod a-x  "$1"
+  make_links
+}
+
+install_initd() {
+  echo "installing $1"
+  chmod  a+x  "$1"
+  make_links
+}
+
+if      [  -f  "$1"  ];  then
+  if    [  "${0##*/}"  ==  "install_initd"  ];  then  install_initd  "$1"
+  elif  [  "${0##*/}"  ==  "remove_initd"   ];  then   remove_initd  "$1"
+                                                else  false
+  fi
+else  false
+fi

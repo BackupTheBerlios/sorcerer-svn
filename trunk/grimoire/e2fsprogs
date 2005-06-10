@@ -5,7 +5,7 @@
     SOURCE="e2fsprogs/e2fsprogs-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://e2fsprogs.sourceforge.net"
-       REQ="gawk"
+       REQ="gawk init-functions"
   ESTIMATE="374"
       DESC="e2fsprogs contains the required utilities for the EXT2 file system.
 e2fsprogs - The EXT2 file system utilities and libraries.
@@ -24,21 +24,18 @@ build() {
   mkdir  -p                      /usr/include/uuid
   cp         lib/uuid/uuid.h     /usr/include/uuid
 
-  [  -e                          /etc/init.d/mount.sh  ]  ||
-  cp       $SCRIPT_DIR/mount.sh  /etc/init.d
+  [  -e                          /etc/init.d/mount  ]  ||
+  cp       $SCRIPT_DIR/mount     /etc/init.d
 
-  ln  -sf  /etc/init.d/mount.sh  /etc/rcS.d/S10mount
-  ln  -sf  /etc/init.d/mount.sh  /etc/rc0.d/K90mount
-  ln  -sf  /etc/init.d/mount.sh  /etc/rc6.d/K90mount
-
+  ln  -sf  /etc/init.d/mount     /etc/rcS.d/S10mount
+  ln  -sf  /etc/init.d/mount     /etc/rc0.d/K90mount
+  ln  -sf  /etc/init.d/mount     /etc/rc6.d/K90mount
  }
-
 
  grep  -rl  "#include <linux/fd.h>"  *  |
  while  read
  do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
  done
-
 
  ./configure  --host=$BUILD        \
               --prefix=/usr        \
@@ -51,3 +48,7 @@ build() {
  install_init
 }
 
+post_install() {
+  /lib/lsb/install_initd /etc/init.d/mount
+  true
+}

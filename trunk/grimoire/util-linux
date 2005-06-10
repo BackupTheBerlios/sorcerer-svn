@@ -40,5 +40,14 @@ build()  {
   sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
             s:\$(OPT)::
             s:_WRITE=no:_WRITE=yes:"  MCONFIG
-  default_build
+  default_build  &&
+  install  -m 0755  $SCRIPT_DIR/swap  /etc/init.d  &&
+  ln  -sf  /etc/init.d/swap     /etc/rcS.d/S10swap &&
+  ln  -sf  /etc/init.d/swap     /etc/rc0.d/K90swap &&
+  ln  -sf  /etc/init.d/swap     /etc/rc6.d/K90swap &&
+}
+
+post_install() {
+  /lib/lsb/install_initd /etc/init.d/swap
+  true
 }

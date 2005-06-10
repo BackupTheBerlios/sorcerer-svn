@@ -27,7 +27,7 @@ IPv6 with access control is also supported."
 
 build() {
  install_init()  {
-  cp     $SCRIPT_DIR/xinetd  /etc/init.d
+  install -m 0755 $SCRIPT_DIR/xinetd /etc/init.d
 
   ln  -sf  ../init.d/xinetd  /etc/rc0.d/K60xinetd
   ln  -sf  ../init.d/xinetd  /etc/rc1.d/K60xinetd
@@ -52,5 +52,14 @@ build() {
  install_conf
 }
 
-post_install() { /etc/init.d/xinetd  start; true; }
-pre_remove()   { /etc/init.d/xinetd  stop; }
+post_install() {
+  /lib/lsb/install_initd /etc/init.d/xinetd
+  /etc/init.d/xinetd  start
+  true
+}
+
+pre_remove()   {
+  /lib/lsb/remove_initd /etc/init.d/xinetd
+  /etc/init.d/xinetd  stop
+  true
+}
