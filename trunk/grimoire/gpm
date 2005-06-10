@@ -9,32 +9,10 @@
        REQ="ncurses"
   ESTIMATE="106"
       DESC="GPM is a mouse server for the console
-GPM (General Purpose Mouse) is a mouse server for the console
----
-Edit /etc/init.d/gpm.sh to match your system setup."
+Manually add a line into /etc/bootmisc to start gpm"
 
 build() {
- sed  -i  "s:doc contrib:contrib:"      Makefile.in
- sed  -i  "40iLIBS  = -lm"          src/Makefile.in
-
- ./configure   --prefix=/usr         \
-        --sysconfdir=/etc     \
-        --localstatedir=/var  &&
- make             &&
- prepare_install  &&
- make    install  &&
-
- if    [  !  -f                /etc/init.d/gpm.sh  ]
- then  cp  $SCRIPT_DIR/gpm.sh  /etc/init.d                  
- fi
+  sed  -i  "s:doc contrib:contrib:"      Makefile.in
+  sed  -i  "40iLIBS  = -lm"          src/Makefile.in
+  default_build
 }
-
-pre_remove() {
- default_pre_remove
- PID="/var/run/gpm.pid"
-
- if  [  -f  ${PID}  ];  then 
-  /etc/init.d/gpm.sh  stop
- fi
-}
-
