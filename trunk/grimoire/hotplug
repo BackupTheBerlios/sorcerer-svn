@@ -4,20 +4,34 @@
  ATTRIBUTE="core console"
     SOURCE="pub/linux/utils/kernel/hotplug/hotplug-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
-#   SOURCE="linux-hotplug/hotplug-$VERSION.tar.gz"
-#      URL="$SOURCEFORGE_URL"
+       REQ="init-functions"
   HOMEPAGE="http://linux-hotplug.sourceforge.net"
   ESTIMATE="5"
       DESC="hotplug lets you plug in new devices and use them immediately."
-
 
 build() {
    TH="touch /var/lock/subsys/hotplug"
 MKDIR="s:$TH:mkdir -p /var/lock/subsys; $TH:"
 
-sed  -i  "$MKDIR"  etc/rc.d/init.d/hotplug
+sed  -i  "$MKDIR
+2i### BEGIN INIT INFO
+2i# Provides: hotplug
+2i# Required-Start: \$local_fs
+2i# Required-Stop:  \$local_fs
+2i# Default-Start: 1 2 3 4 5
+2i# Default-Stop: 0 6
+2i# Short-Description: hotplug loads modules for new devices 
+2i# Description: hotplug creates devices nodes and loads 
+2i#	kernel drivers for new devices immediately
+2i### END INIT INFO"  \
+etc/rc.d/init.d/hotplug
 
 prepare_install  &&
 make    install  &&
 ln     -sf  ../init.d/hotplug  /etc/rcS.d/S99hotplug
+}
+
+post_install() {
+  /lib/lsb/install_initd /etc/init.d/hotplug
+  true
 }

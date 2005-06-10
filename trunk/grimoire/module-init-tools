@@ -14,49 +14,43 @@
   EPROVIDE="linux-module-tools"
 #FRESHMEAT="module-init-tools"
   ESTIMATE="180"
-      DESC="module-init-tools provides modules utilities for linux 2.6.x
-module-init-tools provides utilities for 
-loading and unloading modules on linux 2.6.x
-If running for the first time, 
-you might want to convert your old
-modules.conf to modprobe.conf:
-generate-modprobe.conf /etc/modprobe.conf
-depmod -a"
+      DESC="module-init-tools provides modules utilities for linux 2.6.x"
 
-install_conf()  {
-  cp     $SCRIPT_DIR/module-init-tools.sh     /etc/init.d
-  ln  -sf  ../init.d/module-init-tools.sh     /etc/rcS.d/S20module-init-tools
-
-  mkdir  -p  /etc/modules.d
-  touch      /etc/modules  \
-             /etc/modprobe.conf
-}
-
-
-###########################################################3
 build() {
- sed  -i  "s:share/man/man:man/man:"  Makefile.in
-
- case  $VERSION  in
-  3.1)  touch *.5 *.8 ;;
- esac
-
- cd      modutils-$MUVERSION        &&
- ./configure  --build=$BUILD        &&
- make                               &&
- cd      ..                         &&
- ./configure  --build=$BUILD        \
-        --prefix=/            \
-        --sysconfdir=/etc     \
-        --localstatedir=/var  \
-        $OPTS                 &&
- make                               &&
- prepare_install                    &&
- cd      modutils-$MUVERSION        &&
- make    install                    &&
- cd      ..                         &&
- make    moveold                    &&
- make    install                    &&
-     install_conf
+install_conf()  {
+cp     $SCRIPT_DIR/module-init-tools     /etc/init.d
+mkdir  -p  /etc/modules.d
+touch      /etc/modules  /etc/modprobe.conf
 }
 
+sed  -i  "s:share/man/man:man/man:"  Makefile.in
+
+case  $VERSION  in
+ 3.1)  touch *.5 *.8 ;;
+esac
+
+cd  modutils-$MUVERSION      &&
+./configure                  \
+--build=$BUILD               &&
+make                         &&
+cd      ..                   &&
+./configure                  \
+--build=$BUILD               \
+--prefix=/                   \
+--sysconfdir=/etc            \
+--localstatedir=/var         \
+$OPTS                        &&
+make                         &&
+prepare_install              &&
+cd      modutils-$MUVERSION  &&
+make    install              &&
+cd      ..                   &&
+make    moveold              &&
+make    install              &&
+install_conf
+}
+
+post_install() {
+  /lib/lsb/install_initd /etc/init.d/module-init-tools
+  true
+}

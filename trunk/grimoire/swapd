@@ -4,6 +4,7 @@
  ATTRIBUTE="console core solo"
     SOURCE="swapd/swapd-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
+       REQ="init-functions"
   HOMEPAGE="http://sourceforge.net/projects/swapd"
   ESTIMATE="20"
       DESC="swapd dynamically creates swap files as required.
@@ -21,32 +22,31 @@ build() {
  install_conf()  {
   mkdir  -p         /swap
   chmod  700        /swap
-  cp     $SCRIPT_DIR/swapd.sh  /etc/init.d
-  ln  -sf  ../init.d/swapd.sh  /etc/rc0.d/K95swapd 
-  ln  -sf  ../init.d/swapd.sh  /etc/rc6.d/K95swapd  
-  ln  -sf  ../init.d/swapd.sh  /etc/rcS.d/S95swapd
+  cp     $SCRIPT_DIR/swapd  /etc/init.d
  }
 
  sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
- ./configure  --build=$BUILD  \
- --prefix=/usr                \
- --sysconfdir=/etc            \
- --localstatedir=/var         \
- $OPTS                        &&
- make  "CFLAGS=$CFLAGS -I."   &&
- prepare_install              &&
- make    install              &&
- install_conf
+  ./configure  --build=$BUILD  \
+  --prefix=/usr                \
+  --sysconfdir=/etc            \
+  --localstatedir=/var         \
+  $OPTS                        &&
+  make  "CFLAGS=$CFLAGS -I."   &&
+  prepare_install              &&
+  make    install              &&
+  install_conf
 }
 
 post_install() {
+  /lib/lsb/install_initd /etc/init.d/swapd
  [  -x  /usr/sbin/sorcerer.install  ]  ||
- /etc/init.d/swapd.sh  start
+ /etc/init.d/swapd  start
  true
 }
 
 pre_remove() {
- /etc/init.d/swapd.sh  stop
+  /lib/lsb/remove_initd /etc/init.d/swapd
+ /etc/init.d/swapd  stop
  true
 }

@@ -1,0 +1,39 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: module-init-tools
+# Required-Start: $local_fs
+# Required-Stop:  
+# Default-Start: 1 2 3 4 5
+# Default-Stop:
+# Short-Description: module-init-tools loads modules during boot
+# Description: module-init-tools loads modules during boot
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start()  {
+  if    [  -f  /etc/modules    ]   &&
+        [  -x  /sbin/depmod    ]   &&
+        [  -x  /sbin/modprobe  ]
+  then
+    log_warning_msg  "Modules about to load"
+    depmod  -a
+    while  read  MODULE ARGS;  do
+      case  $MODULE in
+        \#*|"")  continue  ;;
+      esac
+      modprobe  $MODULE  $ARGS
+    done
+    log_success_msg  "Modules loaded"
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {start}" 1>&2
+}
+
+case  $1  in
+         start)  start        ;;
+             *)  help         ;;
+esac
