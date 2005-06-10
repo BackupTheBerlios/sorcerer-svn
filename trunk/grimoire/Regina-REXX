@@ -1,36 +1,34 @@
    VERSION=( "3.3" "3.2" "3.1" )
     IGNORE="RC"
   CATEGORY="interpreter"
- ATTRIBUTE="console"
+ ATTRIBUTE="console broken old_init"
     SOURCE="regina-rexx/Regina-REXX-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://regina-rexx.sourceforge.net"
  FRESHMEAT="regina"     
   ESTIMATE="340"
       DESC="Regina-REXX is a Rexx interpreter.
-
-Regina-REXX is an implementation of the 
+Regina-REXX is an implementation of the
 1996 ANSI Standard for the Rexx language.
-Rexx is designed as an easily readable 
-scripting and embedded macro language. 
-"
+Rexx is designed as an easily readable
+scripting and embedded macro language. "
+
+build() {
 
 fix_init_location()  {
   sed  -i  "s:rc.d/::"  Makefile
 }
 
-########################################################
-build() {
- ./configure  --prefix=/usr         \
+ ./configure  --prefix=/usr   \
         --sysconfdir=/etc     \
         --localstatedir=/var  \
         $OPTS                 &&
- fix_init_location                  &&
- make                               &&
- make  install                      &&
+ fix_init_location            &&
+ make                         &&
+ prepare_install              &&
+ make    install              &&
 
  # replace the redhatish init script ;)  
  cp  -f  $SCRIPT_DIR/rxstack.init   \
      /etc/init.d/rxstack
 }
-
