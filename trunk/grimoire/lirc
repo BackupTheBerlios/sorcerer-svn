@@ -7,24 +7,15 @@
        REQ="libtool"
   HOMEPAGE="http://www.lirc.org"
    ARCHIVE="off"
- ESTIMATE="220"
+  ESTIMATE="220"
       DESC="lirc (Linux Infrared Remote Control).
 lirc is a package that allows you to decode 
 and send infra-red signals of many (but not 
-all) commonly used remote controls."
+all) commonly used remote controls.
+If you want to run the daemon add a command 
+to /etc/init.d/bootmisc to invoke it."
 
-finish_install()  {
-  if    !  [  -f                      /etc/init.d/lircd.sh  ]
-  then     cp  $SCRIPT_DIR/lircd.sh   /etc/init.d
-  fi
-
-  if  ! [  -f      /etc/modules.d/lirc  ]
-  then  mkdir  -p  /etc/modules.d
-  mconf   >    /etc/modules.d/lirc
-  else  touch  /etc/modules.d/lirc
-  fi
-}
-
+build() {
 
 conf()  {
   if    [  -f  $CONFIG_LOGS/$BSPELL/configure.sh  ]
@@ -37,28 +28,11 @@ conf()  {
   fi
 }
 
-
-mconf()  {
-  cat  <<  EOF
-alias char-major-61  lirc_driver
-#options lirc_serial irq=4 io=0x3e8
-EOF
-}
-
-
-save_configure_sh()  {
-  if     !   [  -f  configure.sh  ]
-  then   cat  $SPELL_CONFIG  >> configure.sh
-  fi
-}
-
-
 sed_source()  {
   sed -i 's:"$@":--prefix=/usr --sysconfdir=/etc:' configure.sh
   sed -i "s:-O2 -g:$CFLAGS:" configure
   sed -i "s:-O2 -g:$CFLAGS:" configure.in
 }
-
 
 update_cvs_source()  {
   if   [  "$BRANCH"  ==  "cvs"  ];  then
@@ -70,71 +44,18 @@ update_cvs_source()  {
   fi
 }
 
+  groupadd   lirc    2>/dev/null
+  update_cvs_source  &&
+  conf               &&
+  sed_source         &&
+  activate_voyeur    &&
 
-##############################################################33
-
-build() {
-
- groupadd  lirc     2>/dev/null
- rm  -f    /dev/lirc*
-
- update_cvs_source  &&
- conf               &&
- activate_voyeur    &&
- save_configure_sh  &&
- sed_source         &&
-
-
- {
-  libtoolize  --force
-  sh  configure.sh         &&
-  make                     &&
-  prepare_install          &&
-  make    install          &&
-  chgrp  lirc  /dev/lirc*  && 
-  chmod  660   /dev/lirc*  &&
-  finish_install
- } &> $C_FIFO
+  {
+    libtoolize  --force
+    sh  configure.sh     &&
+    make                 &&
+    prepare_install      &&
+    make    install      &&
+    finish_install
+  } &> $C_FIFO
 }
-
-post_install() {
- default_post_install
- INC="include  /etc/modules.d/lirc"
- grep  -q  "$INC"  /etc/modules.conf   ||  echo  "$INC"  >>  /etc/modules.conf
- grep  -q  "$INC"  /etc/modprobe.conf  ||  echo  "$INC"  >>  /etc/modprobe.conf
-
- depmod  -a  -q
-
- if    [  -x  /etc/init.d/lircd.sh  ]
- then         /etc/init.d/lircd.sh  start
- fi
-
- true
-}
-
-pre_remove() {
- default_pre_remove
- if    [  -x  /etc/init.d/lircd.sh  ]
- then         /etc/init.d/lircd.sh  stop
- fi
-
- INC="include  /etc/modules.d/lirc"
- sed  -i  "\:$INC:d"  /etc/modules.conf   2>/dev/null
- sed  -i  "\:$INC:d"  /etc/modprobe.conf  2>/dev/null
-
- true
-}
-
-post_remove() {
- default_post_remove
- MOD="/etc/modules.conf"
- TMP="/tmp/modules.conf"
- INC="include  /etc/modules.d/lirc"
-
- cp           $MOD   $TMP
- grep    -v  "$INC"  $TMP  >  $MOD
- rm                  $TMP
- depmod  -a  -q
- true
-}
-

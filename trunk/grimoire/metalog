@@ -21,28 +21,17 @@ memory bufferization for maximal performance."
 
 build() {
  default_build  &&
-
- (
-
- if  [  !  -f  /etc/metalog.conf  ];  then
-  cp  metalog.conf  /etc
- fi
-
- cp  $SCRIPT_DIR/metalog.sh        /etc/init.d
- ln      -sf ../init.d/metalog.sh  /etc/rcS.d/S20metalog
- ln      -sf ../init.d/metalog.sh  /etc/rc0.d/K70metalog
- ln      -sf ../init.d/metalog.sh  /etc/rc6.d/K70metalog
-
- )
+ install                       metalog.conf  /etc  &&
+ install  -m 0755  $SCRIPT_DIR/metalog       /etc/init.d
 }
 
 post_install() {
- default_post_install
- /etc/init.d/metalog.sh  start
+  /lib/lsb/install_initd /etc/init.d/metalog
+  /etc/init.d/metalog start
+  true
 }
 
 pre_remove() {
- default_pre_remove
- /etc/init.d/metalog.sh  stop
+  /etc/init.d/metalog stop
+  /lib/lsb/remove_initd /etc/init.d/metalog
 }
-

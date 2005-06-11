@@ -1,21 +1,20 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: mcron $cron
+# Provides: metalog $syslog
 # Required-Start: $local_fs
-# Required-Stop: $local_fs 
+# Required-Stop: $local_fs
 # Default-Start:  2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: mcron is a vixie cron replacement
-# Description: mcron is not your mother's cron
+# Short-Description: metalog is a replacement for sysklog and syslog
+# Description: metalog is a near replacement for sysklog, sysklogd and syslog
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-SOCK=/var/cron/socket
-PIDF=/var/run/cron.pid
-SERV=/usr/sbin/cron
-NAME=mcron
+PIDF=/var/run/metalog.pid
+SERV=/usr/sbin/metalog
+NAME=metalog
 
 status()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -25,18 +24,9 @@ status()  {
   fi
 }
 
-
-clear_socket() {
-  if    !  status  &>/dev/null
-  then     rm  -f  $SOCK
-  fi
-}
-
 start()  {
-  export  TERM="dumb"
   log_warning_msg  "$NAME about to start"
-  clear_socket
-  if    start_daemon     -p $PIDF $SERV -n
+  if    start_daemon     -p $PIDF $SERV  --sync  --daemonize
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status

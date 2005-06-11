@@ -9,65 +9,12 @@
       DESC="linux_logo shows a logo with some system info.
 linux_logo is a small utility that displays an ANSI or ASCII
 logo of the Linux penguin, along with some sytem information.
----
-This spell includes Sorcerer logos."
-
-
-
-configure() {
- if  !  grep  -q  "LINUXLOGO_BOOT"  $SPELL_CONFIG; then
-  if    query  "Invoke linux_logo at boot? " y
-  then  echo  "LINUXLOGO_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo  "LINUXLOGO_BOOT=false"  >>  $SPELL_CONFIG
-  fi
- fi
-}
+This spell includes unofficial Sorcerer logos."
 
 build() {
- # keep back-up of old issue, issue.net files
- # if    [  -f  /etc/issue  ]
- # then  cp  /etc/issue     \
- #           /etc/issue.save
- # fi
-
- # if    [  -f  /etc/issue.net  ]
- # then  cp  /etc/issue.net     \
- #           /etc/issue.net.save
- # fi
-  
- sed  -i  "s:-O2 -Wall:${CFLAGS}:"  Makefile
-  
- echo  "${SCRIPT_DIR}/sorcerer.logo"        >> logo_config
- # echo  "${SCRIPT_DIR}/sorcerer-banner.logo"  >>  logo_config
-
- make                           &&
- make  install  DESTDIR=/usr    &&
- cp  $SCRIPT_DIR/linux_logo.sh  \
-         /etc/init.d     &&
-
- if  $LINUXLOGO_BOOT;  then
-  ln  -sf  ../init.d/linux_logo.sh  /etc/rc3.d/S99linux_logo
-  ln  -sf  ../init.d/linux_logo.sh  /etc/rc5.d/S99linux_logo
- fi
+  sed  -i  "s:-O2 -Wall:${CFLAGS}:"       Makefile  
+  echo  "${SCRIPT_DIR}/sorcerer.logo"  >> logo_config
+  make             &&
+  prepare_install  &&
+  make    install  DESTDIR=/usr
 }
-
-post_install() {
- default_post_install
- /etc/init.d/linux_logo.sh
-}
-
-post_remove() {
- default_post_remove
- # if    [  -f  /etc/issue.save  ]
- # then  cp     /etc/issue.save  \
- #              /etc/issue
- # fi
-
- # if    [  -f  /etc/issue.net.save  ]
- # then  cp     /etc/issue.net.save  \
- #              /etc/issue.net
- # fi
-
- :
-}
-
