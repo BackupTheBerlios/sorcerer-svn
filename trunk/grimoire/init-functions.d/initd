@@ -149,6 +149,7 @@ make_klinks() {
 }
 
 make_links() {
+  echo  "Updating symbolic links to init scripts."  1>&2
   [   -h       INIT_DIR ]  &&
   rm  -f      $INIT_DIR
   mkdir  -p   $INIT_DIR  $INIT_NEW
@@ -163,21 +164,18 @@ make_links() {
 }
 
 remove_initd()  {
-  echo  "removing $1"
-  chmod a-x  "$1"
-  make_links
+  echo        "$@ will not be started during boot"  1>&2
+  chmod  a-x  "$@"
 }
 
 install_initd() {
-  echo "installing $1"
-  chmod  a+x  "$1"
-  make_links
+  echo         "$@ will now be started during boot"  1>&2
+  chmod  ug+x  "$@"
 }
 
 if      [  -f  "$1"  ];  then
   if    [  "${0##*/}"  ==  "install_initd"  ];  then  install_initd  "$1"
   elif  [  "${0##*/}"  ==  "remove_initd"   ];  then   remove_initd  "$1"
-                                                else  false
   fi
-else  false
 fi
+make_links
