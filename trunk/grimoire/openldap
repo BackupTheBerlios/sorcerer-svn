@@ -18,6 +18,8 @@
             ftp://ftp.plig.org/pub/OpenLDAP
             http://www.openldap.org/software/download/OpenLDAP"
        REQ=( "cyrus-sasl db libtool ncurses openssl" )
+      OPTS="--enable-shell --enable-dynamic --enable-modules=yes"
+
 #            "heimdal:--with-kerberos:--without-kerberos:for keberos support" )
 # Enabling heimdal as optional requirement creates recursive requirement loop
 # maybe this has requirement on freetype, but maybe it does not?
@@ -30,37 +32,20 @@ openldap is a fully featured open source LDAP software suite.
 OpenLDAP Software provides a complete LDAP implementation including
 server, clients, C SDK, and associated tools."
 
-old_build()  {
- if    is_installed heimdal
- then  OPTS="$OPTS --with-kerberos"
- fi
- default_build
-}
-
-build() {
- #             --enable-bdb          \
- #             --with-bdb-module=dynamic  \
- #             --enable-dnssrv       \
- #             --with-dnssrv-module=dynamic
- # can build dynamic modules advantageous
- # for binary based distros, but probably not sorcerer.
-
- ./configure  --build=$BUILD        \
-              --prefix=/usr         \
-        --sysconfdir=/etc     \
-        --localstatedir=/var  \
-        --enable-shell        \
-        --enable-dynamic      \
-        --enable-modules=yes  \
-        $OPTS                 &&
- make                               &&
- make  install
-}
+#             --enable-bdb          \
+#             --with-bdb-module=dynamic  \
+#             --enable-dnssrv       \
+#             --with-dnssrv-module=dynamic
+# can build dynamic modules advantageous
+# for binary based distros, but probably not sorcerer.
 
 post_install() {
- default_post_install
- if    [  -x  /etc/init.d/slapd  ]
- then         /etc/init.d/slapd  restart
- fi
+  /lib/lsb/install_initd /etc/init.d/slapd
+  /etc/init.d/slapd start
+  true
 }
 
+pre_remove() {
+  /etc/init.d/slapd stop
+  /lib/lsb/remove_initd /etc/init.d/slapd
+}
