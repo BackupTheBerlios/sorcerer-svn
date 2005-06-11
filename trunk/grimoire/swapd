@@ -19,33 +19,21 @@ just taking up disk space; and (b) provide
 a limited amount of virtual memory."
 
 build() {
- install_conf()  {
+ make_swap_dir()  {
   mkdir  -p         /swap
   chmod  700        /swap
-  cp     $SCRIPT_DIR/swapd  /etc/init.d
  }
 
  sed  -i  "s:/usr/local/etc/:/etc/:"  config.h
 
-  ./configure  --build=$BUILD  \
-  --prefix=/usr                \
-  --sysconfdir=/etc            \
-  --localstatedir=/var         \
-  $OPTS                        &&
-  make  "CFLAGS=$CFLAGS -I."   &&
-  prepare_install              &&
-  make    install              &&
-  install_conf
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/swapd
- [  -x  /usr/sbin/sorcerer.install  ]  ||
- /etc/init.d/swapd  start
- true
-}
-
-pre_remove() {
-  /etc/init.d/swapd  stop
-  /lib/lsb/remove_initd /etc/init.d/swapd
+  ./configure                 \
+  --build=$BUILD              \
+  --prefix=/usr               \
+  --sysconfdir=/etc           \
+  --localstatedir=/var        \
+  $OPTS                       &&
+  make  "CFLAGS=$CFLAGS -I."  &&
+  prepare_install             &&
+  make    install             &&
+  make_swap_dir
 }

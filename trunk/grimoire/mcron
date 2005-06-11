@@ -13,27 +13,11 @@ It accepts traditional crontabs and configuration files written in Scheme."
 
 build() {
 install_init()  {
-  mv          /usr/bin/cron  /usr/sbin/cron
-  mkdir   -p  /var/cron/tabs
-  install -m  0755  $SCRIPT_DIR/mcron  /etc/init.d
-
-  ln     -sf  ../init.d/mcron  /etc/rcS.d/S80mcron
-  ln     -sf  ../init.d/mcron  /etc/rc0.d/K20mcron
-  ln     -sf  ../init.d/mcron  /etc/rc6.d/K20mcron
+  mv         /usr/bin/cron  /usr/sbin/cron
+  mkdir  -p  /var/cron/tabs
 }
 
  sed  -i  "s:\$HEAD -1:\$HEAD -n 1:"  configure
  default_build  &&
  install_init
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/mcron
-  /etc/init.d/mcron start
-  true
-}
-
-pre_remove()   { 
-  /etc/init.d/mcron stop
-  /lib/lsb/remove_initd /etc/init.d/mcron
 }

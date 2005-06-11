@@ -36,44 +36,16 @@ i.e.. puts a normal terminal line into one of several
 network modes."
 
 build() {
-install_conf()  {
+  case  $VERSION  in
+   1.60)  sed  -i  "\,default:,abreak;"  hostname.c  lib/inet_sr.c  ;;
+  esac
 
-  if  !  [  -e  /etc/init.d/network  ]
-  then   cp     $SCRIPT_DIR/network  /etc/init.d
-  fi
+  sed  -i  "s:-O2:$CFLAGS:
+            s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
 
-  if  !  [  -e  /etc/init.d/hostname ]
-  then  cp  $SCRIPT_DIR/hostname    /etc/init.d
-  fi
+  cp  $SCRIPT_DIR/config.h  .
 
-  ln     -sf  ../init.d/network  /etc/rc0.d/K70network
-  ln     -sf  ../init.d/network  /etc/rc1.d/K70network
-  ln     -sf  ../init.d/network  /etc/rc2.d/K70network
-  ln     -sf  ../init.d/network  /etc/rc6.d/K70network
-
-  ln     -sf  ../init.d/network  /etc/rc3.d/S30network
-  ln     -sf  ../init.d/network  /etc/rc4.d/S30network
-  ln     -sf  ../init.d/network  /etc/rc5.d/S30network
-
-  ln     -sf  ../init.d/hostname /etc/rcS.d/S20hostname
-}
-
- case  $VERSION  in
-  1.60)  sed  -i  "\,default:,abreak;"  hostname.c  lib/inet_sr.c  ;;
- esac
-
- sed  -i  "s:-O2:$CFLAGS:
-           s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
-
- cp  $SCRIPT_DIR/config.h  .
-
- make             &&
- prepare_install  &&
- make  BASEDIR=/  install  &&
- install_conf
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/hostname
-  true
+  make             &&
+  prepare_install  &&
+  make  BASEDIR=/  install
 }

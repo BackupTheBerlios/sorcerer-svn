@@ -19,26 +19,8 @@ Forwarding logs over TCP and remembering all forwarding
 hops makes it ideal for firewalled environments."
 
 build() {
-finish_install() {
-  if  [  !     -f                      /etc/syslog-ng/syslog-ng.conf  ];
-  then  mkdir  -p                      /etc/syslog-ng
-        cp  doc/syslog-ng.conf.sample  /etc/syslog-ng/syslog-ng.conf
-  fi
-  install -m 700  $SCRIPT_DIR/syslog-ng  /etc/init.d
-}
-
   sed  -i  "s/-O2/$CFLAGS/"  configure
   default_build  &&
-  finish_install
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/syslog-ng
-  /etc/init.d/syslog-ng start
-  true
-}
-
-pre_remove() {
-  /etc/init.d/syslog-ng stop
-  /lib/lsb/remove_initd /etc/init.d/syslog-ng
+  install  -D  -m 0600  doc/syslog-ng.conf.sample  \
+             /etc/syslog-ng/syslog-ng.conf
 }

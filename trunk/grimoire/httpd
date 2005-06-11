@@ -38,7 +38,6 @@ build() {
     mkdir  -p  /usr/share/httpd/htdocs.ssl
     mkdir  -p  /usr/share/httpd/logs
     mkdir  -p  /var/lib/httpd/run
-    install -m 0755  $SCRIPT_DIR/httpd  /etc/init.d
   }
 
   fix_ssl_conf()  {
@@ -96,6 +95,7 @@ build() {
 }
 
 post_install() {
+  default_post_install
   generate_certificates() {
    if  ! grep -q "configured" $SPELL_CONFIG; then
     echo "configured=1" >>$SPELL_CONFIG
@@ -134,14 +134,4 @@ post_install() {
 
   recast  php
   recast  mod_perl
-
-  /lib/lsb/install_initd /etc/init.d/httpd
-  /etc/init.d/httpd  start
-  true
 }
-
-pre_remove() {
-  /etc/init.d/httpd stop
-  /lib/lsb/remove_initd /etc/init.d/httpd
-}
-

@@ -127,19 +127,12 @@ build() {
   prepare_install  &&
   make    install  &&
           install_symlinks  &&
-          install_conf      &&
-          install -m 0755  $SCRIPT_DIR/exim  /etc/init.d
+          install_conf
 }
 
 post_install() {
+  default_post_install
   chgrp  -R  mail   /var/spool/mail
   chmod  -R  g+rw   /var/spool/mail
-  /lib/lsb/install_initd /etc/init.d/xinetd
-  /etc/init.d/exim start
   true
-}
-
-pre_remove() {
-  /etc/init.d/exim stop
-  /lib/lsb/remove_initd /etc/init.d/exim
 }
