@@ -1,6 +1,6 @@
    VERSION=( "5beta" "4" )
   CATEGORY="network"
- ATTRIBUTE="server"
+ ATTRIBUTE="server old_init"
     SOURCE="portmap_$VERSION.tar.gz"
        URL="ftp://ftp.porcupine.org/pub/security"
   HOMEPAGE="ftp://ftp.porcupine.org/pub/security/index.html"
@@ -13,10 +13,19 @@ The portmap server must be running on machines which act
 as servers for protocols which make use of the RPC mechanism.
 This portmapper supports hosts.{allow,deny} type access control."
 
+configure() {
+ if  !  grep  -q  "PORTMAP_BOOT="  $SPELL_CONFIG;  then
 
+  if    query  "Invoke portmap at boot?" n
+  then  echo   "PORTMAP_BOOT=true"   >>  $SPELL_CONFIG
+  else  echo   "PORTMAP_BOOT=false"  >>  $SPELL_CONFIG
+  fi
+
+ fi
+}
+
+build() {
 install_init()  {
-
-
   cp  $SCRIPT_DIR/portmap.sh     /etc/init.d
 
   if  $PORTMAP_BOOT;  then
@@ -32,21 +41,6 @@ install_init()  {
 
 }
 
-##############################################
-configure() {
- if  !  grep  -q  "PORTMAP_BOOT="  $SPELL_CONFIG;  then
-
-  if    query  "Invoke portmap at boot?" n
-  then  echo   "PORTMAP_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo   "PORTMAP_BOOT=false"  >>  $SPELL_CONFIG
-  fi
-
- fi
-}
-
-build() {
-
-
  # fix problems with glibc-2.3.2
  patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
 
@@ -59,7 +53,6 @@ build() {
 }
 
 post_install() {
- default_post_install
  RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
  if    [   -x  /etc/rc$RUNLEVEL.d/S30portmap  ]
@@ -68,11 +61,9 @@ post_install() {
 }
 
 pre_remove() {
- default_pre_remove
  RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
 
  if    [  -x  /etc/rc$RUNLEVEL.d/K70portmap  ]
  then         /etc/rc$RUNLEVEL.d/K70portmap  stop
  fi
 }
-

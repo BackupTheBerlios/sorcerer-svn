@@ -1,7 +1,4 @@
    VERSION=( "0.8.4" "0.8.3" "0.8.2" "0.8.1" )
-# Odd that freshmeat reports a 0.8.4 download at a new location
-# and the homepage is the same and says nothing about it.
-# Could be possibile intentional trojaning of rsyslog.
   CATEGORY="log"
  ATTRIBUTE="server"
     SOURCE="rsyslog-$VERSION.tar.gz"
@@ -27,11 +24,8 @@ if  !  [   -f            /etc/rsyslog.conf  ]
 then   echo  "$TRAD"  >  /etc/rsyslog.conf
        chmod  0600       /etc/rsyslog.conf
 fi
-install  -m 0600 sample.conf   /etc/rsyslog.conf.sample
-ln  -sf  ../init.d/rsyslog.sh  /etc/rcS.d/S20rsyslog
-ln  -sf  ../init.d/rsyslog.sh  /etc/rc0.d/K70rsyslog
-ln  -sf  ../init.d/rsyslog.sh  /etc/rc6.d/K70rsyslog
-install  -m 0700 $SCRIPT_DIR/rsyslog.sh  /etc/init.d
+install  -m 0600 sample.conf             /etc/rsyslog.conf.sample
+install  -m 0700 $SCRIPT_DIR/rsyslog  /etc/init.d
 }
 
 make             &&
@@ -41,17 +35,11 @@ install_init
 }
 
 post_install()  {
-/etc/init.d/rsyslog.sh start
-true
+  /lib/lsb/install_initd /etc/init.d/rsyslog
+  /etc/init.d/rsyslog.sh start
 }
 
 pre_remove()  {
-/etc/init.d/rsyslog.sh stop
-true
-}
-
-current()  {
-case  $VERSION  in
-  0.8.2)  [  -f  /etc/rsyslog.conf  ]  ;;
-esac
+  /etc/init.d/rsyslog stop
+  /lib/lsb/remove_initd /etc/init.d/rsyslog
 }

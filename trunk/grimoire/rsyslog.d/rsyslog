@@ -1,20 +1,20 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: msyslog $syslog
+# Provides: rsyslog $syslog
 # Required-Start: $local_fs
 # Required-Stop: $local_fs
 # Default-Start:  2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: msyslog is a replacement for sysklog and syslog
-# Description: msyslogd is a near replacement for sysklog, sysklogd and syslog
+# Short-Description: rsyslog is a replacement for sysklog and syslog
+# Description: rsyslog is a near replacement for sysklog, sysklogd and syslog
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/syslogd.pid
-SERV=/usr/sbin/syslogd
-NAME="msyslog"
+PIDF=/var/run/rsyslog.pid
+SERV=/usr/sbin/rsyslog
+NAME="rsyslog"
 
 status()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -26,11 +26,8 @@ status()  {
 
 start()  {
   log_warning_msg  "$NAME about to start"
-  /bin/cat        /etc/syslog.conf  |
-  /usr/bin/tr     ' '  '\n'         |
-  /usr/bin/grep   "^/var/log"       |
-  /usr/bin/xargs  -l64  touch
-  if    start_daemon     -p $PIDF $SERV -i linux  -i unix
+  touch  /var/log/syslog
+  if    start_daemon     -p $PIDF $SERV
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
