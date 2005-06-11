@@ -1,22 +1,20 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: xinetd
+# Provides: httpd
 # Required-Start: $local_fs $network $remote_fs
 # Required-Stop: $local_fs $network $remote_fs
 # Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
-# Short-Description: xinetd is an inetd replacement
-# Description: xinetd is a superior replacement for inetd
-#	which enables daemons to be launched on demand to
-#	handle tcp and udp connections
+# Short-Description: httpd is a feature packed web server
+# Description: httpd is the most widely used web server.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-PIDF="/var/run/xinetd.pid"
-SERV="/usr/sbin/xinetd"
-NAME="xinetd"
+# PIDF="/var/run/httpd.pid"
+SERV="/usr/sbin/apachectl"
+NAME="httpd"
 
 status()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -28,7 +26,9 @@ status()  {
 
 start()  {
   log_warning_msg  "$NAME about to start"
-  if    start_daemon     -p $PIDF $SERV -reuse -pidfile $PIDF
+  [      -d  /var/log/httpd  ]  ||
+  mkdir  -p  /var/log/httpd  ]
+  if    start_daemon     -p $PIDF $SERV startssl
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
@@ -37,28 +37,30 @@ start()  {
 
 stop()  {
   log_warning_msg "$NAME about to stop"
-  if    killproc        -p $PIDF -s 15  $SERV
-  then  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
+  $SERV stop
+  log_success_msg "$NAME stopped"
+#  if    killproc        -p $PIDF -s 15  $SERV
+#  then  log_success_msg "$NAME stopped"
+#  else  log_failure_msg "$NAME not stopped"
+#        status
+#        return 0
+#  fi
 }
 
-restart() {  stop  &&  sleep  1;  start;  }
+restart() {  $SERV restart;  }
 
 try_restart() {
   status  &&  restart
   return 0
 }
 
-reload()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if    [ -n            "$PIDS" ]
-  then  kill  -s SIGHUP  $PIDS  &&
-        log_success_msg "$NAME configuration reloaded"
-  fi
-}
+# reload()  {
+#   PIDS="$( pidofproc -p $PIDF $SERV )"
+#   if    [ -n            "$PIDS" ]
+#   then  kill  -s SIGHUP  $PIDS  &&
+#         log_success_msg "$NAME configuration reloaded"
+#   fi
+# }
 
 help()  {
   echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2

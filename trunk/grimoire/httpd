@@ -13,7 +13,7 @@
              ":openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support" )
 #            ":--enable-mem-cache:: to enable memory caching module"
 #            ":--enable-file-cache:: to enable disk caching module" )
-  PROTECT="/etc/httpd
+   PROTECT="/etc/httpd
             /usr/share/httpd/htdocs
             /usr/share/httpd/error"
   EPROVIDE="web-server"
@@ -21,52 +21,27 @@
   ESTIMATE="795"
       DESC="httpd is a popular HTTP server."
 
-
 configure() {
-
- if ! [ -f $SPELL_CONFIG ]; then 
-  touch $SPELL_CONFIG;
- fi
- if  !  grep  -q  "configured"  $SPELL_CONFIG; then
-  if query "do you want to perform semi-auto httpd ssl configuration?" n; then
-   echo "APACHE_SSL=true" >> $SPELL_CONFIG
+  if !  [  -f  $SPELL_CONFIG  ]
+  then  touch  $SPELL_CONFIG
   fi
- fi
-
- if  !  grep  -q  "APACHE_BOOT="  $SPELL_CONFIG;  then
-
-  if    query  "Invoke httpd during boot?" y
-  then  echo   "APACHE_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo   "APACHE_BOOT=false"  >>  $SPELL_CONFIG
+  if  !  grep  -q  "configured"  $SPELL_CONFIG; then
+    if query "do you want to perform semi-auto httpd ssl configuration?" n; then
+      echo "APACHE_SSL=true" >> $SPELL_CONFIG
+    fi
   fi
-
- fi
 }
 
 build() {
+  finish_install()  {
+    mkdir  -p  /usr/share/httpd/cgi-bin.ssl
+    mkdir  -p  /usr/share/httpd/htdocs.ssl
+    mkdir  -p  /usr/share/httpd/logs
+    mkdir  -p  /var/lib/httpd/run
+    install -m 0755  $SCRIPT_DIR/httpd  /etc/init.d
+  }
 
- finish_install()  {
-
-  mkdir  -p  /usr/share/httpd/cgi-bin.ssl
-  mkdir  -p  /usr/share/httpd/htdocs.ssl
-  mkdir  -p  /usr/share/httpd/logs
-  mkdir  -p    /var/lib/httpd/run
-  cp        $SCRIPT_DIR/httpd.sh  /etc/init.d
-
-  if  $APACHE_BOOT;  then
-   ln  -sf   ../init.d/httpd.sh  /etc/rc0.d/K10httpd
-   ln  -sf   ../init.d/httpd.sh  /etc/rc1.d/K10httpd
-   ln  -sf   ../init.d/httpd.sh  /etc/rc2.d/K10httpd
-   ln  -sf   ../init.d/httpd.sh  /etc/rc6.d/K10httpd
-
-   ln  -sf   ../init.d/httpd.sh  /etc/rc3.d/S90httpd
-   ln  -sf   ../init.d/httpd.sh  /etc/rc4.d/S90httpd
-   ln  -sf   ../init.d/httpd.sh  /etc/rc5.d/S90httpd
-  fi
-
- }
-
- fix_ssl_conf()  {
+  fix_ssl_conf()  {
 
   cd  docs/conf
 
@@ -81,7 +56,6 @@ build() {
   s:logs/:/var/log/httpd:"  \
   ssl-std.conf.b4  >  ssl-std.conf
   cd  ../..
-
  }
 
  db_41_fix()  { (
@@ -92,7 +66,7 @@ build() {
   ) }
 
 
-  db_41_fix
+  # db_41_fix
 
   cat  $SCRIPT_DIR/layout      >>                  config.layout
   cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
@@ -100,7 +74,8 @@ build() {
 
   fix_ssl_conf
 
-  AC="--enable-layout=Sorcerer  \
+  AC="
+  --enable-layout=Sorcerer  \
   --enable-so               \
   --enable-modules=all      \
   --enable-cache            \
@@ -117,11 +92,10 @@ build() {
   make              &&
   prepare_install   &&
   make    install   &&
-  finish_install    
- }
+   finish_install    
+}
 
- post_install() {
-  default_post_install
+post_install() {
   generate_certificates() {
    if  ! grep -q "configured" $SPELL_CONFIG; then
     echo "configured=1" >>$SPELL_CONFIG
@@ -146,19 +120,14 @@ build() {
    fi
   }
 
-
-
-
-
   recast()  {
-   PRO="$(  get_provider    "$1"    )"
-   if      [  -n            "$PRO"  ]  &&
-    spell_installed  "$PRO"     &&
-    ! spell_held       "$PRO"
-   then  cast               "$PRO"
-   fi
+    PRO="$(  get_provider   "$1"    )"
+    if    [  -n             "$PRO"  ]  &&
+           spell_installed  "$PRO"     &&
+         ! spell_held       "$PRO"
+    then  cast              "$PRO"
+    fi
   }
-
 
   generate_certificates
   unlock_cast
@@ -166,16 +135,13 @@ build() {
   recast  php
   recast  mod_perl
 
-  /etc/init.d/httpd.sh  start
+  /lib/lsb/install_initd /etc/init.d/httpd
+  /etc/init.d/httpd  start
   true
- }
+}
 
- pre_remove() {
-  default_pre_remove
-  if    [  -x  /etc/init.d/apache.sh  ]
-  then         /etc/init.d/apache.sh  stop
-  elif  [  -x  /etc/init.d/httpd.sh   ]
-  then         /etc/init.d/httpd.sh  stop
-  fi
- }
+pre_remove() {
+  /etc/init.d/httpd stop
+  /lib/lsb/remove_initd /etc/init.d/httpd
+}
 
