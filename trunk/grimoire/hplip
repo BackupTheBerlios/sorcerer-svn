@@ -1,6 +1,6 @@
    VERSION=( "0.9.3" "0.9.2" "0.9.1" "0.8.8" )
   CATEGORY="printer"
- ATTRIBUTE="x11 new"
+ ATTRIBUTE="x11 new old_init"
     SOURCE="hpinkjet/hplip-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://hpinkjet.sourceforge.net"
@@ -11,31 +11,20 @@ For further information on getting your HP  working under linux,
 see http://www.linuxprinting.org, and http://hpinkjet.sourceforge.net."
 
 build() {
-  init_symlinks()  {
-    cp -s /etc/init.d/hplip /etc/rc0.d/K01hplip
-    cp -s /etc/init.d/hplip /etc/rc1.d/K01hplip
-    cp -s /etc/init.d/hplip /etc/rc2.d/K01hplip
-    cp -s /etc/init.d/hplip /etc/rc6.d/K01hplip
-    cp -s /etc/init.d/hplip /etc/rc3.d/S98hplip
-    cp -s /etc/init.d/hplip /etc/rc4.d/S98hplip
-    cp -s /etc/init.d/hplip /etc/rc5.d/S98hplip
-  }
+#  init_symlinks()  {
+#    cp -s /etc/init.d/hplip /etc/rc0.d/K01hplip
+#    cp -s /etc/init.d/hplip /etc/rc1.d/K01hplip
+#    cp -s /etc/init.d/hplip /etc/rc2.d/K01hplip
+#    cp -s /etc/init.d/hplip /etc/rc6.d/K01hplip
+#    cp -s /etc/init.d/hplip /etc/rc3.d/S98hplip
+#    cp -s /etc/init.d/hplip /etc/rc4.d/S98hplip
+#    cp -s /etc/init.d/hplip /etc/rc5.d/S98hplip
+#  }
 
   sed -i "s:\$(CHKCONFIG_PATH)/chkconfig \$(PACKAGE) reset;:echo ' '; :" Makefile.in
-  ./configure   --prefix=/usr  &&
-  make                         &&
-  prepare_install              &&
-  make    install              &&
-  init_symlinks
-}
-
-
-pre_remove() {
-  rm -f /etc/rc0.d/K01hplip
-  rm -f /etc/rc1.d/K01hplip
-  rm -f /etc/rc2.d/K01hplip
-  rm -f /etc/rc6.d/K01hplip
-  rm -f /etc/rc3.d/S98hplip
-  rm -f /etc/rc4.d/S98hplip
-  rm -f /etc/rc5.d/S98hplip  
+  ./configure      \
+  --prefix=/usr    &&
+  make             &&
+  prepare_install  &&
+  make    install
 }

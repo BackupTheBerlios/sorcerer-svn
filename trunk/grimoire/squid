@@ -1,4 +1,4 @@
-   VERSION=( "2.5.STABLE10" "2.5.STABLE9" "2.5.STABLE8" "2.5.STABLE7" "2.5.STABLE6" "2.5.STABLE5" "2.5.STABLE4" )
+   VERSION=( "2.5.STABLE10" "2.5.STABLE9" "2.5.STABLE8" "2.5.STABLE7" )
       SAFE=( "2.5.STABLE10" "2.5.STABLE9" )
     IGNORE="200[3-9]\|RC"
   CATEGORY="web ftp"
@@ -26,76 +26,21 @@ Squid supports...
   * SNMP
   * caching of DNS lookups"
 
-
-current()  {
- case  $VERSION  in
-  2.5.STABLE6)  grep  -qx  "patching file lib/ntlmauth.c"  $COMPILE_LOGS/squid  ;;
- esac
-}
-
-
-configure() {
- if  !  grep  -q  "SQUID_BOOT="  $SPELL_CONFIG  &&
-  !  spell_installed  ppp                    &&
-  !  spell_held       ppp
- then
-  if    query  "Invoke squid at boot?" n
-  then  echo   "SQUID_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo   "SQUID_BOOT=false"  >>  $SPELL_CONFIG
-  fi
- else
-  echo  "SQUID_BOOT=false"  >>  $SPELL_CONFIG
- fi
-}
-
 build() {
- case  $VERSION  in
-  2.5.STABLE6)  patch  -p1  <  $SOURCE_CACHE/squid/$VERSION/${SOURCE[1]}  ;;
- esac
+  sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
+       src/Makefile.in
 
- sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
- src/Makefile.in
-
- ./configure  --prefix=/usr                     \
- --sysconfdir=/etc/squid           \
- --localstatedir=/var/cache/squid  \
- --enable-async-io                 \
- --enable-snmp                     \
- --enable-linux-netfilter          \
- $OPTS                             &&
- make                                         &&
- prepare_install                              &&
- make    install                              &&
- mkdir  -p                  /var/cache/squid  &&
- chown  -R  nobody.nogroup  /var/cache/squid  &&
- cp  $SCRIPT_DIR/squid.sh   /etc/init.d       &&
-
- if  $SQUID_BOOT;  then
-  ln  -sf  ../init.d/squid.sh  /etc/rc0.d/K25squid
-  ln  -sf  ../init.d/squid.sh  /etc/rc1.d/K25squid
-  ln  -sf  ../init.d/squid.sh  /etc/rc2.d/K25squid
-  ln  -sf  ../init.d/squid.sh  /etc/rc6.d/K25squid
-
-  ln  -sf  ../init.d/squid.sh  /etc/rc3.d/S90squid
-  ln  -sf  ../init.d/squid.sh  /etc/rc4.d/S90squid
-  ln  -sf  ../init.d/squid.sh  /etc/rc5.d/S90squid
- fi
-}
-
-post_install() {
- default_post_install
- case  $SQUID_BOOT  in
-  y|Y|j|J)  /etc/init.d/squid.sh  start  ;;
-  *)  true                         ;;
- esac
-}
-
-pre_remove() {
- default_pre_remove
- /etc/init.d/squid.sh  stop
-}
-
-post_remove() {
- default_post_remove
- echo "Squid cache and log files located at /var/cache/squid are not deleted!"
+  ./configure                       \
+  --prefix=/usr                     \
+  --sysconfdir=/etc/squid           \
+  --localstatedir=/var/cache/squid  \
+  --enable-async-io                 \
+  --enable-snmp                     \
+  --enable-linux-netfilter          \
+  $OPTS                             &&
+  make                              &&
+  prepare_install                   &&
+  make    install                              &&
+  mkdir  -p                  /var/cache/squid  &&
+  chown  -R  nobody.nogroup  /var/cache/squid
 }

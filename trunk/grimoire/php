@@ -156,56 +156,47 @@ build() {
 }
 
 post_install() {
- default_post_install
- if    [  -x  /etc/init.d/httpd.sh  ]
- then         /etc/init.d/httpd.sh  stop;  sleep 5
-  /etc/init.d/httpd.sh  start
- fi
-
- true
+  default_post_install
+  if    [  -f  /etc/init.d/httpd  ]
+  then         /etc/init.d/httpd try-restart
+  fi
+  true
 }
 
 pre_remove() {
- default_pre_remove
- remove_php_module()  {
+  remove_php_module()  {
+    LPM="modules/mod_php.so"
+    HTTPD_CONF="/etc/httpd/httpd.conf"
+    HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
 
-  LPM="modules/mod_php.so"
-  HTTPD_CONF="/etc/httpd/httpd.conf"
-  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
+    if    grep      "mod_php.so"  $HTTPD_CONF
+    then  grep  -v  "mod_php.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
+          cp     $HTTPD_CONF_TMP  $HTTPD_CONF
+    fi
+  }
 
-  if    grep      "mod_php.so"  $HTTPD_CONF
-  then  grep  -v  "mod_php.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
-   cp      $HTTPD_CONF_TMP  $HTTPD_CONF
+  default_pre_remove
+  remove_php_module
+  if    [  -f  /etc/init.d/httpd  ]
+  then         /etc/init.d/httpd try-restart
   fi
-
- }
-
- remove_php_module
-
- if  [  -x  /etc/init.d/httpd.sh   ]
- then       /etc/init.d/httpd.sh  stop
- fi
-
- true
+  true
 }
 
 post_remove() {
- default_post_remove
- modify()  {  (
+  modify()  { (
+    TEMP="$(  cat  $1  )"
+    echo  "$TEMP"                       |
+    grep  -v  "LoadModule php4_module"  |
+    grep  -v  "AddModule mod_php4.c"    >  $1
+    if    [  -x  /usr/sbin/apachectl  ]
+    then         /usr/sbin/apachectl  graceful
+    fi
+  ) }
 
-  TEMP="$(  cat  $1  )"
-  echo  "$TEMP"                       |
-  grep  -v  "LoadModule php4_module"  |
-  grep  -v  "AddModule mod_php4.c"    >  $1
-  if    [  -x  /usr/sbin/apachectl  ]
-  then         /usr/sbin/apachectl  graceful
-  fi
-
-  )  }
-
-
+  default_post_remove
   if    [  -f  /etc/httpd/httpd.conf   ];  then  modify  /etc/httpd/httpd.conf
   elif  [  -f  /etc/apache/httpd.conf  ];  then  modify  /etc/apache/httpd.conf
   fi
   true
- }
+}

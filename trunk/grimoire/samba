@@ -1,5 +1,4 @@
-   VERSION=( "3.0.14a" "3.0.13" "3.0.12" "3.0.11" "3.0.10" "3.0.9" "3.0.8" "3.0.7" "3.0.6" )
-      SAFE=( "3.0.14a" "3.0.13" "3.0.12" "3.0.11" "3.0.10" )
+   VERSION=( "3.0.14a" "3.0.13" "3.0.12" "3.0.11" "3.0.10" )
     IGNORE="txt"
   CATEGORY="network"
  ATTRIBUTE="server console"
@@ -33,57 +32,42 @@
              "cups:::for printing support" )
   ESTIMATE="669"
       DESC="samba provides seamless file and print services to SMB/CIFS clients.
-samba provides Windows NT and LAN manager-style 
+samba provides Windows NT and LAN manager-style
 file and print services to SMB clients such as Windows."
 
-
-
 build() {
- if    spell_installed  Linux-PAM
- then  WITH_PAM="--with-pam  --with-pam_smbpass"
- fi
+  if    spell_installed  Linux-PAM
+  then  WITH_PAM="--with-pam  --with-pam_smbpass"
+  fi
 
-
- cd  source
- ./configure  --prefix=/usr         \
-        --sysconfdir=/etc     \
-        --localstatedir=/var  \
-        --with-smbmount       \
-        --with-fhs            \
-        $WITH_PAM             \
-        $OPTS                 &&
- make                               &&
- prepare_install                    &&
- mkdir  -p  /etc/samba              &&
- mkdir  -p  /usr/share/samba        &&
- mkdir  -p  /var/log/samba          &&
- make    install                    &&
- if  [  -d  /usr/private  ];  then
-  rmdir    /usr/private
-  true
- fi                                 &&
- if  [  -f  /usr/lib/samba/libsmbclient.so  ];  then
-  ln   -s           samba/libsmbclient.so  \
-          /usr/lib/libsmbclient.so
- fi
+  cd  source
+  ./configure           \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  --with-smbmount       \
+  --with-fhs            \
+  $WITH_PAM             \
+  $OPTS                 &&
+  make                  &&
+  prepare_install       &&
+  mkdir  -p  /etc/samba        &&
+  mkdir  -p  /usr/share/samba  &&
+  mkdir  -p  /var/log/samba    &&
+  make    install              &&
+  rm     -rf /usr/private      &&
+  if  [  -f  /usr/lib/samba/libsmbclient.so  ]   &&
+    ! [  -f  /usr/lib/libsmbclient.so        ];  then
+    ln   -s     samba/libsmbclient.so  \
+             /usr/lib/libsmbclient.so
+   fi
 }
 
-post_install() {
- default_post_install
- if    !  grep  -q      "/var/run/samba"      /etc/init.d/bootmisc.sh
- then  echo  "mkdir  -p  /var/run/samba"  >>  /etc/init.d/bootmisc.sh
- fi
- true
-}
-
-post_remove() {
- default_post_remove
- if    grep  -q  "/var/run/samba"  /etc/init.d/bootmisc.sh
- then  TEMP="$(  cat  /etc/init.d/bootmisc.sh  |
-  grep  -v  "/var/run/samba"
-  )"
-  echo  "$TEMP"  >  /etc/init.d/bootmisc.sh
- fi
- true
-}
-
+# no longer necessary?
+# post_install() {
+#  default_post_install
+#  if    !  grep  -q      "/var/run/samba"      /etc/init.d/bootmisc
+#  then  echo  "mkdir  -p  /var/run/samba"  >>  /etc/init.d/bootmisc
+#  fi
+#  true
+# }

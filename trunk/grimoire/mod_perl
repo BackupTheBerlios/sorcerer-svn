@@ -20,31 +20,28 @@ build() {
 }
 
 post_install() {
- default_post_install
- /etc/init.d/httpd.sh  start
- true
+  default_post_install
+  if    [  -f  /etc/init.d/httpd   ]
+  then  bash   /etc/init.d/httpd try-restart
+  fi
+  true
 }
 
 pre_remove() {
- default_pre_remove
- remove_perl_module()  {
+  remove_perl_module()  {
+    LPM="modules/mod_perl.so"
+    HTTPD_CONF="/etc/httpd/httpd.conf"
+    HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
 
-  LPM="modules/mod_perl.so"
-  HTTPD_CONF="/etc/httpd/httpd.conf"
-  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
+    if    grep      "mod_perl.so"  $HTTPD_CONF
+    then  grep  -v  "mod_perl.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
+          cp      $HTTPD_CONF_TMP  $HTTPD_CONF
+    fi
+  }
 
-  if    grep      "mod_perl.so"  $HTTPD_CONF
-  then  grep  -v  "mod_perl.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
-   cp      $HTTPD_CONF_TMP  $HTTPD_CONF
+  default_pre_remove
+  remove_perl_module
+  if    [  -f  /etc/init.d/httpd   ]
+  then  bash   /etc/init.d/httpd try-restart
   fi
-
- }
-
- remove_perl_module
-
- if  [  -x  /etc/init.d/httpd.sh   ]
- then       /etc/init.d/httpd.sh  stop
-  /etc/init.d/httpd.sh  start
- fi
 }
-

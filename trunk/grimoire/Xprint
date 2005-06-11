@@ -1,7 +1,7 @@
    VERSION=( "2004-07-07-release_009_001" "2004-03-22-release_009" "2004-03-01-release_009" "2003-05-08-release_008" "2003-04-03-trunk" "2003-03-06-trunk" "2002-12-03-release_007" )
     IGNORE="ibm-aix"
   CATEGORY="printer interpreter"
- ATTRIBUTE="x11"
+ ATTRIBUTE="x11 old_init"
     SOURCE="xprint_mozdev_org_source-$VERSION.tar.gz"
 #      URL="http://puck.informatik.med.uni-giessen.de/download"
        URL="http://xprint.sourceforge.net/download/009release"
@@ -14,15 +14,6 @@ Xprint is an advanced printing system which enables
 X11 applications to use devices like printers,
 FAX or create documents in formats like
 PostScript, PDF, PCL, etc."
-
-configure() {
- if  !  grep  -q  "XPRINT_BOOT"  $SPELL_CONFIG; then
-  if    query  "Invoke Xprint at boot? " y
-  then  echo  "XPRINT_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo  "XPRINT_BOOT=false"  >>  $SPELL_CONFIG
-  fi
- fi
-}
 
 build() {
  copy_file()  {
@@ -44,7 +35,7 @@ build() {
  install_files()  {
   cd  $BUILD_DIR/dest/
 
-  copy_file  etc/init.d/xprint         /etc/init.d/xprint
+  # copy_file  etc/init.d/xprint         /etc/init.d/xprint
   copy_file  etc/profile.d/xprint.csh  /etc/profile.d/xprint.csh
   copy_file  etc/profile.d/xprint.sh   /etc/profile.d/xprint.sh
 
@@ -68,17 +59,5 @@ build() {
  make    World                             &&
  prepare_install                           &&
  make    install  DESTDIR=$BUILD_DIR/dest  &&
- install_files
-
- if  $XPRINT_BOOT;  then
-
-  ln  -sf  /etc/init.d/xprint  /etc/rc0.d/K10xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc1.d/K10xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc6.d/K10xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc2.d/S99xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc3.d/S99xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc4.d/S99xprint
-  ln  -sf  /etc/init.d/xprint  /etc/rc5.d/S99xprint
- fi
+         install_files
 }
-

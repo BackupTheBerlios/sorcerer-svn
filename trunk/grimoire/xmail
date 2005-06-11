@@ -1,5 +1,5 @@
    VERSION=( "1.21" "1.20" )
-    IGNORE="crlf"
+    IGNORE="crlf old_init"
   CATEGORY="email"
  ATTRIBUTE="console server new"
     SOURCE="xmail-$VERSION.tar.gz"
@@ -29,17 +29,6 @@ cp     -av  docs/*    /usr/share/doc/xmail
 true
 }
 
-init_install()  {
-install  -m 0755  -o root  -g root  xmail  /etc/init.d
-ln  -sf  ../init.d/xmail     /etc/rc3.d/S90xmail
-ln  -sf  ../init.d/xmail     /etc/rc4.d/S90xmail
-ln  -sf  ../init.d/xmail     /etc/rc5.d/S90xmail
-
-ln  -sf  ../init.d/xmail     /etc/rc0.d/K10xmail
-ln  -sf  ../init.d/xmail     /etc/rc6.d/K10xmail
-true
-}
-
 xmail_install()  {
 mkdir  -p  /usr/libexec
 chown  -R  root:root MailRoot
@@ -59,18 +48,5 @@ sed   -i  "s:-O2:$CFLAGS:"  Makefile.lnx
 make  -f                    Makefile.lnx  &&
 prepare_install  &&
   xmail_install  &&
-   docs_install  &&
-   init_install
-}
-
-post_install()  {
-/etc/init.d/xmail  start
-true
-}
-
-pre_remove() {
-if    [  -x  /etc/init.d/xmail  ]
-then         /etc/init.d/xmail  stop
-fi
-true
+   docs_install
 }

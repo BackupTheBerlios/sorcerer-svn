@@ -1,6 +1,6 @@
    VERSION=( "3.2.8" "3.2.7" "3.2.6" "3.2.5" "3.2.4" )
   CATEGORY="utility kernel"
- ATTRIBUTE="console"
+ ATTRIBUTE="console old_init"
     SOURCE="pcmcia-cs/pcmcia-cs-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://pcmcia-cs.sourceforge.net"
@@ -21,16 +21,13 @@ so cards can be safely inserted and ejected at any time."
 
 
 build() {
-install_conf()  {
-
-  ln  -s  ../init.d/pcmcia  /etc/rc3.d/S25pcmcia
-  ln  -s  ../init.d/pcmcia  /etc/rc4.d/S25pcmcia
-  ln  -s  ../init.d/pcmcia  /etc/rc5.d/S25pcmcia
-
-  ln  -s  ../init.d/pcmcia  /etc/rc0.d/K75pcmcia
-  ln  -s  ../init.d/pcmcia  /etc/rc6.d/K75pcmcia
-
-}
+# install_conf()  {
+#   ln  -s  ../init.d/pcmcia  /etc/rc3.d/S25pcmcia
+#   ln  -s  ../init.d/pcmcia  /etc/rc4.d/S25pcmcia
+#   ln  -s  ../init.d/pcmcia  /etc/rc5.d/S25pcmcia
+#   ln  -s  ../init.d/pcmcia  /etc/rc0.d/K75pcmcia
+#   ln  -s  ../init.d/pcmcia  /etc/rc6.d/K75pcmcia
+# }
 
 # sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network.opts
 # sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network
@@ -41,13 +38,11 @@ sed  -i  "s:/sbin/depmod -a::"                  etc/install-etc
 sed  -i  "s:modules clients wireless::"         Makefile
 sed  -i  "s:-O3:$CFLAGS:"                       rules.mk
 
-# make    oldconfig  &&
-
-make    clean      &&
-./Configure  --noprompt  \
-             --srctree   &&
-make    all              &&
-prepare_install          &&
-make    install          &&
-        install_conf
+make    clean    &&
+./Configure      \
+--noprompt       \
+--srctree        &&
+make        all  &&
+prepare_install  &&
+make    install
 }

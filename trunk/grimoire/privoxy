@@ -1,7 +1,7 @@
    VERSION=( "3.0.3-2-stable.src" "3.0.3-1-stable-src" "3.0.3-stable-src" "3.0.2-1-stable-src" "3.0.2-stable-src" )
     IGNORE="beta\|sol"
   CATEGORY="web"
- ATTRIBUTE="server"
+ ATTRIBUTE="server old_init"
   HOMEPAGE="http://www.privoxy.org"
        URL="$SOURCEFORGE_URL"
 # They changed from -src to .src at version 3.0.3-2-stable, dumb change.
@@ -10,79 +10,50 @@
        REQ="autoconf automake pcre"
   ESTIMATE="52"
       DESC="privoxy is a filtering web proxy for protecting privacy.
-
-privoxy is a web proxy with advanced filtering 
-capabilities for protecting privacy, filtering 
-web page content, managing cookies, controlling 
-access, and removing ads, banners, pop-ups and 
+privoxy is a web proxy with advanced filtering
+capabilities for protecting privacy, filtering
+web page content, managing cookies, controlling
+access, and removing ads, banners, pop-ups and
 other obnoxious Internet junk.
-Privoxy has a very flexible configuration and can 
+Privoxy has a very flexible configuration and can
 be customized to suit individual needs and tastes.
-Privoxy has application for both stand-alone 
+Privoxy has application for both stand-alone
 systems and multi-user networks.
-Privoxy is based on Internet Junkbuster (tm).
-"
-
-
-#####################################
-configure() {
- if  !  grep  -q  "PRIVOXY_BOOT"  $SPELL_CONFIG; then
-  if    query  "Invoke privoxy at boot? " y
-  then  echo  "PRIVOXY_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo  "PRIVOXY_BOOT=false"  >>  $SPELL_CONFIG
-  fi
- fi
-}
+Privoxy is based on Internet Junkbuster (tm)."
 
 build() {
- if    !  grep  -q  privoxy:  /etc/group
- then  groupadd     privoxy
- fi
+  if    !  grep  -q  privoxy:  /etc/group
+  then  groupadd     privoxy
+  fi
 
- if    !  grep  -q  privoxy:  /etc/passwd
- then  useradd  -g privoxy  -s /bin/false  -d /etc/privoxy  \
-         -c "privoxy"  privoxy
- fi
+  if    !  grep  -q  privoxy:  /etc/passwd
+  then  useradd  -g privoxy  -s /bin/false  -d /etc/privoxy  \
+                 -c privoxy  privoxy
+  fi
 
- sed  -i  "s:/usr/local/etc/privoxy/config:/etc/privoxy/config:" \
-    privoxy-generic.init
+  sed  -i  "s:/usr/local/etc/privoxy/config:/etc/privoxy/config:" \
+       privoxy-generic.init
 
- autoheader
- autoconf
+  autoheader
+  autoconf
 
- ./configure  --prefix=/usr              \
-        --sysconfdir=/etc/privoxy  \
-        --localstatedir=/var       \
-        $OPTS                      &&
- make                                    &&
- make  install   USER=privoxy            \
-         GROUP=privoxy            &&
+  ./configure                     \
+  --prefix=/usr                   \
+  --sysconfdir=/etc/privoxy       \
+  --localstatedir=/var            \
+  $OPTS                           &&
+  make                            &&
+  prepare_install                 &&
+  make    install   USER=privoxy  \
+                   GROUP=privoxy  &&
 
- # replace the init script 
- cp  -f  $SCRIPT_DIR/privoxy.init  \
-     /etc/init.d/privoxy       &&
-   
- if  $PRIVOXY_BOOT;  then
-  ln  -sf  ../init.d/privoxy  /etc/rc0.d/K20privoxy
-  ln  -sf  ../init.d/privoxy  /etc/rc1.d/K20privoxy
-  ln  -sf  ../init.d/privoxy  /etc/rc2.d/K20privoxy
-  ln  -sf  ../init.d/privoxy  /etc/rc6.d/K20privoxy
-
-  ln  -sf  ../init.d/privoxy  /etc/rc3.d/S95privoxy
-  ln  -sf  ../init.d/privoxy  /etc/rc4.d/S95privoxy
-  ln  -sf  ../init.d/privoxy  /etc/rc5.d/S95privoxy
- fi
+# if  $PRIVOXY_BOOT;  then
+#  ln  -sf  ../init.d/privoxy  /etc/rc0.d/K20privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc1.d/K20privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc2.d/K20privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc6.d/K20privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc3.d/S95privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc4.d/S95privoxy
+#  ln  -sf  ../init.d/privoxy  /etc/rc5.d/S95privoxy
+# fi
 }
-
-post_install() {
- default_post_install
- if  $PRIVOXY_BOOT  
- then  /etc/init.d/privoxy  start 
- fi  
-}
-
-pre_remove() {
- default_pre_remove
- /etc/init.d/privoxy  stop
-}
-
