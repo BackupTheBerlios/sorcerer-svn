@@ -52,27 +52,15 @@ build() {
   chown  -R  bind:bind  /etc/bind
  }
 
- groupadd  bind            2>/dev/null
- useradd   bind  -g  bind  2>/dev/null
+  groupadd  bind            2>/dev/null
+  useradd   bind  -g  bind  2>/dev/null
 
- ./configure  --prefix=/usr           \
-              --sysconfdir=/etc/bind  \
-              --localstatedir=/var    &&
- make                                 &&
- prepare_install                      &&
- make    install                      &&
- conf_install                         &&
- install  -m 0755  $SCRIPT_DIR/named  /etc/init.d
-}
-
-post_install() {
- if    $BIND_BOOT
- then  /lib/lsb/install_initd /etc/init.d/named; /etc/init.d/named start
- else  /lib/lsb/remove_initd  /etc/init.d/named
- fi
-}
-
-pre_remove() {
-  /etc/init.d/named  stop
-  /lib/lsb/remove_initd /etc/init.d/named
+  ./configure             \
+  --prefix=/usr           \
+  --sysconfdir=/etc/bind  \
+  --localstatedir=/var    &&
+  make                    &&
+  prepare_install         &&
+  make    install         &&
+     conf_install
 }

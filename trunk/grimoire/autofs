@@ -17,23 +17,20 @@ operation in the common case (everything already mounted.)"
 build() {
 sed  -i  "s:-O3 -fomit-frame-pointer -Wall:$CFLAGS:"  Makefile.rules
 default_build  &&
-install  -m 0755  $SCRIPT_DIR/auto.net  /etc  &&
-install  -m 0755  $SCRIPT_DIR/autofs    /etc/init.d
+install  -m 0755  $SCRIPT_DIR/auto.net  /etc
 }
 
 post_install() {
+  default_post_install
                INC="alias	autofs	autofs4"
   sed  -i  "\,$INC,d"    /etc/modules.conf
   echo       "$INC"  >>  /etc/modules.conf
   depmod  -a
-  /etc/init.d/autofs start
-  /lib/lsb/install_initd /etc/init.d/autofs
 }
 
 pre_remove() {
-  /etc/init.d/autofs stop
+  default_pre_remove
                INC="alias	autofs	autofs4"
   sed  -i  "\,$INC,d"    /etc/modules.conf
   depmod  -a
-  /lib/lsb/remove_initd /etc/init.d/autofs
 }

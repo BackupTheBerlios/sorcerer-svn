@@ -19,33 +19,25 @@ and most of the other core ext2 filesystem utilities."
 
 build() {
  install_init()  {
-
-  cp         lib/uuid/libuuid.a  /usr/lib
-  mkdir  -p                      /usr/include/uuid
-  cp         lib/uuid/uuid.h     /usr/include/uuid
-
-  [  -e                          /etc/init.d/mount  ]  ||
-  cp       $SCRIPT_DIR/mount     /etc/init.d
-
-  ln  -sf  /etc/init.d/mount     /etc/rcS.d/S10mount
-  ln  -sf  /etc/init.d/mount     /etc/rc0.d/K90mount
-  ln  -sf  /etc/init.d/mount     /etc/rc6.d/K90mount
+  mkdir    -p                                 /usr/include/uuid
+  install  -m 0644  lib/uuid/uuid.h           /usr/include/uuid
+  install  -m 0644  lib/uuid/libuuid.a        /usr/lib
+  install  -m 0700  $SCRIPT_DIR/init.d/mount  /etc/init.d
  }
 
- grep  -rl  "#include <linux/fd.h>"  *  |
- while  read
- do     sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"  $REPLY
- done
+  grep  -rl    "#include <linux/fd.h>"  *  |  xargs  -l16  \
+  sed   -i   "\,#include <linux/fd.h>,i#include <linux/compiler.h>"
 
- ./configure  --host=$BUILD        \
-              --prefix=/usr        \
-        --with-root-prefix=  \
-        --enable-elf-shlibs  &&
- make  "LDFLAGS=$LDFLAGS"          &&
- prepare_install                   &&
- make    install                   &&
- make    install-libs              &&
- install_init
+  ./configure               \
+  --host=$BUILD             \
+  --prefix=/usr             \
+  --with-root-prefix=       \
+  --enable-elf-shlibs       &&
+  make  "LDFLAGS=$LDFLAGS"  &&
+  prepare_install           &&
+  make    install           &&
+  make    install-libs      &&
+          install_init
 }
 
 post_install() {

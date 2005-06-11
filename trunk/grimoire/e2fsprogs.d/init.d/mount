@@ -1,0 +1,91 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: $local_fs
+# Required-Start: 
+# Should-Start: udev
+# Required-Stop: 
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: mount mounts local file systems
+# Description: mount mounts local file systems during
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+mount_local_fs() {
+  start_lvm2()  {
+    if    [  -x  /usr/sbin/vgscan    ]  &&
+          [  -x  /usr/sbin/vgchange  ]
+    then  echo  -n  "Activating LVM2..."
+          /usr/sbin/vgscan
+          /usr/sbin/vgchange -a y
+          echo  "done."
+    fi
+  }
+
+                       [  -d  /devices  ]  &&
+  mount   -n  -t  devfs devfs /devices
+  mount   -n                  /proc
+  mount   -n  -o  remount,ro  /
+
+  if  !  [  -e  /fastboot  ]; then 
+
+    [  -e  /forcefsck      ]  &&  FORCE="-f"
+    [  "$FSCKFIX"  =  yes  ]  &&    FIX="-y"  ||  FIX="-a"
+
+    echo  -n  "Checking file systems... "
+    fsck  -C  -A  $FIX  $FORCE
+
+    if [  $?  -gt  1  ];  then
+      echo  "fsck failed."
+      echo  "Please repair your file system manually by"
+      echo  "running /sbin/fsck without the -a option"
+      sulogin  -t  120
+    fi
+
+  fi
+
+  # remount /  as readwrite, then fake remount to record to /etc/mtab
+  mount    -n  -o  remount  /
+  touch    /etc/mtab
+  mount    -f  -o  remount  /
+  start_lvm2
+  mount    -a
+  rm       -f  /fastboot  /forcefsck
+}
+
+
+start()  {
+  log_warning_msg  "mount about to mount local file systems"; mount_local_fs
+  log_success_msg  "mount finished mounting file systems"
+}
+
+umount_local_fs() {
+  umount   -t  nodevfs,noproc  -f  -a  -r
+
+  cat  /etc/mtab  |
+  while  read  DEVICE  MOUNT  REST
+  do    mount  -n  -o  remount,ro  $MOUNT
+  done
+
+  if    !  mount    -n  -o remount,ro  /;  then
+    log_failure_msg  "/ failed to remount read only"
+    sulogin  -t 300
+  fi
+}
+
+stop()  {
+  log_warning_msg "umount about to unmount local file systems"; umount_local_fs
+  log_success_msg "umount finished"
+}
+
+help()  {
+  echo "Usage: $0 {start|stop}" 1>&2
+}
+
+case  $1  in
+         start)  start        ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac

@@ -36,11 +36,11 @@ build() {
   make                                 &&
   prepare_install                      &&
   make    install                      &&
-  make    install-configure            &&
-  install  -m 0755  $SCRIPT_DIR/courier  /etc/init.d
+  make    install-configure
 }
 
 post_install() {
+  default_post_install
   makealiases
   makesmtpaccess
   makesmtpaccess-msa
@@ -67,12 +67,4 @@ post_install() {
     if  !  [  -f  /usr/share/pop3d.pem   ];  then  mkpop3dcert;   fi
     if  !  [  -f  /usr/share/imapd.pem   ];  then  mkimapdcert;   fi
   fi
-
-  /lib/lsb/install_initd /etc/init.d/courier
-  /etc/init.d/courier  start
-}
-
-pre_remove() {
-  /etc/init.d/courier  stop
-  /lib/lsb/remove_initd /etc/init.d/courier
 }
