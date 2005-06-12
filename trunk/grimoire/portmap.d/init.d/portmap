@@ -1,0 +1,69 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: portmap
+# Required-Start: $local_fs $network
+# Required-Stop: $local_fs $network
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: portmap manages RPC connections
+# Description: portmap manages RPC connections.
+#	NFS and NIS protocols require portmap
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# PIDF=/var/run/portmap.pid
+SERV=/sbin/portmap
+NAME=portmap
+
+status()  {
+# PIDS="$( pidofproc -p $PIDF $SERV )"
+  PIDS="$( pidofproc          $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+# if    start_daemon     -p $PIDF $SERV
+  if    start_daemon              $SERV
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+# if    killproc        -p $PIDF -s 15  $SERV
+  if    killproc                 -s 15  $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|force-reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac

@@ -1,6 +1,6 @@
    VERSION=( "5beta" "4" )
   CATEGORY="network"
- ATTRIBUTE="server old_init"
+ ATTRIBUTE="server"
     SOURCE="portmap_$VERSION.tar.gz"
        URL="ftp://ftp.porcupine.org/pub/security"
   HOMEPAGE="ftp://ftp.porcupine.org/pub/security/index.html"
@@ -13,57 +13,11 @@ The portmap server must be running on machines which act
 as servers for protocols which make use of the RPC mechanism.
 This portmapper supports hosts.{allow,deny} type access control."
 
-configure() {
- if  !  grep  -q  "PORTMAP_BOOT="  $SPELL_CONFIG;  then
-
-  if    query  "Invoke portmap at boot?" n
-  then  echo   "PORTMAP_BOOT=true"   >>  $SPELL_CONFIG
-  else  echo   "PORTMAP_BOOT=false"  >>  $SPELL_CONFIG
-  fi
-
- fi
-}
-
 build() {
-install_init()  {
-  cp  $SCRIPT_DIR/portmap.sh     /etc/init.d
+  # fix problems with glibc-2.3.2
+  patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
 
-  if  $PORTMAP_BOOT;  then
-    ln  -sf  ../init.d/portmap.sh  /etc/rc0.d/K70portmap
-    ln  -sf  ../init.d/portmap.sh  /etc/rc1.d/K70portmap
-    ln  -sf  ../init.d/portmap.sh  /etc/rc2.d/K70portmap
-    ln  -sf  ../init.d/portmap.sh  /etc/rc6.d/K70portmap
-
-    ln  -sf  ../init.d/portmap.sh  /etc/rc3.d/S30portmap
-    ln  -sf  ../init.d/portmap.sh  /etc/rc4.d/S30portmap
-    ln  -sf  ../init.d/portmap.sh  /etc/rc5.d/S30portmap
-  fi
-
-}
-
- # fix problems with glibc-2.3.2
- patch -p1 < $SCRIPT_DIR/portmap_5beta.patch
-
- make  WRAP_DIR=/usr/lib  &&
- prepare_install          &&
- cp  portmap    /sbin     &&
- cp  pmap_dump  /sbin     &&
- cp  pmap_set   /sbin     &&
- install_init
-}
-
-post_install() {
- RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
-
- if    [   -x  /etc/rc$RUNLEVEL.d/S30portmap  ]
- then          /etc/rc$RUNLEVEL.d/S30portmap  start
- fi
-}
-
-pre_remove() {
- RUNLEVEL=$( runlevel | cut -d ' ' -f2 )
-
- if    [  -x  /etc/rc$RUNLEVEL.d/K70portmap  ]
- then         /etc/rc$RUNLEVEL.d/K70portmap  stop
- fi
+  make  WRAP_DIR=/usr/lib  &&
+  prepare_install          &&
+  install  -m 0755  portmap pmap_dump pmap_set  /sbin
 }
