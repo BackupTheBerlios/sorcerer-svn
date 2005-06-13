@@ -18,16 +18,22 @@ install_init() {
   mkdir   -p                                   /etc/init.d
   install -m 0600  $SCRIPT_DIR/inittab         /etc
   install -m 0700  $SCRIPT_DIR/prc             /etc/init.d
+  install -m 0700  $SCRIPT_DIR/rcS             /etc/init.d
   install -m 0700  $SCRIPT_DIR/init.d/halt     /etc/init.d
   install -m 0700  $SCRIPT_DIR/init.d/reboot   /etc/init.d
 }
 
-  if    !  grep -q  "init.d/prc"  /etc/inittab;  then
+  if    !  grep  -q  "init.d/prc"   /etc/inittab  ||
+        !  grep  -q  "si::sysinit"  /etc/inittab
+  then
     cp              /etc/inittab  /etc/inittab.old
-    echo     "sysvinit works slightly differently now on Sorcerer"
-    echo     "Your current inittab will copied to /etc/inittab.old"
-    echo     "/etc/inittab.old is not used, it is only for reference."
-    sed  -i  "/^si:/d;s:init.d/rc:init.d/prc:"  /etc/inittab
+
+    echo      "sysvinit works slightly differently now on Sorcerer"
+    echo      "Your current inittab will copied to /etc/inittab.old"
+    echo      "/etc/inittab.old is not used, it is only for reference."
+    sed   -i  "s:init.d/rc:init.d/prc:"        /etc/inittab
+    grep  -q    "si::sysinit:/etc/init.d/rcS"  /etc/inittab  ||
+    sed   -i  "2isi::sysinit:/etc/init.d/rcS"  /etc/inittab
     echo     "/etc/inittab modified"
   fi
 
@@ -36,7 +42,7 @@ install_init() {
   prepare_install        &&
   make  -C src  install  &&
                 install_init  &&
-  echo  "Welcome to the improved Sorcerer sysvinit."
+  echo  "Welcome to the improved sysvinit for Sorcerer."
 }
 
 post_install() {
@@ -45,7 +51,7 @@ post_install() {
 }
 
 current() {
-  if  !  grep  -qx  "Welcome to the improved Sorcerer sysvinit."   $COMPILE_LOGS/sysvinit
+  if  !  grep  -qx  "Welcome to the improved sysvinit for Sorcerer."   $COMPILE_LOGS/sysvinit
   then
     echo "sysvinit requires recast of sysvinit"  >  $CAST_QUEUE/sysvinit
     show_installed  |
