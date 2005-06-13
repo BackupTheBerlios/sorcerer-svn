@@ -1,9 +1,8 @@
-   VERSION=( "1.0.1" )
+   VERSION=( "1.0.2" "1.0.1" )
   CATEGORY="game"
- ATTRIBUTE="x11 new broken"
-# 1.0.1 has compile errors.
+ ATTRIBUTE="x11 new"
     SOURCE="sdb-$VERSION.tar.gz"
-  HOMEPAGE="http://sdb.gamecreation.org/"
+  HOMEPAGE="http://sdb.gamecreation.org"
        URL="http://gcsociety.sp.cs.cmu.edu/~frenzy"
        REQ="SDL_image SDL_mixer"
   ESTIMATE="42"
@@ -18,13 +17,19 @@ of walking death machines aren't just gonna let you."
 
 build() {
 install_files() {
-mkdir    -p            /usr/libexec      /usr/share/sdb
+mkdir    -p            /usr/libexec  /usr/share/sdb
 install  -m 0755  sdb  /usr/libexec
+cd       ..
+find     *  -type d              |  xargs  -l32  chmod  0755
+find     *  -mindepth 1  -type f |  xargs  -l32  chmod  0644
 cp       -rv  levels models snd sprites  /usr/share/sdb
+echo     -e  "#!/bin/bash\ncd /usr/share/sdb\n/usr/libexec/sdb"  >  sdb
+install  -m 0755  -D  sdb  /usr/games/sdb
 }
 
 cd      src
-sed  -i "/#include <stdlib.h>/i#include <math.h>"    sdb.h
+sed  -i  "s:-O2:$CXXFLAGS:
+          s:-lGLU:-lGLU -L/usr/X11R6/lib:" Makefile
 make             &&
 prepare_install  &&
 install_files
