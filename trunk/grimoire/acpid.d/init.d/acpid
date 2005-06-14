@@ -1,0 +1,49 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: acpid
+# Required-Start: $local_fs
+# Required-Stop: $local_fs
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: acpid starts the ACPI Event Daemon
+# Description: acpid is the ACPI Event Daemon for power management and
+#     delivers ACPI events from the kernel to user space.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+ACPI_CMD="/usr/sbin/acpid -c /etc/acpi/events"
+
+case "$1" in
+  start)  
+    if  [ ! -e /proc/acpi ]; then  
+      log_failure_msg "ACPI support has not been compiled into the kernel"
+    else 
+      PID=$( pgrep -f "$ACPI_CMD" )
+      if [ "x$PID" == "x" ]; then
+	MSG="$1ing ACPId."
+	$ACPI_CMD
+      	[ $? -eq "0" ]  &&  log_success_msg "$MSG"  ||  log_failure_msg "$MSG" 
+      else
+        log_warning_msg "ACPId already running (PID=$PID)"
+      fi	
+    fi
+    ;;
+     
+  stop)
+    pkill -f "$ACPI_CMD$" &> /dev/null
+    log_success_msg  "$1ing ACPId."     
+    ;;
+    
+  restart)
+    $0 stop
+    sleep  1
+    $0 start
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|restart}" 
+    exit 1
+    ;;
+esac
