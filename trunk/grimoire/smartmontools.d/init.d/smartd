@@ -1,0 +1,38 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: smartd
+# Required-Start: $local_fs $syslog module-init-tools
+# Required-Stop: $local_fs
+# Default-Start: 3 4 5
+# Default-Stop:  0 6
+# Short-Description: smartd monitors health status of hard drives
+# Description: smartd monitors health status of hard drives
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SMART_CMD="/usr/sbin/smartd"
+
+start()  {
+  MSG="Starting smartd"
+  $SMART_CMD  &&  log_success_msg "$MSG"  ||  log_failure_msg "$MSG"
+}
+
+stop()  {
+  MSG="Stopping smartd"
+  pkill -f "^$SMART_CMD$" 2> /dev/null    &&  
+  log_success_msg "$MSG"  ||  log_failure_msg "$MSG"
+}
+
+help()  {
+  echo  "Usage:  $0  {start|stop|restart}"
+}
+
+
+case $1 in
+    start)                       start  ;;
+  restart)  stop  &&  sleep  1;  start  ;;
+     stop)  stop                        ;;
+        *)  help                        ;;
+esac
