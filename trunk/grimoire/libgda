@@ -1,22 +1,19 @@
-   VERSION=( "1.2.0" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
-    IGNORE="mm\|^1\.3\|^1\.2\.1"
-# 1.2.1 has compile errors
+   VERSION=( "1.2.2" "1.2.1" "1.2.0" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
+    IGNORE="mm\|^1\.3\."
   CATEGORY="db"
  ATTRIBUTE="x11"
     SOURCE="sources/libgda/${VERSION:0:3}/libgda-$VERSION.tar.bz2"
   HOMEPAGE="http://www.gnome.org"
        URL="$GNOME_URL"
-       REQ=( "glib libxslt libxml2 popt"
+       REQ=( "db glib libxslt libxml2 ncurses popt readline"
              "mysql::--without-mysql:to store and retrieve data from mysql databases"
+             "openldap::--without-ldap:for LDAP databases"
              "postgresql::--without-postgres:to retrieve data from postgresql database"
-             "sqlite::--without-sqlite:to retreive data from sqlite database"
-             "openldap::--without-ldap:for LDAP databases" )
-  ESTIMATE="432"
+             "sqlite::--without-sqlite:to retreive data from sqlite database" )
+  ESTIMATE="387"
       DESC="libgda, GNU Data Access,  provides uniform access to different data sources."
 
-
 build()  {
-
 patch_source()  {
 patch  -p1  <<  EOF
 diff -r -U2 libgda-1.0.4/libgda/gda-util.c libgda-1.0.4/libgda/gda-util.c
@@ -63,7 +60,7 @@ EOF
 
   case  $VERSION  in
     1.0.4)  patch_source  ;;
-    1.2.0)  sed  -i  "s:#if BDB_VERSION < 40000:#if BDB_VERSION > 40000:"  \
+    1.2.[0-2])  sed  -i  "s:#if BDB_VERSION < 40000:#if BDB_VERSION > 40000:"  \
                      providers/bdb/gda-bdb-recordset.c
   esac
   default_build
