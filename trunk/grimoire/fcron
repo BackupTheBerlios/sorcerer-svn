@@ -23,6 +23,13 @@ You can also set a nice value to a job, run it
 depending on the system load average, and much more."
 
 build() {
+  case $VERSION in
+    "2.0.2")  # This version got a bug that exhibits on some
+	      # computers: fcron sometimes sleeps "forever"
+              sed  -i "629i   if (stime > 1)"  fcron.c
+              ;;
+  esac
+
   install_init()  {
     install -m 0644  files/fcron.allow  /etc
     install -m 0644  files/fcron.deny   /etc
