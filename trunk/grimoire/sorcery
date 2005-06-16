@@ -86,13 +86,15 @@ post_install() {
  }
 
  switch_var_tmp() {
-  if    [ -h           /var/tmp              ]  &&
-        [ "$( readlink /var/tmp )" == "/tmp" ]
-  then
-    rm     -f   /var/tmp
-    rm     -rf  "/usr/src/sorcery.failed"  \
-                "/var/cache/leech"         \
-                "/var/cache/uncompressed"  &
+  if      [ -h           /var/tmp                ];  then
+    if    [ "$( readlink /var/tmp )" ==   "/tmp" ]  ||
+          [ "$( readlink /var/tmp )" == "../tmp" ]
+    then
+      rm     -f   /var/tmp
+      rm     -rf  "/usr/src/sorcery.failed"  \
+                  "/var/cache/leech"         \
+                  "/var/cache/uncompressed"  &
+    fi
   fi
  }
 
