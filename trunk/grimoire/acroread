@@ -1,12 +1,11 @@
-   VERSION=( "70" "5010" "509" "508" "507" "506" )
-      SAFE=( "70" "5010" )
-    IGNORE="[0-9][0-9][0-9][0-9]"
+   VERSION=( "5010" "70" "509" "508" "507" "506" )
+      SAFE=( "5010" )
   CATEGORY="documentation"
  ATTRIBUTE="i386 noheal x11"
-    SOURCE="AdbeRdr${VERSION}_linux_enu.tar.gz"
-       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/7x/7.0/enu"
-#   SOURCE="linux-$VERSION.tar.gz"
-#      URL="ftp://ftp.adobe.com/pub/adobe/acrobatreader/unix/5.x"
+#    SOURCE="AdbeRdr${VERSION}_linux_enu.tar.gz"
+#       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/7x/7.0/enu"
+    SOURCE="linux-$VERSION.tar.gz"
+       URL="ftp://ftp.adobe.com/pub/adobe/acrobatreader/unix/5.x"
   HOMEPAGE="http://www.adobe.com"
   disable  archive
   disable  necropolis
@@ -14,13 +13,10 @@
   ESTIMATE="11"
       DESC="acroread provides a precompiled portable document file viewer.
 acorread provides an acrobat reader for viewing,
-navigating and printing Portable Document Format (PDF) files.
-Yes version 70 starts up and immediately closes.
-Perhaps their release is buggy?"
-
+navigating and printing Portable Document Format (PDF) files."
 
 build() {
-install_files_old()  {
+install_files()  {
          REPLACE="s:REPLACE_ME:/usr/lib/acrobat/Reader:"
   sed  "$REPLACE"  bin/acroread.sh  >  acroread
   set      -x
@@ -36,7 +32,7 @@ install_files_old()  {
   set      +x
 }
 
-install_files()  {
+install_files_new()  {
 
 #         REPLACE="s:REPLACE_ME:/usr/lib/acrobat/Reader:"
 #  sed  "$REPLACE"  bin/acroread.sh  >  acroread
@@ -56,8 +52,7 @@ install_files()  {
   chmod    0755  /usr/bin/acroread
 }
 
-
-unpack_tars_old()  {
+unpack_tars()  {
   set     -x
   tar     -xf    COMMON.TAR  2>/dev/null;  rm  -f    COMMON.TAR
   tar     -xf  LINUXRDR.TAR  2>/dev/null;  rm  -f  LINUXRDR.TAR
@@ -65,7 +60,7 @@ unpack_tars_old()  {
   set     +x
 }
 
-unpack_tars()  {
+unpack_tars_new()  {
   set     -x
   tar     -xf  COMMON.TAR  2>/dev/null;  rm  -f  COMMON.TAR
   tar     -xf  ILINXR.TAR  2>/dev/null;  rm  -f  ILINXR.TAR
@@ -73,10 +68,9 @@ unpack_tars()  {
   set     +x
 }
 
-
-[  -f  COMMON.TAR  ]  &&
-[  -f  ILINXR.TAR  ]  &&
-unpack_tars           &&
-prepare_install
+[  -f  COMMON.TAR    ]  &&
+[  -f  LINUXRDR.TAR  ]  &&
+unpack_tars             &&
+prepare_install         &&
 install_files
 }
