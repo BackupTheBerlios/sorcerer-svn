@@ -1,12 +1,6 @@
 #!/bin/bash
 
-export  PATH="/sbin:/bin:/usr/sbin:/usr/bin"
-
-export  PATH
-umask   022
 trap    ":" INT QUIT TSTP
-
-RL=$1
 
 parallelize() {
   for ((SEQ=0;SEQ<10;SEQ++));  do
@@ -20,5 +14,54 @@ parallelize() {
   done
 }
 
-parallelize K stop
-parallelize S start
+linear() {
+  for ((SEQ=0;SEQ<10;SEQ++));  do
+    for  SCRIPT  in  /etc/rc.d/rc${RL}.d/$1${SEQ}*;  do
+      if    [  -f  "$SCRIPT"  ]  && 
+            [  -x  "$SCRIPT"  ]
+      then          $SCRIPT  $2
+      fi
+    done
+    wait
+  done
+}
+
+ssp() {
+  parallelize K stop
+  parallelize S start
+}
+
+ssl()  {
+  linear  K  stop
+  linear  S  start
+}
+
+export  PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+umask   022
+ RL=$1
+RLL=/var/log/runlevel.$RL.log
+ SI=/usr/sbin/sorcerer.install
+
+case  $RL   in
+  3|5|1)    ssl     &>  $RLL &  ;;
+    2|4)    ssp |  tee  $RLL    ;;
+    6|2)    ssp                 ;;
+      0)    ssl                 ;;
+esac
+
+echo  "$RLL is the runlevel log."
+
+if    [  3  ==  $RL  ]   &&
+      [     -x  $SI  ];  then
+  /bin/rm   -f  $SI
+  if  [     -x  $SI  ];  then
+    echo    -e      "\e[32m"
+    echo    -e      "Log in as root, press enter for password."
+    echo    -e  -n  "Run "
+    echo    -e  -n  "\e[36m"
+    echo    -e  -n  "sorcerer.install "
+    echo    -e  -n  "\e[32m"
+    echo    -e      "for menu driven installation."
+    echo    -e      "\e[0m"
+  fi
+fi
