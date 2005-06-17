@@ -62,9 +62,11 @@ start()  {
 }
 
 umount_local_fs() {
-  umount   -t  nodevfs,noproc  -f  -a  -r
+  umount   -t  noproc,noramfs,nodevpts,nodevfs  -f  -a  -r -l
+  [  -f         /proc/cpuinfo  ]  ||
+  mount  -o,ro  /proc
 
-  cat  /etc/mtab  |
+  cat  /proc/mounts  |
   while  read  DEVICE  MOUNT  REST
   do    mount  -n  -o  remount,ro  $MOUNT
   done
