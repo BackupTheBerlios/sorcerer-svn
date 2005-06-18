@@ -1,68 +1,57 @@
-   VERSION=( "2.5.2.3" "2.5.2.2" "2.5.2" "2.5.1.4" "2.5.1.2" )
+   VERSION=( "2.5.3" "2.5.2.3" "2.5.2.2" "2.5.2" "2.5.1.4" "2.5.1.2" )
   CATEGORY="email"
  ATTRIBUTE="console"
-    SOURCE="minimalist-$VERSION.tgz"
+    SOURCE="minimalist-$VERSION.tar.gz"
   HOMEPAGE="http://www.mml.org.ua"
        URL="http://www.mml.org.ua/LIST"
   ESTIMATE="5"
       DESC="minimalist is a mailing lists manager.
-Although it is declared as minimalistic, 
-it has many features as his eldest brothers, 
-such as Majordomo and so on, 
-but in contrast to them it is very small, 
+Although it is declared as minimalistic,
+it has many features as his eldest brothers,
+such as Majordomo and so on,
+but in contrast to them it is very small,
 fast, simple for setup and maintenance."
 
 build() {
-	prepare_install  &&
+files_install() {
+# First, add the global entry in aliases
+(
+echo  '# minimalist global entry:'
+echo  'minimalist:	"|/usr/sbin/minimalist.pl -d /etc/minimalist"'
+echo  '#'
+echo  '# sample mailing list:'
+echo  'list-sample:	"|/usr/sbin/minimalist.pl -d /etc/minimalist list-sample"'
+echo  'list-sample-owner:	owner@myhost.mydomain.myzone'
+)  >  /etc/aliases.minimalist-sample
 
-	# First, add the global entry in aliases
-	echo " " > /etc/aliases.minimalist-sample
-	echo "# minimalist global entry:" >> /etc/aliases.minimalist-sample
-	echo "minimalist:	\"|/usr/sbin/minimalist.pl -d /etc/minimalist\"" >> /etc/aliases.minimalist-sample
-	echo "#" >> /etc/aliases.minimalist-sample
-	echo "# sample mailing list:" >> /etc/aliases.minimalist-sample
-	echo "list-sample:	\"|/usr/sbin/minimalist.pl -d /etc/minimalist list-sample\"" >> /etc/aliases.minimalist-sample
-	echo "list-sample-owner:	owner@myhost.mydomain.myzone" >> /etc/aliases.minimalist-sample
+# Create config files directory
+mkdir -p  /etc/minimalist
 
-	# Create config files directory
-	mkdir -p  /etc/minimalist
+# Copy sample files
+cp      ./sample/lists.lst /etc/minimalist/lists.lst-sample
+cp  -R  ./sample/sample /etc/minimalist/
+cp      ./minimalist.conf-sample /etc/minimalist/
 
-	# Copy sample files
-	cp      ./sample/lists.lst /etc/minimalist/lists.lst-sample
-	cp  -R  ./sample/sample /etc/minimalist/
-	cp      ./minimalist.conf-sample /etc/minimalist/
+# Copy the progam file...
+cp    ./minimalist.pl  /usr/sbin
 
-	# Copy the progam file...
-	cp    ./minimalist.pl  /usr/sbin
+# Make spool dir
+mkdir -p  /var/spool/minimalist
+mkdir -p  /var/spool/minimalist/list-sample
+echo      "user@domain.zone"  >  /var/spool/minimalist/list-sample/list
+chown     nobody.nogroup         /var/spool/minimalist/list-sample
+chown     nobody.nogroup         /var/spool/minimalist/list-sample/list
 
-	# Make spool dir
-	mkdir -p  /var/spool/minimalist
-	mkdir -p  /var/spool/minimalist/list-sample
-	echo "user@domain.zone" > /var/spool/minimalist/list-sample/list
-	chown nobody.nogroup /var/spool/minimalist/list-sample
-	chown nobody.nogroup /var/spool/minimalist/list-sample/list
+# Copy the help files
+mkdir  -p          /usr/doc/minimalist
+cp     -R  ./docs  /usr/doc/minimalist
+}
 
-	# Copy the help files
-	mkdir  -p          /usr/doc/minimalist
-	cp     -R  ./docs  /usr/doc/minimalist
+prepare_install  &&
+  files_install
 }
 
 post_install() {
-	default_post_install
-	{
-		echo "Don't forget to read docs when using postfix (!)"
-		echo "Don't forget to run newaliases after editing /etc/aliases... ;)"
-	}
+echo "Don't forget to read docs when using postfix (!)"
+echo "Don't forget to run newaliases after editing /etc/aliases... ;)"
 }
-
-post_remove() {
-	default_post_remove
-	{
-		# Clean /etc
-		rm -r -f /etc/aliases.minimalist-sample
-		# Clean work dir
-		rm -r -f /var/spool/minimalist/list-sample
-		rmdir --ignore-fail-on-non-empty /var/spool/minimalist
-	}
-}
-

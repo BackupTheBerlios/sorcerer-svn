@@ -1,8 +1,6 @@
-#  VERSION=( "2.37" "2.36" )
-   VERSION=( "2.36" )
-# Version 2.37 can not find installed Python headers.
-# and crashes during compilation.
-# If you fix it please fix it in svn also.
+   VERSION=( "2.37" "2.36" )
+#  VERSION=( "2.37a" "2.36" )
+# Version 2.37a can not find installed Python headers nor Python library
   CATEGORY="graphic-editor video-editor"
  ATTRIBUTE="new x11"
     SOURCE="blender-$VERSION.tar.gz"
@@ -32,8 +30,10 @@ cp obj/linux*/bin/blenderplayer /usr/bin
 #cp obj/linux*/bin/npBlender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
 }
 
-# export    CFLAGS="-I/usr/include/python2.4 $CFLAGS"
-# export  CXXFLAGS="-I/usr/include/python2.4 $CXXFLAGS"
+export    CFLAGS="-I/usr/include/python2.4 $CFLAGS"
+export  CXXFLAGS="-I/usr/include/python2.4 $CXXFLAGS"
+
+grep  -rl  "\-O2" * |  xargs -l16  sed  -i  "s:-O2:$CFLAGS:"
 
 cd $SOURCE_DIR/blender &&
 create_config > user-def.mk &&
