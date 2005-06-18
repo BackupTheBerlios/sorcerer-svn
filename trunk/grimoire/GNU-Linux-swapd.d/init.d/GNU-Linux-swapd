@@ -1,15 +1,15 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: swapd
+# Provides: $swapd GNU-Linux-swapd
 # Required-Start: $local_fs
 # Required-Stop: $local_fs
 # Default-Start:  2 3 4 5
 # Default-Stop: 0 1 6
-# Short-Description: swapd creates swapfiles upon demand
-# Description: swapd can save your system from running out
-#	of memory by creating and enabling additional swapfiles
-#	as memory demands require it.
+# Short-Description: GNU-Linux-swapd creates swapfiles upon demand
+# Description: GNU-Linux-swapd can save your system from running
+#	out of memory by creating and enabling additional
+#	swapfiles as memory demands require it.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -17,6 +17,7 @@
 PIDF=/var/run/swapd.pid
 SERV=/usr/sbin/swapd
 NAME=swapd
+SWAP=/var/tmp/swap
 
 status()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -28,8 +29,12 @@ status()  {
 
 start()  {
   log_warning_msg  "$NAME about to start"
-  if    touch  /swap     2>/dev/null  &&
-        start_daemon     -p $PIDF $SERV
+  if  !  [  -d   $SWAP  ];  then
+    mkdir   -p   $SWAP  2>/dev/null
+    chmod  0700  $SWAP  2>/dev/null
+  fi
+  if    touch    $SWAP  2>/dev/null  &&
+        start_daemon     -p $PIDF $SERV --swapdir $SWAP
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
