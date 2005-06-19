@@ -1,0 +1,75 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: cpufreqd
+# Required-Start:  
+# Required-Stop: $local_fs
+# Default-Start: 3 4 5
+# Default-Stop: 0 6
+# Short-Description: cpufreqd monitors and manipulates CPU frequency
+# Description: cpufreqd monitors and manipulates CPU frequency
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/cpufreqd
+PIDF=/var/run/cpufreqd.pid
+NAME=cpufreqd
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then 
+	  log_warning_msg "$NAME is running"
+	  return 0
+  elif [ -f "$PIDF" ]; then 
+	  log_warning_msg "$NAME is dead and $PIDF exists"
+	  return 1
+  else 
+	  log_warning_msg "$NAME is not running"
+	  return 3
+  fi
+}
+						       
+
+start() {
+  MSG="Starting $NAME"
+  if $SERV; then
+	  log_success_msg "$MSG"
+  else 
+	  log_failure_msg "$MSG"
+	  status 
+  fi
+}
+
+stop() {
+  MSG="Stopping $NAME"
+  if killproc  -p $PIDF -s 15  $SERV; then
+	  log_success_msg  "$MSG"
+  else
+	  log_failure_msg  "$MSG"
+	  status
+	  return 0
+  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return  0
+}
+
+help() {
+  echo "Usage: $0 {restart|try-restart|force-reload|start|status|stop}" 1>&2
+}
+  
+case "$1" in
+      restart)      restart  ;;
+  try-restart)  try_restart  ;;
+ force-reload)      restart  ;;
+	start)  start        ;;
+       status)  status       ;;
+	 stop)  stop         ;;
+	    *)  help         ;;
+esac
+
