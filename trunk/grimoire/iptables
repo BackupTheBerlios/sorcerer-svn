@@ -14,12 +14,20 @@ to control packet filtering, Network Address
 Translation (masquerading, portforwarding,
 transparent proxying), and special effects."
 
-
 build() {
+install_devel() {
+  ar rc iptables.a *.o   &&
+  ranlib iptables.a      &&
+  cp iptables.a /usr/lib &&
+  cp -r include/* /usr/include
+}
+
 sed    -i        "s/-O2/$CFLAGS/"  Makefile
 make             LIBDIR=/usr/lib   &&
 prepare_install                    &&
-make    install  LIBDIR=/usr/lib   \
+        install_devel              &&
+make    install  install-devel     \
+                 LIBDIR=/usr/lib   \
                  BINDIR=/usr/sbin  \
                  MANDIR=/usr/man   \
                  INCDIR=/usr/include
