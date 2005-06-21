@@ -1,10 +1,13 @@
-   VERSION=( "0.0.7-20040930" "0.0.7-20040202" "0.0.6-20031213" "0.0.6" )
+   VERSION=( "head" "Linux_Spec1_0" "0.0.7-20040930" "0.0.7-20040202" "0.0.6-20031213" "0.0.6" )
   CATEGORY="audio-player audio-mixer"
- ATTRIBUTE="library x11"
-    SOURCE="openal-$VERSION.tar.bz2"
-       URL="http://sorcerer.wox.org/download/sources/openal/$VERSION"
-  HOMEPAGE="http://www.openal.org"
-       REQ=( "automake"
+ ATTRIBUTE="library x11 broken"
+# My checkout from cvs on Tue Jun 21 02:59:48 UTC 2005
+# failed during installation.
+#    SOURCE="openal-$VERSION.tar.bz2"
+#       URL="http://sorcerer.wox.org/download/sources/openal/$VERSION"
+#  HOMEPAGE="http://www.openal.org"
+       DIR="openal"
+       REQ=( "automake cvs"
              "alsa-lib:--enable-alsa::for alsa support"
              "arts:--enable-arts::for arts support"
              "esound:--enable-esd::for esd support"
@@ -20,15 +23,23 @@ and desktop users that rely on portable standards like
 OpenGL for games and other multimedia applications."
 
 
+pre_build()  {
+  cd  $SOURCE_DIR
+# cvs -z9 -d:pserver:guest@opensource.creative.com:/usr/local/cvs-repository co -r Linux_Spec1_0 openal
+  cvs -z9 -d:pserver:guest@opensource.creative.com:/usr/local/cvs-repository co openal
+}
+
 build() {
+sed -i  "/aluttypes.h/d"  linux/Makefile.in
 cd  linux
 ./autogen.sh
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             $OPTS                 &&
-make                               &&
-prepare_install                    &&
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
 make    install
 }
