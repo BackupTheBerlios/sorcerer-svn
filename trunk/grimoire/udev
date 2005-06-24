@@ -1,6 +1,5 @@
    VERSION=( "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
     IGNORE="05[1-4]"
-# 054 is missing gentoo's udev.permissions
   CATEGORY="utility"
  ATTRIBUTE="core console"
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
@@ -45,12 +44,19 @@ linux_sufficient()  {
   fi
 }
 
+fix_rules()  {
+# sed  -i  '/# disk devices/aKERNEL="hd*",		NAME="%k", GROUP="disk"'  etc/udev/gentoo/udev.rules
+  sed  -i  's:part\$3$:part\$3 disk:'  extras/ide-devfs.sh
+  echo  "Added disk group rule for /dev/hd"
+}
+
   sed  -i  "s:/local::
             s:^udevdir = .*:udevdir = /dev:
             s:killall:true:"  Makefile
   sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
 
   linux_sufficient  &&
+  fix_rules         &&
   make              &&
   prepare_install   &&
   make    install   &&
@@ -63,4 +69,11 @@ post_install() {
   fi
   /lib/lsb/install_initd /etc/init.d/udev
   true
+}
+
+
+current()  {
+  case  $VERSION  in
+    058)  grep  -qx  "Added disk group rule for /dev/hd"  $COMPILE_LOGS/udev  ;;
+  esac
 }
