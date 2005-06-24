@@ -11,9 +11,15 @@
       DESC="ntp synchronizes system time with an ntp server."
 			
 build() {
+  echo  "ntpd now writes a proper PID file"
+  sed  -i  's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
   default_build                  &&
   cp      -r html  /usr/doc/ntp  &&
   install -m 0644  $SCRIPT_DIR/ntp.conf  /etc
 }
 
-current()  {  [  -f  /etc/init.d/ntpd  ];  }
+current()  {
+  case  $VERSION  in
+    4.2.0)  grep  -qx  "ntpd now writes a proper PID file"  $COMPILE_LOGS/ntp  ;;
+  esac
+}
