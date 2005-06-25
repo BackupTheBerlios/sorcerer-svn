@@ -1,8 +1,5 @@
-   VERSION=( "1.9.9.1" )
-# 2.0.0 is broken, email the eagle-usb software authors.
-# 2.1.1 is broken, email the eagle-usb software authors.
-# 2.3.1 is broken
-    IGNORE="snapshot\|^2\.0\.0\|&2\.1\.1\|^2\.3\.1"
+   VERSION=( "2.3.2" "1.9.9.1" )
+    IGNORE="snapshot"
   CATEGORY="kernel"
  ATTRIBUTE="linux-26-module"
     SOURCE="eagle-usb/eagle-usb-$VERSION.tar.bz2"
@@ -12,19 +9,17 @@
        REQ=( ""
              "tk:::for a x11 gui" )
 #     OPTS="--with-kernel-src=/usr/src/linux"
-  ESTIMATE="138"
+  ESTIMATE="97"
       DESC="eagle-usb is a Linux driver for DSL USB modems
 based on the Analog chipset Eagle 8051 (ADImodem).
 The Sagem F@st 800, USRobotics Sureconnect 9000,
 Comtrend ct-350 / ct-361, Elcon 111U and others are reported to work.
-See forum.eagle-usb.org for support"
+See forum.eagle-usb.org for support
 
+Please contribute LSB commented eagle-usb init scripts if you write them."
 
 build() {
-# 2.0.0 has a very broken configure script
-# that requires a compiler like cc in /usr/bin /bin /usr/local/bin,  etc...
-# also it will not use linux source even when told where it is.
-#   export  CC="/opt/gcc/current/bin/gcc"
+  sed  -i  "s:^PATH=:# PATH=:"  configure
   default_build  &&
   depmod  -a     &&
   rm -f  /etc/eagle-usb/scripts/lock
