@@ -30,17 +30,20 @@ log_success_msg()  {
 log_failure_msg()  {
   log_start  "$1"
   log_finish "${RED} failed"
-  logger  -p daemon.err  "$1 failed"  2> /dev/null
-  if                              [  -w  /dev/console  ];  then
-    log_start  "$1"                   &> /dev/console
-    log_finish "${RED} failed"        &> /dev/console
-  fi
 }
 
 log_warning_msg()  {
   log_start  "$1"
   log_finish "${WHITE} warning"
 }
+
+log_status_msg() {
+	case $1 in
+		0) log_success_msg "$2" ;;
+		*) log_failure_msg "$2" ;;
+	esac
+}
+
 
 locked()  {
   local  LEN  STATUS  LINE  LPID
@@ -112,10 +115,10 @@ killproc()  {
     else  kill  -s   15       "$PIDS";  sleep 3
           kill  -s   9        "$PIDS"
     fi
-    # if    [   -n  "$PIDF"  ]  &&
-    #       [   -f  "$PIDF"  ]
-    # then  rm  -f  "$PIDF"
-    # fi
+    if    [   -n  "$PIDF"  ]  &&
+          [   -f  "$PIDF"  ]
+    then  rm  -f  "$PIDF"
+    fi
   else
     false
   fi
