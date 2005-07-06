@@ -38,10 +38,10 @@ install_init() {
     echo      "/etc/inittab modified"
   fi
 
-  sed   -i  's:/usr/lib/libcrypt.a:/usr/lib\*/libcrypt.a:' src/Makefile
-  make  -C src           &&
-  prepare_install        &&
-  make  -C src  install  &&
+  # sed   -i  's:/usr/lib/libcrypt.a:/usr/lib\*/libcrypt.a:' src/Makefile
+  make  -C src                &&
+  prepare_install             &&
+  make  -C src  install       &&
                 install_init  &&
   echo  "Please read:"        &&
   echo  "http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html"
@@ -53,7 +53,7 @@ post_install() {
 }
 
 current() {
-  if  !  grep  -qx  "http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html"  $COMPILE_LOGS/sysvinit
+  if  !  grep  -q  "linuxbase"  $COMPILE_LOGS/sysvinit
   then
     echo "sysvinit requires recast of sysvinit"  >  $CAST_QUEUE/sysvinit
     show_installed  |
