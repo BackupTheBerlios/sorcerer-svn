@@ -80,30 +80,28 @@
   ESTIMATE="331"
       DESC="openssh is a client and server for encrypted remote logins and file transfers.
 openssh is a Unix/Linux port of OpenBSD's excellent OpenSSH.
-OpenSSH is a full implementation of the SSH1 protocol and 
-a 99% implementation of the SSH 2 protocol, including sftp 
+OpenSSH is a full implementation of the SSH1 protocol and
+a 99% implementation of the SSH 2 protocol, including sftp
 client and server support."
 
-
 build() {
- if    spell_installed  Linux-PAM  ||
-    spell_installed  $(  get_provider  Linux-PAM  )
- then  WITH_PAM="--with-pam"
- fi
+if    spell_installed  Linux-PAM  ||
+      spell_installed  $(  get_provider  Linux-PAM  )
+then  WITH_PAM="--with-pam"
+fi
 
+groupadd    sshd        2>/dev/null
+useradd  -g sshd  sshd  2>/dev/null
+mkdir    -p       /var/empty
+chmod       755   /var/empty
 
- groupadd    sshd        2>/dev/null
- useradd  -g sshd  sshd  2>/dev/null
- mkdir    -p       /var/empty
- chmod       755   /var/empty
-
- ./configure  --prefix=/usr          \
-        --sysconfdir=/etc/ssh  \
-        --with-md5-passwords   \
-        $WITH_PAM              \
-        $OPTS                  &&
- make                                &&
- prepare_install                     &&
- make    install
+./configure            \
+--prefix=/usr          \
+--sysconfdir=/etc/ssh  \
+--with-md5-passwords   \
+$WITH_PAM              \
+$OPTS                  &&
+make                   &&
+prepare_install        &&
+make    install
 }
-

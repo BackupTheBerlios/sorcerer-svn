@@ -1,0 +1,32 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: sysctl
+# Required-Start:
+# Required-Stop:
+# Default-Start: 1 2 3 4 5
+# Default-Stop:
+# Short-Description: sysctl sets kernel parameters
+# Description:       sysctl sets kernel parameters
+#	configuration file is /etc/sysctl.conf 
+#	when /etc/sysctl.$RUNLEVEL.conf is not present
+### END INIT INFO
+
+start()  {
+  if      [  -x  /sbin/sysctl  ];  then
+    if    [  -s                    /etc/sysctl.$RUNLEVEL.conf   ]
+    then         /sbin/sysctl  -p  /etc/sysctl.$RUNLEVEL.conf
+    elif  [  -s                    /etc/sysctl.conf  ]
+    then         /sbin/sysctl  -p
+    fi
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {start}" 1>&2
+}
+
+case  $1  in
+         start)  start        ;;
+             *)  help         ;;
+esac

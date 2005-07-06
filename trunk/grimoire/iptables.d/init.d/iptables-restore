@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: sysctl
+# Required-Start:
+# Required-Stop:
+# Default-Start: 3 4 5
+# Default-Stop:
+# Short-Description: iptables-restore loads previously saved rules
+# Description:       iptables-restore loads previously saved rules
+#	configuration file is /etc/iptables.conf 
+#	when /etc/iptables.$RUNLEVEL.conf is not present
+### END INIT INFO
+
+start()  {
+                  IPTR=/usr/sbin/iptables-restore
+  if      [  -x  $IPTR  ];  then
+    if    [  -s            /etc/iptables.$RUNLEVEL.conf   ]
+    then         $IPTR  <  /etc/iptables.$RUNLEVEL.conf
+    elif  [  -s            /etc/iptables.conf  ]
+    then         $IPTR  <  /etc/iptables.conf
+    fi
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {start}" 1>&2
+}
+
+case  $1  in
+         start)  start        ;;
+             *)  help         ;;
+esac

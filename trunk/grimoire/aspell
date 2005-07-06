@@ -1,5 +1,5 @@
    [  -z  $VERSION  ]  &&
-   VERSION=( "0.60.2" "0.60.1.1" "0.60" )
+   VERSION=( "0.60.3" "0.60.2" "0.60.1.1" "0.60" )
     IGNORE="^[a-z][a-z]\|2004\|w32\|^[5-6][a-z][a-z]\|^[5-6]-[a-z][a-z]"
   CATEGORY="editor"
  ATTRIBUTE="console"
@@ -15,18 +15,19 @@ coming up with possible suggestions than ispell does.
 It also has support for checking (La)TeX and HTML files,
 and run-time support for other non-English languages."
 
-
-build_aspell()  {
-  ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $OPTS                 &&
-  make                               &&
-  prepare_install                    &&
-  make    install
+define_dict()  {
+      DESC="$SPELL provides a dictionary for use with aspell."
+    SOURCE="aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2"
+  ESTIMATE="7"
 }
 
+case  ${SPELL:7}  in
+  dict-*)  define_dict  ;;
+esac
+
+build()  {
+
+build_aspell()  { default_build; }
 
 build_dict()  {
   ./configure      &&
@@ -34,25 +35,8 @@ build_dict()  {
   make    install
 }
 
-
-
-define_dict()  {
-      DESC="$SPELL provides a dictionary for use with aspell."
-    SOURCE="aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2"
-  ESTIMATE="7"
-}
-
-
-case  ${SPELL:7}  in
-  dict-*)  define_dict  ;;
-esac
-
-
-build()  {
-
   case  ${SPELL:7}  in
     dict-*)  build_dict    ;;
          *)  build_aspell  ;;
   esac
-
 }

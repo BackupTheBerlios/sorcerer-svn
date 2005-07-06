@@ -1,4 +1,4 @@
-   VERSION=( "8.4.10" "8.4.9" "8.4.8" "8.4.7" "8.4.6" )
+   VERSION=( "8.4.11" "8.4.10" "8.4.9" "8.4.8" "8.4.7" "8.4.6" )
     IGNORE="^8\.[0-9][ab]\|^8[0-9][0-9]\|^8[0-9][ab]\|^[8][0-9]\|-\|42\|41\|Table\|dnd\|trans"
   CATEGORY="graphic"
  ATTRIBUTE="library x11"
@@ -7,38 +7,39 @@
   HOMEPAGE="http://www.scriptics.com"
        URL="$SOURCEFORGE_URL"
        REQ="tcl x11"
-  ESTIMATE="114"
+  ESTIMATE="117"
  FRESHMEAT="tcltk"
       DESC="tk provides a portal GUI.
 tk provides portable GUIs on UNIX, Windows, and Macintosh.
 A powerful widget set and the concise scripting interface to
 Tk make it a breeze to develop sophisticated user interfaces."
 
-
 build() {
 make_shared_lib()  {
   ld  --whole-archive  -share  -o  $1.so  $1.a
 }
 
-cd   tcl$VERSION/unix              &&
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             --enable-shared       \
-             --enable-threads      &&
-cd  ../../unix                     && 
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             --enable-shared       \
-             --enable-threads      \
-             --with-tcl=../tcl$VERSION/unix  &&
-make                         &&
-prepare_install              &&
-make    install              &&
-ln    -sf  /usr/bin/wish8.4  \
-           /usr/bin/wish     &&
+cd   tcl$VERSION/unix  &&
+./configure            \
+--build=$BUILD         \
+--prefix=/usr          \
+--sysconfdir=/etc      \
+--localstatedir=/var   \
+--enable-shared        \
+--enable-threads       &&
+cd  ../../unix         && 
+./configure                     \
+--build=$BUILD                  \
+--prefix=/usr                   \
+--sysconfdir=/etc               \
+--localstatedir=/var            \
+--enable-shared                 \
+--enable-threads                \
+--with-tcl=../tcl$VERSION/unix  &&
+make                            &&
+prepare_install                 &&
+make    install                 &&
+ln    -sf  /usr/bin/wish8.4     \
+           /usr/bin/wish        &&
 make_shared_lib  /usr/lib/libtkstub8.4
 }
