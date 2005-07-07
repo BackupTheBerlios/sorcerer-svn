@@ -63,13 +63,13 @@ start()  {
 
 umount_local_fs() {
   umount   -t  noproc,noramfs,nodevpts,nodevfs  -f  -a  -r -l
-  [  -f         /proc/cpuinfo  ]  ||
-  mount  -o,ro  /proc
 
-  cat  /proc/mounts  |
+  [  -f                 /proc/cpuinfo  ]  ||
+  mount  -o remount,ro  /proc
+
   while  read  DEVICE  MOUNT  REST
   do    mount  -n  -o  remount,ro  $MOUNT
-  done
+  done  <  /proc/mounts
 
   if    !  mount    -n  -o remount,ro  /;  then
     log_failure_msg  "/ failed to remount read only"
