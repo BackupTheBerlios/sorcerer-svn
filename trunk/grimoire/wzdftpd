@@ -1,0 +1,43 @@
+   VERSION=( "0.5.4" )
+  CATEGORY="ftp"
+ ATTRIBUTE="server console new"
+    SOURCE=( "wzdftpd/wzdftpd-$VERSION.tar.gz" )
+       URL=( "$SOURCEFORGE_URL" )
+  HOMEPAGE="http://wzdftpd.sourceforge.net"
+  EPROVIDE="ftpd"
+       REQ=( "" 
+             "Linux-PAM:--with-pam:--without-pam:for PAM authentication"
+             "mysql::--without-mysql:for mysql authentication"
+             "postgresql::--without-pgsql:for postgresql authentication"
+             "gnutls:--enable-gnutls:--disable-gnutls:for gnutls ssl"
+             "openssl:--enable-openssl:--disable-openssl:for openssl ssl"
+             "perl:--enable-perl:--disable-perl:for perl module support"
+             "tcl::--without-tcl:for tcl scripting support"
+             ":--enable-ipv6::for experimental IPv6 support"
+             ":--enable-utf8::for experimental UTF8 support" )
+  ESTIMATE="397"
+      DESC="wzdftpd is modular ftp server.
+It supports IPv6, multi-threading, and external scripts."
+
+build() {
+finish_install() {
+  install -m 0700 -d            /var/log/wzdftpd
+  install -m 0700    /dev/null  /etc/wzdftpd/users
+  if  !  [  -f                  /etc/wzdftpd/wzd.cfg  ]
+  then  install -m 0600         /etc/wzdftpd/wzd.cfg.sample  \
+                                /etc/wzdftpd/wzd.cfg
+  fi
+}
+
+# sed  -i  "s:#pid_file = /usr/share/wzdftpd/wzdftpd.pid:pid_file = /var/run/wzdftpd.pid:"  src/wzd.cfg.sample
+./configure                \
+--build=$BUILD             \
+--prefix=/usr              \
+--sysconfdir=/etc/wzdftpd  \
+--localstatedir=/var       \
+$OPTS                      &&
+make                       &&
+prepare_install            &&
+make    install            &&
+ finish_install
+}
