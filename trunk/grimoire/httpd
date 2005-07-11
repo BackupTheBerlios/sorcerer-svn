@@ -64,6 +64,11 @@ build() {
   esac
   ) }
 
+  fix_openssl_PEM_F_DEF_CALLBACK()  {
+    grep   -rl  "PEM_F_DEF_CALLBACK"  *  |
+    xargs  -l32                          \
+    sed    -i   "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
+  }
 
   # db_41_fix
 
@@ -72,6 +77,7 @@ build() {
   cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
 
   fix_ssl_conf
+  fix_openssl_PEM_F_DEF_CALLBACK
 
   AC="
   --enable-layout=Sorcerer  \

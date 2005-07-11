@@ -1,4 +1,4 @@
-   VERSION=( "1.22" "1.21" "1.20" "1.19" "1.18" "1.17" "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
+   VERSION=( "1.23" "1.22" "1.21" "1.20" "1.19" "1.18" "1.17" "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
         BV=( "3.0.016" )
     IGNORE="rc"
   CATEGORY="shell"
@@ -8,18 +8,11 @@
              "bash-${BV:0:3}.tar.gz" )
        URL=( "http://home.eol.ca/~parkw/bashdiff"
              "ftp://ftp.cwru.edu/pub/bash" )
-#            "ftp://ftp.cwru.edu/pub/bash/bash-${BV:0:3}-patches" )
-#        PATCHES=${BV:5:2}
-#        SCX=2
-#        for  ((PCX=1; PCX < 10; PCX++))
-#        do   SOURCE[$SCX]="bash30-00$PCX"; ((SCX++))
-#        done
-#        for  ((PCX=10; PCX <= PATCHES; PCX++))
-#        do   SOURCE[$SCX]="bash30-0$PCX"; ((SCX++))
-#        done
   HOMEPAGE="http://home.eol.ca/~parkw"
        REQ=( "autoconf expat ncurses readline"
-             ":--debugger::Enable debugging and extdebug shell option" )
+             ":--debugger::Enable debugging and extdebug shell option"
+             "gtk+:--enable-gtk2:--disable-gtk2:for simple GUI dialog system" )
+      OPTS="--bindir=/usr/bin --with-installed-readline --with-curses"
   ESTIMATE="377"
       DESC="bash-wp provides an extended modified bash by William Park."
 
@@ -39,31 +32,10 @@ install_loadables()  {
 
 cd  bash-${BV:0:3}
 
-# bash-wp does not require official bash patches,
-# according to William  Park.
-
-# SCX=2
-# while  [ -n "${SOURCE[$SCX]}" ]
-# do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$SCX]}
-#     (( SCX++ ))
-# done
-
-# patch  -p2  <  ../bashdiff-core-$VERSION.diff
-# patch  -p2  <  ../bashdiff-william-$VERSION.diff
-
 patch  -p2  <  ../bashdiff-$VERSION.diff
 
 autoconf
 
-./configure                \
---build=$BUILD             \
---prefix=/usr              \
---bindir=/usr/bin          \
---with-installed-readline  \
---with-curses              \
-$OPTS                      &&
-make                       &&
-prepare_install            &&
-make    install            &&
+default_build  &&
 install_loadables
 }
