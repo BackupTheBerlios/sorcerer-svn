@@ -30,7 +30,11 @@ rm   -rf  examples tutorial
 unset  LD_LIBRARY_PATH
 
 case  $( arch )  in
-  x86_64)  OPTS="$OPTS -platform linux-g++-64"  ;;
+  x86_64)  OPTS="$OPTS -platform linux-g++-64"
+           SPECS=linux-g++-64
+	   ;;
+       *)  SPECS=linux-g++
+           ;;
 esac
 
 #                            -cups            \
@@ -50,17 +54,14 @@ echo  "yes"  |  ./configure  -v               \
                              -libdir /usr/lib       \
                              -R$BUILD_DIR/lib       \
                              -headerdir /usr/include/qt  \
-                             $OPTS  &&
+                             $OPTS			&&
 make                       &&
 prepare_install            &&
-# rm     -f  /usr/bin/qmake  &&
-# rm     -f  /usr/bin/\*     &&
 make    install            &&
 cp     -R   doc/man  /usr  &&
-rm                            /usr/share/qt/mkspecs/linux-g++/linux-g++  &&
-cp     -a  mkspecs/linux-g++  /usr/share/qt/mkspecs/                     &&
-# cp -Rp /usr/src/sorcery/qt-x11-free-3.3.4/mkspecs/linux-g++ /usr/share/qt/mkspecs/linux-g++/ &&
-# rm     -f  /usr/bin/qmake  &&
+rm                           /usr/share/qt/mkspecs/${SPECS}/${SPECS}	&&
+cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/			&&
+
 if    [ ! -f /usr/bin/qmake ]
 then  echo "had to install qmake"
       install  -m 0755  bin/qmake  /usr/bin
