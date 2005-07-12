@@ -1,4 +1,6 @@
    VERSION=( "2.0.2" "2.0.1" "2.0.0" "1.14.2" "1.14.1" "1.14.0" "1.13.0" "1.12.0" )
+    IGNORE="^2\.0\.3"
+# 2.0.3 has compile errors.
   CATEGORY="game"
  ATTRIBUTE="x11"
     SOURCE=( "stable/freeciv-$VERSION.tar.bz2"
@@ -48,11 +50,14 @@ find                   sound  tilesets  -type d  |  xargs   -l64   chmod  0755
 }
 
 build() {
-./configure  --prefix=/usr        \
-             --bindir=/usr/games  &&
-make                &&
-prepare_install     &&
-make    install     &&
-cd      sound/data  &&  cp  -av  *  /usr/share/freeciv  &&
-cd  ../../tilesets  &&  cp  -av  *  /usr/share/freeciv
+./configure          \
+--prefix=/usr        \
+--bindir=/usr/games  \
+--enable-client=sdl  \
+$OPTS                &&
+make                 &&
+prepare_install      &&
+make    install      &&
+cd      sound/data   &&  cp  -av  *  /usr/share/freeciv  &&
+cd  ../../tilesets   &&  cp  -av  *  /usr/share/freeciv
 }
