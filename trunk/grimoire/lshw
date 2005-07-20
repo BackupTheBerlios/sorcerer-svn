@@ -1,10 +1,12 @@
-   VERSION=( "B.02.05" "B.02.04" "B.02.03" "B.02.02" "B.02.01" "B.02.00" )
+   VERSION=( "B.02.05.01" "B.02.05" "B.02.04" "B.02.03" "B.02.02" "B.02.01" "B.02.00" )
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="lshw-$VERSION.tar.gz"
        URL="http://ezix.sourceforge.net/software/files"
   HOMEPAGE="http://ezix.sourceforge.net/software/lshw.html"
-  ESTIMATE="43"
+       REQ=( ""
+             "gtk+:--enable-gui:--disable-gui:for gtk+ GUI" )
+  ESTIMATE="61"
       DESC="lshw the hardware lister provides detailed information about the box.
 lshw the hardware lister is a small tool to provide detailed
 information on the hardware configuration of the machine.
@@ -13,7 +15,15 @@ mainboard configuration, CPU version and speed, cache
 configuration, bus speed, etc."
 
 build() {
-make             &&
-prepare_install  &&
-make    install
+if    echo  "$OPTS"  |  grep  -q  "enable-gui";  then
+  make                 &&
+  make            gui  &&
+  prepare_install      &&
+  make    install-gui  &&
+  make    install
+else
+  make                 &&
+  prepare_install      &&
+  make    install
+fi
 }
