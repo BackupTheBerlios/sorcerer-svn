@@ -1,5 +1,5 @@
-   VERSION=( "4.1.12" "4.1.11" "4.1.10a" "4.1.10" "4.1.8" "4.1.7" "4.0.22" )
-      SAFE=( "4.1.12" "4.1.11" "4.1.10a" )
+   VERSION=( "4.1.13" "4.1.12" "4.1.11" "4.1.10a" "4.1.10" "4.1.8" "4.1.7" "4.0.22" )
+      SAFE=( "4.1.13" "4.1.12" "4.1.11" "4.1.10a" )
     IGNORE="\-apple-\|-dec-\|-hp-\|-ibm-\|-sgi-\|-unknown-\|-x86\|^5\.0\."
 # 5.0.x versions are developmental
   CATEGORY="db"
@@ -7,53 +7,43 @@
     SOURCE="MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz"
        URL="$MYSQL_URL"
   HOMEPAGE="http://www.mysql.com"
-       REQ="ncurses openssl perl zlib"
+# Raid support seems to be broken
+#            ":--with-raid::to enable RAID support"
+
+       REQ=( "ncurses openssl perl zlib"
+             "db:--with-berkeley-db:--without-berkeley-db:for berkeley sleepycat database support"
+             "openssl:--with-openssl:--wihout-openssl:for SSL support"
+             "readline:--without-readline::to use system installed instead of included readline"
+             ":--with-server:--without-server:to build mysql server"
+             ":--enable-thread-safe-client --with-pthread::for thread support"
+             ":--with-vio:--without-vio:to include virtual IO support"
+             ":--with-innodb:--without-innodb:to include the InnoDB table handler"
+             ":--with-archive-storage-engine:--without-archive-storage-engine:to enable the archive storage engine"
+             ":--with-csv-storage-engine:--without-csv-storage-engine:to enable the csv storage engine"
+             ":--with-blackhole-storage-engine:--without-blackhole-storage-engine:to enable blackhole storage engine"
+             ":--with-ndbcluster:--without-ndbcluster:to include the NDB cluster table handler"
+             ":--with-embedded-server:--without-embedded-server:to build embedded server libmysqld"
+             ":--enable-assembler::Use assembler version of some string functions if available" )
    EXCLUDE="/var/lib/mysql"
-  ESTIMATE="3900"
+  ESTIMATE="4589"
       DESC="mysql is a widely used and fast SQL database server.
 mysql is a widely used and fast SQL database server.
 It is a client/server implementation that consists
 of a server daemon (mysqld) and many different
 client programs/libraries."
 
-configure() {
-	if  !  grep  -q  "CLIENT_ONLY"  $SPELL_CONFIG
-	then
-
-		if    query  "Install client only? " n
-		then  echo   "CLIENT_ONLY=true"   >>  $SPELL_CONFIG
-		else  echo   "CLIENT_ONLY=false"  >>  $SPELL_CONFIG 
-			if    query  "Invoke mysqld at boot?" y
-			then  echo   "MYSQL_BOOT=true"   >>  $SPELL_CONFIG
-			else  echo   "MYSQL_BOOT=false"  >>  $SPELL_CONFIG
-			fi
-		fi
-
-	fi
-}
-
 build() {
-	sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
-	sed  -i  "s:examples::"                                 libmysqld/Makefile.in
+# sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
+# sed  -i  "s:examples::"                                 libmysqld/Makefile.in
 
-	export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
-	export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
+# export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
+# export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
 
-	if    $CLIENT_ONLY
-	then  OPTS="$OPTS --without-server"
-	fi
+groupadd  mysql             2>/dev/null
+useradd   mysql  -g  mysql  2>/dev/null
 
-	groupadd  mysql             2>/dev/null
-	useradd   mysql  -g  mysql  2>/dev/null
-
-	sed  -i  "s:/libssl.a:/libssl.so:"  configure
-
-
-	case  $VERSION  in
-		4.1.9)
-	esac
-
-	sed  -i  "s:Linuxthreads:pthread:"  configure
+# sed  -i  "s:/libssl.a:/libssl.so:"  configure
+# sed  -i  "s:Linuxthreads:pthread:"  configure
 
 	case  $VERSION  in
 		4.1.1[0-2])  mkdir  -p                     system/asm
@@ -66,69 +56,56 @@ build() {
 		;;
 	esac
 
-	./configure  --prefix=/usr                   \
-	             --without-bench                 \
-							 --enable-assembler              \
-							 --localstatedir=/var/lib/mysql  \
-							 --enable-shared                 \
-							 --with-mysqld-user=mysql        \
-							 --with-berkeley-db              \
-							 --with-openssl                  \
-							 --with-server-suffix='-Max'     \
-							 --with-mysqld-user=mysql        \
-							 --with-unix-socket-path=/var/lib/mysql/mysql.sock  \
-							 --with-extra-charsets=complex   \
-							 --with-vio                      \
-							 --with-innodb                   \
-							 --exec-prefix=/usr              \
-							 --libexecdir=/usr/sbin          \
-							 --sysconfdir=/etc               \
-							 --datadir=/usr/share            \
-							 --infodir=/usr/info             \
-							 --includedir=/usr/include       \
-							 --mandir=/usr/man               \
-							 --with-embedded-server          \
-							 --enable-thread-safe-client     \
-							 --with-comment="MySQL-MAX-$VERSION "  \
-							 --with-readline                \
-							 $OPTS                          &&
-	make             pkglibdir=/usr/lib         &&
-	prepare_install                             &&
-	make    install  pkglibdir=/usr/lib         &&
+./configure                     \
+--prefix=/usr                   \
+--without-bench                 \
+--enable-assembler              \
+--localstatedir=/var/lib/mysql  \
+--enable-shared                 \
+--with-mysqld-user=mysql        \
+--with-berkeley-db              \
+--with-mysqld-user=mysql        \
+--with-extra-charsets=complex   \
+--exec-prefix=/usr              \
+--libexecdir=/usr/sbin          \
+--sysconfdir=/etc               \
+--datadir=/usr/share            \
+--infodir=/usr/info             \
+--includedir=/usr/include       \
+--mandir=/usr/man               \
+--with-server-suffix='-Max'     \
+--with-comment="MySQL-MAX-$VERSION "  \
+--with-unix-socket-path=/var/lib/mysql/mysql.sock  \
+$OPTS                                &&
+make             pkglibdir=/usr/lib  &&
+prepare_install                      &&
+make    install  pkglibdir=/usr/lib  &&
 
-	if  ! $CLIENT_ONLY;  then
-		mysql_install_db
+if  !  echo  "$OPTS"  |  grep  -q  "without-server";  then
+  mysql_install_db
+  chown    -R mysql.mysql                        /var/lib/mysql
+  install  -m 0700  support-files/mysql.server   /etc/init.d/mysql
+  install  -m 0700  support-files/my-medium.cnf  /etc/my.cnf
+fi
 
-		chown    -R  mysql.mysql                     /var/lib/mysql
-		install  -m 755  support-files/mysql.server  /etc/init.d/
-		if    !  [  -f  /etc/my.cnf  ]
-		then  install   support-files/my-medium.cnf  /etc/my.cnf
-		fi
-
-		if  $MYSQL_BOOT;  then
-
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc0.d/K10mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc1.d/K10mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc6.d/K10mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc2.d/S90mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc3.d/S90mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc4.d/S90mysql
-			ln  -sf  /etc/init.d/mysql.server  /etc/rc5.d/S90mysql
-		fi
-	fi
 }
 
 post_install() {
-	default_post_install
-	if    [  -x  /etc/rc$(runlevel  |  cut  -d ' ' -f2).d/S90mysql  ]
-	then         /etc/rc$(runlevel  |  cut  -d ' ' -f2).d/S90mysql  start
-	fi
+  default_post_install
+  if  [  -f                 /etc/init.d/mysql  ];  then
+    /lib/lsb/install_initd  /etc/init.d/mysql
+    if    locked  /var/run/mysql.pid mysqld
+    then  /etc/init.d/mysql  restart
+    fi
+  fi
 }
 
 pre_remove() {
-	default_pre_remove
-	if  [  -x  /etc/init.d/mysql.server  ]; then
-		/etc/init.d/mysql.server stop
-	fi
+  default_pre_remove
+  if      [  -x  /etc/init.d/mysql  ];  then
+    if    [  -z  "$UPGRADING"  ]
+    then  /etc/init.d/mysql stop
+    fi
+    /lib/lsb/remove_initd  /etc/init.d/mysql
+  fi
 }
-
