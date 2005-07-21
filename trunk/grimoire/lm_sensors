@@ -5,6 +5,9 @@
        URL="http://secure.netroedge.com/~lm78/archive
              ftp://ftp.netroedge.com/pub/lm-sensors"
   HOMEPAGE="http://www.lm-sensors.nu"
+       REQ=( ""
+             "rrdtool:sensord::for sensord HW monitoring daemon"
+           )
   ESTIMATE="112"
       DESC="lm_sensors provides hardware health monitoring tools.
 lm_sensors provides essential tools for 
@@ -14,7 +17,15 @@ monitoring hardware such as the LM78 and LM75"
 
 
 build() {
-make    PREFIX=/usr  user  &&
-prepare_install            &&
-make    PREFIX=/usr  user_install
+echo $OPTS  |  grep -q sensord		&&  SENSORD=1
+[ -n "$SENSORD" ]			&&
+  sed  -i  "s/# PROG_EXTRA/PROG_EXTRA/"  Makefile
+
+make    PREFIX=/usr  user		&&
+prepare_install           		&&
+make    PREFIX=/usr  user_install	&&
+if [ -n "$SENSORD" ]; then
+  install -o 0 -g 0 -m 755  prog/sensord/sensord    /usr/bin
+  install -o 0 -g 0 -m 644  prog/sensord/sensord.8  /usr/man/man8
+fi
 }

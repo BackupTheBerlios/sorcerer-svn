@@ -1,0 +1,98 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: sensord
+# Required-Start: module-init-tools
+# Should-Start: 
+# Required-Stop: syslog kill 
+# Should-Stop: 
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: sensord is lm_sensors hardware health monitoring daemon
+# Description: sensord starts the lm_sensors hardware health monitoring
+#	daemon which log the health status into syslog or a round-robin
+#       database. 
+#       NOTE: All necessary modules are expected to be loaded before 
+#       (by module-init-tools) this script is run.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PIDF="/var/run/sensord.pid"
+SERV="/usr/bin/sensord"
+NAME="sensord"
+
+# Configuration of sensord
+INTERVAL=1m	# interval between scanning for sensor alarms
+LOG_INT=30m	# interval between logging all sensor readings
+
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running ($PIDS)"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start()  {
+  log_warning_msg  "Starting sensord hardware health monitoring"
+  if    [ -x /usr/bin/sensord ]		&&
+	[ -x /usr/bin/sensors ]
+  then 
+	MSG="Configuring sensors"
+	sensors  -s  	&&  sleep 2
+	[ $? -eq 0 ] 	&&
+	log_success_msg "$MSG"  ||  log_failure_msg "$MSG"
+  	if    start_daemon  -p $PIDF  $SERV  -i $INTERVAL  -l $LOG_INT
+  	then  log_success_msg  "$NAME started"
+  	else  log_failure_msg  "$NAME not started"
+        	status
+  	fi
+  else
+	log_failure_msg "$NAME not started (missing executables)"
+  fi
+}
+
+stop()  {
+	log_warning_msg "Shutting down $NAME"
+  if    killproc        -p $PIDF -s 15  $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}
+
+reload() {
+  # Re-read configuration file
+  MSG="Reloading $NAME"
+  if [ -x /usr/bin/sensors ]; then
+	sensors  -s		&&
+	log_success_msg "$MSG"  ||  log_failure_msg "$MSG"
+  else
+	log_failure_msg "$MSG"
+  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|force-reload|reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+  force-reload)      restart  ;;
+  	reload)  reload       ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
