@@ -1,0 +1,34 @@
+   VERSION=( "0.4.0" )
+  CATEGORY="network security"
+ ATTRIBUTE="console new broken"
+# It installs it's configuraiton file in /usr/etc
+# If it's install location is changed to /etc
+# then it can not find it's configuration file
+# unless I also modify it's Python script.
+# It installs it's own non LSB compliant init script.
+# I'll fix this spell if anyone wants to use it.
+# but it appears to be a Python script that can 
+# only woefully handle the task it is designed for.
+# It should have been written in C and not an interpreted language.
+    SOURCE="daemonshield/daemonshield-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+       REQ="Python"
+  HOMEPAGE="http://sourceforge.net/projects/daemonshield"
+  ESTIMATE="16"
+      DESC="daemonshield is a linux intrusion and prevention daemon.
+It scans for brute force break-in attacks in real time.
+It uses iptables to create rules that block the attackers'
+IP addresses for a configurable period of time.
+It uses handlers that watch for attacks against
+given services, such as SSH, telnet, FTP, etc.
+It is highly configurable through a central configuration file.
+It loads existing blocklist rules into iptables on startup,
+and removes the blocklist rules when it shuts down.
+Other major features include background daemon operation,
+logging to syslog, easy-to-extend handlers,
+configurable block duration, and email notifications."
+
+build() {
+sed  -i  "s:@prefix@/@ETCDIR@:/@ETCDIR@:"  Makefile.in
+default_build
+}
