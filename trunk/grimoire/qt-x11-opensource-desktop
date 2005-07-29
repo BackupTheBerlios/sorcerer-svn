@@ -1,0 +1,42 @@
+   VERSION=( "4.0.0" )
+  CATEGORY="graphic"
+ ATTRIBUTE="library kde new broken"
+# This is not a drop in replacement for qt 3.3.x
+# The spell is not broken, however do not install
+# until we have something which can use it.
+    SOURCE="qt-x11-opensource-desktop-$VERSION.tar.bz2"
+  HOMEPAGE="http://www.trolltech.com/products/qt/x11.html"
+       URL="ftp://ftp.trolltech.com/qt/source"
+# is cups required or optional?
+#      REQ=( "fontconfig jpeg libmng libpng x11"
+       REQ=( "jpeg libmng libpng x11"
+             "cups:-cups:-no-cups:for common unix printing support"
+             "freetype:-fontconfig:-no-fontconfig:for quality font engine" )
+# qt-x11-free does not support nas network audio.
+# EPROVIDE="qt-x11-free"
+ FRESHMEAT="qt"
+  ESTIMATE="3696"
+      DESC="qt-x11-opensource-desktop simplifies the task of writing and maintaining GUI applications."
+
+build()  {
+echo  "yes"       |
+./configure       \
+-v                \
+-release          \
+-shared           \
+-system-libpng    \
+-system-libjpeg   \
+-system-zlib      \
+-qt-gif           \
+-xinerama         \
+-no-exceptions    \
+-bindir /usr/bin  \
+-libdir /usr/lib  \
+-R$BUILD_DIR/lib  \
+-prefix /usr/share/qt    \
+-headerdir /usr/include  \
+$OPTS                    &&
+make                     &&
+prepare_install          &&
+make    install
+}
