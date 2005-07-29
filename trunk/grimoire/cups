@@ -15,8 +15,7 @@
 # it causes a circuliar requirement loop
        REQ=( "jpeg libpng tiff"
              "openssl:::for secure socket connections"
-             "Linux-PAM:::for pluggable authentication support" 
-	     ":--disable-serial-backend::to avoid system freeze on some HW" )
+             "Linux-PAM:::for pluggable authentication support" )
       OPTS="--without-rcdir"
    EXCLUDE="/etc/cups/certs"
    PROTECT="/etc/printcap"
@@ -33,20 +32,6 @@ build() {
     fi
   }
 
-  disable_serial_backend() {
-  # Added by Jan Merka
-  # Some computers with kernels >2.6.8.1 freeze when the serial backend
-  # is used. Thus, we remove the executable flag:
-    if  [ -n "$DISABLE_SERIAL" ];  then
-      chmod  a-x  /usr/lib/cups/backend/serial
-    fi
-  }
-
-  if ( echo $OPTS  |  grep -q "\-\-disable-serial-backend" ) ; then
-    OPTS=${OPTS/--disable-serial-backend/}
-    DISABLE_SERIAL=1
-  fi
-
   if  spell_installed  Linux-PAM;  then  OPTS="$OPTS  --enable-pam";  fi
   if  spell_installed  openssl;    then  OPTS="$OPTS  --enable-ssl";  fi
 
@@ -57,8 +42,7 @@ build() {
   cd         var/cups/conf  &&
   mkdir  -p  /etc/cups      &&
   cp     *   /etc/cups      &&
-  check_for_smb_backend     &&
-  disable_serial_backend
+  check_for_smb_backend
 }
 
 pre_build() {
