@@ -4,7 +4,7 @@
     SOURCE="wine/Wine-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.winehq.com"
-       REQ=( "bison flex ncurses x11"
+       REQ=( "bison flex fontforge ncurses x11"
              "alsa-lib::--without-alsa:for output through alsa"
              "arts:::audio output through arts"
              "cups:::for printing"
@@ -29,12 +29,15 @@ native system DLLs if they are available."
 build()  {
   unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
-  ./configure  --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  \
-               $OPTS                 &&
-  make    depend                     &&
-  make                               &&
-  prepare_install                    &&
-  make    install  LDCONFIG=/bin/true
+  ./configure           \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  $OPTS                 &&
+  make    depend        &&
+  make                  &&
+  prepare_install       &&
+  make    install       \
+  LDCONFIG=/bin/true
+# FONTSSUBDIRS=fonts
 }
