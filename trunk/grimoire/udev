@@ -1,4 +1,4 @@
-   VERSION=( "064" "063" "062" "061" "060" "059" "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
+   VERSION=( "065" "064" "063" "062" "061" "060" "059" "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
     IGNORE="061"
 # 061 fixes the problem with udevd running,
 # however it gives the group number to the owner
@@ -11,7 +11,7 @@
        URL="$KERNEL_URL"
   HOMEPAGE="http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html"
    EXCLUDE="/dev"
-  ESTIMATE="63"
+  ESTIMATE="66"
       DESC="udev provides an auto-populating /dev.
 
 Add custom rules for udev nodes to the file:
@@ -68,10 +68,11 @@ fix_rules()  {
 }
 
 post_install() {
+  pkill  -15  "^udevd$"
+  /lib/lsb/install_initd /etc/init.d/udev
   if  !  [  -f  /usr/sbin/sorcerer.install  ]
   then   /sbin/udevstart
   fi
-  /lib/lsb/install_initd /etc/init.d/udev
   true
 }
 
