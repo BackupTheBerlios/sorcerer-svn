@@ -10,7 +10,9 @@ inherit  linux
              "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-2-2.6.diff"
              "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-3-2.6.diff"
              "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-4.diff"
-             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-5.diff" )
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-5.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-6-2.6.diff"
+             "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-7-2.6.diff" )
        URL=( "$KERNEL_URL"
              "http://download.rsbac.org" )
   HOMEPAGE="http://www.rsbac.org"
@@ -38,9 +40,18 @@ apply_linux_patch()  {
  unpack  "${SOURCE[1]}"
  SCX=2
  while  [  -n  "${SOURCE[$SCX]}"  ]
- do  cat  $(  guess_filename  ${SOURCE[$SCX]}  )  |  patch  -p1
+ do  decompress  $(  guess_filename  ${SOURCE[$SCX]}  )  |  patch  -p1
   ((  SCX++  ))
  done
  # sed  -i  "s:^EXTRAVERSION:# EXTRAVERSION:"  Makefile
  sed  -i  "s:-rsbac::"  Makefile
+}
+
+current() {
+  case  $VERSION  in
+    2.6.11)  PCX=$(  grep  -x  "patching file rsbac/data_structures/aci_data_structures.c"  $COMPILE_LOGS/linux-rsbac  |
+                     wc    -l  )
+             (( PCX == 2 ))
+  ;;
+  esac
 }
