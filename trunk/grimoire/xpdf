@@ -1,22 +1,28 @@
-   VERSION=( "3.00" "2.03" "2.02pl1" )
-      SAFE=( "3.00" )
+   VERSION=( "3.01" "3.00" "2.03" "2.02pl1" )
+      SAFE=( "3.01" "3.00" )
     IGNORE="arabic\|dos\|chinese\|cyrillic\|greek\|hebrew\|japanese\|korean\|latin\|thai\|turkish\|pl"
   CATEGORY="documentation"
  ATTRIBUTE="x11"
+    SOURCE="xpdf-$VERSION.tar.gz"
+case  $VERSION  in
+  3.00)
     SOURCE=( "xpdf-$VERSION.tar.gz"
              "xpdf-${VERSION}pl1.patch"
              "xpdf-${VERSION}pl2.patch"
-             "xpdf-${VERSION}pl3.patch" )
+             "xpdf-${VERSION}pl3.patch" )  ;;
+esac
        URL="ftp://ftp.foolabs.com/pub/xpdf"
   HOMEPAGE="http://www.foolabs.com/xpdf"
        REQ="autoconf freetype lesstif t1lib x11"
-  ESTIMATE="121"
+  ESTIMATE="129"
       DESC="xpdf is a PDF, portable document format, viewer.
 xpdf is a viewer for Portable Document Format (PDF) files.
 It also comes with two other programs: pdftops and pdftotext
 which convert PDF files to postscript and plain text respectively."
 
 build() {
+case  $VERSION in
+  3.00)
   CX=1
   while [  -n  "${SOURCE[$CX]}"  ]
   do  echo  "xpdf $VERSION patch level $CX"
@@ -28,6 +34,8 @@ build() {
   sed    -i  "s:freetype\.h:ft2build.h:"         configure.in 	 
   sed    -i  "s:#include <freetype/freetype.h>:#include <freetype/ft2build.h>:"         splash/*.h 	 
   autoconf 	 
+  ;;
+esac
 
   default_build
 }
