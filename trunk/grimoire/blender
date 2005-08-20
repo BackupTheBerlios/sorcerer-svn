@@ -1,16 +1,14 @@
-   VERSION=( "2.37" "2.36" )
-#  VERSION=( "2.37a" "2.36" )
-# Version 2.37a can not find installed Python headers nor Python library
+   VERSION=( "2.37a" "2.37" "2.36" )
   CATEGORY="graphic-editor video-editor"
  ATTRIBUTE="new x11"
     SOURCE="blender-$VERSION.tar.gz"
        URL="http://download.blender.org/source"
   HOMEPAGE="http://www.blender3d.org"
 	#to fix ogg and vorbis are really required if compiled in
-	 REQ="Python alsa-lib freetype jpeg libogg libvorbis mozilla openal x11"
+       REQ="Python alsa-lib freetype jpeg libogg libvorbis mozilla openal x11"
  FRESHMEAT="blender"
-  ESTIMATE=5984
-     DESC="blender is a 3d modeling environement
+  ESTIMATE="3821"
+      DESC="blender is a 3d modeling environement
 Blender is a fully integrated 3D graphics creation suite allowing
 modeling, animation, rendering, post-production, real-time interactive
 3D, and game creation and playback with cross-platform compatibility."
@@ -18,7 +16,8 @@ modeling, animation, rendering, post-production, real-time interactive
 build() {
 
 create_config() {
-echo "export NAN_PYTHON_VERSION=$(augur version Python)"
+                                  PVER="$( installed_version Python )"
+echo "export NAN_PYTHON_VERSION=${PVER:0:3}"
 echo "export OS=linux"
 echo "export LDFLAGS+= -lopenal -lasound -logg -lGL -lGLU -L/usr/X11R6/lib"
 }
@@ -30,8 +29,15 @@ cp obj/linux*/bin/blenderplayer /usr/bin
 #cp obj/linux*/bin/npBlender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
 }
 
-export    CFLAGS="-I/usr/include/python2.4 $CFLAGS"
-export  CXXFLAGS="-I/usr/include/python2.4 $CXXFLAGS"
+
+sed  -i  "s:alutLoadWAVMemory((signed char*:alutLoadWAVMemory((ALbyte*:"  \
+intern/SoundSystem/openal/SND_OpenALDevice.cpp
+sed  -i  "s:ALbyte\*\*:ALbyte*:"  \
+intern/SoundSystem/openal/SND_OpenALDevice.cpp
+
+
+# export    CFLAGS="-I/usr/include/python2.4 $CFLAGS"
+# export  CXXFLAGS="-I/usr/include/python2.4 $CXXFLAGS"
 
 grep  -rl  "\-O2" * |  xargs -l16  sed  -i  "s:-O2:$CFLAGS:"
 
