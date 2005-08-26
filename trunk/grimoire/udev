@@ -27,10 +27,14 @@ build() {
 init_install()  {
   install  -m 0700  $SCRIPT_DIR/init.d/udev        /etc/init.d
   install  -m 0700  extras/start_udev              /etc/init.d
-  mkdir    -p                                      /etc/udev/examples
+  mkdir    -p      /etc/udev/rules.d               /etc/udev/examples
   cp       -a       etc/udev/*                     /etc/udev/examples
-# ln       -sf     /etc/udev/examples/debian/*     /etc/udev/rules.d
-  ln       -sf     /etc/udev/examples/slackware/*  /etc/udev/rules.d
+  sed      -i  \
+    's:##BUS="ide",  KERNEL="hd[a-z]":BUS="ide",  KERNEL="hd[a-z]":
+     s:##BUS="scsi", KERNEL="sr[0-9]*":BUS="scsi", KERNEL="sr[0-9]*":
+     s:##BUS="scsi", KERNEL="scd[a-z]":BUS="scsi", KERNEL="scd[a-z]":' \
+         /etc/udev/examples/slackware/udev.rules
+  ln       -sf  ../examples/slackware/udev.rules   /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
   for  FILE in extras/*.sh
   do  install -m 0755 $FILE                        /etc/udev/scripts
