@@ -29,7 +29,8 @@ init_install()  {
   install  -m 0700  extras/start_udev              /etc/init.d
   mkdir    -p                                      /etc/udev/examples
   cp       -a       etc/udev/*                     /etc/udev/examples
-  ln       -sf      ../examples/gentoo/udev.rules  /etc/udev/rules.d
+# ln       -sf     /etc/udev/examples/debian/*     /etc/udev/rules.d
+  ln       -sf     /etc/udev/examples/slackware/*  /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
   for  FILE in extras/*.sh
   do  install -m 0755 $FILE                        /etc/udev/scripts
@@ -49,19 +50,12 @@ linux_sufficient()  {
   fi
 }
 
-fix_rules()  {
-# sed  -i  '/# disk devices/aKERNEL="hd*",		NAME="%k", GROUP="disk"'  etc/udev/gentoo/udev.rules
-  sed  -i  's:part\$3$:part\$3 disk:'  extras/ide-devfs.sh
-  echo  "Added disk group rule for /dev/hd"
-}
-
   sed  -i  "s:/local::
             s:^udevdir = .*:udevdir = /dev:
             s:killall:true:"  Makefile
   sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
 
   linux_sufficient  &&
-  fix_rules         &&
   make              &&
   prepare_install   &&
   make    install   &&
@@ -75,11 +69,4 @@ post_install() {
   then   /sbin/udevstart
   fi
   true
-}
-
-
-current()  {
-  case  $VERSION  in
-    058)  grep  -qx  "Added disk group rule for /dev/hd"  $COMPILE_LOGS/udev  ;;
-  esac
 }
