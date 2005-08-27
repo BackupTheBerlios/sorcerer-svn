@@ -1,3 +1,5 @@
+#!/bin/sh
+
    VERSION=( "3.6" "3.5" "3.4" )
   CATEGORY="network"
  ATTRIBUTE="console"
@@ -13,6 +15,18 @@ and multiple simultaneous PPPoE discovery phases.
 It is cleanly coded and fairly efficient,
 and supports kernel-mode PPPoE on Linux 2.4.x."
 
+configure() {
+	if [ -z "$CONFIGURE" ]; then
+		if query "run pppoe-setup after install step to setup the connection?" y
+		then
+			echo "RUN_PPPOE_SETUP=true" > $SPELL_CONFIG
+		else
+			echo "RUN_PPPOE_SETUP=false" > $SPELL_CONFIG
+		fi
+		echo "CONFIGURE=true" >>$SPELL_CONFIG
+	fi
+}
+	
 
 build() {
  sed  -i  "s/read a/a=0/"  scripts/adsl-setup.in
@@ -32,6 +46,10 @@ build() {
  mkdir  -p  /usr/share/applnk/Internet  &&
  mkdir  -p  /usr/share/gnome/apps/Internet  &&
  cp  $SCRIPT_DIR/tkpppoe.kdelnk   /usr/share/applnk/Internet  &&
- cp  $SCRIPT_DIR/tkpppoe.desktop  /usr/share/gnome/apps/Internet
+ cp  $SCRIPT_DIR/tkpppoe.desktop  /usr/share/gnome/apps/Internet &&
+ if [ -z "$CONFIGURED" ]; then
+	echo "CONFIGURED=true" >>$SPELL_CONFIG
+	( $RUN_PPPOE_SETUP && pppoe-setup ) || true
+ fi
 }
 
