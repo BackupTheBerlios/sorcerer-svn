@@ -11,7 +11,44 @@
       DESC="kbd contains keytable files and keyboard utilities.
 Configuration files are keymap.conf and font.conf located in /etc/kbd"
 
+configure()  {
+  get()  {
+    WHAT=$( dialog  --stdout                         \
+                    --timeout  ${PROMPT_DELAY:-120}  \
+                    --title "$2 Menu"                \
+                    --default-item "$4"              \
+                    --menu  ""  0 0 0                \
+                    $(  for  ITEM  in  $(<  $SCRIPT_DIR/$3  )
+                        do  echo  "$ITEM $2"
+                        done
+                     )  )    &&
+    if  [  -n      "$WHAT"  ]
+    then  echo  "$1=$WHAT"  >>  $SPELL_CONFIG
+    fi
+  }
+
+  if  [  -f          /etc/keymap.conf  ]
+  then  KEYMAP="$(<  /etc/keymap.conf  )"
+        rm  -f       /etc/keymap.conf
+        echo  "KEYMAP=$KEYMAP"  >>  $SPELL_CONFIG
+  fi
+
+  if  [  -f        /etc/font.conf  ]
+  then  FONT="$(<  /etc/font.conf  )"
+        rm  -f     /etc/font.conf
+        echo  "FONT=$FONT"  >>  $SPELL_CONFIG
+  fi
+
+  if [ -z "$KEYMAP" ]; then get "KEYMAP" "Keymap" "keymaps.txt" "us"; fi
+  if [ -z "$FONT"   ]; then get "FONT" "Font" "fonts.txt" "default8x16"; fi
+}
+
+
 build()  {
+  [  -n  "$KEYMAP"  ]  &&  [  -n  "$FONT"  ]  &&
+  sed  -i  "s:/bin/loadkeys.*:/bin/loadkeys $KEYMAP:
+            s:/usr/bin/setfont.*:/usr/bin/setfont $FONT:"  \
+       $SCRIPT_DIR/init.d/kbd
   ./configure      &&
   make             &&
   prepare_install  &&
