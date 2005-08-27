@@ -6,29 +6,20 @@
 # Required-Stop:
 # Default-Start: S
 # Default-Stop:
-# Short-Description: dmesg prints kernel ring buffer to /var/log/dmesg and sets console_loglevel
-# Description:       dmesg prints kernel ring buffer to /var/log/dmesg
-#	and sets the console_loglevel to value in 
-#	/etc/console_loglevel  or  3 is assumed
+# Short-Description: dmesg prints kernel ring buffer to /var/log/dmesg and sets console_loglevel to 3
+# Description: dmesg prints kernel ring buffer to /var/log/dmesg and sets console_loglevel to 3
 ### END INIT INFO
 
 start()  {
-  (
-  if      [  -x  /bin/dmesg  ];  then
-                 /bin/dmesg  >  /var/log/dmesg
-    if    [  -s                 /etc/console_loglevel  ]
-    then  /bin/dmesg  -n  $(<   /etc/console_loglevel  )
-    else  /bin/dmesg  -n  3
-    fi
-  fi
-  ) &
+  /bin/dmesg  -c  >  /var/log/dmesg
+  /bin/dmesg  -n  3
 }
 
-help()  {
-  echo "Usage: $0 {start}" 1>&2
-}
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
 
 case  $1  in
-         start)  start        ;;
-             *)  help         ;;
+        start)  start &  ;;
+         stop)  :        ;;
+  try-restart)  :        ;;
+            *)  help     ;;
 esac

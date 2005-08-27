@@ -7,7 +7,8 @@
        URL="ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux"
   HOMEPAGE="ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux"
        REQ=( "e2fsprogs gettext ncurses zlib"
-             "libselinux:--with-selinux::" )
+             "libselinux:--with-selinux::"
+             ":--utc:--localtime:Does the hardware clock store time in UTC" )
    PROTECT="/usr/bin/column
             /usr/bin/renice"
    EXCLUDE="/etc/fstab
@@ -33,9 +34,14 @@ build()  {
   if    echo  "$OPTS"  |  grep  -q  "\--with-selinux"  &&
         spell_installed  $( get_provider  libselinux  )
   then  sed  -i  "s:HAVE_SELINUX=no:HAVE_SELINUX=yes:"  MCONFIG
-  unset OPTS
   fi
 
+  if    echo  "$OPTS"  |  grep  -q  "\--localtime"
+  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d/hwclock
+  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d/hwclock
+  fi
+
+  unset  OPTS
   sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
             s:\$(OPT)::
             s:_WRITE=no:_WRITE=yes:"  MCONFIG
