@@ -29,11 +29,8 @@ init_install()  {
   install  -m 0700  extras/start_udev              /etc/init.d
   mkdir    -p      /etc/udev/rules.d               /etc/udev/examples
   cp       -a       etc/udev/*                     /etc/udev/examples
-  sed      -i  \
-    's:##BUS="ide",  KERNEL="hd[a-z]":BUS="ide",  KERNEL="hd[a-z]":
-     s:##BUS="scsi", KERNEL="sr[0-9]*":BUS="scsi", KERNEL="sr[0-9]*":
-     s:##BUS="scsi", KERNEL="scd[a-z]":BUS="scsi", KERNEL="scd[a-z]":
-     /SYSFS_type="5"/d'  \
+  sed      -i -r 's:##BUS=(.*cdsymlinks.*):BUS=\1:
+                  /SYSFS_type="5"/d'  \
          /etc/udev/examples/slackware/udev.rules
   ln       -sf  ../examples/slackware/udev.rules   /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
