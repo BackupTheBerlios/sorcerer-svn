@@ -1,13 +1,18 @@
-   VERSION=( "0.47" "0.46" )
+   VERSION=( "0.47-2" "0.47" "0.46" )
   CATEGORY="development"
- ATTRIBUTE="data broken"
-# This does not compile, but may soon be a requirement for gnome
-    SOURCE="iso-codes_$VERSION.orig.tar.gz"
+ ATTRIBUTE="data"
+    SOURCE=( "iso-codes_${VERSION%-*}.orig.tar.gz"
+             "iso-codes_$VERSION.diff.gz" )
        URL="ftp://ftp.debian.org/debian/pool/main/i/iso-codes"
   HOMEPAGE=""
-       REQ="Python"
-  ESTIMATE=""
+       REQ="PyXML"
+  ESTIMATE="635"
       DESC="iso-codes provides a singular collection of data.
 iso-codes aims to provide the list of the country and language
-(and currency) names in one place, rather than repeated in many
-programs."
+(and currency) names in one place, rather than repeated in many programs."
+
+build()  {
+  decompress  $SOURCE_CACHE/iso-codes/$VERSION/${SOURCE[1]}  |
+  patch  -p1
+  default_build
+}
