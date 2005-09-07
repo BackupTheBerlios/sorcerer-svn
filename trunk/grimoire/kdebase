@@ -1,4 +1,5 @@
 inherit kde
+  SAFE=( "3.4.2" )
   CATEGORY="utility file-manager terminal-emulator"
 case  $VERSION  in
   3.3.2)
@@ -7,6 +8,8 @@ case  $VERSION  in
   3.4.0)
  SOURCE[1]="hal_050.patch"
     URL[1]="http://svn.exactcode.de/t2/trunk/package/kde/kdebase"
+  ;;
+  3.4.2)  SOURCE[1]="security_patches/post-3.4.2-kdebase-kcheckpass.diff"
   ;;
 esac
        REQ=( "kdelibs"
@@ -18,7 +21,7 @@ esac
              "openldap:::for lightweight directory access protocol support" )
 # May have optional requirement on samba
  FRESHMEAT="kde"
-  ESTIMATE="4851"
+  ESTIMATE="4856"
       DESC="kdebase contains the base applications that from KDE.
 kdebase contains the base applications that 
 form the core of the K Desktop Environment like 
@@ -30,6 +33,11 @@ build()  {
   case  $VERSION  in
     3.3.2) patch -p0 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
     3.4.0) patch -p1 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
+    3.4.2) patch -p1 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} kcheckpass/kcheckpass.c
+           sed   -i  "\,#include <linux/joystick.h>,itypedef __signed__ long long __s64;"  kcontrol/joystick/joydevice.h
+           sed   -i  "\,#include <linux/joystick.h>,i#define BITS_PER_LONG 32"  kcontrol/joystick/joydevice.h  ;;
+#          sed   -i  "\,#include <linux/joystick.h>,i#include <asm/types.h>"  kcontrol/joystick/joydevice.h  ;;
+#          sed   -i  "\,#include <linux/joystick.h>,i#include <linux/types.h>"  kcontrol/joystick/joydevice.h  ;;
   esac
   kde_build  &&
   install_pamd
@@ -40,5 +48,6 @@ current()  {
   case  $VERSION  in
     3.3.2)  grep  -qx  "patching file konqueror/konq_mainwindow.cc"  $COMPILE_LOGS/kdebase  ;;
     3.4.0)  grep  -qx  "patching file kioslave/media/kdedmodule/halbackend.cpp"  $COMPILE_LOGS/kdebase  ;;
+    3.4.2)  grep  -qx  "patching file kcheckpass/kcheckpass.c"  $COMPILE_LOGS/kdebase  ;;
   esac
 }

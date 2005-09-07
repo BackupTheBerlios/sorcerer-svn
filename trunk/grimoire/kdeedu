@@ -1,23 +1,10 @@
 inherit kde
-# kde's difficult to apply patch also breaks compilation
 
-# Making all in kstars
-# make[2]: Entering directory `/usr/src/sorcery/kdeedu-3.3.2/kstars'
-# Making all in kstars
-# make[3]: Entering directory  `/usr/src/sorcery/kdeedu-3.3.2/kstars/kstars'
-#  cd ../.. && /bin/sh /usr/src/sorcery/kdeedu-3.3.2/admin/missing --run automake-1.9 --foreign  kstars/kstars/Makefile
-# configure.in:43: version mismatch.  This is Automake 1.9.5,
-# configure.in:43: but the definition used by this AM_INIT_AUTOMAKE
-# configure.in:43: comes from Automake 1.9.1.  You should recreate
-# configure.in:43: aclocal.m4 with aclocal and run automake again.
-# make[3]: *** [Makefile.in] Error 1
-
-# case  $VERSION  in
-#   3.3.2)
-#       SAFE=( "3.3.2" )
-#  SOURCE[1]="security_patches/post-3.3.2-kdeedu-kstars.diff"
-#   ;;
-# esac
+case  $VERSION  in
+  3.4.2)
+      SAFE=( "3.4.2" )
+ SOURCE[1]="security_patches/post-3.4.2-kdeedu.diff"   ;;
+esac
 
   CATEGORY="development"
        REQ="kdelibs"
@@ -37,19 +24,17 @@ ktouch		program for learning touch typing
 kvoctrain	vocabulary trainer"
 
 
-# build()  {
-#   case  $VERSION  in  
-#     3.3.2)
-#       patch  -d kstars/kstars       <  $SOURCE_CACHE/kdeedu/$VERSION/${SOURCE[1]##*/}
-#       patch  -d kstars/kstars/indi  <  $SOURCE_CACHE/kdeedu/$VERSION/${SOURCE[1]##*/}
-#     ;;
-#   esac
-#   kde_build
-# }
+build()  {
+  case  $VERSION  in  
+    3.4.2)
+      patch  -p 0  <  $SOURCE_CACHE/kdeedu/$VERSION/${SOURCE[1]##*/}  ;;
+  esac
+  kde_build
+}
 
 
-# current()  {
-#   case  $VERSION  in
-#     3.3.2)  grep  -qx  "patching file v4lphilips.cpp"  $COMPILE_LOGS/kdeedu  ;;
-#   esac
-# }
+current()  {
+  case  $VERSION  in
+    3.4.2)  grep  -qx  "patching file kvoctrain/kvoctrain/langen2kvtml"  $COMPILE_LOGS/kdeedu  ;;
+  esac
+}
