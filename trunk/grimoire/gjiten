@@ -1,0 +1,31 @@
+   VERSION=( "2.4" )
+  CATEGORY="dictionary"
+ ATTRIBUTE="gnome new"
+    SOURCE=( "gjiten-$VERSION.tar.gz"
+             "edict.gz"
+             "kanjidic.gz" )
+       URL=( "http://gjiten.sourceforge.net/"
+             "ftp://ftp.monash.edu.au/pub/nihongo/" )
+  HOMEPAGE="http://gjiten.sourceforge.net/"
+       REQ="libgnomeui"
+  ESTIMATE="70"
+      DESC="gjiten is a japanese dictionary program for gnome.
+Besides being a word dictionary it also has a kanji dictionary;
+any combination of stroke number, radicals, and search key can
+be used for kanji lookups."
+
+build() {
+install_dicts()  {
+  cd      /usr/share/gjiten
+  cp      $SOURCE_CACHE/gjiten/$VERSION/${SOURCE[1]}  .
+  cp      $SOURCE_CACHE/gjiten/$VERSION/${SOURCE[2]}  .
+  gunzip  edict.gz
+  gunzip  kanjidic.gz
+  iconv   -f EUC-JP  -t UTF-8  edict    -o edict.utf8
+  iconv   -f EUC-JP  -t UTF-8  kanjidic -o kanjidic.utf8
+  rm      -f edict kanjidic
+}
+
+default_build &&
+install_dicts
+}
