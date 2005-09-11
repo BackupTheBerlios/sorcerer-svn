@@ -1,0 +1,234 @@
+diff -ur bsdftpd-ssl-1.0.2/contrib/libedit/term.c bsdftpd-ssl-1.0.2-new/contrib/libedit/term.c
+--- bsdftpd-ssl-1.0.2/contrib/libedit/term.c	2004-02-16 22:39:36.000000000 +0100
++++ bsdftpd-ssl-1.0.2-new/contrib/libedit/term.c	2004-10-10 19:46:50.634153000 +0200
+@@ -53,7 +53,7 @@
+ #include <unistd.h>
+ #if defined(LINUX) && !defined(NONCURSESDIR)
+ /* RedHat-style location */
+-#include <ncurses/termcap.h>
++#include <termcap.h>
+ #else /* BSD source */
+ #include <termcap.h>
+ #endif /* BSD source */
+diff -ur bsdftpd-ssl-1.0.2/ftp/ftp.c bsdftpd-ssl-1.0.2-new/ftp/ftp.c
+--- bsdftpd-ssl-1.0.2/ftp/ftp.c	2004-07-04 20:00:32.000000000 +0200
++++ bsdftpd-ssl-1.0.2-new/ftp/ftp.c	2004-10-10 20:04:01.491439824 +0200
+@@ -1530,20 +1530,16 @@
+ 				&prt[1], &delim[3]);
+ 			if (error != 5) {
+ 				error = 1;
+-				goto epsv_done;
+-			}
+-			if (delim[0] != delim[1] || delim[0] != delim[2]
+-			 || delim[0] != delim[3]) {
++			} else if (delim[0] != delim[1] || delim[0] != delim[2]
++	  		 || delim[0] != delim[3]) {
+ 				error = 1;
+-				goto epsv_done;
+-			}
+-
+-			data_addr = hisctladdr;
+-			/* quickhack */
+-			prt[0] = (prt[1] & 0xff00) >> 8;
+-			prt[1] &= 0xff;
+-			error = 0;
+-epsv_done:
++			} else {
++	  		data_addr = hisctladdr;
++	  		/* quickhack */
++	  		prt[0] = (prt[1] & 0xff00) >> 8;
++	  		prt[1] &= 0xff;
++	  		error = 0;
++		  }
+ 		} else
+ 			error = 1;
+ 
+@@ -1866,7 +1862,6 @@
+ 			    data=-1;
+ 
+ 			    return NULL;
+-			default:
+ 			}
+ 
+ 			X509_free(x509_ssl_con);
+@@ -1981,7 +1976,6 @@
+ 		    data=-1;
+ 
+ 		    return NULL;
+-		default:
+ 		}
+ 
+ 		X509_free(x509_ssl_con);
+Seulement dans bsdftpd-ssl-1.0.2-new/ftp: Makefile
+diff -ur bsdftpd-ssl-1.0.2/ftp/util.c bsdftpd-ssl-1.0.2-new/ftp/util.c
+--- bsdftpd-ssl-1.0.2/ftp/util.c	2004-05-31 00:24:47.000000000 +0200
++++ bsdftpd-ssl-1.0.2-new/ftp/util.c	2004-10-10 20:04:42.451212992 +0200
+@@ -986,7 +986,6 @@
+ 	    case X509_V_ERR_CERT_REVOKED:
+ 		ssl_log_msgn(bio_err,"Reason: Certificate revoked");
+ 		break;
+-	    default:
+ 	    }
+ 
+ 	    warnx("TLS/SSL connection to server failed");
+diff -ur bsdftpd-ssl-1.0.2/ftpd/ftpd.c bsdftpd-ssl-1.0.2-new/ftpd/ftpd.c
+--- bsdftpd-ssl-1.0.2/ftpd/ftpd.c	2004-07-08 00:35:54.000000000 +0200
++++ bsdftpd-ssl-1.0.2-new/ftpd/ftpd.c	2004-10-10 19:57:34.161322952 +0200
+@@ -2261,7 +2261,6 @@
+ 		    case SSL_SENT_SHUTDOWN:
+ 			SSL_get_shutdown(ssl_data_con);
+ 			break;
+-		    default:
+ 		    }
+ 		}
+ 		SSL_free(ssl_data_con);
+@@ -2384,7 +2383,6 @@
+ 		    case SSL_SENT_SHUTDOWN:
+ 			SSL_get_shutdown(ssl_data_con);
+ 			break;
+-		    default:
+ 		    }
+ 		}
+ 		SSL_free(ssl_data_con);
+@@ -2635,7 +2633,6 @@
+ 			    pdata=-1;
+ 
+ 			    return NULL;
+-			default:
+ 			}
+ 
+ 			X509_free(x509_ssl_con);
+@@ -2796,7 +2793,6 @@
+ 		    data = -1;
+ 
+ 		    return NULL;
+-		default:
+ 		}
+ 
+ 		X509_free(x509_ssl_con);
+@@ -4099,7 +4095,6 @@
+ 					case SSL_SENT_SHUTDOWN:
+ 					    SSL_get_shutdown(ssl_data_con);
+ 					    break;
+-					default:
+ 					}
+ 				    }
+ 				    SSL_free(ssl_data_con);
+@@ -4213,7 +4208,6 @@
+ 			case SSL_SENT_SHUTDOWN:
+ 			    SSL_get_shutdown(ssl_data_con);
+ 			    break;
+-			default:
+ 			}
+ 		    }
+ 		    SSL_free(ssl_data_con);
+Seulement dans bsdftpd-ssl-1.0.2-new/ftpd: Makefile
+diff -ur bsdftpd-ssl-1.0.2/ftpd/Makefile.linux bsdftpd-ssl-1.0.2-new/ftpd/Makefile.linux
+--- bsdftpd-ssl-1.0.2/ftpd/Makefile.linux	2004-02-16 22:41:01.000000000 +0100
++++ bsdftpd-ssl-1.0.2-new/ftpd/Makefile.linux	2004-10-10 19:46:48.333503000 +0200
+@@ -73,7 +73,17 @@
+ 	done
+ 
+ ftpcmd.c:	ftpcmd.y
+-	@if [ -f /usr/bin/byacc ]; then \
++	@if [ -f /usr/bin/bbyacc ]; then \
++		echo "/usr/bin/bbyacc ftpcmd.y"; \
++		/usr/bin/bbyacc ftpcmd.y; \
++	else \
++	if [ -f /usr/local/bin/bbyacc ]; then \
++		echo "/usr/local/bin/bbyacc ftpcmd.y"; \
++		/usr/local/bin/bbyacc ftpcmd.y; \
++	else \
++	echo "WARNING: Can not find bbyacc, trying to use yacc."; \
++	echo "WARNING: Please note that Berkeley Yacc is required."; \
++	if [ -f /usr/bin/byacc ]; then \
+ 		echo "/usr/bin/byacc ftpcmd.y"; \
+ 		/usr/bin/byacc ftpcmd.y; \
+ 	else \
+@@ -81,16 +91,6 @@
+ 		echo "/usr/local/bin/byacc ftpcmd.y"; \
+ 		/usr/local/bin/byacc ftpcmd.y; \
+ 	else \
+-	echo "WARNING: Can not find byacc, trying to use yacc."; \
+-	echo "WARNING: Please note that Berkeley Yacc is required."; \
+-	if [ -f /usr/bin/yacc ]; then \
+-		echo "/usr/bin/yacc ftpcmd.y"; \
+-		/usr/bin/yacc ftpcmd.y; \
+-	else \
+-	if [ -f /usr/local/bin/yacc ]; then \
+-		echo "/usr/local/bin/yacc ftpcmd.y"; \
+-		/usr/local/bin/yacc ftpcmd.y; \
+-	else \
+ 		echo "ERROR: Can not find Berkeley Yacc."; \
+ 	fi; \
+ 	fi; \
+diff -ur bsdftpd-ssl-1.0.2/ftpd/Makefile.linux-shadow bsdftpd-ssl-1.0.2-new/ftpd/Makefile.linux-shadow
+--- bsdftpd-ssl-1.0.2/ftpd/Makefile.linux-shadow	2004-01-04 22:10:02.000000000 +0100
++++ bsdftpd-ssl-1.0.2-new/ftpd/Makefile.linux-shadow	2004-10-10 19:46:48.335503000 +0200
+@@ -71,7 +71,17 @@
+ 	done
+ 
+ ftpcmd.c:	ftpcmd.y
+-	@if [ -f /usr/bin/byacc ]; then \
++	@if [ -f /usr/bin/bbyacc ]; then \
++		echo "/usr/bin/bbyacc ftpcmd.y"; \
++		/usr/bin/bbyacc ftpcmd.y; \
++	else \
++	if [ -f /usr/local/bin/bbyacc ]; then \
++		echo "/usr/local/bin/bbyacc ftpcmd.y"; \
++		/usr/local/bin/bbyacc ftpcmd.y; \
++	else \
++	echo "WARNING: Can not find bbyacc, trying to use yacc."; \
++	echo "WARNING: Please note that Berkeley Yacc is required."; \
++	if [ -f /usr/bin/byacc ]; then \
+ 		echo "/usr/bin/byacc ftpcmd.y"; \
+ 		/usr/bin/byacc ftpcmd.y; \
+ 	else \
+@@ -79,16 +89,6 @@
+ 		echo "/usr/local/bin/byacc ftpcmd.y"; \
+ 		/usr/local/bin/byacc ftpcmd.y; \
+ 	else \
+-	echo "WARNING: Can not find byacc, trying to use yacc."; \
+-	echo "WARNING: Please note that Berkeley Yacc is required."; \
+-	if [ -f /usr/bin/yacc ]; then \
+-		echo "/usr/bin/yacc ftpcmd.y"; \
+-		/usr/bin/yacc ftpcmd.y; \
+-	else \
+-	if [ -f /usr/local/bin/yacc ]; then \
+-		echo "/usr/local/bin/yacc ftpcmd.y"; \
+-		/usr/local/bin/yacc ftpcmd.y; \
+-	else \
+ 		echo "ERROR: Can not find Berkeley Yacc."; \
+ 	fi; \
+ 	fi; \
+diff -ur bsdftpd-ssl-1.0.2/INSTALL bsdftpd-ssl-1.0.2-new/INSTALL
+--- bsdftpd-ssl-1.0.2/INSTALL	2004-07-09 00:11:01.000000000 +0200
++++ bsdftpd-ssl-1.0.2-new/INSTALL	2004-10-10 19:46:47.876573000 +0200
+@@ -33,7 +33,7 @@
+ 
+ To compile BSDftpd-ssl, you also need:
+ 
+-* Berkeley Yacc (yacc), an LALR parser generator;
++* Berkeley Yacc (byacc), an LALR parser generator;
+ * The GNU Compiler Collection (gcc 2.95 or higher);
+ * The GNU binary utilities (binutils).
+ 
+@@ -312,7 +312,7 @@
+ - To place them directly into the root of the standard include directory. In
+   this case the ncurses library is also used as the replacement of the termcap
+   library.
+-- To place them into the ncurses/ subdirectory in the standard include
++- To place them into the  subdirectory in the standard include
+   directory. In this case the termcap library can be installed too.
+ 
+ The first way is used by Debian GNU/Linux and some other Linux distributions,
+Seulement dans bsdftpd-ssl-1.0.2-new/: Makefile
+Seulement dans bsdftpd-ssl-1.0.2-new/: Makefile.inc
+Seulement dans bsdftpd-ssl-1.0.2-new/port: bsdfts.h
+Seulement dans bsdftpd-ssl-1.0.2-new/port: bsdglob.h
+Seulement dans bsdftpd-ssl-1.0.2-new/port: histedit.h
+Seulement dans bsdftpd-ssl-1.0.2-new/port/libbsdport: Makefile
+Seulement dans bsdftpd-ssl-1.0.2-new/port/libedit: Makefile
+Seulement dans bsdftpd-ssl-1.0.2-new/port/libedit: Makefile.inc
+Seulement dans bsdftpd-ssl-1.0.2-new/port: libutil.h
+Seulement dans bsdftpd-ssl-1.0.2-new/port: stringlist.h
