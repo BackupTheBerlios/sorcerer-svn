@@ -1,4 +1,4 @@
-   VERSION=( "1.2.2" "1.2.1" "1.2.0" "1.1.0" )
+   VERSION=( "1.2.3" "1.2.2" "1.2.1" "1.2.0" "1.1.0" )
     IGNORE="caper\|flower\|mind\|parallel\|theme"
   CATEGORY="window-manager"
  ATTRIBUTE="x11 new"
@@ -6,7 +6,7 @@
        URL="http://download.berlios.de/slim"
   HOMEPAGE="http://slim.berlios.de"
        REQ="fontconfig jpeg x11"
-  ESTIMATE="40"
+  ESTIMATE="15"
       DESC="slim is a simple login manager for X11.
 It features customizable options, themes, and support for PNG and XFT.
 It does not depend on a particuar toolkit or desktop environment.
@@ -20,8 +20,15 @@ theme_build() {
   cp     -av  *  /usr/share/slim/themes/
 }
 
+slim_build() {
+  sed  -i  "s:/usr/bin/::"  Makefile
+  make            &&
+  prepare_install &&
+  make    install
+}
+
 case  $SPELL  in
-  slim)     default_build  ;;
+  slim)     slim_build  ;;
   *theme*)  theme_build    ;;
 esac
 }
