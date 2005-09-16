@@ -88,6 +88,17 @@ build() {
 
  }
 
+ x86_64_fix() {
+  # This fix has to placed _after_ the first make
+  case $( arch ) in
+   x86_64) case  $VERSION  in
+            3.4.4) sed -i "s:\.\./include:\.\./\.\./include:"      
+                   x86_64-pc-linux-gnu/libiberty/Makefile
+                   ;;
+           esac
+           ;;
+  esac
+ }
 
  ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
@@ -139,8 +150,9 @@ build() {
        "$ENABLE_LANGS"             \
        $OPTS                       &&
  make         bootstrap-lean   "$BF"      \
- "$LCF"  "$LCXF"  "$LDF"     \
- "$LJCF" "$LJCXF"            &&
+ "$LCF"  "$LCXF"  "$LDF"      		  \
+ "$LJCF" "$LJCXF"               	  &&
+ x86_64_fix				  &&
  prepare_install                          &&
  make    install                          &&
  finish_install
