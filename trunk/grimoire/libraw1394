@@ -1,6 +1,4 @@
-# Latest version is 1.1.0 do not know if it compiles
-# Main Homepage is still down
-   VERSION=( "1.1.0" "0.10.1" "0.9.0" )
+   VERSION=( "1.2.0" "1.1.0" "0.10.1" "0.9.0" )
     IGNORE="ieee\|diag"
   CATEGORY="development"
  ATTRIBUTE="library"
@@ -40,6 +38,12 @@ Finally, you will need to add users authorized to access the IEEE1394
 (firewire) hardware to the firewire group in /etc/group."
 
 build() {
+  make_dev()  {
+    if  !  [  -c  /dev/raw1394  ]
+    then  make  dev
+    fi
+  }
+
   if    [  -d  libraw1394-$VERSION  ]
   then  cd     libraw1394-$VERSION
   fi
@@ -48,7 +52,6 @@ build() {
   ./configure      \
   --prefix=/usr    &&
   make             &&
-  prepare_install  &&
-  make    install  &&
-  make     dev
+  prepare_install  &&  make_dev  &&
+  make    install
 }
