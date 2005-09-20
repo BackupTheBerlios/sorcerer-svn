@@ -1,8 +1,14 @@
+#!/bin/bash
+
+# this spell is gcc 4 ready just uncomment this line to activate
+#this spell support DESTDIR install 
+#   VERSION=( "4.0.1" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
    VERSION=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+
       SAFE=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|^4\.0\.[0-1]"
   CATEGORY="compiler"
- ATTRIBUTE="console core library solo"
+ ATTRIBUTE="console core library solo DESTDIR"
     SOURCE="gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2"
 #   SOURCE="gcc-$VERSION.tar.bz2"
        URL="$GNU_URL"
@@ -35,14 +41,15 @@ configure() {
                "f77"       ""  "off"  \
                "f95"       ""  "off"  \
                "java"      ""  "off"  \
-               "objc"      ""  "off"  \
+               "objc"      ""  "off"  |
+               awk '{gsub("^[ \t]*",""); gsub("\n",","); printf("%s,",$0);}'
   )
 
  }
 
  save_compilers()  {
   if    [  -n  "$GCC_LANGUAGES"  ]
-  then           GCC_LANGUAGES="${GCC_LANGUAGES//$LF/,},c++"
+  then           GCC_LANGUAGES="${GCC_LANGUAGES//$LF/,}c++"
   else           GCC_LANGUAGES="c++"
   fi
   echo          "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
@@ -137,24 +144,38 @@ build() {
   *)  OPTS="$OPTS      \
        --enable-threads=posix"    ;;
  esac
+OPTS="$OPTS
+     --host=$BUILD               
+     --prefix=/opt/gcc/$VERSION  
+     --enable-__cxa_atexit       
+     --enable-clocale=gnu        
+     --enable-shared             
+     --infodir=/usr/info         
+     --mandir=/usr/man           
+     --datadir=/usr/share        
+     --enable-long-long          
+     $ENABLE_LANGS"             
 
- ./configure --host=$BUILD               \
-       --prefix=/opt/gcc/$VERSION  \
-       --enable-__cxa_atexit       \
-       --enable-clocale=gnu        \
-       --enable-shared             \
-       --infodir=/usr/info         \
-       --mandir=/usr/man           \
-       --datadir=/usr/share        \
-       --enable-long-long          \
-       "$ENABLE_LANGS"             \
-       $OPTS                       &&
- make         bootstrap-lean   "$BF"      \
- "$LCF"  "$LCXF"  "$LDF"      		  \
- "$LJCF" "$LJCXF"               	  &&
- x86_64_fix				  &&
- prepare_install                          &&
- make    install                          &&
+
+case $VERSION in
+	3.*) ./configure  $OPTS       &&
+        make         bootstrap-lean   "$BF"      \
+				"$LCF"  "$LCXF"  "$LDF"      		  \
+				"$LJCF" "$LJCXF"    && 
+				x86_64_fix				  &&
+				prepare_install     &&
+				make    install     ;;
+
+  4.*) mkdir BUILD         &&
+        cd BUILD           &&
+				../configure $OPTS &&
+				make               &&
+				mkdir INSTALLDIR   &&
+				export DESTDIR=$PWD/INSTALLDIR &&
+				make install       &&
+				prepare_install    &&
+				cp -a INSTALLDIR/* /;;
+esac            &&
  finish_install
 }
 
