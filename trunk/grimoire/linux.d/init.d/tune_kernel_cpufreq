@@ -1,0 +1,67 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: 
+# Required-Start: $local_fs
+# Default-Start: S
+# Short-Description: tune kernel for particular use
+# Description: tune kernel for particular use
+### END INIT INFO
+. /lib/lsb/init-functions
+
+
+
+#see /usr/src/linux/Documentation/filesystems/proc.txt
+
+# Maximum time, in seconds, of hard drive spindown time that you are
+# confortable with. Worst case, it's possible that you could lose this
+# amount of work if your battery fails you while in laptop mode.
+MAX_AGE=600
+
+# Dirty synchronous ratio.  At this percentage of dirty pages the process which
+# calls write() does its own writeback
+DIRTY_RATIO=40
+
+
+#
+# Allowed dirty background ratio, in percent.  Once DIRTY_RATIO has been
+# exceeded, the kernel will wake pdflush which will then reduce the amount
+# of dirty memory to dirty_background_ratio.  Set this nice and low, so once
+# some writeout has commenced, we do a lot of it.
+#
+DIRTY_BACKGROUND_RATIO=5
+
+
+# This must be adjusted manually to the value of HZ in the running kernel
+# on 2.4, until the XFS people change their 2.4 external interfaces to work in
+# centisecs. This can be automated, but it's a work in progress that still needs
+# some fixes. On 2.6 kernels, XFS uses USER_HZ instead of HZ for external
+# interfaces, and that is currently always set to 100. So you don't need to
+# change this on 2.6.
+XFS_HZ=${XFS_HZ:-'100'}
+AGE=$((100*$MAX_AGE))
+XFS_AGE=$(($XFS_HZ*$MAX_AGE))
+
+
+#############################################################################
+
+case "$1" in
+	start)
+	  log_warning_msg "kernel cpu tunning"
+		#CPU_MAXFREQ=`cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_min_freq`
+		#echo $CPU_MAXFREQ > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    log_success_msg "kernel cpu tunning finished"
+		;;
+	stop)
+	  log_warning_msg "kernel cpu untunning"
+		#echo `cat /sys/devices/system/cpu/cpu0/cpufreq/cpuinfo_max_freq` > /sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq
+    log_success_msg "kernel cpu untunning finished"
+		;;
+	*)
+		echo "Usage: $0 {start|stop}" 2>&1
+		exit 1
+		;;
+
+esac
+
+exit 0
