@@ -11,7 +11,7 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.boost.org"
        REQ="Python-v2.2 boost-jam"
-  ESTIMATE="641"
+  ESTIMATE="1535"
       DESC="boost provides additional C++ libraries.
 boost was begun by members of the C++ standards
 committee Library Working Group to provide free
@@ -29,10 +29,17 @@ programming style of the Standard Template Library (STL)."
 
 
 build()  {
+symlink_includes() {
+  if  !  [   -e  /usr/include/boost ]
+  then   ln  -s  /usr/include/boost-${VERSION%_*}  /usr/include/boost
+  fi
+}
+
 export  PYTHON_ROOT=/usr
 bjam    --prefix=/usr  stage    &&
 prepare_install                 &&
-bjam    --prefix=/usr  install
+bjam    --prefix=/usr  install  &&
+symlink_includes
 }
 
 current()  {
@@ -52,4 +59,3 @@ cp      $(  find . -type f     -a  \
                    -name \*.so     |
             grep release           )   /usr/lib
 }
-
