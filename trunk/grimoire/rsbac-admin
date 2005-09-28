@@ -1,16 +1,13 @@
-   VERSION=( "v1.2.3" )
-    IGNORE="gnupgcert\|v1\.2\.4"
-# v1.2.4 has a compile error.
+   VERSION=( "v1.2.5" "v1.2.3" )
   CATEGORY="security"
  ATTRIBUTE="console new"
     SOURCE=( "rsbac-admin-$VERSION.tar.bz2"
-             "rsbac-$VERSION.tar.bz2" )
+             "rsbac-common-$VERSION.tar.bz2" )
   HOMEPAGE="http://www.rsbac.org"
-#       URL="http://www.rsbac.org/download/code/$VERSION"
        URL="http://download.rsbac.org/code/$VERSION"
       OPTS="--with-kerneldir=$SOURCE_DIR/rsbac-admin-$VERSION"
        REQ="dialog"
-  ESTIMATE="230"
+  ESTIMATE="33"
       DESC="rsbac-admin provides administrations tools for RSBAC.
 
 Rule Set Based Access Control (RSBAC) provides
@@ -25,11 +22,18 @@ which in turn calls all active decision modules
 and generates a combined decision. 
 This decision is then enforced by the system call extensions."
 
-build()  {
-  case  $(  arch  )  in
-    i?86)   sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-i386.h>"  ./src/syscall_wrapper.c  ;;
-    alpha)  sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-alpha.h>"  ./src/syscall_wrapper.c  ;;
-    ppc)    sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-ppc.h>"  ./src/syscall_wrapper.c  ;;
-  esac
-  default_build
+# was build for v1.2.3 and older
+# build()  {
+#  case  $(  arch  )  in
+#    i?86)   sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-i386.h>"  ./src/syscall_wrapper.c  ;;
+#    alpha)  sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-alpha.h>"  ./src/syscall_wrapper.c  ;;
+#    ppc)    sed  -i  "\,#include <rsbac/syscall_rsbac.h>,i#include <rsbac/unistd-ppc.h>"  ./src/syscall_wrapper.c  ;;
+#  esac
+#   default_build
+# }
+
+build() {
+make             PREFIX=/usr  &&
+prepare_install               &&
+make    install  PREFIX=/usr
 }
