@@ -10,7 +10,7 @@
              "heimdal:Kerberos:for kerberos support"
              "tcp_wrappers:::for controlling access to ftpd daemon through tcp_wrappers"
              "xinetd:::for running server" )
-  ESTIMATE=92
+  ESTIMATE="92"
      DESC="bsdftpd-ssl provides a secure ftp server
 BSDftpd-ssl is a TLS/SSL-enhanced FTP server.
 It is based on FreeBSD's ftpd,
@@ -28,9 +28,11 @@ support TLS/SSL-aware and standard clients simultaneously)."
 build() {
 
 compile_and_install() {
-  grep  -qx  "tcp_wrappers"    $OPT_ON_LOGS/bsdftpd-ssl  ||
-  sed   -i  "/wrap/d;/WRAP/d"  ftpd/Makefile.*
-  sed   -i  "s:-Wall -O2::"    ftp*/Makefile*
+  grep   -qx   "tcp_wrappers"           $OPT_ON_LOGS/bsdftpd-ssl  ||
+  sed    -i    "/wrap/d;/WRAP/d"        ftpd/Makefile.*
+  sed    -i    "s:-Wall -O2::"          ftp*/Makefile*
+  grep   -lr              "/usr/local"     *  |
+  xargs  -l64  sed  -i  "s:/usr/local::"
 
   case  $VERSION  in
     1.1.0)  sed  -i  "s:cmdtab\[\]:*cmdtab:"  ftp/{cmdtab.c,extern.h}  ;;
