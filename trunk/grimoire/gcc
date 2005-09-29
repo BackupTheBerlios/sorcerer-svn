@@ -1,18 +1,11 @@
-#!/bin/bash
-
-# this spell is gcc 4 ready just uncomment this line to activate
-#this spell support DESTDIR install 
-#   VERSION=( "4.0.1" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
    VERSION=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
-
-      SAFE=( "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+#  VERSION=( "4.0.2" "4.0.1" "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
+      SAFE=( "4.0.2" "4.0.1" "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.4" "3.3.3" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|^4\.0\.[0-1]"
   CATEGORY="compiler"
  ATTRIBUTE="console core library solo DESTDIR"
     SOURCE="gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2"
-#   SOURCE="gcc-$VERSION.tar.bz2"
        URL="$GNU_URL"
-#      URL="ftp://sources.redhat.com/pub/gcc/releases/gcc-$VERSION"
        REQ="automake binutils coreutils libtool"
   HOMEPAGE="http://gcc.gnu.org"
   disable lib64
@@ -24,13 +17,15 @@ that compile C, C++, Objective C, Fortran, Java,
 and Ada for a wide variety of architectures."
 
 configure() {
- select_compilers()  {
+
+select_compilers()  {
 
   TITLE="Additional Compiler Selection Menu"
   HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
 
-  GCC_LANGUAGES=$(  dialog  --backtitle  "$BACKTITLE"     \
-                            --title      "$TITLE"         \
+  GCC_LANGUAGES=$(  dialog                   \
+               --backtitle  "$BACKTITLE"     \
+               --title      "$TITLE"         \
                --timeout    "$PROMPT_DELAY"  \
                --stdout                      \
                --separate-output             \
@@ -45,30 +40,28 @@ configure() {
                awk '{gsub("^[ \t]*",""); gsub("\n",","); printf("%s,",$0);}'
   )
 
- }
+}
 
- save_compilers()  {
+save_compilers()  {
   if    [  -n  "$GCC_LANGUAGES"  ]
   then           GCC_LANGUAGES="${GCC_LANGUAGES//$LF/,}c++"
   else           GCC_LANGUAGES="c++"
   fi
   echo          "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
- }
+}
 
 
- if    [  -z  "$GCC_LANGUAGES"  ]  &&
-  [  -z  "$BRANCH"         ]
- then
-
+if    [  -z  "$GCC_LANGUAGES"  ];  then
   BACKTITLE="Sorcery GCC Compiler Languages Configuration Menu"
   select_compilers  &&
   save_compilers
- fi
+fi
 }
 
-build() {
- finish_install()  {
 
+build() {
+
+finish_install()  {
   rm     -f                                /opt/gcc/current
   ln     -s    $VERSION                    /opt/gcc/current
   ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
@@ -92,10 +85,9 @@ build() {
   fi
 
   true
+}
 
- }
-
- x86_64_fix() {
+x86_64_fix() {
   # This fix has to placed _after_ the first make
   case $( arch ) in
    x86_64) case  $VERSION  in
@@ -105,23 +97,23 @@ build() {
            esac
            ;;
   esac
- }
+}
 
- ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
+ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
- export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
- export  CCACHE_DISABLE=1
+export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+export  CCACHE_DISABLE=1
 
- LCF="LIBCFLAGS=$CFLAGS"
+  LCF="LIBCFLAGS=$CFLAGS"
  LCXF="LIBCXXFLAGS=$CXXFLAGS"
- BF="BOOT_CFLAGS=$CFLAGS"
+   BF="BOOT_CFLAGS=$CFLAGS"
  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
- LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
- LDF="LDFLAGS=$LDFLAGS"
+  LDF="LDFLAGS=$LDFLAGS"
 
- case  $VERSION  in
+case  $VERSION  in
   3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
   3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
   3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
@@ -130,52 +122,41 @@ build() {
   3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
   3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
   3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
- esac
+esac
 
- # 3.2.2 now supports the DESTDIR Makefile variable
- # That variable is for packagers.
+# 3.2.2 now supports the DESTDIR Makefile variable
+# That variable is for packagers.
+
+case  $MACHTYPE  in
+ x86_64-pc-linux-gnu)  OPTS="$OPTS  --disable-multilib"  ;;
+esac
 
 
- case  $MACHTYPE  in
-  x86_64-pc-linux-gnu)  OPTS="$OPTS      \
-                             --disable-multilib         \
-                --enable-threads=posix"    ;;
-  #             --enable-long-long"        ;;
-  *)  OPTS="$OPTS      \
-       --enable-threads=posix"    ;;
- esac
 OPTS="$OPTS
-     --host=$BUILD               
-     --prefix=/opt/gcc/$VERSION  
-     --enable-__cxa_atexit       
-     --enable-clocale=gnu        
-     --enable-shared             
-     --infodir=/usr/info         
-     --mandir=/usr/man           
-     --datadir=/usr/share        
-     --enable-long-long          
-     $ENABLE_LANGS"             
+  --host=$BUILD
+  --prefix=/opt/gcc/$VERSION
+  --enable-__cxa_atexit
+  --enable-clocale=gnu
+  --enable-shared
+  --infodir=/usr/info
+  --mandir=/usr/man
+  --datadir=/usr/share
+  --enable-long-long
+  --enable-threads=posix
+  --with-system-zlib
+  $ENABLE_LANGS"             
 
 
-case $VERSION in
-	3.*) ./configure  $OPTS       &&
-        make         bootstrap-lean   "$BF"      \
-				"$LCF"  "$LCXF"  "$LDF"      		  \
-				"$LJCF" "$LJCXF"    && 
-				x86_64_fix				  &&
-				prepare_install     &&
-				make    install     ;;
-
-  4.*) mkdir BUILD         &&
-        cd BUILD           &&
-				../configure $OPTS &&
-				make               &&
-				mkdir INSTALLDIR   &&
-				export DESTDIR=$PWD/INSTALLDIR &&
-				make install       &&
-				prepare_install    &&
-				cp -a INSTALLDIR/* /;;
-esac            &&
+mkdir   BUILD
+cd      BUILD
+../configure  $OPTS               &&
+make    bootstrap-lean            \
+        "$BF"                     \
+        "$LCF"  "$LCXF"  "$LDF"   \
+        "$LJCF" "$LJCXF"          && 
+x86_64_fix                        &&
+prepare_install                   &&
+make    install                   &&
  finish_install
 }
 
@@ -204,4 +185,3 @@ post_remove() {
   echo  "$GCC_DIR"
  done  >>  /etc/ld.so.conf
 }
-
