@@ -1,20 +1,17 @@
-   VERSION=( "2.4.1" "2.4" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
-      SAFE=( "2.4.1" )
+   VERSION=( "2.4.2" "2.4.1" "2.4" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
+      SAFE=( "2.4.2" "2.4.1" )
   CATEGORY="interpreter"
  ATTRIBUTE="console x11"
     SOURCE="Python-$VERSION.tar.bz2"
   HOMEPAGE="http://www.python.org"
        URL="ftp://ftp.python.org/pub/python/$VERSION"
-# expat required for libxml2
-       REQ=( "bzip2 expat gmp ncurses readline zlib"
+       REQ=( "bzip2 db gdbm expat gmp ncurses readline zlib"
+             "db:::for bsddb extentions"
+             "gdbm::: for gdbm extention"
              "openssl:::for secure socket connections"
              "tk:::for tk windowing system" )
-
-#            "gtk+-v1.2:::for gtk+ windowing system"
-#            "qt-x11-free:::for qt windowing system"
-#            "wxGTK::: for wx windowing system"
  FRESHMEAT="python"
-  ESTIMATE="328"
+  ESTIMATE="340"
       DESC="Python is an interpreted, interactive, object-oriented programming language.
 It combines remarkable power with very
 clear syntax, and isn't difficult to learn.
@@ -30,13 +27,14 @@ applications that need a programmable interface."
 
 
 build()  {
-  ./configure  --prefix=/usr    \
-               --enable-shared  \
-               --enable-ipv6    \
-               $OPTS            &&
-  make  "OPT=$CFLAGS"           &&
-  prepare_install               &&
-  make    install               &&
+  ./configure          \
+  --prefix=/usr        \
+  --enable-shared      \
+  --enable-ipv6        \
+  $OPTS                &&
+  make  "OPT=$CFLAGS"  &&
+  prepare_install      &&
+  make    install      &&
   if    !  [  -x  /usr/lib/libpython${VERSION:0:3}.so  ]
   then  ln    -s           libpython${VERSION:0:3}.so.1.0  \
                   /usr/lib/libpython${VERSION:0:3}.so
