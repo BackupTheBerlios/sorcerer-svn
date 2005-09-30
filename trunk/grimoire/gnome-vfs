@@ -5,12 +5,16 @@
     SOURCE="sources/gnome-vfs/${VERSION:0:4}/gnome-vfs-$VERSION.tar.bz2"
   HOMEPAGE="http://developers.gnome.org/doc/API/gnome-vfs"
        URL="$GNOME_URL"
-       REQ=( "GConf bzip2 glib gnome-mime-data hal howl libbonobo libxml2 neon"
+# neon support is not current
+#      REQ=( "GConf bzip2 glib gnome-mime-data hal howl libbonobo libxml2 neon"
+       REQ=( "GConf bzip2 glib gnome-mime-data hal howl libbonobo libxml2"
              "cdparanoia:::for writing CDs"
-             "openssl:::for secure socket connections" )
-#     OPTS="--disable-http-neon --disable-hal"
+             "fam:::"
+             "heimdal:::for kerberos authentication support"
+             "openssl:::for secure socket connections"
+             "samba::--disable-samba:for connecting to Microsoft networks" )
       OPTS="--disable-http-neon"
-  ESTIMATE="747"
+  ESTIMATE="742"
       DESC="gnome-vfs provides the Gnome Virtual File System."
 
 build()  {
@@ -18,6 +22,9 @@ build()  {
     2.8.[1-4])   sed  -i  "/imported/d"  Makefile.in  ;;
     2.10.[0-9])  sed  -i  "/imported/d"  Makefile.in  ;;
     2.12.[0-9])  sed  -i  "/imported/d"  Makefile.in  ;;
+  esac
+  case  $VERSION  in
+    2.12.0)  patch  -p1  <  $SCRIPT_DIR/gnome-vfs-2.12.0.patch  ;;
   esac
   default_build
 }
