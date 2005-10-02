@@ -1,0 +1,33 @@
+   VERSION=( "0.10" )
+  CATEGORY="web"
+ ATTRIBUTE="server new"
+    SOURCE="AdCensor-$VERSION.tar.gz"
+  HOMEPAGE="http://meinzer.info/content/adcensor.htm"
+       URL="http://meinzer.info/files"
+       REQ="Tk"
+  ESTIMATE="42"
+      DESC="AdCensor is an ad censoring web proxy.
+It filters out annoying ads by matching requested
+URLs with a blacklist and by checking the HTML code
+for suspicious tags definable with Perl regex patterns.
+It can work in tandem with another HTTP proxy,
+it has an easy-to-use GUI config editor,
+and it can also block cookies."
+
+
+build() {
+  sed  -i  "s:./1px.png:/usr/share/AdCensor/1px.png:g
+            s:./ad_data.xml:/etc/AdCensor.conf:g
+            s:./error.log:/var/log/AdCensor.log:g
+            s:./proxy.pid:/var/run/adcensor_proxy.pid:g"   \
+            adcensor_proxy                                 &&
+  touch                             /var/log/AdCensor.log  &&
+  chmod       0644                  /var/log/AdCensor.log  &&
+  prepare_install                                          &&
+  install  -m 0755  adcensor_gui    /usr/bin               &&
+  install  -m 0755  adcensor_proxy  /usr/sbin              &&
+  install  -m 0644  ad_data.xml     /etc/AdCensor.conf     &&
+  mkdir    -p                       /usr/share/AdCensor    &&
+  install  -m 0644  1px.png         /usr/share/AdCensor    &&
+  install  -m 0644  COPYING README  /usr/share/AdCensor    &&
+}
