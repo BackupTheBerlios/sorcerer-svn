@@ -1,7 +1,7 @@
    VERSION=( "1.2.3" "1.2.2" "1.2.1" "1.2.0" "1.0.0-2" )
     IGNORE="^1\.1\.\|pre"
   CATEGORY="audio-editor"
- ATTRIBUTE="x11"
+ ATTRIBUTE="x11 broken"
     SOURCE="audacity/audacity-src-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://audacity.sourceforge.net"
@@ -17,9 +17,12 @@ In addition to letting you record sounds directly from within the program,
 it imports many sound file formats, including WAV, AIFF, and MP3."
 
 build() {
+GCC3_VER=$( installed_version gcc-v3.4 )
 case  $VERSION  in
-  1.2.3)  PATH="${PATH/opt\/gcc\/current/opt/gcc/$( augur version gcc-v3.4 )}"  ;;
+  1.2.3)  export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
 esac
+gcc --version
 default_build
 # mkdir  -p  /usr/share/doc/audacity  &&
 }
