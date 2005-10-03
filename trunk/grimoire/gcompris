@@ -1,18 +1,24 @@
-   VERSION=( "7.0.2" "7.0.1" "6.5.3" "6.4" "6.3-1" "6.1" "6.0" )
-# 7.0.2 complains about:
-# configure: error: *** pygtk installed but not visible from python 
+   VERSION=( "7.0.3" "7.0.2" "7.0.1" "7.0" "6.5.3" "6.4" "6.3-1" "6.1" "6.0" )
     IGNORE="RC\|PRE\|WIN"
   CATEGORY="game"
- ATTRIBUTE="x11 broken"
+ ATTRIBUTE="x11"
     SOURCE="gcompris/gcompris-$VERSION.tar.gz"
   HOMEPAGE="http://www.ofset.org/gcompris"
        URL="$SOURCEFORGE_URL"
-       REQ="SDL_mixer gnome-python gnuchess libao libgnomeui libvorbis"
-      OPTS="--bindir=/usr/games"
-  ESTIMATE="1327"
+       REQ=( "SDL_mixer gnome-python gnuchess libao libgnomeui libvorbis"
+             "sqlite::--disable-sqlite:for profile support" )
+      OPTS="--bindir=/usr/games --enable-py-build-only"
+  ESTIMATE="1645"
       DESC="gcompris is a suite of educational games.
 It includes more than 40 activities.
 It offers activities dedicated to
 learning the mouse and keybord.
 It teaches letters, numbers, words, basic algebra training,
 reading time on an analog clock, vector drawing, and much more."
+
+build()  {
+case  $VERSION  in
+  7.0.3)  grep -lr "gnome\.canvas" * | xargs -l64 sed -i "s:gnome\.canvas:gnomecanvas:g"  ;;
+esac
+default_build
+}
