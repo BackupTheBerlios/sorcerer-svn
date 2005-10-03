@@ -1,7 +1,11 @@
    VERSION=( "2.2.0" "2.1.1" "2.1.0" "2.0.1" )
   CATEGORY="television"
  ATTRIBUTE="x11 new"
-    SOURCE="xawdecode/xdtv-$VERSION.tar.gz"
+case  $VERSION  in
+  2.2.0)  SOURCE=( "xawdecode/xdtv-$VERSION.tar.gz"
+                   "xawdecode/xdtv-2.2.0-gcc4-amd64.patch.tar.gz" )  ;;
+      *)  SOURCE=( "xawdecode/xdtv-$VERSION.tar.gz" )  ;;
+esac
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://xawdecode.sourceforge.net"
        REQ=( "x11"
@@ -20,3 +24,11 @@ It interacts with AleVT for Teletext and Nxtvepg for NextView.
 It uses the video4linux API.
 It can use deinterlacing filters and record video
 files with the ffmpeg, xvid, and divx codecs."
+
+build()  {
+  case  $VERSION  in
+    2.2.0)  decompress  $SOURCE_CACHE/xdtv/2.2.0/${SOURCE[1]##*/}  |
+            patch  -p1  ;;
+  esac
+  default_build
+}

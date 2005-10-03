@@ -1,35 +1,42 @@
-   VERSION=( "0.4.9-pre1" "0.4.8" "0.4.7" "0.4.6" "0.4.5" )
-    IGNORE="2002\|cvs\|snapshot"
+# The website quit making releases a long time ago.
+# However there appears to be something in cvs
+#  VERSION=( "0.4.9-pre1" "0.4.8" "0.4.7" "0.4.6" "0.4.5" )
+version_year_month  24
   CATEGORY="video"
  ATTRIBUTE="console"
-    SOURCE="ffmpeg/ffmpeg-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
+    SOURCE="ffmpeg-$VERSION.tar"
+       DIR="ffmpeg"
+#    SOURCE="ffmpeg/ffmpeg-$VERSION.tar.gz"
+#       URL="$SOURCEFORGE_URL"
+        CVS=( "-d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg login"
+              "-d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg co -P ffmpeg"
+              "-d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg update -Pd ffmpeg" )
   HOMEPAGE="http://ffmpeg.sourceforge.net"
 # a52 support broken in 0.4.9-pre1 ?
-#            "a52dec:--enable-a52 --enable-a52bin:--disable-a52:for a52 support"
        REQ=( ""
-             "SDL:::for output through SDL"
+             "a52dec:--enable-a52 --enable-a52bin::for a52 support"
+             "SDL::--disable-ffplay:to build ffplay media player"
              "faac:--enable-faac:--disable-faac: for mpeg-2 and NBC/MPEG-4 decoding"
              "faad2:--enable-gpl --enable-faad --enable-faadbin:--disable-faad --disable-faadbin:for freeware advanced audio decoder support"
-             "imlib2:--enable-vhook:--disable-vhook:for video hooking support"
+             "imlib2::--disable-vhook:for video hooking support"
              "lame:--enable-mp3lame::to enable mp3 encoding via lame"
-             "libvorbis:--enable-vorbis::to decode ogg/vorbis streams"
+             "libvorbis:--enable-libogg --enable-vorbis::to decode ogg/vorbis streams"
+             "libtheora:--enable-libogg --enable-theora::for theora video codec support"
              "nasm::--disable-mmx:for MMX support" )
 # post processing support broken in 0.4.9-pre1 ?
 #            ":--enable-pp --enable-shared-pp::post processing support" )
-      OPTS="--enable-shared"
-# ffmpeg 1.0 is incompatibile with MPlayer 1.0pre1
-#   "MPlayer:--enable-shared-pp:--disable-pp:for post processing"
-  ESTIMATE="277"
+      OPTS="--enable-shared  --enable-pthreads  --disable-opts  --disable-debug"
+  ESTIMATE="435"
       DESC="ffmpeg is complete video and audio broadcasting solution
-ffmpeg is a complete and free Internet live audio 
+ffmpeg is a complete and free Internet live audio
 and video broadcasting solution for Linux/Unix.
-It also includes a digital VCR. 
-It can encode in real time in many formats including 
+It also includes a digital VCR.
+It can encode in real time in many formats including
 MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash."
 
 
 build()  {
+
 export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-funroll-loops// )"
 export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-funroll-loops// )"
 
@@ -38,9 +45,11 @@ if  !  grep      "flags"  <  /proc/cpuinfo  |
 then  OPTS="$OPTS  --disable-mmx"
 fi
 
-default_build  &&
-  
-if    [  !  -f               /etc/ffserver.conf  ]
-then  cp  doc/ffserver.conf  /etc/ffserver.conf
-fi
+./configure           \
+--prefix=/usr         \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
+make    install       &&
+install  -m 0644  doc/ffserver.conf  /etc
 }
