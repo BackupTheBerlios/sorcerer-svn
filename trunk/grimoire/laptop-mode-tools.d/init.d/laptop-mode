@@ -1,0 +1,40 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: lapto-mode
+# Required-Start: $local_fs $syslog
+# Required-Stop: $local_fs
+# Should-Start:
+# Should-Stop:
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: laptop-mode extends batter life.
+# Description: laptop-mode modifies system behavior to extend
+#	battery life of laptops.
+### END INIT INFO
+
+# config:  /etc/laptop-mode/laptop-mode.conf
+
+. /lib/lsb/init-functions
+
+PIDF=/var/run/laptop-mode-enabled
+SERV=/usr/sbin/laptop_mode
+NAME=laptop-mode
+
+
+start()    {  touch   $PIDF;  $SERV  auto  init;  }
+stop()     {  rm  -f  $PIDF;  $SERV  stop  init;  }
+restart()  {  $SERV  stop;    $SERV  start;       }
+status()   {  $SERV  status;  }    
+help()     {  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2;  }
+
+case  $1  in
+       restart)  restart  ;;
+   try-restart)  restart  ;;
+        reload)  restart  ;;
+  force-reload)  restart  ;;
+         start)  start    ;;
+        status)  status   ;;
+          stop)  stop     ;;
+             *)  help     ;;
+esac
