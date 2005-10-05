@@ -12,17 +12,30 @@
              ":--with-mp4v2:--without-mp4v2:to compile libmp4v2" )
   ESTIMATE="1183"
       DESC="faad2 is the freeware advanced audio decoder 2."
+
+case  $VERSION  in
+  2.0)
+       REQ="automake gcc-v3.4 libsndfile libtool id3lib"  ;;
+esac
+
    
 build() {
  case  $VERSION  in
   1.1)  patch  -p1  <  $SCRIPT_DIR/faad2-1.1.patch  ;;
   2.0)  patch  -p1  <  $SCRIPT_DIR/faad2-2.0.patch
-     sed    -i      "2,9d"  Makefile.am  ;;
+        sed    -i      "2,9d"  Makefile.am  ;;
  esac
+
+case  $VERSION  in
+  2.0)  GCC3_VER=$( installed_version gcc-v3.4 )
+        export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+        export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+
 
  # ./bootstrap
  autoreconf -vif
  # sed  -i  "600,605d"  Makefile
  default_build
 }
-

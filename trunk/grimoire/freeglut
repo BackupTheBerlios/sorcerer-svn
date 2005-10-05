@@ -1,7 +1,8 @@
    VERSION=( "2.4.0" "2.2.0" "2.0.1" "2.0.0" "1.3-2002-01-25" )
     IGNORE="rc"
   CATEGORY="graphic"
- ATTRIBUTE="library x11"
+ ATTRIBUTE="library x11 broken"
+# looks like it might be broken for a little while longer.
     SOURCE="freeglut/freeglut-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://freeglut.sourceforge.net"
@@ -15,3 +16,12 @@ The GLUT (OpenGL Utility Toolkit) is a
 widely used library for doing window control,
 keyboard, and mouse input, and other basic
 functions for OpenGL programs."
+
+build()  {
+# do this until linux 2.6.14
+grep  -rl  "\-Werror"   *  |  xargs  -l64  sed  -i  "s:-Werror::g"
+grep  -rl  "\--tag=CC"  *  |  xargs  -l64  sed  -i  "s:--tag=CC::g"
+sed   -i   "\,include <linux/joystick.h>,itypedef __signed__ long long __s64;"  src/freeglut_joystick.c
+sed   -i   "\,include <linux/joystick.h>,i#define BITS_PER_LONG 32"  src/freeglut_joystick.c
+default_build
+}

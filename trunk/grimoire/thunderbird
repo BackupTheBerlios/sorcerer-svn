@@ -1,7 +1,7 @@
    VERSION=( "1.0.7" "1.0.6" "1.0.5" "1.0.2" )
       SAFE=( "1.0.7" "1.0.6" "1.0.5" )
   CATEGORY="mail encryption"
- ATTRIBUTE="client solo x11 new broken"
+ ATTRIBUTE="client solo x11 new"
 # It requires mozilla lib's but does not know where to find them.
     SOURCE="thunderbird-${VERSION}-source.tar.bz2"
        URL="ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source"
@@ -10,7 +10,19 @@
   ESTIMATE="16629"
       DESC="thunderbird is a new UI to gecko the mozilla mail client engine."
 
+case  $VERSION  in
+  1.0.7)  REQ="gcc-v3.4 gss gtk+ heimdal jpeg libIDL libpng libmng mozilla perl zip zlib" ;;
+esac
+
+
 build() {
+
+case  $VERSION  in
+  1.0.7)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 check_space()  {
   KILOBYTES=$(
     df    -Pkm  $SOURCE_DIR  |

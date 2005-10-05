@@ -10,6 +10,10 @@
   ESTIMATE="700"
       DESC="opensp is an implementation of DSSSL SGML/XML"
 
+case  $VERSION  in
+  1.5.1) REQ="gcc-v3.4 perl"  ;;
+esac
+
 
 build() {
 make_symlinks()  {
@@ -29,11 +33,18 @@ case  $VERSION  in
 esac
 
 
-./configure  --build=$BUILD  \
-             --prefix=/usr   \
-             $OPTS           &&
-make                         &&
-prepare_install              &&
-make    install              &&
+case  $VERSION  in
+  1.5.1)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+./configure      \
+--build=$BUILD   \
+--prefix=/usr    \
+$OPTS            &&
+make             &&
+prepare_install  &&
+make    install  &&
 make_symlinks
 }
