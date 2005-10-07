@@ -19,6 +19,7 @@
    PROVIDE="email-client mailx"
        REQ=( "ncurses"
              "openssl:--with-ssl::to enable ssl support for pop/imap" )
+      OPTS="--enable-pop  --enable-imap  --with-mailpath=/var/spool/mail"
   ESTIMATE="202"
       DESC="mutt is a text-based MIME Email client.
 mutt is a small but very powerful text-based MIME mail client.
@@ -27,17 +28,20 @@ user with advanced features like key bindings, keyboard macros,
 mail threading, regular expression searches, and a powerful
 pattern matching language for selecting groups of messages."
 
+case  $VERSION  in
+  1.4.2.1i)  REQ="gcc-v3.4 ncurses"  ;;
+esac
+
+
 build()  {
-  chmod  a+x  missing                           &&
-  touch  README.UPGRADE                         &&
-  ./configure  --build=$BUILD                   \
-               --prefix=/usr                    \
-               --sysconfdir=/etc                \
-               --enable-pop                     \
-               --enable-imap                    \
-               --with-mailpath=/var/spool/mail  \
-               $OPTS                            &&
-  make                                          &&
-  prepare_install                               &&
-  make    install
+
+case  $VERSION  in
+  1.4.2.1i)  GCC3_VER=$( installed_version gcc-v3.4 )
+             export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+             export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+chmod  a+x  missing
+touch  README.UPGRADE
+default_build
 }
