@@ -114,19 +114,25 @@ post_install() {
   fi
  }
 
+  fix_provide_logs()  {
+    find   $PROVIDE_LOGS  -type f  |
+    grep        " "                |  xargs  --no-run-if-empty  -l16  rm  -f
+    grep   -rl  " "  $PROVIDE_LOGS |  xargs  --no-run-if-empty  -l64  rm  -f
+  }
 
- ARCH=$( uname -m )
+  ARCH=$( uname -m )
 
- if    [  -x  $SENTINEL-$ARCH  ]
- then  cp     $SENTINEL-$ARCH  $SENTINEL
- fi
+  if    [  -x  $SENTINEL-$ARCH  ]
+  then  cp     $SENTINEL-$ARCH  $SENTINEL
+  fi
 
- [  -d  /lib.old  ]  ||  backup_lib
+  [  -d  /lib.old  ]  ||  backup_lib
 
- switch_var_tmp
- clean_provide_logs
- clean_opt_logs
- switch_delta
- generate_index
- immune
+  switch_var_tmp
+  clean_provide_logs
+  clean_opt_logs
+  switch_delta
+  generate_index
+  fix_provide_logs
+  immune
 }
