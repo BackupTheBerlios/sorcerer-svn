@@ -1,10 +1,17 @@
+#  VERSION=( "4.2.0b-20051008"  "4.2.0a-20050816" "4.2.0" "4.1.2" "4.1.1b" "4.1.1a" "4.1.1" )
    VERSION=( "4.2.0" "4.1.2" "4.1.1b" "4.1.1a" "4.1.1" )
+# too irritating to fix anymore
+# switch to openntpd!
     IGNORE="2004"
   CATEGORY="time"
  ATTRIBUTE="client server console core broken"
-    SOURCE="ntp-$VERSION.tar.gz"
-       URL="http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-${VERSION:0:3}
-             ftp://ftp.udel.edu/pub/ntp/ntp4/ntp-${VERSION:0:3}"
+# This has a compile problem not related to gcc.
+    SOURCE="ntp-dev-$VERSION.tar.gz"
+#   SOURCE="ntp-stable-$VERSION.tar.gz"
+       URL="ftp://ftp.udel.edu/pub/ntp/ntp4/snapshots/ntp-dev/2005/10/"
+#       URL="ftp://ftp.udel.edu/pub/ntp/ntp4/snapshots/ntp-stable/2005/08/"
+#       URL="http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-${VERSION:0:3}
+#             ftp://ftp.udel.edu/pub/ntp/ntp4/ntp-${VERSION:0:3}"
   HOMEPAGE="http://www.ntp.org"
        REQ="libelf ncurses openssl readline w3c-libwww"
   ESTIMATE="268"
@@ -21,15 +28,11 @@ case  $VERSION  in
           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
 esac
 
-  echo  "ntpd now writes a proper PID file"
+# so that ntp writes a proper PID file
   sed  -i  's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
   default_build                  &&
   cp      -r html  /usr/doc/ntp  &&
   install -m 0640  $SCRIPT_DIR/ntp.conf  /etc
 }
 
-current()  {
-  case  $VERSION  in
-    4.2.0)  grep  -qx  "ntpd now writes a proper PID file"  $COMPILE_LOGS/ntp  ;;
-  esac
-}
+current()  {  echo "Automatic Upgrade" > $CAST_QUEUE/openntpd;  }
