@@ -22,22 +22,24 @@ select_compilers()  {
   TITLE="Additional Compiler Selection Menu"
   HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
 
-  GCC_LANGUAGES=$(  dialog                   \
-               --backtitle  "$BACKTITLE"     \
-               --title      "$TITLE"         \
-               --timeout    "$PROMPT_DELAY"  \
-               --stdout                      \
-               --separate-output             \
-               --no-cancel                   \
-               --checklist  "$HELP"          \
-               18 55 10                      \
-               "ada"       ""  "off"  \
-               "f77"       ""  "off"  \
-               "f95"       ""  "off"  \
-               "java"      ""  "off"  \
-               "objc"      ""  "off"  |
-               awk '{gsub("^[ \t]*",""); gsub("\n",","); printf("%s,",$0);}'
-  )
+  GCC_LANGUAGES=$(
+    dialog                        \
+    --backtitle  "$BACKTITLE"     \
+    --title      "$TITLE"         \
+    --timeout    "$PROMPT_DELAY"  \
+    --stdout                      \
+    --separate-output             \
+    --no-cancel                   \
+    --checklist  "$HELP"          \
+    18 55 10                      \
+    "ada"        ""    "off"      \
+    "f77"        ""    "off"      \
+    "java"       ""    "off"      \
+    "objc"       ""    "off"      |
+    tr           '\n'  ','        |
+    sed          's:,$::'         )
+
+#               awk '{gsub("^[ \t]*",""); gsub("\n",","); printf("%s,",$0);}'
 
 }
 
