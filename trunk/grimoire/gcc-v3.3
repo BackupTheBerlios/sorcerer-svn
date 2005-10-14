@@ -78,23 +78,24 @@ build() {
   finish_install
 }
 
-post_install() {
- default_post_install
- sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
 
- for           GCC_DIR  in  /opt/gcc/*/lib
- do    [  -d  $GCC_DIR  ]  &&
-  echo  "$GCC_DIR"
- done  >>  /etc/ld.so.conf
+update_gcc_in_ld_so_conf()  {
+  sed   -i   "\,/opt/gcc/,d"      /etc/ld.so.conf
+  echo          /opt/gcc/*/lib    \
+                /opt/gcc/*/lib64  |
+  tr    ' '  '\n'                 |
+  sort  -g   -r                   |
+  grep  -v   "/current/\|*"  >>   /etc/ld.so.conf
 }
+
+
+post_install() {
+  update_gcc_in_ld_so_conf
+  default_post_install
+}
+
 
 post_remove() {
- default_post_remove
- sed  -i  "\,/opt/gcc/,d"  /etc/ld.so.conf
-
- for           GCC_DIR  in  /opt/gcc/*/lib
- do    [  -d  $GCC_DIR  ]  &&
-  echo  "$GCC_DIR"
- done  >>  /etc/ld.so.conf
+  update_gcc_in_ld_so_conf
+  default_post_remove
 }
-
