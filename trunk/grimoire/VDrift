@@ -1,20 +1,30 @@
-   VERSION=( "6-25-05" "6-17-05" "6-9-05" )
+   VERSION=( "2005-10-02" "6-25-05" "6-17-05" "6-9-05" )
     IGNORE="7-7-05\|2005"
-# Version 7-7-05 requires closed source fmod library
-# Version 2005-0710 requires closed source fmod library
   CATEGORY="game"
- ATTRIBUTE="x11 new"
-    SOURCE="vdrift/VDrift-$VERSION.tar.bz2"
+ ATTRIBUTE="x11 new broken"
+# Is not compatible with current openal
+    SOURCE="vdrift/vdrift-$VERSION-src.tar.bz2"
+#   SOURCE="vdrift/VDrift-$VERSION.tar.bz2"
 #   SOURCE="vdrift/VDrift$VERSION.tar.bz2"
   HOMEPAGE="http://vdrift.sourceforge.net"
        URL="$SOURCEFORGE_URL"
-       REQ="SDL_image openal"
+       REQ="SDL_image openal scons"
       OPTS="--bindir=/usr/games --disable-dependency-tracking"
   ESTIMATE="97"
       DESC="VDrift is an automobile drift racing game."
 
+# build()  {
+#   export  LDFLAGS="-L/usr/X11R6/lib $LDFLAGS"
+#   sed  -i  "s:alu.h:alut.h:"  include/sound.h
+#   default_build
+# }
+
 build()  {
-  export  LDFLAGS="-L/usr/X11R6/lib $LDFLAGS"
-  sed  -i  "s:alu.h:alut.h:"  include/sound.h
-  default_build
+cd         vdrift-$VERSION-src
+rm     -r  lib
+sed    -i  "s:alut.h:al.h:"                      include/sound.h
+sed    -i  "s:'#lib':'#lib', '/usr/X11R6/lib':"  SConstruct
+scons            &&
+prepare_install  &&
+scons   install
 }

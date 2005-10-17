@@ -1,6 +1,5 @@
-   VERSION=( 1.4.7" "1.4.6" "1.4.5" "1.4.4" "1.4.3" "1.4.1" "1.4.0" )
-    IGNORE="config\|1\.4\.8"
-# 1.4.8 has compile error
+   VERSION=( "1.4.8" "1.4.7" "1.4.6" "1.4.5" "1.4.4" "1.4.3" "1.4.1" "1.4.0" )
+    IGNORE="config"
   CATEGORY="encryption"
  ATTRIBUTE="library"
     SOURCE="Botan-$VERSION.tgz"
@@ -17,7 +16,18 @@ block and stream ciphers, public key algorithms,
 hash functions, and message authentication codes,
 plus a high level filter-based interface."
 
+case  $VERSION  in
+  1.4.8)  REQ="gcc-v3.4 bzip2 perl zlib"  ;;
+esac
+
+
 build() {
+case  $VERSION  in
+  1.4.8)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 ./configure.pl   gcc-linux-generic   &&
 make             "INSTALLROOT=/usr"  \
                  "LIB_OPT=$CFLAGS"   &&
