@@ -20,17 +20,16 @@ j2sdk is the Java 2 Standard Edition (J2SE) is a
 feature complete development and deployment platform.
 Both the J2SDK and the J2RE contain the Java Plug-In for Mozilla."
 
-pre_build()  {
- FN=$(  guess_filename  $SOURCE  )
- SKIP=$(  grep -a    "skip="  $FN  |
- sed      "s:skip=::"     )
-
- tail  -n +$SKIP  $FN  |
- bzip2  -cd            |
- tar    -xf  -
-}
-
 build() {
+
+    FN=$(  guess_filename     $SOURCE  )
+  SKIP=$(  grep  -a  "skip="  $FN  |  sed  "s:skip=::"  )
+
+  tail   -n +$SKIP  $FN  |
+  bzip2  -cd             |
+  tar    -xf  -
+  cd     $DIR
+
   DEST_DIR="/opt/j2sdk/$VERSION"
   MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so"
   MOZ_PDIR="$( echo  /usr/lib/mozilla*/plugins         )"
@@ -40,12 +39,12 @@ build() {
   while  read
   do     lib/unpack  $REPLY  ${REPLY/.pack/.jar}  &&
          rm  -f      $REPLY
-  done  &&
+  done   &&
 
-  prepare_install                          &&
-  mkdir  -p                 $DEST_DIR      &&
-  cp     -Rv  $BUILD_DIR/*  $DEST_DIR      &&
-  cd                        $DEST_DIR/bin  &&
+  prepare_install               &&
+  mkdir  -p      $DEST_DIR      &&
+  cp     -Rv  *  $DEST_DIR      &&
+  cd             $DEST_DIR/bin  &&
 
   for  FILE  in  *;  do
     if    [   -f                  $FILE  ]  &&
