@@ -1,10 +1,23 @@
-   VERSION=( "0.7.0" "0.6.1" )
+   VERSION=( "0.7.2" "0.7.1" "0.7.0" "0.6.1" )
 # Maybe 0.7.0 compiles on gcc 3.4.x and not gcc 4.0.0?
   CATEGORY="emulator"
  ATTRIBUTE="x11 new"
     SOURCE="qemu/qemu-$VERSION.tar.gz"
        URL="http://fabrice.bellard.free.fr"
   HOMEPAGE="http://fabrice.bellard.free.fr/qemu"
-       REQ="SDL"
+       REQ="SDL gcc-v3.4"
   ESTIMATE="412"
       DESC="qemu is a computer emulator."
+
+case  $VERSION  in
+  0.7.2) REQ="nasm gcc-v3.4 x11"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  0.7.2)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+default_build
+}
