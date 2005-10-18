@@ -13,17 +13,20 @@
 NVIDIA-Linux-x86 contains the nvidia provided binary 
 XFree86 drivers for their graphics cards.  
 It is also provides the kernel modules."
+BUILD_DIR=$SOURCE_DIR/$SPELL
 
 case  $VERSION  in
   1.0-7664) REQ="gcc-v3.4 gtk+ mktemp"  ;;
 esac
 
 build() {
-case  $VERSION  in
-  1.0-7664)  GCC3_VER=$( installed_version gcc-v3.4 )
-             export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-             export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
+set -x
+cd $BUILD_DIR
+#case  $VERSION  in
+#  1.0-7664)  GCC3_VER=$( installed_version gcc-v3.4 )
+#             export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+#             export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+#esac
 
  install_libs()  {
   cd  $BUILD_DIR/usr
@@ -88,7 +91,6 @@ esac
  1.0-6629)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-6629-02.28.2005.diff.txt  ;;
  esac
 
- BUILD_DIR=$PWD
  cd  usr/src/nv
 
  rm  -f  makefile         Makefile
@@ -135,11 +137,17 @@ esac
  make    install  IGNORE_CC_MISMATCH=1  &&
  install_libs                           &&
  make_device_nodes
+ returnval=$?
+ set +x
+ return $returnval
+
 }
 
 pre_build() {
+set -x
  default_pre_build
- cd    $SOURCE_DIR
+ mkdir -p $BUILD_DIR
+ cd    $BUILD_DIR
 
  FN=$(  guess_filename  $SOURCE  )
  SKIP=$(  grep -a    "skip="  $FN  |
@@ -148,6 +156,7 @@ pre_build() {
  tail  -n +$SKIP  $FN  |
  gzip  -cd             |
  tar   -xf  -
+set +x
 }
 
 post_install() {
