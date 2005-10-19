@@ -1,0 +1,31 @@
+#!/bin/sh
+   VERSION=( "2.0" )
+  CATEGORY="video-editor"
+ ATTRIBUTE="x11 new DESTDIR"
+    SOURCE="heroines/cinelerra-${VERSION}-src.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://heroinewarrior.com/cinelerra.php3"
+       REQ=("yasm alsa-lib libdv"
+            "fontconfig:FONTCONFIG::for beautifull fonts"
+            "esound:ESOUND::for playing multiple sounds at the same time"
+#            "avifile:AVIFILE::for avi writing"
+            ":OGL::enable opengl"
+            ":V4L2::enable Video4Linux2"
+#            "libdv:FIREWIRE::enable firewire"
+           )
+  ESTIMATE=""
+      DESC="ccGo is a program allows you to play go with gnugo on your computer or with other players on the IGS on the internet."
+
+
+build() {
+	(echo $OPTS |grep -q FONTCONFIG) && sed -i "s/HAVE_XFT := n/HAVE_XFT := y/" global_config
+	(echo $OPTS |grep -q ESOUND) || sed -i "s/HAVE_ESOUND := y/HAVE_ESOUND := n/" global_config
+#	(echo $OPTS |grep -q AVIFILE) && sed -i "s/HAVE_AVIFILE := n/HAVE_AVIFILE := y/" global_config
+	(echo $OPTS |grep -q OGL) && sed -i "s/HAVE_GL := n/HAVE_GL := y/" global_config
+	(echo $OPTS |grep -q V4L2) && sed -i "s/HAVE_V4L2 := n/HAVE_V4L2 := y/" global_config
+	#(echo $OPTS |grep -q FIREWIRE) || sed -i "s/HAVE_FIREWIRE := y/HAVE_FIREWIRE := n/" global_config
+
+#	(echo $OPTS |grep -q AVIFILE) && CFLAGS="$CFLAGS $(pkg-config --cflags avifile)"
+
+	default_build
+}
