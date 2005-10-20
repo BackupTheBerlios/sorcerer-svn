@@ -1,5 +1,4 @@
    VERSION=( "0.8.0" "0.7.0" "0.6.6" "0.6.5" "0.6.4" "0.6.3" "0.6.2" )
-# libfox 0.6.6 does not want to compile with gcc 3.4.1
     IGNORE="0\.[1-5]"
   CATEGORY="finance"
  ATTRIBUTE="library"
@@ -9,16 +8,30 @@
   HOMEPAGE="http://libofx.sourceforge.net"
   ESTIMATE="120"
       DESC="libofx is a library for Open Financial eXchange specification.
-libofx is a generic library to allow financial software to 
+libofx is a generic library to allow financial software to
 easily support the Open Financial eXchange specification.
 Two utilities are currently included with LibOFX: ofxdump and ofxtoqif.
-ofxdump writes to stdout, in human readable form, 
+ofxdump writes to stdout, in human readable form,
 everything the library understands about a particular OFX response file.
-ofxtoqif is an OFX response to the 
+ofxtoqif is an OFX response to the
 QIF (Quicken Interchange Format) file converter.
-Much OFX information is lost since the QIF file 
-format is very primitive, but ofx2qif should allow 
-importation of bank statements in any software that 
+Much OFX information is lost since the QIF file
+format is very primitive, but ofx2qif should allow
+importation of bank statements in any software that
 support QIF until said software supports the library directly.
-LibOFX was implemented from the full OFX 1.6 
+LibOFX was implemented from the full OFX 1.6
 spec and comes with a developers manual."
+
+case  $VERSION  in
+  0.8.0) REQ="OpenSP curl gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  0.8.0)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+default_build
+}
+

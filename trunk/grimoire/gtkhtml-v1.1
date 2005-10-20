@@ -12,7 +12,18 @@
   ESTIMATE="574"
       DESC="gtkhtml-v1.1 is a light weight html rendering/editing library."
 
-build()  {
+case  $VERSION  in
+  1.1.10) REQ="gcc-v3.4 bonobo gal control-center-v1.4 libghttp"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  1.1.10)  GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+
 patch  -p1  <<  EOF
 diff -r -U2 gtkhtml-1.1.10/components/html-editor/popup.c gtkhtml-1.1.10/components/html-editor/popup.c
 --- gtkhtml-1.1.10/components/html-editor/popup.c	2003-01-23 08:44:21.000000000 -0700

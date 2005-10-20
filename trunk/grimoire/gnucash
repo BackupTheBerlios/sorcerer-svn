@@ -1,12 +1,13 @@
-   VERSION=( "1.8.11" "1.8.10" "1.8.9" "1.8.8" "1.8.7" "1.8.6" "1.8.5" "1.8.4" )
+   VERSION=( "1.8.12" "1.8.11" "1.8.10" "1.8.9" "1.8.8" "1.8.7" "1.8.6" "1.8.5" "1.8.4" )
   CATEGORY="finance"
  ATTRIBUTE="gnome"
     SOURCE="gnucash-$VERSION.tar.gz"
   HOMEPAGE="http://www.gnucash.org"
        URL="http://www.gnucash.org/pub/gnucash/sources/stable"
        REQ=( "Guppi aqbanking g-wrap gtkhtml-v1.1 libofx" )
+      OPTS="--enable-compile-warnings=yes --disable-error-on-warning"
 #     OPTS="--disable-openhbcitest --disable-error-on-warning"
-  ESTIMATE="2392"
+  ESTIMATE="2231"
       DESC="gnucash is a open source personal finance suite.
 gnucash allows you to track bank
 accounts, stocks, income, and expenses.
@@ -16,15 +17,26 @@ professional accounting principles to
 ensure balanced books and accurate reports."
 
 
+case  $VERSION  in
+  1.8.12) REQ="gcc-v3.4 Guppi aqbanking g-wrap gtkhtml-v1.1 libofx"  ;;
+esac
+
 build() {
+case  $VERSION  in
+  1.8.12)  GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 #  export  PATH="/opt/guile/1.4.1/bin:$PATH"
 
-bash  \
-./configure  --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             $OPTS                 &&
-make             &&
-prepare_install  &&
+bash                  \
+./configure           \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
 make    install
 }

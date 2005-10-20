@@ -6,6 +6,7 @@
        URL="$GNOME_URL"
        REQ="gnome-libs bonobo guile libglade-v0 Python"
           # gnumeric"
+  ESTIMATE="1310"
  FRESHMEAT="guppi"
       DESC="Guppi is a GNOME-based framework for graphing and data analysis.
 Guppi is a GNOME-based framework for
@@ -17,8 +18,17 @@ directly to Guppi's shared libraries,
 or can embed Guppi plots via Bonobo,
 GNOME's component architecture."
 
+case  $VERSION  in
+  0.40.3) REQ="gcc-v3.4 gnome-libs bonobo guile libglade-v0 Python"  ;;
+esac
 
 build() {
+case  $VERSION  in
+  0.40.3)  GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 export    CFLAGS="$CFLAGS    $(  libglade-config  --cflags  )"
 export  CXXFLAGS="$CXXFLAGS  $(  libglade-config  --cflags  )"
 case  $VERSION  in

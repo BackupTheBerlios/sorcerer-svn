@@ -1,26 +1,33 @@
-   VERSION=( "2d6" "2d5" "2d4" )
+   VERSION=( "3a2" "2d6" "2d5" "2d4" )
     IGNORE="3a1"
 # 2d6 is required for gnucash 1.8.8
   CATEGORY="development"
  ATTRIBUTE="library"
-    SOURCE="slib$VERSION.zip"
+    SOURCE="slib$VERSION.tar.gz"
   HOMEPAGE="http://www-swiss.ai.mit.edu/~jaffer/SLIB.html"
        URL="http://www.ibiblio.org/pub/gnu/slib
             http://swissnet.ai.mit.edu/ftpdir/scm"
        REQ="guile unzip"
   ESTIMATE="5"
       DESC="slib is a scheme library
-
-slib is a scheme library used primarily for gnuCash.
-"
+slib is a scheme library used primarily for gnuCash."
 
 
-build() {
-DEST="$(  guile-config  info  pkgdatadir  )"
+# build() {
+# DEST="$(  guile-config  info  pkgdatadir  )/slib"
 
-[      -d  slib  ]       &&
-prepare_install          &&
-mkdir  -p        $DEST   &&
-cp     -R  slib  $DEST   &&
-guile  -c "(use-modules (ice-9 slib)) (require 'new-catalog)" "/"
+# prepare_install          &&
+# mkdir  -p        $DEST   &&
+# cp     -R  *  b  $DEST   &&
+# #guile  -c "(use-modules (ice-9 slib)) (require 'new-catalog)" "/"
+# }
+
+
+build()  {
+  sed    -i  's:/usr/local:/usr:'  Makefile          &&
+  DEST="$(  guile-config  info  pkgdatadir  )/slib"  &&
+  prepare_install  &&
+  make    install  &&
+  rm     -fr                 $DEST  &&
+  ln     -fs  /usr/lib/slib  $DEST
 }
