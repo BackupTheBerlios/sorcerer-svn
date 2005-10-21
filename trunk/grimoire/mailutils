@@ -6,17 +6,17 @@
   HOMEPAGE="http://www.gnu.org/software/mailutils"
        REQ=( "guile libtool ncurses readline"
              "Linux-PAM::--disable-pam:for pluggable authentication"
+             "db:::can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db"
+             "gdbm:::use GNU database library for APOP authentication in POP3 daemon"
+             "emacs:--enable-mh-utils::to provide an interface between mailutils and emacs"
              "gnutls:--with-gnutls::to enable TSL/SSL server-side encryption via gnutls in IMAP4/POP3 daemons"
+             "gsasl:--with-gsasl::use libgsasl for SASL authnetication with IMAP4d"
+             "gss:--with-gssapi::for gssapi/kerberos 5 authentication"
              "mysql:--with-mysql::to enable authnetication using mysql "
              "postgresql:--with-postgres::to enable authneticaion via postgresql"
              "emacs:--enable-mh-utils::to provide an interface between Mailutils and Emacs using mh-e module"
              "stunnel:::for imaps or pops services"
              "xinetd:::for running servers" )
-
-#   "gss heimdal:--with-gssapi::for gssapi/kerberos 5 authentication"
-# Not sure if this disables building the servers or not.
-#   "::--disable-imap:for imap4 server"
-#   "::--disable-pop:for pop3 server"
    PROVIDE="email-client pop3 pop3s imap imaps mailx"
   ESTIMATE="1571"
       DESC="mailutils contains a series of useful mail clients, servers, and libraries.
@@ -45,22 +45,14 @@ case  $VERSION  in
         export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
 esac
 
-UBM="/usr/bin/mail"
-UBMX=${UBM}x
-
 case  $VERSION  in
  0.6)  sed  -i  "\,extern int,d"  mailbox/getline.h  ;;
 esac
 
-./configure             \
---build=$BUILD          \
---prefix=/usr           \
---sysconfdir=/etc       \
---localstatedir=/var    \
-$OPTS                   &&
-make                    &&
-prepare_install         &&
-rm     -f  $UBM  $UBMX  &&
-make    install         &&
-ln     -s  mail  $UBMX
+
+if    grep  -qx  "db"    $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-db2"
+elif  grep  -qx  "gdbm"  $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-gdbm"
+fi
+
+default_build  &&  ln  -s  mail  mailx
 }
