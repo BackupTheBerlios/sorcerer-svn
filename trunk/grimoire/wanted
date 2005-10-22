@@ -3,7 +3,7 @@
  ATTRIBUTE="new core"
   HOMEPAGE="http://sorcerer.aakin.net"
                    [  -d  $WANTED_LOGS  ]  &&
-       REQ="$(  find  -L  $WANTED_LOGS  -maxdepth 1  -mindepth 1  -type f  -printf "%P\n"  )"
+       REQ="$(  find  -L  $WANTED_LOGS  -maxdepth 1  -mindepth 1  -type f  -printf "%P\n"  |  grep  -vx  "wanted"  )"
       DESC="wanted is a profile for easily restoring spells the SA wants installed.
 Spells become wanted when cast and unwanted when dispelled.
 However there are the following exceptions:
@@ -15,7 +15,10 @@ grimoire gurus to restore a box to a known and desired
 state of installed software by running a single command:
 augur restore.
 
-This spell does not offer a fancy 
+This spell does not offer a fancy
 configuration menu like the favor spell does.
 To manually change the wanted status of spells
 use the augur wanted command."
+
+
+post_install()  {  dispel  --unsafe  wanted;  }
