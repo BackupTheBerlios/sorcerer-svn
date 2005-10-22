@@ -1,14 +1,19 @@
 #!/bin/sh
-   VERSION=( "2.0.0rc2_051005" )
+   VERSION=( "2.0.0" )
   CATEGORY="office"
- ATTRIBUTE="x11 new solo"
-    SOURCE="contrib/rc/2.0.0rc2/OOo_${VERSION}_src.tar.gz"
-       URL="ftp://openoffice.cict.fr/openoffice"
+ATTRIBUTE="x11 new solo"
+    SOURCE="OOo_${VERSION}_src.tar.gz"
+       URL="ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/${VERSION}"
   HOMEPAGE="http://www.openoffice.org/"
        REQ=("jpeg expat freetype libwpd libxml Python db sane-backends x11 curl boost mozilla nasm unzip zip tcsh Archive-Zip XML-Parser")
   ESTIMATE="143410"
-      DESC="OpenOffice.org is an office suite"
-	 FEATURE="$FEATURE discard"
+      DESC="OpenOffice.org is an office suite
+      OOo2.0 is a huge source tarball and require 4.4G at least to build and 4M inodes"
+   FEATURE="$FEATURE discard"
+
+########################## internal variables ###############
+OOo_SOURCES_EXTRACTED="false"
+
 
 check_space()  {
  KILOBYTES=$(
@@ -53,19 +58,47 @@ patch() {
       sed -i 's:pthread_kill_other_threads_np();::' ./sal/osl/unx/process.c 
       set +x
       ;;
+      2.0.0)
+      chmod +x solenv/bin/gccinstlib.pl
+      sed -i 's:pthread_kill_other_threads_np();::' ./sal/osl/unx/process.c 
+      sed -i 's#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0 ORBit-2.0 glib-2.0#' shell/source/backends/gconfbe/makefile.mk 
+      sed -i 's#PKGCONFIG_MODULES=gnome-vfs-2.0#PKGCONFIG_MODULES=gnome-vfs-2.0 glib-2.0#' ucb/source/ucp/gvfs/makefile.mk 
+      sed -i 's#PKGCONFIG_MODULES=gtk+-2.0 gthread-2.0#PKGCONFIG_MODULES=gtk+-2.0     gthread-2.0 gdk-2.0 glib-2.0 gobject-2.0 pango gdk-pixbuf-2.0#' vcl/util/makefile.mk 
+      sed -i 's#PKGCONFIG_MODULES=gtk+-2.0#PKGCONFIG_MODULES=gtk+-2.0 gobject-2.0 glib-2.0 pango gdk-pixbuf-2.0#' fpicker/source/unx/gnome/makefile.mk
+      ;;
   esac
 
+}
+
+verify_space_before_build() {
+  
+  for mounts in $(mount |  cut -d ' ' -f 3 |sort |uniq); do
+    if echo $PWD | grep -q $mounts &&
+       [ "$mount_point" '<' "$mounts" ]
+    then
+      mount_point=$mounts
+    fi
+  done
+  if mount | grep -q tmpfs | grep -q $mount_point  && ${OOo_SOURCES_EXTRACTED}; then
+    mount $mount_point -o remount,nr_inodes=4m || OOo_SOURCES_EXTRACTED=false
+  fi 
+    
+  ${OOo_SOURCES_EXTRACTED}  || echo "OOo require 4.4G and 4M inodes to build!"
+  ${OOo_SOURCES_EXTRACTED} 
 }
 
 
 ########################SPELL API#########################
 
 pre_build() {
-	check_space &&
-	default_pre_build
+  check_space &&
+  default_pre_build &&
+  OOo_SOURCES_EXTRACTED=true
+  return 0  #don't do error now, we have 
 }
 
 build() {
+  
   OPTS=" $OPTS\
   --prefix=/opt/OOo2.0\
   --without-java\
@@ -87,7 +120,8 @@ build() {
   --disable-neon\
   --with-system-mozilla\
   --with-zip-home=/usr/bin/"
-  date                                                &&
+  
+  verify_space_before_build                           &&
   # OOo use dmake for building, sources are provided and since dmake
   # isn't compatible with make and will likely be used only by 
   # OOo do a fake install of the tool
@@ -124,6 +158,5 @@ build() {
   for file in /usr/src/sorcery/unpack_openofficeorg/*/*.sw; do
     tar -xf $file
   done                                                &&
-  rm -rf /usr/src/sorcery/unpack_openofficeorg        &&
-	date
+  rm -rf /usr/src/sorcery/unpack_openofficeorg        
 }
