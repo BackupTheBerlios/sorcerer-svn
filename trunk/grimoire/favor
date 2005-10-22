@@ -1,0 +1,60 @@
+   VERSION=( "1.0" )
+  CATEGORY="profile"
+ ATTRIBUTE="new core"
+  HOMEPAGE="http://sorcerer.aakin.net"
+                   [  -d  $FAVOR_LOGS  ]  &&
+       REQ="$(  find  -L  $FAVOR_LOGS  -maxdepth 1  -mindepth 1  -type f  -printf "%P\n"  |  sort  -u  |  grep  -vx  "core\|wanted"  )"
+      DESC="favor is a profile spell for keeping other spells installed
+favor acts as a blanket profile spell 
+that keeps SA specified important spells installed."
+
+configure()  {
+
+checklist()  {
+  show()  {
+    if    is_installed  "$1"
+    then  echo          "$1	Installed	$2"
+    else  echo          "$1	Uninstalled	$2"
+    fi
+  }
+
+  FAVR=$(  find  -L  $FAVOR_LOGS  -maxdepth 1  -mindepth 1     \
+                                  -type f      -printf "%P\n"  |  sort  )
+  REST=$(  (  echo  "$FAVR";  echo  "$FAVR";  lone
+           )  |  sort  |  uniq  -u  |  grep  -vx  "core\|favor"  )
+
+  for  ITEM  in  $FAVR;  do  show  "$ITEM"  "ON";   done
+  for  ITEM  in  $REST;  do  show  "$ITEM"  "OFF";  done
+}
+
+
+select_favorites()  {
+
+  TITLE=$"Favorites Selection"
+  HELP=$"From this menu installed spells that are not required by any other installed spell may be granted favor.
+Key:  [X] = on, [ ] = off"
+
+  if  [  -n  "$FAVOR_LOGS"  ]  &&
+    FAV=$(  dialog                       \
+              --backtitle  "$BACKTITLE"  \
+              --title      "$TITLE"      \
+              --stdout                   \
+              --timeout  "$PROMPT_DELAY" \
+              --no-cancel                \
+              --separate-output          \
+              --checklist  "$HELP"       \
+              19 60 10                   \
+              $( checklist )             )
+  then
+    mkdir  -p   $FAVOR_LOGS
+    rm     -f   $FAVOR_LOGS/*
+    cd          $FAVOR_LOGS
+    touch       $FAV
+    rm     -f   $AROF_INDEX/favor
+  fi
+}
+
+
+  BACKTITLE=$"Favorite Installed Spells"
+  select_favorites
+}

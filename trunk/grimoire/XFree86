@@ -34,6 +34,8 @@ If you are using KDE, GNOME, Enlightenment, Blackbox, AfterStep,
 twm or fvwm then you are already using and running XFree86 as
 these run as our clients."
 
+configure()  {
+
 build_checklist()  {
 
   STATUS=$1
@@ -273,6 +275,14 @@ configure_host_def()  {
 
 }
 
+ if    !  [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
+ then  configure_host_def
+ fi
+}
+
+
+build()  {
+
 symlink_install()  {
 
   rm     -f  /usr/X11R6/include/zlib.h
@@ -310,14 +320,6 @@ pkgconf_install()  {
 }
 
 
-##########################################################
-configure() {
- if    !  [  -f  $CONFIG_LOGS/$SPELL/host.def  ]
- then  configure_host_def
- fi
-}
-
-build() {
  if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
   cat        $CONFIG_LOGS/$BSPELL/host.def    |
   sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
@@ -406,4 +408,3 @@ post_install() {
   fc-cache
   true
 }
-
