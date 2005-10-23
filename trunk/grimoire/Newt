@@ -1,7 +1,11 @@
+#  VERSION=( "0.51.6-31" "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
+#  VERSION=( "0.51.6-20" "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
    VERSION=( "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
   CATEGORY="utility"
- ATTRIBUTE="console library"
-    SOURCE="newt_$VERSION.tar.gz"
+ ATTRIBUTE="console library broken"
+# Nothing useable at debian's ftp site at the moment.
+    SOURCE=( "newt_${VERSION%-*}.orig.tar.gz"
+             "newt_$VERSION.diff.gz" )
   HOMEPAGE=""
        URL="ftp://ftp.debian.org/debian/pool/main/n/newt"
        REQ="Python popt slang tcl"
@@ -16,7 +20,19 @@ It is very usable because it has complete support
 for all widgets found in newt 0.30, and provides
 a nice abstraction over the C interface."
 
+
+case  $VERSION  in
+  0.51.6-31) REQ="gcc-v3.4 Python popt slang tcl"  ;;
+esac
+
 build() {
+case  $VERSION  in
+  0.51.6-31)  GCC3_VER=$( installed_version gcc-v3.4 )
+              export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+              export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+
 if    [      -f  newt-${VERSION:0:6}.tar.gz  ]
 then  tar  -zxf  newt-${VERSION:0:6}.tar.gz
       cd         newt-${VERSION:0:6}
@@ -28,10 +44,10 @@ PYVER="${PYVER:0:3}"
 TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
 TCLVER="${TCLVER:0:3}"
 
-# [  -n  "${SOURCE[1]}"  ]  &&
-# decompress  "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}"  |
-# patch  -p1
-# cat  debian/patches/*  |  patch  -p1
+[  -n  "${SOURCE[1]}"  ]  &&
+decompress  "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}"  |
+patch  -p1
+cat  debian/patches/*  |  patch  -p1
 
 sed  -i  "s:-static::"                Makefile.in
 sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
