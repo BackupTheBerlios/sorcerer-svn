@@ -17,15 +17,20 @@
       DESC="module-init-tools provides modules utilities for linux 2.6.x"
 
 case  $VERSION  in
-  3.1) REQ="bison flex gcc-v3.4"  ;;
+  3.1)  GCC_VER=$( installed_version  gcc  )
+        if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ]
+        then  REQ="bison flex gcc-v3.4"
+        fi  ;;
 esac
 
 build() {
 
 case  $VERSION  in
-  3.1)  GCC3_VER=$( installed_version gcc-v3.4 )
-        export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-        export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+  3.1)  if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ];  then
+          GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
+        fi  ;;
 esac
 
 
