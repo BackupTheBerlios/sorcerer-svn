@@ -1,11 +1,14 @@
-   VERSION=( "2.14.2" "2.14.1" )
+   VERSION=( "2.14.5" "2.14.2" "2.14.1" )
   CATEGORY="audio game"
- ATTRIBUTE="library"
+ ATTRIBUTE="library broken depreciated"
+# This will compile and install,
+# but you will not get yiffconfig,
+# because it uses an old and broken included source for cdialog
     SOURCE="yiff-$VERSION.tar.bz2"
        URL="ftp://wolfpack.twu.net/users/wolfpack"
   HOMEPAGE="http://wolfpack.twu.net/YIFF"
        REQ="gtk+-v1.2"
-  ESTIMATE="116"
+  ESTIMATE="96"
       DESC="yiff is a network transparent multiclient sound server.
 yiff is a network transparent multiclient
 sound server for Linux games and applications.
@@ -17,14 +20,16 @@ if any, and buffer fragmentation sizes."
 
 
 build() {
+
  case  $VERSION  in
   2.14.2)  patch  -p1  <  $SCRIPT_DIR/yiff-2.14.2.patch  ;;
  esac
 
  CF="CFLAGS=$CFLAGS $(  gtk-config --cflags  )"
 
+ sed  -i  "s: cc: c++:"  {yiffconfig,yiffutils}/Makefile*
+
  make    linux    "$CF"  &&
- prepare_install  &&
+ prepare_install         &&
  make    install
 }
-
