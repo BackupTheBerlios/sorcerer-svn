@@ -8,10 +8,18 @@
            http://www.stunnel.org/download/stunnel/src
            http://the.wiretapped.net/security/network-security/stunnel
             ftp://ftp.wiretapped.net/pub/security/network-security/stunnel"
+   PROTECT="/etc/stunnel/stunnel.pem"
        REQ=( "openssl zlib"
+             ":--enable-ipv6::for IPv6 support"
              "tcp_wrappers:--enable-libwrap:--disable-libwrap:for extra filtering and access control of inbound tcp requests for services" )
+# What is dh support?
+#            ":--enable-dh::for DH support"
   ESTIMATE="52"
       DESC="stunnel is a SSL tunneling proxy.
+
+To regenerate the self signed certificate
+remove /etc/stunnel/stunnel.pem
+
 stunnel is works as an SSL encryption wrapper between remote
 client and local (inetd-startable) or remote server.
 It can be used to add SSL functionality to
@@ -23,51 +31,3 @@ algorithms you compiled into your library.
 
 See stunnel(8) manual for details.
 For UDP forwarding, also look at zebedee."
-
-configure() {
-  if    [  -f  /etc/stunnel.pem  ]
-  then  mv     /etc/stunnel.pem  /etc/ssl/certs/
-  fi
-
-  if    [  !  -f  /etc/ssl/certs/stunnel.pem  ]
-  then  message  "Stay nearby please.  You will be asked"  \
-                 "questions to generate a self signed certificate."
-        CERTIFICATE="true"
-  elif  !  grep  -q  "CERTIFICATE="  $SPELL_CONFIG  &&
-           query  "Generate a self signed certificate?" n
-  then  CERTIFICATE="true"
-  else  CERTIFICATE="false"
-  fi
-
-  TEMP=`grep  -v  "CERTIFICATE="        $SPELL_CONFIG`
-  echo  "$TEMP"                     >   $SPELL_CONFIG
-  echo  "CERTIFICATE=$CERTIFICATE"  >>  $SPELL_CONFIG
-}
-
-build() {
-  sed  -i  "s:src doc tools:src doc:"  Makefile.in
-  ./configure                      \
-    --build=$BUILD                 \
-    --prefix=/usr                  \
-    --sysconfdir=/etc              \
-    --localstatedir=/var           \
-    --with-pem-dir=/etc/ssl/certs  \
-    $OPTS         &&
-make              &&
-prepare_install   &&
-make    install
-}
-
-post_build() {
-  default_post_build
-  if    $CERTIFICATE  ||  !  [  -e  /etc/ssl/certs/stunnel.pem  ]
-  then
-    rm  -f  /etc/ssl/certs/stunnel.pem
-    cd  tools
-    make
-    sed -i "s:CERTIFICATE=true:CERTIFICATE=false:" $SPELL_CONFIG &&
-    mv stunnel.pem /etc/ssl/certs/ &&
-    md5sum /etc/ssl/certs/stunnel.pem >> $MD5SUM_LOGS/$SPELL
-  fi
-}
-
