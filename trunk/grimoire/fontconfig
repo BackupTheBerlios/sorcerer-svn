@@ -6,22 +6,38 @@
        URL="http://fontconfig.org/release"
   HOMEPAGE="http://fontconfig.org"
        REQ="expat freetype zlib"
-  ESTIMATE="163"
+  ESTIMATE="147"
       DESC="fontconfig is a library for configuring and customizing font access.
 It contains two essential modules, the configuration module which
 builds an internal configuration from XML files and the matching module
 which accepts font patterns and returns the nearest matching font."
 
+build()  {
+remove_x11_fc()  {
+  rm   -rf  /usr/X11R6/include/fontconfig
+  rm   -f   /usr/X11R6/bin/fc-list         \
+            /usr/X11R6/bin/fc-cache        \
+            /usr/X11R6/lib/libfontconfig*  \
+            /usr/X11R6/lib/pkgconfig/fontconfig.pc
+}
+
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  remove_x11_fc          &&
+  make    install
+}
+
 post_install()  {
-  rm   -rf     /usr/X11R6/include/fontconfig
-  sed  -i   "\,/usr/X11R6/include/fontconfig,d"           $INSTALL_LOGS/XFree86
-  rm   -f      /usr/X11R6/lib/libfontconfig*
-  sed  -i   "\,/usr/X11R6/lib/libfontconfig,d"            $INSTALL_LOGS/XFree86
-  rm   -f      /usr/X11R6/lib/pkgconfig/fontconfig.pc
-  sed  -i   "\,/usr/X11R6/lib/pkgconfig/fontconfig.pc,d"  $INSTALL_LOGS/XFree86
-  rm   -f      /usr/X11R6/bin/fc-cache
-  sed  -i   "\,/usr/X11R6/bin/fc-cache,d"                 $INSTALL_LOGS/XFree86
-  rm   -f      /usr/X11R6/bin/fc-list
-  sed  -i   "\,/usr/X11R6/bin/fc-list,d"                  $INSTALL_LOGS/XFree86
+  sed  -i   "\,/usr/X11R6/include/fontconfig,d
+             \,/usr/X11R6/lib/libfontconfig,d
+             \,/usr/X11R6/lib/pkgconfig/fontconfig.pc,d
+             \,/usr/X11R6/bin/fc-cache,d
+             \,/usr/X11R6/bin/fc-list,d"  $INSTALL_LOGS/{XFree86,X.org}
   true
 }
