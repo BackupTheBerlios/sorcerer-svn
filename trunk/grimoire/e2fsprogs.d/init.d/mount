@@ -34,16 +34,16 @@ mount_local_fs() {
     [  -e  /forcefsck      ]  &&  FORCE="-f"
     [  "$FSCKFIX"  =  yes  ]  &&    FIX="-y"  ||  FIX="-a"
 
-    echo  -n  "Checking file systems... "
-    fsck  -C  -A  $FIX  $FORCE
-
-    if [  $?  -gt  1  ];  then
-      echo  "fsck failed."
-      echo  "Please repair your file system manually by"
-      echo  "running /sbin/fsck without the -a option"
-      sulogin  -t  120
+    if    [  -x  /sbin/fsck  ];  then
+      echo  -n  "Checking file systems... "
+      fsck  -C  -A  $FIX  $FORCE
+      if [  $?  -gt  1  ];  then
+        echo  "fsck failed."
+        echo  "Please repair your file system manually by"
+        echo  "running /sbin/fsck without the -a option"
+        sulogin  -t  120
+      fi
     fi
-
   fi
 
   # remount /  as readwrite, then fake remount to record to /etc/mtab
