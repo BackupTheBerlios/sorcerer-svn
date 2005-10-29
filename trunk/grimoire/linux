@@ -1,6 +1,4 @@
-# soon as 2.6.14 comes out grep grimoire for
-# linux/joystick.h and remove temporary fixes
-   VERSION=( "2.6.13.4" "2.6.13.3" "2.6.13.2" "2.6.13.1" "2.6.13" "2.6.12.5" "2.6.12.4" "2.6.12.3" "2.6.12.2" "2.6.12.1" "2.6.12" )
+   VERSION=( "2.6.14" "2.6.13.4" "2.6.13.3" "2.6.13.2" "2.6.13.1" "2.6.13" "2.6.12.5" "2.6.12.4" "2.6.12.3" "2.6.12.2" "2.6.12.1" "2.6.12" )
   CATEGORY="kernel"
  ATTRIBUTE="core solo"
     SOURCE="pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
@@ -28,13 +26,14 @@ executables, proper memory management,
 and TCP/IP networking."
 
 pre_build() {
- mkdir  -p  /var/src
- cd         /var/src
- rm     -rf            linux-$VERSION
- unpack     $SOURCE
- chown  -R  root:root  linux-$VERSION
- rm     -f                                      /usr/src/linux
- ln     -s             /var/src/linux-$VERSION  /usr/src/linux
+  default_pre_build                 &&
+  mkdir  -p              /var/src   &&
+  cd                     /var/src   &&
+  rm     -rf             linux-$VERSION  &&
+  mv         $BUILD_DIR  /var/src        &&
+  chown  -R  root:root   linux-$VERSION  &&
+  rm     -fr                                      /usr/src/linux  &&
+  ln     -s              /var/src/linux-$VERSION  /usr/src/linux
 }
 
 apply_linux_patch() {
