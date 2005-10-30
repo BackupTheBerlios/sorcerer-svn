@@ -1,4 +1,4 @@
-   VERSION=( "1.60.0" "1.51" "1.50" "1.40" )
+   VERSION=( "1.60.1" "1.60.0" "1.51" "1.50" "1.40" )
     IGNORE="beta\|handbook"
   CATEGORY="file-manager"
  ATTRIBUTE="kde"
@@ -7,7 +7,7 @@
        URL="$SOURCEFORGE_URL"
 #      URL="http://krusader.sourceforge.net/stable"
        REQ="kdelibs"
-  ESTIMATE="432"
+  ESTIMATE="442"
       DESC="krusader is a KDE Twin-Panel filemanager.
 Its twin-panel look follows in the
 footsteps of the great file managers
@@ -19,7 +19,17 @@ transparent handling of archives,
 mimetype support, and more."
 
 
-build()  {
+case  $VERSION  in
+  1.60.1) REQ="$REQ gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  1.60.1)  GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 export  KDEDIR=${KDEDIR:-/usr}
 export  QTDIR=${QTDIR:-/usr}
 default_build
