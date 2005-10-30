@@ -1,4 +1,4 @@
-   VERSION=( "celerity-20051026-0" "celerity-20051024-0" "celerity-20051022-0" "celerity-20051021-1" "celerity-20051020-0" "celerity-20051019-1" "celerity-20051018-3" "celerity-20051017-1" "celerity-20051015-0" "celerity-20051014-0" "celerity-20051012-0" "celerity-20051011-0" "celerity-20051010-0" "celerity-20051009-0" "celerity-20051008-1" "celerity-20051007-0" "celerity-20051006-0" "celerity-20051005-0" "celerity-20051004-1" "celerity-20051003-3" "celerity-20051002-0" "celerity-20050923-0" "celerity-20050921-0" )
+   VERSION=( "celerity-20051030-1" "celerity-20051026-0" "celerity-20051024-0" "celerity-20051022-0" "celerity-20051021-1" "celerity-20051020-0" "celerity-20051019-1" "celerity-20051018-3" "celerity-20051017-1" "celerity-20051015-0" "celerity-20051014-0" "celerity-20051012-0" "celerity-20051011-0" "celerity-20051010-0" "celerity-20051009-0" "celerity-20051008-1" "celerity-20051007-0" "celerity-20051006-0" "celerity-20051005-0" "celerity-20051004-1" "celerity-20051003-3" "celerity-20051002-0" "celerity-20050923-0" "celerity-20050921-0" )
   CATEGORY="utility"
  ATTRIBUTE="core noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -121,6 +121,45 @@ post_install() {
     grep   -rl  " "  $PROVIDE_LOGS |  xargs  --no-run-if-empty  -l64  rm  -f
   }
 
+
+  fix_service_selection()  {
+
+    on_service()  {
+      grep  -rs  "SERVICES="  $CONFIG_LOGS  |
+      sed   "s,/sorcery:SERVICES=, ,
+             s,/sorcery.old:SERVICES=, ,"   |
+      basenames  |  tr  -d '"'
+    }
+
+    show_svs()  {
+      grep  -rs  "^service "  $GRIMOIRE/$1.d/xinetd.d  |
+      cut   -d ' '  -f2
+    }
+
+    if  !  [  -d  ${XINETD_ON_LOGS:=$LOG_DIR/xinetd.on}    ]  ||
+        !  [  -d  ${XINETD_OFF_LOGS:=$LOG_DIR/xinetd.off}  ]
+    then
+      mkdir   -p  ${XINETD_OFF_LOGS}  ${XINETD_ON_LOGS}
+
+      on_service  |
+      while  read    SPL      SVS;  do
+        for          S  in   $SVS
+        do   echo  "$S"  >>  $XINETD_ON_LOGS/$SPL
+        done
+      done
+
+      on_service  |
+      while  read  SPL  SVS;  do
+        show_svs  $SPL  |
+        while  read          S
+        do     grep  -qsx  "$S"       $XINETD_ON_LOGS/$SPL  ||
+               echo        "$S"  >>  $XINETD_OFF_LOGS/$SPL
+        done
+      done
+    fi
+  }
+
+
   ARCH=$( uname -m )
 
   if    [  -x  $SENTINEL-$ARCH  ]
@@ -134,6 +173,7 @@ post_install() {
   clean_opt_logs
   switch_delta
   generate_index
+  fix_service_selection
   fix_provide_logs
   immune
 }
