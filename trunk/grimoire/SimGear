@@ -1,11 +1,27 @@
    VERSION=( "0.3.8" "0.3.7" "0.3.6" "0.3.5" )
     IGNORE="pre"
   CATEGORY="game"
- ATTRIBUTE="library x11"
+ ATTRIBUTE="library x11 broken"
+# SimGear 0.3.8 is not compatible with current openal
     SOURCE="SimGear-$VERSION.tar.gz"
        URL="ftp://ftp.simgear.org/pub/simgear/Source
             ftp://ftp.ihg.uni-duisburg.de/Mirrors/ftp.simgear.org/Source"
   HOMEPAGE="http://simgear.sourceforge.net"
-       REQ="plib metakit"
+       REQ="plib metakit openal"
   ESTIMATE="367"
       DESC="SimGear is simulation construction tools used by FlightGear."
+
+# case  $VERSION  in
+#   0.3.8) REQ="$REQ gcc-v3.4"  ;;
+# esac
+
+build() {
+# case  $VERSION  in
+#   0.3.8)  GCC3_VER=$( installed_version gcc-v3.4 )
+#           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+#           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+# esac
+
+sed  -i  "s:AL/alut\.h:AL/alc.h:"  $(  grep  -rl  "AL/alut.h"  *  )
+default_build
+}
