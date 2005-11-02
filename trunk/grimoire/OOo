@@ -1,0 +1,168 @@
+   VERSION=( "2.0.0" )
+  CATEGORY="office"
+ATTRIBUTE="x11 new solo broken"
+# I am in the process of checking it
+# I have not fully checked this spell  - K.S.
+    SOURCE="OOo_${VERSION}_src.tar.gz"
+       URL="ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/${VERSION}/"
+  HOMEPAGE="http://www.openoffice.org/"
+       REQ="Archive-Zip Python XML-Parser boost curl db expat freetype libwpd libxml mozilla nasm sane-backends tcsh unzip zip"
+   FEATURE="$FEATURE discard"  # Discard source tree on failed compilation
+  ESTIMATE="143410"
+      DESC="OOo provides a Microsoft compatible Office Software Suite.
+OOo, also known as OpenOffice, requires to build 4.4G and 4M inodes.
+The best options for compilation are:
+1.  umount $SOURCE_DIR and mount --bind it to
+    a filesystem that has sufficient space and innodes
+2.  Add 4G of swap files to cover an automatic
+    increase in the size of $SOURCE_DIR
+
+Inadequate disk space and innodes will cause compilation to fail.
+Inadequate swap to cover memory will cause the box to swap to a halt.
+Upon compilation failure this spell will not move a copy of the
+source tree to $FAILED_CACHE"
+
+
+pre_build() {
+
+  resize_source_dir()  {
+    local  SIZE NODE  SKIP
+
+    if         grep  -q        "$SOURCE_DIR tmpfs"  /proc/mounts;  then
+      SIZE=$(  stat  -fc  "%b"  $SOURCE_DIR  )
+      NODE=$(  stat  -fc  "%c"  $SOURCE_DIR  )
+
+      if    ((  SIZE <= 1310720  ))  ||
+            ((  NODE <= 4194304  ))
+      then
+        mount   $SOURCE_DIR  -o remount,defaults,mode=0755,size=5G,nr_inodes=4m
+        echo   "$SOURCE_DIR  limits increased"     1>&2
+        echo   "Add swap to cover it"              1>&2
+        echo   "or the box may run out of memory"  1>&2
+      fi
+    fi
+  }
+
+  resize_source_dir
+  default_pre_build
+}
+
+build() {
+
+
+  patch() {
+    case ${VERSION} in
+      2.0.0rc2_051005)
+        set -x
+        sed -i "s:unzip::g" makefile.mk &&
+        #sed -i "s:unzip::g" config_office/makefile.mk &&
+        sed -i 's#MYZIPTARGET:b)#MYZIPTARGET:b).zip#' ./odk/pack/copying/makefile.mk &&
+        sed -i 's#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0 ORBit-2.0 glib-2.0#' shell/source/backends/gconfbe/makefile.mk &&
+        sed -i 's#PKGCONFIG_MODULES=gnome-vfs-2.0#PKGCONFIG_MODULES=gnome-vfs-2.0 glib-2.0#' ucb/source/ucp/gvfs/makefile.mk &&
+        sed -i 's#PKGCONFIG_MODULES=gtk+-2.0 gthread-2.0#PKGCONFIG_MODULES=gtk+-2.0 gthread-2.0 gdk-2.0 glib-2.0 gobject-2.0 pango gdk-pixbuf-2.0#' vcl/util/makefile.mk && 
+        sed -i 's#PKGCONFIG_MODULES=gtk+-2.0#PKGCONFIG_MODULES=gtk+-2.0 gobject-2.0 glib-2.0 pango gdk-pixbuf-2.0#' fpicker/source/unx/gnome/makefile.mk &&
+
+        CFLAGS="$CFLAGS -Werror-implicit-function-declaration"
+        CFLAGS="$CFLAGS $( pkg-config --cflags mozilla-plugin )"
+        CFLAGS="$CFLAGS $( pkg-config --cflags glib-2.0       )"
+        CFLAGS="$CFLAGS $( pkg-config --cflags ORBit-2.0      )"
+
+        CXXFLAGS="$CXXFLAGS $( pkg-config --cflags glib-2.0  )"
+        CXXFLAGS="$CXXFLAGS $( pkg-config --cflags ORBit-2.0 )"
+
+        LDFLAGS="$LDFLAGS $( pkg-config --libs mozilla-plugin )"
+        LDFLAGS="$LDFLAGS $( pkg-config --libs gconf-2.0      )"
+        LDFLAGS="$LDFLAGS $( pkg-config --libs glib-2.0       )"
+        LDFLAGS="$LDFLAGS $( pkg-config --libs ORBit-2.0      )"
+
+        export  CFLAGS  CXXFLAGS  LDFLAGS
+
+        chmod  +x  solenv/bin/gccinstlib.pl
+        sed    -i  's:pthread_kill_other_threads_np();::'  sal/osl/unx/process.c
+        set +x
+      ;;
+      2.0.0)
+        chmod  +x  solenv/bin/gccinstlib.pl
+        sed  -i  's:pthread_kill_other_threads_np();::' ./sal/osl/unx/process.c 
+        sed  -i  's#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0 ORBit-2.0 glib-2.0#' shell/source/backends/gconfbe/makefile.mk 
+        sed  -i  's#PKGCONFIG_MODULES=gnome-vfs-2.0#PKGCONFIG_MODULES=gnome-vfs-2.0 glib-2.0#' ucb/source/ucp/gvfs/makefile.mk 
+        sed  -i  's#PKGCONFIG_MODULES=gtk+-2.0 gthread-2.0#PKGCONFIG_MODULES=gtk+-2.0     gthread-2.0 gdk-2.0 glib-2.0 gobject-2.0 pango gdk-pixbuf-2.0#' vcl/util/makefile.mk 
+        sed  -i  's#PKGCONFIG_MODULES=gtk+-2.0#PKGCONFIG_MODULES=gtk+-2.0 gobject-2.0 glib-2.0 pango gdk-pixbuf-2.0#' fpicker/source/unx/gnome/makefile.mk
+      ;;
+    esac
+  }
+
+
+  make_dmake()  {
+    local  CFLAGS
+    local  PREFIX="--prefix=$PWD/solenv"
+
+    cd    dmake     &&
+    ./configure     \
+      $PREFIX       &&
+    make            &&
+    make  install   &&
+    cd    ..        &&
+    export  PATH="$PATH:$PWD/solenv/bin"
+  }
+
+
+  fake_install()  {
+    INSTALLER=instsetoo_native/*/OpenOffice/install/*_download/OOo_*_install*.sh
+
+            UNPACK="$BUILD_DIR/unpack_openofficeorg"
+    echo  "$UNPACK"  |  $INSTALLER  &&
+    cd    "$UNPACK"                 &&
+    for              TB  in  */openoffice.org*.tar.*  # Probably .gz
+    do    tar  -xf  $TB
+    done
+  }
+
+
+  real_install()  {
+    cd  /
+    prepare_install  &&
+    for              TB in $UNPACK/*.sw
+    do    tar  -xf  $TB
+    done
+  }
+
+
+  OPTS="$OPTS
+    --prefix=/opt/OOo
+    --without-java
+    --with-package-format=portable
+    --with-systeb
+    --with-system-jpeg
+    --with-system-expat
+    --with-system-freetype
+    --with-system-libwpd
+    --with-system-libxml
+    --with-system-python
+    --with-system-db
+    --with-system-sane-header
+    --with-system-xrender-headers
+    --with-system-curl
+    --with-system-boost
+    --with-system-nasm
+    --with-system-sndfile
+    --disable-neon
+    --with-system-mozilla
+    --with-zip-home=/usr/bin/"
+  
+  # OOo use dmake for building, sources are provided and since dmake
+  # isn't compatible with make and will likely be used only by 
+  # OOo do a fake install of the tool
+
+  make_dmake               &&
+  cd      config_office    &&
+  ./configure  ${OPTS}     &&
+  cd      ..               &&
+  patch_source             &&  # patch after configure creates files
+  .  LinuxIntelEnv.Set.sh  &&  # setup the environment
+  # ./bootstrap            &&
+  # build                  &&
+  dmake                    &&
+  fake_install             &&  # untar the archives OOo created
+  real_install                 # install the OOo files in /opt/OOo
+}
