@@ -1,6 +1,6 @@
    VERSION=( "2.0.0" )
   CATEGORY="office"
- ATTRIBUTE="noheal x11 new solo"
+ ATTRIBUTE="x11 new solo"
     SOURCE="OOo_${VERSION}_src.tar.gz"
        URL="ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/${VERSION}/"
   HOMEPAGE="http://www.openoffice.org/"
@@ -19,10 +19,7 @@ The best options for compilation are:
 Inadequate disk space and innodes will cause compilation to fail.
 Inadequate swap to cover memory will cause the box to swap to a halt.
 Upon compilation failure this spell will not move a copy of the
-source tree to $FAILED_CACHE
-
-OOo will automatically be held after cast.
-Therefore, it will not cast when a new version is available."
+source tree to $FAILED_CACHE"
 
 
 pre_build() {
@@ -51,6 +48,28 @@ pre_build() {
 
 build() {
 
+  mem_total()  {
+    local  TOTAL=0
+    grep  "MemTotal:\|SwapTotal:" /proc/meminfo |
+    tr    -s ' '     |
+    cut   -d ' ' -f2 |
+    while  read
+    do     ((  TOTAL +=  REPLY  ));  echo  "$TOTAL"
+    done  |
+    tail -n -1
+  }
+
+  sufficient_memory() {
+    if    grep  -q  "$SOURCE_DIR tmpfs"  /proc/mounts  &&
+          (( $( mem_total ) < 5242880 ))
+    then
+      echo  "Would run out of memory if compilation continued"
+      echo  "Please add more swap before casting OOo again."
+      echo  "RAM + SWAP >= 5G, please."
+      false
+      fi
+    fi
+  }
 
   patch_source() {
     case ${VERSION} in
@@ -164,6 +183,7 @@ build() {
   .  LinuxIntelEnv.Set.sh  &&  # setup the environment
   # ./bootstrap            &&
   # build                  &&
+  sufficient_memory        &&
   dmake                    &&
   fake_install             &&  # untar the archives OOo created
   real_install                 # install the OOo files in /opt/OOo
