@@ -1,6 +1,6 @@
    VERSION=( "2.0.0" )
   CATEGORY="office"
- ATTRIBUTE="x11 new solo"
+ ATTRIBUTE="noheal x11 new solo"
     SOURCE="OOo_${VERSION}_src.tar.gz"
        URL="ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/${VERSION}/"
   HOMEPAGE="http://www.openoffice.org/"
@@ -19,7 +19,10 @@ The best options for compilation are:
 Inadequate disk space and innodes will cause compilation to fail.
 Inadequate swap to cover memory will cause the box to swap to a halt.
 Upon compilation failure this spell will not move a copy of the
-source tree to $FAILED_CACHE"
+source tree to $FAILED_CACHE
+
+OOo will automatically be held after cast.
+Therefore, it will not cast when a new version is available."
 
 
 pre_build() {
@@ -164,4 +167,11 @@ build() {
   dmake                    &&
   fake_install             &&  # untar the archives OOo created
   real_install                 # install the OOo files in /opt/OOo
+}
+
+
+post_install()  {
+  [      -d  $HOLD_LOGS  ]  ||
+  mkdir  -p  $HOLD_LOGS
+  touch      $HOLD_LOGS/OOo
 }
