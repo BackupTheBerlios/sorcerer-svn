@@ -34,7 +34,7 @@
              "lirc:--enable-lirc::to enable LIRC (remote control) support"
              "XviD:::for encoding movies to XviD format"
              "faad2:--enable-external-faad::for aac decoding support" )
-      OPTS="--disable-shared-pp"
+      OPTS="--disable-shared-pp --disable-gcc-checking"
  FRESHMEAT="mplayer"
   ESTIMATE="1295"
       DESC="MPlayer is a movie and animation player.
@@ -48,6 +48,12 @@ subtitles, but supports many text-based subtitle formats too.
 For video output, nearly every existing interface is supported.
 It's also able to convert any supported files to raw/divx/mpeg4
 AVI (pcm/mp3 audio), and even video grabbing from V4L devices."
+
+
+case  $VERSION  in
+  1.0pre7try2) REQ="$REQ gcc-v3.4"  ;;
+esac
+
 
 install_skin()  {
   BASE=$(  basename  $BUILD_DIR  )
@@ -92,8 +98,15 @@ install_mplayer()  {
 #  esac
 
 
+case  $VERSION  in
+  1.0pre7try2)  GCC3_VER=$( installed_version gcc-v3.4 )
+                export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+                export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
   unset  CFLAGS  CXXFLAGS
 
+  echo                               |
   ./configure                        \
   --prefix=/usr                      \
   --enable-gui                       \
