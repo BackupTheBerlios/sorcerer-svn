@@ -1,13 +1,12 @@
-   VERSION=( "1_0_11" "1_0_9" "1_0_8" "1_0_5" )
-# 1_0_10 has compile errors and so does 1_0_11
-    IGNORE="arm\|doc\|1_0_10"
+   VERSION=( "1_0_12" "1_0_11" "1_0_9" "1_0_8" "1_0_5" )
+    IGNORE="arm\|doc"
   CATEGORY="utility"
- ATTRIBUTE="new kde broken"
+ ATTRIBUTE="kde new"
     SOURCE="roadmap_${VERSION}_src.tar.gz"
        URL="http://www.roadmap.digitalomaha.net/roadmap"
   HOMEPAGE="http://roadmap.digitalomaha.net"
        REQ="gpsd gtk+ flite popt qt-x11-free shapelib sqlite"
-  ESTIMATE="108"
+  ESTIMATE="157"
       DESC="roadmap is a navigation program for USA.
 roadmap is a navigation program that displays street maps.
 The maps are provided by the US Census Bureau, and thus only cover USA.
@@ -25,12 +24,17 @@ esac
 
 export  QTDIR="/usr"
 
-sed   -i  "s:/appl:/share/appl:
-           s:/usr/local:/usr:"  Makefile  gtk2/Makefile
+export  CFLAGS="$CFLAGS -I/usr/include/libshp"
 
-make  "CFLAGS=$CFLAGS"  runtime  build  icons  &&
-cd    gtk2                                     &&
-make  "STDCFLAGS=$CFLAGS"  all                 &&
+sed   -i  "s:/appl:/share/appl:
+           s:/usr/local:/usr:"  Makefile  */Makefile
+sed   -i  "s:/include/qt3:/include/qt:
+           s:-lqt$:-lqt-mt:"  qt/Makefile
+
+make  "MODECFLAGS=$CFLAGS"  runtime  build  icons  &&
+# cd    gtk2                                     &&
+# make  "STDCFLAGS=$CFLAGS"  all                 &&
+# make        all  &&
 prepare_install                                &&
 make    install
 }
