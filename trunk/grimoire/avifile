@@ -14,8 +14,18 @@
 #   "qt-x11-free:--with-qt-libraries=/usr/lib:--without-qt:for building qtvidcap"
   ESTIMATE="1433"
       DESC="avifile is a library for reading and writing compressed AVI files."
+case  $VERSION  in
+  0.7-0.7.43) REQ="$REQ gcc-v3.4"  ;;
+esac
 
-build()  {
+build() {
+case  $VERSION  in
+  0.7-0.7.43)  GCC3_VER=$( installed_version gcc-v3.4 )
+               export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+               export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+
 case  $VERSION  in
   0.7-0.7.41)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  \
                           ffmpeg/libavformat/grab.c       \
@@ -23,11 +33,12 @@ case  $VERSION  in
                           samples/qtvidcap/v4lxif.h       ;;
 esac
 
-./configure  --prefix=/usr  \
-             --without-qt   \
-             $OPTS          &&
-make                        &&
-prepare_install             &&
-make    install             &&
+./configure      \
+--prefix=/usr    \
+--without-qt     \
+$OPTS            &&
+make             &&
+prepare_install  &&
+make    install  &&
 ln  -s  avifile-${VERSION:0:3}  /usr/include/avifile
 }
