@@ -4,8 +4,10 @@
 # 5.0.x versions are developmental
   CATEGORY="db"
  ATTRIBUTE="console"
-    SOURCE="MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz"
-       URL="$MYSQL_URL"
+    SOURCE=( "MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz"
+             "linux-libc-headers-2.6.12.0.tar.bz2" )
+       URL=( "$MYSQL_URL"
+             "http://ep09.pld-linux.org/~mmazur/linux-libc-headers/" )
   HOMEPAGE="http://www.mysql.com"
 # Raid support seems to be broken
 #            ":--with-raid::to enable RAID support"
@@ -25,7 +27,7 @@
              ":--with-embedded-server:--without-embedded-server:to build embedded server libmysqld"
              ":--enable-assembler::Use assembler version of some string functions if available" )
    EXCLUDE="/var/lib/mysql"
-  ESTIMATE="4703"
+  ESTIMATE="4706"
       DESC="mysql is a widely used and fast SQL database server.
 mysql is a widely used and fast SQL database server.
 It is a client/server implementation that consists
@@ -33,6 +35,16 @@ of a server daemon (mysqld) and many different
 client programs/libraries."
 
 build() {
+if    [  -n  "${SOURCE[1]}"  ];  then
+  case  $( arch  )  in
+    i*86)  ln  -s  asm-i386      linux-libc-headers-2.6.12.0/include/asm  ;;
+    x*86*) ln  -s  asm-x86_64    linux-libc-headers-2.6.12.0/include/asm  ;;
+  esac
+  export    CFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include   $CFLAGS"
+  export  CXXFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include $CXXFLAGS"
+fi
+
+
 # sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
 # sed  -i  "s:examples::"                                 libmysqld/Makefile.in
 
