@@ -6,7 +6,7 @@
   HOMEPAGE="http://libdv.sourceforge.net"
        REQ=( "SDL pkgconfig popt"
              "gtk+-v1.2::--disable-gtk:to use gtk for display" )
-  ESTIMATE="98"
+  ESTIMATE="92"
       DESC="libdv, Quasar DV, is a codec for DV video, used by mini-dv camcorders.
 libdv, the Quasar DV codec, is a software codec for DV video,
 the encoding format used by most digital camcorders, typically
@@ -15,20 +15,21 @@ Libdv was developed according to the official standards for DV
 video: IEC 61834 and SMPTE 314M."
 
 build() {
- if  !  grep      "flags"  <  /proc/cpuinfo  |
-  grep  -q  "mmx"
- then   patch  -p1  <  $SCRIPT_DIR/libdv-mmx.patch
- else   patch  -p1  <  $SCRIPT_DIR/libdv-no-mmx.patch
- fi
+  if  !  grep      "flags"  <  /proc/cpuinfo  |
+   grep  -q  "mmx"
+  then   patch  -p1  <  $SCRIPT_DIR/libdv-mmx.patch
+  else   patch  -p1  <  $SCRIPT_DIR/libdv-no-mmx.patch
+  fi
 
- #            --disable-xv       \
- #            --disable-gtk  \
- #            --disable-gtktest  \
+  #            --disable-xv       \
+  #            --disable-gtk  \
+  #            --disable-gtktest  \
 
- ./configure  --prefix=/usr  \
-              --enable-sdl   \
-        $OPTS          &&
- make                        &&
- make  install
+  ./configure      \
+  --prefix=/usr    \
+  --enable-sdl     \
+  $OPTS            &&
+  make             &&
+  prepare_install  &&
+  make    install
 }
-
