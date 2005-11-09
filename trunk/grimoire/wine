@@ -1,15 +1,17 @@
-# Not yet another linux/joystick.h header problem!!!
-   VERSION=( "0.9" )
-    IGNORE="mingw\|kevin\|dlls"
+   VERSION=( "0.9.1" "0.9" )
+    IGNORE="mingw\|kevin\|dlls\|prgs"
   CATEGORY="emulator"
- ATTRIBUTE="solo x11 broken"
-    SOURCE="wine/wine-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
+ ATTRIBUTE="solo x11"
+    SOURCE=( "wine/wine-$VERSION.tar.bz2"
+             "linux-libc-headers-2.6.12.0.tar.bz2" )
+       URL=( "$SOURCEFORGE_URL"
+             "http://ep09.pld-linux.org/~mmazur/linux-libc-headers/" )
   HOMEPAGE="http://www.winehq.com"
-       REQ=( "bison flex fontforge libxslt ncurses x11"
+       REQ=( "audiofile bison flex fontforge glib libxslt ncurses x11"
              "alsa-lib::--without-alsa:for output through alsa"
              "arts:::audio output through arts"
              "cups:::for printing"
+             "esound:::for output through enlightenment sound daemon"
              "openldap:::for authentication using LDAP"
              "openssl:::for secure socket connectios"
              "sane-backends:::for scanning support"
@@ -18,7 +20,7 @@
 # I guess wine is beta/stable and Wine is developmental.
   EPROVIDE="Wine"
  FRESHMEAT="wine"
-  ESTIMATE="6642"
+  ESTIMATE="6806"
       DESC="wine runs some Windows 3.x and Windows 9x programs.
 wine Is Not an Emulator.
 It is an alternative implementation of the Windows 3.x and Win32 APIs.
@@ -32,6 +34,16 @@ completely alternative implementation consisting of
 native system DLLs if they are available."
 
 build()  {
+if    [  -n  "${SOURCE[1]}"  ];  then
+  case  $( arch  )  in
+    i*86)  ln  -s  asm-i386      linux-libc-headers-2.6.12.0/include/asm  ;;
+    x*86*) ln  -s  asm-x86_64    linux-libc-headers-2.6.12.0/include/asm  ;;
+  esac
+  export    CFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include   $CFLAGS"
+  export  CXXFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include $CXXFLAGS"
+fi
+
+
   unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
   ./configure           \
@@ -45,8 +57,4 @@ build()  {
   make    install       \
   LDCONFIG=/bin/true
 # FONTSSUBDIRS=fonts
-}
-
-current() {
-  [  -d  /usr/share/fonts/wine ]
 }
