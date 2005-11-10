@@ -9,9 +9,10 @@
 #       URL="ftp://ftp.mostang.com/pub/sane
 #            ftp://ftp.de.mostang.com/pub/sane
 #            ftp://ftp.no.mostang.com/pub/sane"
-       REQ="jpeg teTeX"
+       REQ="jpeg"
+#      REQ="jpeg teTeX"
  FRESHMEAT="sane"
-  ESTIMATE="765"
+  ESTIMATE="758"
 # note saned provides an inetd or xinetd daemon for handling
 # remote requests for data/image acquisition, but this spell
 # is not yet updated to install an xinetd.d configuration file
@@ -22,3 +23,29 @@ SANE stands for Scanner Access Now Easy.
 This package contains the SANE libraries
 (this means backends and network scanning parts)
 and the command line frontend scanimage."
+
+build() {
+
+dopatch(){
+patch sanei/sanei_usb.c << EOF
+637,638c
+      result = 0; //usb_set_configuration (devices[devcount].libusb_handle,
+                //                    dev->config[0].bConfigurationValue);
+.
+EOF
+}
+
+case  $VERSION  in
+  1.0.16)  dopatch  ;;
+esac
+
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make  STANDARD=        &&
+  prepare_install        &&
+  make    install  STANDARD=
+}
