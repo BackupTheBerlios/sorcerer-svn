@@ -160,6 +160,16 @@ post_install() {
   }
 
 
+  fix_state()  {
+    if    [  -d     /var/state/sorcery  ];  then
+      grep   -q    "/var/state/sorcery"                  /etc/fstab  &&
+      sed    -i  "s:/var/state/sorcery:/root/.sorcery:"  /etc/fstab
+      umount        /var/state/sorcery  &&
+      rm     -fr    /var/state/sorcery
+    fi
+  }
+
+
   ARCH=$( uname -m )
 
   if    [  -x  $SENTINEL-$ARCH  ]
@@ -175,5 +185,6 @@ post_install() {
   generate_index
   fix_service_selection
   fix_provide_logs
+# fix_state
   immune
 }
