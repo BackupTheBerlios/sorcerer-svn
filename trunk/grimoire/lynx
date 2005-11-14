@@ -13,18 +13,41 @@
 
 
 build()  {
+  lynx_install()  {
+    case  $VERSION  in
+      2.8.5)  sed   -i  "s:#TRUSTED_LYNXCGI:none:TRUSTED_LYNXCGI:none:"  lynx.cfg  ;;
+    esac
+    make    install
+    make    install-help
+    make    install-doc
+    mv      /var/lib/lynx/lynx.cfg           /etc/lynx.cfg
+    ln  -sf  ../../../etc/lynx.cfg  /var/lib/lynx/lynx.cfg
+  }
 
-  ./configure   --host=$BUILD           \
-                --prefix=/usr           \
-                --libdir=/var/lib/lynx  \
-                --sysconfdir=/etc       \
-                $OPTS   &&
-  make                  &&
-  prepare_install       &&
-  make    install       &&
-  make    install-help  &&
-  make    install-doc   &&
-  ln    -sf  ../var/lib/lynx/lynx.cfg  \
-                        /etc/lynx.cfg
+  ./configure             \
+  --host=$BUILD           \
+  --prefix=/usr           \
+  --libdir=/var/lib/lynx  \
+  --sysconfdir=/etc       \
+  $OPTS                   &&
+  make                    &&
+  prepare_install         &&
+     lynx_install
+}
 
+
+post_install()  {
+  case  $VERSION  in
+    2.8.5)  grep  -v  "^#"  /etc/lynx.cfg     |
+            grep  -q  "TRUSTED_LYNXCGI:none"  ||
+            sed   -i  "s:#TRUSTED_LYNXCGI:none:TRUSTED_LYNXCGI:none:"  lynx.cfg  ;;
+  esac
+}
+
+
+current()  {
+  case  $VERSION  in
+    2.8.5)  grep  -v  "^#"  /etc/lynx.cfg  |
+            grep  -q  "TRUSTED_LYNXCGI:none"  ;;
+  esac
 }
