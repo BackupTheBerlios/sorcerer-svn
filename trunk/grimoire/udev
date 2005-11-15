@@ -1,10 +1,6 @@
-   VERSION=( "068" "065" "064" "063" "062" "061" "060" "059" "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
+   VERSION=( "075" "074" "073" "072" "071" "070" "069" "068" "065" "064" "063" "062" "061" "060" "059" "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
     IGNORE="069\|070"
-# 066 has install problem
-# 061 fixes the problem with udevd running,
-# however it gives the group number to the owner
-# and it sets the group for devices to root
-    IGNORE="05[1-4]"
+# Actually progressed from 068 to 075
   CATEGORY="utility"
  ATTRIBUTE="core console"
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
@@ -12,7 +8,7 @@
        URL="$KERNEL_URL"
   HOMEPAGE="http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html"
    EXCLUDE="/dev"
-  ESTIMATE="66"
+  ESTIMATE="152"
       DESC="udev provides an auto-populating /dev.
 
 Add custom rules for udev nodes to the file:
@@ -29,14 +25,16 @@ init_install()  {
   install  -m 0700  extras/start_udev              /etc/init.d
   mkdir    -p      /etc/udev/rules.d               /etc/udev/examples
   cp       -a       etc/udev/*                     /etc/udev/examples
-  sed      -i -r 's:##BUS=(.*cdsymlinks.*):BUS=\1:
-                  /SYSFS_type="5"/d'  \
-         /etc/udev/examples/slackware/udev.rules
-  ln       -sf  ../examples/slackware/udev.rules   /etc/udev/rules.d
+#  sed      -i -r 's:##BUS=(.*cdsymlinks.*):BUS=\1:
+#                  /SYSFS_type="5"/d'  \
+#         /etc/udev/examples/slackware/udev.rules
+#  ln       -sf  ../examples/slackware/udev.rules   /etc/udev/rules.d
+  ln       -sf  ../examples/gentoo/udev.rules      /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
-  for  FILE in extras/*.sh
-  do  install -m 0755 $FILE                        /etc/udev/scripts
-  done
+  install  -m 0755  extras/*.sh                    /etc/udev/scripts
+#  for                    FILE in extras/*.sh
+#  do   install -m 0755  $FILE                      /etc/udev/scripts
+#  done
 }
 
 linux_sufficient()  {
@@ -52,15 +50,17 @@ linux_sufficient()  {
   fi
 }
 
+  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"
+
   sed  -i  "s:/local::
             s:^udevdir = .*:udevdir = /dev:
             s:killall:true:"  Makefile
   sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
 
-  linux_sufficient  &&
-  make              &&
-  prepare_install   &&
-  make    install   &&
+  linux_sufficient                   &&
+  make             "EXTRAS=$EXTRAS"  &&
+  prepare_install                    &&
+  make    install  "EXTRAS=$EXTRAS"  &&
      init_install
 }
 
