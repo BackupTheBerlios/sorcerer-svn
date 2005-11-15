@@ -1,0 +1,45 @@
+   VERSION=( "051113" )
+  CATEGORY="utility"
+ ATTRIBUTE="console new broken"
+# Segmentation faults during compilation
+    SOURCE="heirloom/heirloom-devtools-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+       REQ="heirloom"
+  HOMEPAGE="http://heirloom.sourceforge.net/devtools.html"
+ FRESHMEAT="devtools"
+  ESTIMATE="433"
+      DESC="heirloom-devtools provide yacc, lex, and m4,
+as portable derivatives of the utilities released by Sun
+as part of OpenSolaris."
+
+
+build() {
+OH=/opt/heirloom
+sed  -i  "s:/usr/5bin:$OH/bin:
+          s:/usr/ucb:$OH/bin/ucb:
+          s:/usr/5lib:$OH/lib:
+          s:/usr/pub:$OH/pub:
+          s:/var/adm/spellhist:/dev/null:
+          s:-lcurses:-lncurses:
+          s:-Wl,-Bstatic::
+          s:-Wl,-Bdynamic::
+          s:-fomit-frame-pointer::
+          s:-funroll-loops::
+          s:CFLAGS = -O:CFLAGS = $CFLAGS:
+          s:CFLAGS2 = -O2:CFLAGS2 = $CFLAGS:
+          s:CFLAGSS = -Os:CFLAGSS = $CFLAGS:
+          s:CFLAGSU = -O2:CFLAGSU = $CFLAGS:"  mk.config
+
+# sed  -i  "s:linux/fs.h:ext2fs/ext2fs.h:"       cpio/cpio.c  \
+#                                                tar/tar.c
+make             &&
+prepare_install  &&
+hash   -r        &&
+mkdir  -p  $OH   &&
+make    install  &&
+hash   -r
+}
+
+POST_REMOVE() {
+hash  -r
+}
