@@ -1,0 +1,30 @@
+   VERSION=( "0.3" )
+  CATEGORY="dictionary"
+ ATTRIBUTE="x11 new"
+    SOURCE=( "nihongobenkyo-$VERSION.tar.gz"
+             "dic-$VERSION.tar.bz2" )
+       URL=( "http://rubyforge.org/frs/download.php/7120"
+             "http://rubyforge.org/frs/download.php/7123" )
+  HOMEPAGE="http://www.nihongobenkyo.org/"
+       REQ="intltool libxml2 ruby-gettext-package sqlite3-ruby"
+  ESTIMATE="108"
+      DESC="nihongobenkyo is a Japanese dictionary and learning tool.
+It searches words from kanji, kana, romaji, or translation.
+Edict-format dictionaries may be imported.
+Selections from other applications can be scanned."
+
+
+build()  {
+finish_install()  {              NBK=nihongobenkyo
+  mv                   /usr/bin/$NBK  /usr/libexec
+  install  -m 0755  $SCRIPT_DIR/$NBK  /usr/bin/$NBK
+  install  -m 0644  dic.db            /usr/share/nihongobenkyo
+}
+
+[  -f setup.rb  ]        &&
+[  -f dic.db    ]        &&
+ruby  setup.rb  config   &&
+ruby  setup.rb  setup    &&  prepare_install  &&
+ruby  setup.rb  install  &&
+         finish_install
+}
