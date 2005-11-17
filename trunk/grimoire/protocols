@@ -12,14 +12,20 @@ disable scavenge
 
 build()  {
 PN=$SOURCE_CACHE/$BSPELL/$VERSION/protocol-numbers
+
 [  -f  $PN  ]    &&
 prepare_install  &&
-cat    $PN       |
+cat    $PN                |
+tr       -d  '\r'         |
+tr           '\t'  ' '    |
+tr       -s  ' '          |
+tr       -d  '\177-\377'  |
+sed          "s:^ *::"    |
+grep         "^[0-9]"     |
+grep     -v  "^ \|Unassigned\|experimentation\|Reserved\|1981"  |
 while  read  NUMBER  NAME  DESCRIPTION;  do
-  if   !            echo  $NUMBER  |  grep  -q  "[^[:digit:]]"
-  then    LNAME=$(  echo  $NAME    |  tr  "[:upper:]" "[:lower:]" )
-          echo "$LNAME|$NUMBER|$NAME|# $DESCRIPTION"
-  fi
+  echo  -n     "$NAME"   |  tr  "[:upper:]" "[:lower:]"
+  echo "|$NUMBER|$NAME"
 done                  | 
 tr       -d '\r'      |
 column   -s '|'   -t  >        protocols  &&

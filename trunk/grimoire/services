@@ -12,17 +12,28 @@ disable scavenge
 
 
 build() {
+
+# port-numbers is seriously malformed.
+# Adding a line feed after port-numbers is essential because it lacks one.
+# It also contains ASCII characters > 0x7e which causes column to quit.
+# It also has tabs where it should have spaces.
+# It has carriage returns line feed pairslike DOS files.
+# Those reasons are why many tr sanitation commands are required.
+
 PN=$SOURCE_CACHE/$BSPELL/$VERSION/port-numbers
-[  -f  $PN  ]    &&
-prepare_install  &&
-cat    $PN       |
-while  read  KEYWORD  DECIMAL  DESCRIPTION;  do
-  if      echo       $DECIMAL  |
-          grep  -q  "[[:digit:]]/tcp\|[[:digit:]]/udp"
-  then    echo "$KEYWORD|$DECIMAL|# $DESCRIPTION"
-  fi
-done                   | 
-tr       -d '\r'       |
-column   -s '|'    -t  >        services  &&
+LO=/etc/services.local
+[  -f  $LO  ]    ||  touch  $LO
+[  -f  $PN  ]    &&  prepare_install  &&
+( cat  $PN       ;   echo
+  cat  $LO  )                  |
+tr       -d  '\r'              |
+tr           '\t'  ' '         |
+tr       -s  ' '               |
+tr       -d  '\177-\377'       |
+grep         "/tcp\|/udp"      |
+grep     -v  "^ \|Unassigned"  |
+sed      -r  "s:([^ ]*) ([^ ]*):\1|\2|#:
+              s:\|#$::"  |
+column   -s '|'    -t    >      services  &&
 install  -m  0644  -b  -S .old  services  /etc
 }
