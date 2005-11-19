@@ -1,15 +1,12 @@
-#  VERSION=( "0.51.6-31" "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
-#  VERSION=( "0.51.6-20" "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
-   VERSION=( "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
+   VERSION=( "0.52.1" "0.51.6-31" "0.51.6-24" "0.51.6" "0.51.4" "0.50.17" )
   CATEGORY="utility"
- ATTRIBUTE="console library broken"
-# Nothing useable at debian's ftp site at the moment.
-    SOURCE=( "newt_${VERSION%-*}.orig.tar.gz"
-             "newt_$VERSION.diff.gz" )
+ ATTRIBUTE="console library"
+    SOURCE=( "newt_${VERSION%-*}.orig.tar.gz" )
+#            "newt_$VERSION.diff.gz" )
   HOMEPAGE=""
        URL="ftp://ftp.debian.org/debian/pool/main/n/newt"
        REQ="Python popt slang tcl"
-  ESTIMATE="71"
+  ESTIMATE="129"
       DESC="Newt is a perl library for text screen widgets.
 Newt is a perl library built on top of
 Red Hat's newt C library for text screen widgets.
@@ -38,11 +35,13 @@ then  tar  -zxf  newt-${VERSION:0:6}.tar.gz
       cd         newt-${VERSION:0:6}
 fi
 
-PYVER="$(  installed_version  $(  get_provider  Python  )  )"
-PYVER="${PYVER:0:3}"
+rm  -f  .depend
 
-TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
-TCLVER="${TCLVER:0:3}"
+# PYVER="$(  installed_version  $(  get_provider  Python  )  )"
+# PYVER="${PYVER:0:3}"
+
+# TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
+# TCLVER="${TCLVER:0:3}"
 
 [  -n  "${SOURCE[1]}"  ]  &&
 decompress  "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}"  |
@@ -50,7 +49,7 @@ patch  -p1
 cat  debian/patches/*  |  patch  -p1
 
 sed  -i  "s:-static::"                Makefile.in
-sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
-sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
+# sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
+# sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
 default_build
 }
