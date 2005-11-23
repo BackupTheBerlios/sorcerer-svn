@@ -1,20 +1,20 @@
 inherit  linux
-   VERSION=( "2.6.13" "2.6.11" "2.6.10" "2.6.7" )
-      SAFE=( "2.6.13" )
-  RVERSION="v1.2.5"
+   VERSION=( "2.6.14.2" "2.6.13" "2.6.11" "2.6.10" "2.6.7" "2.6.14.2" )
+      SAFE=( "2.6.14.2" )
+  RVERSION="1.2.5.1"
   CATEGORY="kernel"
  ATTRIBUTE="core solo"
     SOURCE=( "pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
-             "code/$RVERSION/rsbac-common-$RVERSION.tar.bz2"
-             "patches/$RVERSION/patch-linux-$VERSION-rsbac-$RVERSION.diff.bz2" )
+             "code/v${RVERSION:0:5}/rsbac-common-$RVERSION.tar.bz2"
+             "patches/v${RVERSION:0:5}/$VERSION/linux-${VERSION:0:6}-rsbac-$RVERSION.patch.bz2" )
 #            "bugfixes/$RVERSION/rsbac-bugfix-$RVERSION-1.diff"
        URL=( "$KERNEL_URL"
-             "http://download.rsbac.org" )
+             "http://download.rsbac.org/" )
   HOMEPAGE="http://www.rsbac.org"
        REQ=( "lilo"
              "module-init-tools:::for tools for modular kernel" )
   EPROVIDE="linux-kernel"
-  ESTIMATE="2386"
+  ESTIMATE="2800"
  FRESHMEAT="linux"
       DESC="linux-rsbac provides RSBAC enhanced 2.6.x stable kernels.
 
@@ -39,15 +39,5 @@ apply_linux_patch()  {
  do  decompress  $(  guess_filename  ${SOURCE[$SCX]}  )  |  patch  -p1
   ((  SCX++  ))
  done
- # sed  -i  "s:^EXTRAVERSION:# EXTRAVERSION:"  Makefile
  sed  -i  "s:-rsbac::"  Makefile
-}
-
-current() {
-  case  $VERSION  in
-    2.6.11)  PCX=$(  grep  -x  "patching file rsbac/data_structures/aci_data_structures.c"  $COMPILE_LOGS/linux-rsbac  |
-                     wc    -l  )
-             (( PCX == 2 ))
-  ;;
-  esac
 }
