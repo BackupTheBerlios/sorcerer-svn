@@ -1,8 +1,9 @@
-   VERSION=( "6.3.5" "6.3.2" )
+   VERSION=( "6.3.5-39" "6.3.5" "6.3.2" )
   CATEGORY="utility"
  ATTRIBUTE="console"
-    SOURCE="acct_$VERSION.orig.tar.gz"
-       URL="http://ftp.debian.org/debian/pool/main/a/acct"
+    SOURCE=( "acct_${VERSION:0:5}.orig.tar.gz"
+             "acct_${VERSION}.diff.gz" )
+       URL="http://ftp.us.debian.org/debian/pool/main/a/acct"
 #      URL="$GNU_URL"
   HOMEPAGE="http://directory.fsf.org/acct.html"
   ESTIMATE="35"
@@ -21,3 +22,11 @@ lastcomm:     show which commands have been used
 sa:           summarizes process accounting
 dump-utmp:    print a utmp file in a human-readble format
 dump-acct:    same as above for acct/pacct files"
+
+build()  {
+  if    [  -n  "${SOURCE[1]}"  ]
+  then  decompress $SOURCE_CACHE/acct/$VERSION/${SOURCE[1]}  |
+        patch  -p 1
+  fi
+  default_build
+}
