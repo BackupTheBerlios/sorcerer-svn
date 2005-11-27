@@ -11,7 +11,9 @@
 Its primary role is to create processes from
 a script stored in the file /etc/inittab.
 This package also contains well known and used utilities like:
-reboot, shutdown, killall, poweroff, tellinit, sulogin, wall, etc."
+reboot, shutdown, killall, poweroff, tellinit, sulogin, wall, etc.
+Before asking questions about how init scripts work please read:
+http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html"
 
 build() {
 install_init() {
@@ -27,6 +29,7 @@ install_init() {
   install -m 0700  src/initscript.sample       /etc
 }
 
+fix_inittab()  {
   if    !  grep  -q  "init.d/prc"   /etc/inittab  ||
         !  grep  -q  "si::sysinit"  /etc/inittab
   then
@@ -40,19 +43,18 @@ install_init() {
     sed   -i  "2isi::sysinit:/etc/init.d/rcS"  /etc/inittab
     echo      "/etc/inittab modified"
   fi
+}
+
 
   case $( arch ) in
-   x86_64)
-	sed  -i  's:/usr/lib/libcrypt.a:/usr/lib64/libcrypt.a:' src/Makefile
-	;;
-  esac 
+   x86_64)  sed  -i  's:/usr/lib/libcrypt.a:/usr/lib64/libcrypt.a:' src/Makefile  ;;
+  esac
 
+  fix_inittab
   make  -C src                &&
   prepare_install             &&
   make  -C src  install       &&
-                install_init  &&
-  echo  "Please read:"        &&
-  echo  "http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html"
+                install_init
 }
 
 post_install() {
@@ -61,15 +63,7 @@ post_install() {
 }
 
 current() {
-  if  !  grep  -q  "linuxbase"  $COMPILE_LOGS/sysvinit
-  then
-    echo "sysvinit requires recast of sysvinit"  >  $CAST_QUEUE/sysvinit
-    show_installed  |
-    while  read  SPELL;  do
-      if    [  -d  $GRIMOIRE/$SPELL.d/init.d  ]
-      then  echo  "sysvinit requires recast of $SPELL"  >  $CAST_QUEUE/$SPELL
-      fi
-    done
-  fi
-  [  -f  /etc/init.d/kill  ]
+  case  $VERSION  in
+    2.8.6)  grep  -q  "6|0)   ssl"  /etc/init.d/prc  ;;
+  esac
 }
