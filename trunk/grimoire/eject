@@ -1,23 +1,21 @@
-   VERSION=( "2.0.13" "2.0.12" )
+   VERSION=( "2.1.0" "2.0.13" "2.0.12" )
     IGNORE="fh"
   CATEGORY="disk cd"
  ATTRIBUTE="console"
     SOURCE="eject-$VERSION.tar.gz"
-       URL="http://www.pobox.com/~tranter
-            ftp://ftp.ibiblio.org/pub/Linux/utils/disk-management"
-  HOMEPAGE="http://www.pobox.com/~tranter/eject.html"
-       REQ="gettext"
+       URL="ftp://ftp.ibiblio.org/pub/Linux/utils/disk-management"
+# No idea where homepage is anymore.
+# HOMEPAGE="http://www.pobox.com/~tranter/eject.html"
+       REQ="automake gettext"
   ESTIMATE="19"
       DESC="eject is a program for ejecting removable media under software control.
 It can also control the auto-eject feature of some drives
 and can be used to switch CDs on an IDE/ATAPI CD changer."
 
 
-build_old() {
-sed    -i  "s:-I/usr/src/linux/include:-I$BUILD_DIR/fix:"  Makefile.in
-mkdir  -p                                                  fix
-cp     -a   /usr/src/linux/include/scsi/scsi.h             fix
-sed    -i   "1itypedef u_int8_t u8"                        fix/scsi.h
-
-default_build
+build() {
+  aclocal
+  automake  -acf
+  autoconf
+  default_build
 }
