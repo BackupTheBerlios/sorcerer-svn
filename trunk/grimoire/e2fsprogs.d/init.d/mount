@@ -62,24 +62,16 @@ start()  {
 }
 
 umount_local_fs() {
-# The below line causes problems on some boxes
-# and filesystems are not cleanly unmounted
-# umount   -t  noproc,noramfs,nodevpts,nodevfs  -f  -a  -r -l
-
-# these lines works fine feel free to uncomment them to make them officials
-# mount   -t  noproc,noramfs,nodevpts,nodevfs  -a  -r -l
-# umount   -t  noproc,noramfs,nodevpts,nodevfs  -a 
-
-  [  -f                 /proc/cpuinfo  ]  ||
-  mount  -o remount,ro  /proc
+  [  -f                   /proc/mounts  ]  ||
+  mount  -nrt proc  none  /proc
 
   while  read  DEVICE  MOUNT  REST
-  do    mount  -n  -o  remount,ro  $MOUNT
+  do    mount  -no remount,ro  $MOUNT
   done  <  /proc/mounts
 
-  if    !  mount    -n  -o remount,ro  /;  then
-    log_failure_msg  "/ failed to remount read only"
-    sulogin  -t 300
+  if    !  mount  -no remount,ro  /
+  then  log_failure_msg  "/ failed to remount read only"
+        sulogin  -t 300
   fi
 }
 
@@ -88,12 +80,10 @@ stop()  {
   log_success_msg "umount finished"
 }
 
-help()  {
-  echo "Usage: $0 {start|stop}" 1>&2
-}
+help()  {  echo "Usage: $0 {start|stop}" 1>&2;  }
 
 case  $1  in
-         start)  start        ;;
-          stop)  stop         ;;
-             *)  help         ;;
+  start)  start  ;;
+   stop)  stop   ;;
+      *)  help   ;;
 esac
