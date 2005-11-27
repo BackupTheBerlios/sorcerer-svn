@@ -26,6 +26,15 @@ build() {
 	#(echo $OPTS |grep -q FIREWIRE) || sed -i "s/HAVE_FIREWIRE := y/HAVE_FIREWIRE := n/" global_config
 
 #	(echo $OPTS |grep -q AVIFILE) && CFLAGS="$CFLAGS $(pkg-config --cflags avifile)"
+ 	sed -i 's:#include "bcnewfolder.inc":#include "bcnewfolder.h":' guicast/bcfilebox.h
+	sed -i 's:#include "bcsubwindow.h":#include "bcsubwindow.h"\n#include "bcmenupopup.h":' guicast/bcpopupmenu.h
 
-	default_build
+
+
+	#sed -i 's:#include "bcdelete.h":#include "bcdelete.inc":'  guicast/bcfilebox.h
+	./configure --prefix=/usr &&
+	make -S                   &&
+	test -x cinelerra/$(uname -m)/cinelerra &&
+	prepare_install           &&
+	make install
 }
