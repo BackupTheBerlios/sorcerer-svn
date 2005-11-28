@@ -1,17 +1,13 @@
-   VERSION=( "1.17" "1.16" "1.15" "1.14" )
+   VERSION=( "1.18" "1.17" "1.16" "1.15" "1.14" )
     IGNORE="11[0-9]\|os2\|2-"
   CATEGORY="emulator game"
  ATTRIBUTE="x11"
     SOURCE="vice-$VERSION.tar.gz"
-
-#  HOMEPAGE="http://viceteam.bei.t-online.de"
-#       URL="ftp://ftp.funet.fi/pub/cbm/crossplatform/emulators/VICE"
-
        URL="ftp://ftp.zimmers.net/pub/cbm/crossplatform/emulators/VICE"
   HOMEPAGE="http://www.viceteam.org/"       
        REQ=( "audiofile readline x11"
              "esound:::for audio output through esound" )
-  ESTIMATE="914"
+  ESTIMATE="919"
       DESC="vice is the versatile commdore emulator
 vice is a Versatile Commodore Emulator, i.e. a program
 that runs on a Unix, MS-DOS/Win95/NT or RiscOS machine
@@ -20,3 +16,17 @@ The current version emulates the C64, the C128
 (80 column screen is included now), the VIC20,
 all the PET models  (except the SuperPET 9000,
 which is out of line anyway) and the CBM-II (aka C610)."
+
+
+case  $VERSION  in
+  1.18) REQ="$REQ gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  1.18)  GCC3_VER=$( installed_version gcc-v3.4 )
+         export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+         export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+default_build
+}
