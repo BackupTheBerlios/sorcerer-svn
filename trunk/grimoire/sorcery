@@ -1,4 +1,4 @@
-   VERSION=( "celerity-20051128-1" "celerity-20051127-2" "celerity-20051126-4" "celerity-20051125-0" "celerity-20051124-0" "celerity-20051122-1" "celerity-20051119-1" "celerity-20051117-0" "celerity-20051111-0" "celerity-20051109-0" "celerity-20051107-1" "celerity-20051104-0" "celerity-20051103-0" "celerity-20051102-0" "celerity-20051030-3" "celerity-20051026-0" )
+   VERSION=( "celerity-20051128-2" "celerity-20051127-2" "celerity-20051126-4" "celerity-20051125-0" "celerity-20051124-0" "celerity-20051122-1" "celerity-20051119-1" "celerity-20051117-0" "celerity-20051111-0" "celerity-20051109-0" "celerity-20051107-1" "celerity-20051104-0" "celerity-20051103-0" "celerity-20051102-0" "celerity-20051030-3" "celerity-20051026-0" )
   CATEGORY="utility"
  ATTRIBUTE="core noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -74,8 +74,10 @@ post_install() {
 
 
  clean_opt_logs()  {
-  find  $OPT_ON_LOGS  $OPT_OFF_LOGS  -follow  -type f  -empty  |
-  xargs  -l64  rm  -f
+   local  L="$OPT_ON_LOGS  $OPT_OFF_LOGS"
+   find  -L              $L -type f -empty | xargs -r -l64 rm  -f
+   grep  -lr  "^SWITCH," $L                | xargs -r -l64 sed -i "s:^SWITCH,::;y/,/:/"
+   grep  -lrx ""         $L                | xargs -r -l64 sed -i "/^$/d"
  }
 
 
