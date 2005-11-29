@@ -1,57 +1,46 @@
-   VERSION=( "4.54" "4.53" "4.52" "4.51" "4.50" "4.44" "4.43" "4.42" "4.41" "4.40" "4.34" )
-      SAFE=( "4.54" "4.53" "4.52" "4.51" "4.50" "4.44" )
+   VERSION=( "4.60" "4.54" "4.53" "4.52" "4.51" "4.50" "4.44" )
+      SAFE=( "4.60" "4.54" "4.53" "4.52" "4.51" "4.50" "4.44" )
   CATEGORY="email"
  ATTRIBUTE="console server"
     SOURCE="exim4/exim-$VERSION.tar.bz2"
   HOMEPAGE="http://www.exim.org"
-       URL="http://gd.tuwien.ac.at/infosys/mail/exim
-             ftp://ftp.csx.cam.ac.uk/pub/software/email/exim
-             ftp://gd.tuwien.ac.at/infosys/mail/exim
-             ftp://mirror.direct.ca/pub/exim
-            http://mirrors.sunsite.dk/exim
-             ftp://sunsite.dk/pub/mail/exim
-             ftp://ftp.fu-berlin.de/unix/mail/exim
-             ftp://ftp.tin.org/pub/mail/exim
-             ftp://ftp.artifact.hu/pub/exim
-            http://ftp.esat.net/pub/networking/mail/mta/exim
-             ftp://ftp.esat.net/pub/networking/mail/mta/exim
-             ftp://nagoya.linux.or.jp/mirror/exim
-            http://exim.psshee.com/ftp
-             ftp://ftp.nl.uu.net/pub/unix/mail/exim
-            http://www.no.exim.org/ftp
-            http://sunsite.icm.edu.pl/pub/unix/mail/exim
-             ftp://sunsite.icm.edu.pl/pub/unix/mail/exim
-            http://exim.smux.net/ftp
-             ftp://ftp.smux.net/pub/exim
-             ftp://sunsite.cnlab-switch.ch/mirror/exim
-            http://www.exim.org/ftp
-             ftp://ftp.exim.org/pub/exim
-             ftp://ftp.demon.co.uk/pub/mirrors/exim
-             ftp://ftp.clockerz.net/pub/exim
-            http://www.us.exim.org/ftp
-             ftp://ftp.fsckit.net/pub/exim"
+       URL="ftp://gd.tuwien.ac.at/infosys/mail/exim/exim
+            ftp://ftp.csx.cam.ac.uk/pub/software/email/exim
+            ftp://mirror.direct.ca/pub/exim
+           http://mirrors.sunsite.dk/exim
+            ftp://sunsite.dk/pub/mail/exim
+            ftp://ftp.fu-berlin.de/unix/mail/exim
+            ftp://ftp.tin.org/pub/mail/exim
+            ftp://ftp.artifact.hu/pub/exim
+           http://ftp.esat.net/pub/networking/mail/mta/exim
+            ftp://ftp.esat.net/pub/networking/mail/mta/exim
+            ftp://nagoya.linux.or.jp/mirror/exim
+           http://exim.psshee.com/ftp
+            ftp://ftp.nl.uu.net/pub/unix/mail/exim
+           http://www.no.exim.org/ftp
+           http://sunsite.icm.edu.pl/pub/unix/mail/exim
+            ftp://sunsite.icm.edu.pl/pub/unix/mail/exim
+           http://exim.smux.net/ftp
+            ftp://ftp.smux.net/pub/exim
+            ftp://sunsite.cnlab-switch.ch/mirror/exim
+           http://www.exim.org/ftp
+            ftp://ftp.exim.org/pub/exim
+            ftp://ftp.demon.co.uk/pub/mirrors/exim
+            ftp://ftp.clockerz.net/pub/exim
+           http://www.us.exim.org/ftp
+            ftp://ftp.fsckit.net/pub/exim"
   EPROVIDE="mail-transport-agent"
        REQ=( "awk db"
              "tcp_wrappers:::for controlling remote access"
              "mysql:::for mysql authentication"
              "Linux-PAM:::for pluggable authentication" )
-  ESTIMATE="225"
+  ESTIMATE="226"
       DESC="exim is an Email server.
 exim is a message transfer agent (MTA) developed at the University
 of Cambridge for use on Unix systems connected to the Internet."
 
-# case  $VERSION  in
-#   4.54)  REQ="awk db gcc-v3.4"  ;;
-# esac
-
 
 build() {
-
-# case  $VERSION  in
-#   4.54)  GCC3_VER=$( installed_version gcc-v3.4 )
-#          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-#          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-# esac
 
   install_symlinks()  {
     ln     -sf  ../sbin/exim   /usr/lib/sendmail
@@ -123,14 +112,6 @@ build() {
   echo  "EXIM_GID=`id -g mail`"                  >>  Local/Makefile
   echo  "EXIM_USER=mail"                         >>  Local/Makefile
   echo  "EXIM_GROUP=mail"                        >>  Local/Makefile
-
-  if    spell_installed  db;  then
-    echo  "USE_DB=yes"  >>  Local/Makefile
-    DBV="$(  installed_version  $(  get_provider  db  )  )"
-    case  ${DBV:0:3}  in
-      4.1)  sed  -i  "s:dbpp, CS name:dbpp, NULL, CS name:"  src/dbstuff.h  ;;
-    esac
-  fi
 
   sed  -i  "s:tail -1:tail -n 1:"  scripts/Configure-config.h
 

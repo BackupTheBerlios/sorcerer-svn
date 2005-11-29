@@ -1,9 +1,8 @@
-   VERSION=( "2.12.0" "2.10.1" "2.10.0" "2.8.4" "2.8.3" "2.8.0" "2.6.2" "2.6.1.1" "2.6.1" "2.6.0" )
+   VERSION=( "2.12.2" "2.12.0" "2.10.1" "2.10.0" )
     IGNORE="mm\|^2\.13\."
-# 2.12.1.1 and 2.12.1 have compile errors
   CATEGORY="development"
  ATTRIBUTE="gnome library"
-    SOURCE="sources/gnome-vfs/${VERSION:0:4}/gnome-vfs-$VERSION.tar.bz2"
+    SOURCE="sources/gnome-vfs/${VERSION%.*}/gnome-vfs-$VERSION.tar.bz2"
   HOMEPAGE="http://developers.gnome.org/doc/API/gnome-vfs"
        URL="$GNOME_URL"
 # neon support is not current
@@ -15,17 +14,5 @@
              "openssl:::for secure socket connections"
              "samba::--disable-samba:for connecting to Microsoft networks" )
       OPTS="--disable-http-neon"
-  ESTIMATE="742"
+  ESTIMATE="739"
       DESC="gnome-vfs provides the Gnome Virtual File System."
-
-build()  {
-  case  $VERSION  in
-    2.8.[1-4])   sed  -i  "/imported/d"  Makefile.in  ;;
-    2.10.[0-9])  sed  -i  "/imported/d"  Makefile.in  ;;
-    2.12.[0-9])  sed  -i  "/imported/d"  Makefile.in  ;;
-  esac
-  case  $VERSION  in
-    2.12.0)  patch  -p1  <  $SCRIPT_DIR/gnome-vfs-2.12.0.patch  ;;
-  esac
-  default_build
-}
