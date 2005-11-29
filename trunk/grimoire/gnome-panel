@@ -9,16 +9,8 @@
   ESTIMATE="596"
       DESC="gnome-panel is the gnome2 panel."
 
+
 build()  {
-  default_build  &&
-  case  $VERSION  in
-    2.12.1)  rm  -f  /usr/libexec/clock-applet  ;;
-  esac
-# oddly it installs a clock-applet that is linked with
-#        libplds4.so => not found
-#        libplc4.so => not found
-#        libnspr4.so => not found
-# from mozilla, but does not specify a runtime path to those libraries
-# therefore I am removing that executable so it does not fail heal
-# I doubt it would run anyway at least not without a wrapper.
+  export  LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/mozilla"
+  default_build
 }
