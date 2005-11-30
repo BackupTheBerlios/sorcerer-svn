@@ -8,7 +8,7 @@ version_year_month  24
        DIR="ffmpeg"
 #    SOURCE="ffmpeg/ffmpeg-$VERSION.tar.gz"
 #       URL="$SOURCEFORGE_URL"
-        CVS=( "cvs -d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg login"
+REPOSITORY=( "cvs -d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg login"
               "cvs -d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg co -P ffmpeg"
               "cvs -d:pserver:anonymous:@mplayerhq.hu:/cvsroot/ffmpeg update -Pd ffmpeg" )
   HOMEPAGE="http://ffmpeg.sourceforge.net"
@@ -40,6 +40,7 @@ build()  {
 
 export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-funroll-loops// )"
 export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-funroll-loops// )"
+export   LDFLAGS="$LDFLAGS -ldl"
 
 if  !  grep      "flags"  <  /proc/cpuinfo  |
        grep  -q  "mmx"
@@ -49,6 +50,7 @@ fi
 ./configure           \
 --prefix=/usr         \
 $OPTS                 &&
+sed -i "s:LDFLAGS=:LDFLAGS+=:"  config.mak &&
 make                  &&
 prepare_install       &&
 make    install       &&
