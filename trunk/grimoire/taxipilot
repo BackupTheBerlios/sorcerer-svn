@@ -9,7 +9,17 @@
   ESTIMATE="99"
       DESC="taxipilot is a game similar to Spacetaxi for the C64."
 
+case  $VERSION  in
+  0.9.1) REQ="$REQ gcc-v3.4"  ;;
+esac
+
 build() {
+case  $VERSION  in
+  0.9.1)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 move_bin_to_games()  {
 if    [  -x  /usr/bin/taxipilot  ];  then
 mkdir  -p                      /usr/games
@@ -17,10 +27,11 @@ mv         /usr/bin/taxipilot  /usr/games
 fi
 }
 
-./configure  --prefix=/usr        \
-             --bindir=/usr/games  &&
-make                              &&
-prepare_install                   &&
-make    install                   &&
+./configure          \
+--prefix=/usr        \
+--bindir=/usr/games  &&
+make                 &&
+prepare_install      &&
+make    install      &&
 move_bin_to_games
 }
