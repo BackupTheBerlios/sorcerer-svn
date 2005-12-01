@@ -1,9 +1,15 @@
 # I have no idea what time of the day the snapshot is released.
 # This might entirely try to fetch a snapshot that is not present.
       DAY=$( date -u +%d | sed  "s:^0*::" )  # get day of the month
-   (( DAY-- ))                                # yesterday
-#   VERSION="$( date -u -d "$( date -u +%b ) $DAY, $( date -u +%Y )" "+%Y-%m-%d" )_23"
+   if    ((  DAY  ==  1  ))
+   then     DAY=31
+     while  !  VERSION="$( date -u -d "$( date -u +%m )/$DAY/$( date -u +%Y )" "+%Y-%m-%d" )_23"
+     do  (( DAY--  ))
+     done
+   else
+     (( DAY-- ))  # yesterday
    VERSION="$( date -u -d "$( date -u +%m )/$DAY/$( date -u +%Y )" "+%Y-%m-%d" )_23"
+   fi
   CATEGORY="emulator"
  ATTRIBUTE="x11 new"
     SOURCE="qemu-snapshot-$VERSION.tar.bz2"
