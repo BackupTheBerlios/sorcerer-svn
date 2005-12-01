@@ -1,33 +1,34 @@
-   VERSION=( "2.0.55" "2.0.54" "2.0.53" "2.0.52" "2.0.51" "2.0.50" )
-      SAFE=( "2.0.55" )
+   VERSION=( "2.2.0" "2.0.55" "2.0.54" "2.0.53" "2.0.52" "2.0.51" "2.0.50" )
+      SAFE=( "2.2.0" "2.0.55" )
     IGNORE="beta\|alpha"
   CATEGORY="web"
  ATTRIBUTE="console server"
     SOURCE="httpd/httpd-$VERSION.tar.gz"
        URL="$APACHE_URL"
   HOMEPAGE="http://httpd.apache.org"
-       REQ=( "db zlib"
-             "openssl:--enable-ssl::for https enabled server"
-             "gdbm:::for unix like dbm support"
+       REQ=( "zlib"
+             "openssl:--enable-ssl:--disable-ssl:for https enabled server"
              "expat:::for fast non-validating stream-oriented XML parsing" 
-             ":openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support" )
-#            ":--enable-mem-cache:: to enable memory caching module"
-#            ":--enable-file-cache:: to enable disk caching module" )
+             "db:--with-berkeley-db:--without-berkeley-db:for berkeley database support"
+             "gdbm:--with-gdbm:--without-gdbm:for gdbm database support"
+             "mysql:--with-mysql:--without-mysql:for mysql database support"
+             "openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support"
+             "postgresq:--with-pgsql:--without-pgsql:for postgresql database support"
+             "sqlite:--with-sqlite3:--without-sqlite3:for sqlite database support" )
    PROTECT="/etc/httpd
             /usr/share/httpd/htdocs
             /usr/share/httpd/error"
   EPROVIDE="web-server"
  FRESHMEAT="apache"
-  ESTIMATE="800"
+  ESTIMATE="725"
       DESC="httpd is a popular HTTP server."
 
 configure() {
-  if !  [  -f  $SPELL_CONFIG  ]
-  then  touch  $SPELL_CONFIG
-  fi
-  if  !  grep  -q  "configured"  $SPELL_CONFIG; then
-    if query "do you want to perform semi-auto httpd ssl configuration?" n; then
-      echo "APACHE_SSL=true" >> $SPELL_CONFIG
+  [  -f                                    $SPELL_CONFIG  ]  ||
+  touch                                    $SPELL_CONFIG
+  if  !   grep  -q  "configured"           $SPELL_CONFIG; then
+    if    query     "do you want to perform semi-auto httpd ssl configuration?" n
+    then  echo      "APACHE_SSL=true"  >>  $SPELL_CONFIG
     fi
   fi
 }
@@ -38,8 +39,6 @@ build() {
     mkdir  -p  /usr/share/httpd/htdocs.ssl
     mkdir  -p  /usr/share/httpd/logs
     mkdir  -p  /var/lib/httpd/run
-    # httpd 5.0.54 creates the both files below
-    # ln     -s  /usr/sbin/envvars-std /usr/sbin/envvars
   }
 
   fix_ssl_conf()  {
@@ -59,27 +58,18 @@ build() {
   cd  ../..
  }
 
- db_41_fix()  { (
-  DBV="$(  installed_version  $(  get_provider  db  )  )"
-  case  ${DBV:0:3}  in
-   4.1)  sed  -i  "s:file.bdb, pathname:file.bdb, NULL, pathname:"  srclib/apr-util/dbm/apr_dbm_berkeleydb.c  ;;
-  esac
-  ) }
-
   fix_openssl_PEM_F_DEF_CALLBACK()  {
     grep   -rl  "PEM_F_DEF_CALLBACK"  *  |
     xargs  -l32                          \
     sed    -i   "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
   }
 
-  # db_41_fix
-
   cat  $SCRIPT_DIR/layout      >>                  config.layout
   cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
   cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
 
   fix_ssl_conf
-  fix_openssl_PEM_F_DEF_CALLBACK
+  # fix_openssl_PEM_F_DEF_CALLBACK
 
   AC="
   --enable-layout=Sorcerer  \
@@ -103,29 +93,40 @@ build() {
 }
 
 post_install() {
-  default_post_install
-  generate_certificates() {
-   if  ! grep -q "configured" $SPELL_CONFIG; then
-    echo "configured=1" >>$SPELL_CONFIG
-    if grep -q "APACHE_SSL=true" $SPELL_CONFIG; then
-     echo the passphrase will be asked several time by the tools, this is normal
-     for I in 1 2 3 4 5; do
-      dd if=/dev/urandom of=file${I} count=20
-     done
-     openssl genrsa -des3 -rand file1:file2:file3:file4:file5 -out server.key 1024 2>&1 &&
-     openssl req -new -key server.key -out server.csr  2>&1 &&
-     openssl rsa -in server.key -out server.pem 2>&1 2>&1 &&
-     openssl x509 -req -days 1000 -in server.csr -signkey server.key -out server.crt 2>&1 &&
-     chown root\:root  server.csr server.key server.crt server.pem 2>&1 &&
-     chmod go-rwx server.csr server.key server.crt server.pem 2>&1 &&
-     mkdir -p /etc/httpd/ssl.crt &&
-     mkdir -p /etc/httpd/ssl.key &&
-     mv server.crt /etc/httpd/ssl.crt &&
-     mv server.pem /etc/httpd/ssl.key &&
-     sed -i "s:^#SSLCertificateFile /etc/httpd/ssl.crt/server.crt:SSLCertificateFile /etc/httpd/ssl.crt/server.crt:" /etc/httpd/ssl.conf &&
-     sed -i "s:^#SSLCertificateKeyFile /etc/httpd/ssl.key/server.key:SSLCertificateKeyFile /etc/httpd/ssl.key/server.pem" /etc/httpd/ssl.conf
+  self_signed_cert()  {
+    local  SSL="SSLCertificate"
+    local  KEY="server.key"
+    local  CSR="server.csr"
+    local  PEM="server.pem"
+    local  CRT="server.crt"
+    local  PAS="file:server.pas"
+    local  CON="/etc/httpd"
+    local    O="openssl"
+
+    $O genrsa -des3              -out $KEY -passout $PAS 1024 2>&1  &&
+    $O req    -new     -key $KEY -out $CSR -passin  $PAS      2>&1  &&
+    $O rsa             -in  $KEY -out $PEM -passin  $PAS      2>&1  &&
+    $O x509   -req     -in  $CSR -out $CRT -passin  $PAS \
+              -days    1461      -signkey  $KEY               2>&1  &&
+    install  -D  -m 0600  server.crt  $CON/ssl.crt/server.crt       &&
+    install  -D  -m 0600  server.pem  $CON/ssl.key/server.pem       &&
+    sed      -i  "s:^#$SSL:$SSL:"     $CON/ssl.conf
+  }
+
+  generate_certificates()  {
+    if  !  grep  -q  "configured"        $SPELL_CONFIG;  then
+      if   grep  -q  "APACHE_SSL=true"   $SPELL_CONFIG;  then
+        echo            $"Password must be between 4 and 8191 characters"
+        read  -t 600 -p $"Please enter a password for the server key: "
+        if    ((  ${#REPLY} > 3 ));  then
+          touch                      server.pas
+          chmod  0600                server.pas
+          echo   "$REPLY"         >  server.pas
+          echo   "configured=1"  >>  $SPELL_CONFIG
+          self_signed_cert
+        fi
+      fi
     fi
-   fi
   }
 
   recast()  {
@@ -137,9 +138,9 @@ post_install() {
     fi
   }
 
+  default_post_install
   generate_certificates
   unlock_cast
-
   recast  php
   recast  mod_perl
 }
