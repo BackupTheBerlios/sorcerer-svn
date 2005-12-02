@@ -3,20 +3,9 @@
   CATEGORY="development"
  ATTRIBUTE="library"
     SOURCE="libraw1394/libraw1394-$VERSION.tar.gz"
-
-
-  HOMEPAGE="http://sourceforge.net/projects/libraw1394"
        URL="$SOURCEFORGE_URL"
-       
-
-#       URL="http://www.linux1394.org/files/libraw1394"
-#  HOMEPAGE="http://www.linux1394.org"
-
-
-#   SOURCE="libraw1394/libraw1394_$VERSION"
-# HOMEPAGE="http://linux1394.sourceforge.net"
-#      URL="$SOURCEFORGE_URL"
-  ESTIMATE="74"
+  HOMEPAGE="http://sourceforge.net/projects/libraw1394"
+  ESTIMATE="77"
       DESC="libraw1394 provides an API to the Linux ieee1394 (firewire) driver.
 libraw1394 provides an API to the Linux IEEE1394 (firewire) driver.
 IEEE1394 (firewire) has many uses, one common one is
@@ -38,23 +27,11 @@ Finally, you will need to add users authorized to access the IEEE1394
 (firewire) hardware to the firewire group in /etc/group."
 
 build() {
-  make_dev()  {
-    if  !  [  -c  /dev/raw1394  ]
-    then  make  dev
-    fi
-  }
-
-  if    [  -d  libraw1394-$VERSION  ]
-  then  cd     libraw1394-$VERSION
-  fi
-
-  sed -i "s:chown root.root /dev/raw1394:true:" Makefile.in
-  sed -i "s:chown root.root /dev/raw1394:true:" Makefile.am
-
-  groupadd     firewire      2>/dev/null
-  ./configure    --prefix=/usr    &&
-  make             &&
+  # sed  -i  "s:chown root.root /dev/raw1394:true:" Makefile.*
+  groupadd  firewire  2>/dev/null
+  ./configure  --prefix=/usr    
+  make    dev
+  make             &&    
   prepare_install  && 
-  make    install  &&
-  make_dev  
+  make    install
 }
