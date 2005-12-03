@@ -5,21 +5,16 @@
     SOURCE="subversion-$VERSION.tar.bz2"
        URL="http://subversion.tigris.org/tarballs"
   HOMEPAGE="http://subversion.tigris.org"
+REQ=( "autoconf db e2fsprogs expat libtool zlib"
+      "httpd:--with-apr=/usr --with-apr-util=/usr --with-apxs --disable-mod-activation::to use installed httpd APR libraries"
+      "openssl:--with-ssl::for open SSL support"
+      "neon::--without-neon:to allow http/https access of client")
 
 # subversions 1.2.3 not compatibile with neon 0.25.3
 NEON_VERSION=$(installed_version neon)
 case ${NEON_VERSION} in
-  0.24*)  REQ=( "autoconf db e2fsprogs expat libtool zlib"
-             "httpd:--with-apr=/usr --with-apr-util=/usr --with-apxs --disable-mod-activation::to use installed httpd APR libraries"
-             "openssl:--with-ssl::for open SSL support"
-            "neon:--with-neon=/usr:--without-neon:to allow http/https access of client")
-           OPTS="--disable-debug"
-           ;;
-  0.25*)  REQ=( "autoconf db e2fsprogs expat libtool zlib"
-             "httpd:--with-apr=/usr --with-apr-util=/usr --with-apxs --disable-mod-activation::to use installed httpd APR libraries"
-             "openssl:--with-ssl::for open SSL support")
-          OPTS="--with-zlib --without-neon"
-      ;;
+  0.24*) OPTS="$OPTS --disable-debug --with-neon=/usr" ;;
+  0.25*) OPTS="$OPTS --with-zlib --without-neon";;
 esac
 
   ESTIMATE="673"
