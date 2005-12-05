@@ -5,14 +5,13 @@
        URL=( "ftp://ftp.cwru.edu/pub/bash"
              "ftp://ftp.cwru.edu/pub/bash/bash-3.0-patches" )
   case  $VERSION  in
-    3.0*)
-         PATCHES=${VERSION:5:2}
-         for  ((SCX=1; SCX < 10; SCX++))
-         do   SOURCE[$SCX]="bash30-00$SCX"
-         done
-         for  ((SCX=10; SCX <= PATCHES; SCX++))
-         do   SOURCE[$SCX]="bash30-0$SCX"
-         done  ;;
+    3.0*)  PATCHES=${VERSION:5:2}
+           for  ((SCX=1; SCX < 10; SCX++))
+           do   SOURCE[$SCX]="bash30-00$SCX"
+           done
+           for  ((SCX=10; SCX <= PATCHES; SCX++))
+           do   SOURCE[$SCX]="bash30-0$SCX"
+           done  ;;
   esac
   HOMEPAGE="http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html"
        REQ=( "ncurses readline" )
@@ -20,6 +19,8 @@
    PROTECT="/bin/bash
             /bin/sh"
   ESTIMATE="376"
+     SHBIN="/bin/bash
+            /bin/sh"
  FRESHMEAT="gnubash"
       DESC="bash is the shell of the GNU operating system.
 Bash is an sh-compatible shell that incorporates useful
@@ -33,29 +34,30 @@ shell functions and aliases, indexed arrays of unlimited size,
 and integer arithmetic in any base from two to sixty-four.
 In addition, most sh scripts can be run by Bash without modification."
 
-current()  {
-  case  $VERSION  in   
-    3.0.16)  grep  -qx  "patching file ../bash-3.0/tests/jobs4.sub"  $COMPILE_LOGS/bash  ;;
-  esac
-}
-
 
 build() {
- install_loadables()  {
-  mkdir  -p  /usr/libexec/bash
-  cd   examples/loadables
-  for  FILE  in  *.c
-  do  
-    make     ${FILE%.c}
-   install  -s  -m 0755  -o root  -g root  ${FILE%.c}  /usr/libexec/bash
-  done
-  true
- }
+  install_loadables()  {
+    install  -d       -m 0755              /usr/libexec/bash
+    cd   examples/loadables
+    for  FILE  in  *.c
+    do   make                  ${FILE%.c}
+         install  -s  -m 0755  ${FILE%.c}  /usr/libexec/bash
+    done
+    true
+  }
+
+  install_etc() {
+    install  -d  -m 0755                   /etc/skel
+    install  -m 0644  $SCRIPT_DIR/profile  /etc
+    install  -m 0644  $SCRIPT_DIR/profile  /etc/skel/.bashrc
+    install  -m 0644  $SCRIPT_DIR/profile  /etc/skel/.bash_profile
+    install  -m 0644  $SCRIPT_DIR/logout   /etc/skel/.bash_logout
+  }
 
 
- CX=1
- while  [  -n  "${SOURCE[$CX]}"  ]
- do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$CX]}
+  CX=1
+  while  [   -n    "${SOURCE[$CX]}"  ]
+  do  patch  -p0  <  $SOURCE_CACHE/$BSPELL/$VERSION/${SOURCE[$CX]}
         ((  CX++  ))
  done
 
@@ -67,30 +69,24 @@ build() {
  [  -d  /isolinux  ]  ||
  BUILD="$( arch )-pc-linux-gnu"
 
- ./configure --build=$BUILD  \
-       --prefix=/usr   \
-       --bindir=/bin   \
-       --with-installed-readline  \
-       --with-curses   \
-       $OPTS           &&
+  ./configure                 \
+  --build=$BUILD              \
+  --prefix=/usr               \
+  --bindir=/bin               \
+  --with-installed-readline   \
+  --with-curses               \
+  $OPTS                       &&
  make                         &&
  prepare_install              &&
  make    install              &&
  ln     -sf  bash  /bin/sh    &&
- install_loadables
+ install_loadables            &&
+ install_etc
 }
 
-post_install() {
- default_post_install
- mkdir  -p  /etc/skel
- if  !  [  -e  /etc/profile             ];  then  cp  $SCRIPT_DIR/profile      /etc;                     fi
- if  !  [  -e  /etc/skel/.bash_profile  ];  then  cp  /etc/profile                   /etc/skel/.bash_profile;  fi
- if  !  [  -e  /etc/skel/.bash_logout   ];  then  cp  $SCRIPT_DIR/bash_logout  /etc/skel/.bash_logout;   fi
- if  !  [  -e  /etc/skel/.bashrc        ];  then  ln  -sf  .bash_profile             /etc/skel/.bashrc;        fi
-}
 
-post_remove() {
- default_post_remove
- install-info  --delete bash  --info-dir /usr/info
+current()  {
+  case  $VERSION  in   
+    3.0.16)  grep  -qx  "patching file ../bash-3.0/tests/jobs4.sub"  $COMPILE_LOGS/bash  ;;
+  esac
 }
-

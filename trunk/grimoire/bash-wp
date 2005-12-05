@@ -1,11 +1,11 @@
-   VERSION=( "1.33" "1.32" "1.31" "1.30" "1.29" "1.28" "1.27" "1.26" "1.25" "1.24" "1.23" "1.22" "1.21" "1.20" "1.19" "1.18" "1.17" "1.15" "1.13" "1.12" "1.11" "1.9" "1.8" "1.7" "1.6" "1.5" )
-        BV=( "3.0.016" )
+   VERSION=( "1.33" "1.32" "1.31" "1.30" "1.29" "1.28" "1.27" "1.26" )
+        BV=( "3.0" )
     IGNORE="rc"
   CATEGORY="shell"
  ATTRIBUTE="console"
        DIR="none"
     SOURCE=( "bashdiff-$VERSION.tar.gz"
-             "bash-${BV:0:3}.tar.gz" )
+             "bash-$BV.tar.gz" )
        URL=( "http://home.eol.ca/~parkw/bashdiff"
              "ftp://ftp.cwru.edu/pub/bash" )
   HOMEPAGE="http://home.eol.ca/~parkw"
@@ -13,16 +13,17 @@
              ":--debugger::Enable debugging and extdebug shell option"
              "gtk+:--enable-gtk2:--disable-gtk2:for simple GUI dialog system" )
       OPTS="--bindir=/usr/bin --with-installed-readline --with-curses"
+     SHBIN="/usr/bin/bash"
   ESTIMATE="377"
       DESC="bash-wp provides an extended modified bash by William Park."
 
 build()  {
-install_loadables()  {
-  mkdir  -p  /usr/libexec/bash-wp
-  cd   examples/loadables
-  for  FILE  in  *.c
-  do   make     ${FILE%.c}
-       install  -s  -m 0755  -o root  -g root  ${FILE%.c}  /usr/libexec/bash-wp
+  install_loadables()  {
+    install  -d       -m 0755              /usr/libexec/bash-wp
+    cd   examples/loadables
+    for  FILE  in  *.c
+    do   make                  ${FILE%.c}
+         install  -s  -m 0755  ${FILE%.c}  /usr/libexec/bash-wp
   done
   cd    william
   make
@@ -30,12 +31,9 @@ install_loadables()  {
   true
 }
 
-cd  bash-${BV:0:3}
-
+cd  bash-$BV
 patch  -p2  <  ../bashdiff-$VERSION.diff
-
 autoconf
-
 default_build  &&
 install_loadables
 }

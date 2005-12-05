@@ -2,9 +2,20 @@
     IGNORE="rt\|os"
   CATEGORY="shell"
  ATTRIBUTE="console"
-    SOURCE="pdksh-$VERSION.tar.gz"
-       URL="ftp://ftp.cs.mun.ca/pub/pdksh"
+    SOURCE=( "pdksh-$VERSION.tar.gz"
+             "pdksh-5.2.14-patches.1"
+             "pdksh-5.2.14-patches.2" )
+       URL="ftp://ftp.cs.mun.ca/pub/pdksh/
+           http://gd.tuwien.ac.at/utils/shells/pdksh/
+            ftp://gd.tuwien.ac.at/utils/shells/pdksh/
+            ftp://ftp.lip6.fr/pub/unix/shells/pdksh/
+            ftp://ftp.demon.net/pub/mirrors/pdksh/
+            ftp://ftp.rge.com/pub/shells/pdksh/
+            ftp://pink.seudns.net/pub/mirrors/pdksh/"
   HOMEPAGE="http://web.cs.mun.ca/~michael/pdksh"
+       REQ="heirloom"
+     SHBIN="/usr/bin/ksh"
+  ESTIMATE="52"
       DESC="pdksh is a public domain version of the Korn Shell.
 At the moment, it has most of the ksh88 features,
 not much of the ksh93 features,
@@ -12,3 +23,19 @@ and a number of its own features.
 pdksh was initially created by Eric Gisin using
 Charles Forsyth's public domain V7 shell as a
 base as well as parts of the BRL shell."
+
+build()  {
+  case  $VERSION  in
+    5.2.14)  patch  -p2  <  $SOURCE_CACHE/pdksh/5.2.14/${SOURCE[1]}
+             patch  -p0  <  $SOURCE_CACHE/pdksh/5.2.14/${SOURCE[2]}
+             sed  -i  "s:sort :/opt/heirloom/bin/sort :"  siglist.sh  ;;
+  esac
+  default_build
+}
+
+
+current()  {
+  case  $VERSION  in
+    5.2.14)  grep  -qx  "patching file exec.c"  $COMPILE_LOGS/pdksh  ;;
+  esac
+}
