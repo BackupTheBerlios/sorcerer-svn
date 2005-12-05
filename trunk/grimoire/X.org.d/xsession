@@ -1,26 +1,12 @@
-#!/bin/sh
+#!/bin/bash
 
-if    [  -e /usr/bin/xscreensaver  ];  then  
-                     xscreensaver -no-splash &
-fi
-
-if    [  -x /usr/bin/enlightenment  ]
-then  exec           enlightenment
-
-elif  [  -x /usr/bin/wmaker  ]
-then  [  -d ~/GNUstep        ]  ||
-                     wmaker.inst
-      exec           wmaker
-
-elif  [  -x /usr/bin/icewm  ]
-then  exec           icewm
-
-elif  [  -x /usr/bin/blackbox  ]
-then  exec           blackbox
-
-elif  [  -x /usr/bin/fvwm2  ]
-then  exec           fvwm2
-
-elif  [  -x  /usr/bin/ion  ]
-then  exec            ion
+if    [  -e    /etc/wm/default  ]  &&
+      [  -x    /etc/wm/default  ]
+then  exec     /etc/wm/default  "$@";  else
+  for  WM  in  /etc/wm/*;  do
+    if   [  -e  $WM  ]  &&
+         [  -x  $WM  ]
+    then  exec  $WM  "$@"
+    fi
+  done
 fi
