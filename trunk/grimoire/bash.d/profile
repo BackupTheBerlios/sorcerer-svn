@@ -1,34 +1,22 @@
-PATH1=/sbin:/usr/sbin:/usr/local/sbin
-PATH2=/bin:/usr/bin:/usr/local/bin
-PATH3=/usr/games:/usr/local/games
-PATH4=/usr/bin/X11:~/bin:.
- PATH=$PATH1:$PATH2:$PATH3:$PATH4
-  PS1='\u@\h:\w\$ '
+umask   022
+export  PATH=/usr/local/bin:/usr/bin:/bin:/usr/X11R6/bin; [ "$UID" == "0" ] &&
+export  PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
 
+if        [  -n  "$PS1"    ];  then
+  for              REPLY  in  /etc/bash_completion{,.d/*};  do
+    if    [  -x  "$REPLY"  ]
+    then      .  "$REPLY"  ]
+    fi
+  done
+fi
+
+export   PS1='\n\d \t \n\u@\h:\w\$ '
 eval    `dircolors`
 alias   ls='ls --color=auto '
-export  PATH  PS1
-umask   022
 
-export  EDITOR=nano
-
-
-if      [  -n     "$PS1"  ];  then
-  if    [  -x      /etc/bash_completion    ]
-  then      .      /etc/bash_completion
-  elif  [  -d      /etc/bash_completion.d  ];  then
-    for  FILE  in  /etc/bash_completion.d/*;   do
-      if    [  -x  $FILE  ]
-      then      .  $FILE
-      fi
-    done
-    unset  FILE
-  fi
+  if  [  -f    ~/.inputrc  ];  then  export    INPUTRC=~/.inputrc
+elif  [  -f  /etc/inputrc  ];  then  export  INPUTRC=/etc/inputrc
 fi
 
-
-if    [  -f           /etc/inputrc  ]
-then  export  INPUTRC=/etc/inputrc
-elif  [  -f             ~/.inputrc  ]
-then  export    INPUTRC=~/.inputrc
-fi
+# export  EDITOR=nano
+# export  PAGER=less
