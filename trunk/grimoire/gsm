@@ -9,9 +9,20 @@
       DESC="gsm is an audio codec library."
 
 build() {
+install_libs()  {
+  ld      --whole-archive -shared -o /usr/lib/libgsm.so.1 /usr/lib/libgsm.a
+  ln      -s                                  libgsm.so.1 /usr/lib/libgsm.so
+}
+
+install_headers()  {
+  chmod  0755  inc
+  chmod  0644  inc/*
+  cp  -av  inc  /usr/include/gsm
+}
+
 make             &&
 prepare_install  &&
 make    install  INSTALL_ROOT=/usr  &&
-ld      --whole-archive -shared -o /usr/lib/libgsm.so.1 /usr/lib/libgsm.a  &&
-ln      -s                                  libgsm.so.1 /usr/lib/libgsm.so
+        install_headers             &&
+        install_libs
 }

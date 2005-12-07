@@ -1,15 +1,15 @@
    VERSION=( "3.01" "3.00" "2.03" "2.02pl1" )
-      SAFE=( "3.01" "3.00" )
+      SAFE=( "3.01" )
+# 3.01 has a security patch available
+# if the website or ftp server could be reached.
     IGNORE="arabic\|dos\|chinese\|cyrillic\|greek\|hebrew\|japanese\|korean\|latin\|thai\|turkish\|pl"
   CATEGORY="documentation"
  ATTRIBUTE="x11"
     SOURCE="xpdf-$VERSION.tar.gz"
 case  $VERSION  in
-  3.00)
-    SOURCE=( "xpdf-$VERSION.tar.gz"
-             "xpdf-${VERSION}pl1.patch"
-             "xpdf-${VERSION}pl2.patch"
-             "xpdf-${VERSION}pl3.patch" )  ;;
+  3.01)
+    SOURCE=( "xpdf-$VERSION.tar.gz" ) ;;
+#            "xpdf-${VERSION}pl1.patch" )  ;;
 esac
        URL="ftp://ftp.foolabs.com/pub/xpdf"
   HOMEPAGE="http://www.foolabs.com/xpdf"
@@ -22,19 +22,19 @@ which convert PDF files to postscript and plain text respectively."
 
 build() {
 case  $VERSION in
-  3.00)
+  3.01)
   CX=1
   while [  -n  "${SOURCE[$CX]}"  ]
   do  echo  "xpdf $VERSION patch level $CX"
       patch  -p0  -d xpdf  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$CX]}
       ((  CX++  ))
-  done
+  done  ;;
 
 # Make sure that xpdf finds freetype2 headers
-  sed    -i  "s:freetype\.h:ft2build.h:"         configure.in 	 
-  sed    -i  "s:#include <freetype/freetype.h>:#include <freetype/ft2build.h>:"         splash/*.h 	 
-  autoconf 	 
-  ;;
+# sed    -i  "s:freetype\.h:ft2build.h:"         configure.in 	 
+# sed    -i  "s:#include <freetype/freetype.h>:#include <freetype/ft2build.h>:"         splash/*.h 	 
+# autoconf
+# ;;
 esac
 
   default_build
@@ -42,6 +42,6 @@ esac
 
 current()  {
   case  $VERSION  in
-    3.00)  grep  -qx  "xpdf 3.00 patch level 3"  $COMPILE_LOGS/xpdf  ;;
+    3.01)  grep  -qx  "."  $COMPILE_LOGS/xpdf  ;;
   esac
 }
