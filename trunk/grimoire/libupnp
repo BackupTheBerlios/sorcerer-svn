@@ -1,0 +1,39 @@
+   VERSION=( "1.2.1" )
+  CATEGORY="video-player dvd-player"
+ ATTRIBUTE="library new"
+    SOURCE="upnp/libupnp-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://upnp.sourceforge.net"
+# http://sourceforge.net/project/showfiles.php?group_id=7189
+# also has another project page?
+       REQ=""
+  ESTIMATE="110"
+      DESC="libupnp is an API for Universal Plug and Play Device Architecture."
+
+case  $VERSION  in
+  1.2.1) REQ="$REQ gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  1.2.1)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
+  grep   -rl  "@install"  *  |
+  xargs  -l4  sed  -i  "s:@install:install:"
+
+  cd       threadutil  &&  make  &&
+  cd    ../ixml        &&  make  &&
+  cd    ../upnp        &&  make  &&
+  prepare_install      &&
+  cd    ../threadutil  &&  make  install  &&
+  cd    ../ixml        &&  make  install  &&
+  cd    ../upnp        &&  make  install  &&
+  cd    ..             &&
+  find   ixml threadutil -type f  -name \*.h  |
+  while  read
+  do     install  -m 0644  $REPLY  /usr/include/upnp
+  done
+}
