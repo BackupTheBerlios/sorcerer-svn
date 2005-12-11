@@ -1,6 +1,6 @@
-   VERSION=( "celerity-20051208-0" "celerity-20051206-1" "celerity-20051205-3" "celerity-20051203-1" "celerity-20051202-1" "celerity-20051201-0" "celerity-20051129-0" "celerity-20051128-2" "celerity-20051127-2" "celerity-20051126-4" "celerity-20051125-0" "celerity-20051124-0" "celerity-20051122-1" "celerity-20051119-1" "celerity-20051117-0" "celerity-20051111-0" "celerity-20051109-0" "celerity-20051107-1" )
+   VERSION=( "celerity-20051211-0" "celerity-20051208-0" "celerity-20051206-1" "celerity-20051205-3" "celerity-20051203-1" "celerity-20051202-1" "celerity-20051201-0" "celerity-20051129-0" "celerity-20051128-2" "celerity-20051127-2" "celerity-20051126-4" "celerity-20051125-0" "celerity-20051124-0" "celerity-20051122-1" "celerity-20051119-1" "celerity-20051117-0" "celerity-20051111-0" "celerity-20051109-0" "celerity-20051107-1" )
   CATEGORY="utility"
- ATTRIBUTE="core noheal solo sorcery"
+ ATTRIBUTE="noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
   HOMEPAGE="http://sorcerer.aakin.net"
        URL="http://sorcerer.aakin.net/download/sorcery"
@@ -25,11 +25,7 @@
             /var/tmp"
    PROTECT="/dev
             /etc/sorcery/local.config
-            /usr/libexec/sentinel
-            /usr/libexec/sentinel-alpha
-            /usr/libexec/sentinel-i586
-            /usr/libexec/sentinel-i686
-            /usr/libexec/sentinel-x86_64
+            /usr/libexec/sorcery/sentinel
             /var/log/sorcery/history
             /var/log/sorcery/snap"
       DESC="sorcery contains source management tools.
@@ -41,88 +37,87 @@ leech    -  downloads sources for spells
 sorcery  -  menu driven source manager"
 
 build() {
- sym_sentinel_check()  {
-  if    [  -e  $SENTINEL  ]  &&
-   [  -h  $SENTINEL  ]
-  then  echo  "$SENTINEL must not be a symbolic link!"
-   echo  "Please correct this first and then recast $BSPELL"
-   false
-  fi
- }
+  sym_sentinel_check()  {
+    if    [  -e  $SENTINEL  ]  &&
+          [  -h  $SENTINEL  ]
+    then  echo  "$SENTINEL must not be a symbolic link!"
+    echo  "Please correct this first and then recast $BSPELL"
+    false
+    fi
+  }
 
 
- sym_sentinel_check  &&
- [  -x   install  ]  &&
- prepare_install     &&
- ./install  $VERSION
+  sym_sentinel_check  &&
+  [  -x   install  ]  &&
+  prepare_install     &&
+  ./install  $VERSION
 }
 
 post_install() {
 
- clean_provide_logs()  {
-  export  IFS="$STANDARD_IFS"
-  grep  -r  ""     $PROVIDE_LOGS  |
-  basenames                       |
-  tr  ':'  ' '                    |
-  while  read  LEFT  RIGHT;  do
-   if    [  "$LEFT"  ==       "$RIGHT"  ]
-   then  rm  -f   $PROVIDE_LOGS/$RIGHT
-   fi
-  done
-  grep   -rl  ","  $PROVIDE_LOGS  |  xargs  -l64   rm  -f
- }
+  clean_provide_logs()  {
+    export  IFS="$STANDARD_IFS"
+    grep  -r  ""     $PROVIDE_LOGS  |
+    basenames                       |
+    tr  ':'  ' '                    |
+    while  read  LEFT  RIGHT;  do
+      if    [  "$LEFT"  ==       "$RIGHT"  ]
+      then  rm  -f   $PROVIDE_LOGS/$RIGHT
+      fi
+    done
+    grep   -rl  ","  $PROVIDE_LOGS  |  xargs  -l64   rm  -f
+  }
 
 
- clean_opt_logs()  {
-   local  L="$OPT_ON_LOGS  $OPT_OFF_LOGS"
-   find  -L              $L -type f -empty | xargs -r -l64 rm  -f
-   grep  -lr  "^SWITCH," $L                | xargs -r -l64 sed -i "s:^SWITCH,::;y/,/:/"
-   grep  -lrx ""         $L                | xargs -r -l64 sed -i "/^$/d"
- }
+  clean_opt_logs()  {
+    local  L="$OPT_ON_LOGS  $OPT_OFF_LOGS"
+    find  -L              $L -type f -empty | xargs -r -l64 rm  -f
+    grep  -lr  "^SWITCH," $L                | xargs -r -l64 sed -i "s:^SWITCH,::;y/,/:/"
+    grep  -lrx ""         $L                | xargs -r -l64 sed -i "/^$/d"
+  }
 
 
- switch_delta() {
-  if    enabled  "xdelta"  ${FEATURE[*]};  then
-   sed  -i  "s:xdelta:sdelta:"  $OPT_ON_LOGS/sorcery  $LOCAL_CONFIG
-   unlock_cast
-   cast  sdelta
-  fi
- }
-
- switch_var_tmp() {
-  if      [ -h           /var/tmp                ];  then
-    if    [ "$( readlink /var/tmp )" ==   "/tmp" ]  ||
-          [ "$( readlink /var/tmp )" == "../tmp" ]
-    then
-      rm     -f   /var/tmp
-      rm     -rf  "/usr/src/sorcery.failed"  \
-                  "/var/cache/leech"         \
-                  "/var/cache/uncompressed"  &
+  switch_delta() {
+    if    enabled  "xdelta"  ${FEATURE[*]};  then
+      sed  -i  "s:xdelta:sdelta:"  $OPT_ON_LOGS/sorcery  $LOCAL_CONFIG
+      unlock_cast
+      cast  sdelta
     fi
-  fi
-  mkdir  -p       /var/tmp
-  chmod  1777     /var/tmp
- }
+  }
 
- init_bg_compress()  {
-  if       [  -n  "$COMPRESS_LINKS"  ]  &&
-   !  [  -d  "$COMPRESS_LINKS"  ];  then
-   mkdir     -p  "$COMPRESS_LINKS"
-   find  $SOURCE_CACHE      \
-   $CCACHE_CACHE      \
-   $ARCHIVE_CACHE     \
-   $NECROPOLIS_CACHE  \
-   -follow  -type f  -name \*.tar  |
-   xargs  -l32  --replace={}  ln  -s  {}  $COMPRESS_LINKS
-  fi
- }
+  switch_var_tmp() {
+    if      [ -h           /var/tmp                ];  then
+      if    [ "$( readlink /var/tmp )" ==   "/tmp" ]  ||
+            [ "$( readlink /var/tmp )" == "../tmp" ]
+      then
+        rm     -f   /var/tmp
+        rm     -rf  "/usr/src/sorcery.failed"  \
+                    "/var/cache/leech"         \
+                    "/var/cache/uncompressed"  &
+      fi
+    fi
+    mkdir  -p       /var/tmp
+    chmod  1777     /var/tmp
+  }
+
+  init_bg_compress()  {
+    if       [  -n  "$COMPRESS_LINKS"  ]  &&
+          !  [  -d  "$COMPRESS_LINKS"  ];  then
+      mkdir     -p  "$COMPRESS_LINKS"
+      find  $SOURCE_CACHE      \
+            $CCACHE_CACHE      \
+            $ARCHIVE_CACHE     \
+            $NECROPOLIS_CACHE  \
+            -follow  -type f  -name \*.tar  |
+      xargs  -l32  --replace={}  ln  -s  {}  $COMPRESS_LINKS
+    fi
+  }
 
   fix_provide_logs()  {
     find   $PROVIDE_LOGS  -type f  |
     grep        " "                |  xargs  --no-run-if-empty  -l16  rm  -f
     grep   -rl  " "  $PROVIDE_LOGS |  xargs  --no-run-if-empty  -l64  rm  -f
   }
-
 
   fix_service_selection()  {
 
@@ -161,7 +156,6 @@ post_install() {
     fi
   }
 
-
   fix_state()  {
     if    [  -d     /var/state/sorcery  ]  &&
         ! [  -h     /var/state/sorcery  ]
@@ -173,28 +167,52 @@ post_install() {
     fi
   }
 
-
   reduce_etc()  {
     if    [  -d    $ETC_LOGS/sorcery/default-previous  ]
     then  rm  -fr  $ETC_LOGS/*/default-previous
     fi
   }  
 
-
-  fix_oops()  {
+  fix_root()  {
     if    [   -d   /.sorcery  ]
     then  rm  -fr  /.sorcery
     fi
   }
 
-  ARCH=$( uname -m )
+  create_lib_backup()  {  [  -d  /lib.old  ]  ||  backup_lib;  }
 
-  if    [  -x  $SENTINEL-$ARCH  ]
-  then  cp     $SENTINEL-$ARCH  $SENTINEL
-  fi
+  install_sentinel()  {
+    local         SENTINEL=/usr/libexec/sorcery/sentinel
+    local                   ARCH=$( uname -m )
+    if    !  [  "$( available_version  glibc  )"  ==
+                "$( installed_version  glibc  )"  ]
+    then  cp  $SENTINEL-i586-old  $SENTINEL-i586
+          cp  $SENTINEL-i586-old  $SENTINEL-i686
+    fi
+    if    [  -x  $SENTINEL-$ARCH  ]
+    then  cp     $SENTINEL-$ARCH  $SENTINEL
+    fi
+    if    [       -f  /usr/libexec/sentinel  ]
+    then  rm      -f  /usr/libexec/sentinel*
+    fi
+  }
 
-  [  -d  /lib.old  ]  ||  backup_lib
+  move_logs()  {
+    if    !  [  -d              $LOG_DIR  ]  &&
+          mv  /var/log/sorcery  $LOG_DIR
+    then
+      find  $LOG_DIR/{id,install,md5sum,stat,README}  -type  f  |
+      xargs  -l64  sed  -i  "s:/var/log/sorcery:$LOG_DIR:"
+      ln     -s  $LOG_DIR      /var/log/sorcery
+    else
+      rm     -rf                   $LOG_DIR
+      ln     -s  /var/log/sorcery  $LOG_DIR
+    fi
+  }
 
+  install_sentinel
+  move_logs
+  create_lib_backup
   switch_var_tmp
   clean_provide_logs
   clean_opt_logs
@@ -204,6 +222,6 @@ post_install() {
   fix_provide_logs
   reduce_etc
   fix_state
-  fix_oops
+  fix_root
   immune
 }
