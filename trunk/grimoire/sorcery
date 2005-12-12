@@ -198,15 +198,18 @@ post_install() {
   }
 
   move_logs()  {
-    if    !  [  -d              /etc/sorcery/log  ]  &&
-          mv  /var/log/sorcery  /etc/sorcery/log
+    if    !  [  -e               /etc/sorcery/log  ]  &&
+             [  -d               /var/log/sorcery  ]  &&
+          !  [  -h               /var/log/sorcery  ]
     then
-      find  /etc/sorcery/log/{id,install,md5sum,stat,README}  -type  f  |
-      xargs  -l64  sed  -i      "s:/var/log/sorcery:/etc/sorcery/log:"
-      ln     -s  /etc/sorcery/log  /var/log/sorcery
-    else
-      rm     -rf                   /etc/sorcery/log
-      ln     -s  /var/log/sorcery  /etc/sorcery/log
+      if   mv  /var/log/sorcery  /etc/sorcery/log;  then
+        find   /etc/sorcery/log/{id,install,md5sum,stat,README}  -type  f  |
+        xargs  -l64  sed  -i      "s:/var/log/sorcery:/etc/sorcery/log:"
+        ln     -s  /etc/sorcery/log  /var/log/sorcery
+      else
+        rm     -rf                   /etc/sorcery/log
+        ln     -s  /var/log/sorcery  /etc/sorcery/log
+      fi
     fi
   }
 
