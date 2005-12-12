@@ -14,4 +14,17 @@ build()  {
   find       .   -type f  -printf "%P\n"       |
   grep       -v  "\.ccache/reference\|\.log$"  |
   tar_files  >   $GRIMOIRE_LIBRARY/$SPELL.tar
-}  
+}
+
+
+post_install()  {
+  if    [  -h           /var/log/sorcery                             ]  &&
+        [  "$( readlink /var/log/sorcery )"  ==  "/var/log/sorcery"  ]
+  then  rm     -f                                 /var/log/sorcery
+        ln     -s       /etc/sorcery/log          /var/log/sorcery
+        mkdir  -p       /etc/sorcery/log/{install,version}
+        touch           /etc/sorcery/log/install/sorcery
+        echo  "0"  >    /etc/sorcery/log/version/sorcery
+        rm     -f       /var/lib/sorcery/grimoire.library/grimoire.tar
+  fi
+}
