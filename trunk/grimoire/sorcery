@@ -245,6 +245,51 @@ post_install() {
     fi
   }
 
+  add_missing_spells()  {
+    show_aliens()  {
+      (  find  /bin /boot /etc /lib /lib64 /sbin /usr /var /opt  -type f
+         cat   $INSTALL_LOGS/*  \
+               $INSTALL_LOGS/*  )         |
+      grep  -v  "^/var/\|^/etc/sorcery/"  |
+      sort                  |
+      uniq  -u              |
+      filter  "$EXCLUDED"   |
+      filter  "$PROTECTED"  |
+      files
+    }
+
+    from_history()  {
+      while  read
+      do     grep  -rlx  "$REPLY"  $HISTORY_LOGS
+      done                         |
+      sort   -u                    |
+      sed    "s:^$HISTORY_LOGS/::" |
+      tr     '/'  '	'          |
+      tail   -n 1
+    }
+
+    mkdir  -p  $INSTALL_LOGS  $VERSION_LOGS
+    show_aliens   |
+    from_history  |
+    while  read  SPL VER;  do
+      if    !  [  -f                     $INSTALL_LOGS/$SPL  ]
+      then  cp  $HISTORY_LOGS/$SPL/$VER  $INSTALL_LOGS/$SPL
+            echo  "$VER"              >  $VERSION_LOGS/$SPL
+      fi
+    done
+  }
+    
+
+  add_history()  {
+    if    !  [  -f  $CONFIG_LOGS/net-tools/config.h  ];  then
+      mkdir  -p  $LOG_DIR
+      cd         $LOG_DIR
+      curl  http://sorcerer.aakin.net/download/recovery/history-logs-20051213.tar.bz2  |
+      tar   -jxf -
+      add_missing_spells
+    fi
+  }
+
 
   install_sentinel
   move_logs
