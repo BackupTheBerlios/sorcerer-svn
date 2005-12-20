@@ -12,8 +12,16 @@ REPOSITORY=( ""
       DESC="cinelerra-svn is a complete audio and video production kit."
 
 build() {
-  find -exec grep  -rl               "\-lfftw3"  |
-  xargs -r  -l64 sed  -i "s:-lfftw3:-lfftw3f:"
+  grep  -rl "\\-lfftw3" * |
+  xargs -r  -l64 sed  -i "s:-lfftw3:-lfftw3f:" 
+
+  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-fomit-frame-pointer// )" 
+  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-fomit-frame-pointer// )" 
+  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-O3/-O2/ )" 
+  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-O3/-O2/ )" 
+  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-funroll-all-loops// )" 
+  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-funroll-all-loops// )" 
+
   ./autogen.sh  &&
   default_build
 }
