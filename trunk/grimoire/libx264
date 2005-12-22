@@ -6,11 +6,14 @@ REPOSITORY=( ""
              "svn co svn://svn.videolan.org/x264/trunk x264"
              "svn up" )
   HOMEPAGE="http://developers.videolan.org/x264.html"
-       REQ=""
-  ESTIMATE=""
+       REQ=( ""
+             "gpac:--enable-mp4-output::for MPEG-4 output" )
+  ESTIMATE="60"
       DESC="libx264 is a library for encoding H264/AVC video streams."
 
 build()  {
-  sed  -i  "s:-O4 -ffast-math:$CFLAGS:"  configure
+  sed  -i  "s:-O4 -ffast-math:$CFLAGS:"                                                                             configure
+  sed  -i  "s:lgpac_static:lgpac:"                                                                                  configure
+  sed  -i  "s:gf_isom_open(psz_filename, GF_ISOM_OPEN_WRITE, NULL):gf_isom_open(psz_filename, GF_ISOM_OPEN_WRITE):" x264.c
   default_build
 }
