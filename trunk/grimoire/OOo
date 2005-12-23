@@ -1,9 +1,11 @@
-   VERSION=( "2.0.0" )
+   VERSION=( "2.0.1" "2.0.0" )
     IGNORE="install"
   CATEGORY="office"
  ATTRIBUTE="x11 new solo"
     SOURCE="OOo_${VERSION}_src.tar.gz"
-       URL="ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/${VERSION}/"
+       URL="http://openoffice.mirrors.pair.com/ftp/stable/$VERSION/
+             http://openofficeorg.secsup.org/stable/$VERSION/
+             ftp://ftp.free.fr/mirrors/ftp.openoffice.org/stable/$VERSION/"
   HOMEPAGE="http://www.openoffice.org/"
        REQ="Archive-Zip Compress-Zlib Python XML-Parser boost curl db expat freetype libwpd libxml mozilla nasm sane-backends tcsh unzip webfonts zip"
    FEATURE="$FEATURE discard"  # Discard source tree on failed compilation
@@ -35,7 +37,7 @@ pre_build() {
       if    ((  SIZE <= 1310720  ))  ||
             ((  NODE <= 4194304  ))
       then
-        mount   $SOURCE_DIR  -o remount,defaults,mode=0755,size=5G,nr_inodes=4m
+        mount   $SOURCE_DIR  -o remount,defaults,mode=0755,size=6G,nr_inodes=4m
         echo   "$SOURCE_DIR  limits increased"       1>&2
         echo   "You may have to add swap"            1>&2
         echo   "or the box might run out of memory"  1>&2
@@ -66,7 +68,7 @@ build() {
     then
       echo  "Would run out of memory if compilation continued"
       echo  "Please add more swap before casting OOo again."
-      echo  "RAM + SWAP >= 5G, please."
+      echo  "RAM + SWAP >= 6G, please."
       false
     fi
   }
@@ -102,7 +104,7 @@ build() {
         sed    -i  's:pthread_kill_other_threads_np();::'  sal/osl/unx/process.c
         set +x
       ;;
-      2.0.0)
+      2.0.[0-1])
         chmod  +x  solenv/bin/gccinstlib.pl
         sed  -i  's:pthread_kill_other_threads_np();::' ./sal/osl/unx/process.c 
         sed  -i  's#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0#PKGCONFIG_MODULES=gconf-2.0 gobject-2.0 ORBit-2.0 glib-2.0#' shell/source/backends/gconfbe/makefile.mk 
