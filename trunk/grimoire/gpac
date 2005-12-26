@@ -1,34 +1,35 @@
    VERSION=( "0.4.0-rc2" )
+    IGNORE="full"
   CATEGORY="video"
  ATTRIBUTE="library"
     SOURCE="gpac/gpac-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://gpac.sourceforge.net"
-       REQ=( "zlib SDL x11 gsm lame faac faad2 libtheora libxml2" 
+       REQ=( "SDL gsm faac faad2 lame libtheora libxml2" 
              "wxWidgets:::for Osmo4 player" )
 # circular requirement: ffmpeg - libx264 - gpac - ffmpeg, removed ffmpeg req
   ESTIMATE="481"
  FRESHMEAT="gpac"
       DESC="GPAC is a multimedia framework based on the MPEG4 systems standard.
 GPAC supports many multimedia formats, avi, mpeg, mpeg-4, mov, SVG, etc.
-It currently supports local playback, http download and 
+It currently supports local playback, http download and
 play and RTP/RTSP streaming over UDP (unicast or multicast) or TCP.
 GPAC also features MP4Box, a multimedia swiss-army knife for the prompt."
 
 build()  {
 
 install_headers()  {
-  cp  -av      include/gpac        /usr/include/gpac
+  cp  -av  include/gpac  /usr/include/gpac
 }
 
-chmod +x                                             configure
-sed   -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:" configure
-sed   -i "s:-O3 \$CFLAGS:$CFLAGS \$CFLAGS:"          configure
+sed    -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:
+           s:-O3 \$CFLAGS:$CFLAGS \$CFLAGS:"  configure
+chmod  +x                                     configure
 
-./configure              \
---prefix=/usr            &&
-make                     &&
-prepare_install          &&
-make    install          &&
+./configure      \
+--prefix=/usr    &&
+make             &&
+prepare_install  &&
+make    install  &&
         install_headers 
 }
