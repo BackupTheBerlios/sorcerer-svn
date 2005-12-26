@@ -1,0 +1,21 @@
+   VERSION=( "0.8" )
+  CATEGORY="file-transfer kernel"
+ ATTRIBUTE="new broken"
+# This spell uses cpan instead of installing required
+# perl modules as spells, which is incorrect.
+# and cpan requires interactive use which is also
+# incorrect for a spell.
+# So do not write spells like this.
+    SOURCE="fuseftp-$VERSION.tar.gz"
+       URL="http://perl.thiesen.org/fuseftp/"
+  HOMEPAGE="http://wiki.thiesen.org/page/Fuseftp"
+       REQ="fuse perl"
+      DESC="fuseftp enables mounting remote ftp like a local directory."
+
+build()  {
+  perl    Makefile.PL
+  make             &&
+  prepare_install  &&
+  make    install  &&
+  cpan   -i  Fuse Net::FTP  Cache::File  Term::ReadKey
+}
