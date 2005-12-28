@@ -1,4 +1,4 @@
-   VERSION=( "075" "074" "073" "072" "071" "070" "069" "068" "065" "064" "063" "062" "061" "060" "059" "058" "050" "046" "043" "040" "030" "029" "028" "027" "026" "025" "024" )
+   VERSION=( "079" "075" "074" "073" "072" "071" "070" "069" "068" "065" "064" "063" "062" "061" "060" "059" "058" "050" )
     IGNORE="069\|070"
 # Actually progressed from 068 to 075
   CATEGORY="utility"
@@ -21,21 +21,26 @@ KERNEL=\"psaux\", NAME=\"misc/%k\",   SYMLINK=\"%k mouse\""
 
 build() {
 init_install()  {
+  sed      -i       "s:/sbin/udev_run:/lib/udev/udev_run:"  \
+                    etc/udev/gentoo/udev.rules
   install  -m 0700  $SCRIPT_DIR/init.d/udev        /etc/init.d
-  install  -m 0700  extras/start_udev              /etc/init.d
   mkdir    -p      /etc/udev/rules.d               /etc/udev/examples
   cp       -a       etc/udev/*                     /etc/udev/examples
-#  sed      -i -r 's:##BUS=(.*cdsymlinks.*):BUS=\1:
-#                  /SYSFS_type="5"/d'  \
-#         /etc/udev/examples/slackware/udev.rules
-#  ln       -sf  ../examples/slackware/udev.rules   /etc/udev/rules.d
-  ln       -sf  ../examples/gentoo/udev.rules      /etc/udev/rules.d
+  ln       -sf   ../examples/gentoo/udev.rules     /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
   install  -m 0755  extras/*.sh                    /etc/udev/scripts
-#  for                    FILE in extras/*.sh
-#  do   install -m 0755  $FILE                      /etc/udev/scripts
-#  done
 }
+
+
+symlink_install()  {
+  mkdir  -p  -m 0755            /lib/udev/devices/{pts,shm}
+  ln     -fns  /proc/self/fd    /lib/udev/devices/fd
+  ln     -fns  /proc/self/fd/0  /lib/udev/devices/stdin
+  ln     -fns  /proc/self/fd/1  /lib/udev/devices/stdout
+  ln     -fns  /proc/self/fd/2  /lib/udev/devices/stderr
+  ln     -fns  /proc/kcore      /lib/udev/devices/core
+}
+
 
 linux_sufficient()  {
   KVER="$(  installed_version  $(  get_provider  linux-kernel  )  )"
@@ -50,7 +55,10 @@ linux_sufficient()  {
   fi
 }
 
-  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"
+  case  $VERSION  in
+    075)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
+      *)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
+  esac
 
   sed  -i  "s:/local::
             s:^udevdir = .*:udevdir = /dev:
@@ -61,14 +69,13 @@ linux_sufficient()  {
   make             "EXTRAS=$EXTRAS"  &&
   prepare_install                    &&
   make    install  "EXTRAS=$EXTRAS"  &&
-     init_install
+     init_install                    &&
+  symlink_install
 }
 
 post_install() {
   pkill  -15  "^udevd$"
   /lib/lsb/install_initd /etc/init.d/udev
-  if  !  [  -f  /usr/sbin/sorcerer.install  ]
-  then   /sbin/udevstart
-  fi
+  /sbin/udevd --daemon
   true
 }
