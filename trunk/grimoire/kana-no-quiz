@@ -1,0 +1,28 @@
+   VERSION=( "1.4b" )
+  CATEGORY="educational"
+ ATTRIBUTE="gnome new"
+    SOURCE="kana-no-quiz/kana-no-quiz-1.4b.tar.bz2"
+       URL="http://download.berlios.de/"
+  HOMEPAGE="http://choplair.org/?en/Kana%20no%20quiz"
+       REQ="pygtk"
+  ESTIMATE="5"
+      DESC="kana-no-quiz is a Japanese Kana memorization tool.
+Choose the correct Hepburn romaji for the displayed kana."
+
+build()  {
+  install_files()  {
+    install  -m 0755  kana-no-quiz.py  /usr/bin
+    find   data  -type d | xargs -l64 chmod 0755
+    find   data  -type f | xargs -l64 chmod 0644
+    chown  -R    root:root data
+    rm     -rf         /usr/share/kana-no-quiz
+    cp     -av   data  /usr/share/kana-no-quiz
+  }
+
+# sed    -i   "s:data/options.conf:~/.kana-no-quiz:"  data/py/options.py
+  sed    -i   "s:data/options.conf:/tmp/knq:"  data/py/options.py
+  grep   -rl              "data/"  *  |  grep  "\.py$"  |
+  xargs  -l64  sed  -i  "s:data/:/usr/share/kana-no-quiz/:"
+  prepare_install  &&
+          install_files
+}
