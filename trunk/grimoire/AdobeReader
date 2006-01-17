@@ -1,0 +1,97 @@
+   VERSION=( "7.0.5-1.i386" "5010" "70" "509" "508" "507" "506" )
+      SAFE=( "7.0.5-1.i386" "5010" )
+  CATEGORY="documentation"
+ ATTRIBUTE="i386 noheal x11 new"
+#   SOURCE="AdbeRdr${VERSION}_linux_enu.tar.gz"
+#      URL="ftp://ftp.adobe.com/pub/adobe/acrobatreader/unix/5.x"
+#   SOURCE="linux-$VERSION.tar.gz"
+    SOURCE="AdobeReader_enu-$VERSION.tar.gz"
+       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/7x/${VERSION:0:5}/enu"
+  HOMEPAGE="http://www.adobe.com"
+  disable  archive
+  disable  necropolis
+ FRESHMEAT="acrobatreader"
+  ESTIMATE="11"
+      DESC="acroread provides a precompiled portable document file viewer.
+acorread provides an acrobat reader for viewing,
+navigating and printing Portable Document Format (PDF) files.
+This probably will not work.
+Adobe has a history of releasing dynamically linked executables
+that require a different version of libstdc++ than current."
+
+build() {
+install_files()  {
+         REPLACE="s:REPLACE_ME:/usr/lib/acrobat/Reader:"
+  sed  "$REPLACE"  bin/acroread.sh  >  acroread
+  set      -x
+  install  -o root  -g root  -m 0755   acroread  /usr/bin
+  mkdir    -p     /usr/lib/acrobat
+  cp       -R  *  /usr/lib/acrobat/
+
+          PLUG="Browsers/intellinux/nppdf.so"
+  MOZ_PLUG_DIR="/usr/lib/mozilla/plugins"
+
+  mkdir    -p                                $MOZ_PLUG_DIR
+  install  -o root  -g root  -m 0755  $PLUG  $MOZ_PLUG_DIR
+  set      +x
+}
+
+install_files_new()  {
+
+#         REPLACE="s:REPLACE_ME:/usr/lib/acrobat/Reader:"
+#  sed  "$REPLACE"  bin/acroread.sh  >  acroread
+#  set      -x
+#  install  -o root  -g root  -m 0755   acroread  /usr/bin
+
+  mkdir    -p     /usr/lib/acrobat
+  cp       -R  *  /usr/lib/acrobat/
+
+          PLUG="Browser/intellinux/nppdf.so"
+  MOZ_PLUG_DIR="/usr/lib/mozilla/plugins"
+
+  mkdir    -p                                $MOZ_PLUG_DIR
+  install  -o root  -g root  -m 0755  $PLUG  $MOZ_PLUG_DIR
+  set      +x
+  echo     -e  "#!/bin/bash\n/usr/lib/acrobat/bin/acroread"  >  /usr/bin/acroread
+  chmod    0755  /usr/bin/acroread
+}
+
+unpack_tars()  {
+  set     -x
+  tar     -xf    COMMON.TAR  2>/dev/null;  rm  -f    COMMON.TAR
+  tar     -xf  LINUXRDR.TAR  2>/dev/null;  rm  -f  LINUXRDR.TAR
+  chown   -R   root:root  *
+  set     +x
+}
+
+unpack_tars_new()  {
+  set     -x
+  tar     -xf  COMMON.TAR  2>/dev/null;  rm  -f  COMMON.TAR
+  tar     -xf  ILINXR.TAR  2>/dev/null;  rm  -f  ILINXR.TAR
+  chown   -R   root:root  *
+  set     +x
+}
+
+do_old()  {
+  [  -f  COMMON.TAR    ]  &&
+  [  -f  LINUXRDR.TAR  ]  &&
+  unpack_tars             &&
+  prepare_install         &&
+  install_files
+}
+
+
+do_new()  {
+  [  -f  COMMON.TAR    ]  &&
+  [  -f  ILINXR.TAR    ]  &&
+  unpack_tars_new         &&
+  prepare_install         &&
+  install_files_new
+}
+
+if  [  -f  ILINXR.TAR  ]
+then  do_new
+else  do_old
+fi
+
+}
