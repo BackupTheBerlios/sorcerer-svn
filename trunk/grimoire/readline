@@ -18,6 +18,12 @@ csh-like history expansion on previous commands."
 build()  {
   [ $( arch ) = "x86_64" ]  &&  LIBDIR=/lib64  ||  LIBDIR=/lib
 
+  case $VERSION in
+   5.1) # Make sure that shared libraries are mode 755
+	sed -i "s:@INSTALL_DATA@:@INSTALL@ -m 755:"  shlib/Makefile.in
+	;;
+  esac
+
   ./configure      \
   --build=$BUILD   \
   --prefix=/usr    \
