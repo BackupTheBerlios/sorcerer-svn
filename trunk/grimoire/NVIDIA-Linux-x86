@@ -1,4 +1,5 @@
-   VERSION=( "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
+#  VERSION=( "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
+   VERSION=( "1.0-8178" "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
     IGNORE="unified"
   CATEGORY="kernel"
  ATTRIBUTE="linux-26-module x11 x86"
@@ -13,14 +14,14 @@
 NVIDIA-Linux-x86 contains the nvidia provided binary 
 XFree86 drivers for their graphics cards.  
 It is also provides the kernel modules."
-BUILD_DIR=$SOURCE_DIR/$SPELL
+# BUILD_DIR=$SOURCE_DIR/$SPELL
 
 case  $VERSION  in
   1.0-7664) REQ="gcc-v3.4 gtk+ mktemp"  ;;
 esac
 
 build() {
-set -x
+
 cd $BUILD_DIR
 #case  $VERSION  in
 #  1.0-7664)  GCC3_VER=$( installed_version gcc-v3.4 )
@@ -59,7 +60,9 @@ cd $BUILD_DIR
   cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
   cp  -a   share/doc  ..                    2>/dev/null
   cp  -a   include    ../doc                2>/dev/null
-  install  -m 0755  bin/nvidia-settings  /usr/bin
+  install  -m 0755  bin/nvidia-settings       /usr/bin
+  install  -m 0755  bin/nvidia-xconfig        /usr/bin
+  install  -m 0755  bin/nvidia-bug-report.sh  /usr/bin
  }
 
 
@@ -138,13 +141,11 @@ esac
  install_libs                           &&
  make_device_nodes
  returnval=$?
- set +x
  return $returnval
 
 }
 
 pre_build() {
-set -x
  default_pre_build
  mkdir -p $BUILD_DIR
  cd    $BUILD_DIR
@@ -156,7 +157,6 @@ set -x
  tail  -n +$SKIP  $FN  |
  gzip  -cd             |
  tar   -xf  -
-set +x
 }
 
 post_install() {
