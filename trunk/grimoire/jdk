@@ -2,12 +2,12 @@ case $( arch ) in
   x86_64)  JARCH=amd64 ;;
        *)  JARCH=i586  ;;
 esac
-   VERSION=( "1_5_0_04" "1_5_0_03" "1_5_0_02" "1_5_0_01" "1_5_0"  )
+   VERSION=( "1_5_0_06" "1_5_0_04" "1_5_0_03" "1_5_0_02" "1_5_0_01" "1_5_0"  )
 # Fix the openvrml spell also when updating jdk
   CATEGORY="interpreter"
  ATTRIBUTE="x11 noheal x86"
     SOURCE="jdk-$VERSION-linux-$JARCH.bin"
-       DIR="jdk1.5.0_04"
+       DIR="jdk${VERSION/_5_/.5.}"
   HOMEPAGE="http://java.sun.com/j2se/1.5.0/download.jsp"
        URL="http://192.18.97.152/ECom/EComTicketServlet/BEGIN27EE5BD45E1A2B6C45B0E454348BEF61/-2147483648/887026143/1/615302/615170/887026143/2ts+/westCoastFSEND/jdk-1.5.0_03-oth-JPR/jdk-1.5.0_03-oth-JPR:4"
        REQ=( "unzip"
@@ -25,17 +25,19 @@ esac
 You must manually download the source from sun's 
 website for this spell to successfully cast."
 
-# pre_build()  {
-#   unzip  -qq  $(  guess_filename  $SOURCE  )
-#   true
-# }
-
 build()  {
-  prepare_install
-  cd  ..
-  set    -x
-  cp     -a  $DIR  /opt/
-  cd               /opt/$DIR
+  yes | bash $( guess_filename  $SOURCE )
+
+  if ! [ -d $DIR ]; then
+	echo "Directory $DIR missing. Check the sources."
+	return 1
+  fi
+
+  prepare_install			&&
+
+  set    -x				&&
+  cp     -a  $DIR  /opt/		&&
+  cd               /opt/$DIR		&&
 
   for  FILE  in    /opt/$DIR/bin/*
   do   ln  -s  $FILE  /usr/bin/${FILE##*/}
