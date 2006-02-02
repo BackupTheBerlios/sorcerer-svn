@@ -38,16 +38,18 @@ build()  {
   set    -x				&&
   cp     -a  $DIR  /opt/		&&
   cd               /opt/$DIR		&&
+  
+  ln -sf /opt/$DIR /opt/jdk		&&
 
-  for  FILE  in    /opt/$DIR/bin/*
-  do   ln  -s  $FILE  /usr/bin/${FILE##*/}
+  for  FILE  in    /opt/jdk/bin/*
+  do ln -sf $FILE  /usr/bin/${FILE##*/}
   done
-  if [ -x /opt/$DIR/jre/bin/java_vm ]; then
-	ln  -sf /opt/$DIR/jre/bin/java_vm /usr/bin/java_vm
+  if [ -x /opt/jdk/jre/bin/java_vm ]; then
+	ln  -sf /opt/jdk/jre/bin/java_vm /usr/bin/java_vm
   fi 
-  if    [   -d  /usr/lib/mozilla/plugins  ]
-  then  ln  -sf /opt/$DIR/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
-                     /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+  if    [ -d /usr/lib/mozilla/plugins  -a  -d /opt/jdk/jre/plugin ]
+  then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
+                    /usr/lib/mozilla/plugins/libjavaplugin_oji.so
   fi
 
   mkdir  -p   /etc/.java/.systemPrefs
