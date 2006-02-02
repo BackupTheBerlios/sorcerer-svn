@@ -69,6 +69,11 @@ export  MOZILLA_OFFICIAL=1
 export  BUILD_OFFICIAL=1
 export  MOZ_PHOENIX=1
 
+case $( arch ) in
+  x86_64)  ELF_DYNSTR_GC="--disable-elf-dynstr-gc"      ;;
+       *)  ELF_DYNSTR_GC="--enable-elf-dynstr-gc"       ;;
+esac
+
 cat  <<  EOF  >  .mozconfig
 mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-application=browser
@@ -110,7 +115,7 @@ ac_add_options --disable-debug
 ac_add_options --enable-optimize="$CFLAGS"
 ac_add_options --enable-reorder
 ac_add_options --enable-strip
-ac_add_options --enable-elf-dynstr-gc
+ac_add_options $ELF_DYNSTR_GC
 ac_add_options --enable-cpp-rtti
 ac_add_options --enable-xterm-updates
 ac_add_options --enable-toolkit-gtk2
