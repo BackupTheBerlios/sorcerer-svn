@@ -1,4 +1,4 @@
-   VERSION=( "celerity-20060127-2" "celerity-20060126-0" "celerity-20060125-0" "celerity-20060113-0" "celerity-20060112-0" "celerity-20051231-0" "celerity-20051218-0" )
+   VERSION=( "celerity-20060207-0" "celerity-20060127-2" "celerity-20060126-0" "celerity-20060125-0" "celerity-20060113-0" "celerity-20060112-0" )
   CATEGORY="utility"
  ATTRIBUTE="noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -213,39 +213,6 @@ post_install() {
     fi
   }
 
-  fix_linux()  {
-    if    !  [  -f  $PROVIDE_LOGS/linux-kernel       ]  &&
-          !  [  -f  $CONFIG_LOGS/linux/linux-config  ]  &&
-             [  -f  /proc/config.gz                  ]  &&
-          !  [  -d  /isolinux                        ]
-    then
-      mkdir   -p                        $CONFIG_LOGS/linux
-      gzip    -cd   /proc/config.gz  >  $CONFIG_LOGS/linux/linux-config
-      mkdir   -p                        $INSTALL_LOGS
-      touch                             $INSTALL_LOGS/linux
-      mkdir   -p                        $VERSION_LOGS
-      echo    "unknown"              >  $VERSION_LOGS/linux
-    fi
-  }
-
-
-  fix_logs()  {
-    if    [  -h           /var/log/sorcery                             ]  &&
-          [  "$( readlink /var/log/sorcery )"  ==  "/var/log/sorcery"  ]
-    then
-      echo  "Performing emergency recovery installation of log files"  1>&2
-      rm     -f                                     /var/log/sorcery
-      ln     -s       /etc/sorcery/log              /var/log/sorcery
-      mkdir  -p       /etc/sorcery/log/{install,version}
-      touch           /etc/sorcery/log/install/sorcery
-      echo   "0"  >   /etc/sorcery/log/version/sorcery
-      rm     -f       /var/lib/sorcery/grimoire.library/grimoire.tar
-      cd              /etc/sorcery/log
-      curl  http://sorcerer.aakin.net/download/recovery/recovery-logs-20051212.tar.bz2 |
-      tar   -jxf -
-    fi
-  }
-
   add_missing_spells()  {
     show_aliens()  {
       (  find  /bin /boot /etc /lib /lib64 /sbin /usr /var /opt  -type f
@@ -295,7 +262,6 @@ post_install() {
 
   install_sentinel
   move_logs
-  fix_logs
   create_lib_backup
   switch_var_tmp
   clean_provide_logs
@@ -307,7 +273,6 @@ post_install() {
   reduce_etc
   fix_state
   fix_root
-  fix_linux
   add_history
   immune
 }
