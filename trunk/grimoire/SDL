@@ -22,20 +22,18 @@ case  $VERSION  in
   	   x86_64)  patch  -p1  <  $SCRIPT_DIR/SDL-x86_64.patch  ;;
  	 esac
 	 ;;
-  1.2.9) REQ="nasm gcc-v3.4 x11"  ;;
+  1.2.9) [ $( arch ) = 'x86_64 ] || REQ="nasm gcc-v3.4 x11"  ;;
 esac
 
 
 build() {
 
 case  $VERSION  in
-  1.2.9)  GCC3_VER=$( installed_version gcc-v3.4 )
-          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
-#  grep  -rl  "linux/joystick.h"  *  |  xargs  -l64  \
-#  sed   -i  "\,include <linux/joystick.h>,itypedef __signed__ long long __s64;"
-#  grep  -rl  "linux/joystick.h"  *  |  xargs  -l64  \
-#  sed   -i  "\,include <linux/joystick.h>,i#define BITS_PER_LONG 32"
+  1.2.9)  if [ ! $( arch ) = 'x86_64' ]; then
+		GCC3_VER=$( installed_version gcc-v3.4 )
+        	export  PATH="${PATH//gcc\/current/gcc/$GCC3_VER}"
+        	export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
+	  fi
   ;;
 esac
 
@@ -44,3 +42,4 @@ esac
  sed  -i  "s:\$(CXXLINK):\$(LINK):"  src/Makefile.in
  default_build
 }
+# Origin grimoire
