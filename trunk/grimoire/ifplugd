@@ -1,6 +1,12 @@
    VERSION=( "0.28" "0.27" "0.26" "0.25" "0.24" "0.23" "0.22" )
   CATEGORY="network"
- ATTRIBUTE="console"
+ ATTRIBUTE="console broken"
+# In addition to not compiling.
+# It also installs a malformed init script with
+# the troublesome comment
+# # United-Linux-Should-Start: $
+# The trailing $ must be removed otherwise
+# startup and shutdown scripts can not be ordered.
     SOURCE="ifplugd-$VERSION.tar.gz"
        URL="http://0pointer.de/lennart/projects/ifplugd"
   HOMEPAGE="http://0pointer.de/lennart/projects/ifplugd"
@@ -14,3 +20,11 @@ automatically unconfigure it if the cable is pulled.
 This is useful on laptops with onboard network adapters,
 since it will only configure the interface
 when a cable is really connected."
+
+build()  {
+default_build
+# Have not yet tested the following sed statement since
+# ifplugd is not compiling
+#  &&
+# sed  -i  "s/: \$\$/:/"  /etc/init.d/ifplugd
+}
