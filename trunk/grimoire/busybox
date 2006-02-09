@@ -58,19 +58,15 @@ compile_and_install()  {
   prepare_install              &&
   mkdir    -p                /usr/libexec/busybox  &&
   install  -m 0755  busybox  /usr/libexec/busybox  &&
-  for  CMD_NAME  in  $(
-    /usr/libexec/busybox/busybox --help 2>&1  |
-    grep      ","       |
-    tr        ','  '\n' |
-    tr    -d  '\t'      |
-    tr    -d  ' '       |
-    grep  -v  -x  ""    |
-    tail  -n  +4        |
-    grep  -v  -x  "busybox"
-  )
-  do    ln  -sf  busybox  /usr/libexec/busybox/$CMD_NAME
+  cd                         /usr/libexec/busybox  &&
+  ./busybox --help   |
+  tail  -n  +12      |
+  tr    -d  ' \t\n'  |
+  tr        ',' '\n' |
+  while  read
+  do     [   -e           "$REPLY"  ]  ||
+         ln      /busybox "$REPLY"
   done
-
 }
 
 
