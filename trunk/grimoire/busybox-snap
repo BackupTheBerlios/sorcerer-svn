@@ -1,0 +1,76 @@
+   VERSION=( "$( TZ=":/usr/share/zoneinfo/US/Pacific" date +%Y%m%d )" )
+  CATEGORY="shell"
+ ATTRIBUTE="console new"
+    SOURCE="busybox-$VERSION.tar.bz2"
+       URL="http://www.busybox.net/downloads/snapshots"
+  HOMEPAGE="http://www.busybox.net"
+ FRESHMEAT="busybox"
+  EPROVIDE="busybox"
+  ESTIMATE="800"
+      DESC="busybox-snap provides a daily snapshot of busybox.
+Sometimes busybox is fast to fix bugs,
+but slow to make a release.
+Using a snapshot may provide a way around a problem.
+But it might cause more problems also."
+
+build()  {
+
+run_make_menuconfig()  {
+
+  wiz_kill
+
+  if  [  "$TERM"  !=  "dumb"  ];  then
+    CONFIG_BUSYBOX="true"
+    while  $CONFIG_BUSYBOX; do
+      make  menuconfig
+      if    query  "Repeat menuconfig?" n
+      then  CONFIG_BUSYBOX=true
+      else  CONFIG_BUSYBOX=false
+      fi
+    done
+  fi
+
+}
+
+
+restore_busybox_configs()  {  (
+
+  CURRENT="$CONFIG_LOGS/$SPELL/busybox-config"
+      OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
+
+  if    [  -f   $CURRENT  ];  then  cp  $CURRENT  .config
+  elif  [  -f   $OLD      ];  then  cp  $OLD      .config;  run_make_menuconfig
+  else  run_make_menuconfig
+  fi
+
+)  }
+
+
+store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/busybox-config;  }
+
+
+compile_and_install()  {
+
+  yes  ""  |  make  oldconfig  &&
+  store_config                 &&
+  make                         &&
+  prepare_install              &&
+  mkdir    -p                /usr/libexec/busybox  &&
+  install  -m 0755  busybox  /usr/libexec/busybox  &&
+  cd                         /usr/libexec/busybox  &&
+  ./busybox --help   |
+  tail  -n  +12      |
+  tr    -d  ' \t\n'  |
+  tr        ',' '\n' |
+  while  read
+  do     [   -e           "$REPLY"  ]  ||
+         ln      /busybox "$REPLY"
+  done
+}
+
+
+restore_busybox_configs
+activate_voyeur
+compile_and_install  &> $C_FIFO
+
+}
