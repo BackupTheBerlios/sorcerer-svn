@@ -1,0 +1,76 @@
+   [  -z  "$VERSION"  ]  &&
+   VERSION=( "0.16.8" "0.16.7.2" "0.16.7.1" "0.16.7-0.65" "0.16.7-0.56" "0.16.6" )
+    IGNORE="cvs\|x86_64"
+  CATEGORY="window-manager"
+ ATTRIBUTE="x11"
+    SOURCE="enlightenment/e16-$VERSION.tar.gz"
+DICTIONARY="enlightenment-0.16.7.2.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://enlightenment.sourceforge.net"
+       REQ=( "e16-theme-BrushedMetal-Tigert freetype imlib2"
+             "libghttp:::for automatic enlightenment upgrades"
+             "esound:::for enlightenment sound mixer"
+             "epplets:::for useful gadgets"
+             "edox-data:::for enlightenment documentation"
+             "Eterm:::for terminal emulator"
+             "e16-theme-BlueSteel:::for optional theme"
+             "e16-theme-Ganymede:::for optional theme"
+             "e16-theme-ShinyMetal:::for optional theme" )
+     WMBIN="/usr/bin/starte16"
+  EPROVIDE="enlightenment"
+  ESTIMATE="166"
+      DESC="e16 is a themeable fast flexible X11 windows Manager.
+It is configurable as possible in both look and feel.
+In addition, Enlightenment provides an applet API that 
+provides functionality somewhere between the GNOME 
+applet system and Dock Apps from Afterstep/WindowMaker."
+
+# Additional sources for which we could possibily make spells for
+# If anyone intends to use them.
+
+# e16-docs-0.16.8-0.02.tar.gz
+# eApm-0.2.tar.gz
+# ecdplay-0.1.tar.gz
+# edb-1.0.5.tar.gz
+# edje-0.5.0.tar.gz
+# edox-data-0.16.7-0.02.tar.gz
+# eet-0.9.9.tar.gz
+# embryo-0.9.0.tar.gz
+# emotion-0.0.1.tar.gz
+# enxamp-0.1.tar.gz
+# epeg-0.9.0.tar.gz
+# epplet-base-0.5.tar.gz
+# fam-oss-2.6.4-NULL-fix.tar.gz
+# gevas-1.0.0.tar.gz
+# gevas-2.2.0.tar.bz2
+
+
+
+build()  {
+  ./configure        \
+  --prefix=/usr      \
+  --sysconfdir=/etc  \
+  --enable-fsstd     &&
+  make               &&
+  prepare_install    &&
+  make    install
+}
+
+
+common_set()  {
+  unset  REQ EPROVIDE
+  SOURCE="enlightenment/$SPELL-$VERSION.tar.gz"
+}
+
+theme_set()  {
+  unset  REQ EPROVIDE
+  SOURCE="enlightenment/$SPELL-$VERSION.tar.gz"
+}
+
+
+case  $SPELL  in
+  e16-theme-*)  ESTIMATE="16";  CATEGORY="theme";  ATTRIBUTE="data"
+                theme_set;   DESC="$SPELL provides a theme for e16."  ;;
+ edox-data)  common_set;   DESC="$SPELL provides documentation for enlightenment."  ;;
+   epplets)  common_set;   DESC="$SPELL provides gadgets for enlightenment."  ;;
+esac
