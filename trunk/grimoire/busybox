@@ -52,20 +52,21 @@ store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/busybox-config;  }
 
 compile_and_install()  {
 
-  yes  ""  |  make  oldconfig  &&
-  store_config                 &&
-  make                         &&
-  prepare_install              &&
-  mkdir    -p                /usr/libexec/busybox  &&
-  install  -m 0755  busybox  /usr/libexec/busybox  &&
-  cd                         /usr/libexec/busybox  &&
-  ./busybox --help   |
+  yes   ""         |
+  make  oldconfig  &&
+     store_config  &&
+  make             &&
+  prepare_install  &&
+  install  -m 0755  busybox  /bin   &&
+  mkdir    -p                /bbin  &&
+  cd                         /bbin  &&
+  busybox  --help    |
   tail  -n  +12      |
   tr    -d  ' \t\n'  |
   tr        ',' '\n' |
   while  read
-  do     [  -e          "$REPLY"  ]  ||
-         ln     busybox "$REPLY"
+  do     [  -e               "$REPLY"  ]  ||
+         ln     /bin/busybox "$REPLY"
   done
 }
 
