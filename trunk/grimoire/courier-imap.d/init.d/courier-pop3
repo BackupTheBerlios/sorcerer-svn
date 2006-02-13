@@ -1,0 +1,45 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: pop3
+# Required-Start: $local_fs $network authdaemon
+# Required-Stop: $local_fs
+# Default-Start:  3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: courier-imap, POP3 daemon
+# Description: courier-imap, POP3 daemon
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=pop3d.rc
+NAME=courier-pop3
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  cd /usr/libexec
+  ./$SERV start
+  log_success_msg  "$NAME started"
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  cd /usr/libexec
+  ./$SERV stop
+  log_success_msg "$NAME stopped"
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+help()  {
+  echo "Usage: $0 {restart|force-reload|start|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
+
