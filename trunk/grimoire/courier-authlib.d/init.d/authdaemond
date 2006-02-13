@@ -1,0 +1,43 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: authdaemon
+# Required-Start: $local_fs
+# Required-Stop: $local_fs
+# Default-Start:  3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: courier authdaemon
+# Description: courier authdaemon
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/authdaemond
+NAME=authdaemond
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  $SERV start
+  log_success_msg  "$NAME started"
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  $SERV stop
+  log_success_msg "$NAME stopped"
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+help()  {
+  echo "Usage: $0 {restart|force-reload|start|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
+
