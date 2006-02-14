@@ -1,13 +1,13 @@
-   VERSION=( "1.9.19beta" )
+   VERSION=( "2.0" "1.9.19beta" )
     IGNORE="2001\|alpha\|apidoc\|beta"
   CATEGORY="network"
  ATTRIBUTE="console x11 library"
     SOURCE="libchipcard/libchipcard2-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.libchipcard.de"
-       REQ=( "gwenhywfar openssl sysfsutils"
+       REQ=( "gwenhywfar opensc openssl sysfsutils"
              "kdelibs:::for building KMedicalCard KCardDebugger" )
-  ESTIMATE="1144"
+  ESTIMATE="742"
       DESC="libchipcard2 is a library for accessing chipcards via terminals/readers.
 libchipcard is a C++ framework for easy access to
 chipcards/smartcards via chip card terminals/readers.
@@ -19,6 +19,8 @@ tested with Towitoko and Kobil readers even in parallel."
 build()  {
   case  $VERSION  in
     1.9.19beta)  grep   -lr              "sysfs_open_device_tree" *  |
+                 xargs  -l64  sed  -i  "s:sysfs_open_device_tree:sysfs_open_class_device_path:"  ;;
+    2.0)         grep   -lr              "sysfs_open_device_tree" *  |
                  xargs  -l64  sed  -i  "s:sysfs_open_device_tree:sysfs_open_class_device_path:"  ;;
   esac
   default_build
