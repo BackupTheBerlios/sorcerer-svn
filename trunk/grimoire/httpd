@@ -3,8 +3,11 @@
     IGNORE="beta\|alpha"
   CATEGORY="web"
  ATTRIBUTE="console server"
-    SOURCE="httpd/httpd-$VERSION.tar.gz"
-       URL="$APACHE_URL"
+# apr_dbd_mysql.c is needed for MySQL but is not packed with httpd sources
+    SOURCE=( "httpd/httpd-$VERSION.tar.gz"
+             "apr/apr_dbd_mysql.c" )
+       URL=( "$APACHE_URL"
+             "http://apache.webthing.com/svn/apache" )
   HOMEPAGE="http://httpd.apache.org"
        REQ=( "zlib"
              "openssl:--enable-ssl:--disable-ssl:for https enabled server"
@@ -20,7 +23,7 @@
             /usr/share/httpd/error"
   EPROVIDE="web-server"
  FRESHMEAT="apache"
-  ESTIMATE="725"
+  ESTIMATE="790"
       DESC="httpd is a popular HTTP server."
 
 configure() {
@@ -64,6 +67,8 @@ build() {
     sed    -i   "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
   }
 
+  cp  $( guess_filename ${SOURCE[1]} )  srclib/apr-util/dbd/
+
   cat  $SCRIPT_DIR/layout      >>                  config.layout
   cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
   cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
@@ -89,6 +94,7 @@ case  $VERSION  in
   2.2.0)  sed  -i  's:found="yes":found="no":'  configure  ;;
 esac
 
+  ./buildconf       &&
   ./configure  $AC  &&
   make              &&
   prepare_install   &&
