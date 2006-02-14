@@ -1,0 +1,28 @@
+   VERSION=( "0.2.1" )
+  CATEGORY="security"
+ ATTRIBUTE="console new"
+    SOURCE="pam_bioapi-$VERSION.tar.bz2"
+       URL="http://www.qrivy.net/~michael/blua/pam_bioapi"
+  HOMEPAGE="http://www.qrivy.net/~michael/blua/pam_bioapi/"
+       REQ="Linux-PAM bioapi tfmess_bioapi_bsp"
+ FRESHMEAT="pam_bioapi"
+  ESTIMATE="30"
+      DESC="Provides a PAM-compliant interface to use in biometrically authenticating local users.
+pam_bioapi currently only works for local user authentication, the type that can be 
+performed by login, gdm/kdm/xdm, xscreensaver, su, and sudo."
+
+install_serial() {
+  SERIAL=`BioAPITest | sed -ne "/Fingerprint/{n;n;s/^.*: \(.\{9\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.*\)/\1-\2-\3-\4-\5/gp}"`
+  mkdir -p /etc/bioapi/pam/$SERIAL
+  echo "Now run /usr/bin/upek-NonGUI_Sample and enroll <username>.bir and copy it to /etc/bioapi/pam/$SERIAL"
+}
+
+build() {
+./configure      \
+--prefix=/usr    
+make             &&
+prepare_install  &&
+make install     &&
+install_serial   &&
+ln -vfs /usr/lib/security/pam_bioapi.so* /lib/security/
+}
