@@ -5,11 +5,14 @@
        URL="http://www.qrivy.net/~michael/blua/pam_bioapi"
   HOMEPAGE="http://www.qrivy.net/~michael/blua/pam_bioapi/"
        REQ="Linux-PAM bioapi tfmess_bioapi_bsp"
+      OPTS="--libdir=/lib"
  FRESHMEAT="pam_bioapi"
   ESTIMATE="30"
-      DESC="Provides a PAM-compliant interface to use in biometrically authenticating local users.
-pam_bioapi currently only works for local user authentication, the type that can be 
-performed by login, gdm/kdm/xdm, xscreensaver, su, and sudo."
+      DESC="pam_bioapi provides PAM module for biometric authentication.
+That way you can give you laptop the finger to login.
+pam_bioapi currently only works for local user authentication,
+the type that can be performed by login, gdm/kdm/xdm, xscreensaver,
+su, and sudo."
 
 install_serial() {
   SERIAL=`BioAPITest | sed -ne "/Fingerprint/{n;n;s/^.*: \(.\{9\}\)\(.\{4\}\)\(.\{4\}\)\(.\{4\}\)\(.*\)/\1-\2-\3-\4-\5/gp}"`
@@ -17,12 +20,19 @@ install_serial() {
   echo "Now run /usr/bin/upek-NonGUI_Sample and enroll <username>.bir and copy it to /etc/bioapi/pam/$SERIAL"
 }
 
-build() {
+build()  {
+# --libdir=/lib specified in OPTS=
+  default_build  &&
+  install_serial
+}
+
+
+build_old() {
 ./configure      \
---prefix=/usr    
+--prefix=/usr
 make             &&
 prepare_install  &&
-make install     &&
-install_serial   &&
+make    install  &&
+        install_serial  &&
 ln -vfs /usr/lib/security/pam_bioapi.so* /lib/security/
 }
