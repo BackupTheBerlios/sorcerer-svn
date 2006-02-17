@@ -7,7 +7,8 @@
              "pub/linux/utils/kernel/modutils/v2.4/modutils-$MUVERSION.tar.bz2" )
        URL="$KERNEL_URL"
   HOMEPAGE="ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ"
-       REQ="bison flex"
+       REQ=( "bison flex"
+             ":--enable-modutils::Enable loading modules on older linux 2.4.x kernels" )
    EXCLUDE="/etc/modprobe.conf
             /etc/modules
             /etc/modules.conf"
@@ -16,23 +17,26 @@
   ESTIMATE="183"
       DESC="module-init-tools provides modules utilities for linux 2.6.x"
 
-case  $VERSION  in
-  3.2.[1-2])  GCC_VER=$( installed_version  gcc  )
-              if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ]
-              then  REQ="$REQ gcc-v3.4"
-              fi  ;;
+if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
+case  $MUVERSION  in
+  2.4.27)  GCC_VER=$( installed_version  gcc  )
+           if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ]
+           then  REQ="$REQ gcc-v3.4"
+           fi  ;;
 esac
+fi
 
 build() {
 
-case  $VERSION  in
-  3.2.[1-2])  if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ];  then
-              GCC3_VER=$( installed_version gcc-v3.4 )
-              export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-              export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
-              fi  ;;
+if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
+case  $MUVERSION  in
+  2.4.27)  if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ];  then
+           GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
+           fi  ;;
 esac
-
+fi
 
 install_conf()  {
 mkdir  -p  /etc/modules.d
@@ -45,11 +49,13 @@ case  $VERSION  in
  3.1)  touch *.5 *.8 ;;
 esac
 
+if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
 cd  modutils-$MUVERSION      &&
 ./configure                  \
 --build=$BUILD               &&
 make                         &&
-cd      ..                   &&
+cd      ..
+fi                          &&
 ./configure                  \
 --build=$BUILD               \
 --prefix=/                   \
@@ -58,10 +64,12 @@ cd      ..                   &&
 $OPTS                        &&
 make                         &&
 prepare_install              &&
+if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
 cd      modutils-$MUVERSION  &&
 make    install              &&
 cd      ..                   &&
-make    moveold              &&
+make    moveold
+fi                           &&
 make    install              &&
 install_conf
 }
