@@ -1,17 +1,14 @@
-#  VERSION=( "2.10.0" "2.9.2" "2.9.1" "2.9.0" "2.8.8" "2.8.7" "2.7.0" )
-   VERSION=( "2.9.2" "2.9.1" "2.9.0" "2.8.8" "2.8.7" "2.7.0" )
-    IGNORE="2\.10\.0"
-# Looks like 2.10.0 is missing a directory?
+   VERSION=( "2.10.0" "2.9.2" "2.9.1" "2.9.0" "2.8.8" "2.8.7" "2.7.0" )
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="lm_sensors-$VERSION.tar.gz"
        URL="http://secure.netroedge.com/~lm78/archive
              ftp://ftp.netroedge.com/pub/lm-sensors"
   HOMEPAGE="http://www.lm-sensors.nu"
-       REQ=( ""
+       REQ=( "sysfsutils"
              "rrdtool:sensord::for sensord HW monitoring daemon"
            )
-  ESTIMATE="112"
+  ESTIMATE="120"
       DESC="lm_sensors provides hardware health monitoring tools.
 lm_sensors provides essential tools for
 monitoring the hardware health of Linux
@@ -19,13 +16,13 @@ systems containing hardware health
 monitoring hardware such as the LM78 and LM75"
 
 build() {
-echo $OPTS  |  grep -q sensord		&&  SENSORD=1
-[ -n "$SENSORD" ]			&&
-  sed  -i  "s/# PROG_EXTRA/PROG_EXTRA/"  Makefile
+echo $OPTS  |  grep -q sensord  &&  SENSORD=1
+[ -n "$SENSORD" ]  &&
+sed  -i  "s/# PROG_EXTRA/PROG_EXTRA/"  Makefile
 
-make    PREFIX=/usr  user		&&
-prepare_install           		&&
-make    PREFIX=/usr  user_install	&&
+make    PREFIX=/usr  user          &&
+prepare_install                    &&
+make    PREFIX=/usr  user_install  &&
 if [ -n "$SENSORD" ]; then
   install -o 0 -g 0 -m 755  prog/sensord/sensord    /usr/bin
   install -o 0 -g 0 -m 644  prog/sensord/sensord.8  /usr/man/man8
