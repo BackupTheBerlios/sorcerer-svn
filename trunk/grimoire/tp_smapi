@@ -1,0 +1,24 @@
+   VERSION=( "0.17" )
+  CATEGORY="kernel"
+ ATTRIBUTE="linux-26-module"
+    SOURCE="tpctl/tp_smapi-$VERSION.tgz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://tpctl.sourceforge.net/"
+  ESTIMATE="16"
+       REQ="linux-kernel"
+      DESC="IBM ThinkPad SMAPI Driver
+The tp_smapi kernel module exposes some features 
+of the ThinkPad's SMAPI functionality via a sysfs interface.
+
+Do not compile HDAPS in kernel, this spell provides hdaps.ko"
+
+build()  {
+LVER=$(installed_version $(get_provider linux-kernel))
+if    [  -z  "$LVER"  ]
+then           LVER=$(  uname  -r  )
+fi
+
+make    KVER=$LVER   &&
+prepare_install      &&
+make    KVER=$LVER install HDAPS=1 
+}
