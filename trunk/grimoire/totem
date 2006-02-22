@@ -1,9 +1,22 @@
-   VERSION=( "1.0.1" "1.0" "0.100" "0.99.22" "0.99.20" )
+   VERSION=( "1.2.1" "1.2.0" "1.0.1" "1.0" )
   CATEGORY="video-player dvd-player"
  ATTRIBUTE="gnome"
-    SOURCE="totem-$VERSION.tar.gz"
-       URL="http://www.hadess.net/files/software/totem"
-  HOMEPAGE="http://www.hadess.net/totem.php3"
-       REQ="nautilus-cd-burner xine-lib"
-  ESTIMATE="190"
+#   SOURCE="totem-$VERSION.tar.gz"
+#       URL="http://www.hadess.net/files/software/totem"
+#  HOMEPAGE="http://www.hadess.net/totem.php3"
+    SOURCE="sources/totem/${VERSION%.*}/totem-$VERSION.tar.bz2"
+       URL="$GNOME_URL"
+  HOMEPAGE="http://www.gnome.org/projects/totem/"
+       REQ=( "iso-codes nautilus-cd-burner xine-lib"
+             "lirc:--enable-lirc:--disable-lirc:for lirc support"
+             "nautilus:--enable-nautilus:--disable-nautilus:for nautilus plugin"
+             "seamonkey:--enable-mozilla:--disable-mozilla:for mozilla/seamonkey plugin" )
+      OPTS="--disable-gstreamer"
+# This spell uses xine-lib instead of gstreamer for playing movies.
+  ESTIMATE="315"
       DESC="totem is a movie player for gnome based on xine."
+
+build() {
+export  LDFLAGS="$LDFLAGS -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla"
+default_build
+}
