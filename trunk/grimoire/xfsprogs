@@ -1,17 +1,15 @@
-   VERSION=( "2.7.3" "2.6.36" "2.6.25" "2.5.6" "2.3.5" "2.0.3" )
-#  VERSION=( "2.7.11" "2.7.10" "2.7.3" "2.6.36" "2.6.25" "2.5.6" "2.3.5" "2.0.3" )
+   VERSION=( "2.7.11" "2.7.10" "2.7.3" "2.6.36" "2.6.25" "2.5.6" "2.3.5" "2.0.3" )
   CATEGORY="file-system"
  ATTRIBUTE="console"
     SOURCE="xfsprogs-$VERSION.src.tar.gz"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars"
-#      URL="ftp://oss.sgi.com/projects/xfs/download/latest/cmd_tars"
   HOMEPAGE="http://oss.sgi.com/projects/xfs"
        REQ="e2fsprogs libtool"
-  ESTIMATE="387"
+  ESTIMATE="382"
       DESC="xfsprogs contains the required utilities for the XFS file system."
 
 case  $VERSION  in
-  2.7.11) REQ="$REQ gcc-v3.4"  ;;
+  2.7.11) REQ="$REQ autoconf gcc-v3.4"  ;;
 esac
 
 
@@ -31,7 +29,7 @@ build()  {
   esac
 
   case  $VERSION  in
-    2.7.11)  aclocal;  automake -acf;  autoconf
+    2.7.11)  autoconf
           GCC3_VER=$( installed_version gcc-v3.4 )
           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
@@ -61,6 +59,10 @@ build()  {
       ln    -sf           libhandle.so.1.0.3  \
                  /usr/lib/libhandle.so  ;;
     2.7.3)
+      rm     -f  /usr/lib/libhandle.so        &&
+      ln    -sf           libhandle.so.1.0.3  \
+                 /usr/lib/libhandle.so  ;;
+    2.7.11)
       rm     -f  /usr/lib/libhandle.so        &&
       ln    -sf           libhandle.so.1.0.3  \
                  /usr/lib/libhandle.so  ;;
