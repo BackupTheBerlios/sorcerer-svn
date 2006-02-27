@@ -8,9 +8,20 @@
        REQ="Python gtk+"
   ESTIMATE="413"
       DESC="wxPython is Python extention module that wraps wxGTK library."
+
+case  $VERSION  in
+  2.6.2.*)  REQ="$REQ gcc-v3.4"  ;;
+esac
+
+
 build() {
+case  $VERSION  in
+  2.6.2.*)  GCC3_VER=$( installed_version gcc-v3.4 )
+            export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+            export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 default_build  &&
 cd  wxPython   &&
 python setup.py build_ext install
 }
-
