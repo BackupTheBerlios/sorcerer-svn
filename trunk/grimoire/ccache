@@ -25,7 +25,9 @@ symlink_install()  {
 }
 
 
-mtime_patch() {
+# patch messed up on applying this patch to ccache 2.4
+
+mtime_patch_oops() {
 cat  <<  EOF  |  patch  -p1
 diff -r -U2 ccache-2.3/ccache.c ccache-2.3/ccache.c
 --- ccache-2.3/ccache.c	2003-09-27 21:48:17.000000000 -0700
@@ -41,14 +43,23 @@ EOF
 }
 
 
-mtime_patch                                &&
-./configure  --build=$BUILD                \
-             --prefix=/usr/libexec/ccache  \
-             --bindir=/usr/libexec/ccache  \
-             --sysconfdir=/etc             \
-             --localstatedir=/var          \
-             --mandir=/usr/man             \
-             $OPTS              &&
+mtime_patch()  {
+  local  MOF="utime(output_file, NULL);"
+  local  MHA="utime(hashname, NULL);"
+  sed  -i  "s:$MOF:$MOF $MHA:"  ccache.c
+  echo  "ccache version 2.4 patched."
+}
+
+
+mtime_patch                     &&
+./configure                     \
+--build=$BUILD                  \
+--prefix=/usr/libexec/ccache    \
+--bindir=/usr/libexec/ccache    \
+--sysconfdir=/etc               \
+--localstatedir=/var            \
+--mandir=/usr/man               \
+$OPTS                           &&
 make                            &&
 prepare_install                 &&
 mkdir  -p  /usr/libexec/ccache  &&
@@ -59,6 +70,6 @@ symlink_install
 
 current()  {
   case  $VERSION  in
-    2.3)  grep  -qx  "patching file ccache.c"  $COMPILE_LOGS/ccache  ;;
+    2.4)  grep  -qx  "ccache version 2.4 patched."  $COMPILE_LOGS/ccache  ;;
   esac
 }
