@@ -65,9 +65,11 @@ umount_local_fs() {
   [  -f                   /proc/mounts  ]  ||
   mount  -nrt proc  none  /proc
 
-  while  read  DEVICE  MOUNT  REST
-  do    mount  -no remount,ro  $MOUNT
-  done  <  /proc/mounts
+  cut    -d ' '  -f2  /proc/mounts  |
+  sort   -ur                        |
+  while  read
+  do     mount  -no  remount,ro  $REPLY
+  done
 
   if    !  mount  -no remount,ro  /
   then  log_failure_msg  "/ failed to remount read only"
