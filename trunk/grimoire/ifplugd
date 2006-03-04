@@ -1,30 +1,40 @@
-   VERSION=( "0.28" "0.27" "0.26" "0.25" "0.24" "0.23" "0.22" )
-  CATEGORY="network"
- ATTRIBUTE="console broken"
-# In addition to not compiling.
-# It also installs a malformed init script with
-# the troublesome comment
-# # United-Linux-Should-Start: $
-# The trailing $ must be removed otherwise
-# startup and shutdown scripts can not be ordered.
+   VERSION=( "0.28" )
+  CATEGORY="network utility"
+ ATTRIBUTE="console"
     SOURCE="ifplugd-$VERSION.tar.gz"
-       URL="http://0pointer.de/lennart/projects/ifplugd"
   HOMEPAGE="http://0pointer.de/lennart/projects/ifplugd"
-       REQ=( "libdaemon"
-             "lynx::--disable-lynx:for documentation generation" )
-  ESTIMATE="47"
-      DESC="ifplugd is a daemon for automatically configuring one's ethernet connection.
-ifplugd is a Linux daemon which will automatically configure
-your ethernet device when a cable is plugged in and
-automatically unconfigure it if the cable is pulled.
-This is useful on laptops with onboard network adapters,
-since it will only configure the interface
-when a cable is really connected."
+       URL="$HOMEPAGE"
+       REQ="libdaemon"
+  ESTIMATE="6"
+      DESC="ifplugd automatically configures ethernet and wireless devices
+when a cable is plugged in and automatically unconfigure 
+if the cable is pulled. This is useful on laptops with
+onboard network adapters, since it will only configure
+the interface when a cable is really connected. It also
+supports wireless networking. Whenever an association
+to an AP is detected the network is configured. 
+"
 
-build()  {
-default_build
-# Have not yet tested the following sed statement since
-# ifplugd is not compiling
-#  &&
-# sed  -i  "s/: \$\$/:/"  /etc/init.d/ifplugd
+interface_patch() {
+ patch -p1  <<  EOF
+--- ifplugd/src/interface.c	2006-02-06 22:09:42.000000000 -0500
++++ ifplugd-0.28/src/interface.c	2006-02-06 21:52:16.000000000 -0500
+@@ -23,9 +23,9 @@
+ #endif
+ 
+-#include <linux/sockios.h>
+-#include <linux/if_ether.h>
+ #include <sys/types.h>
+ #include <sys/socket.h>
+ #include <sys/ioctl.h>
++#include <linux/sockios.h>
++#include <linux/if_ether.h>
+ #include <linux/if.h>
+ #include <syslog.h>
+EOF
+}
+
+build() {
+ interface_patch	&&
+ default_build
 }
