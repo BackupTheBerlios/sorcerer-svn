@@ -1,4 +1,5 @@
-   VERSION=( "4.0.2" "4.0.1" "4.0.0" "3.4.4" "3.4.3" "3.4.2" "3.4.1" "3.3.6" )
+#   VERSION=( "4.1.0" "4.0.2" "4.0.1" "4.0.0" )
+   VERSION=( "4.0.2" "4.0.1" "4.0.0" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran"
   CATEGORY="compiler"
  ATTRIBUTE="console library solo"
@@ -8,7 +9,7 @@
              "gmp:::for building the Fortran frontend" )
   HOMEPAGE="http://gcc.gnu.org"
   disable lib64
-  ESTIMATE="3847"
+  ESTIMATE="4373"
       DESC="gcc is the GNU compiler collection.
 gcc - GNU Compiler Collection.
 The GNU Compiler Collection is a suite of compilers
@@ -64,6 +65,7 @@ fi
 build() {
 
 finish_install()  {
+  cp     -av   $DESTDIR/*                  /
   rm     -f                                /opt/gcc/current
   ln     -s    $VERSION                    /opt/gcc/current
   ln     -sf   /opt/gcc/$VERSION/bin/cpp   /lib/cpp
@@ -106,6 +108,7 @@ ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
 export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 export  CCACHE_DISABLE=1
+export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
   LCF="LIBCFLAGS=$CFLAGS"
  LCXF="LIBCXXFLAGS=$CXXFLAGS"
@@ -148,17 +151,21 @@ OPTS="$OPTS
   --with-system-zlib
   $ENABLE_LANGS"             
 
+DESTDIR=$BUILD_DIR/.dest
 
 mkdir   BUILD
 cd      BUILD
-../configure  $OPTS               &&
-make    bootstrap-lean            \
-        "$BF"                     \
-        "$LCF"  "$LCXF"  "$LDF"   \
-        "$LJCF" "$LJCXF"          && 
-x86_64_fix                        &&
-prepare_install                   &&
-make    install                   &&
+../configure  $OPTS                &&
+make    bootstrap-lean             \
+        "$BF"                      \
+        "$LCF"  "$LCXF"  "$LDF"    \
+        "$LJCF" "$LJCXF"           && 
+x86_64_fix                         &&
+make    install  DESTDIR=$DESTDIR  \
+        "$BF"                      \
+        "$LCF"  "$LCXF"  "$LDF"    \
+        "$LJCF" "$LJCXF"           && 
+prepare_install                    &&
  finish_install
 }
 
