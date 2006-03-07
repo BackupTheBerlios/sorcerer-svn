@@ -88,7 +88,7 @@ build() {
 
 by()  {
   [      -f         $1  ]  &&
-  grep  -qx  "ssh"  $1
+  grep   -q  "ssh"  $1
 }
 
 if  !  [  -f   $BOOT_ON_LOGS/openssh  ]  &&
@@ -96,7 +96,6 @@ if  !  [  -f   $BOOT_ON_LOGS/openssh  ]  &&
 then
   if    by  $XINETD_ON_LOGS/openssh
   then  echo  "sshd"  >  $BOOT_ON_LOGS/openssh
-        touch  /tmp/restart_xinetd.txt
         echo "Starting sshd on boot since it was previously started by xinetd."
   elif  by  $XINETD_OFF_LOGS/openssh
   then  echo  "sshd"  >  $BOOT_OFF_LOGS/openssh
@@ -132,8 +131,10 @@ make    install
 
 
 post_install()  {
-  if    [   -f  /tmp/restart_xinetd.txt  ]
-  then  rm  -f  /tmp/restart_xinetd.txt
+  if    netstat  -tpl  |
+        grep      ssh  |
+        grep     -q  "xinetd"
+  then
         bash     /etc/init.d/xinetd  try-restart
         bash     /etc/init.d/sshd          start
   fi
