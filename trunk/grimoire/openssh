@@ -73,9 +73,9 @@
             ftp://mirror.cs.wisc.edu/pub/mirrors/OpenBSD/OpenSSH/portable"
   HOMEPAGE="http://www.openssh.com"
        REQ=( "openssl zlib"
-             "Linux-PAM:::for pluggable authentication"
-             "xinetd:::for running server"
-             "tcp_wrappers:--with-tcp-wrappers::for an optional method of controlling ssh access" )
+             "Linux-PAM:::for pluggable authentication" )
+#            "tcp_wrappers:--with-tcp-wrappers::for an optional method of controlling ssh access" )
+#            "xinetd:::for running server"
    PROTECT="/etc/ssh"
   ESTIMATE="337"
       DESC="openssh is a client and server for encrypted remote logins and file transfers.
@@ -85,6 +85,30 @@ a 99% implementation of the SSH 2 protocol, including sftp
 client and server support."
 
 build() {
+
+by()  {
+  [      -f         $1  ]  &&
+  grep  -qx  "ssh"  $1
+}
+
+if  !  [  -f   $BOOT_ON_LOGS/openssh  ]  &&
+    !  [  -f  $BOOT_OFF_LOGS/openssh  ]
+then
+  if    by  $XINETD_ON_LOGS/openssh
+  then  echo  "sshd"  >  $BOOT_ON_LOGS/openssh
+        touch  /tmp/restart_xinetd.txt
+        echo "Starting sshd on boot since it was previously started by xinetd."
+  elif  by  $XINETD_OFF_LOGS/openssh
+  then  echo  "sshd"  >  $BOOT_OFF_LOGS/openssh
+        echo  "Not starting sshd on boot since it was not previously started by xinetd."
+  else  echo  "sshd"  >  $BOOT_ON_LOGS/openssh
+        echo  "Starting sshd at boot since SA did not specify."
+  fi
+fi
+
+rm  -f  {$XINETD_ON_LOGS,$XINETD_OFF_LOGS}/openssh
+
+
 if    spell_installed  Linux-PAM  ||
       spell_installed  $(  get_provider  Linux-PAM  )
 then  WITH_PAM="--with-pam"
@@ -104,4 +128,14 @@ $OPTS                  &&
 make                   &&
 prepare_install        &&
 make    install
+}
+
+
+post_install()  {
+  if    [   -f  /tmp/restart_xinetd.txt  ]
+  then  rm  -f  /tmp/restart_xinetd.txt
+        bash     /etc/init.d/xinetd  try-restart
+        bash     /etc/init.d/sshd          start
+  fi
+  default_post_install
 }
