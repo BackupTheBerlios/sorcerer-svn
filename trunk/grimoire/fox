@@ -1,7 +1,8 @@
-   VERSION=( "1.4.30" "1.4.29" "1.4.28" "1.4.27" "1.4.26" "1.4.25" "1.4.24" )
+   VERSION=( "1.4.31" "1.4.30" "1.4.29" "1.4.28" "1.4.27" "1.4.26" )
     IGNORE="doc\|2-api\|^1\.6\.0\|^1\.5\."
   CATEGORY="game editor"
- ATTRIBUTE="library x11"
+ ATTRIBUTE="library x11 broken"
+# Looks like fox requires an older gcc compiler?
     SOURCE="fox-$VERSION.tar.gz"
        URL="http://www.fox-toolkit.org/ftp"
   HOMEPAGE="http://www.fox-toolkit.org"
@@ -10,7 +11,18 @@
       DESC="fox is a tookit for GUI development.
 It also provides the X11 text editor called adie."
 
+case  $VERSION  in
+  1.4.31) REQ="$REQ gcc-v3.4"  ;;
+esac
+
 build()  {
+
+case  $VERSION  in
+  1.4.31)  GCC3_VER=$( installed_version gcc-v3.4 )
+           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
 export  LDFLAGS="$LDFLAGS -L/usr/X11R6/lib"
 ./configure           \
 --build=$BUILD        \
