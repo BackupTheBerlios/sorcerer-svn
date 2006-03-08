@@ -68,6 +68,9 @@ del_cached_glibc()  {
 }
 
 
+fix_libc_so() {  sed  -i  "s: AS_NEEDED[^)]*) ::" /usr/lib/libc.so;  }
+
+
 LD_PRELOAD_OLD="$LD_PRELOAD"
 unset  LD_PRELOAD
 unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
@@ -139,6 +142,7 @@ cd   ../install                       &&
 rm     -f   etc/{localtime,ld.so.*}   &&
 export  LD_PRELOAD="$LD_PRELOAD_OLD"  &&
 cp     -a   *  /                      &&
+fix_libc_so                           &&
 del_cached_glibc
 }
 
