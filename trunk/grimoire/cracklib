@@ -1,0 +1,40 @@
+   VERSION=( "2.8.9" )
+  CATEGORY="security utility"
+ ATTRIBUTE="console library new"
+    SOURCE="$SPELL/$SPELL-$VERSION.tar.gz"
+  HOMEPAGE="http://sourceforge.net/project/$SPELL"
+       URL="$SOURCEFORGE_URL"
+       REQ=( ""
+             "cracklib-words:::the recommended English word list"
+           )
+  ESTIMATE="98"
+      DESC="$SPELL is a password checking library
+This is a next generation version of libcrack password checking
+library. CrackLib is a library containing C functions which may 
+be used in a passwd-like program. The idea is simple: try to 
+prevent users from choosing passwords that could be guessed by 
+Crack by filtering them out, at source.
+"
+
+build() {
+ LIB_DICT=/lib/cracklib
+ PATH_DICT=/usr/share/dict
+
+ words_install() {
+   install -v -m644 -D  dicts/cracklib-small $PATH_DICT/cracklib-small	&&
+   echo $(hostname)  >>	$PATH_DICT/cracklib-extra-words		&&
+   install -v -m755 -d  $LIB_DICT				&&
+   create-cracklib-dict $PATH_DICT/*		
+ }
+
+ ./configure --prefix=/usr	\
+             --libdir=/lib	\
+             --sysconfdir=/etc	\
+             --with-default-dict=/lib/cracklib/pw_dict	\
+             $OPTS		&&
+ make				&&
+ prepare_install		&&
+ make    install		&&
+ words_install
+}
+
