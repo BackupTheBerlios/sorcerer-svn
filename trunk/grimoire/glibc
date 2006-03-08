@@ -1,8 +1,10 @@
 #  VERSION=( "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
+#     SAFE=( "2.4" "2.3.6" "2.3.5" "2.3.4" )
    VERSION=(       "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
-      SAFE=( "2.4" "2.3.6" "2.3.5" "2.3.4" )
+      SAFE=(       "2.3.6" "2.3.5" "2.3.4" )
 # Error message using xine with glibc 2.4
 # xine: gconv_db.c:232: __gconv_release_step: Assertion `step->__end_fct == ((void *)0)' failed.
+# Don't update to glibc 2.4, assuming you can, you will regret it.
     IGNORE="ref\|2001"
   CATEGORY="development"
  ATTRIBUTE="library solo"
@@ -71,7 +73,11 @@ del_cached_glibc()  {
 }
 
 
-fix_libc_so() {  sed  -i  "s: AS_NEEDED[^)]*) ::" /usr/lib/libc.so;  }
+fix_libc_so() {
+  case  $VERSION  in
+    2.4)  sed  -i  "s: AS_NEEDED[^)]*) ::"  /usr/lib/libc.so  ;;
+  esac
+}
 
 
 LD_PRELOAD_OLD="$LD_PRELOAD"
