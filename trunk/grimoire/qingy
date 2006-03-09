@@ -1,4 +1,4 @@
-   VERSION=( "0.7.1" "0.7.0" "0.6.0" "0.5.3" "0.5.2" )
+   VERSION=( "0.7.2" "0.7.1" "0.7.0" "0.6.0" )
     IGNORE="directive"
   CATEGORY="terminal-emulator"
  ATTRIBUTE="console"
@@ -6,7 +6,19 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://qingy.sourceforge.net"
        REQ=( "DirectFB ncurses"
-             "Linux-PAM:::for plugable authentication"
-             "openssl:::to encrypt communications with its user interface" )
-  ESTIMATE="158"
+             "Linux-PAM:--enable-pam:--disable-pam:for plugable authentication"
+             "openssl:::to encrypt communications with its user interface"
+             "x11:--enable-x-support:--disable-x-support:for x11 support" )
+  ESTIMATE="161"
       DESC="qingy is a getty that uses DirectFB."
+
+build()  {
+  case  $VERSION  in
+    0.7.2)
+      export    CFLAGS="$CFLAGS   -L/usr/X11R6/lib"
+      export  CPPFLAGS="$CFLAGS"
+      export  CXXFLAGS="$CXXFLAGS -L/usr/X11R6/lib"
+      sed  -i  "s:-fomit-frame-pointer:-L/usr/X11R6/lib:"  configure  ;;
+  esac
+  default_build
+}

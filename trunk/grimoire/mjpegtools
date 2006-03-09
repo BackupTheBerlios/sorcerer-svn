@@ -1,7 +1,7 @@
    VERSION=( "1.8.0" "1.6.2" "1.6.1" )
     IGNORE="debsrc\|1\.6\.1\.9\|rc"
   CATEGORY="video"
- ATTRIBUTE="library x11"
+ ATTRIBUTE="library x11 broken"
     SOURCE="mjpeg/mjpegtools-$VERSION.tar.gz"
   HOMEPAGE="http://mjpeg.sourceforge.net"
        URL="$SOURCEFORGE_URL"
@@ -27,8 +27,17 @@ with almost every player and every OS.
 You can produce special forms of MPEG streams
 like VCD (Video CD) and SVCD for hardware playback."
 
+case  $VERSION  in
+  1.8.0) REQ="$REQ gcc-v3.3"  ;;
+esac
 
-build()  {
+build() {
+case  $VERSION  in
+  1.8.0)  GCC3_VER=$( installed_version gcc-v3.3 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+  esac
+
   case  $VERSION  in
     1.6.1)  sed  -i  "s:avifile/::"  lavtools/libavifile.h  ;;
     1.6.2)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  lavtools/lavvideo.c

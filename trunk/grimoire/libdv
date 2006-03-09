@@ -14,7 +14,18 @@ those that support the IEEE 1394 (FireWire or i.Link) interface.
 Libdv was developed according to the official standards for DV
 video: IEC 61834 and SMPTE 314M."
 
+
+case  $VERSION  in
+  0.104) REQ="$REQ gcc-v3.4"  ;;
+esac
+
 build() {
+case  $VERSION  in
+  0.104)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+
   if  !  grep      "flags"  <  /proc/cpuinfo  |
    grep  -q  "mmx"
   then   patch  -p1  <  $SCRIPT_DIR/libdv-mmx.patch
