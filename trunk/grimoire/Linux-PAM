@@ -15,7 +15,12 @@
       DESC="Linux-PAM provides a flexibile authentication mechanism."
 
 build() {
-  unpack ${SOURCE[1]}
+  unpack_docs() {
+    mkdir docs          &&
+    cd    docs          &&
+    unpack ${SOURCE[1]} &&
+    cd    -
+  }
 
   export HAVE_SGML2LATEX=no 
   sed  -i  "s: doc examples::g"      Makefile.in
@@ -24,6 +29,7 @@ build() {
   do    touch  $DIR/.ignore_age
   done
 
+  unpack_docs           &&
   default_build  
 }
 
