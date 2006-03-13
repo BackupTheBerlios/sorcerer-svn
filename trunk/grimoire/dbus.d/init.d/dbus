@@ -1,0 +1,77 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: dbus
+# Required-Start: $local_fs
+# Should-Start: $local_fs
+# Required-Stop: kill
+# Should-Stop: kill
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: dbus is a systemwide message bus
+# Description: dbus is a systemwide message bus
+### END INIT INFO
+
+
+. /lib/lsb/init-functions
+
+PIDF=/var/run/dbus/pid
+SERV=/usr/bin/dbus-daemon
+NAME=dbus-daemon
+
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  mkdir  -p  /var/run/dbus
+  if    start_daemon     -p $PIDF $SERV --system
+  then  touch            /var/lock/subsys/messagebus
+        log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  if    killproc        -p $PIDF -s 15  $SERV
+  then  rm -f /var/lock/subsys/messagebus
+        rm -f /var/run/dbus/pid
+  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}
+
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+}
+
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+        reload)      restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac

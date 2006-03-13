@@ -1,0 +1,85 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Provides: avahi-dnsconfd
+# Required-Start: avahi-daemon
+# Default-Start:  3 4 5
+# Default-Stop: 0 1 6
+# Required-Stop: avahi-daemon
+# Should-Stop: avahi-daemon
+# avahi-daemon
+# Description: Avahi-dnsconfd is a ZeroConf daemon for mDNS and service registration
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/avahi-dnsconfd
+PIDF=/var/run/avahi-dnsconfd.pid
+NAME=avahi-dnsconfd
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  if    start_daemon     -p $PIDF $SERV -D
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  $SERV -k
+  log_success_msg "$NAME stopped"
+
+#  if    killproc        -p $PIDF -s 15  $SERV
+#  then  log_success_msg "$NAME stopped"
+#  else  log_failure_msg "$NAME not stopped"
+#        status
+#        return 0
+#  fi
+}
+
+
+reload()  {
+  $SERV -r  &&
+  log_success_msg "$NAME configuration reloaded"
+#  PIDS="$( pidofproc -p $PIDF $SERV )"
+#  if    [ -n            "$PIDS" ]
+#  then  kill  -s SIGHUP  $PIDS  &&
+#        log_success_msg "$NAME configuration reloaded"
+#  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+}
+
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+        reload)  reload       ;;
+  force-reload)  reload       ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
