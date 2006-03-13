@@ -7,7 +7,7 @@
        REQ="XFree86 cpio gcc-v3.3 libexpat rpmunpack"
 # requires libstdc++.so.5 libexpat.so.0
 # I hate precompiled binaries with ELF library requirements
-  ESTIMATE="76"
+  ESTIMATE="74"
       DESC="ati_firegl contains drivers provided by ATI for radeon class graphics cards"
 
 build() {
@@ -36,12 +36,12 @@ cd  lib/modules/fglrx/build_mod
 sed  -i  "s:\`uname -r\`:\"$LVER\":"  make.sh
 sed  -i  "s:modprobe \$module:true:
           s:rmmod \$module:true:"     ../make_install.sh
-sed  -i  "s:static int errno;:extern int errno;:"  firegl_agpgart/firegl_wrap.c
 
-sh  ./make.sh    &&
-prepare_install  &&
-cd ..            &&
-sh  ./make_install.sh
+patch  -p5 <  $SCRIPT_DIR/ati_firegl_4_3_0-8.23.7-1.patch  &&
+sh  ./make.sh          &&
+prepare_install        &&
+cd ..                  &&
+sh  ./make_install.sh  &&
       make_install
 }
 
