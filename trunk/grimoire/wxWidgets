@@ -1,6 +1,7 @@
   VERSION=( "2.6.2" )
 # 2.6.3 has not actually been released?
 # Mon Feb 20 18:03:42 UTC 2006
+# 2.6.2 is not gcc 4.1.0 compatible
    IGNORE="ubuntu\|Win\|PDF\|HTB\|rc"
   CATEGORY="development"
  ATTRIBUTE="library"
@@ -19,7 +20,16 @@
 wxWidgets gives you a single, easy-to-use API for
 writing GUI applications on multiple platforms."
 
+case  $VERSION  in
+  2.6.2) REQ="$REQ gcc-v3.4"  ;;
+esac
+
 build() {
+case  $VERSION  in
+  2.6.2)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
 sed -i "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":" configure
 default_build
 }

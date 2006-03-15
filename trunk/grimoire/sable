@@ -1,7 +1,9 @@
-  VERSION=( "0.4" "0.3" )
+  VERSION=( "1.0" "0.4" "0.3" )
   CATEGORY="game"
  ATTRIBUTE="x11 new"
-    SOURCE="sable-$VERSION-src.tar.gz"
+# Fatal signal: Segmentation Fault (SDL Parachute Deployed)
+# Might be broken or it might just not work on my box?
+    SOURCE="sable-$VERSION-src.tgz"
        URL="http://www.stanford.edu/~mcmartin/sable"
   HOMEPAGE="http://www.stanford.edu/~mcmartin/sable"
        REQ="SDL_image SDL_mixer"
@@ -9,7 +11,18 @@
   ESTIMATE="27"
       DESC="sable is a 3d space shooter inspired by After Burner and Space Harrier."
 
+if    is_installed  ati_firegl
+then  REQ="$REQ ati_firegl"
+fi
+
 build()  {
+if    is_installed  ati_firegl
+then  GCC3_VER=$( installed_version gcc-v3.3 )
+      export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+      export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
+fi
+
+sed   -i  "s:-O2 -Wall:$CFLAGS -I/usr/X11R6/include:"  src/Makefile
 find  sfx textures  -type d  |  xargs  -l64  chmod 0755
 find  sfx textures  -type f  |  xargs  -l64  chmod 0644
 
