@@ -1,10 +1,11 @@
-   VERSION=( "4.2.1" "4.2" "4.0.2" "4.0.1" "4.0" "3.70" )
+   VERSION=( "4.2.2" "4.2.1" "4.2" "4.0.2" "4.0.1" "4.0" "3.70" )
+# wvstreams 4.2.2 is not gcc 4.1.0 compatible
   CATEGORY="network"
  ATTRIBUTE="library"
     SOURCE="wvstreams-$VERSION.tar.gz"
        URL="http://open.nit.ca/download/"
   HOMEPAGE="http://open.nit.ca/wvstreams"
-       REQ=( "zlib" )
+       REQ=( "db zlib" )
 #             "libogg:--with-ogg:--without-ogg:with ogg support"
 #             "libvorbis:--with-vorbis:--without-vorbis:for vorbis support"
 #             "Linux-PAM:--with-pam:--without-pam:for PAM support"
@@ -13,7 +14,7 @@
 #             "qt-x11-free:--without-qt:--without-qt:for qt support"
 #             "openssl:::for secure connections" )
 # Above optionals not used for wvdial.
-  ESTIMATE="264"
+  ESTIMATE="265"
  FRESHMEAT="wvstreams"
       DESC="wvstreams are C++ libraries used by wvdial.
 WvStreams is a library set composed of a number of parts.
@@ -26,3 +27,16 @@ WvLog (nice, simple handling of log files),
 and a whole host of other goodness.
 These are the base classes used to build programs such as the
 ever popular WvDial, TunnelVision, FastForward, KWvDial, and retchmail."
+
+case  $VERSION  in
+  4.2.2) REQ="$REQ gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  4.2.2)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
+default_build
+}

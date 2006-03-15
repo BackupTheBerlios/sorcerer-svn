@@ -1,11 +1,12 @@
-   VERSION=( "1.54.0" "1.53" )
+   VERSION=( "1.56" "1.54.0" "1.53" )
+# wvdial 1.56 is not compatible with gcc 4.1.0
   CATEGORY="network ppp"
  ATTRIBUTE="client console"
     SOURCE="wvdial-$VERSION.tar.gz"
   HOMEPAGE="http://open.nit.ca/wvdial"
        URL="http://open.nit.ca/download"
        REQ="ppp wvstreams"
- ESTIMATE="23"
+ ESTIMATE="20"
       DESC="wvdial is a PPP connection/configuration tool
 WvDial, pronounced Weave Dial, is an
 easier way to connect to the internet.
@@ -16,7 +17,16 @@ and chooses a valid init string.
 It can even read and respond to
 command prompts at almost any ISP."
 
-build()  {
+case  $VERSION  in
+  1.56) REQ="$REQ gcc-v3.4"  ;;
+esac
+
+build() {
+case  $VERSION  in
+  1.56)  GCC3_VER=$( installed_version gcc-v3.4 )
+          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
+          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
+esac
 make             PREFIX=/usr  &&
 prepare_install               &&
 make    install  PREFIX=/usr
