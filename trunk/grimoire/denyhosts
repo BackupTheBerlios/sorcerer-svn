@@ -1,0 +1,44 @@
+       VERSION=( "2.2" "1.1.4" "1.1.3" "1.1.2" "1.0.1" )
+      CATEGORY="security"
+     ATTRIBUTE="console"
+        SOURCE="denyhosts/DenyHosts-$VERSION.tar.gz"
+           URL="$SOURCEFORGE_URL"
+      HOMEPAGE="http://www.denyhosts.net"
+           REQ="openssh tcp_wrappers Python"
+      ESTIMATE="5"
+     FRESHMEAT="DenyHosts"
+          DESC="DenyHosts is a script to help thwart ssh server attacks.
+If you have ever looked at your ssh log you may be alarmed 
+to see how many hackers attempted to gain access to your 
+server. Hopefully, none of them were successful (but then again, 
+how would you know?). Wouldn't it be better to automatically 
+prevent that attacker from continuing to gain entry into your system? 
+DenyHosts attempts to address the above... and more. 
+"
+
+function build() {
+
+ IDIR=/usr/share/denyhosts
+ CFILE=denyhosts.cfg
+
+ cat > denyhosts << EOF
+#!/bin/bash
+export HOSTNAME=\$( hostname )
+$IDIR/denyhosts.py  -c /etc/$CFILE \$@
+EOF
+
+ sed  -i  "s:bin/denyhosts.py:sbin/denyhosts.py:"  daemon-control-dist
+ sed  -i  "s:/usr/share/denyhosts/denyhosts.cfg:/etc/${CFILE}:"  daemon-control-dist  
+ sed  -i  "s:^LOCK_FILE:#LOCK_FILE:
+           s:^#LOCK_FILE = /var/run:LOCK_FILE = /var/run:"	$CFILE-dist
+
+ prepare_install                          				&&
+ install  -m 755 -o 0 -g 0 -d -v             $IDIR/DenyHosts		&&
+ install  -m 644 -o 0 -g 0 -v  DenyHosts/*   $IDIR/DenyHosts		&& 
+ install  -m 755 -o 0 -g 0 -v  denyhosts.py  $IDIR			&&
+ install  -m 644 -o 0 -g 0 -v  setup.py      $IDIR			&&
+ install  -m 755 -o 0 -g 0 -v  daemon-control-dist  $IDIR/denyhostsd	&&
+ install  -m 755 -o 0 -g 0 -v  denyhosts     /usr/sbin			&&
+ install  -m 644 -o 0 -g 0 -v  $CFILE-dist   /etc/$CFILE
+}
+
