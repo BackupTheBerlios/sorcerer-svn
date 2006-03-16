@@ -1,4 +1,3 @@
-#  VERSION=( "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
    VERSION=( "1.0-8178" "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
     IGNORE="unified"
   CATEGORY="kernel"
@@ -7,6 +6,9 @@
        URL="http://download.nvidia.com/XFree86/Linux-x86/$VERSION"
   HOMEPAGE="http://www.nvidia.com"
        REQ="gtk+ mktemp"
+case  $VERSION  in
+  1.0-8178)  USE_GCC="gcc-v3.4"  ;;
+esac
   EPROVIDE="NVIDIA_GLX NVIDIA_kernel"
  FRESHMEAT="nvidiaxfree86_40drivers"
   ESTIMATE="5"
@@ -16,98 +18,103 @@ XFree86 drivers for their graphics cards.
 It is also provides the kernel modules."
 # BUILD_DIR=$SOURCE_DIR/$SPELL
 
-case  $VERSION  in
-  1.0-7664) REQ="gcc-v3.4 gtk+ mktemp"  ;;
-esac
+pre_build() {
+  default_pre_build
+  mkdir -p $BUILD_DIR
+  cd    $BUILD_DIR
+
+  FN=$(  guess_filename  $SOURCE  )
+  SKIP=$(  grep -a    "skip="  $FN  |
+  sed      "s:skip=::"     )
+
+  tail  -n +$SKIP  $FN  |
+  gzip  -cd             |
+  tar   -xf  -
+}
 
 build() {
 
-cd $BUILD_DIR
-#case  $VERSION  in
-#  1.0-7664)  GCC3_VER=$( installed_version gcc-v3.4 )
-#             export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-#             export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-#esac
+  cd  $BUILD_DIR
 
- install_libs()  {
-  cd  $BUILD_DIR/usr
+  install_libs()  {
+    cd  $BUILD_DIR/usr
 
-  if    /lib/libc.so.6   |
-     grep  -q  "Thread-local storage"
-  then  cp    -a   lib/tls/*  lib
-  fi
+    if    /lib/libc.so.6   |
+    grep  -q  "Thread-local storage"
+    then  cp    -a   lib/tls/*  lib
+    fi
 
-  GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
-  sed  -i  "s:__LIBGL_PATH__:/usr/lib:
-       s,__GENERATED_BY__,$GB,"    lib/libGL.la
+    GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
+    sed  -i  "s:__LIBGL_PATH__:/usr/lib:
+         s,__GENERATED_BY__,$GB,"    lib/libGL.la
 
-  /sbin/ldconfig  -n  lib        \
-            X11R6/lib  \
-            X11R6/lib/modules/extensions
+    /sbin/ldconfig  -n  lib        \
+              X11R6/lib  \
+              X11R6/lib/modules/extensions
 
-  ln  -s  libGL.so.1      lib/libGL.so
-  ln  -s  libGLcore.so.1  lib/libGLcore.so
-  ln  -s  libGL.so.1      lib/tls/libGL.so
-  ln  -s  libGLcore.so.1  lib/tls/libGLcore.so
+    ln  -s  libGL.so.1      lib/libGL.so
+    ln  -s  libGLcore.so.1  lib/libGLcore.so
+    ln  -s  libGL.so.1      lib/tls/libGL.so
+    ln  -s  libGLcore.so.1  lib/tls/libGLcore.so
    
 
-  rm  -f  /usr/X11R6/lib/libGL.*
-  rm  -f  /usr/lib/libGL.*
-  rm  -f  /usr/X11R6/lib/modules/extensions/libglx.*
-  rm  -f  /usr/X11R6/lib/modules/extensions/libGLcore.*
+    rm  -f  /usr/X11R6/lib/libGL.*
+    rm  -f  /usr/lib/libGL.*
+    rm  -f  /usr/X11R6/lib/modules/extensions/libglx.*
+    rm  -f  /usr/X11R6/lib/modules/extensions/libGLcore.*
 
-  cp  -a   lib  X11R6  /usr/                2>/dev/null
-  cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
-  cp  -a   share/doc  ..                    2>/dev/null
-  cp  -a   include    ../doc                2>/dev/null
-  install  -m 0755  bin/nvidia-settings       /usr/bin
-  install  -m 0755  bin/nvidia-xconfig        /usr/bin
-  install  -m 0755  bin/nvidia-bug-report.sh  /usr/bin
- }
+    cp  -a   lib  X11R6  /usr/                2>/dev/null
+    cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
+    cp  -a   share/doc  ..                    2>/dev/null
+    cp  -a   include    ../doc                2>/dev/null
+    install  -m 0755  bin/nvidia-settings       /usr/bin
+    install  -m 0755  bin/nvidia-xconfig        /usr/bin
+    install  -m 0755  bin/nvidia-bug-report.sh  /usr/bin
+  }
 
 
- make_device_nodes()  {
-  for  ((CX=0;CX<8;CX++));  do
-   NODE="/dev/nvidia$CX"
-   rm     -f    $NODE
-   mknod        $NODE  c  195  $CX
-   chmod  0666  $NODE
-  done
-  NODE="/dev/nvidiactl"
-  rm     -f    $NODE
-  mknod        $NODE  c  195  255
-  chmod  0666  $NODE
- # install  -m 0744  $SCRIPT_DIR/nvidia.sh  /etc/init.d/
- # ln       -sf      /etc/init.d/nvidia.sh  /etc/rc5.d/S99nvidia
-  true
- }
+  make_device_nodes()  {
+    for  ((CX=0;CX<8;CX++));  do
+      NODE="/dev/nvidia$CX"
+      rm     -f    $NODE
+      mknod        $NODE  c  195  $CX
+      chmod  0666  $NODE
+    done
+    NODE="/dev/nvidiactl"
+    rm     -f    $NODE
+    mknod        $NODE  c  195  255
+    chmod  0666  $NODE
+    # install  -m 0744  $SCRIPT_DIR/nvidia.sh  /etc/init.d/
+    # ln       -sf      /etc/init.d/nvidia.sh  /etc/rc5.d/S99nvidia
+    true
+  }
 
- LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
+  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
 
- if    [  -z  "$LVER"  ]
- then           LVER=$(  uname  -r  )
- fi
+  if    [  -z  "$LVER"  ]
+  then           LVER=$(  uname  -r  )
+  fi
 
- chown  -R  root:root  *
+  chown  -R  root:root  *
 
- case  $VERSION  in
- 1.0-6629)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-6629-02.28.2005.diff.txt  ;;
- esac
+  case  $VERSION  in
+  1.0-6629)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-6629-02.28.2005.diff.txt  ;;
+  esac
 
- cd  usr/src/nv
+  cd  usr/src/nv
 
- rm  -f  makefile         Makefile
+  rm  -f  makefile         Makefile
 
- case  $LVER  in
-  2.4*)  cp  Makefile.nvidia  Makefile  ;;
-    *)  cp  Makefile.kbuild  Makefile  ;;
- esac
+  case  $LVER  in
+   2.4*)  cp  Makefile.nvidia  Makefile  ;;
+     *)  cp  Makefile.kbuild  Makefile  ;;
+  esac
 
- case  $VERSION  in
-  1.0-6111)  
- case  $LVER  in
-  2.6.9)  patch  -p0  <<  EOF
-diff -r -U2 nv.c nv.c
+  case  $VERSION  in
+    1.0-6111)  
+      case  $LVER  in
+        2.6.9)  patch  -p0  <<  EOF
+          diff -r -U2 nv.c nv.c
 --- nv.c     2004-07-27 08:33:20.000000000 -0700
 +++ nv.c     2004-07-27 08:33:20.000000000 -0700
 @@ -20,4 +20,5 @@
@@ -132,43 +139,28 @@ esac
   sed  -i  "s:modprobe:true:"             Makefile
   sed  -i  "s:$SSC $RSC:$SSC:"            Makefile
   sed  -i  "s:install rmmod-sanity-check:install:"    Makefile
- #  sed  -i  "s: rmmod-check::"             Makefile
- #  sed  -i  "s:sh conftest.sh rmmod:true :"   Makefile
+  #  sed  -i  "s: rmmod-check::"             Makefile
+  #  sed  -i  "s:sh conftest.sh rmmod:true :"   Makefile
 
 
- prepare_install                        &&
- make    install  IGNORE_CC_MISMATCH=1  &&
- install_libs                           &&
- make_device_nodes
- returnval=$?
- return $returnval
-
-}
-
-pre_build() {
- default_pre_build
- mkdir -p $BUILD_DIR
- cd    $BUILD_DIR
-
- FN=$(  guess_filename  $SOURCE  )
- SKIP=$(  grep -a    "skip="  $FN  |
- sed      "s:skip=::"     )
-
- tail  -n +$SKIP  $FN  |
- gzip  -cd             |
- tar   -xf  -
+  prepare_install                        &&
+  make    install  IGNORE_CC_MISMATCH=1  &&
+  install_libs                           &&
+  make_device_nodes
+  returnval=$?
+  return $returnval
 }
 
 post_install() {
- default_post_install
- X11_PRO="$(  get_provider  x11  )"
- TMP_LOG="/tmp/$X11_PRO.$$.$RANDOM"
+  default_post_install
+  X11_PRO="$(  get_provider  x11  )"
+  TMP_LOG="/tmp/$X11_PRO.$$.$RANDOM"
 
- cat  $INSTALL_LOGS/$X11_PRO          |
- grep  -v  "/lib/libGL\."             |
- grep  -v  "/extensions/libGLcore\."  |
- grep  -v  "/extensions/libglx\."     > $TMP_LOG
- mv  $TMP_LOG  $INSTALL_LOGS/$X11_PRO
+  cat  $INSTALL_LOGS/$X11_PRO          |
+  grep  -v  "/lib/libGL\."             |
+  grep  -v  "/extensions/libGLcore\."  |
+  grep  -v  "/extensions/libglx\."     > $TMP_LOG
+  mv  $TMP_LOG  $INSTALL_LOGS/$X11_PRO
 
- depmod  -a
+  depmod  -a
 }

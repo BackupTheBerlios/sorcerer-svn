@@ -4,11 +4,14 @@
     SOURCE="ayttm/ayttm-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://ayttm.sourceforge.net"
+case  $VERSION  in
+  0.4.6-17)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "audiofile gdk-pixbuf libtool"
              "openssl:::for secure socket connections"
              "esound::--disable-esd:for sound output"
              "aspell:::for spell checking" )
-  ESTIMATE="552"
+  ESTIMATE="542"
       DESC="ayttm is a universal instant messaging client.
 ayttm is an instant messenger program, supporting various 
 protocols such as MSN, Yahoo, AIM, Jabber, and more.
@@ -21,23 +24,10 @@ reserved for advanced users,
 and things have to work without wondering 
 what this or that will produce."
 
-case  $VERSION  in
-  0.4.6-17)  REQ="gcc-v3.4 audiofile gdk-pixbuf libtool"  ;;
-esac
-
 
 build() {
-case  $VERSION  in
-  0.4.6-17)  GCC3_VER=$( installed_version gcc-v3.4 )
-             export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-             export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
-
- case $( arch ) in
-  x86_64)
-	export LDFLAGS="$LDFLAGS -L/usr/X11R6/lib64"
-  ;;
- esac
-
- default_build
+  case $( arch ) in
+   x86_64)  export LDFLAGS="$LDFLAGS -L/usr/X11R6/lib64"  ;;
+  esac
+  default_build
 }

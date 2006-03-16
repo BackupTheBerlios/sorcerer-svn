@@ -5,6 +5,9 @@
     SOURCE="mailutils/mailutils-$VERSION.tar.bz2"
        URL="$GNU_URL"
   HOMEPAGE="http://www.gnu.org/software/mailutils"
+case  $VERSION  in
+  0.6)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "guile libtool ncurses readline"
              "Linux-PAM::--disable-pam:for pluggable authentication"
              "db:::can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db"
@@ -31,23 +34,10 @@ been tested with this spell and may not work.
 If it does not, please fix and report it
 or use pine's SSL mail servers instead."
 
-
-case  $VERSION  in
-  0.6)  REQ="gcc-v3.4 $REQ"  ;;
-esac
-
-
 build()  {
-
-case  $VERSION  in
-  0.6)  GCC3_VER=$( installed_version gcc-v3.4 )
-        export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-        export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
-
-case  $VERSION  in
- 0.6)  sed  -i  "\,extern int,d"  mailbox/getline.h  ;;
-esac
+  case  $VERSION  in
+    0.6)  sed  -i  "\,extern int,d"  mailbox/getline.h  ;;
+  esac
 
 
 if    grep  -qx  "db"    $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-db2"

@@ -5,33 +5,26 @@
     SOURCE="taxipilot/taxipilot-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://taxipilot.sourceforge.net"
+case  $VERSION  in
+  0.9.1)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ="kdemultimedia"
   ESTIMATE="99"
       DESC="taxipilot is a game similar to Spacetaxi for the C64."
 
-case  $VERSION  in
-  0.9.1) REQ="$REQ gcc-v3.4"  ;;
-esac
-
 build() {
-case  $VERSION  in
-  0.9.1)  GCC3_VER=$( installed_version gcc-v3.4 )
-          export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-          export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
+  move_bin_to_games()  {
+    if    [  -x  /usr/bin/taxipilot  ];  then
+    mkdir  -p                      /usr/games
+    mv         /usr/bin/taxipilot  /usr/games
+    fi
+  }
 
-move_bin_to_games()  {
-if    [  -x  /usr/bin/taxipilot  ];  then
-mkdir  -p                      /usr/games
-mv         /usr/bin/taxipilot  /usr/games
-fi
-}
-
-./configure          \
---prefix=/usr        \
---bindir=/usr/games  &&
-make                 &&
-prepare_install      &&
-make    install      &&
-move_bin_to_games
+  ./configure          \
+  --prefix=/usr        \
+  --bindir=/usr/games  &&
+  make                 &&
+  prepare_install      &&
+  make    install      &&
+  move_bin_to_games
 }

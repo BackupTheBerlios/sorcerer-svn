@@ -4,6 +4,9 @@
     SOURCE="dbus-$VERSION.tar.gz"
   HOMEPAGE="http://www.freedesktop.org/Software/dbus"
        URL="http://dbus.freedesktop.org/releases"
+case  $VERSION  in
+  0.61)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "Pyrex gtk+"
              "kdelibs::--disable-qt3:to build qt friendly library."
              "libselinux:--enable-selinux:--disable-selinux:for SELinux support" )
@@ -18,16 +21,7 @@ Also, the message bus is built on top of a general one-to-one message
 passing framework, which can be used by any two apps to communicate
 directly (without going through the message bus daemon)."
 
-case  $VERSION  in
-  0.61) REQ="$REQ gcc-v3.4"  ;;
-esac
-
 build() {
-case  $VERSION  in
-  0.61)  GCC3_VER=$( installed_version gcc-v3.4 )
-         export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-         export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
 useradd  messagebus  2>/dev/null
 default_build
 }

@@ -6,6 +6,9 @@
              "http://ftp.skynet.be/pub/ftp.x.org/pub/X11${VERSION}" )
   HOMEPAGE="http://www.x.org"
   EPROVIDE="x11"
+case  $VERSION  in
+  R6.8.2)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "Xfenc Xfnts bison expat flex freetype libpng ncurses perl fontconfig"
              "Linux-PAM:::for pluggable authentication" )
  CONFLICTS="XFree86 X.org x11"
@@ -146,12 +149,6 @@ configure() {
 }
 
 build() {
-  case $VERSION in
-   R6.8.2)  GCC3_VER=$( installed_version gcc-v3.4 )
-            export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-            export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"   ;;
-  esac
-
   if    [  -f  $CONFIG_LOGS/$BSPELL/host.def  ];  then
     cat        $CONFIG_LOGS/$BSPELL/host.def    |
     sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \

@@ -4,28 +4,18 @@
  ATTRIBUTE="library x11"
     SOURCE="avifile/avifile-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
-      OPTS="--disable-lame"
-# 0.7-0.7.38 lame support does not work with gcc 3.4.1
   HOMEPAGE="http://avifile.sourceforge.net"
        REQ=( "SDL fontconfig jpeg libmad libvorbis w32codec"
              "XviD:::for MPEG-4 playback"
              "faad2:::for faad2 audio decoder" )
 # avifile doesn't want to compile with qt-x11-free
 #   "qt-x11-free:--with-qt-libraries=/usr/lib:--without-qt:for building qtvidcap"
-  ESTIMATE="1475"
+      OPTS="--disable-lame"
+# 0.7-0.7.38 lame support does not work with gcc 3.4.1
+  ESTIMATE="1477"
       DESC="avifile is a library for reading and writing compressed AVI files."
-case  $VERSION  in
-  0.7-0.7.43) REQ="$REQ gcc-v3.4"  ;;
-esac
 
 build() {
-case  $VERSION  in
-  0.7-0.7.43)  GCC3_VER=$( installed_version gcc-v3.4 )
-               export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-               export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
-
-
 case  $VERSION  in
   0.7-0.7.41)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  \
                           ffmpeg/libavformat/grab.c       \

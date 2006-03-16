@@ -5,6 +5,9 @@
     SOURCE="heroines/cinelerra-$VERSION-src.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://heroinewarrior.com/cinelerra.php3"
+case  $VERSION  in
+  2.0)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "libdv yasm"
              "alsa-lib:HAVE_ALSA::for audio output using alsa"
              "esound:HAVE_ESOUND::for playing multiple sounds at the same time"
@@ -20,17 +23,7 @@ It is a seamless integration of audio, video,
 and still photos rarely experienced on a web server."
 
 
-case  $VERSION  in
-  2.0) REQ="$REQ gcc-v3.4"  ;;
-esac
-
 build() {
-case  $VERSION  in
-  2.0)  GCC3_VER=$( installed_version gcc-v3.4 )
-        export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-        export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
-
   modify()  {
     echo  "$OPTS"  |  grep  -q  "$1"                 &&
     sed   -i -r  "s/($1 :=).*/\1 y/"  global_config  ||

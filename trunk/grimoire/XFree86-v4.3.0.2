@@ -10,7 +10,10 @@
 # Previous patches also apply fontfile.diff patch
 #            "${VERSION:0:5}/fixes/fontfile.diff" )
        URL="$XFREE86_URL"
-#      REQ=( "freetype gcc-v3.3 libpng ncurses"
+
+case  $VERSION  in
+  0.9.3)  USE_GCC="gcc-v3.3"  ;;
+esac
        REQ=( "Xfenc Xfnts bison ed expat flex freetype libpng ncurses perl"
              "Linux-PAM:::for pluggable authentication"
              "Xf100:::for 100dpi fonts"
@@ -406,12 +409,6 @@ pkgconf_install()  {
  xargs  -l64  sed  -i  "s:#include *<freetype/fterrors.h>:\
                           #include FT_ERRORS_H:"
  
- case  $VERSION  in
-  4.3.0.2)  GCC3_VER=$( installed_version gcc-v3.3 )
-            export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-            export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
- esac
-
  make    World        &&
  prepare_install      &&
  make    install      &&

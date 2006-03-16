@@ -6,6 +6,9 @@
        URL="$SOURCEFORGE_URL"
 #      URL="http://faac.sourceforge.net/files"
   HOMEPAGE="http://faac.sourceforge.net"
+case  $VERSION  in
+  2.0)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ=( "automake libsndfile libtool id3lib"
              "xmms:--with-xmms:--without-xmms:to compile XMMS plugins"
              ":--with-drm:--without-drm:to compile libfaad with DRM support"
@@ -13,12 +16,7 @@
   ESTIMATE="1183"
       DESC="faad2 is the freeware advanced audio decoder 2."
 
-case  $VERSION  in
-  2.0)
-       REQ="automake gcc-v3.4 libsndfile libtool id3lib"  ;;
-esac
 
-   
 build() {
  case  $VERSION  in
   1.1)  patch  -p1  <  $SCRIPT_DIR/faad2-1.1.patch  ;;
@@ -26,16 +24,8 @@ build() {
         sed    -i      "2,9d"  Makefile.am  ;;
  esac
 
-case  $VERSION  in
-  2.0)  GCC3_VER=$( installed_version gcc-v3.4 )
-        export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-        export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"  ;;
-esac
-
-
-
- # ./bootstrap
- autoreconf -vif
- # sed  -i  "600,605d"  Makefile
- default_build
+  # ./bootstrap
+  autoreconf  -vif
+  # sed  -i  "600,605d"  Makefile
+  default_build
 }
