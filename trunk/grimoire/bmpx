@@ -1,25 +1,28 @@
-# 0.14.1 0.14.0 do not compile.
-#  VERSION=( "0.14.1" "0.14.0" "0.13.1" "0.13" "0.12.9" "0.12.8" "0.12.7" "0.12.6.1" )
-   VERSION=( "0.13.1" "0.13" "0.12.9" "0.12.8" "0.12.7" "0.12.6.1" )
-    IGNORE="R\|2005\|rc\|0\.14\.[0-1]"
+# Yes this spell does require neon 0.26.x
+  VERSION=( "0.14.1.1" "0.14.1" "0.14.0" "0.13.1" "0.13" "0.12.9" "0.12.8" )
+    IGNORE="R\|2005\|rc\|"
   CATEGORY="audio-player"
-#ATTRIBUTE="gnome"
- ATTRIBUTE="x11"
+ ATTRIBUTE="gnome"
      SOURCE="beepmp/bmpx-$VERSION.tar.bz2"
         URL="$SOURCEFORGE_URL"
    HOMEPAGE="http://beep-media-player.org"
-       REQ="curl dbus fam libglade startup-notification taglib xine-lib"
+#      REQ="curl dbus fam libglade startup-notification taglib xine-lib"
+       REQ="fam gst-plugins-base libmusicbrainz neon startup-notification taglib"
 # Future versions of bmpx will not support the xine backend
 
-# bmpx 0.14.1 not compatibile with fam 2.8.10.
-# It has undefined references when linking.
-# bmpx 0.14.1 can support GAMIN
-# which is the gnome modified fam.
+# bmpx 0.14.1 can support GAMIN intstead of fam
+# GAMIN is the gnome modified fam.
 # But gamin does not compile.
 # Capable of creating plugins for irssi and xchat
 # but they are not worth mentioning as optional requirements.
 # May have an optional requirement on subversions
-# Why does it have an optional on subversion?
  FRESHMEAT="beep-player"
-  ESTIMATE="687"
+  ESTIMATE="601"
       DESC="bmpx is an audio player that is also called beep player"
+
+build() {
+  case  $VERSION  in
+    0.14.*)  LDFLAGS="$LDFLAGS -lfam"  ;;
+  esac
+  default_build
+}
