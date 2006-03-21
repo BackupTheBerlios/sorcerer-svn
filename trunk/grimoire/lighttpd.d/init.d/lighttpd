@@ -1,0 +1,77 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: lighttpd
+# Required-Start: $network
+# Should-Start: $remote_fs
+# Required-Stop: kill
+# Should-Stop: $remote_fs
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: lighttpd is a web server
+# Description: lighttpd is a web server
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PIDF=/var/run/lighttpd.pid
+SERV=/usr/sbin/lighttpd
+NAME=lighttpd
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start()  {
+  log_warning_msg  "$NAME about to start"
+  if    start_daemon     -p $PIDF $SERV -f /etc/lighttpd.conf
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  if    killproc        -p $PIDF -s 15  $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+reload()  {
+# SIGHUP reloading not supported
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if    [ -n            "$PIDS" ]
+  then  kill  -s SIGHUP  $PIDS  &&
+        log_success_msg "$NAME configuration reloaded"
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+        reload)      restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac

@@ -1,16 +1,21 @@
-   VERSION=( "2005-10-02" "6-25-05" "6-17-05" "6-9-05" )
+   VERSION=( "2006-02-21-src+data" "2005-10-02" "6-25-05" "6-17-05" "6-9-05" )
     IGNORE="7-7-05\|6-25-05\|2005\|ubuntu"
   CATEGORY="game"
- ATTRIBUTE="x11 new broken"
-# Is not compatible with current openal
-    SOURCE="vdrift/vdrift-$VERSION-src.tar.bz2"
+ ATTRIBUTE="x11 new"
+# Compile and installs okay, but playing...
+# car's front end just bounes up and down.
+    SOURCE="vdrift/vdrift-$VERSION.tar.bz2"
+#   SOURCE="vdrift/vdrift-$VERSION-src.tar.bz2"
 #   SOURCE="vdrift/VDrift-$VERSION.tar.bz2"
 #   SOURCE="vdrift/VDrift$VERSION.tar.bz2"
   HOMEPAGE="http://vdrift.sourceforge.net"
        URL="$SOURCEFORGE_URL"
-       REQ="SDL_image openal scons"
+case  $VERSION  in
+  2006-02-21-src+data) USE_GCC="gcc-v4.0"  ;;
+esac
+       REQ="SDL_image SDL_net openal scons"
       OPTS="--bindir=/usr/games --disable-dependency-tracking"
-  ESTIMATE="97"
+  ESTIMATE="76"
       DESC="VDrift is an automobile drift racing game."
 
 # build()  {
@@ -20,11 +25,19 @@
 # }
 
 build()  {
-cd         vdrift-$VERSION-src
-rm     -r  lib
-sed    -i  "s:alut.h:al.h:"                      include/sound.h
-sed    -i  "s:'#lib':'#lib', '/usr/X11R6/lib':"  SConstruct
-scons            &&
+# cd         vdrift-$VERSION-src
+# rm     -r  lib
+# sed    -i  "s:alut.h:al.h:"                      include/sound.h
+# sed    -i  "s:'#lib':'#lib', '/usr/X11R6/lib':"  SConstruct
+
+export  CXXFLAGS="$(  echo  "$CXXFLAGS"  |  sed "s: :', ':g"  )"
+
+sed  -i   "s:'-O2':'$CXXFLAGS':"  SConstruct
+ln   -fs  /usr/X11R6/include/GL include/
+scons            \
+release=1        &&
 prepare_install  &&
+echo "Long wait while scons burns your CPU"  &&
+echo "while printing nothing is normal"      &&
 scons   install
 }
