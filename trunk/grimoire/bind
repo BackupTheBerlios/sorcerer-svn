@@ -6,9 +6,8 @@
 #      URL="$ISC_URL"
   HOMEPAGE="http://www.isc.org/products/BIND"
        REQ="openssl"
-   PROTECT="/etc/bind/rndc.key
-            /etc/rndc.conf
-            /etc/rndc.key"
+   PROTECT="                /etc/bind/rndc.key
+            /var/chroot/bind/etc/bind/rndc.key"
   ESTIMATE="651"
       DESC="bind contains a DNS server and dig
 bind (Berkeley Internet Name Domain) is an implementation
@@ -22,27 +21,20 @@ major components of the Domain Name System, including:
 
 
 build() {
- man_install()  {
-  for  DIRECTORY in doc/man/*;  do
-   for  (( COUNT=1 ; COUNT < 9 ; COUNT++ )); do
-    cp  $DIRECTORY/*.$COUNT  /usr/man/man$COUNT  2> /dev/null
-   done
-  done
- }
+  conf_install()  {
+    SNC="$SCRIPT_DIR/named.conf"
+    SNR="$SCRIPT_DIR/named.root"
+    RES="$SCRIPT_DIR/resolv.conf"
+    JAIL="/var/chroot/bind"
 
- conf_install()  {
-  SNC="$SCRIPT_DIR/named.conf"
-  SNR="$SCRIPT_DIR/named.root"
-  RES="$SCRIPT_DIR/resolv.conf"
+    install  -d  -m 0755  -o bind  -g bind        $JAIL/var/run
+    install  -d  -m 0755  -o bind  -g bind        $JAIL/etc/bind
+    install      -m 0644  -o bind  -g bind  $SNC  $JAIL/etc/bind
+    install      -m 0644  -o bind  -g bind  $SNR  $JAIL/etc/bind
 
-  [  -d  /etc/bind             ]  ||  mkdir     /etc/bind
-  [  -e  /etc/bind/named.conf  ]  ||  cp  $SNC  /etc/bind
-  [  -e  /etc/bind/named.root  ]  ||  cp  $SNR  /etc/bind
-  [  -e  /etc/resolv.conf      ]  ||  cp  $RES  /etc
-  [  -e  /etc/bind/rndc.key    ]  ||  rndc-confgen  -a
-
-  chown  -R  bind:bind  /etc/bind
- }
+    [  -f  $JAIL/etc/bind/rndc.key  ]  ||
+    rndc-confgen  -a  -u bind  -t $JAIL
+  }
 
   groupadd  bind            2>/dev/null
   useradd   bind  -g  bind  2>/dev/null
