@@ -1,19 +1,22 @@
-   VERSION=( "4.2.7" "4.2.6" "4.2.5" "4.2.4" "4.2.3" "4.2.2" )
+   VERSION=( "5.0.0-rc2" "4.2.7" "4.2.6" "4.2.5" "4.2.4" "4.2.3" "4.2.2" )
     IGNORE="^200\|^4\.3\.\|gimp-print\|beta\|alpha\|pre"
   CATEGORY="printer"
  ATTRIBUTE="console x11 library"
-    SOURCE="gimp-print/gimp-print-$VERSION.tar.gz"
+    SOURCE="gimp-print/gutenprint-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://gimp-print.sourceforge.net"
-       REQ=( "jpeg ncurses readline tiff"
-             "cups:--with-cups --without-translated-ppds::for cups support" )
-#   "gimp:--with-gimp:--without-gimp:for gimp plugin"
-  ESTIMATE="322"
-      DESC="gimp-print is a collection of very high quality printer drivers.
+       REQ=( "jpeg ncurses readline tiff ghostscript"
+             "cups:--with-cups --without-translated-ppds::for cups support" 
+             "foomatic-db-engine:--with-foomatic::for Foomatic support"
+             "gimp:--with-gimp2:--without-gimp2:for gimp plugin" )
+  EPROVIDE="gimp-print"
+  ESTIMATE="694"
+      DESC="gutenprint is a collection of very high quality printer drivers.
+gutenprint was formerly known as gimp-print.
 The goal of this project is uncompromising 
 print quality and robustness.
 Included with this package is the Print
-plugin for the GIMP (hence the name), 
+plugin for the GIMP (hence the former name), 
 a CUPS driver, and a driver for Ghostscript 
 that may be compiled into that package.
 This driver package is Foomatic-compatible 
@@ -22,7 +25,9 @@ In addition, various printer maintenance
 utilities are included."
 
 post_install()  {
-[  -x  /etc/init.d/cups  ]  &&
-bash   /etc/init.d/cups  try-restart
-true
+ if [  -x  /etc/init.d/cups  ]; then
+    cups-genppdupdate.5.0
+    bash   /etc/init.d/cups  try-restart
+ fi	
+ true
 }
