@@ -1,18 +1,20 @@
-#  VERSION=( "1.1.0" "1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
-# 1.1.0 has compile error?
-   VERSION=( "1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
-      SAFE=( "1.1.0" "1.0.5" )
+   VERSION=( "1.1.1" "1.1.0" "1.0.5" "1.0.4" "1.0.3" "1.0.2" "1.0.1" "1.0.0" )
+      SAFE=( "1.1.1" "1.1.0" "1.0.5" )
     IGNORE="pre"
   CATEGORY="authentication"
- ATTRIBUTE="console encryption new server broken"
-# Has a problem with heimdal's installed kerberos.
+ ATTRIBUTE="console encryption new server"
     SOURCE="freeradius-$VERSION.tar.gz"
        URL="ftp://ftp.freeradius.org/pub/radius"
   HOMEPAGE="http://www.freeradius.org"
        REQ=( "gdbm libtool openssl"
              "Linux-PAM:::for pluggable authentication"
              "openldap:::for authentication using ldap" )
-  ESTIMATE="1427"
+case  $VERSION  in
+  1.1.[0-1])  OPTS="--without-rlm_krb5"  ;;
+esac
+# Has a problem with heimdal's installed kerberos.
+# But the above bypasses the problem
+  ESTIMATE="1383"
       DESC="freeradius provides a RADIUS authenticaton, accounting and logging server.
 
 freeradius is a high-performance and highly configurable RADIUS server.
@@ -23,11 +25,3 @@ Oracle, IODBC, IBM DB2, MS-SQL, Sybase, LDAP, Kerberos, EAP, PAM,
 MS-CHAP and MPPE, Digest authentication, Python, X9.9, and many more.
 It allows the administrator to fully customize the
 behaviour of authentication, accounting, and logging."
-
-build()  {
-case  $VERSION  in
-  1.0.0)  sed  -i  "\,good_state:,a;"  src/modules/rlm_x99_token/x99_rlm.c  ;;
-  1.0.1)  sed  -i  "\,good_state:,a;"  src/modules/rlm_x99_token/x99_rlm.c  ;;
-esac
-default_build
-}

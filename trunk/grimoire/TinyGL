@@ -1,20 +1,54 @@
    VERSION=( "0.4" )
   CATEGORY="graphic"
- ATTRIBUTE="library x11 broken"
-# zbuffer.c: In function 'ZB_copyFrameBufferRGB24':
-# zbuffer.c:268: error: invalid lvalue in assignment
-# Source not up to date with gcc.
-# made no attempt to fix it.
-# Probably very simple to fix.
+ ATTRIBUTE="library x11"
     SOURCE="TinyGL-0.4.tar.gz"
        URL="http://fabrice.bellard.free.fr/TinyGL"
   HOMEPAGE="http://fabrice.bellard.free.fr/TinyGL"
+case  $VERSION  in
+  0.4)  USE_GCC="gcc-v3.4"  ;;
+esac
        REQ="x11"
-  ESTIMATE="740"
+  ESTIMATE="75"
       DESC="TinyGL provides a fast software implementation of a subset of OpenGL."
 
 build() {
+  make_shared_lib()  {
+    ld  --whole-archive  -share  -o  $1.so  $1.a
+  }
+
+  make_install()  {
+    modify_symlink()  {
+      if    [[  -f       $1  ]]  &&
+            [[  -h       $1  ]]
+      then  ln  -sf  $2  $1
+      fi
+    }
+
+    mkdir  -p                                 /usr/X11R6/lib/libGL.save
+    cp     -av  /usr/X11R6/lib/libGL.{a,so}*  /usr/X11R6/lib/libGL.save
+    rm     -f   /usr/X11R6/lib/libGL.{a,so}*
+
+    cd   lib
+    make_shared_lib   libTinyGL
+
+    install  -m 0644  libTinyGL.a   /usr/X11R6/lib/libGL.a
+    install  -m 0755  libTinyGL.so  /usr/X11R6/lib/libGL.so.1.2
+    ln       -fs      libGL.so.1.2  /usr/X11R6/lib/libGL.so.1
+    ln       -fs      libGL.so.1.2  /usr/X11R6/lib/libGL.so
+
+    modify_symlink  /usr/lib/libGL.so      /usr/X11R6/lib/libGL.so.1.2
+    modify_symlink  /usr/lib/libGL.so.1    /usr/X11R6/lib/libGL.so.1.2
+    modify_symlink  /usr/lib/libGL.so.1.2  /usr/X11R6/lib/libGL.so.1.2
+  }
+
+  sed  -i  "s:examples::"  config.mk
   make             &&
   prepare_install  &&
-  make    install
+     make_install
+}
+
+
+pre_remove()  {
+  cp  -a  /usr/X11R6/lib/libGL.save/*  /usr/X11R6/lib/
+  true
 }

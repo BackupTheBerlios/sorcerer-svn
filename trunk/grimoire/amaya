@@ -1,6 +1,6 @@
-   VERSION=( "9.2.2" "9.2.1" "9.2" "9.1.4" "9.1" "9.0" "8.7" "8.6" "8.5" "8.4" )
-# 9.3 has compile errors
-# 9.4 has compile errors
+   VERSION=( "9.4" "9.2.2" "9.2.1" "9.2" "9.1.4" "9.1" "9.0" "8.7" "8.6" "8.5" "8.4" )
+# 9.3 9.4 have compile problems with the included wxWidgets
+# Consequently, this spell compiles the gtk+ version of amaya now.
   CATEGORY="web"
  ATTRIBUTE="client x11"
     SOURCE="amaya-fullsrc-$VERSION.tgz"
@@ -8,7 +8,10 @@
        URL="http://www.w3.org/Amaya/Distribution
              ftp://ftp.w3.org/pub/amaya"
        REQ="imlib"
-  ESTIMATE="1442"
+#case  $VERSION  in
+#  9.4)  USE_GCC="gcc-v4.0"  ;;
+#esac
+  ESTIMATE="1439"
       DESC="amaya is a web browser and WYSIWYG authoring tool.
 amaya is a complete web browsing and authoring
 environment and comes equipped with a WYSIWYG
@@ -24,7 +27,10 @@ mkdir  obj           &&
 cd     obj           &&
 ../configure         \
 --prefix=/opt        \
---bindir=/usr/bin    &&
+--bindir=/usr/bin    \
+--without-wx         \
+--with-gtk           \
+$OPTS                &&
 make                 &&
 prepare_install      &&
 make    install

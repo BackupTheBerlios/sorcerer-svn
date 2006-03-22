@@ -1,14 +1,22 @@
    VERSION=( "5.0.0-rc2" "4.2.7" "4.2.6" "4.2.5" "4.2.4" "4.2.3" "4.2.2" )
+# Check the post_install on each update to see if that
+# cups-genppdupdate.5.0 changes name.
     IGNORE="^200\|^4\.3\.\|gimp-print\|beta\|alpha\|pre"
   CATEGORY="printer"
  ATTRIBUTE="console x11 library"
     SOURCE="gimp-print/gutenprint-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://gimp-print.sourceforge.net"
-       REQ=( "jpeg ncurses readline tiff ghostscript"
+# Recursive requirement with ghostscript
+# gutenprint -> espgs providing ghostscript -> gutenprint
+#      REQ=( "jpeg ncurses readline tiff ghostscript"
+       REQ=( "jpeg ncurses readline tiff"
              "cups:--with-cups --without-translated-ppds::for cups support" 
-             "foomatic-db-engine:--with-foomatic::for Foomatic support"
              "gimp:--with-gimp2:--without-gimp2:for gimp plugin" )
+#            "foomatic-db-engine:--with-foomatic::for Foomatic support"
+# foomatic-db-engine optional creates a recursive requirement loop
+# gutenprint -> foomatic-db-engine -> foomatic-db-hpijs ->
+# espgs -> gutenprint
   EPROVIDE="gimp-print"
   ESTIMATE="694"
       DESC="gutenprint is a collection of very high quality printer drivers.
