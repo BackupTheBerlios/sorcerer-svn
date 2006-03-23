@@ -1,0 +1,41 @@
+diff -r -U2 fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_agpgart/firegl_wrap.c fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_agpgart/firegl_wrap.c
+--- fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_agpgart/firegl_wrap.c	2006-03-07 07:53:15.000000000 -0700
++++ fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_agpgart/firegl_wrap.c	2006-03-22 22:44:39.000000000 -0700
+@@ -22,4 +22,5 @@
+ #endif /* !MODULE */
+ 
++#define _LINUX_UNISTD_H_
+ // ============================================================
+ #include <linux/version.h>
+@@ -1121,5 +1122,5 @@
+ int ATI_API_CALL __ke_verify_area(int type, const void * addr, unsigned long size)
+ {
+-    return verify_area(type, addr, size);
++    return access_ok(type,addr,size) ? 0 : -EFAULT;
+ }
+ 
+diff -r -U2 fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_public.c fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_public.c
+--- fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_public.c	2006-03-07 07:53:15.000000000 -0700
++++ fglrx-xorg-6_8_0-8.23.7-1/lib/modules/fglrx/build_mod/firegl_public.c	2006-03-22 22:45:24.000000000 -0700
+@@ -362,5 +362,5 @@
+ static firegl_drm_stub_info_t firegl_stub_info;
+ 
+-#if LINUX_VERSION_CODE < 0x020400
++#if LINUX_VERSION_CODE > 0x02060F
+ struct firegl_drm_stub_info_t *firegl_stub_pointer = NULL;
+ #define inter_module_put(x)
+@@ -368,5 +368,7 @@
+ #define inter_module_get_request(x,y)   firegl_stub_pointer
+ #define inter_module_register(x,y,z)    do { firegl_stub_pointer = z; } while (0)
++#endif
+ /* This is a kludge for backward compatibility that is only useful in DRM(stub_open) */
++#if LINUX_VERSION_CODE < 0x020400
+ #define fops_put(fops)      MOD_DEC_USE_COUNT
+ #define fops_get(fops)      (fops); MOD_INC_USE_COUNT
+@@ -1593,5 +1595,5 @@
+ // Connect two PC with a null modern serial cable. run Hyper ternimal on the remote machine. 
+ // It's useful to debug resume if network not works properly and serial port is not recovered 
+-// properly when fglrx resume hook is called...
++// properly when fglrx resume hook is called...
+  
+  
