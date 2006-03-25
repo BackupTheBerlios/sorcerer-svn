@@ -1,0 +1,71 @@
+if  [  -n  "$CATEGORY"   ]  &&
+    [  -n  "$ATTRIBUTE"  ]
+then
+  ATTRIBUTE="x11 X11R7"
+  case  ${SOURCE%/*}  in
+    app)	CATEGORY="utility"		;;
+    data)	CATEGORY="data"			;;
+    doc)	CATEGORY="documentation"	;;
+    driver)	CATEGORY="xserver";	ATTRIBUTE="x11 X11R7 library"	;;
+    font)	CATEGORY="font"			;;
+    lib)	CATEGORY="xserver";	ATTRIBUTE="x11 X11R7 library"	;;
+    proto)	CATEGORY="xserver";	ATTRIBUTE="x11 X11R7 library"	;;
+    util)	CATEGORY="utility"		;;
+  esac
+fi
+
+  HOMEPAGE="${HOMEPAGE:-http://www.x.org}"
+
+if  [  "$SPELL"  ==  "xf86"  ];  then
+   VERSION=( "X11R7.0" )
+  CATEGORY="xserver profile"
+  EPROVIDE="x11"
+       REQ=( "libICE libSM libXaw libXcursor libXft libXinerama libXp libXrandr libXt libXtst libXv libXxf86dga libdmx xf86-app xf86-font xf86-input xf86-video"
+             "xf86-util:::for utilities no longer used to build X11R7" )
+  ESTIMATE="5"
+  COMPACT="on"
+     DESC="xf86 is a fork of XFree86 4.4.0."
+else
+       URL=( "ftp://ftp.x.org/pub/$VERSION/src
+              http://ftp.skynet.be/pub/ftp.x.org/pub/$VERSION/src"
+             "http://xorg.freedesktop.org/releases/$VERSION/patches" )
+fi
+
+
+fix_usr_include_x11() {
+ if    [  -f  /usr/include/X11  ];  then
+   rm     -f  /usr/include/X11
+ elif  [  -d  /usr/include/X11  ]  &&
+     ! [  -h  /usr/include/X11  ];  then
+   mkdir  -p                      /usr/X11R6/include/X11
+   cp     -a  /usr/include/X11/*  /usr/X11R6/include/X11
+   rm     -fr /usr/include/X11
+ fi
+ if  ! [  -h  /usr/include/X11  ];  then
+   mkdir  -p                      /usr/X11R6/include/X11
+   ln     -s                        ../X11R6/include/X11  /usr/include/X11
+ fi
+}
+
+
+fix_usr_lib_x11() {
+ if    [  -f  /usr/lib/X11  ];  then
+   rm     -f  /usr/lib/X11
+ elif  [  -d  /usr/lib/X11  ]  &&
+     ! [  -h  /usr/lib/X11  ];  then
+   mkdir  -p                      /usr/X11R6/lib/X11
+   cp     -a  /usr/lib/X11/*  /usr/X11R6/lib/X11
+   rm     -fr /usr/lib/X11
+ fi
+ if  ! [  -h  /usr/lib/X11  ];  then
+   mkdir  -p                      /usr/X11R6/lib/X11
+   ln     -s                        ../X11R6/lib/X11  /usr/lib/X11
+ fi
+}
+
+
+build()  {
+  fix_usr_include_x11
+  fix_usr_lib_x11
+  default_build
+}

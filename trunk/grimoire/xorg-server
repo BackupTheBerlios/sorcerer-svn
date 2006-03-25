@@ -1,0 +1,46 @@
+inherit xf86
+   VERSION=( "X11R7.0-1.0.1" )
+  MVERSION="6.4.2"
+    URL[2]="${URL[1]}"
+    URL[1]="$SOURCEFORGE_URL"
+    URL[3]="$KERNEL_URL"
+case  $VERSION  in
+  X11R7.0-1.0.1)
+    SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
+             "mesa3d/MesaLib-$MVERSION.tar.bz2"
+             "xorg-server-1.0.1-geteuid.diff"
+             "pub/linux/kernel/v2.6/linux-2.6.15.6.tar.bz2" )  ;;
+
+  *)
+    SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
+             "mesa3d/MesaLib-$VERSION.tar.bz2" )  ;;
+esac
+       REQ=( "MesaLib compositeproto damageproto evieext fixesproto fontsproto glproto libdmx libdrm libXaw libXfont libXrender libXres libXxf86misc libXxf86vm liblbxutil libxkbui ncurses randrproto  recordproto renderproto resourceproto rgb scrnsaverproto trapproto videoproto xauth xf86dgaproto xf86driproto xf86vidmodeproto xineramaproto xinit"
+             "twm:::for twm, the window manager"
+             "xdm:::for graphical login" )
+#            ":--mesa-from-cvs::to compile with MesaLib from cvs instead of release tarball" )
+# Mesa from cvs is incompatible with xorg-server X11R7.0-1.0.1
+   COMPACT="on"
+  ESTIMATE="4325"
+      DESC="xorg-server provides a x11 server for X11R7"
+
+build()  {
+  case  $VERSION  in
+    X11R7.0-1.0.1)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}
+      export    CFLAGS="-I$PWD/linux-2.6.15.6/include $CFLAGS"
+      export  CXXFLAGS="-I$PWD/linux-2.6.15.6/include $CXXFLAGS"
+      case  $( arch )  in
+        x86_64)  ln  -s  asm-x86_64  linux-2.6.15.6/include/asm  ;;
+        i*86)    ln  -s  asm-i386    linux-2.6.15.6/include/asm  ;;
+      esac  ;;
+  esac
+  if    echo  "$OPTS"  |  grep  -q  "\--mesa-from-cvs"
+  then          OPTS="${OPTS/--mesa-from-cvs//}"
+    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa login
+    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa co Mesa
+    OPTS="--with-mesa-source=$PWD/Mesa"
+  else
+    OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
+  fi
+  default_build
+}
