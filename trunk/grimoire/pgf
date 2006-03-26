@@ -1,0 +1,47 @@
+   VERSION=( "1.01" )
+  CATEGORY="TeX-macros"
+ ATTRIBUTE="TeX-macros new"
+    SOURCE="pgf/pgf-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://sourceforge.net/projects/pgf"
+       REQ="teTeX-texmf"
+ FRESHMEAT="pgf"
+  ESTIMATE="9"
+      DESC="$SPELL is a TeX macro package for generating graphics. 
+It is platform- and format-independent and works together with 
+the most important TeX backend drivers, including pdftex and 
+dvips. It comes with a user-friedly syntax layer called TikZ.
+"
+
+build() {
+ remove_old_pgf() {
+   pgf_files=$( grep -e	'/usr/share/texmf/tex/.*/pgf' 		\
+		     -e '/usr/share/texmf/doc/latex/pgf'	\
+			$INSTALL_LOGS/teTeX-texmf	)
+   echo "Removing old pgf files from the teTeX-texmf install:"
+   echo    "$pgf_files"
+   rm  -rv "$pgf_files"
+   echo "Fixing teTeX-texmf install log file"
+   sed  -i  	'\,/usr/share/texmf/tex/.*/pgf,d
+             	 \,/usr/share/texmf/doc/latex/pgf,d'		\
+		$INSTALL_LOGS/teTeX-texmf
+ }	
+ 
+ pgf_install() {
+   find doc -name '*' 						\
+	-exec install -D -v '{}' /usr/share/texmf/'{}' \;	&&
+   find generic latex plain -name '*'				\
+	-exec install -D -v '{}' /usr/share/texmf/tex/'{}' \;
+ }
+
+ remove_old_pgf		&&
+ prepare_install	&&
+ pgf_install
+
+}
+
+post_install() {
+ [ -x /usr/bin/texhash ] && texhash
+ default_post_install
+}
+
