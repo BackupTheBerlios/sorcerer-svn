@@ -3,14 +3,12 @@ inherit xf86
   MVERSION="6.4.2"
     URL[2]="${URL[1]}"
     URL[1]="$SOURCEFORGE_URL"
-    URL[3]="$KERNEL_URL"
 case  $VERSION  in
   X11R7.0-1.0.1)
     SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
              "mesa3d/MesaLib-$MVERSION.tar.bz2"
-             "xorg-server-1.0.1-geteuid.diff"
-             "pub/linux/kernel/v2.6/linux-2.6.15.6.tar.bz2" )  ;;
-
+             "xorg-server-1.0.1-geteuid.diff" )  ;;
+    USE_LINUX="linux-headers-v2.6.15.6"  ;;
   *)
     SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
              "mesa3d/MesaLib-$VERSION.tar.bz2" )  ;;
@@ -25,22 +23,13 @@ esac
       DESC="xorg-server provides a x11 server for X11R7"
 
 build()  {
-  case  $VERSION  in
-    X11R7.0-1.0.1)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}
-      export    CFLAGS="-I$PWD/linux-2.6.15.6/include $CFLAGS"
-      export  CXXFLAGS="-I$PWD/linux-2.6.15.6/include $CXXFLAGS"
-      case  $( arch )  in
-        x86_64)  ln  -s  asm-x86_64  linux-2.6.15.6/include/asm  ;;
-        i*86)    ln  -s  asm-i386    linux-2.6.15.6/include/asm  ;;
-      esac  ;;
-  esac
-  if    echo  "$OPTS"  |  grep  -q  "\--mesa-from-cvs"
-  then          OPTS="${OPTS/--mesa-from-cvs//}"
-    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa login
-    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa co Mesa
-    OPTS="--with-mesa-source=$PWD/Mesa"
-  else
-    OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
-  fi
+#  if    echo  "$OPTS"  |  grep  -q  "\--mesa-from-cvs"
+#  then          OPTS="${OPTS/--mesa-from-cvs//}"
+#    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa login
+#    cvs -d:pserver:anonymous:@pdx.freedesktop.org:/cvs/mesa co Mesa
+#    OPTS="--with-mesa-source=$PWD/Mesa"
+#  else
+#  fi
+  OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
   default_build
 }

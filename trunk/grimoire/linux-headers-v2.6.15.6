@@ -1,0 +1,23 @@
+   VERSION=( "2.6.15.6" )
+  CATEGORY="kernel"
+ ATTRIBUTE="development"
+    SOURCE="pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
+       URL="$KERNEL_URL"
+  HOMEPAGE="http://www.kernel.org"
+  ESTIMATE="5"
+      DESC="linux-headers-v2.6.15.6 installs linux kernel headers."
+
+build()  {
+  chown  -R  root:root  include
+  find                  include  -type d  |  xargs  -l64  chmod  0755
+  find                  include  -type f  |  xargs  -l64  chmod  0644
+  [      -d             include  ]  &&
+  prepare_install  &&
+  mkdir  -p                        /usr/include/linux-$VERSION  &&
+  cp     -av            include/*  /usr/include/linux-$VERSION  &&
+  case  $( arch )  in
+    x86_64)  ASM="asm-x86_64"  ;;
+         *)  ASM="asm-i386"    ;;
+  esac  &&
+  ln  -fs  $ASM  /usr/include/linux-$VERSION/asm
+}
