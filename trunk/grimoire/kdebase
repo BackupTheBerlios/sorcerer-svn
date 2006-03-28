@@ -1,7 +1,8 @@
 inherit kde
-  SAFE=( "3.5.1" "3.5.0" "3.4.3" )
+  SAFE=( "3.5.2" "3.5.1" "3.5.0" "3.4.3" )
   CATEGORY="utility file-manager terminal-emulator"
 case  $VERSION  in
+  3.5.2)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
   3.5.1)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
   3.3.2)  SOURCE[1]="security_patches/post-3.3.2-kdebase-htmlframes2.patch"  ;;
   3.4.2)  SOURCE[1]="security_patches/post-3.4.2-kdebase-kcheckpass.diff"  ;;
@@ -10,6 +11,7 @@ case  $VERSION  in
 esac
        REQ=( "kdelibs"
              "Linux-PAM:::for pluggable authentication"
+             "OpenEXR:::for HDR image file format support"
              "cdparanoia:::to rip compact disks"
              "cyrus-sasl:::for secure network authentication"
              "lame:::to rip compact disks"
@@ -28,6 +30,7 @@ control center, the file manager, and the panel."
 
 build()  {
   case  $VERSION  in
+    3.5.2) sed   -i  "s:/opt/local/bin:/opt/local/bin /usr/X11R6/bin:"  configure  ;;
     3.3.2) patch -p0 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
     3.4.0) patch -p1 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} ;;
     3.4.2) patch -p1 < $SOURCE_CACHE/kdebase/$VERSION/${SOURCE[1]##*/} kcheckpass/kcheckpass.c  ;;
