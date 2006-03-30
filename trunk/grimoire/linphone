@@ -1,6 +1,6 @@
-   VERSION=( "1.3.1" "1.3.0" "1.2.0" )
-    IGNORE="1.3.2"
-# 1.3.2 has compile errors
+   VERSION=( "1.2.0" "1.3.3" "1.3.1" "1.3.0" )
+    IGNORE="^1\.3\."
+# 1.3.x versions are developmental?
   CATEGORY="audio"
  ATTRIBUTE="console gnome"
     SOURCE="linphone-$VERSION.tar.gz"
@@ -13,8 +13,9 @@ case  $VERSION  in
 esac
        REQ=( "glib libosip2 speex"
              "alsa-lib:--enable-alsa:--disable-alsa:for alsa support"
-             "gnome-panel:--enable-gnome_ui=yes:--enable-gnome_ui=no:for GUI support" )
-  ESTIMATE="813"
+             "gnome-panel:--enable-gnome_ui=yes:--enable-gnome_ui=no:for GUI support"
+             "jackit:::for jack sound server support" )
+  ESTIMATE="922"
       DESC="linphone an voice over IP telephone program.
 linphone is a web phone with a GNOME interface.
 It makes two-party calls over IP networks such as the Internet.
@@ -23,3 +24,9 @@ and RTP (Realtime Transport Protocol) to make calls.
 It should be able to communicate with other SIP-based Web phones.
 With several codecs available, it can be used with
 high speed connections as well as 28k modems."
+
+build()  {
+grep   -lr "\-Werror"  *  |
+xargs  -l64  sed  -i  "s:-Werror::"
+default_build
+}
