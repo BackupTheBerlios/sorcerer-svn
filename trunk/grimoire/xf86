@@ -34,34 +34,37 @@ else
              "http://xorg.freedesktop.org/releases/X11R7.0/patches" )
 fi
 
+
 fix_sym_dir()  {
+
   fsd() {
     local SYM="$1"
     local DES="$2"
     local DIR="$3"
 
-    if    !  [   -d  $DIR  ]
-    then  rm     -f  $DIR
-          mkdir  -p  $DIR
-    fi
-
     if    !  [   -e        $SYM  ]  ||
              [   -f        $SYM  ]
-    then     rm  -f        $SYM
-             ln  -s  $DES  $SYM
+    then  rm     -f        $SYM
+          ln     -s  $DES  $SYM
     elif  !  [   -h        $SYM  ]  &&
              [   -d        $SYM  ]
-    then     cp  -a        $SYM/*  $DIR/
-             rm  -fr       $SYM
-             ln  -s  $DES  $SYM
-    elif     [   -h        $SYM                ]   &&
-          !  [ $( readlink $SYM )  ==  "$DES"  ]
-    then     rm  -f        $SYM
-             ln  -s  $DES  $SYM
+    then  cp     -a        $SYM/*  $DIR/
+          rm     -r        $SYM
+          ln     -s  $DES  $SYM
     fi
   }
-  fsd  "/usr/include/X11"  "../X11R6/include/X11"  "/usr/X11R6/include/X11"
-  fsd  "/usr/lib/X11"      "../X11R6/lib/X11"      "/usr/X11R6/lib/X11"
+
+  if     !  [   -d  /usr/X11R6  ]
+  then   rm     -f  /usr/X11R6
+         mkdir  -p  /usr/X11R6
+  fi
+
+  [  -h  /usr/include/GL   ]  &&  rm  -f  /usr/include/GL
+  [  -h  /usr/include/X11  ]  &&  rm  -f  /usr/include/X11
+  [  -h  /usr/lib/X11      ]  &&  rm  -f  /usr/lib/X11
+
+  fsd  "/usr/X11R6/include"  "../include"  "/usr/include"
+  fsd  "/usr/X11R6/lib"      "../lib"      "/usr/lib"
 }
   
 build()  {
