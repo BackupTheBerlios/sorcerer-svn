@@ -6,9 +6,6 @@
        URL="http://download.nvidia.com/XFree86/Linux-x86/$VERSION"
   HOMEPAGE="http://www.nvidia.com"
        REQ="gtk+ mktemp"
-case  $VERSION  in
-  1.0-8178)  USE_GCC="gcc-v3.4"  ;;
-esac
   EPROVIDE="NVIDIA_GLX NVIDIA_kernel"
  FRESHMEAT="nvidiaxfree86_40drivers"
   ESTIMATE="5"
@@ -99,6 +96,7 @@ build() {
 
   case  $VERSION  in
   1.0-6629)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-6629-02.28.2005.diff.txt  ;;
+  1.0-8178)  patch  -p0  <  $SCRIPT_DIR/NVIDIA_kernel-1.0-8178-U012206.diff.txt     ;;
   esac
 
   cd  usr/src/nv
@@ -113,21 +111,12 @@ build() {
   case  $VERSION  in
     1.0-6111)  
       case  $LVER  in
-        2.6.9)  patch  -p0  <<  EOF
-          diff -r -U2 nv.c nv.c
---- nv.c     2004-07-27 08:33:20.000000000 -0700
-+++ nv.c     2004-07-27 08:33:20.000000000 -0700
-@@ -20,4 +20,5 @@
- #endif
-
-+#define __VMALLOC_RESERVE (128 << 20)
-  /*
-  * our global state; one per device
-EOF
-;;
-esac
-;;
-esac
+        2.6.9)  patch  -p0  < $SCRIPT_DIR/1.0-6111-2.6.9.diff
+         
+         ;;
+       esac
+          ;;
+  esac
 
 
    SM="/usr/src/linux/System.map"
@@ -164,3 +153,4 @@ post_install() {
 
   depmod  -a
 }
+# Origin grimoire
