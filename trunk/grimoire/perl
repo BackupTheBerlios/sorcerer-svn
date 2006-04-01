@@ -23,26 +23,27 @@ to improve security with setuid scripts and is
 extendable via modules that can interface to C libraries."
 
 build()  {
- if    echo  "$CFLAGS"  |  grep  -q  "march=i586"
- then         SETARCH="-Darchname=i586-linux"
- else  unset  SETARCH
- fi
+  if    echo  "$CFLAGS"  |  grep  -q  "march=i586"
+  then         SETARCH="-Darchname=i586-linux"
+  else  unset  SETARCH
+  fi
 
- unset  LANG  LC_CTYPE
+  unset  LANG  LC_CTYPE
 
-
- ./Configure  -Dprefix=/usr -d -e -Dusethreads                    \
-        -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \
-        $SETARCH
- make  "OPTIMIZE=$CFLAGS"  &&
- prepare_install           &&
- make    install
+  ./Configure                                         \
+  -Dprefix=/usr -d -e -Dusethreads                    \
+  -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \
+  $SETARCH
+  make  "OPTIMIZE=$CFLAGS"  &&
+  prepare_install           &&
+  make    install
 }
 
 post_install()  {
- unlock_cast
- cast  -c  $(  show_installed  perl-module  )
- if     !  spell_installed  XML-Parser
- then                 cast  XML-Parser
- fi
+  unlock_cast
+  cast  -c  $(  show_installed  perl-module  )
+  if     !  spell_installed  XML-Parser
+  then                 cast  XML-Parser
+  fi
+  true
 }
