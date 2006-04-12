@@ -1,14 +1,18 @@
-    VERSION=( "1.1.3" "1.1.2" "1.1.1" "1.1.0" "1.0.14" "1.0.13" )
+    VERSION=( "1.1.4" "1.1.3" "1.1.2" "1.1.1" "1.1.0" "1.0.14" "1.0.13" )
    CATEGORY="utility"
-  ATTRIBUTE="console linux-26-module"
+  ATTRIBUTE="broken console linux-26-module"
      SOURCE="unionfs-$VERSION.tar.gz"
         URL="ftp://ftp.fsl.cs.sunysb.edu/pub/unionfs/"
    HOMEPAGE="http://www.fsl.cs.sunysb.edu/project-unionfs.html"
         REQ="ctags e2fsprogs"
+case  $VERSION  in
+  1.1.4)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
+esac
    ESTIMATE="40"
        DESC="unionfs provides a stackable unification file system."
 
 build()  {
+echo  "EXTRA_CFLAGS=-DUNIONFS_UNSUPPORTED $CFLAGS"  >  fistdev.mk
 KVERS=$( installed_version  $(  get_provider  linux-kernel  )  )
 make             PREFIX=/usr  KVERS="$KVERS"  &&
 prepare_install                               &&
