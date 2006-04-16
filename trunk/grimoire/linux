@@ -1,7 +1,7 @@
    VERSION=( "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" )
       SAFE=( "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" "2.6.15.6" "2.6.15.5" "2.6.15.4" "2.6.15.3" "2.6.15.2" "2.6.15.1" "2.6.15" )
   CATEGORY="kernel"
- ATTRIBUTE="solo"
+ ATTRIBUTE="console"
     SOURCE="pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
   HOMEPAGE="http://www.kernel.org"
@@ -75,6 +75,15 @@ build() {
     ln     -s   $BV/System.map  /boot/System.map
   }
 
+  install_header()  {
+    mkdir   -m 0755  -p                         /usr/include/asm
+    install -m 0644  include/asm/asm-offsets.h  /usr/include/asm
+    mkdir   -m 0755  -p                         /usr/include/linux
+    install -m 0644  include/linux/autoconf.h   /usr/include/linux
+    install -m 0644  include/linux/compile.h    /usr/include/linux
+    true
+  }
+
   run_make_menuconfig()  {
     wiz_kill
     CONFIG_KERNEL="true"
@@ -88,27 +97,9 @@ build() {
   }
 
 
-  symlink_headers()  {
-    case  $( arch )  in
-      x86_64)  ASM="asm-x86_64"  ;;
-           *)  ASM="asm-i386"    ;;
-    esac
-                                         [  -e  /usr/include/asm  ]  ||
-    ln  -s  /usr/src/linux/include/$ASM         /usr/include/asm
-
-                                         [  -e  /usr/include/asm-generic  ]  ||
-    ln  -s  /usr/src/linux/include/asm-generic  /usr/include/asm-generic
-
-                                         [  -e  /usr/include/linux  ]  ||
-    ln  -s  /usr/src/linux/include/linux        /usr/include/linux
-  }
-
-
   restore_linux_configs()  {
     local  CUR="$CONFIG_LOGS/$BSPELL/linux-config"
     local  OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
-
-    symlink_headers
 
     if    [  -f   $CUR  ];  then  cp  $CUR  .config
     elif  [  -f   $OLD  ];  then  cp  $OLD  .config
@@ -117,23 +108,6 @@ build() {
     fi
   }
 
-
-  install_headers()  {
-    install_header_dir()  {
-      if    [   -h   /usr/include/$1  ];  then  rm  -f   /usr/include/$1
-      elif  [   -d   /usr/include/$1  ];  then  rm  -rf  /usr/include/$1
-      fi
-
-      mkdir  -p   /usr/include/$1
-      cp     -R        include/$1/*   \
-                  /usr/include/$1
-    }
-
-    install_header_dir  asm
-    install_header_dir  asm-generic
-    install_header_dir  linux
-    true
-  }
 
   make_modules()  {
     if    grep  -q  "CONFIG_MODULES=y"  .config
@@ -158,7 +132,7 @@ build() {
     prepare_install      &&
     make_modules_install &&
     install_kernel       &&
-    install_headers      &&
+    install_header       &&
     rm      -fr             /usr/src/linux  $BUILD_DIR/.ccache
     cp      -a  $BUILD_DIR  /usr/src/linux
   }

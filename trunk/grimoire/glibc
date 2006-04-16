@@ -1,3 +1,4 @@
+  LVERSION=( "2.6.15.7" )
 #  VERSION=( "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
 #     SAFE=( "2.4" "2.3.6" "2.3.5" "2.3.4" )
    VERSION=(       "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
@@ -10,8 +11,10 @@
  ATTRIBUTE="library solo"
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-linuxthreads-$VERSION.tar.bz2"
-            "glibc/glibc-libidn-$VERSION.tar.bz2" )
+            "glibc/glibc-libidn-$VERSION.tar.bz2"
+            "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
        URL="$GNU_URL"
+    URL[3]="$KERNEL_URL"
   HOMEPAGE="http://www.gnu.org/software/libc"
 case  $VERSION  in
   2.3.5)  USE_GCC="gcc-v3.4"  ;;
@@ -39,7 +42,7 @@ esac
             /usr/include/bits/syscall.h
             /usr/include/gnu/stubs.h"
   disable  lib64
-  ESTIMATE="11669"
+  ESTIMATE="11269"
       DESC="glibc is a C library for use with GNU/Hurd and GNU/Linux.
 glibc - Library for use with GNU/Hurd and GNU/Linux.
 GNU C Library is one of the most important components
@@ -79,6 +82,16 @@ fix_libc_so() {
 }
 
 
+finish_install()  {
+cd         $INSTALL_ROOT
+rm     -f  $INSTALL_ROOT/etc/{localtime,ld.so.*}
+export  LD_PRELOAD="$LD_PRELOAD_OLD"
+cp     -a   *  /
+fix_libc_so
+del_cached_glibc
+}
+
+
 LD_PRELOAD_OLD="$LD_PRELOAD"
 unset  LD_PRELOAD
 unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
@@ -114,13 +127,29 @@ esac
 export  LANGUAGE=C
 export    LC_ALL=C
 
-INSTALL_ROOT=$PWD/install
+            INSTALL_ROOT=$PWD/install
 mkdir  -p  $INSTALL_ROOT/etc
 touch      $INSTALL_ROOT/etc/ld.so.conf
 
 
+case  $( arch )  in
+  x86_64)  ASM="asm-x86_64"  ;;
+       *)  ASM="asm-i386"    ;;
+esac
+
+mkdir  -p                                       $INSTALL_ROOT/usr/include
+cd          linux-$LVERSION
+make        include/linux/version.h
+make        include/asm
+cp     -rL  include/{asm,asm-generic,linux}     $INSTALL_ROOT/usr/include
+cd     ..
+rm     -fr  linux-$LVERSION
+
+HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
+
+
 case  $VERSION  in
-  2.4)    mv      glibc-libidn-2.4  libidn  ;;
+  2.4)  mv  glibc-libidn-2.4  libidn  ;;
 esac
 
 
@@ -137,21 +166,21 @@ cd     build
 --without-cvs      \
 --enable-shared    \
 --enable-add-ons   \
+$HEADERS           \
 $OPTS              &&
 make               &&
 # make    tests    &&
 prepare_install    &&
 make    install    \
-        install_root=$INSTALL_ROOT    &&
-cd   ../install                       &&
-rm     -f   etc/{localtime,ld.so.*}   &&
-export  LD_PRELOAD="$LD_PRELOAD_OLD"  &&
-cp     -a   *  /                      &&
-fix_libc_so                           &&
-del_cached_glibc
+        install_root=$INSTALL_ROOT  &&
+ finish_install
+
 }
 
 post_install() {
  default_post_install
  backup_lib
 }
+
+
+current()  { grep  -q  "/usr/include/linux/version.h"  $INSTALL_LOGS/glibc; }
