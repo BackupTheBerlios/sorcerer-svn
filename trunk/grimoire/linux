@@ -1,5 +1,5 @@
-   VERSION=( "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" )
-      SAFE=( "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" "2.6.15.6" "2.6.15.5" "2.6.15.4" "2.6.15.3" "2.6.15.2" "2.6.15.1" "2.6.15" )
+   VERSION=( "2.6.16.7" "2.6.16.6" "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" )
+      SAFE=( "2.6.16.7" "2.6.16.6" "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" "2.6.15.6" "2.6.15.5" "2.6.15.4" "2.6.15.3" "2.6.15.2" "2.6.15.1" "2.6.15" )
   CATEGORY="kernel"
  ATTRIBUTE="console"
     SOURCE="pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2"
@@ -42,6 +42,32 @@ and TCP/IP networking."
 # }
 
 
+configure()  {
+  local  CUR="$CONFIG_LOGS/$SPELL/linux-config"
+  local  OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+
+
+  copy()  {  if  [[ -f $1 ]]; then cp "$1" "$2"; fi;  }
+
+  if      !  [  -f  $CUR  ];  then
+    if    !  sources_cached;  then
+      echo  "Sources must be download before configuration."
+      leech  -w  $SPELL
+    fi
+    create_cast_tmp              &&
+    pre_build                    &&
+    optimize                     &&
+    copy       "$OLD"   .config  &&
+    make       menuconfig        &&
+    cp         .config  $CUR
+    if    [   -n   "$BUILD_DIR"  ]  &&
+          [   -d   "$BUILD_DIR"  ]
+    then  rm  -fr  "$BUILD_DIR"
+    fi
+  fi
+}
+
+
 apply_linux_patch() {
  case $VERSION in
    2.6.12|2.6.12.1)
@@ -60,7 +86,7 @@ build() {
   }
 
 
-  store_config()  {  cp  .config  $CONFIG_LOGS/$BSPELL/linux-config;  }
+  store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/linux-config;  }
 
   install_kernel()  {
     SM="System.map"
@@ -84,27 +110,12 @@ build() {
     true
   }
 
-  run_make_menuconfig()  {
-    wiz_kill
-    CONFIG_KERNEL="true"
-    while  $CONFIG_KERNEL; do
-      make  menuconfig
-      if    query  "Repeat menuconfig?" n
-      then  CONFIG_KERNEL=true
-      else  CONFIG_KERNEL=false
-      fi
-    done
-  }
-
-
   restore_linux_configs()  {
-    local  CUR="$CONFIG_LOGS/$BSPELL/linux-config"
-    local  OLD="$CONFIG_LOGS/$BSPELL/linux-config.old"
+    local  CUR="$CONFIG_LOGS/$SPELL/linux-config"
+    local  OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
 
     if    [  -f   $CUR  ];  then  cp  $CUR  .config
     elif  [  -f   $OLD  ];  then  cp  $OLD  .config
-          run_make_menuconfig
-    else  run_make_menuconfig
     fi
   }
 
@@ -142,8 +153,7 @@ build() {
   cd                      /usr/src/linux  &&
   apply_linux_patch      &&
   restore_linux_configs  &&
-  activate_voyeur        &&
-  compile_and_install    &> $C_FIFO
+  compile_and_install
 }
 
 
