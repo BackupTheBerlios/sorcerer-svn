@@ -1,14 +1,19 @@
-   VERSION=( "1.2.8" "1.2.7" "1.2.6" )
-      SAFE=( "1.2.8" )
-# 1.2.9 has compile errors
-    IGNORE="mips\|-makefile\|beta\|rc\|wince\|project\|config\|mingw\|1\.2\.9"
+   VERSION=( "1.2.8" "1.2.10" "1.2.9" "1.2.7" "1.2.6" )
+      SAFE=( "1.2.8" "1.2.10" "1.2.9" "1.2.8" )
+# There are some big changes between 1.2.10 and 1.2.8 that
+# break binary compatibility and yet the software author did
+# not increase the library number and some programs do not even
+# want to compile using libpng 1.2.10 such as imlib
+# checking for png_read_info in -lpng... no
+# configure: error: *** PNG library not found ***
+   IGNORE="mips\|-makefile\|beta\|rc\|wince\|project\|config\|mingw"
   CATEGORY="graphic"
  ATTRIBUTE="library"
     SOURCE="libpng/libpng-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.libpng.org/pub/png/libpng.html"
        REQ="zlib"
-  ESTIMATE="46"
+  ESTIMATE="39"
       DESC="libpng is a library that supports the PNG graphics format.
 libpng is the PNG library is a collection of routines
 used to create and manipulate PNG format graphics files.
@@ -21,12 +26,13 @@ sed  "s:prefix=/usr/local:prefix=/usr:
       s:ZLIBLIB=../zlib:ZLIBLIB=/usr/lib:
       s:ZLIBINC=../zlib:ZLIBINC=/usr/include:
       s:-O3 -funroll-loops:$CFLAGS:
-      s: -shared : -shared -lz -lc -lm :"  \
+      s: -shared : -shared -lz -lc -lm :
+      s:pngtest pngtest-static::"  \
 scripts/makefile.linux  >  Makefile
 
 make             &&
 prepare_install  &&
 make    install  &&
-ln  -sf  libpng/png.h      /usr/include/png.h  &&
-ln  -sf  libpng/pngconf.h  /usr/include/pngconf.h
+ln  -fs  libpng/png.h      /usr/include/png.h  &&
+ln  -fs  libpng/pngconf.h  /usr/include/pngconf.h
 }
