@@ -14,65 +14,63 @@ It provides minimalist replacements for most
 of the utilities you usually find in GNU
 fileutils, shellutils, etc."
 
+
+configure()  {
+  local  CUR="$CONFIG_LOGS/$SPELL/busybox-config"
+  local  OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
+
+  if      !  [  -f  $CUR  ];  then
+    if    !  sources_cached;  then
+      echo  "Sources must be download before configuration."
+      leech  -w  $SPELL
+    fi
+    create_cast_tmp              &&
+    pre_build                    &&
+    optimize                     &&
+    copy       "$OLD"   .config  &&
+    make       menuconfig        &&
+    cp         .config  $CUR
+    if    [   -n   "$BUILD_DIR"  ]  &&
+          [   -d   "$BUILD_DIR"  ]
+    then  rm  -fr  "$BUILD_DIR"
+    fi
+  fi
+}
+
+
 build()  {
 
-run_make_menuconfig()  {
+  restore_busybox_configs()  {
+    local  CUR="$CONFIG_LOGS/$SPELL/busybox-config"
+    local  OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
 
-  wiz_kill
+    if    [  -f   $CUR  ];  then  cp  $CUR  .config
+    elif  [  -f   $OLD  ];  then  cp  $OLD  .config
+    fi
+  }
 
-  if  [  "$TERM"  !=  "dumb"  ];  then
-    CONFIG_BUSYBOX="true"
-    while  $CONFIG_BUSYBOX; do
-      make  menuconfig
-      if    query  "Repeat menuconfig?" n
-      then  CONFIG_BUSYBOX=true
-      else  CONFIG_BUSYBOX=false
-      fi
+
+  store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/busybox-config;  }
+
+
+  compile_and_install()  {
+    yes   ""  |  make  oldconfig
+    store_config     &&
+    make             &&
+    prepare_install  &&
+    install  -m 0755  busybox  /bin   &&
+    mkdir    -p                /bbin  &&
+    cd                         /bbin  &&
+    busybox  --help    |
+    tail  -n  +12      |
+    tr    -d  ' \t\n'  |
+    tr        ',' '\n' |
+    while  read
+    do     [  -e               "$REPLY"  ]  ||
+           ln     /bin/busybox "$REPLY"
     done
-  fi
+  }
 
-}
-
-
-restore_busybox_configs()  {  (
-
-  CURRENT="$CONFIG_LOGS/$SPELL/busybox-config"
-      OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
-
-  if    [  -f   $CURRENT  ];  then  cp  $CURRENT  .config
-  elif  [  -f   $OLD      ];  then  cp  $OLD      .config;  run_make_menuconfig
-  else  run_make_menuconfig
-  fi
-
-)  }
-
-
-store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/busybox-config;  }
-
-
-compile_and_install()  {
-
-  yes   ""         |
-  make  oldconfig  &&
-     store_config  &&
-  make             &&
-  prepare_install  &&
-  install  -m 0755  busybox  /bin   &&
-  mkdir    -p                /bbin  &&
-  cd                         /bbin  &&
-  busybox  --help    |
-  tail  -n  +12      |
-  tr    -d  ' \t\n'  |
-  tr        ',' '\n' |
-  while  read
-  do     [  -e               "$REPLY"  ]  ||
-         ln     /bin/busybox "$REPLY"
-  done
-}
-
-
-restore_busybox_configs
-activate_voyeur
-compile_and_install  &> $C_FIFO
-
+  restore_busybox_configs
+  compile_and_install
 }

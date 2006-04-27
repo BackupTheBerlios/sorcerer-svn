@@ -1,4 +1,4 @@
-#  VERSION=( "thaumaturgy-20060425-0" )
+#  VERSION=( "thaumaturgy-20060427-0" )
    VERSION=( "celerity-20060421-0" "celerity-20060416-1" "celerity-20060416-0" "celerity-20060414-0" "celerity-20060413-0" "celerity-20060412-1" "celerity-20060410-1" "celerity-20060409-1" "celerity-20060330-1" "celerity-20060327-0" "celerity-20060325-0" "celerity-20060324-0" "celerity-20060320-0" "celerity-20060319-0" "celerity-20060318-0" "celerity-20060317-0" "celerity-20060316-0" "celerity-20060311-0" "celerity-20060309-0" "celerity-20060303-0" )
   CATEGORY="utility"
  ATTRIBUTE="noheal solo sorcery"
@@ -38,17 +38,6 @@ leech    -  downloads sources for spells
 sorcery  -  menu driven source manager"
 
 build() {
-  sym_sentinel_check()  {
-    if    [  -e  $SENTINEL  ]  &&
-          [  -h  $SENTINEL  ]
-    then  echo  "$SENTINEL must not be a symbolic link!"
-    echo  "Please correct this first and then recast $SPELL"
-    false
-    fi
-  }
-
-
-  sym_sentinel_check   &&
   [  -x   install  ]   &&
   prepare_install      &&
   ./install  $VERSION  &&
@@ -176,18 +165,11 @@ post_install() {
   create_lib_backup()  {  [  -d  /lib.old  ]  ||  backup_lib;  }
 
   install_sentinel()  {
-    local         SENTINEL=/usr/libexec/sorcery/sentinel
-    local                   ARCH=$( uname -m )
-    if    !  [  "$( available_version  glibc  )"  ==  \
-                "$( installed_version  glibc  )"      ]
-    then  cp  $SENTINEL-i586-old  $SENTINEL-i586
-          cp  $SENTINEL-i586-old  $SENTINEL-i686
-    fi
-    if    [  -x  $SENTINEL-$ARCH  ]
-    then  cp     $SENTINEL-$ARCH  $SENTINEL
-    fi
-    if    [       -f  /usr/libexec/sentinel  ]
-    then  rm      -f  /usr/libexec/sentinel*
+    local           SENTINEL=/usr/libexec/sorcery/sentinel
+    local                     ARCH=$( uname -m )
+    if    [    -x  $SENTINEL-$ARCH  ]
+    then  cmp  -s  $SENTINEL-$ARCH  $SENTINEL  ||
+          cp       $SENTINEL-$ARCH  $SENTINEL
     fi
   }
 
