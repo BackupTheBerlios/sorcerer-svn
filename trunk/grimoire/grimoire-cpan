@@ -40,7 +40,7 @@ reorder_data()  {
 write_categories()  {
   local     CAT  BAT
   for       CAT  in  $DESC
-  do        CAT="development/interpreter/perl/cpan-${CAT%%:*}"
+  do        CAT="development/interpreter/perl/cpan/${CAT%%:*}"
     if  !   [   "$CAT"  ==    "$BAT"  ];  then 
       if    [           -n    "$BAT"  ]
       then  echo  -n  " $CAT"
@@ -69,9 +69,8 @@ output_spell()  {
   sed  -r  "s:(.*-)(.*)(\.tar\.gz):\1\2\3 \2:
             s:(.*[/])(.*)([-][^-]*\.tar\.gz):\1\2\3 \2 :"  |
   while  read  SOURCE  SPELL  VERSION  DESC;  do
-    if    [  -n  "$SPELL"  ];  then
-      write_details_variables  >  $SPELL
-      chmod  0755  $SPELL
+    if    [  -n  "$SPELL"  ]
+    then  write_details_variables  >  $SPELL
     fi
   done
 }
@@ -125,6 +124,7 @@ gather_data()  {
   gather_data                                  &&
   prepare_install                              &&
   mkdir      -p  $GRIMOIRE_LIBRARY             &&
+  chmod      -R  0755  $BUILD_DIR              &&
   find       .   -type f  -printf "%P\n"       |
   grep       -v  "\.ccache/reference\|\.log$"  |
   tar_files  >   $GRIMOIRE_LIBRARY/$SPELL.tar
