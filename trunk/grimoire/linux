@@ -45,6 +45,13 @@ and TCP/IP networking."
 # }
 
 
+apply_linux_patch() {
+ case $VERSION in
+   2.6.12|2.6.12.1)
+     patch -p1 < $SCRIPT_DIR/qla_patch          ;;
+ esac
+}
+
 configure()  {
   local  CUR="$CONFIG_LOGS/$SPELL/linux-config"
   local  OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
@@ -60,6 +67,7 @@ configure()  {
     create_cast_tmp              &&
     pre_build                    &&
     optimize                     &&
+    apply_linux_patch            &&
     copy       "$OLD"   .config  &&
     make       menuconfig        &&
     cp         .config  $CUR
@@ -69,15 +77,6 @@ configure()  {
     fi
   fi
 }
-
-
-apply_linux_patch() {
- case $VERSION in
-   2.6.12|2.6.12.1)
-     patch -p1 < $SCRIPT_DIR/qla_patch          ;;
- esac
-}
-
 
 build() {
   backup_modules()  {
