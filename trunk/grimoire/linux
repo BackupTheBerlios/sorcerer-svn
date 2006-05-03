@@ -1,4 +1,4 @@
-   VERSION=( "2.6.16.12" "2.6.16.11" "2.6.16.10" "2.6.16.9" "2.6.16.8" "2.6.16.7" "2.6.16.6" "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" )
+   VERSION=( "2.6.16.13" "2.6.16.12" "2.6.16.11" "2.6.16.10" "2.6.16.9" "2.6.16.8" "2.6.16.7" "2.6.16.6" "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" )
 #     SAFE=( "2.6.16.12" "2.6.16.11" "2.6.16.10" "2.6.16.9" "2.6.16.8" "2.6.16.7" "2.6.16.6" "2.6.16.5" "2.6.16.4" "2.6.16.2" "2.6.16.1" "2.6.16" "2.6.15.6" "2.6.15.5" "2.6.15.4" "2.6.15.3" "2.6.15.2" "2.6.15.1" "2.6.15" )
   CATEGORY="kernel"
  ATTRIBUTE="console"
@@ -132,29 +132,36 @@ build() {
     if    grep  -q  "CONFIG_MODULES=y"  .config
     then  make   modules_install
     fi
-    rm  -f                  /lib/modules/$VERSION/{build,source}
-    ln  -s  /usr/src/linux  /lib/modules/$VERSION/build
-    ln  -s  /usr/src/linux  /lib/modules/$VERSION/source
   }
 
+
+  fglrx_fix()  {
+    if  is_installed  ati_firegl;  then
+      echo  "Adjusting configuration to build intermodule"
+      echo  "so ati's pre-compiled kernel module can load"
+      sed   -i  "s:hrtimer.o:hrtimer.o intermodule.o:"  kernel/Makefile
+      echo  "CONFIG_OBSOLETE_INTERMODULE=y" >>  .config
+    fi
+  }
+
+
   compile_and_install()  {
+    apply_linux_patch
+    restore_linux_configs
     yes  ""  |  make  oldconfig
-    store_config         &&
+    store_config
+    fglrx_fix
     make   bzImage       &&
     make_modules         &&
     prepare_install      &&
     make_modules_install &&
     install_kernel       &&
-    install_header       &&
-    rm      -fr             /usr/src/linux  $BUILD_DIR/.ccache
-    cp      -a  $BUILD_DIR  /usr/src/linux
+    install_header
   }
 
-  rm      -fr             /usr/src/linux  &&
-  ln      -s  $BUILD_DIR  /usr/src/linux  &&
-  cd                      /usr/src/linux  &&
-  apply_linux_patch      &&
-  restore_linux_configs  &&
+  rm  -fr              /usr/src/linux  &&
+  mv       $BUILD_DIR  /usr/src/linux  &&
+  cd                   /usr/src/linux  &&
   compile_and_install
 }
 
