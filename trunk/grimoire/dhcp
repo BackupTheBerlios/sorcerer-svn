@@ -14,7 +14,37 @@ DHCP is a protocol for automatically configuring nodes on an IP network.
 The ISC DHCP server and client are well known for being extremely
 configurable, reasonably easy to use, and quite efficient."
 
+
+configure()  {
+  if    !  grep  -q  "INTERFACE="  $SPELL_CONFIG;  then
+    [  -x  $SPELL_CONFIG.old  ]  &&
+        .  $SPELL_CONFIG.old
+    INTERFACE="$(
+      dialog  \
+        --backtitle  "$SPELL configuration"  \
+        --title      "Networking Interface"  \
+        --timeout    60        \
+        --ok-label   "Commit"  \
+        --stdout     \
+        --no-cancel  \
+        --inputbox   \
+        "Please enter name of interface to raise via dhcp or to run dhcpd on:"  \
+        0 0 "${INTERFACE:-eth0}"
+    )"
+    if    [  -n           "$INTERFACE"  ]
+    then  echo  "INTERFACE=$INTERFACE"  >  $SPELL_CONFIG
+    fi
+  fi
+}
+
+
 build() {
+  if    [    -n   "$INTERFACE"  ]
+  then  sed  -i  "s:INTERFACE=.*:INTERFACE=$INTERFACE:"  \
+             $GRIMOIRE/dhcp.d/init.d/dhclient  \
+             $GRIMOIRE/dhcp.d/init.d/dhcpd
+  fi
+
   sed  -i  "s/\/local//"  Makefile.conf
   ./configure      &&
   make             &&

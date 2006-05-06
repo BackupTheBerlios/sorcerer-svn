@@ -5,12 +5,36 @@
     SOURCE="dhcpcd-$VERSION.tar.bz2"
        URL="http://download.berlios.de/dhcpcd/"
   HOMEPAGE="http://developer.berlios.de/projects/dhcpcd/"
-  ESTIMATE="24"
+  ESTIMATE="60"
       DESC="dhcpcd is a DHCP client/daemon that works with @home
 dhcpcd is an RFC2131 and RFC1541 compliant DHCP client daemon.
 It gets an IP address and other information from the DHCP server,
 automatically configures the network interface, and tries to
 renew the lease time."
+
+
+configure()  {
+  if    !  grep  -q  "INTERFACE="  $SPELL_CONFIG;  then
+    [  -x  $SPELL_CONFIG.old  ]  &&
+        .  $SPELL_CONFIG.old
+    INTERFACE="$(
+      dialog  \
+        --backtitle  "$SPELL configuration"  \
+        --title      "Networking Interface"  \
+        --timeout    60        \
+        --ok-label   "Commit"  \
+        --stdout     \
+        --no-cancel  \
+        --inputbox   \
+        "Please enter name of interface to raise via dhcp:"  \
+        0 0 "${INTERFACE:-eth0}"
+    )"
+    if    [  -n           "$INTERFACE"  ]
+    then  echo  "INTERFACE=$INTERFACE"  >  $SPELL_CONFIG
+    fi
+  fi
+}
+
 
 build() {
 case  $( arch )  in
@@ -19,6 +43,11 @@ case  $( arch )  in
     sed  -i  's:i\[34567\]86):i\[34567\]86|x86_64):'  config.sub
   ;;
 esac
+
+if    [    -n   "$INTERFACE"  ]
+then  sed  -i  "s:INTERFACE=.*:INTERFACE=$INTERFACE:"  \
+           $GRIMOIRE/dhcpcd.d/init.d/dhcpcd
+fi
 
 default_build
 }
