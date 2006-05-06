@@ -22,17 +22,26 @@ GATEWAY=
 MODULE=
 
 case $1 in
-    start)  
-            log_warning_msg "networking about to start"
-            # modprobe  $MODULE
-            # ifconfig  $DEVICE $IP broadcast $BROADCAST netmask $NETMASK
-            # route     add default gateway $GATEWAY
-            log_success_msg "networking started"
+    start)  if    [  -n  "$BROADCAST"  ]  &&
+                  [  -n  "$DEVICE"     ]  &&
+                  [  -n  "$GATEWAY"    ]  &&
+                  [  -n  "$IP"         ]  &&
+                  [  -n  "$NETMASK"    ]
+            then
+              log_warning_msg "networking about to start"
+              if    [  -n                  "$MODULE"  ]  &&
+                    !  lsmod  |  grep -qw  "$MODULE" 
+              then  modprobe               "$MODULE"
+              fi
+              ifconfig  $DEVICE $IP broadcast $BROADCAST netmask $NETMASK
+              route     add default gateway $GATEWAY
+              log_success_msg "networking started"
+            fi
             ;;
               
      stop)  log_warning_msg "networking about to stop"
-            # ifconfig  $DEVICE down
-            # modprobe  -r  $MODULE
+            [  -n     "$DEVICE"  ]  &&
+            ifconfig   $DEVICE  down
             log_success_msg "networking has stopped"
             ;;
 
