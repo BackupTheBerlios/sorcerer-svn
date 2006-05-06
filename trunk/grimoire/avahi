@@ -1,15 +1,15 @@
-   VERSION=( "0.6.9" )
+   VERSION=( "0.6.10" "0.6.9" )
   CATEGORY="utility"
  ATTRIBUTE="library"
     SOURCE="avahi-$VERSION.tar.gz"
        URL="http://avahi.org/download/"
   HOMEPAGE="http://avahi.org/"
-       REQ=( "dbus glib libcap libdaemon"
+       REQ=( "dbus glib libcap libdaemon libglade"
              "gtk+::--disable-gtk:for gtk+ integration"
              "qt-x11-free::--disable-qt3:for Qt3 mainloop integration"
              "qt-x11-opensource-desktop::--disable-qt4:for Qt4Core mainloop integration" )
       OPTS="--with-distro=none --disable-mono"
-  ESTIMATE="603"
+  ESTIMATE="730"
       DESC="avahi is a library and daemon for Multicast DNS Service Discovery.
 It may also be called zeroconf.
 It allows programs to publish and discover services
@@ -18,6 +18,11 @@ For example, you can plug into a network and instantly
 find printers to print to, files to look at, and people to talk to."
 
 build()  {
+# Due to the odd way Sorcerer configures and installs qt-x11-free
+# avahi reads it's pkgconfig file and expects qt's executables to
+# be located in /usr/share/qt/bin/
+# So qt3 integration is temporarily disabled in this spell.
+  OPTS="$OPTS --disable-qt3"
   useradd  avahi  2>/dev/null
   default_build
 }
