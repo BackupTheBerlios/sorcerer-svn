@@ -1,24 +1,30 @@
-   VERSION=( "0.3" "0.2.2" "0.2.1" )
+   VERSION=( "0.3.4" "0.3" "0.2.2" "0.2.1" )
     IGNORE="^0\.3\.[2-3]"
-# 0.3.2 and 0.3.3 do not compile
-  CATEGORY="game"
- ATTRIBUTE="console"
+  CATEGORY="game/rpg/ascii"
+# newer versions of this have compile errors.
+# Even with gcc-v3.3 it has a strange looking compile error
+# gcc -Os -pipe -march=pentium3 -c -DUNIX -DUNIX_SYS5   -c -o hit.o hit.c
+# gcc: Success
+# make: *** [hit.o] Error 1
+ ATTRIBUTE="console broken"
     SOURCE="linuxrogue-$VERSION.tar.bz2"
-       URL="http://puggy.symonds.net/~ash/stuff/linuxrogue/"
-  HOMEPAGE="http://puggy.symonds.net/~ash/stuff/linuxrogue/"
-#      URL="http://symonds.net/~ash/stuff/linuxrogue/"
-# HOMEPAGE="http://symonds.net/~ash/stuff/linuxrogue/"
+       URL="http://ashwin.zaatar.org/stuff/linuxrogue/"
+  HOMEPAGE="http://ashwin.zaatar.org/stuff/linuxrogue/"
+case  $VERSION  in
+  0.3.4)  USE_GCC="gcc-v3.3"  ;;
+esac
        REQ="ncurses"
   ESTIMATE="75"
       DESC="linuxrogue is the classic RPG adventure.
-
 linuxrogue is a cleaned up version of 
 the original port of Rogue for Linux.
-Rogue is the classic RPG adventure.
-"
+Rogue is the classic RPG adventure."
 
 
 build() {
+mv     Makefile  Makefile.crlf
+tr  -d  '\r'  <  Makefile.crlf  >  Makefile
+
 mkdir    -p          doc  &&
 cp  rogue-guide.txt  doc  &&
 
