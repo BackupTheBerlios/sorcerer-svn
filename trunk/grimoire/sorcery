@@ -1,4 +1,4 @@
-   VERSION=( "thaumaturgy-20060506-C" "thaumaturgy-20060503-2" "thaumaturgy-20060503-1" "thaumaturgy-20060503-0" "thaumaturgy-20060501-0" "celerity-20060421-0" "celerity-20060416-1" "celerity-20060416-0" "celerity-20060414-0" "celerity-20060413-0" "celerity-20060412-1" "celerity-20060410-1" "celerity-20060409-1" "celerity-20060330-1" "celerity-20060327-0" "celerity-20060325-0" "celerity-20060324-0" "celerity-20060320-0" "celerity-20060319-0" "celerity-20060318-0" "celerity-20060317-0" "celerity-20060316-0" "celerity-20060311-0" "celerity-20060309-0" "celerity-20060303-0" )
+   VERSION=( "thaumaturgy-20060507-0" "thaumaturgy-20060506-C" "thaumaturgy-20060503-2" "thaumaturgy-20060503-1" "thaumaturgy-20060503-0" "thaumaturgy-20060501-0" "celerity-20060421-0" "celerity-20060416-1" "celerity-20060416-0" "celerity-20060414-0" "celerity-20060413-0" "celerity-20060412-1" "celerity-20060410-1" "celerity-20060409-1" "celerity-20060330-1" "celerity-20060327-0" "celerity-20060325-0" "celerity-20060324-0" "celerity-20060320-0" "celerity-20060319-0" "celerity-20060318-0" "celerity-20060317-0" "celerity-20060316-0" "celerity-20060311-0" "celerity-20060309-0" "celerity-20060303-0" )
   CATEGORY="utility"
  ATTRIBUTE="noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -45,124 +45,6 @@ build() {
 
 post_install() {
 
-  clean_provide_logs()  {
-    export  IFS="$STANDARD_IFS"
-    grep  -r  ""     $PROVIDE_LOGS  |
-    basenames                       |
-    tr  ':'  ' '                    |
-    while  read  LEFT  RIGHT;  do
-      if    [  "$LEFT"  ==       "$RIGHT"  ]
-      then  rm  -f   $PROVIDE_LOGS/$RIGHT
-      fi
-    done
-    grep   -rl  ","  $PROVIDE_LOGS  |  xargs  -l64   rm  -f
-  }
-
-
-  clean_opt_logs()  {
-    local  L="$OPT_ON_LOGS  $OPT_OFF_LOGS"
-    find  -L              $L -type f -empty | xargs -r -l64 rm  -f
-    grep  -lr  "^SWITCH," $L                | xargs -r -l64 sed -i "s:^SWITCH,::;y/,/:/"
-    grep  -lrx ""         $L                | xargs -r -l64 sed -i "/^$/d"
-  }
-
-
-  switch_var_tmp() {
-    if      [ -h           /var/tmp                ];  then
-      if    [ "$( readlink /var/tmp )" ==   "/tmp" ]  ||
-            [ "$( readlink /var/tmp )" == "../tmp" ]
-      then
-        rm     -f   /var/tmp
-        rm     -rf  "/usr/src/sorcery.failed"  \
-                    "/var/cache/leech"         \
-                    "/var/cache/uncompressed"  &
-      fi
-    fi
-    mkdir  -p       /var/tmp
-    chmod  1777     /var/tmp
-  }
-
-  init_bg_compress()  {
-    if       [  -n  "$COMPRESS_LINKS"  ]  &&
-          !  [  -d  "$COMPRESS_LINKS"  ];  then
-      mkdir     -p  "$COMPRESS_LINKS"
-      find  $SOURCE_CACHE      \
-            $CCACHE_CACHE      \
-            $ARCHIVE_CACHE     \
-            $NECROPOLIS_CACHE  \
-            -follow  -type f  -name \*.tar  |
-      xargs  -l32  --replace={}  ln  -s  {}  $COMPRESS_LINKS
-    fi
-  }
-
-  fix_provide_logs()  {
-    find   $PROVIDE_LOGS  -type f  |
-    grep        " "                |  xargs  --no-run-if-empty  -l16  rm  -f
-    grep   -rl  " "  $PROVIDE_LOGS |  xargs  --no-run-if-empty  -l64  rm  -f
-  }
-
-  fix_service_selection()  {
-
-    on_service()  {
-      grep  -rs  "SERVICES="  $CONFIG_LOGS  |
-      sed   "s,/sorcery:SERVICES=, ,
-             s,/sorcery.old:SERVICES=, ,"   |
-      basenames  |  tr  -d '"'
-    }
-
-    show_svs()  {
-      grep  -rs  "^service "  $GRIMOIRE/$1.d/xinetd.d  |
-      cut   -d ' '  -f2
-    }
-
-    if  !  [  -d  ${XINETD_ON_LOGS:=$LOG_DIR/xinetd.on}    ]  ||
-        !  [  -d  ${XINETD_OFF_LOGS:=$LOG_DIR/xinetd.off}  ]
-    then
-      mkdir   -p  ${XINETD_OFF_LOGS}  ${XINETD_ON_LOGS}
-
-      on_service  |
-      while  read    SPL      SVS;  do
-        for          S  in   $SVS
-        do   echo  "$S"  >>  $XINETD_ON_LOGS/$SPL
-        done
-      done
-
-      on_service  |
-      while  read  SPL  SVS;  do
-        show_svs  $SPL  |
-        while  read          S
-        do     grep  -qsx  "$S"       $XINETD_ON_LOGS/$SPL  ||
-               echo        "$S"  >>  $XINETD_OFF_LOGS/$SPL
-        done
-      done
-    fi
-  }
-
-  fix_state()  {
-    if    [  -d     /var/state/sorcery  ]  &&
-        ! [  -h     /var/state/sorcery  ]
-    then
-      grep   -q    "/var/state/sorcery"                  /etc/fstab  &&
-      sed    -i  "s:/var/state/sorcery:/root/.sorcery:"  /etc/fstab
-      umount        /var/state/sorcery
-      rm     -fr    /var/state/sorcery
-    fi
-  }
-
-  reduce_etc()  {
-    if    [  -d    $ETC_LOGS/sorcery/default-previous  ]
-    then  rm  -fr  $ETC_LOGS/*/default-previous
-    fi
-  }  
-
-  fix_root()  {
-    if    [   -d   /.sorcery  ]
-    then  rm  -fr  /.sorcery
-    fi
-  }
-
-  create_lib_backup()  {  [  -d  /lib.old  ]  ||  backup_lib;  }
-
   install_sentinel()  {
     local           SENTINEL=/usr/libexec/sorcery/sentinel
     local                     ARCH=$( uname -m )
@@ -171,82 +53,6 @@ post_install() {
           cp       $SENTINEL-$ARCH  $SENTINEL
     fi
   }
-
-  move_logs()  {
-    if    !  [  -e               /etc/sorcery/log  ]  &&
-             [  -d               /var/log/sorcery  ]  &&
-          !  [  -h               /var/log/sorcery  ]
-    then
-      if   mv  /var/log/sorcery  /etc/sorcery/log;  then
-        find   /etc/sorcery/log/{id,install,md5sum,stat,README}  -type  f  |
-        xargs  -l64  sed  -i      "s:/var/log/sorcery:/etc/sorcery/log:"
-        ln     -s  /etc/sorcery/log  /var/log/sorcery
-      else
-        rm     -rf                   /etc/sorcery/log
-        ln     -s  /var/log/sorcery  /etc/sorcery/log
-      fi
-    fi
-  }
-
-  add_missing_spells()  {
-    show_aliens()  {
-      (  find  /bin /boot /etc /lib /lib64 /sbin /usr /var /opt  -type f
-         cat   $INSTALL_LOGS/*  \
-               $INSTALL_LOGS/*  )         |
-      grep  -v  "^/var/\|^/etc/sorcery/"  |
-      sort                  |
-      uniq  -u              |
-      filter  "$EXCLUDED"   |
-      filter  "$PROTECTED"  |
-      files
-    }
-
-    from_history()  {
-      while  read
-      do     grep  -rlx  "$REPLY"  $HISTORY_LOGS
-      done                         |
-      sort   -u                    |
-      sed    "s:^$HISTORY_LOGS/::" |
-      tr     '/'  '	'          |
-      tail   -n 1
-    }
-
-    mkdir  -p  $INSTALL_LOGS  $VERSION_LOGS
-    show_aliens   |
-    from_history  |
-    while  read  SPL VER;  do
-      if    !  [  -f                     $INSTALL_LOGS/$SPL  ]  &&
-            !  [  -f                     $VERSION_LOGS/$SPL  ]
-      then  cp  $HISTORY_LOGS/$SPL/$VER  $INSTALL_LOGS/$SPL
-            echo  "$VER"              >  $VERSION_LOGS/$SPL
-      fi
-    done
-  }
-    
-
-  add_history()  {
-    if    !  [  -f  $CONFIG_LOGS/net-tools/config.h  ];  then
-      mkdir  -p  $LOG_DIR
-      cd         $LOG_DIR
-      curl  http://sorcerer.aakin.net/download/recovery/history-logs-20051213.tar.bz2  |
-      tar   -jxf -
-      add_missing_spells
-    fi
-  }
-
-
-  switch_spells()  {
-    unlock_cast
-    local       XFS_VER="$( installed_version xfs  )"
-    if    [  "${XFS_VER:0:3}"  ==  "1.3"  ]
-    then  forget  xfs;  dispel  --unsafe  xfs
-    fi
-    local      XFT_VER="$( installed_version libXft  )"
-    if    [  "$XFT_VER"  ==  "2.1.7"  ]
-    then  forget  libXft;  dispel  --unsafe  libXft;  cast  libXft-v2.1.7
-    fi
-  }
-
 
   generate_new_index()  { (
     .  /etc/sorcery/config
@@ -258,20 +64,8 @@ post_install() {
     generate_index
   ) }
 
-
+  [  -d  /lib.old  ]  ||  backup_lib
   install_sentinel
-  move_logs
-  create_lib_backup
-  switch_var_tmp
-  clean_provide_logs
-  clean_opt_logs
   generate_new_index
-  fix_service_selection
-  fix_provide_logs
-  reduce_etc
-  fix_state
-  fix_root
-  add_history
   immune
-  switch_spells
 }
