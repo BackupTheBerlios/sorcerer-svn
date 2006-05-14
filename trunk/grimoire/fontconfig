@@ -4,9 +4,13 @@
  ATTRIBUTE="library"
     SOURCE="fontconfig-$VERSION.tar.gz"
        URL="http://fontconfig.org/release/"
+case  $VERSION  in
+  2.3.2)  URL[1]="http://freetype.sourceforge.net/freetype2/patches/"
+       SOURCE[1]="fontconfig-2.3.2-noftinternals.patch"  ;;
+esac
   HOMEPAGE="http://fontconfig.org/"
        REQ="expat freetype zlib"
-  ESTIMATE="147"
+  ESTIMATE="258"
       DESC="fontconfig is a library for configuring and customizing font access.
 It contains two essential modules, the configuration module which
 builds an internal configuration from XML files and the matching module
@@ -20,6 +24,12 @@ remove_x11_fc()  {
             /usr/X11R6/lib/libfontconfig*  \
             /usr/X11R6/lib/pkgconfig/fontconfig.pc
 }
+
+
+  case  $VERSION  in
+    2.3.2)  patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}  ;;
+  esac
+
 
   ./configure            \
   --build=$BUILD         \
@@ -38,6 +48,6 @@ post_install()  {
              \,/usr/X11R6/lib/libfontconfig,d
              \,/usr/X11R6/lib/pkgconfig/fontconfig.pc,d
              \,/usr/X11R6/bin/fc-cache,d
-             \,/usr/X11R6/bin/fc-list,d"  $INSTALL_LOGS/{XFree86,X.org}*
+             \,/usr/X11R6/bin/fc-list,d"  $INSTALL_LOGS/{XFree86,X.org}*  2>/dev/null
   true
 }

@@ -5,21 +5,29 @@
     SOURCE="SDL_ttf-$VERSION.tar.gz"
   HOMEPAGE="http://www.libsdl.org/projects/SDL_ttf"
        URL="http://www.libsdl.org/projects/SDL_ttf/release/"
+case  $VERSION  in
+  2.0.7)  URL[1]="http://freetype.sourceforge.net/freetype2/patches/"
+       SOURCE[1]="SDL_ttf-2.0.7-noftinternals.patch"  ;;
+esac
+
        REQ="SDL freetype"
   ESTIMATE="32"
  FRESHMEAT="sdl_ttf"
       DESC="SDL_ttf is a sample library for displaying truetype fonts."
 
 build() {
-patch  -p1  <  $SCRIPT_DIR/SDL_ttf-2.0.6-freetype.patch
+# patch  -p1  <  $SCRIPT_DIR/SDL_ttf-2.0.6-freetype.patch
+  case  $VERSION  in
+    2.0.7)  patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}  ;;
+  esac
 
-cat  <<  EOF  >>  SDL_ttf.h
+# cat  <<  EOF  >>  SDL_ttf.h
 #define  ft_open_memory    FT_OPEN_MEMORY     /* deprecated */
 #define  ft_open_stream    FT_OPEN_STREAM     /* deprecated */
 #define  ft_open_pathname  FT_OPEN_PATHNAME   /* deprecated */
 #define  ft_open_driver    FT_OPEN_DRIVER     /* deprecated */
 #define  ft_open_params    FT_OPEN_PARAMS     /* deprecated */
-EOF
+# EOF
 
 default_build
 }

@@ -6,6 +6,10 @@
     SOURCE="qt-x11-free-$VERSION.tar.bz2"
   HOMEPAGE="http://www.trolltech.com/products/qt/x11.html"
        URL="ftp://ftp.trolltech.com/qt/source/"
+case  $VERSION  in
+  3.3.6)  URL[1]="http://freetype.sourceforge.net/freetype2/patches/"
+       SOURCE[1]="qt-3.3.6-noftinternals.patch"  ;;
+esac
 # is cups required or optional?
        REQ=( "fontconfig jpeg libmng libpng x11"
              "cups:-cups:-no-cups:for common unix printing support"
@@ -19,6 +23,10 @@
 
 
 build()  {
+  case  $VERSION  in
+    3.3.6)  patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}  ;;
+  esac
+
 echo  $OPTS           |
 grep  -q  "\-qt-gif"  &&
 sed   -i  "s:READER 0:READER 1:"  src/kernel/qgif.h
