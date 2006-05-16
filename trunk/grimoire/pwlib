@@ -7,16 +7,23 @@
   HOMEPAGE="http://www.ekiga.org/"
  FRESHMEAT="pwlib"
        REQ=( "SDL" 
-             "openldap:--enable-openldap:--disable-openldap:LDAP support (required for gnomemeeting"
-             "openssl:--enable-openssl:--disable-openssl:SSL support" )
-#            ":--enable-firewiredc::to enable Firewire support for DC cameras"
-#            ":--enable-firewireavc::to enable Firewire support for AVC cameras" )
+             "openldap:--enable-openldap:--disable-openldap:LDAP support (required for ekiga)"
+             "openssl:--enable-openssl:--disable-openssl:SSL support" 
+             "libdc1394:--enable-dc::to enable Firewire support for DC cameras"
+             "libavc1394:--enable-avc::to enable Firewire support for AVC cameras" )
       OPTS="--enable-plugins"
   ESTIMATE="159"
       DESC="pwlib is the portable windows library.
 This library is used by the OpenH323 library."
 
-# build() {
-#   patch -p1 < $SCRIPT_DIR/pwlib.ldapfix.patch &&
-#   default_build
-# }
+build() {
+  ./configure  --prefix=/usr            \
+               --sysconfdir=/etc        \
+	       --build=$BUILD           \
+               --localstatedir=/var     \
+               $OPTS                    &&
+  make                                  &&
+  prepare_install                       &&
+  make install                                                
+}                                                             
+
