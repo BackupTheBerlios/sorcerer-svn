@@ -1,38 +1,24 @@
-   VERSION=( "1.2.9" "1.2.8" "1.2.7" )
-# This might be currently broken.
-# Not sure why
-# ../../src/hermes/HeadMMX.h:53: error: 'ConvertMMX' aliased to undefined symbol '_ConvertMMX
+   VERSION=( "1.2.10" "1.2.9" "1.2.8" "1.2.7" )
     IGNORE="devel"
   CATEGORY="graphic"
  ATTRIBUTE="library x11"
     SOURCE="SDL-$VERSION.tar.gz"
        URL="http://www.libsdl.org/release/"
   HOMEPAGE="http://www.libsdl.org"
-  case  $VERSION  in
-#   1.2.9)  USE_GCC="gcc-v3.4"  ;;
-#   1.2.9)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
-    1.2.9)  SOURCE[1]="SDL-1.2.9-gcc4-1.patch"
-            URL[1]="http://www.linuxfromscratch.org/patches/blfs/svn/"  ;;
-#           USE_LINUX="linux-headers-v2.6.15.6"  ;;
-  esac
        REQ=( "nasm x11"
-             "aalib:--enable-video-aalib::for ascii art rendering"
-             "esound:--enable-dlopen --enable-esd-shared::for simultaneous sound playing and mixing"
-             "arts:--enable-dlopen --enable-arts-shared::for simulatenous sound playing and mixing"
              "DirectFB:--enable-video-directfb:--disable-video-directfb:for directfb video output"
-             "alsa-lib:--enable-alsa:--disable-alsa:for output using ALSA" )
+             "aalib:--enable-video-aalib::for ascii art rendering"
+             "alsa-lib:--enable-alsa:--disable-alsa:for output using ALSA"
+             "arts:--enable-dlopen --enable-arts-shared::for simulatenous sound playing and mixing"
+             "esound:--enable-dlopen --enable-esd-shared::for simultaneous sound playing and mixing" )
  FRESHMEAT="sdl"
-  ESTIMATE="703"
+  ESTIMATE="420"
       DESC="SDL is a portable game library for low-level access to hardware.
 SDL is a library that allows you portable low-level access
 to a video framebuffer, audio output, mouse, and keyboard."
 
 
 build() {
-  if    [  -n  "${SOURCE[1]}"  ]
-  then  patch  -p1  <  $SOURCE_CACHE/SDL/$VERSION/${SOURCE[1]}
-  fi
-
   # SDL unnecessarily links using g++.
   grep   -lr   CXXLINK  *  |
   xargs  -l64  sed  -i  "s:\$(CXXLINK):\$(LINK):"
