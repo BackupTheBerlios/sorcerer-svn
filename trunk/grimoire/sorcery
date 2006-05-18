@@ -1,4 +1,4 @@
-   VERSION=( "thaumaturgy-20060516-0" "thaumaturgy-20060513-1" "thaumaturgy-20060512-0" "thaumaturgy-20060508-1" "thaumaturgy-20060507-0" "thaumaturgy-20060506-C" "thaumaturgy-20060503-2" "thaumaturgy-20060503-1" "thaumaturgy-20060503-0" "thaumaturgy-20060501-0" "celerity-20060421-0" "celerity-20060416-1" "celerity-20060416-0" "celerity-20060414-0" "celerity-20060413-0" "celerity-20060412-1" "celerity-20060410-1" "celerity-20060409-1" "celerity-20060330-1" "celerity-20060327-0" "celerity-20060325-0" "celerity-20060324-0" "celerity-20060320-0" "celerity-20060319-0" "celerity-20060318-0" "celerity-20060317-0" "celerity-20060316-0" "celerity-20060311-0" "celerity-20060309-0" "celerity-20060303-0" )
+   VERSION=( "thaumaturgy-20060518-0" "thaumaturgy-20060516-0" "thaumaturgy-20060513-1" "thaumaturgy-20060512-0" "thaumaturgy-20060508-1" "thaumaturgy-20060507-0" "thaumaturgy-20060506-C" "thaumaturgy-20060503-2" "thaumaturgy-20060503-1" "thaumaturgy-20060503-0" "thaumaturgy-20060501-0" "celerity-20060421-0" "celerity-20060416-1" "celerity-20060416-0" "celerity-20060414-0" "celerity-20060413-0" "celerity-20060412-1" "celerity-20060410-1" "celerity-20060409-1" "celerity-20060330-1" "celerity-20060327-0" "celerity-20060325-0" "celerity-20060324-0" "celerity-20060320-0" "celerity-20060319-0" "celerity-20060318-0" "celerity-20060317-0" "celerity-20060316-0" "celerity-20060311-0" "celerity-20060309-0" "celerity-20060303-0" )
   CATEGORY="utility"
  ATTRIBUTE="noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -64,8 +64,22 @@ post_install() {
     generate_index
   ) }
 
+
+  linux_headers_check()  {
+    if    !  [  -f  /usr/include/asm-generic/errno.h  ];  then
+      echo        "Attempting to install some missing linux headers"
+      leech  -w   glibc
+      cd          $(  untar  $SOURCE_CACHE/glibc/*/linux-*.tar*  )/linux*  &&
+      make        include/linux/version.h  &&
+      make        include/asm  &&
+      cp     -rL  include/{asm,asm-generic,linux}  /usr/include
+    fi
+  }
+
+
   [  -d  /lib.old  ]  ||  backup_lib
   install_sentinel
   generate_new_index
+  linux_headers_check
   immune
 }
