@@ -104,7 +104,23 @@ fix_config()  {
   # export  MOZ_INTERNAL_LIBART_LGPL=1
   # ac_add_options --enable-svg
 
+case $( arch ) in 
+ x86_64)  case $( installed_version gcc ) in
+            4.1.0) # Stupid gcc is buggy: This fixes an error message
+                  # like: 
+                  # "jsapi.o can't relocate symbols... memcpy@GLIBC, use -fPIC"
+                  AC_VISIBILITY="ac_cv_visibility_pragma=no" 
+                  ;;
+            *)    AC_VISIBILITY=""
+          esac
+          ELF_DYNSTR_GC="--disable-elf-dynstr-gc"
+          ;;
+      *)  ELF_DYNSTR_GC="--enable-elf-dynstr-gc" 
+          ;;
+esac
+
 cat  <<  EOF  >  .mozconfig
+$AC_VISIBILITY
 ac_add_options --prefix=/usr
 ac_add_options --enable-application=suite
 ac_add_options --enable-shared
@@ -120,7 +136,7 @@ ac_add_options --disable-debug
 ac_add_options --enable-optimize="$CFLAGS"
 ac_add_options --enable-reorder
 ac_add_options --enable-strip
-ac_add_options --enable-elf-dynstr-gc
+ac_add_options $ELF_DYNSTR_GC
 ac_add_options --enable-cpp-rtti
 ac_add_options --enable-xterm-updates
 ac_add_options --enable-toolkit-gtk2
@@ -171,3 +187,4 @@ post_install() {
     true
 # fi
 }
+# Origin grimoire
