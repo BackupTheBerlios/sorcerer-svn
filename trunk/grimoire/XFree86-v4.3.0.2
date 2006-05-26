@@ -289,32 +289,68 @@ configure_host_def()  {
 
 build()  {
 
+
+fix_sym_dir()  {
+
+  fsd() {
+    local SYM="$1"
+    local DES="$2"
+    local DIR="$3"
+
+    if    !  [   -e        $SYM  ]  ||
+             [   -f        $SYM  ]
+    then  rm     -f        $SYM
+          ln     -s  $DES  $SYM
+    elif  !  [   -h        $SYM  ]  &&
+             [   -d        $SYM  ]
+    then  cp     -a        $SYM/*  $DIR/
+          rm     -r        $SYM
+          ln     -s  $DES  $SYM
+    fi
+  }
+
+  if     !  [   -d  /usr/X11R6  ]
+  then   rm     -f  /usr/X11R6
+         mkdir  -p  /usr/X11R6
+  fi
+
+  [  -h  /usr/include/GL   ]  &&  rm  -f  /usr/include/GL
+  [  -h  /usr/include/X11  ]  &&  rm  -f  /usr/include/X11
+  [  -h  /usr/lib/X11      ]  &&  rm  -f  /usr/lib/X11
+
+  fsd  "/usr/X11R6/include"  "../include"  "/usr/include"
+  fsd  "/usr/X11R6/lib"      "../lib"      "/usr/lib"
+  fsd  "/usr/X11R6/bin"      "../bin"      "/usr/bin"
+  fsd  "/usr/X11R6/man"      "../man"      "/usr/man"
+}
+
+
 symlink_install()  {
 
-  rm     -f  /usr/X11R6/include/zlib.h
-  rm     -f  /usr/X11R6/lib/libz.a
-  mkdir  -p  /usr/X11R6/include/GL
+#  rm     -f  /usr/X11R6/include/zlib.h
+#  rm     -f  /usr/X11R6/lib/libz.a
+#  mkdir  -p  /usr/X11R6/include/GL
 
   if  [  !  -e                /etc/skel/.xsession  ];  then
     cp  $SCRIPT_DIR/xsession  /etc/skel/.xsession
     ln  -sf        .xsession  /etc/skel/.xinitrc
   fi
 
-  if    [  !  -e                    /usr/bin/X11  ]
-  then  ln    -sf   /usr/X11R6/bin  /usr/bin/X11
-  fi
-
   if    [  !  -e          /usr/X11  ]
   then  ln    -sf  X11R6  /usr/X11
   fi
 
-  if    [  !  -e                         /usr/include/X11  ]
-  then  ln    -sf  ../X11R6/include/X11  /usr/include/X11
-  fi
+  # if    [  !  -e                    /usr/bin/X11  ]
+  # then  ln    -sf   /usr/X11R6/bin  /usr/bin/X11
+  # fi
 
-  if    [  !  -e                     /usr/lib/X11  ]
-  then  ln    -sf  ../X11R6/lib/X11  /usr/lib/X11
-  fi
+  # if    [  !  -e                         /usr/include/X11  ]
+  # then  ln    -sf  ../X11R6/include/X11  /usr/include/X11
+  # fi
+
+  # if    [  !  -e                     /usr/lib/X11  ]
+  # then  ln    -sf  ../X11R6/lib/X11  /usr/lib/X11
+  # fi
 
 }
 
@@ -408,12 +444,14 @@ pkgconf_install()  {
  xargs  -l64  sed  -i  "s:#include *<freetype/fterrors.h>:\
                           #include FT_ERRORS_H:"
  
- make    World        &&
- prepare_install      &&
- make    install      &&
- make    install.man  &&
- symlink_install      &&
- pkgconf_install
+  make    World        &&
+  prepare_install      &&
+  fix_sym_dir          &&
+  make    install      &&
+  make    install.man  &&
+  symlink_install
+#      &&
+#  pkgconf_install
 }
 
 post_install() {
