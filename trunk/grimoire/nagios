@@ -1,0 +1,38 @@
+   VERSION=( "2.3.1" )
+  CATEGORY="network"
+ ATTRIBUTE="console new"
+    SOURCE="nagios/nagios-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.nagios.org"
+       REQ=( "gd libtool" )
+  ESTIMATE="756"
+      DESC="nagios is a daemon for monitoring networked hosts and services.
+It has the ability to notify contacts
+(via email, pager or other methods)
+when problems arise and are resolved.
+Host and service checks are performed by external "plugins",
+making it easy to write custom checks.
+Several CGIs are included for viewing the current
+and historical status via a Web browser,
+and a WAP interface is also provided
+to acknowlege problems and disable
+notifications from an internet-ready cellphone."
+
+build()  {
+  groupadd  nagios                           &>/dev/null
+  useradd   nagios  -g nagios  -s /bin/bash  &>/dev/null
+
+  ./configure      \
+  --build=$BUILD   \
+  --prefix=/usr    \
+  --bin=/usr/sbin  \
+  --sysconfdir=/etc/nagios     \
+  --localstatedir=/var/nagios  \
+  --with-lockfile=/var/run/nagios.pid \
+  $OPTS            &&
+  make      all    \
+        install    \
+          install-commandmode  \
+          install-config       \
+          DESTDIR=$DESTDIR
+}
