@@ -1,11 +1,11 @@
-   VERSION=( "4.39_src_all" "4.37_src_all" "4.33_src_all" "4.30_src_all" "4.29_src_all" "4.27_src" "4.20_src" )
+   VERSION=( "4.42_src_all" "4.39_src_all" "4.37_src_all" "4.33_src_all" "4.30_src_all" "4.29_src_all" "4.27_src" "4.20_src" )
   CATEGORY="archive"
- ATTRIBUTE="console solo"
+ ATTRIBUTE="console"
     SOURCE="p7zip/p7zip_${VERSION}.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://p7zip.sourceforge.net"
    PROTECT="/usr/bin/7za"
-  ESTIMATE="172"
+  ESTIMATE="181"
       DESC="p7zip is a command line high compression ratio archiver.
 Some types of sorcery compression requires p7zip.
 sdelta upgrade patches are now available compressed
@@ -16,9 +16,14 @@ p7zip is 5 or more times slower than bzip2 to compress,
 but equally fast to decompress."
 
 build()  {
-sed  -i  "s:-O[1-2, ]:$CFLAGS :"  makefile.*
-sed  -i  "s:\$(CXX):g++:"         makefile.glb
-make               &&
-prepare_install    &&
-install  -m 0755  -o root  -g root  bin/7za  /usr/bin
+# sed  -i  "s:-O[1-2, ]:$CFLAGS :"  makefile.*
+# sed  -i  "s:\$(CXX):g++:"         makefile.glb
+# make               &&
+# prepare_install    &&
+# install  -m 0755  -o root  -g root  bin/7za  /usr/bin
+
+sed   -i  "s:\$(CXX):g++:"  makefile.glb
+sed   -i  "s:\[-x:[ -x:"    install.sh
+make  OPTFLAGS="$CXXFLAGS"  &&
+./install.sh  /bin /usr/share /usr/man  $DESTDIR
 }
