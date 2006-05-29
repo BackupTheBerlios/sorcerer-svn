@@ -1,23 +1,42 @@
    VERSION=( "6.5" "6.4.2" "6.4.1" "6.4" "6.2.1" )
-#    IGNORE="^6\.5"
-## 6.5 is developmental
+# 6.5 is developmental
+# However xf86 now requires 6.5
   CATEGORY="graphic"
  ATTRIBUTE="library"
     SOURCE=( "mesa3d/MesaLib-$VERSION.tar.bz2"
-             "mesa3d/MesaGLUT-$VERSION.tar.bz2" )
+             "mesa3d/MesaGLUT-$VERSION.tar.bz2" 
+             "mesa3d/MesaDemos-$VERSION.tar.bz2" )
   HOMEPAGE="http://www.mesa3d.org"
        URL="$SOURCEFORGE_URL"
-       REQ="libXi libXmu"
+       REQ="expat libXi libXmu libXxf86vm libdrm"
   ESTIMATE="720"
   EPROVIDE="glut"
       DESC="MesaLib is a 3-D graphics library with an API similar to OpenGL.
 Remember to add Load 'glx' and remove Load 'dri' in  your XF86Config file"
 
+
 build() {
-[      -f    Makefile  ]  &&
-grep   -rl              "/usr/local/"  *  |
-xargs  -l64  sed  -i  "s:/usr/local:/usr:g"
-make    linux    &&
-prepare_install  &&  echo   -e  "\n\n\n"  |
-make    install
+
+  install_demos()  {
+    install   -v  -m 755  progs/xdemos/{glxgears,glxinfo}  /usr/bin
+  }
+
+  install_dri() {
+    mkdir  -p                 /usr/lib/dri
+    cp     -av  lib/*_dri.so  /usr/lib/dri/
+    mkdir  -p                               /usr/X11R6/lib/modules
+    ln     -s                 /usr/lib/dri  /usr/X11R6/lib/modules/dri
+  }
+
+  [      -f    Makefile  ]  &&
+  grep   -rl              "/usr/local/"  *  |
+  xargs  -l64  sed  -i  "s:/usr/local:/usr:g"
+  make    linux-dri-x86            &&
+  cd      progs/xdemos             &&
+  make    PROGS='glxinfo glxgears' &&
+  cd      ../..                    &&
+  prepare_install        &&  echo   -e  "\n\n\n"  |
+  make    install        &&
+          install_demos  &&
+          install_dri
 }
