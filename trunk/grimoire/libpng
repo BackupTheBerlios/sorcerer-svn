@@ -1,13 +1,5 @@
-#  VERSION=( "1.2.8" "1.2.10" "1.2.9" "1.2.7" "1.2.6" )
-#     SAFE=( "1.2.8" "1.2.10" "1.2.9" "1.2.8" )
    VERSION=( "1.2.10" "1.2.9" "1.2.8" "1.2.7" "1.2.6" )
       SAFE=( "1.2.10" "1.2.9" "1.2.8" )
-# There are some big changes between 1.2.10 and 1.2.8 that
-# break binary compatibility and yet the software author did
-# not increase the library number and some programs do not even
-# want to compile using libpng 1.2.10 such as imlib
-# checking for png_read_info in -lpng... no
-# configure: error: *** PNG library not found ***
    IGNORE="mips\|-makefile\|beta\|rc\|wince\|project\|config\|mingw"
   CATEGORY="graphic"
  ATTRIBUTE="library"
@@ -15,7 +7,7 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.libpng.org/pub/png/libpng.html"
        REQ="zlib"
-  ESTIMATE="81"
+  ESTIMATE="373"
       DESC="libpng is a library that supports the PNG graphics format.
 libpng is the PNG library is a collection of routines
 used to create and manipulate PNG format graphics files.
@@ -23,7 +15,10 @@ The PNG format was designed as a replacement for GIF
 and to a lesser extent, TIFF, with many improvements and extensions."
 
 
-build() {
+# build_old can not be used to compile libpng 1.2.10
+# otherwise it causes a problem with the libpng.a
+
+build_old() {
 sed  "s:prefix=/usr/local:prefix=/usr:
       s:ZLIBLIB=../zlib:ZLIBLIB=/usr/lib:
       s:ZLIBINC=../zlib:ZLIBINC=/usr/include:
@@ -37,4 +32,11 @@ prepare_install  &&
 make    install  &&
 ln  -fs  libpng/png.h      /usr/include/png.h  &&
 ln  -fs  libpng/pngconf.h  /usr/include/pngconf.h
+}
+
+
+current()  {
+  case  $VERSION  in
+    1.2.10)  !  grep  -qx  "grimoire	2006-151"  $SNAP_LOGS/libpng  ;;
+  esac
 }
