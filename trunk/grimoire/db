@@ -1,12 +1,14 @@
+# remeber check /usr/lib/libdb-4.4.so or whatever library it installs
+# to make sure it linked with libpthread.
+
    VERSION=( "4.4.20" "4.4.16" "4.3.29" "4.3.28" "4.3.27" "4.3.21" "4.2.52" "4.2.50" "4.1.25" "4.1.24" "4.0.14" )
       SAFE=( "4.4.20" "4.4.16" "4.3.29" "4.3.28" "4.3.27" )
     IGNORE="\.NC\|cd\|^4\.1\.24"
   CATEGORY="db"
  ATTRIBUTE="library"
-    SOURCE=( "db-$VERSION.tar.gz" )
-#             "patch.$VERSION.1"
-#             "patch.$VERSION.2"
-#             "patch.$VERSION.3" )
+    SOURCE=( "db-$VERSION.tar.gz"
+             "patch.$VERSION.1"
+             "patch.$VERSION.2" )
            # "http://www.sleepycat.com/update/snapshot"
        URL=(  "ftp://sleepycat1.inetu.net/releases/"
              "http://www.sleepycat.com/update/$VERSION/" )
@@ -19,7 +21,7 @@
 #    AVOID="XFree86 x11"
   HOMEPAGE="http://www.sleepycat.com"
  FRESHMEAT="berkeleydb"
-  ESTIMATE="766"
+  ESTIMATE="1090"
       DESC="db also called Berkeley DB provides database support.
 db also called Berkeley DB is a programmatic toolkit that provides 
 fast, reliable, scalable, and mission-critical database support in 
@@ -62,8 +64,9 @@ rm     -rf  /usr/docs
 
 current()  {
 case  $VERSION  in
-  4.3.29)  echo  /usr/lib/libdb-4.3.so  |
-           quick_ldd                    |
-           grep  -q  libpthread  ;;
+  4.4.20)  grep  -qx  "patching file txn/txn.c"  $COMPILE_LOGS/db  ;;
+#  4.3.29)  echo  /usr/lib/libdb-4.3.so  |
+#           quick_ldd                    |
+#           grep  -q  libpthread  ;;
 esac  2>/dev/null
 }
