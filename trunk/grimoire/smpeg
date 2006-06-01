@@ -6,18 +6,21 @@
   HOMEPAGE="http://www.lokigames.com/development/smpeg.php3"
        REQ=( "SDL"
              "gtk+-v1.2:--enable-gtk-player:--disable-gtk-player:to build a gtk+-v1.2 sample smpeg player" )
+  case  $VERSION  in
+    0.4.4)  USE_GCC="gcc-v4.0"  ;;
+  esac
   ESTIMATE="367"
       DESC="smpeg is a general purpose MPEG video/audio player."
 
 build()  {
 export  LDFLAGS="$LDFLAGS -lstdc++"
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             $OPTS                 &&
-sed  -i  "s:gcc:g++:"  Makefile    &&
-make                               &&
-prepare_install                    &&
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&  sed  -i  "s:gcc:g++:"  Makefile  &&
+make                  &&
+prepare_install       &&
 make    install
 }
