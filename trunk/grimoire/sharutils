@@ -1,11 +1,12 @@
-   VERSION=( "4.6.2" "4.6.1" "4.6" "4.5.1" "4.5" "4.4" "4.2.1" )
+   VERSION=( "4.6.3" "4.6.2" "4.6.1" "4.6" "4.5.1" "4.5" )
     IGNORE="texi"
   CATEGORY="archive"
  ATTRIBUTE="console"
     SOURCE="sharutils/REL-$VERSION/sharutils-$VERSION.tar.bz2"
   HOMEPAGE="http://www.gnu.org/software/sharutils/sharutils.html"
        URL="$GNU_URL"
-  ESTIMATE="67"
+      OPTS="--with-gnu-gettext"
+  ESTIMATE="500"
 # May have an optional requirement on gmime
       DESC="sharutils is for making shell archives for transmission by email.
 sharutils shell archives out of many files, preparing
@@ -17,22 +18,11 @@ split long files and construct multi-part mailings,
 ensure correct unsharing order, and provide simplistic checksums.
 Also contains uudecode and uuencode."
 
-build() {
- case  $VERSION  in
-  4.2.1)  patch  -p1  <  $SCRIPT_DIR/sharutils-4.2.1-shar-bof.patch  
-      echo  "sharutils 4.2.1 patched again"  ;;
- esac
-
+build_old() {
 ./configure         \
 --prefix=/usr       \
 --with-gnu-gettext  &&
 make                &&
 prepare_install     &&
 make    install
-}
-
-current() {
-case  $VERSION  in
-  4.2.1)  grep  -qx  "sharutils 4.2.1 patched again"  $COMPILE_LOGS/sharutils  ;;
-esac
 }
