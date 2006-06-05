@@ -27,7 +27,13 @@ esac
 
 build()  {
 
-build_aspell()  { default_build; }
+build_aspell()  { 
+  case $VERSION in  # Problem compiling with gcc-4.1.0
+    0.60.4)  sed -i '/;/ s,NroffFilter::,,' modules/filter/nroff.cpp  ;;
+  esac
+
+  default_build; 
+}
 
 build_dict()  {
   ./configure      &&
@@ -40,3 +46,4 @@ build_dict()  {
          *)  build_aspell  ;;
   esac
 }
+# Origin grimoire
