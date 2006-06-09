@@ -16,7 +16,7 @@
 
 build() {
 
-  case $( arch ) in
+  case $HOSTTYPE in
     x86_64)  CONFIG_NAME="linux-dri-x86-64"
              LIB="lib64"   ;;
          *)  CONFIG_NAME="linux-dri-x86"
@@ -35,7 +35,9 @@ build() {
   }
 
   case $VERSION in
-    6.5)  patch  -p1  <  $SCRIPT_DIR/savage-drop-static-inline.patch  ;;
+    6.5)  patch  -p1  <  $SCRIPT_DIR/savage-drop-static-inline.patch
+          sed -i  "s:/usr/X11R6/lib:/usr/$LIB:"  src/glx/x11/dri_glx.c  
+          ;;
   esac
 
   [      -f    Makefile  ]  &&
@@ -50,3 +52,4 @@ build() {
           install_demos  &&
           install_dri
 }
+# Origin grimoire
