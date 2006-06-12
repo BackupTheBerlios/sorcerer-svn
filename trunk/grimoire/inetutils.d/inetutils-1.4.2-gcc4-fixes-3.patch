@@ -1,0 +1,39 @@
+# DIY Linux Patch
+Date: 2005-08-28
+Author: Refer Origin
+Origin: http://lists.gnu.org/archive/html/commit-inetutils/2005-08/msg00007.html
+  http://lists.gnu.org/archive/html/commit-inetutils/2003-05/msg00001.html
+Maker: Greg Schafer <gschafer@zip.com.au>
+Upstream Status: Applied. Refer Origin
+Description: Fix compilation with GCC4
+
+diff -Naur inetutils-1.4.2.orig/ftp/ftp_var.h inetutils-1.4.2/ftp/ftp_var.h
+--- inetutils-1.4.2.orig/ftp/ftp_var.h	2000-07-08 01:00:53.000000000 +0000
++++ inetutils-1.4.2/ftp/ftp_var.h	2005-08-28 03:38:31.000000000 +0000
+@@ -36,8 +36,6 @@
+ #include <sys/param.h>
+ #include <setjmp.h>
+ 
+-#include "extern.h"
+-
+ #ifndef FTP_EXTERN
+ #define FTP_EXTERN extern
+ #endif
+@@ -129,3 +127,5 @@
+ FTP_EXTERN int macnum;			/* number of defined macros */
+ FTP_EXTERN struct macel macros[16];
+ FTP_EXTERN char macbuf[4096];
++
++#include "extern.h"
+diff -Naur inetutils-1.4.2.orig/libinetutils/ttymsg.c inetutils-1.4.2/libinetutils/ttymsg.c
+--- inetutils-1.4.2.orig/libinetutils/ttymsg.c	2001-11-01 15:52:19.000000000 +0000
++++ inetutils-1.4.2/libinetutils/ttymsg.c	2005-08-28 03:37:34.000000000 +0000
+@@ -132,7 +132,7 @@
+ 	    }
+ 	  if (wret)
+ 	    {
+-	      (char *)iov->iov_base += wret;
++	      iov->iov_base = (char *)iov->iov_base + wret;
+ 	      iov->iov_len -= wret;
+ 	    }
+ 	  continue;
