@@ -357,6 +357,14 @@ pkgconf_install()  {
 }
 
 
+add_libGL_symlink()  {
+  if       [  -f  /usr/lib/libGL.so.1.2  ]  &&
+        !  [  -h                         /usr/lib/libGL.so.1  ]
+  then  ln    -s           libGL.so.1.2  /usr/lib/libGL.so.1
+  fi
+}
+
+
   if    [  -f  $CONFIG_LOGS/$SPELL/host.def  ];  then
     cat        $CONFIG_LOGS/$SPELL/host.def    |
     sed  "s:BuildXF86DRM YES:BuildXF86DRM NO:"  >  \
@@ -418,7 +426,8 @@ pkgconf_install()  {
   fix_sym_dir          &&
   make    install      &&
   make    install.man  &&
-  symlink_install
+  symlink_install      &&
+  add_libGL_symlink
 #      &&
 #  pkgconf_install
 }
