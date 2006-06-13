@@ -1,0 +1,59 @@
+   VERSION=( "2.3.0" "2.2.3" "2.2.2" "2.2.1" "2.2.0" "2.1.1" "2.1.0" )
+    IGNORE="theme\|iconset\|w32\|doc\|gtk2\|i18n\|rc\|TS\|beta"
+  CATEGORY="network/email network/news"
+ ATTRIBUTE="client x11"
+    SOURCE="sylpheed-claws/sylpheed-claws-extra-plugins-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://www.sylpheed-claws.net/"
+       REQ=( "sylpheed-claws"
+             ":acpi_notifer::for mail notification via LEDs on some laptops"
+             ":att_remover::for message attachment remover"
+             ":cachesaver::to avoid metadata loss on crashes by saving cache every minute"
+             ":etpan-privacy::for signature verification and decryption of messages"
+             ":fetchinfo::to insert headers containing some download information"
+             "libgtkhtml:gtkhtml2_viewer::to render HTML mail using gtkhtml2 rendering widget"
+             ":maildir::to provide support for maildir++ mailboxes"
+             ":mailmbox::to provide support for mailboxes in mbox format"
+             ":newmail::to write message header summary to a log file"
+             ":notification::to provide methods for notifying user of new unread mail"
+             "perl:perl::to extend filtering possibilities using perl interface"
+             ":rssyl::to read RSS 1.0 2.0 and Atom newsfeeds in claws"
+             ":smime::to verify signatures and decrypt email"
+             ":synce::to keep addressbook of windows CE device in sync with claws"
+             ":vcalendar::for vCalendar message handling similar to Evolution or Outlook" )
+  ESTIMATE="570"
+      DESC="sylpheed-claws-extra-plugins provides extra plugins for sylpheed claws
+
+acpi_notifer	for mail notification via LEDs on some laptops
+att_remover	for message attachment remover
+cachesaver	to avoid metadata loss on crashes by saving cache every minute
+etpan-privacy	for signature verification and decryption of messages
+fetchinfo	to insert headers containing some download information
+gtkhtml2_viewer	to render HTML mail using gtkhtml2 rendering widget
+maildir		to provide support for maildir++ mailboxes
+mailmbox	to provide support for mailboxes in mbox format
+newmail		to write message header summary to a log file
+notification	to provide methods for notifying user of new unread mail
+perl		to extend filtering possibilities using perl interface
+rssyl		to read RSS 1.0 2.0 and Atom newsfeeds in claws
+smime		to verify signatures and decrypt email
+synce		to keep addressbook of windows CE device in sync with claws
+vcalendar	for vCalendar message handling similar to Evolution or Outlook"
+
+build()  {
+  if  [  -f  README  ];  then
+    mkdir  -p  $DESTDIR
+    for  OPT  in  $OPTS;  do
+      cd  $BUILD_DIR
+      cd  $OPT*
+      [  -f  configure  ]   &&
+      ./configure           \
+      --build=$BUILD        \
+      --prefix=/usr         \
+      --sysconfdir=/etc     \
+      --localstatedir=/var  &&
+      make  all  install  DESTDIR=$DESTDIR    
+    done
+    true
+  fi
+}
