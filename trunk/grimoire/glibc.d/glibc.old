@@ -1,3 +1,5 @@
+# When I test version 2.4.1 remember to try with prepare_install
+# beneath make  install install_root=...
   LVERSION=( "2.6.15.7" )
 #  VERSION=( "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
 #     SAFE=( "2.4" "2.3.6" "2.3.5" "2.3.4" )
@@ -54,68 +56,52 @@ gd libpng and zlib are optional requirements for
 building memusagestat, a program to generate graphic
 from memory profiling data."
 
-
 build() {
+del_cached_glibc()  {
 
-  del_library_cache()  {
-    ldconfig
-    rm  -fr  ${LIBRARY_CACHE:-/usr/lib.old}  \
-             ${LIBRARY_CACHE_64:-/usr/lib64.old}
-    ldconfig
-    true
-  }
-
-
-  fix_libc_so() {
-    case  $VERSION  in
-      2.4)  sed  -i  "s: AS_NEEDED[^)]*) ::"  $IR/usr/lib/libc.so  ;;
-    esac
-  }
-
-
-  install_glibc()  {
-    cd      $IR
-    rm  -f  $IR/etc/{localtime,ld.so.*}
-
-    fix_libc_so
-
-    prepare_install
-
-    if    [  -f                                      $LD_SO  ]
-    then  LD_PRELOAD="$LPO"  \
-          LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"      $LD_SO  /bin/cp  -a  *  /
-    elif  [  -f                                      $LD_64  ]
-    then  LD_PRELOAD="$LPO"  \
-          LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64"  $LD_64  /bin/cp  -a  *  /
-    else  false
+  smote_old_glibc()  {
+   for  FILE  in  from/glibc*;  do
+    if    [  -f         $FILE  ]
+    then  basenames  <  $FILE  |  xargs  -l512  rm  -f
     fi
+    ldconfig
+   done
+   }
 
-    del_library_cache
-    /sbin/init u
-    true
-  }
-
-
-  quick_test()  {
-    echo  "Performing a quick test to see if the new glibc works."
-    if
-      if    [  -f                                      $LD_SO  ]
-      then  LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"      $LD_SO  /bin/true
-      elif  [  -f                                      $LD_64  ]
-      then  LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64"  $LD_64  /bin/true
-      else  false
-      fi
-    then  echo  "glibc is ready to install."
-    else  echo  "glibc is not working as expected."
-          echo  "Compilation aborted before installing new glibc."
-          false
-    fi
-  }
+  ldconfig
+#  [  -d   ${LIBRARY_CACHE:=/usr/lib.old}       ]  &&
+#  cd      ${LIBRARY_CACHE}                        &&  smote_old_glibc
+#  [  -d   ${LIBRARY_CACHE_64:=/usr/lib64.old}  ]  &&
+#  cd      ${LIBRARY_CACHE_64}                     &&  smote_old_glibc
+  rm  -fr  ${LIBRARY_CACHE:-/usr/lib.old}  \
+           ${LIBRARY_CACHE_64:-/usr/lib64.old}
+  ldconfig
+  true
+}
 
 
-   LPO="$LD_PRELOAD"
-  unset  LD_PRELOAD
-  unset  LDFLAGS  LTDL_LIBRARY_PATH  LD_LIBRARY_PATH  LD_RUN_PATH
+fix_libc_so() {
+  case  $VERSION  in
+    2.4)  sed  -i  "s: AS_NEEDED[^)]*) ::"  /usr/lib/libc.so  ;;
+  esac
+}
+
+
+finish_install()  {
+cd         $INSTALL_ROOT
+rm     -f  $INSTALL_ROOT/etc/{localtime,ld.so.*}
+export  LD_PRELOAD="$LD_PRELOAD_OLD"
+cp     -a   *  /
+fix_libc_so
+del_cached_glibc
+/sbin/init u
+true
+}
+
+
+LD_PRELOAD_OLD="$LD_PRELOAD"
+unset  LD_PRELOAD
+unset  LDFLAGS LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
 export    CFLAGS="${CFLAGS/-O?/-O2}"
 export  CXXFLAGS="${CXXFLAGS/-O?/-O2}"
@@ -148,11 +134,9 @@ esac
 export  LANGUAGE=C
 export    LC_ALL=C
 
-            IR=$PWD/install
-mkdir  -p  $IR/etc
-touch      $IR/etc/ld.so.conf
-    LD_SO="$IR/lib/ld-linux.so.2"
-    LD_64="$IR/lib/ld-linux-x86-64.so.2"
+            INSTALL_ROOT=$PWD/install
+mkdir  -p  $INSTALL_ROOT/etc
+touch      $INSTALL_ROOT/etc/ld.so.conf
 
 
 case  $( arch )  in
@@ -160,19 +144,13 @@ case  $( arch )  in
        *)  ASM="asm-i386"    ;;
 esac
 
-mkdir  -p                                       $IR/usr/include
+mkdir  -p                                       $INSTALL_ROOT/usr/include
 cd          linux-$LVERSION
 make        include/linux/version.h
 make        include/asm
-cp     -rL  include/{asm,asm-generic,linux}     $IR/usr/include
+cp     -rL  include/{asm,asm-generic,linux}     $INSTALL_ROOT/usr/include
 cd     ..
 rm     -fr  linux-$LVERSION
-
-if    !  [  -f     /usr/include/linux/version.h  ]
-then  cp    -a  $IR/usr/include/*  /usr/include
-      echo  "Installed missing kernel headers to avoid glibc compile error."
-fi
-
 
 HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
 
@@ -197,18 +175,18 @@ cd     build
 --enable-add-ons   \
 $HEADERS           \
 $OPTS              &&
-# make               &&
-# # make    tests    &&
-# make  all  tests  install  install_root=$IR  &&
-make  all  install  install_root=$IR  &&
-quick_test         &&
-install_glibc
+make               &&
+# make    tests    &&
+prepare_install    &&
+make    install    \
+        install_root=$INSTALL_ROOT  &&
+ finish_install
+
 }
 
-
 post_install() {
-  default_post_install
-  backup_lib
+ default_post_install
+ backup_lib
 }
 
 
