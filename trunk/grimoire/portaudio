@@ -1,0 +1,28 @@
+   VERSION=( "v18_1" )
+  CATEGORY="audio/library"
+ ATTRIBUTE="library new"
+    SOURCE="portaudio_$VERSION.zip"
+       URL="http://www.portaudio.com/archives/"
+  HOMEPAGE="http://www.portaudio.com/"
+       REQ=""
+ FRESHMEAT="none"
+  ESTIMATE="80"
+      DESC="portaudio is a cross platform audio library."
+
+build()  {
+  strip_carriage_returns()  {
+    tr  -d '\r'  <          $1  >  $1.new
+    mv              $1.new  $1
+  }
+
+  for  file  in  *;  do
+    if    [  -f  $file  ]
+    then  strip_carriage_returns  $file
+    fi
+  done
+
+  chmod  0700  configure
+
+  sed  -i  "s:-o lib/:-lpthread -o lib/:"  Makefile.in
+  default_build
+}
