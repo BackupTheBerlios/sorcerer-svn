@@ -1,15 +1,16 @@
-# 2.0.4 may be available, but download location unknown
-# and not tested yet.
-#   VERSION=( "2.0.4" "2.0.3" "2.0.2" "2.1" "2.0" )
-   VERSION=( "2.0.3" "2.0.2" "2.1" "2.0" )
-    IGNORE="DR\|arch"
+# Versions 2.0.3 and before are .tar.bz2
+# Version 2.0.4 is .tar.gz
+# Why is someone making the download larger than necessary?
+   VERSION=( "2.0.4" "2.0.3" "2.0.2" "2.1" "2.0" )
+    IGNORE="DR\|arch\|2\.0\.4"
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="bashish/bashish-$VERSION.tar.bz2"
+#   SOURCE="bashish/bashish-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://bashish.sourceforge.net"
        REQ="bash"
-  ESTIMATE="14"
+  ESTIMATE="225"
       DESC="bashish is a theme engine for the console.
 Bashish is a theme-engine using bash
 and other POSIX shells to customize
@@ -17,3 +18,14 @@ nearly all aspects of the terminal:
 title, colors, prompt, font, background, etc.
 It has a modular design which makes it easy to add features
 (and it does have a lot) while keeping good performance."
+
+build()  {
+  ./configure           \
+  --build=$BUILD        \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  $OPTS                 &&
+  prepare_install       &&
+  make    install
+}

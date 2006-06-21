@@ -7,11 +7,7 @@
        URL="ftp://ftp.debian.org/debian/pool/main/n/newt/
             ftp://ftp.us.debian.org/debian/pool/main/n/newt/"
        REQ="Python popt slang tcl"
-#case  $VERSION  in
-#  0.51.6-31)  GCC3_VER=$( installed_version gcc-v3.4 )
-#  0.52.2)  USE_GCC="gcc-v3.4"  ;;
-#esac
-  ESTIMATE="130"
+  ESTIMATE="250"
       DESC="Newt is a perl library for text screen widgets.
 Newt is a perl library built on top of
 Red Hat's newt C library for text screen widgets.
@@ -45,5 +41,14 @@ cat  debian/patches/*  |  patch  -p1
 sed  -i  "s:-static::"                Makefile.in
 # sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
 # sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
-default_build
+default_build  &&
+case  $VERSION  in
+  0.52.2)  ln  -s  libnewt.so.0.52.1 /usr/lib/libnewt.so.0.52  ;;
+esac
+}
+
+current()  {
+case  $VERSION  in
+  0.52.2)  [  -h /usr/lib/libnewt.so.0.52  ]  ;;
+esac
 }
