@@ -1,17 +1,29 @@
-   VERSION=( "2.4.28" "2.4.24" "2.4.23" "2.4.20" "2.4.19" )
+   VERSION=( "2.4.32-1" "2.4.28" "2.4.24" "2.4.23" "2.4.20" "2.4.19" )
   CATEGORY="disk/file-system"
  ATTRIBUTE="console"
-    SOURCE="attr-$VERSION.src.tar.gz"
+    SOURCE="attr_$VERSION.tar.gz"
+#   SOURCE="attr-$VERSION.src.tar.gz"
+DICTIONARY="attr-2.4.28.src.tar"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars/"
   HOMEPAGE="http://oss.sgi.com/projects/xfs"
-       REQ="libtool"
-  ESTIMATE="99"
+       REQ="automake libtool"
+  ESTIMATE="355"
       DESC="attr provides extended attribute (EA) support for XFS and ext3."
 
 build()  {
+build_old()  {
   ./configure  --prefix=/usr  &&
   make  "DEBUG="              \
         "LDFLAGS=$LDFLAGS"    &&
   prepare_install             &&
+  make    install  install-lib  install-dev
+}
+
+  export  OPTIMIZER=-O
+  export  DEBUG=-DNDEBUG
+
+  make  configure  &&
+  make             &&
+  prepare_install  &&
   make    install  install-lib  install-dev
 }

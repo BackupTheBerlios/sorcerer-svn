@@ -1,18 +1,31 @@
-   VERSION=( "2.2.34" "2.2.32" "2.2.31" "2.2.28" "2.2.27" )
+   VERSION=( "2.2.39-1" "2.2.34" "2.2.32" "2.2.31" "2.2.28" "2.2.27" )
   CATEGORY="disk/file-system"
  ATTRIBUTE="console"
-    SOURCE="acl-$VERSION.src.tar.gz"
+#   SOURCE="acl-$VERSION.src.tar.gz"
+    SOURCE="acl_$VERSION.tar.gz"
+DICTIONARY="acl-2.2.34.src.tar"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars/"
   HOMEPAGE="http://oss.sgi.com/projects/xfs"
        REQ="attr"
-  ESTIMATE="228"
+  ESTIMATE="485"
  FRESHMEAT="none"
       DESC="acl provides access control list for XFS and ext3"
 
-build()  {
+build() {
+build_old()  {
   ./configure  --prefix=/usr  &&
   make  "DEBUG="              \
         "LDFLAGS=$LDFLAGS"    &&
   prepare_install             &&
+  make    install  install-lib  install-dev
+}
+
+
+  export  OPTIMIZER=-O
+  export  DEBUG=-DNDEBUG
+
+  make  configure  &&
+  make             &&
+  prepare_install  &&
   make    install  install-lib  install-dev
 }

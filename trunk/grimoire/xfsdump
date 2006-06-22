@@ -1,21 +1,33 @@
-   VERSION=( "2.2.33" "2.2.30" "2.2.25" "2.2.13" "2.2.3" "2.0.1" )
+   VERSION=( "2.2.38-1" "2.2.33" "2.2.30" "2.2.25" "2.2.13" "2.2.3" "2.0.1" )
   CATEGORY="disk/file-system"
  ATTRIBUTE="console"
-    SOURCE="xfsdump-$VERSION.src.tar.gz"
+#   SOURCE="xfsdump-$VERSION.src.tar.gz"
+    SOURCE="xfsdump_$VERSION.tar.gz"
+DICTIONARY="xfsdump-2.2.33.src.tar"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars/"
   HOMEPAGE="http://oss.sgi.com/projects/xfs/"
        REQ="attr dmapi ncurses"
-  ESTIMATE="179"
+  ESTIMATE="385"
       DESC="xfsdump provide dump and restore utilities for XFS filesystems.
 xfsdump provide dump and restore utilities for XFS,
 including extended attribute and DMAPI support."
 
-
-build()  {
+build() {
+build_old()  {
   ./configure  --prefix=/usr    \
                $OPTS            &&
   make  "DEBUG="                \
         "LDFLAGS=$LDFLAGS"      &&
   prepare_install               &&
   make    install  install-dev
+}
+
+  export  OPTIMIZER=-O
+  export  DEBUG=-DNDEBUG
+
+  make  configure  &&
+  make             &&
+  prepare_install  &&
+  make    install  install-dev
+# make    install  install-lib  install-dev
 }
