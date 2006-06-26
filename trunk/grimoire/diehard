@@ -1,0 +1,62 @@
+   VERSION=( "1.0" )
+  CATEGORY="security"
+ ATTRIBUTE="console new"
+    SOURCE="download/$VERSION/diehard-$VERSION.tar.gz"
+       URL="http://www.cs.umass.edu/~emery/diehard/"
+  HOMEPAGE="http://www.cs.umass.edu/~emery/diehard/"
+       REQ=( "" )
+  ESTIMATE="25"
+      DESC="diehard hardens software against exploits aimed at bugs.
+Bugs such as memory errors, often end up as serious security
+vulnerabilities, cause crashes, or lead to unpredictable behavior.
+DieHard either eliminates these bugs altogether,
+or avoids them with high probability.
+
+
+Below copied from the http://www.cs.umass.edu/~emery/diehard/
+
+DieHard works in two modes: standalone and replicated.
+The standalone version replaces the memory manager
+with the DieHard randomized memory manager.
+This randomization increases the odds that buffer overflows
+will have no effect, and reduces the risk of dangling pointers.
+The replicated version provides greater protection against
+errors by running several instances of the application
+simultaneously and voting on their output.
+Because each replica is randomized differently,
+each replica will likely have a different output
+if it has an error, and some replicas are likely
+to run correctly despite the error.
+Extra protection comes at the cost 
+of increased memory and CPU usage.
+
+
+To start in standalone export the diehard's library
+to the LD_PRELOAD environment variable:
+
+export  LD_PRELOAD  /usr/lib/libdiehard.so
+
+To use replicated version invoke the program through diehard.
+
+diehard 3 /usr/lib/libdiehard_r.so program
+
+This would create 3 replicas of the program.
+If the program does not read from standard input
+then add < /dev/null to the command line."
+
+
+build()  {
+  install_diehard()  {
+    mkdir    -m  0755  -p       $DESTDIR/usr/bin  $DESTDIR/usr/lib
+    install  -m  0755  diehard  $DESTDIR/usr/bin
+    cd  ..
+    install  -m  0755  libdiehard{,_r}.so         $DESTDIR/usr/lib
+  }
+
+  sed   -i  "s: -march=pentiumpro -march=pentiumpro -O3:$CFLAGS:"  src/Makefile
+  cd    src           &&
+  make  OSTYPE=linux  &&
+  cd    replicated    &&
+  make                &&
+  install_diehard
+}
