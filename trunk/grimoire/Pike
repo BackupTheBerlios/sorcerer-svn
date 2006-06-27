@@ -1,47 +1,42 @@
-   VERSION=( "v7.6.24" "v7.6.6-2" "v7.6.6" "v7.4.44" "v7.4.28" "v7.4.20" )
+   VERSION=( "v7.6.86" "v7.6.24" "v7.6.6-2" "v7.6.6" "v7.4.44" "v7.4.28" "v7.4.20" )
   CATEGORY="development/interpreter"
  ATTRIBUTE="console"
     SOURCE="Pike-$VERSION.tar.gz"
-#old       URL="http://pike.ida.liu.se/download/pub/pike/latest-stable/"
-
        URL="http://pike.ida.liu.se/pub/pike/latest-stable/"
-
-
-
-#      URL="ftp://pike.ida.liu.se/pub/pike/latest-stable/"
   HOMEPAGE="http://pike.ida.liu.se"
-#   "linuxtv-dvb:::for hardware decoding of mpeg2"
+#   "linuxtv-dvb:--with-dvb:--without-dvb:for hardware decoding of mpeg2"
 #   "gtkgladexml:::not sure where to find this"
-#  not sure how to tell it where j2sdk is located.
-#  this optional requirement list is incomplete as of v7.4.28
-#  not sure what parameters to pass to configure to force enable/disable
-#  I really wish the person who wrote this spell did it
-#  correctly the first time.
-       REQ=(  ""
-              "ffmpeg:::for software decoding of mpeg2"
-              "gtk+:::for x11 output using the gtk+ library"
+       REQ=(  "zlib"
+              "fftw:--with-fftw:--without-fftw:for fourier transformation"
+              "gtk+::--without-GTK:for x11 output using the gtk+ library"
               "gtkglarea:::for gtk+ output using OpenGL"
               "gnome-libs:::for gnome 1.4 support"
               "gdbm::--without-gdbm:for gdbm support"
-              "gmp::--without-gmp:for gmp support"
+              "gmp::--without-gmp:for bignums support"
               "mysql::--without-mysql:for mysql support"
               "nasm::--without-nasm:for nasm support"
-              "zlib::--without-zlib:for gzip compression support"
-              "freetype:::for freetype font support"
-              "libungif:::for uncompressed gif graphic image support"
-              "jpeg:::for jpeg graphic image support"
-              "librsvg:::for svg support"
-              "tiff:::for tiff graphic image support"
+              "freetype:--with-freetype:--without-freetype:for freetype font support"
+              "libungif::--without-gif:for uncompressed gif graphic image support"
+              "jpeg::--without-jpeglib:for jpeg graphic image support"
+              "librsvg::--without-svg:for svg support"
+              "tiff::--without-tifflib:for tiff graphic image support"
               "mysql:::for mysql support"
-              "postgresql:::for postgresql support"
+              "postgresql::--without-postgres:for postgresql support"
               "SDL:::for SDL x11 output support"
               "SDL_mixer:::for SDL audio output support"
               "openssl:::for encryption support"
               "nettle:--with-nettle:--without-nettle:for encryption support"
-              "glut:::for OpenGL support"
-              "sane-backends:::for scanner support"
-              "pcre:::for perl regular expression support"
+              "glut::--without-GLUT:for OpenGL support"
+              "sane-backends::--without-sane:for scanner support"
+              "pcre::--without-pcre:for perl regular expression support"
               "lame:::for mp3 encoding support" )
+# --with(out)-sybase               Include the Sybase database driver
+# --with(out)-libpdf       Support PDF through PDFlib
+# --without-libpanda ? What is libpanda?
+# --without-krb5 ? which implementation of kerberos?
+      OPTS="--without-ffmpeg"
+#             "ffmpeg::--without-ffmpeg:for software decoding of mpeg2"
+# Pike v7.6.86 does not work with ffmpeg 2006-5 from svn
  FRESHMEAT="pike"
   ESTIMATE="1156"
       DESC="Pike is a general purpose programming language.
@@ -51,11 +46,12 @@ where your shell could use some spicy text processing or
 system administration tools."
 
 build()  {
-cd src
-
-./configure  --prefix=/usr  \
-             $OPTS          &&
-make                        &&
-prepare_install             &&
-make    install_nodoc
+cd      src      &&
+./configure      \
+--prefix=/usr    \
+$OPTS            &&
+make             &&
+prepare_install  &&
+make    install
+#make    install_nodoc
 }
