@@ -1,5 +1,5 @@
    VERSION=( "1.4.2.1i" "1.4.2i" "1.4.1i" "1.4i" "1.2.5.1" )
-      SAFE=( "1.4.2.1i" "1.4.2i" )
+      SAFE=( "1.4.2.1i" )
   CATEGORY="network/email"
  ATTRIBUTE="client console"
     SOURCE="mutt-$VERSION.tar.gz"
@@ -23,7 +23,7 @@ esac
        REQ=( "ncurses"
              "openssl:--with-ssl::to enable ssl support for pop/imap" )
       OPTS="--enable-pop  --enable-imap  --with-mailpath=/var/spool/mail"
-  ESTIMATE="202"
+  ESTIMATE="940"
       DESC="mutt is a text-based MIME Email client.
 mutt is a small but very powerful text-based MIME mail client.
 It is highly configurable, and is well-suited to the mail power
@@ -32,7 +32,19 @@ mail threading, regular expression searches, and a powerful
 pattern matching language for selecting groups of messages."
 
 build()  {
+case  $VERSION  in
+  1.4.2.1i)  curl  "http://dev.mutt.org/cgi-bin/gitweb.cgi?p=mutt/.git;a=commitdiff_plain;h=dc0272b749f0e2b102973b7ac43dbd3908507540;hp=cc548718c41f8ca18a217b675d7c70e1184c158d" |
+             patch  -p1  ;;
+esac
+
 chmod  a+x  missing
 touch  README.UPGRADE
 default_build
+}
+
+
+current()  {
+  case  $VERSION  in
+    1.4.2.1i)  grep -qx "patching file imap/browse.c"  $COMPILE_LOGS/mutt  ;;
+  esac
 }
