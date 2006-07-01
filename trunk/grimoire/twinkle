@@ -1,4 +1,6 @@
-   VERSION=( "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
+# 0.8 has too many compile errors to be worth deploying
+#  VERSION=( "0.8" "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
+   VERSION=(       "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
   CATEGORY="network/telephone"
  ATTRIBUTE="kde"
     SOURCE="twinkle-$VERSION.tar.gz"
@@ -6,10 +8,18 @@
   HOMEPAGE="http://www.twinklephone.com/"
        REQ=( "ccrtp flac kdelibs libsndfile libxml2"
              "speex:::for speex codec support" )
+case  $VERSION  in
+  0.8)  REQ="boost $REQ"
+        USE_GCC="gcc-v4.0"  ;;
+esac
   ESTIMATE="730"
       DESC="twinkle is a voice over IP using the SIP protocol application"
 
 build() {
+case  $VERSION  in
+  0.8)  sed  -i  "s:-lboost_regex:-lboost_regex-gcc:"    \
+             configure  src/{Makefile.in,/gui/Makefile}  ;;
+esac
 sed  -i  "s:INCLUDEPATH	+=:INCLUDEPATH	+= /usr/include/qt:" src/gui/twinkle.pro
 export  QTDIR="/usr"
 default_build

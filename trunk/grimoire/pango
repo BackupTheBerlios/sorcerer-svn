@@ -6,24 +6,23 @@
        URL="$GNOME_URL"
   HOMEPAGE="http://www.pango.org"
        REQ="cairo expat fontconfig glib freetype x11 xft"
-  ESTIMATE="2010"
+  ESTIMATE="2000"
       DESC="pango is library for layout and rendering of text.
 pango has an emphasis on internationalization."
 
 
 build()  {
+  if  [  -d  /opt/fontconfig  ];  then
+      OF="/opt/fontconfig"
+     OFI="$OF/include"
+     OFL="$OF/lib"
+    OFLP="$OFL/pkgconfig"
+     OFI="/usr/include"
 
-  OF="/opt/fontconfig"
- OFI="$OF/include"
- OFL="$OF/lib"
-OFLP="$OFL/pkgconfig"
+    export  PKG_CONFIG_PATH="$OFLP"
+    export               CC="gcc  -I$OFI"
+    export          LDFLAGS="-L$OFL  -Wl,-rpath,$OFL  -Wl,-rpath-link,$OFL  $LDFLAGS"
+  fi
 
-OFI="/usr/include"
-
-export  PKG_CONFIG_PATH="$OFLP"
-export               CC="gcc  -I$OFI"
-export          LDFLAGS="-L$OFL  -Wl,-rpath,$OFL  -Wl,-rpath-link,$OFL  $LDFLAGS"
-
-default_build
-
+  default_build
 }
