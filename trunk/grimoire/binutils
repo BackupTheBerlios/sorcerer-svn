@@ -11,7 +11,7 @@
    PROTECT="/usr/bin/as
             /usr/bin/ld
             /usr/bin/ranlib"
-  ESTIMATE="2800"
+  ESTIMATE="2980"
       DESC="binutils is an essential collection of binary utilities.
 
 binutils - Collection of binary utilities
@@ -31,6 +31,13 @@ nlmconv		-converts object code into an NLM"
 
 
 build()  {
+  case  $VERSION  in
+    2.17)  grep  -rl  "\-Werror" *    |
+           grep  -v   "\.m4$\|\.am$"  |
+           xargs -l64 \
+           sed   -i   "s:-Werror::g"  ;;
+  esac
+
   export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
   export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
