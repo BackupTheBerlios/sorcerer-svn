@@ -7,7 +7,8 @@ COMPACT="on"
        URL="ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/"
   HOMEPAGE="http://www.mozilla.org/products/firefox/"
        REQ="gss gtk+ heimdal jpeg libIDL libpng libmng perl zip zlib"
-  ESTIMATE="30500"
+  EPROVIDE="mozilla"
+  ESTIMATE="30520"
       DESC="firefox is a new UI to gecko the mozilla HTML rendering engine."
 
 
@@ -27,20 +28,35 @@ check_space()  {
 
 
 install_symlinks()  {
- rm  -rf                                           /opt/firefox/include/firefox
- ln  -sf    /opt/firefox/include/firefox-$VERSION  /opt/firefox/include/firefox
+  rm  -fr                                   /usr/include/firefox
+  ln  -fs    /usr/include/firefox-$VERSION  /usr/include/firefox
+  rm  -fr                                   /usr/include/mozilla
+  ln  -fs    /usr/include/firefox-$VERSION  /usr/include/mozilla
 
- rm  -rf                                           /opt/firefox/lib/firefox
- ln  -sf        /opt/firefox/lib/firefox-$VERSION  /opt/firefox/lib/firefox
+  rm  -fr                                   /usr/lib/firefox
+  ln  -fs        /usr/lib/firefox-$VERSION  /usr/lib/firefox
+  rm  -fr                                   /usr/lib/mozilla
+  ln  -fs        /usr/lib/firefox-$VERSION  /usr/lib/mozilla
 
- rm  -rf                                           /opt/firefox/share/idl/firefox
- ln  -sf  /opt/firefox/share/idl/firefox-$VERSION  /opt/firefox/share/idl/firefox
+  rm  -fr                                   /usr/share/idl/firefox
+  ln  -fs  /usr/share/idl/firefox-$VERSION  /usr/share/idl/firefox
+  rm  -fr                                   /usr/share/idl/mozilla
+  ln  -fs  /usr/share/idl/firefox-$VERSION  /usr/share/idl/mozilla
+
+  rm  -fr                                   /usr/bin/mozilla-config
+  ln  -fs  /usr/bin/firefox-config          /usr/bin/mozilla-config
+  rm  -fr                                   /usr/bin/mozilla
+  ln  -fs  /usr/bin/firefox                 /usr/bin/mozilla
 }
 
 
-fix_config()  {
+fix_config_old()  {
  sed  -i  "s:/opt/firefox/lib/firefox-[^ ]*:/opt/firefox/lib/firefox:g"  /opt/firefox/bin/firefox-config
-} 
+}
+
+fix_config()  {
+  sed  -i  "s:/usr/lib/firefox-[^ ]*:/usr/lib/firefox:g"  /usr/bin/firefox-config
+}
 
 
 # Modify install_security function if using firefox
@@ -69,6 +85,9 @@ case $( arch ) in
        *)  ELF_DYNSTR_GC="--enable-elf-dynstr-gc"       ;;
 esac
 
+# ac_add_options --prefix=/opt/firefox
+# ac_add_options --with-default-mozilla-five-home=/opt/firefox
+
 cat  <<  EOF  >  .mozconfig
 mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-application=browser
@@ -95,8 +114,7 @@ ac_add_options --enable-image-decoders=png,gif,jpeg,bmp
 ac_add_options --disable-logging
 
 
-ac_add_options --prefix=/opt/firefox
-ac_add_options --with-default-mozilla-five-home=/opt/firefox
+ac_add_options --prefix=/usr
 ac_add_options --enable-shared
 ac_add_options --disable-static
 ac_add_options --with-system-jpeg
@@ -121,9 +139,13 @@ ac_add_options --disable-freetype2
 ac_add_options --disable-gnomevfs
 EOF
 
-  export  LDFLAGS="-Wl,-rpath,/opt/firefox/lib/firefox-$VERSION  $LDFLAGS"
+#  export  LDFLAGS="-Wl,-rpath,/opt/firefox/lib/firefox-$VERSION  $LDFLAGS"
+#  grep   -rl             "\-Wl,-soname" * |
+#  xargs  -l64  sed  -i  "s:-Wl,-soname:-Wl,-rpath,/opt/firefox/lib/firefox-$VERSION -Wl,-soname:"
+
+  export  LDFLAGS="-Wl,-rpath,/usr/lib/firefox-$VERSION  $LDFLAGS"
   grep   -rl             "\-Wl,-soname" * |
-  xargs  -l64  sed  -i  "s:-Wl,-soname:-Wl,-rpath,/opt/firefox/lib/firefox-$VERSION -Wl,-soname:"
+  xargs  -l64  sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
 
   check_space                    &&
   # ./configure  $OPTS           &&
@@ -131,6 +153,7 @@ EOF
   prepare_install                &&
   make   -f  client.mk  install  &&
   install_symlinks               &&
-  fix_config                     &&
-  ln     -s  /opt/firefox/bin/firefox  /usr/bin/firefox
+  fix_config
+#                     &&
+#  ln     -s  /opt/firefox/bin/firefox  /usr/bin/firefox
 }
