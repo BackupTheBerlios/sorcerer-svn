@@ -61,13 +61,12 @@ fix_config()  {
 
 # Modify install_security function if using firefox
 # as dropin replacement for mozilla.
+
 install_security()  {
- NSS_DIR=/usr/include/mozilla-$VERSION/nss
+ local       NSS_DIR=/usr/include/mozilla/nss
  mkdir  -p  $NSS_DIR
- for  dir  in  private  public;  do
-  cp  -f  $BUILD_DIR/dist/${dir}/nss/*.h \
-  $NSS_DIR
- done
+ cp     -f  $BUILD_DIR/dist/{private,public}/nss/*.h  \
+            $NSS_DIR
 }
 
 
@@ -153,7 +152,14 @@ EOF
   prepare_install                &&
   make   -f  client.mk  install  &&
   install_symlinks               &&
-  fix_config
+  fix_config                     &&
+  install_security
 #                     &&
 #  ln     -s  /opt/firefox/bin/firefox  /usr/bin/firefox
+}
+
+current()  {
+  case  $VERSION  in
+    1.5.0.4)  [  -d  /usr/include/mozilla/nss  ]  ;;
+  esac
 }

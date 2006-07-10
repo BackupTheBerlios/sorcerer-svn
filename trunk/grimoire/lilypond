@@ -1,10 +1,12 @@
-   VERSION=( "2.6.5" "2.6.4" "2.6.3" "2.6.2" "2.6.1" "2.6.0" )
+   VERSION=( "2.8.4" "2.8.0" "2.6.5" "2.6.4" "2.6.3" "2.6.2" "2.6.1" "2.6.0" )
   CATEGORY="audio/recorder"
+#ATTRIBUTE="console"
  ATTRIBUTE="broken console"
 # Their INSTALL.txt bison fix does not work.
- SOURCE=( "lilypond-$VERSION.tar.gz"
-          "lex/flex-2.5.31.tar.bz2" )
-    URL=( "http://lilypond.org/download/v${VERSION:0:3}/"
+ SOURCE=( "lilypond-$VERSION.tar.gz" )
+#         "flex/flex-2.5.33.tar.bz2" )
+    URL=( "http://lilypond.org/download/v${VERSION:0:3}/
+           http://download.linuxaudio.org/lilypond/v${VERSION:0:3}/"
           "$SOURCEFORGE_URL" )
   HOMEPAGE="http://lilypond.org/web"
        REQ="ImageMagick Python bison ec-fonts-mftraced fontconfig fontforge guile perl rpm2cpio texinfo"
@@ -14,6 +16,42 @@ lilypond prints beautiful sheet music.
 It produces music notation from a description file.
 It excels at typesetting classical music,
 but you can also print pop-songs."
+
+
+build()  {
+  CONF=gcc-3.1 ./lexer-gcc-3.1.sh   &&
+  rm  -f  config.cache              &&
+  CPPFLAGS=-I$PWD/lily/out-gcc-3.1  \
+  ./configure                       \
+  --enable-config=gcc-3.1           \
+  --build=$BUILD                    \
+  --prefix=/usr                     \
+  --sysconfdir=/etc                 \
+  --localstatedir=/var              \
+  $OPTS                             &&
+  CONF=gcc-3.1 ./lexer-gcc-3.1.sh   &&
+  make             conf=gcc-3.1     &&
+  prepare_install                   &&
+  make    install  conf=gcc-3.1
+}
+
+
+build_nope()  {
+  CONF=gcc-3.1 ./lexer-gcc-3.1.sh   &&
+  CPPFLAGS=-I$PWD/lily/out-gcc-3.1  \
+  ./configure                       \
+  --enable-config=gcc-3.1           \
+  --build=$BUILD                    \
+  --prefix=/usr                     \
+  --sysconfdir=/etc                 \
+  --localstatedir=/var              \
+  $OPTS                             &&
+  CONF=gcc-3.1 ./lexer-gcc-3.1.sh   &&
+  make             conf=gcc-3.1     &&
+  prepare_install                   &&
+  make    install  conf=gcc-3.1
+}
+
 
 
 build_old() {
@@ -39,31 +77,31 @@ build_flex()  {
   BF="$BUILD_DIR/flex"
 
   cd   flex-*
-  ./configure  --build=$BUILD        \
-               --prefix=$BF          &&
-  make                               &&
-  make    install                    &&
-
-  cd    ..                           &&
-  ln    -s     flex  $BF/bin/lex     &&
+  ./configure      \
+  --build=$BUILD   \
+  --prefix=$BF     &&
+  make             &&
+  make    install  &&
+  cd      ..       &&
+  ln      -s   flex  $BF/bin/lex     &&
   export       PATH="$BF/bin:$PATH"  &&
 
-  export  CPPFLAGS="-I$BF/include "     &&
+  export  CPPFLAGS="-I$BF/include "  &&
   export  LDFLAGS="$LDFLAGS -L$BF/lib"
-
 }
 
 
-build_flex                         &&
+build_flex            &&
 
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             $OPTS                 &&
-fix_parser_cc                      &&
-make                               &&
-prepare_install                    &&
-make    install                    &&
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&
+fix_parser_cc         &&
+make                  &&
+prepare_install       &&
+make    install       &&
 rm     -rf  /tmp/have_compress.*
 }
