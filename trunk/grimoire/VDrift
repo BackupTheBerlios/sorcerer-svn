@@ -1,10 +1,12 @@
-   VERSION=( "2006-02-21-src+data" "2005-10-02" "6-25-05" "6-17-05" "6-9-05" )
+   VERSION=( "2006-07-08" "2006-02-21-src+data" "2005-10-02" "6-25-05" "6-17-05" "6-9-05" )
     IGNORE="7-7-05\|6-25-05\|2005\|ubuntu"
   CATEGORY="game"
- ATTRIBUTE="x11 new"
+ ATTRIBUTE="x11 new broken"
 # Compile and installs okay, but playing...
 # car's front end just bounes up and down.
-    SOURCE="vdrift/vdrift-$VERSION.tar.bz2"
+    SOURCE=( "vdrift/vdrift-$VERSION-src.tar.bz2"
+             "vdrift/vdrift-$VERSION-data-full.tar.bz2" )
+
 #   SOURCE="vdrift/vdrift-$VERSION-src.tar.bz2"
 #   SOURCE="vdrift/VDrift-$VERSION.tar.bz2"
 #   SOURCE="vdrift/VDrift$VERSION.tar.bz2"
@@ -12,6 +14,8 @@
        URL="$SOURCEFORGE_URL"
 case  $VERSION  in
   2006-02-21-src+data) USE_GCC="gcc-v4.0"  ;;
+  2006-07-08) USE_GCC="gcc-v4.0"
+              DICTIONARY="vdrift-2006-02-21-src+data.tar.bz2"  ;;
 esac
        REQ="SDL_image SDL_net openal scons"
       OPTS="--bindir=/usr/games --disable-dependency-tracking"
@@ -33,7 +37,7 @@ build()  {
 export  CXXFLAGS="$(  echo  "$CXXFLAGS"  |  sed "s: :', ':g"  )"
 
 sed  -i   "s:'-O2':'$CXXFLAGS':"  SConstruct
-ln   -fs  /usr/X11R6/include/GL include/
+# ln   -fs  /usr/X11R6/include/GL include/
 scons            \
 release=1        &&
 prepare_install  &&
