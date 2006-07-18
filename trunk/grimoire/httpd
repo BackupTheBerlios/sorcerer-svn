@@ -102,12 +102,35 @@ case  $VERSION  in
           ;;
 esac
 
-  ./buildconf       &&
-  ./configure  $AC  &&
-  make              &&
-  prepare_install   &&
-  make    install   &&
-   finish_install    
+  save_apr()     {
+    [  -f  /usr/bin/apr-1-config  ]  &&  mv  /usr/bin/apr-1-config  /usr/bin/apr-1-config.old
+    [  -f  /usr/bin/apu-1-config  ]  &&  mv  /usr/bin/apu-1-config  /usr/bin/apu-1-config.old
+  }
+
+  restore_apr()  {
+    [  -f  /usr/bin/apr-1-config.old  ]  &&  mv  /usr/bin/apr-1-config.old  /usr/bin/apr-1-config
+    [  -f  /usr/bin/apu-1-config.old  ]  &&  mv  /usr/bin/apu-1-config.old  /usr/bin/apu-1-config
+  }
+
+  remove_apr()   {
+    rm  -f  /usr/bin/apr-1-config.old  /usr/bin/apu-1-config.old
+  }
+
+  export  LAYOUT="Sorcerer"
+
+        save_apr
+  if    ./buildconf       &&
+        ./configure  $AC  &&
+        make
+  then
+        restore_apr       &&
+        prepare_install   &&
+        save_apr          &&
+        make    install   &&
+         finish_install   &&
+         remove_apr
+  else   restore_apr;  false
+  fi
 }
 
 post_install() {
@@ -152,14 +175,14 @@ post_install() {
     if    [  -n              "$PRO"  ]  &&
            spell_installed   "$PRO"     &&
          ! spell_held        "$PRO"
-    then  touch  "$CAST_QUEUE/$PRO"
-    # then  cast             "$PRO"
+    then
+      [  -f           "$CAST_QUEUE/$PRO"  ]  ||
+      echo  "com"  >  "$CAST_QUEUE/$PRO"
     fi
   }
 
   default_post_install
   generate_certificates
-  # unlock_cast
   recast  php
   recast  mod_perl
 }
