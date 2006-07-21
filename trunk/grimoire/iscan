@@ -1,0 +1,59 @@
+   VERSION=( "2.1.0-1.c2" )
+  CATEGORY="graphic/scan"
+ ATTRIBUTE="library x11 x86 new"
+    SOURCE=( "${VERSION:0:5}/iscan-$VERSION.tar.gz"
+             "v1180/iscan-plugin-gt-x750-1.0.0-1.c2.i386.rpm" )
+       URL="http://lx1.avasys.jp/iscan/"
+  HOMEPAGE="http://www.avasys.jp/english/linux_e"
+       REQ=( "hotplug libusb sane-backends jpeg libpng" 
+             "gimp:::to register iscan as gimp plugin" )
+      OPTS="--with-pic"
+case $HOSTTYPE in
+ x86_64) # Stupid proprietary drivers are for IA32 only
+         ATTRIBUTE="$ATTRIBUTE broken"  ;;
+esac
+  ESTIMATE="1133"
+      DESC="iscan is an EPSON software for their scanners
+iscan is also referred to as epkowa backend by the sane project.
+iscan (Image Scan! for Linux) contains the following parts:
+  iscan                 the program you use to scan your images
+  libsane-epkowa        an improved driver for EPSON scanners
+  libesmod              a proprietary module used by iscan
+"
+
+install_gimp_plugin() {
+  if [     -x /usr/bin/iscan  -a  -x /usr/bin/gimptool-2.0 ]; then  
+     ln -v -s /usr/bin/iscan    $(gimptool-2.0 --gimpplugindir)/plug-ins/
+  else
+     true
+  fi
+}
+
+install_hotplug() {
+  mkdir -p  /etc/hotplug/usb						&&
+  install -v -m 0755  utils/hotplug/iscan-device  /etc/hotplug/usb/	&&
+  install -v -m 0644  utils/hotplug/iscan.usermap /etc/hotplug/usb/
+}
+
+install_sane_conf() {
+  install -v -m 0644  backend/epkowa.conf  /etc/sane.d/
+}
+
+install_binaries() {
+  mkdir -p           /usr/lib/iscan 	/usr/share/iscan		&&
+  cp -av              usr/lib/iscan/*	/usr/lib/iscan/			&&
+  install -v -m 0644  usr/share/iscan/*	/usr/share/iscan/
+}
+
+install_extra_docs() {
+  mv	usr/share/doc/*		doc/  
+}
+
+build() {
+  default_build		&&
+  install_binaries	&&
+  install_hotplug	&&
+  install_sane_conf	&&
+  install_gimp_plugin	&&
+  install_extra_docs
+}
