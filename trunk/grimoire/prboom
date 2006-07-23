@@ -1,4 +1,4 @@
-   VERSION=( "2.4.2" "2.4.1" "2.4.0" "2.2.6" "2.3.1" "2.3.0" "2.2.4" "2.2.3" )
+   VERSION=( "2.4.3" "2.4.2" "2.4.1" "2.4.0" )
     IGNORE="plus"
   CATEGORY="game"
  ATTRIBUTE="x11"
@@ -12,7 +12,7 @@
 #  2.4.0)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
 #esac
        REQ="SDL_mixer SDL_net"
-  ESTIMATE="1515"
+  ESTIMATE="700"
       DESC="prboom is a portable POSIX Doom port.
 
 prboom is a game engine - it provides a program to play Doom levels.
@@ -25,19 +25,12 @@ so it can find prboom.wad"
 
 
 build() {
- default_build  &&
- (
+  install_wad()  {
+    local  WAD="$(  guess_filename  ${SOURCE[1]}  )"
+    mkdir  -p             /usr/share/games/doom
+    gzip   -cd  $WAD  >   /usr/share/games/doom/doom1.wad
+  }
 
- WAD="$(  guess_filename  ${SOURCE[1]}  )"
- mkdir  -p             /usr/share/games/doom
- bunzip2  -c  $WAD  >  /usr/share/games/doom/doom1.wad
- touch                 /usr/share/games/doom/doom1.wad
-
- )
-}
-
-
-pre_build() {
- default_pre_build
- unpack  ${SOURCE[0]}
+  default_build  &&
+  install_wad 
 }
