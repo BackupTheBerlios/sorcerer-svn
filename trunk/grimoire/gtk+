@@ -1,5 +1,6 @@
 COMPACT="on"
-   VERSION=( "2.8.20" "2.8.19" "2.8.18" "2.8.17" "2.8.16" "2.8.15" "2.8.14" "2.8.13" "2.8.12" "2.8.11" "2.8.10" "2.10.0" )
+   VERSION=( "2.10.1" "2.10.0" "2.8.20" "2.8.19" "2.8.18" "2.8.17" "2.8.16" "2.8.15" "2.8.14" "2.8.13" "2.8.12" "2.8.11" "2.8.10" "2.10.0" )
+# Avoid installing 2.10.0.
     IGNORE="^2\.9\."
   CATEGORY="graphic"
  ATTRIBUTE="library x11"
@@ -11,14 +12,33 @@ COMPACT="on"
 # Can not add cups optional requirement which exists at this time
 # To avoid circuliar requirement loop with cups dbus gtk+
 # dbus's optional requirement on gtk+ was dropped
-  ESTIMATE="7200"
+  ESTIMATE="7015"
  FRESHMEAT="gtk"
       DESC="gtk+ is a toolkit for creating GUIs."
 
-build() {
+build()  {
+
+build_old() {
   # using default_build now.
   # if installed with DESTDIR instead then
   # use gtk-query-immodules-2.0  to generate /etc/gtk-2.0/gtk.immodules
   # and gdk-pixbuf-query-loaders to generate /etc/gtk-2.0/gdk-pixbuf.loaders
   default_build
+}
+
+  uncustomize()  {
+    if    [   -d   /etc.sav/gtk-2.0  ]
+    then  rm  -fr  /etc.sav/gtk-2.0
+    fi
+  }
+
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&  uncustomize  &&
+  make    install
 }
