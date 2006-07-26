@@ -1,0 +1,66 @@
+   VERSION=( "2.0.5" )
+  CATEGORY="network/ftp"
+ ATTRIBUTE="server"
+    SOURCE="vsftpd-$VERSION.tar.gz"
+       URL="ftp://vsftpd.beasts.org/users/cevans/"
+  HOMEPAGE="http://vsftpd.beasts.org/"
+  EPROVIDE="ftpd"
+       REQ=( ""
+             "Linux-PAM:PAM::for pluggable authnetication"
+             "openssl:SSL::for encryption support"
+             "tcp_wrappers:TCPWRAPPER::for controlling access to ftpd daemon through tcp_wrappers"
+             "xinetd:::for running server" )
+  ESTIMATE="92"
+      DESC="vsftpd is a GPL licensed FTP server for UNIX systems, including Linux. It is secure and extremely fast. It is stable. Don't take my word for it, though. Below, we will see evidence supporting all three assertions. We will also see a list of a few important sites which are happily using vsftpd. This demonstrates vsftpd is a mature and trusted solution.
+Features
+Despite being small for purposes of speed and security, many more complicated FTP setups are achievable with vsftpd! By no means an exclusive list, vsftpd will handle:
+
+    * Virtual IP configurations
+    * Virtual users
+    * Standalone or inetd operation
+    * Powerful per-user configurability
+    * Bandwidth throttling
+    * Per-source-IP configurability
+    * Per-source-IP limits
+    * IPv6
+    * Encryption support through SSL integration
+    * etc...
+"
+
+
+build() {
+
+configure() {
+echo "#ifndef VSF_BUILDDEFS_H"
+echo "#define VSF_BUILDDEFS_H"
+
+if grep -qx "Linux-PAM" $OPT_ON_LOGS/vsftpd; then
+echo "#define VSF_BUILD_PAM"
+else
+echo "#undef VSF_BUILD_PAM"
+fi
+
+if grep -qx "openssl" $OPT_ON_LOGS/vsftpd; then
+echo "#define VSF_BUILD_SSL"
+else
+echo "#undef VSF_BUILD_SSL"
+fi
+
+if grep -qx "tcp_wrappers" $OPT_ON_LOGS/vsftpd; then
+echo "#define VSF_BUILD_TCPWRAPPERS"
+else
+echo "#undef VSF_BUILD_TCPWRAPPERS" 
+fi
+
+echo "#endif /* VSF_BUILDDEFS_H */"
+}
+
+rm builddefs.h
+  configure >> builddefs.h
+cat builddefs.h
+  make             &&
+  prepare_install  &&
+  make    install            &&
+  mkdir -p /usr/share/empty/ &&
+cp vsftpd.conf /etc          
+}
