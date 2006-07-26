@@ -4,13 +4,8 @@
   CATEGORY="documentation"
  ATTRIBUTE="x11"
     SOURCE=( "xpdf-$VERSION.tar.gz"
-             "xpdf-${VERSION}pl1.patch"
              "xpdf-${VERSION}pl2.patch" )
        URL="ftp://ftp.foolabs.com/pub/xpdf/"
-case  $VERSION  in
-  3.01)  URL[3]="http://freetype.sourceforge.net/freetype2/patches/"
-      SOURCE[3]="xpdf-3.01-noftinternals.patch"  ;;
-esac
   HOMEPAGE="http://www.foolabs.com/xpdf/"
        REQ="autoconf freetype lesstif t1lib x11"
   ESTIMATE="148"
@@ -20,21 +15,18 @@ It also comes with two other programs: pdftops and pdftotext
 which convert PDF files to postscript and plain text respectively."
 
 build() {
-case  $VERSION in
-  3.01)
-  CX=1
-  while [  -n  "${SOURCE[$CX]}"  ]
-  do  echo  "xpdf $VERSION patch level $CX"
-      patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$CX]}
-      ((  CX++  ))
-  done  ;;
-esac
+  case  $VERSION in
+  3.01) # Patch 3.01pl2 replaces patch 3.01pl1
+        echo  "xpdf $VERSION patch level 2"
+        patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]}
+        ;;
+  esac
 
   default_build
 }
 
 current()  {
   case  $VERSION  in
-    3.01)  grep  -qx  "xpdf 3.01 patch level 3"  $COMPILE_LOGS/xpdf  ;;
+    3.01)  grep  -qx  "xpdf 3.01 patch level 2"  $COMPILE_LOGS/xpdf  ;;
   esac
 }
