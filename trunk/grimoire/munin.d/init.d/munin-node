@@ -1,0 +1,94 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: munin-node
+# Required-Start: $network
+# Required-Stop:
+# Default-Start:  3 5
+# Default-Stop:   0 1 2 6
+# Description: munin-node starts the Munin Node Agents on a system
+### END INIT INFO
+
+NAME=munin-node
+SERV=/usr/sbin/munin-node
+PIDF=/var/run/munin/munin-node.pid
+CONFFILE=/etc/munin/munin-node.conf
+
+. /lib/lsb/init-functions
+
+if [ ! -x $SERV ]; then
+   log_failure_msg "Munin-Node appears to be uninstalled."
+   exit 5
+elif [ ! -e $CONFFILE ]; then                                  
+   log_failure_msg "Munin-Node appears to be unconfigured."
+   exit 6
+fi
+
+# Figure out if the pid file is in a non-standard location
+while read line; do
+  line=${line%%\#*} # get rid of comments
+  set -f
+  line=$(echo $line) # get rid of extraneous blanks
+  set +f
+  if [ "$line" != "${line#pid_file }" ]; then
+	PIDFILE=${line#pid_file }
+  fi
+done < $CONFFILE
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start() {
+  log_warning_msg "Starting $NAME"
+  if    start_daemon     -p $PIDF $SERV 
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+stop()  {
+  log_warning_msg "$NAME about to stop"
+  if    killproc        -p $PIDF -s 15  $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"
+        status
+        return 0
+  fi
+}						  
+
+restart() {  stop  &&  sleep 1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return  0
+}
+
+reload()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if    [ -n            "$PIDS" ]
+  then  kill  -s SIGHUP  $PIDS  &&
+        log_success_msg "$NAME configuration reloaded"
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+   try-restart)  try_restart  ;;
+        reload)  reload       ;;
+  force-reload)  reload       ;;
+         start)  start        ;;
+        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
+

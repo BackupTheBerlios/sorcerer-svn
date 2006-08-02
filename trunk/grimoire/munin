@@ -1,0 +1,90 @@
+   VERSION=( "1.2.4" )
+  CATEGORY="administration/monitoring"
+ ATTRIBUTE="new web"
+  HOMEPAGE="http://munin.projects.linpro.no/"
+       URL="$SOURCEFORGE_URL"
+    SOURCE="munin/munin_${VERSION}.tar.gz"
+       REQ=( "rrdtool Python HTML-Template perl--Net-Server" 
+             "web-server:::to intall the main program or node client only" )
+  ESTIMATE="321"
+      DESC="$SPELL surveys all your computers and presents the information
+in graphs throug a web interface. Its emphasis is 
+on plug and play capabilities. After completing an 
+installation a high number of monitoring plugins 
+will be playing with no more effort. Using Munin 
+you can easily monitor the performance of your 
+computers, networks, SANs, and quite possibly 
+applications as well. It makes it easy to determine 
+what's different today when a performance problem 
+crops up. It makes it easy to see how you're doing 
+capacity wise on all limited resources.
+"
+
+configure_munin() {
+  cat  >  Makefile.config  <<  EOF
+PREFIX     = \$(DESTDIR)/usr
+CONFDIR    = \$(DESTDIR)/etc/munin
+LIBDIR     = \$(PREFIX)/share/munin
+SBINDIR    = \$(PREFIX)/sbin
+BINDIR     = \$(PREFIX)/bin
+MANDIR     = \$(PREFIX)/share/man
+DOCDIR     = \$(PREFIX)/doc/munin
+HTMLDIR    = \$(DESTDIR)/var/www/munin
+CGIDIR     = \$(DESTDIR)/var/www/munin/cgi
+DBDIR      = \$(DESTDIR)/var/lib/munin
+PLUGSTATE  = \$(DBDIR)/plugin-state
+LOGDIR     = \$(DESTDIR)/var/log/munin
+STATEDIR   = \$(DESTDIR)/var/run/munin
+PYTHON     = \$(shell which python)
+PERL       = \$(shell which perl)
+PERLLIB    = \$(DESTDIR)\$(shell \$(PERL) -V:sitelib | cut -d= -f2 | sed "s/[\';]//g")
+OSTYPE     = \$(shell uname | tr '[A-Z]' '[a-z]')
+HOSTNAME   = \$(shell hostname)
+MKTEMP     = \$(shell ./test-mktemp)
+VERSION    = \$(shell cat RELEASE)
+USER       = munin
+GROUP      = munin
+PLUGINUSER = nobody
+GETENT = \$(shell which getent || which true 2>/dev/null)
+CHECKUSER  = \$(shell \$(GETENT) passwd \$(USER) >/dev/null 2>/dev/null || (echo "echo User \$(USER) nonexistant. Create the user and retry; exit 2"))
+CHECKGROUP = \$(shell \$(GETENT) group \$(GROUP) >/dev/null 2>/dev/null || (echo "echo Group \$(GROUP) nonexistant. Create the group and retry; exit 2"))
+CHOWN      = chown
+CHMOD      = chmod                                             
+CHGRP      = chgrp                                             
+EOF
+}
+
+doc_hack() {
+# htmldoc and html2text are not often installed. Quick hack with perl:
+# Skip the PDFs.
+  perl -pi -e 's,htmldoc munin,cat munin, or s,html(2text|doc),# $&,'	\
+	Makefile							&&	
+  perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,'		\
+	Makefile	
+}
+
+install_server() {
+  if  echo "$OPT[*]" | grep -q web-server ; then
+    echo "Installing munin server..."
+    make install-main
+  else 
+    echo "Installing munin client only..."
+  fi
+}
+
+build() {
+ getent group munin	 >/dev/null		||
+ groupadd	munin	2>/dev/null
+ getent passwd munin	 >/dev/null		||
+ useradd	munin  -g munin	 -d /var/lib/munin	2>/dev/null
+
+ configure_munin		&&
+ doc_hack			&&
+ make				&&
+ prepare_install		&&
+ install_server			&&
+ make	install-node		\
+	install-node-plugins	\
+	install-doc		\
+	install-man
+}
