@@ -34,7 +34,10 @@ build() {
   cd     $DIR
 
   DEST_DIR="/opt/j2sdk/$VERSION"
-  MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so"
+  case $HOSTTYPE in
+   x86_64) MOZ_PLUG="$DEST_DIR/jre/plugin/amd64/mozilla/libjavaplugin_oji.so" ;;
+        *) MOZ_PLUG="$DEST_DIR/jre/plugin/i386/mozilla/libjavaplugin_oji.so" ;;
+  esac
   MOZ_PDIR="$( echo  /usr/lib/mozilla*/plugins         )"
   FOX_PDIR="$( echo  /opt/firefox/lib/firefox*/plugins )"
 
@@ -49,6 +52,8 @@ build() {
   cp     -Rv  *  $DEST_DIR      &&
   cd             $DEST_DIR/bin  &&
 
+  ln -sfv $DEST_DIR/jre/bin/java_vm  /usr/bin
+
   for  FILE  in  *;  do
     if    [   -f                  $FILE  ]  &&
           [   -x                  $FILE  ]
@@ -62,3 +67,4 @@ build() {
    fi
  done
 }
+# Origin grimoire
