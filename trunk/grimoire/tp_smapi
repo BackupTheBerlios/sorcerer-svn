@@ -1,12 +1,12 @@
-   VERSION=( "0.25" "0.22" "0.21" "0.20" "0.19" "0.18" "0.17" )
+   VERSION=( "0.27" "0.25" "0.22" "0.21" "0.20" "0.19" "0.18" "0.17" )
     IGNORE="test"
   CATEGORY="kernel"
  ATTRIBUTE="linux-26-module"
     SOURCE="tpctl/tp_smapi-$VERSION.tgz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://tpctl.sourceforge.net/"
-  ESTIMATE="16"
-       REQ="linux-kernel"
+  ESTIMATE="40"
+       REQ="dmidecode linux-kernel"
       DESC="tp_smapi provides an IBM ThinkPad SMAPI Driver
 The tp_smapi kernel module exposes some features
 of the ThinkPad's SMAPI functionality via a sysfs interface.
@@ -14,11 +14,12 @@ of the ThinkPad's SMAPI functionality via a sysfs interface.
 Do not compile HDAPS in kernel, this spell provides hdaps.ko"
 
 build()  {
-LVER=$(installed_version $(get_provider linux-kernel))
+LVER=$( installed_version $( get_provider linux-kernel ) )
 if    [  -z  "$LVER"  ]
 then           LVER=$(  uname  -r  )
 fi
 
+sed  -i  "s:sudo ::g"  Makefile
 make    KVER=$LVER   &&
 prepare_install      &&
 make    KVER=$LVER install HDAPS=1 
