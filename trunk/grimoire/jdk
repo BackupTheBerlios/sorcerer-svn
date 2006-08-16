@@ -1,11 +1,11 @@
-case $( arch ) in
-  x86_64)  JARCH=amd64
+case  $MACHTYPE  in
+  x86_64*) JARCH=amd64
            # The 1_5_0_07 version is not ELF64 even though it is named amd64
            # Don't you love Sun?
            VERSION=( "1_5_0_06" )
            ;;
        *)  JARCH=i586  
-           VERSION=( "1_5_0_07" "1_5_0_06" "1_5_0_04" )
+           VERSION=( "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
            ;;
 esac
 # Fix the openvrml spell also when updating jdk
@@ -13,7 +13,7 @@ esac
   CATEGORY="development/interpreter"
  ATTRIBUTE="x11 noheal x86 seamonkey-plugin"
     SOURCE="jdk-$VERSION-linux-$JARCH.bin"
-       DIR="jdk${VERSION/_5_/.5.}"
+#      DIR="jdk-${VERSION/_5_/.5.}"
 #  HOMEPAGE="http://java.sun.com/j2se/1.5.0/download.jsp"
   HOMEPAGE="http://java.sun.com/javase/downloads"
        URL="http://192.18.108.229/ECom/EComTicketServlet/BEGIN9F7D216D0E02BF6628F5ED9374C7C8FE/-2147483648/1608060987/1/732086/731846/1608060987/2ts+/westCoastFSEND/jdk-1.5.0_07-oth-JPR/jdk-1.5.0_07-oth-JPR:4/"
@@ -25,35 +25,30 @@ esac
 # but db no longer optionally requires j2sdk
   disable  archive
   disable  necropolis
-  ESTIMATE="5"
+  ESTIMATE="2840"
   EPROVIDE="java"
       DESC="jdk is Sun's java development kit.
 You must manually download the source from sun's 
 website for this spell to successfully cast."
 
 build()  {
-  yes | bash $( guess_filename  $SOURCE )
 
-  if ! [ -d $DIR ]; then
-	echo "Directory $DIR missing. Check the sources."
-	return 1
-  fi
-
-  prepare_install			&&
-
-  set    -x				&&
-  cp     -a  $DIR  /opt/		&&
-  cd               /opt/$DIR		&&
-  
-  ln -sf /opt/$DIR /opt/jdk		&&
-
-  for  FILE  in    /opt/jdk/bin/*
-  do ln -sf $FILE  /usr/bin/${FILE##*/}
+install_jdk()  {
+  set    -x
+  mkdir  -p     /opt/jdk
+  cd            /opt/jdk
+  unzip         $SOURCE_CACHE/jdk/$VERSION/$SOURCE
+  mv            /opt/jdk/jdk*/* .
+ 
+  for             FILE  in  /opt/jdk/bin/*
+  do    ln  -sf  $FILE  /usr/bin/${FILE##*/}
   done
-  if [ -x /opt/jdk/jre/bin/java_vm ]; then
-	ln  -sf /opt/jdk/jre/bin/java_vm /usr/bin/java_vm
+
+  if    [   -x   /opt/jdk/jre/bin/java_vm  ]
+  then  ln  -sf  /opt/jdk/jre/bin/java_vm  /usr/bin/java_vm
   fi 
-  if    [ -d /usr/lib/mozilla/plugins  -a  -d /opt/jdk/jre/plugin ]
+
+  if    [  -d   /opt/jdk/jre/plugin  ]  &&  [  -d  /usr/lib/mozilla/plugins  ]
   then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
                     /usr/lib/mozilla/plugins/libjavaplugin_oji.so
   fi
@@ -63,16 +58,33 @@ build()  {
   touch       /etc/.java/.systemPrefs/.systemRootModFile
   chmod  644  /etc/.java/.systemPrefs/.system*
 
-  find . -name \*.pack  |
+  find  .  -name \*.pack  |
   while  read;  do
     unpack200  $REPLY  ${REPLY/.pack/.jar}
     rm  -f     $REPLY
   done
 
-  if    uname -m | grep -q  "[[:digit:]]86"
-  then  java  -client  -Xshare:dump
+  if    uname  -m  |
+        grep   -q  "[[:digit:]]86"
+  then  java   -client  -Xshare:dump
   fi
 
   set  +x
-  true
+}
+
+check_downloaded()  {
+  if  !  sources_cached
+  then
+    echo  "Due to Sun Microsystems requiring users to"
+    echo  "explicitly agree to their license"
+    echo  "you must manually download the sources for jdk"
+    echo  "before casting the spell."
+    sleep 30
+    false
+  fi
+}
+
+  check_downloaded  &&
+  prepare_install   &&
+          install_jdk
 }
