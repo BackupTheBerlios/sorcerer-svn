@@ -1,7 +1,5 @@
-# 1.8.0 has compile errors
-#  VERSION=( "1.8.0" "1.6.2" "1.6.1" )
-   VERSION=( "1.6.2" "1.6.1" )
-    IGNORE="debsrc\|1\.6\.1\.9\|rc"
+   VERSION=( "1.8.0" "1.6.2" "1.6.1" )
+    IGNORE="debsrc\|rc"
   CATEGORY="video"
  ATTRIBUTE="library x11"
     SOURCE=( "mjpeg/mjpegtools-$VERSION.tar.gz" )
@@ -10,9 +8,10 @@
 case  $VERSION  in
   1.6.2)  USE_GCC="gcc-v3.4"  ;;
 esac
-       REQ="SDL avifile gtk+-v1.2 libdv libmovtar libquicktime"
+       REQ="SDL avifile gtk+-v1.2 libdv libquicktime"
+# libmovtar was removed because it is not compiling anymore.
 # mjpegtools 1.6.2 has a problem linking with libquicktime 0.9.7
-      OPTS="--without-quicktime"
+##      OPTS="--without-quicktime"
 # Selecting no to optional requirements breaks compilation of 
 # mjpegtools 1.6.1
 #   "libmovtar::--without-movtar:to support the movtar video codec"
@@ -32,17 +31,9 @@ with almost every player and every OS.
 You can produce special forms of MPEG streams
 like VCD (Video CD) and SVCD for hardware playback."
 
-build() {
-#  if    [  -n  "${SOURCE[1]}"  ]
-#  then  patch  -p1  <  $SOURCE_CACHE/mjpegtools/$VERSION/${SOURCE[1]}
-#  fi
-
+build()  {
   case  $VERSION  in
-    1.6.1)  sed  -i  "s:avifile/::"  lavtools/libavifile.h  ;;
-    1.6.2)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  lavtools/lavvideo.c
-            sed  -i  "s,KEEP_SOURCE:,KEEP_SOURCE:\
-;,"  lavtools/lavpipe.c
-            sed  -i  "s:(uint8_t \*):uint8_t * :"  mpeg2enc/picture.cc  ;;
+    1.8.0)  patch  -p1  <  $SCRIPT_DIR/mjpegtools-1.8.0.patch  ;;
   esac
   default_build
 }
