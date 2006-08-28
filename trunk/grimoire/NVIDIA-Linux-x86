@@ -1,4 +1,4 @@
-   VERSION=( "1.0-8762" "1.0-8178" "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
+   VERSION=( "1.0-8774" "1.0-8762" "1.0-8178" "1.0-7676" "1.0-7664" "1.0-7174" "1.0-7167" "1.0-6629" "1.0-6111" "1.0-6106" )
     IGNORE="unified"
   CATEGORY="kernel"
  ATTRIBUTE="linux-26-module x11 x86 broken"
@@ -63,7 +63,13 @@ build() {
     rm  -f  /usr/X11R6/lib/modules/extensions/libglx.*
     rm  -f  /usr/X11R6/lib/modules/extensions/libGLcore.*
 
-    cp  -a   lib  X11R6  /usr/                2>/dev/null
+   if [ -d /usr/lib/xorg ]; then
+        cp -a X11R6/lib/lib* /usr/lib/
+        cp -a X11R6/lib/modules /usr/lib/xorg/
+    else
+        cp -a X11R6 /usr/
+    fi
+    cp  -a   lib  /usr/                       2>/dev/null
     cp  -a   include/GL  /usr/X11R6/include/  2>/dev/null
     cp  -a   share/doc  ..                    2>/dev/null
     cp  -a   include    ../doc                2>/dev/null
@@ -156,3 +162,4 @@ post_install() {
 
   depmod  -a
 }
+# Origin grimoire
