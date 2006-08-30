@@ -1,33 +1,41 @@
-       VERSION=( "0.6.1" )
-      CATEGORY="science"
-     ATTRIBUTE="kde x11 new"
-        SOURCE="dl/progs/cb2bib-$VERSION.tar.gz"
-           URL="http://www.molspaces.com/"
-      HOMEPAGE="http://www.molspaces.com/cb2bib/"
-	   REQ="kdelibs"
-      ESTIMATE="225"
-          DESC="$SPELL extracts bibliography references from unformatted text 
-The cb2Bib reads the clipboard text contents and process it 
-against a set of predefined patterns. If this automatic 
-detection is successful, cb2Bib formats the clipboard data 
-according to the structured BibTeX reference standard. 
-Otherwise, if no predefined format pattern is found or if 
-detection proves to be difficult, manual data extraction is 
-greatly simplified by cb2Bib. In most cases, such manual data 
-extraction will provide with a new, personalized pattern to 
-be included within the predefined pattern set for future 
-automatic extractions. Once the bibliographic reference is 
-correctly extracted, it is added to a specified BibTeX database 
-file. Optionally, article PDF files, if available, are renamed 
-to its citeID and moved to a desired directory as a personal 
-article library.
-"
+   VERSION=( "0.6.1" )
+  CATEGORY="science"
+ ATTRIBUTE="kde x11 new"
+    SOURCE="dl/progs/cb2bib-$VERSION.tar.gz"
+       URL="http://www.molspaces.com/"
+  HOMEPAGE="http://www.molspaces.com/cb2bib/"
+       REQ="kdelibs"
+  ESTIMATE="1600"
+      DESC="cb2bib extracts bibliography references from unformatted text.
+The cb2Bib reads the clipboard text contents and
+process it against a set of predefined patterns.
+If this automatic detection is successful
+then cb2Bib formats the clipboard data according
+to the structured BibTeX reference standard.
+Otherwise, if no predefined format pattern is found or
+if detection proves to be difficult
+then manual data extraction is greatly simplified by cb2Bib.
+In most cases, such manual data extraction will provide
+with a new, personalized pattern to be included within
+the predefined pattern set for future automatic extractions.
+Once the bibliographic reference is correctly extracted
+it is added to a specified BibTeX database file.
+Optionally, article PDF files, if available,
+are renamed to its citeID and moved to
+a desired directory as a personal article library."
 
 build() {
-  export QTDIR=/usr
-
-  ./configure	--prefix  /usr  --datadir /usr/share	&&
-  make				&&
-  prepare_install		&&
-  make install
+  export  QTDIR=/usr
+  ./configure     \
+  --prefix  /usr  \
+  --datadir /usr/share/cb2bib  &&
+  cd     src                   &&
+  qmake  src.pro -o Makefile   &&
+  sed    -i  "s:-pipe -Wall -W -O2:-I/usr/include/qt $CXXFLAGS:"  Makefile  &&
+  cd     $OLDPWD   &&
+  make             &&
+  prepare_install  &&
+  make    install  INSTALL_ROOT=/usr/  &&
+  cp     -a   /share            /usr/  &&
+  rm     -fr  /share
 }
