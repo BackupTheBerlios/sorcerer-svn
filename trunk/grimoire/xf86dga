@@ -6,3 +6,21 @@ inherit xf86
   ESTIMATE="12"
       DESC="xf86dga provides a test program for the XFree86-DGA extention"
 
+case  $VERSION  in
+  X11R7.0-1.0.1)       SAFE=( "${X_VERSION}-1.0.1" )
+                  SOURCE[1]="xf86dga-1.0.1-setuid.diff"
+                     URL[1]="ftp://ftp.x.org/pub/X11R7.1/patches/"  ;;
+esac
+
+build()  {
+case  $VERSION  in
+  X11R7.0-1.0.1)  patch  -p0  <  $SOURCE_CACHE/xf86dga/$VERSION/${SOURCE[1]}  ;;
+esac
+default_build
+}
+
+current()  {
+  case  $VERSION  in
+    X11R7.0-1.0.1)  grep  -qx  "patching file dga.c"  $COMPILE_LOGS/xf86dga ;;
+  esac
+}
