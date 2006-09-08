@@ -1,0 +1,38 @@
+   VERSION=( "0.7.4" )
+  CATEGORY="utility/gis"
+ ATTRIBUTE="kde new"
+    SOURCE="qgis/$SPELL-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://qgis.org"
+       REQ=( "qt-x11-free sqlite gdal"
+             "expat:::for the GPS plugin"
+             "gsl:::for the raster georeferencer plugin" )
+  ESTIMATE="3390"
+      DESC="$SPELL is a Geographic Information System (GIS)
+qgis supports vector, raster, and database formats. QGIS 
+lets you browse and create map data on your computer. It 
+supports many common spatial data formats (e.g. ESRI 
+ShapeFile, geotiff). QGIS supports plugins to do things 
+like display tracks from your GPS.
+"
+
+build() {
+
+ case $VERSION in
+ 0.7.4)
+  sed -i "s/QgsProject:://"	src/qgsproject.h		&&
+  sed -i "s/QgsRasterLayerProperties:://"			\
+				src/qgsrasterlayerproperties.h	&&
+  sed -i "s/QgsProjectProperties:://"				\
+				src/qgsprojectproperties.h	&&
+  sed -i "s/QgsLabel:://"	src/qgslabel.h			&&
+  sed -i "s/QgsGPXProvider:://"	providers/gpx/qgsgpxprovider.h	&&
+  sed -i "s/DataPointAcetate:://"				\
+		plugins/georeferencer/datapointacetate.h	&&
+  sed -i "s/GraticuleCreator:://"				\
+		plugins/grid_maker/graticulecreator.h
+  ;;
+ esac
+
+ default_build
+}
