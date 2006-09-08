@@ -2,7 +2,9 @@
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
-       REQ="hotplug"
+       REQ=( "hotplug"
+             "libselinux:USE_SELINUX::for selinux support" )
+      OPTS="USE_LOG=true"
        URL="$KERNEL_URL"
   HOMEPAGE="http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html"
    EXCLUDE="/dev"
@@ -41,46 +43,30 @@ symlink_install()  {
 }
 
 
-linux_sufficient()  {
-  KVER="$(  installed_version  $(  get_provider  linux-kernel  )  )"
-  
-  if    [  "${KVER:0:3}"  ==  "2.4"  ]
-  then  "Linux 2.4 is insufficient for using udev as /dev"
-        false
-  elif                            [  -f  /usr/src/linux/.config  ]  &&
-        !  grep  -q  "CONFIG_HOTPLUG=y"  /usr/src/linux/.config
-  then  echo  "Linux must have CONFIG_HOTPLUG enabled when it was built."
-        false
-  fi
-}
-
-
 install_missing()  {
   install  -m 0755  udevstart udevsend  /sbin/
 
   # Default rules script (Gentoo) expects extra binaries in /sbin while udev
   # installation puts them only in /lib/udev - make symlinks to fix this
-  ln -sf  /lib/udev/ata_id	/sbin
-  ln -sf  /lib/udev/cdrom_id	/sbin
-  ln -sf  /lib/udev/dasd_id	/sbin
-  ln -sf  /lib/udev/path_id	/sbin
-  ln -sf  /lib/udev/usb_id	/sbin
-  ln -sf  /lib/udev/vol_id	/sbin
+  for  FILE  in  /lib/udev/*;  do
+    if    [   -f   "$FILE"  ]
+    then  ln  -fs  "$FILE"  /sbin
+    fi
+  done
 }
 
 
   case  $VERSION  in
     075)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
-      *)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
+      *)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
   esac
 
-  sed  -i  "s:/local::
-            s:^udevdir = .*:udevdir = /dev:
-            s:killall:true:"  Makefile
-  sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
+  # sed  -i  "s:/local::
+  #           s:^udevdir = .*:udevdir = /dev:
+  #           s:killall:true:"  Makefile
+  # sed  -i  "s:@udevdir@:/dev:"  etc/udev/udev.conf.in
 
-  linux_sufficient                   &&
-  make             "EXTRAS=$EXTRAS"  &&
+  make    $OPTS    "EXTRAS=$EXTRAS"  &&
   prepare_install                    &&
   make    install  "EXTRAS=$EXTRAS"  &&
           install_missing            &&
