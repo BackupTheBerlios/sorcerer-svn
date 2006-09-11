@@ -1,26 +1,28 @@
    VERSION=( "1.2.3" )
-  CATEGORY="library utility/gis"
+    IGNORE="[0-9][0-9][0-9]"
+  CATEGORY="utility/gis"
  ATTRIBUTE="console new"
     SOURCE="pub/geotiff/libgeotiff/libgeotiff-$VERSION.tar.gz"
        URL="ftp://ftp.remotesensing.org/"
   HOMEPAGE="http://www.remotesensing.org/geotiff/geotiff.html"
        REQ="jpeg proj zlib tiff"
   ESTIMATE="209"
-      DESC="$SPELL is a library for reading and writing GeoTIFF info tags"
+      DESC="libgeotiff is a library for reading and writing GeoTIFF info tags"
 
 build() {
-# Unset LDFLAGS because the compilation fails if LDFLAGS='-Wl,-s' with 
-# message 
+# Unset LDFLAGS because
+# the compilation fails if LDFLAGS='-Wl,-s' with message
 #  ld: unknown option '-Wl,-s'
 # Not sure what would be the proper fix
 unset LDFLAGS
 
 sed -i "s:/usr/local:@prefix@:" bin/Makefile.in
 
-autoconf				&&
-./configure  --prefix=/usr		\
-             --datarootdir=/usr/share	&&
-make					&&
-prepare_install				&&
+autoconf  &&
+./configure               \
+--prefix=/usr             \
+--datarootdir=/usr/share  &&
+make             &&
+prepare_install  &&
 make    install
 }
