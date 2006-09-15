@@ -1,29 +1,28 @@
    VERSION=( "0.5.5" "0.5.4" "0.4.9" )
   CATEGORY="network/security network/wireless"
  ATTRIBUTE="console utility new"
-    SOURCE="$SPELL-$VERSION.tar.gz"
+    SOURCE="wpa_supplicant-$VERSION.tar.gz"
        URL="http://hostap.epitest.fi/releases/"
   HOMEPAGE="http://hostap.epitest.fi/wpa_supplicant"
        REQ="openssl readline ncurses"
   ESTIMATE="72"
-      DESC="$SPELL is a WPA/WPA2 supplicant
-$SPELL is a WPA Supplicant with support for 
-WPA and WPA2 (IEEE 802.11i/RSN). It is suitable
-for both desktop/laptop computers and embedded
-systems. Supplicant is the IEEE 802.1X/WPA
+      DESC="wpa_supplicant is a WPA/WPA2 supplicant
+wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
+It is suitable for both desktop/laptop
+computers and embedded systems.
+Supplicant is the IEEE 802.1X/WPA
 component that is used in the client stations.
 It implements key negotiation with a WPA
 Authenticator and it controls the roaming and
-IEEE 802.11 authentication/association of the 
-wlan driver.
+IEEE 802.11 authentication/association of the wlan driver.
 wpa_supplicant is designed to be a daemon program
 that runs in the background and acts as the backend
-component controlling the wireless connection. It
-supports separate frontend programs and a text-based
+component controlling the wireless connection.
+It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant."
 
 create_config() {
- cat > .config << EOF
+  cat > .config << EOF
 CONFIG_DRIVER_HOSTAP=y
 CONFIG_DRIVER_ATMEL=y
 CONFIG_DRIVER_IPW=y
@@ -47,29 +46,26 @@ EOF
 }
 
 install_examples() {
- cp -v  *.conf  examples		&&
- cp -av         examples  doc
+  cp   -v  *.conf  examples
+  cp  -av          examples  doc
 }
 
 install_man() {
-  for i in doc/docbook/*.[0-9]; do
-	install -v -m 0644  $i  /usr/share/man/man${i##*.}
+  for  i  in doc/docbook/*.[0-9]
+  do   install -v -m 0644  $i  /usr/share/man/man${i##*.}
   done
 }
 
 install_wpa_files() {
- install -v -d 		/etc/wpa_supplicant	&&
- install -v -m 0755	wpa_cli			\
-			wpa_supplicant		\
-			wpa_passphrase		\
-			/usr/bin		&&
- install_examples				&&
- install_man	
+  install -v -d       /etc/wpa_supplicant
+  install -v -m 0755  wpa_{cli,passphrase,supplicant}  /usr/bin
+  install_examples
+  install_man	
 }
 
 build() {
- create_config		&&
- make			&&
- prepare_install	&&
- install_wpa_files
+  create_config    &&
+  make             &&
+  prepare_install  &&
+  install_wpa_files
 }
