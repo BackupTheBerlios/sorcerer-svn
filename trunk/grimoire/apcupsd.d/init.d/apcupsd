@@ -1,0 +1,68 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: apcupsd
+# Required-Start: $local_fs module-init-tools
+# Required-Stop: $local_fs
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: apcupsd manages APC UPS
+# Description: apcupsd manages APC UPS
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PIDF=/var/run/apcupsd.pid
+SERV=/sbin/apcupsd
+LOCK=/var/lock/subsys/apcupsd
+
+case "$1" in
+  start)
+	# House keeping if this were a restart from powerfail
+        rm -f /etc/apcupsd/powerfail
+        rm -f /etc/nologin
+        # Is apcupsd running?
+	if [ -f $PIDF ]; then
+	  log_success_msg  "apcupsd is already running"
+ 	else 
+	  # Start apcupsd
+          MSG="Starting apcupsd power management"
+          $SERV  &&
+	  log_success_msg  "$MSG"  ||  log_failure_msg  "$MSG"
+ 	  touch ${LOCK}
+        fi      
+	;;
+
+  stop)
+	MSG="Stopping apcupsd power management"
+  	if [ -f $PIDF ]; then 
+	  killproc  -p $PIDF -s 15  $SERV	&&
+	  log_success_msg  "$MSG"  ||  log_failure_msg  "$MSG"
+	  rm -f ${LOCK}
+        else
+	  log_success_msg  "$MSG"
+  	fi
+        ;;
+
+  restart)
+        $0 stop
+        $0 start
+        ;;
+
+  status)
+  	if [ -f $PIDF ]; then 
+          /sbin/apcaccess status
+	  log_success_msg  "apcupsd status"
+        else
+	  log_success_msg  "apcupsd is not running"
+        fi
+        ;;
+
+  *)
+        echo "Usage: $0 {start|stop|restart|status}"
+        ;;
+
+esac
+
+exit 0
+
