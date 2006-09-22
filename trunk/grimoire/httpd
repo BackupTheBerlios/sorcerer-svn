@@ -3,9 +3,8 @@
     IGNORE="beta\|alpha"
   CATEGORY="network/web"
  ATTRIBUTE="console server"
-# apr_dbd_mysql.c is needed for MySQL but is not packed with httpd sources
-    SOURCE=( "httpd/httpd-$VERSION.tar.gz" )
-##             "apr/apr_dbd_mysql.c" )
+    SOURCE=( "httpd/httpd-$VERSION.tar.gz" 
+             "apr/apr_dbd_mysql.c" )
        URL=( "$APACHE_URL"
              "http://apache.webthing.com/svn/apache/" )
   HOMEPAGE="http://httpd.apache.org"
@@ -68,7 +67,8 @@ build() {
     sed    -i   "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
   }
 
-  ## cp  $( guess_filename ${SOURCE[1]} )  srclib/apr-util/dbd/
+  APR_DBD_MYSQL=$( guess_filename ${SOURCE[1]} )
+  cp  $APR_DBD_MYSQL  srclib/apr-util/dbd/                                  
 
   cat  $SCRIPT_DIR/layout      >>                  config.layout
   cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
@@ -97,6 +97,9 @@ case  $VERSION  in
                       srclib/apr-util/build/dbd.m4; do
             sed  -i  's:-I\$withval/include/myql:-I/usr/include/mysql:' $file
           done
+          ;;
+  2.2.3)  sed  -i "48,51d
+                      54d"  srclib/apr-util/dbd/${APR_DBD_MYSQL##*/}
           ;;
 esac
 
