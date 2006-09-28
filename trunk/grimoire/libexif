@@ -4,7 +4,19 @@
      SOURCE="libexif/libexif-$VERSION.tar.bz2"
         URL="$SOURCEFORGE_URL"
    HOMEPAGE="http://www.sourceforge.net/projects/libexif"
-        REQ="doxygen"
+#       REQ="doxygen"
+# libexif can not have requirement on doxygen
+# because it creates recrusive requriement loop.
+# but can libexif be compiled without doxygen?
+
+# tsort: -: input contains a loop:
+# tsort: libexif
+# tsort: gimp
+# tsort: gutenprint
+# tsort: espgs
+# tsort: ghostscript
+# tsort: teTeX
+# tsort: doxygen
    ESTIMATE="1157"
        DESC="libexif is EXIF tag parsing library.
 Most digital cameras produce EXIF files,
@@ -12,3 +24,12 @@ which are JPEG files with extra tags that
 contain information about the image.
 The EXIF library allows you to parse an EXIF
 file and read the data from those tags."
+
+
+build()  {
+  case  $VERSION  in
+    0.6.13)  [  -f  $INSTALL_LOGS/doxygen  ]  ||
+             sed  -i  "s: doc : :"  Makefile.in  ;;
+  esac
+  default_build
+}
