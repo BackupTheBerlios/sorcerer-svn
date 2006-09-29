@@ -1,0 +1,27 @@
+   VERSION=( "2.30" )
+    SOURCE="/L/LD/LDS/GD-$VERSION.tar.gz"
+  CATEGORY="perl"
+ ATTRIBUTE="perl-module new"
+  HOMEPAGE="http://search.cpan.org/search?dist=GD"
+       URL="http://www.cpan.org/authors/id/"
+       REQ=( "perl gd libpng zlib"
+             "fontconfig:::for TrueType fonts"
+             "jpeg:::for jpeg library"
+             "x11:::for the XPM library"
+	  )
+  ESTIMATE="57"
+      DESC="$SPELL is a Perl module providing interface to GD Graphics Library"
+
+install_html() {
+ [ -d /usr/doc/$SPELL ]     ||    mkdir -p /usr/doc/$SPELL
+ install -m 0644 -o root -g root  GD.html  /usr/doc/$SPELL
+}
+
+build() {
+  true  |  perl Makefile.PL	&&
+  make  "OPTIMIZE=$CFLAGS"	&&
+  make  html			&&
+  prepare_install		&&
+  make  install			&&
+  install_html
+}
