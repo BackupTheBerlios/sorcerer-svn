@@ -1,9 +1,8 @@
    VERSION=( "2.2.1" "2.2.0" "2.1.6" "2.1.5" "2.1.4" "2.1.3" "2.1.2" "2.1.1" )
-#  VERSION=( "2.1.6" "2.1.5" "2.1.4" "2.1.3" "2.1.2" "2.1.1" )
     IGNORE="pre\|rc\|^2\.3\."
-# 2.2.0 was put together incorrectly, fails compilation.
   CATEGORY="video/digital-camera"
- ATTRIBUTE="library"
+ ATTRIBUTE="library broken"
+# This 2.2.1 does not seem to be put together correctly for compilation.
     SOURCE="gphoto/libgphoto2-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://gphoto.sourceforge.net"
@@ -11,3 +10,13 @@
  FRESHMEAT="libgphoto"
   ESTIMATE="5780"
       DESC="libgphoto2 provides a library for accessing almost 300 digital cameras."
+
+build()  {
+  case  $VERSION  in
+    2.2.1)  export    CFLAGS="-I$PWD $CFLAGS"
+            export  CXXFLAGS="-I$PWD $CXXFLAGS"
+            ln  -s  libgphoto2 gphoto2  
+            cp  -a  libgphoto2_port/libgphoto2_port/*.h  gphoto2  ;;
+  esac
+  default_build
+}
