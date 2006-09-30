@@ -1,24 +1,42 @@
   LVERSION=( "2.6.15.7" )
-#  VERSION=( "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
-#     SAFE=( "2.4" "2.3.6" "2.3.5" "2.3.4" )
-   VERSION=(       "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
-      SAFE=(       "2.3.6" "2.3.5" "2.3.4" )
+#  VERSION=( "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
+#     SAFE=( "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" )
+   VERSION=(             "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
+      SAFE=(             "2.3.6" "2.3.5" "2.3.4" )
 # Error message using xine with glibc 2.4
 # xine: gconv_db.c:232: __gconv_release_step: Assertion `step->__end_fct == ((void *)0)' failed.
 # Don't update to glibc 2.4, assuming you can, you will regret it.
+# glibc 2.4 and 2.5 are considered experimental
+# glibc 2.4 and 2.5 only work with linux 2.6 and newer kernels
+# According to the readme glibc 2.3.7 will be released.
     IGNORE="ref\|2001"
   CATEGORY="development"
  ATTRIBUTE="library solo"
+case  $VERSION  in
+  2.3.5)
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-linuxthreads-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
             "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
        URL="$GNU_URL"
     URL[3]="$KERNEL_URL"
-  HOMEPAGE="http://www.gnu.org/software/libc"
-case  $VERSION  in
-  2.3.5)  USE_GCC="gcc-v3.4"  ;;
+    USE_GCC="gcc-v3.4"  ;;
+  2.3.6)
+   SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
+            "glibc/glibc-linuxthreads-$VERSION.tar.bz2"
+            "glibc/glibc-libidn-$VERSION.tar.bz2"
+            "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
+       URL="$GNU_URL"
+    URL[3]="$KERNEL_URL"  ;;
+  2.[5-6])
+   SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
+            "glibc/glibc-libidn-$VERSION.tar.bz2"
+            "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
+       URL="$GNU_URL"
+    URL[2]="$KERNEL_URL"  ;;
 esac
+
+  HOMEPAGE="http://www.gnu.org/software/libc"
        REQ=( "perl"
              "libselinux:--with-selinux:--without-selinux:for selinux support" )
 #            ":--enable-add-ons=nptl::for linux 2.6.x only NP thread library" )
@@ -38,9 +56,9 @@ esac
             /etc/resolv.conf
             /lib/ld-linux.so.2
             /lib64/ld-linux-x86-64.so.2
-            /sbin/ldconfig
-            /usr/include/bits/syscall.h
-            /usr/include/gnu/stubs.h"
+            /sbin/ldconfig"
+#           /usr/include/bits/syscall.h
+#           /usr/include/gnu/stubs.h"
   disable  lib64
   ESTIMATE="19200"
       DESC="glibc is a C library for use with GNU/Hurd and GNU/Linux.
@@ -155,30 +173,27 @@ touch      $IR/etc/ld.so.conf
     LD_64="$IR/lib64/ld-linux-x86-64.so.2"
 
 
-case  $( arch )  in
-  x86_64)  ASM="asm-x86_64"  ;;
-       *)  ASM="asm-i386"    ;;
-esac
-
-mkdir  -p                                       $IR/usr/include
+mkdir  -p                                            $IR/usr/include
 cd          linux-$LVERSION
-make        include/linux/version.h
-make        include/asm
-cp     -rL  include/{asm,asm-generic,linux}     $IR/usr/include
+make                include/linux/version.h
+make                include/asm
+cp     -rL          include/{asm,asm-generic,linux}  $IR/usr/include
 cd     ..
-rm     -fr     /usr/include/{asm,asm-generic,linux}  linux-$LVERSION
-cp     -a   $IR/usr/include/*                        /usr/include
+rm     -fr  linux-$LVERSION  \
+               /usr/include/{asm,asm-generic,linux}
+cp     -a   $IR/usr/include/*                           /usr/include
 
-# ^^ installed new linux headers glibc begins compilation.
-
-
-HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
-
+# ^^ linux headers installed before glibc begins compilation.
 
 case  $VERSION  in
   2.4)  mv  glibc-libidn-2.4  libidn  ;;
+  2.5)  mv  glibc-libidn-*    libidn
+        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
+        (( KVER >= 2615 ))  &&
+        OPTS="$OPTS --enable-kernel=2.6.15"  ;;
 esac
 
+HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
 
 mkdir  build
 cd     build
