@@ -1,0 +1,36 @@
+   VERSION=( "3.11.3" "3.11.2" "3.11.1" "3.11" )
+  NSPR_VER="4.6.3"
+  CATEGORY="network/web"
+ ATTRIBUTE="library"
+    SOURCE=( "nss-$VERSION.tar.gz"
+             "nspr-$NSPR_VER.tar.gz" )
+       URL=( "ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/"
+             "ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$NSPR_VER/src/" )
+  HOMEPAGE="http://www.mozilla.org/projects/security/pki/nss/"
+#     OPTS="--with-mozilla --enable-ipv6"
+  EPROVIDE="nspr"
+  ESTIMATE="2600"
+      DESC="nss provides mozilla network security service libraries."
+
+build()  {
+  custom_install()  {
+    cd     ../../dist
+    cp     -LRp  {private,public}  /usr/include
+    cd     *.OBJ
+    mv     include  nspr
+    cp     -LRp     nspr  /usr/include
+    cp     -LRp     lib   /usr
+    mkdir  -p             /opt/nss
+    cp     -LRp      bin  /opt/nss
+    cd     ../../nsprpub/*/config
+    sed    -i  "s:/usr/local:/usr:"  nspr-config
+    cp     -a                        nspr-config  /usr/bin
+  }
+
+  mv      nspr-*/mozilla/nsprpub  mozilla  &&
+  cd             mozilla/security/nss      &&
+  make    nss_build_all  &&
+  prepare_install        &&
+  make    install        &&
+  custom_install
+}
