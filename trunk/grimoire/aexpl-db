@@ -8,38 +8,32 @@
 # HOMEPAGE="http://www.h07.org/projects/aexpl"
        URL="http://www.hzeroseven.org/projects/aexpl/"
   HOMEPAGE="http://www.hzeroseven.org/projects/aexpl"
-       REQ=( "" )
-#            ":scan_root::to scan / for suspcious files" )
+       REQ=""
   ESTIMATE="5"
 #FRESHMEAT="aexpl"
-      DESC="aexpl-db provides a weekly updated database of md5sum identified exploit files.
+      DESC="aexpl-db provided a weekly updated database of md5sum identified exploit files.
 To make full use of this you should also enable the
-aexpl feature within the sorcery options feature menu."
+aexpl feature within the sorcery options feature menu.
+The project providing this service was discontinued.
+Therefore, this spell is useless.
+Support for aexpl checking was removed from sorcery.
+If installed this spell will be automatically added to
+the dispel queue following an augur newer or augur newer_ia"
 
 
 build()  {
+  make_install()  {
+    mkdir    -p   $(  dirname   $AEXPL_DB  )
+    install  -m 0644  $SOURCE   $AEXPL_DB
+    echo  "$SOURCE installed to $AEXPL_DB"
+  }
 
-make_install()  {
-  mkdir    -p   $(  dirname   $AEXPL_DB  )
-  install  -m 0644  $SOURCE   $AEXPL_DB
-  echo  "$SOURCE installed to $AEXPL_DB"
-}
-
-
-scan_root()  {
-  if    echo  "$OPTS"  |  grep  -q  scan_root;  then
-    echo  "Scanning / for suspicious files."
-    echo  "This may take a few minutes to find all files."
-    echo  "Files with md5sums matching known exploits will be printed."
-    aexpl_check  /
-    true
-  fi
-}
-
-
-cp  $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE  .  &&
-prepare_install  &&
+  cp  $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE  .  &&
+  prepare_install  &&
    make_install
-#  &&
-#   scan_root
+}
+
+
+current()  {
+  echo  "aexpl-db"  |  pipe_queue  "$DISPEL_QUEUE"
 }
