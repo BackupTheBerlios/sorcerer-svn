@@ -1,33 +1,19 @@
-   VERSION=(  "$(  date  -u  "+%Y-%m"  )"  )
+version_year_month 12
   CATEGORY="network"
  ATTRIBUTE="client server"
-    SOURCE="protocol-numbers"
-       URL="http://www.iana.org/assignments/"
+    SOURCE="protocols-$VERSION.tar.bz2"
+       URL="http://sorcerer.aakin.net/download/iana/"
   HOMEPAGE="http://www.iana.org/"
-disable scavenge
        REQ=""
   ESTIMATE="5"
    EXCLUDE="/etc/protocols"
       DESC="protocols translates the protocol numbers assigned by IANA to /etc/protocols"
 
 build()  {
-PN=$SOURCE_CACHE/$SPELL/$VERSION/protocol-numbers
-
-[  -f  $PN  ]    &&
-prepare_install  &&
-cat    $PN                |
-tr       -d  '\r'         |
-tr           '\t'  ' '    |
-tr       -s  ' '          |
-tr       -d  '\177-\377'  |
-sed          "s:^ *::"    |
-grep         "^[0-9]"     |
-grep     -v  "^ \|Unassigned\|experimentation\|Reserved\|1981"  |
-while  read  NUMBER  NAME  DESCRIPTION;  do
-  echo  -n     "$NAME"   |  tr  "[:upper:]" "[:lower:]"
-  echo "|$NUMBER|$NAME"
-done                  | 
-tr       -d '\r'      |
-column   -s '|'   -t  >        protocols  &&
-install  -m 0644  -b  -S .old  protocols  /etc
+  [  -s  protocols  ]     &&
+  mv     protocols  iana  &&
+  prepare_install         &&
+  cat               iana  |
+  column  -s '	' -t      >  protocols  &&
+  install -m 0644 -b -S .old protocols /etc
 }
