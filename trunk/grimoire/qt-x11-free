@@ -16,8 +16,21 @@
   ESTIMATE="5586"
       DESC="qt-x11-free simplifies the task of writing and maintaining GUI applications."
 
+FIX_MSG="Fixing the include path in qmake.conf..."
 
 build()  {
+  fix_qmake_conf() {
+   # This should be used when the qt headers are NOT instaled in 
+   # /usr/include, i.e. if they are installed to /usr/include/qt, 
+   # /usr/share/qt/include or whatever then this is NEEDED because the
+   # qmake.conf sets the QT include directory to $(QTDIR)/include.
+   # Some applications need this to be correct in order for them to compile.
+   echo   "$FIX_MSG" 
+   sed    -i  's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:'		\
+              mkspecs/${SPECS}/qmake.conf
+   cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
+  }
+
   echo  $OPTS           |
   grep  -q  "\-qt-gif"  &&
   sed   -i  "s:READER 0:READER 1:"  src/kernel/qgif.h
@@ -68,7 +81,8 @@ build()  {
   cp     -R   doc/man  /usr   &&
   ln     -s   ../share/qt/include  /usr/include/qt    &&
   ln     -s   ../../bin            /usr/share/qt/bin  &&
-  ln     -s   ../../$LIBS          /usr/share/qt/lib
+  ln     -s   ../../$LIBS          /usr/share/qt/lib  &&
+  fix_qmake_conf
 
 # QTDIR=/usr/share/qt
 # because some sources check for /usr/share/qt/include/qglobal.h
@@ -136,5 +150,7 @@ cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
 }
 
 current() {
+ grep  -qx  "$FIX_MSG"  $COMPILE_LOGS/$SPELL	&&  
   [  -h  /usr/include/qt  ]
 }
+# Origin grimoire
