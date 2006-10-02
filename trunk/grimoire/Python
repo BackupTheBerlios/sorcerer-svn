@@ -54,9 +54,27 @@ build()  {
 post_install()  {
   # unlock_cast
   # cast -c  $(  show_installed  python-module  )
-  local          PMODS="$(  show_installed  python-module  )"
-  if    [  -n  "$PMODS"  ]
-  then  echo   "$PMODS"  |  pipe_queue  "$CAST_QUEUE"  "com"
-  fi
-  true
+#   local          PMODS="$(  show_installed  python-module  )"
+#   if    [  -n  "$PMODS"  ]
+#   then  echo   "$PMODS"  |  pipe_queue  "$CAST_QUEUE"  "com"
+#   fi
+#   true
+
+  grep  -r   "/usr/lib/python.../"  $INSTALL_LOGS  |
+  grep  -v  ":/usr/lib/python${VERSION:0:3}/"      |
+  cut   -d   : -f1         |
+  sort  -u   |  basenames  |
+  grep  -v    "Python-v"   |
+  pipe_queue  "$CAST_QUEUE"  "com"
+}
+
+current()  {
+  case  $VERSION  in
+    2.5)  grep  -r   "/usr/lib/python.../"  $INSTALL_LOGS  |
+          grep  -v  ":/usr/lib/python${VERSION:0:3}/"      |
+          cut   -d   : -f1         |
+          sort  -u   |  basenames  |
+          grep  -v    "Python-v"   |
+          pipe_queue  "$CAST_QUEUE"  "com"  ;;
+  esac
 }
