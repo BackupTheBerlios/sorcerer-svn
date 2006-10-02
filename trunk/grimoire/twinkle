@@ -1,25 +1,23 @@
-   VERSION=( "0.8.1" "0.8" "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
-#  VERSION=(               "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
+   VERSION=( "0.9" "0.8.1" "0.8" "0.7.1" "0.7" "0.6.2" "0.6.1" "0.6" "0.5" )
   CATEGORY="network/telephone"
- ATTRIBUTE="kde broken"
+ ATTRIBUTE="kde"
     SOURCE="twinkle-$VERSION.tar.gz"
        URL="http://www.xs4all.nl/~mfnboer/twinkle/download/"
   HOMEPAGE="http://www.twinklephone.com/"
-       REQ=( "ccrtp flac kdelibs libsndfile libxml2"
-             "speex:::for speex codec support" )
-case  $VERSION  in
-  0.8)  REQ="boost $REQ"
-        USE_GCC="gcc-v4.0"  ;;
-esac
-  ESTIMATE="730"
+       REQ=( "boost ccrtp flac kdelibs libsndfile libxml2"
+             "ilbc:::for the Internet low bitrate codec support"
+             "speex:::for speex codec support"
+             "libzrtpcpp:::for secure voice communication" )
+  ESTIMATE="750"
       DESC="twinkle is a voice over IP using the SIP protocol application"
 
 build() {
-# case  $VERSION  in
-#   0.8*)  sed  -i  "s:-lboost_regex:-lboost_regex-gcc:"    \
-#              configure  src/{Makefile.in,/gui/Makefile}  ;;
-# esac
-sed  -i  "s:INCLUDEPATH	+=:INCLUDEPATH	+= /usr/include/qt:" src/gui/twinkle.pro
-export  QTDIR="/usr"
+  case  $VERSION  in
+    0.[8-9]*)  sed  -i  "s:-lboost_regex:-lboost_regex-gcc:"  \
+               configure  src/{Makefile.in,gui/{Makefile,twinkle.pro}}  ;;
+  esac
+
+# sed  -i  "s:INCLUDEPATH	+=:INCLUDEPATH	+= /usr/include/qt:" src/gui/twinkle.pro
+export  QTDIR="/usr/share/qt"
 default_build
 }
