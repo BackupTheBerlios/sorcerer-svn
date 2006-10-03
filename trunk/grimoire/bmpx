@@ -1,12 +1,15 @@
 # 0.20.3 is supposed to work with neon 0.25.x and 0.26.x
 # Yes this spell does require neon 0.26.x
-   VERSION=( "0.30.3" "0.30.0" "0.20.3" "0.20.2" "0.20.1-1" "0.14.4" "0.14.3" "0.14.2" "0.14.1.1" "0.14.1" "0.14.0" )
+   VERSION=( "0.32.0" "0.30.3" "0.30.0" "0.20.3" "0.20.2" "0.20.1-1" "0.14.4" "0.14.3" "0.14.2" "0.14.1.1" "0.14.1" "0.14.0" )
     IGNORE="R\|2005\|rc"
 # 0.odd.x are developmental versions
   CATEGORY="audio/player"
  ATTRIBUTE="gnome"
     SOURCE="bmpx-$VERSION.tar.bz2"
        URL="http://files.beep-media-player.org/releases/${VERSION:0:4}/"
+case  $VERSION  in
+  0.32.0)  URL="http://files.beep-media-player.org/releases/0.30/"  ;;
+esac
 #    SOURCE="beepmp/bmpx-$VERSION.tar.bz2"
 #       URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://beep-media-player.org"
@@ -22,5 +25,12 @@
 # May have an optional requirement on subversions
 
  FRESHMEAT="beep-player"
-  ESTIMATE="2230"
+  ESTIMATE="2240"
       DESC="bmpx is an audio player that is also called beep player"
+
+build() {
+  case  $VERSION  in
+    0.32.0)  sed  -i  "s:-lboost_regex:-lboost_regex-gcc:"  configure  ;;
+  esac
+  default_build
+}
