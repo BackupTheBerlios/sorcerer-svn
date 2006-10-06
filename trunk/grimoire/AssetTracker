@@ -1,0 +1,91 @@
+   VERSION=( "1.2.3" )
+  CATEGORY="administration/monitoring web"
+ ATTRIBUTE="x11 rt-plugin new"
+    SOURCE="at-$VERSION.tar.gz"
+       URL="http://atwiki.chaka.net/"
+  HOMEPAGE="http://atwiki.chaka.net"
+       REQ="rt"
+  ESTIMATE="112"
+      DESC="$SPELL is an extension to Request Tracker (rt)
+AssetTracker (at) is designed to keep track of assets
+such as: servers, switches, desktops, or anything else.
+If you understand RT, AT should feel very natural. AT 
+uses RT's custom fields system and has a similar query 
+interface."
+
+RTDIR=/opt/rt3
+
+install_etc() {
+  AT_ETC_PATH=$RTDIR/etc/AssetTracker
+
+  mkdir -p  $AT_ETC_PATH	&&
+  find  etc/AssetTracker/ -type f -exec  			\
+	install -v -D -g rt '{}'  $RTDIR/'{}' \;		&&
+
+  chmod -v 0500 etc/AssetTracker/*				&&
+  chmod -v 0554 etc/AssetTracker/AT_SiteConfig.pm		\
+		etc/AssetTracker/AT_Config.pm
+
+  [ -h   $AT_ETC_PATH/AT_SiteConfig.pm ]  ||
+    mv   $AT_ETC_PATH/AT_SiteConfig.pm	/etc/rt
+  ln -sfv     /etc/rt/AT_SiteConfig.pm	$AT_ETC_PATH
+}
+
+install_lib() {
+  for dir in $( cd ./lib/ && find . -type d -print )
+  do 
+    install -v -d -m 0755 -g bin	$RTDIR/lib/$dir
+  done
+  for f   in $( cd ./lib/ && find . -type f -name \*.pm -print )
+  do
+    install -v    -m 0644 -g bin	lib/$f	$RTDIR/lib/$f
+  done
+}
+
+install_html() {
+  chmod  -R u+rwX,go-w,go+rX	./html
+
+  find html/ -type f -exec 	\
+  install -v -D -g bin 		'{}'  $RTDIR/share/'{}' \;
+}
+
+install_lexicon() {
+  find po/ -type f -exec  install -v -D '{}'  $RTDIR/'{}' \;
+}
+
+install_sbin() {
+  for f in $( cd ./sbin/ && find . -type f -print )
+  do
+    install -v -D  sbin/$f      $RTDIR/sbin
+  done
+}
+
+echo_instructions() {
+cat << EOF
+---------------
+If this is a new installation, backup your RT database because you will need to modify it:
+
+  mysql rt3 -u root -p < /opt/rt3/etc/AssetTracker/drop_schema.mysql
+  perl  /opt/rt3/sbin/at-setup-database --action init 	\
+		--datadir /opt/rt3/etc/AssetTracker/	\
+		--dba root  --prompt-for-dba-password
+
+Good luck :)
+EOF
+}
+
+build() {
+  
+
+  ./configure  --with-rt-home=/opt/rt3	\
+               --with-rt-local=/opt/rt3	\
+               --with-rt-localhtml=/opt/rt3/share/html	\
+               --with-db-admin=root	&&
+  prepare_install			&&
+  install_etc		&&
+  install_lib		&&
+  install_lexicon	&&
+  install_html		&&
+  install_sbin		&&
+  echo_instructions
+}
