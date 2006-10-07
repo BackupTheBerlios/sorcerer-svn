@@ -77,18 +77,15 @@ install_server() {
   fi
 }
 
- getent group munin	 >/dev/null		||
- groupadd	munin	2>/dev/null
- getent passwd munin	 >/dev/null		||
- useradd	munin  -g munin	 -d /var/lib/munin	2>/dev/null
 
- configure_munin		&&
- doc_hack			&&
- make				&&
- prepare_install		&&
- install_server			&&
- make	install-node		\
-	install-node-plugins	\
-	install-doc		\
-	install-man
+mkdir    -p -m 0755 /var/lib/munin
+groupadd -K GID_MIN=256 -K GID_MAX=999    munin                         2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g munin -d /var/lib/munin munin 2>/dev/null
+
+  configure_munin  &&
+  doc_hack         &&
+  make             &&
+  prepare_install  &&
+  install_server   &&
+  make    install-{node,node-plugins,doc,man}
 }

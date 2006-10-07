@@ -7,7 +7,7 @@
 # They changed from -src to .src at version 3.0.3-2-stable, dumb change.
 #   SOURCE="ijbswa/privoxy-${VERSION}-src"
     SOURCE="ijbswa/privoxy-$VERSION.tar.gz"
-       REQ="autoconf automake pcre"
+       REQ="automake pcre"
   ESTIMATE="52"
       DESC="privoxy is a filtering web proxy for protecting privacy.
 privoxy is a web proxy with advanced filtering
@@ -22,14 +22,11 @@ systems and multi-user networks.
 Privoxy is based on Internet Junkbuster (tm)."
 
 build() {
-  if    !  grep  -q  privoxy:  /etc/group
-  then  groupadd     privoxy
-  fi
 
-  if    !  grep  -q  privoxy:  /etc/passwd
-  then  useradd  -g privoxy  -s /bin/false  -d /etc/privoxy  \
-                 -c privoxy  privoxy
-  fi
+mkdir    -p -m 0755 /etc/privoxy
+groupadd -K GID_MIN=256 -K GID_MAX=999    privoxy                         2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g privoxy -d /etc/privoxy privoxy 2>/dev/null
+chown privoxy:privoxy /etc/privoxy
 
   sed  -i  "s:/usr/local/etc/privoxy/config:/etc/privoxy/config:" \
        privoxy-generic.init
@@ -37,23 +34,14 @@ build() {
   autoheader
   autoconf
 
-  ./configure                     \
-  --prefix=/usr                   \
-  --sysconfdir=/etc/privoxy       \
-  --localstatedir=/var            \
-  $OPTS                           &&
-  make                            &&
-  prepare_install                 &&
-  make    install   USER=privoxy  \
-                   GROUP=privoxy
-#  &&
-# if  $PRIVOXY_BOOT;  then
-#  ln  -sf  ../init.d/privoxy  /etc/rc0.d/K20privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc1.d/K20privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc2.d/K20privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc6.d/K20privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc3.d/S95privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc4.d/S95privoxy
-#  ln  -sf  ../init.d/privoxy  /etc/rc5.d/S95privoxy
-# fi
+  UG="USER=privoxy GROUP=privoxy"
+
+  ./configure                \
+  --prefix=/usr              \
+  --sysconfdir=/etc/privoxy  \
+  --localstatedir=/var       \
+  $OPTS                      &&
+  make             $UG       &&
+  prepare_install            &&
+  make    install  $UG
 }

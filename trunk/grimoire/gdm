@@ -23,8 +23,10 @@ build() {
 
   AUTH_SCHEME="--enable-authentication-scheme=$SCHEME"
 
-  groupadd  gdm           2>/dev/null
-  useradd   gdm  -g  gdm  2>/dev/null
+mkdir    -p -m 0750 /var/gdm
+groupadd -K GID_MIN=256 -K GID_MAX=999    gdm                 2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g gdm -d /var/gdm gdm 2>/dev/null
+chown    -R gdm:gdm /var/gdm
 
   ./configure           \
   --prefix=/usr         \
@@ -33,8 +35,5 @@ build() {
   $AUTH_SCHEME          &&
   make                  &&
   prepare_install       &&
-  make    install       &&
-  mkdir  -p           /var/gdm  &&
-  chown  -R  gdm:gdm  /var/gdm  &&
-  chmod  750          /var/gdm
+  make    install
 }

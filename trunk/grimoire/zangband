@@ -17,19 +17,22 @@ zangband is a modified angband, a single-player
 rogue-like dungeon exploration game."
 
 build() {
-groupadd  games  2>/dev/null
+mkdir    -p -m 0755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=999    games                     2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g games -d /var/empty games 2>/dev/null
 
-./configure  --build=$BUILD          \
-             --prefix=/usr           \
-             --bindir=/usr/games     \
-             --datadir=/usr/share    \
-             --sysconfdir=/etc       \
-             --localstatedir=/var    \
-             --with-setgid=games     \
-             $OPTS                   &&
-make                                 &&
-prepare_install                      &&
-mkdir  -p  /usr/share/games          \
-           /usr/games                &&
+
+./configure             \
+--build=$BUILD          \
+--prefix=/usr           \
+--bindir=/usr/games     \
+--datadir=/usr/share    \
+--sysconfdir=/etc       \
+--localstatedir=/var    \
+--with-setgid=games     \
+$OPTS                   &&
+make                    &&
+prepare_install         &&
+mkdir  -p  /usr/{games,share/games}  &&
 make    install
 }

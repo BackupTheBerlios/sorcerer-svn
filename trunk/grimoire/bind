@@ -28,7 +28,6 @@ build() {
     SNC="$SCRIPT_DIR/named.conf"
     SNR="$SCRIPT_DIR/named.root"
     RES="$SCRIPT_DIR/resolv.conf"
-    JAIL="/var/chroot/bind"
 
     install  -d  -m 0755  -o bind  -g bind        $JAIL/var/run
     install  -d  -m 0755  -o bind  -g bind        $JAIL/etc/bind
@@ -41,8 +40,11 @@ build() {
     true
   }
 
-  groupadd  bind            2>/dev/null
-  useradd   bind  -g  bind  2>/dev/null
+                     JAIL="/var/chroot/bind"
+mkdir    -p -m 0755 $JAIL
+groupadd -K GID_MIN=256 -K GID_MAX=999    bind               2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g bind -d $JAIL bind 2>/dev/null
+chown    -R  bind:bind  $JAIL
 
   ./configure             \
   --prefix=/usr           \

@@ -23,13 +23,14 @@ build() {
     install -m 0644  samples/irrd.conf.sample  /etc/irrd.conf
     mkdir   -p                                 /usr/doc/irrd
     cp               irrd-user.*               /usr/doc/irrd
-    mkdir   -p                                 /var/spool/irr_database
-    chown   -R       irrd:irrd                 /var/spool/irr_database
   }
 
-  groupadd  irrd            2>/dev/null
-  useradd   irrd  -g  irrd  2>/dev/null
-  cd  src
+mkdir    -p -m 0755 /var/spool/irr_database
+groupadd -K GID_MIN=256 -K GID_MAX=999    irrd 2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g irrd -d /var/spool/irr_database irrd 2>/dev/null
+chown    -R irrd:irrd /var/spool/irr_database
+
+  cd      src
   default_build  &&
   finish_install
 }

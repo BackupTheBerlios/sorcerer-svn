@@ -6,7 +6,7 @@
     SOURCE="nagios/nagios-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://www.nagios.org"
-       REQ=( "gd libtool" )
+       REQ="gd libtool"
   ESTIMATE="766"
       DESC="nagios is a daemon for monitoring networked hosts and services.
 It has the ability to notify contacts
@@ -21,8 +21,10 @@ to acknowlege problems and disable
 notifications from an internet-ready cellphone."
 
 build()  {
-  groupadd  nagios                           &>/dev/null
-  useradd   nagios  -g nagios  -s /bin/bash  &>/dev/null
+mkdir    -p -m 0755 /var/nagios
+groupadd -K GID_MIN=256 -K GID_MAX=999    nagios                       2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g nagios -d /var/nagios nagios 2>/dev/null
+chown nagios:nagios /var/nagios
 
   ./configure      \
   --build=$BUILD   \
@@ -30,11 +32,9 @@ build()  {
   --bin=/usr/sbin  \
   --sysconfdir=/etc/nagios     \
   --localstatedir=/var/nagios  \
-  --with-lockfile=/var/run/nagios.pid \
-  $OPTS            &&
-  make      all    \
-        install    \
-          install-commandmode  \
-          install-config       \
-          DESTDIR=$DESTDIR
+  --with-lockfile=/var/run/nagios.pid  \
+  $OPTS  &&
+  make        all  DESTDIR=$DESTDIR  &&
+  prepare_install  &&
+  make    install{,-commandmode,-config} DESTDIR=$DESTDIR
 }

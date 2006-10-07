@@ -52,8 +52,10 @@ fi
 # export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
 # export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
 
-groupadd  mysql             2>/dev/null
-useradd   mysql  -g  mysql  2>/dev/null
+mkdir    -p -m 0755 /var/lib/mysql
+groupadd -K GID_MIN=256 -K GID_MAX=999    mysql                         2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g mysql -d /var/lib/mysql mysql 2>/dev/null
+chown    -R mysql:mysql /var/lib/mysql
 
 # sed  -i  "s:/libssl.a:/libssl.so:"  configure
 # sed  -i  "s:Linuxthreads:pthread:"  configure
@@ -96,7 +98,7 @@ make    install  pkglibdir=/usr/lib  &&
 
 if  !  echo  "$OPTS"  |  grep  -q  "without-server";  then
   mysql_install_db
-  chown    -R mysql.mysql                        /var/lib/mysql
+  chown    -R mysql:mysql                        /var/lib/mysql
   install  -m 0700  support-files/mysql.server   /etc/init.d/mysql
   install  -m 0700  support-files/my-medium.cnf  /etc/my.cnf
 fi

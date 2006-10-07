@@ -16,10 +16,12 @@ It is faster than Apache and it has one extremely useful feature
 (URL-traffic-based throttling) that no other server currently has."
 
 build() {
-  groupadd  thttpd             2>/dev/null
-  useradd   thttpd  -g thttpd  2>/dev/null
+mkdir    -p -m 0755 /srv/http
+groupadd -K GID_MIN=256 -K GID_MAX=999    thttpd                     2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g thttpd -d /srv/http thttpd 2>/dev/null
+chown thttpd:thttpd /srv/http
 
-  WD="WEBDIR=/usr/share/thttpd"
+  WD="WEBDIR=/srv/http"
   CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
   WG="WEBGROUP=thttpd"
 
@@ -29,8 +31,8 @@ build() {
   --sysconfdir=/etc     \
   --localstatedir=/var  \
   $OPTS                 &&
-  make             $WD  $CD  $WG     &&
-  prepare_install                    &&
-  make    install  $WD  $CD  $WG     &&
+  make             $WD  $CD  $WG  &&
+  prepare_install                 &&
+  make    install  $WD  $CD  $WG  &&
   install  -m 0600 $SCRIPT_DIR/thttpd.conf  /etc/thttpd.conf
 }

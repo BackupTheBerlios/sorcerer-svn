@@ -27,8 +27,10 @@ install_conf()  {
   fi
 }
 
-groupadd  news            2>/dev/null
-useradd   news  -g  news  2>/dev/null
+mkdir    -p -m 2755 /var/spool/news
+groupadd -K GID_MIN=256 -K GID_MAX=999    news                         2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g news -d /var/spool/news news 2>/dev/null
+chown    -R news:news /var/spool/news
 
 ./configure                 \
 --build=$BUILD              \

@@ -29,7 +29,11 @@ Finally, you will need to add users authorized to access the IEEE1394
 
 build() {
   # sed  -i  "s:chown root.root /dev/raw1394:true:" Makefile.*
-  groupadd  firewire  2>/dev/null
+
+mkdir    -p -m 0755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=999    firewire                        2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=999 -g firewire -d /var/empty firewire 2>/dev/null
+
   ./configure  --prefix=/usr    
   make    dev
   make             &&    
