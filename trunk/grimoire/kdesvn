@@ -1,16 +1,23 @@
-#  VERSION=( "0.9.3" "0.9.2" "0.9.1" "0.9.0" "0.8.5" "0.8.4" "0.8.3" "0.8.2" "0.8.1" "0.8.0" )
-   VERSION=(                 "0.9.1" "0.9.0" "0.8.5" "0.8.4" "0.8.3" "0.8.2" "0.8.1" "0.8.0" )
-    IGNORE="0\.9\.[2-3]"
-# 0.9.2 source has not been prepared for compilation.
-# 0.9.3 source looks straight out of svn/cvs
-# and does not yet have configure generated
+   VERSION=( "0.10.0" "0.9.3" "0.9.2" "0.9.1" "0.9.0" "0.8.5" "0.8.4" "0.8.3" "0.8.2" "0.8.1" "0.8.0" )
   CATEGORY="development"
  ATTRIBUTE="gui kde"
     SOURCE="kdesvn-$VERSION.tar.bz2"
        URL="http://www.alwins-world.de/programs/download/kdesvn/"
   HOMEPAGE="http://www.alwins-world.de/programs/kdesvn/"
-       REQ="subversion kdelibs"
+       REQ="cmake subversion kdelibs"
 # also requires libXft
-  ESTIMATE="1725"
+  ESTIMATE="650"
       OPTS="--disable-debug"
       DESC="kdesvn is a frontend to the subversion vcs"
+
+build()  {
+  mkdir  kdesvn-build
+  cd     kdesvn-build
+  cmake  ../                             \
+         -DCMAKE_BUILD_TYPE=Release      \
+         -DCMAKE_INSTALL_PREFIX=/usr     \
+         -DSUBVERSION_INSTALL_PATH=/usr  &&
+  make             &&
+  prepare_install  &&
+  make    install
+}

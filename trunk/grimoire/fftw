@@ -5,6 +5,7 @@
     SOURCE="fftw-$VERSION.tar.gz"
        URL="ftp://ftp.fftw.org/pub/fftw/"
   HOMEPAGE="http://www.fftw.org/"
+      OPTS="--enable-shared"
   ESTIMATE="2370"
       DESC="fftw is the fast fourier tranform C library.
 fftw, is the is a fast fourier transfer C library.
@@ -17,7 +18,13 @@ To achieve this performance, FFTW uses novel code-generation and
 runtime self-optimization techniques (along with many other tricks)."
 
 
-build() {
+# build_old creates libraries named with a f before the .so
+# /usr/lib/libfftw3f.so.3.1.2
+# sources such as libofa want fftw libraries named such as:
+# /usr/lib/libfftw3.so.3.1.2
+# If this old build_old is used then libofa will not compile.
+
+build_old() {
 ./configure          \
 --prefix=/usr        \
 --enable-shared      \
@@ -26,4 +33,10 @@ build() {
 make                 &&
 prepare_install      &&
 make    install
+}
+
+current()  {
+  case  $VERSION  in
+    3.1.2)  [  -f  /usr/lib/libfftw3.so.3.1.2  ]
+  esac
 }
