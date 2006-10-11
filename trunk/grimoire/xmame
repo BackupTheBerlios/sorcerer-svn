@@ -1,9 +1,7 @@
-   VERSION=( "0.104" "0.103" "0.102" "0.101" "0.100" "0.99" "0.95" "0.94" "0.92" )
-      SAFE=( "0.104" "0.103" )
+   VERSION=( "0.106" "0.104" "0.103" "0.102" "0.101" "0.100" "0.99" "0.95" "0.94" "0.92" )
+      SAFE=( "0.106" "0.104" "0.103" )
   CATEGORY="game development/emulator"
  ATTRIBUTE="x11 broken"
-# configuration during build not allowed
-# must happen during configure()
     SOURCE="xmame-$VERSION.tar.bz2"
        URL="http://x.mame.net/download/"
   HOMEPAGE="http://x.mame.net/"
@@ -19,47 +17,36 @@ playing over 2000 arcade games.
 
 You may have to do cast -r -r xmame to compile it."
 
+configure()  {
+  if    !  sources_cached;  then
+    echo  "Sources must be download before configuration."
+    leech  -w  $SPELL
+  fi
+  pre_build
+  if    !  [  -f  $CONFIG_LOGS/$SPELL/makefile.unix  ]; then
+    ${EDITOR:-nano}  makefile.unix
+    mkdir  -p          $CONFIG_LOGS/$SPELL
+    cp  makefile.unix  $CONFIG_LOGS/$SPELL/
+  fi
+  cd  /tmp
+  rm  -fr  $BUILD_DIR
+}
 
 
 build() {
- if    [  -f  $CONFIG_LOGS/$SPELL/makefile.unix  ]
- then  cp     $CONFIG_LOGS/$SPELL/makefile.unix  .
- else
-  EDIT_MAKEFILE="true"
-  while  $EDIT_MAKEFILE;  do
-   ${EDITOR:-nano}  makefile.unix
-   if    query  "Repeat  edit"  n
-   then  EDIT_MAKEFILE="true"
-   else  EDIT_MAKEFILE="false"
-   fi
-  done
- fi
-
-  mkdir  -p          $CONFIG_LOGS/$SPELL
-  cp  makefile.unix  $CONFIG_LOGS/$SPELL
 
   patch  -p1  <  $SCRIPT_DIR/xmame.int.fix
-
-  case  $VERSION  in
-   0.74.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-   0.77.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-   0.78.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-   0.79.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
- #   0.84.1) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-    0.87) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-    0.88) sed  -i  's:GLXLIB_NAME:"libglx.so":'  src/unix/video-drivers/gltool.c  ;;
-  esac
 
   grep -q "CRLF"  makefile.unix || sed -i "1iCRLF = 2"        makefile.unix
   grep -q "EXPAT" makefile.unix || sed -i "1iBUILD_EXPAT = 1" makefile.unix
 
-  make           PREFIX=/usr           \
+  make    PREFIX=/usr           \
           BINDIR=/usr/games     \
           CFLAGS="$CFLAGS"      \
           CXXFLAGS="$CXXFLAGS"  \
           -f  makefile.unix     &&
-  prepare_install                      &&
-  make    install  PREFIX=/usr         \
-           BINDIR=/usr/games   \
-           -f  makefile.unix
+  prepare_install               &&
+  make    install  PREFIX=/usr  \
+          BINDIR=/usr/games     \
+          -f  makefile.unix
 }
