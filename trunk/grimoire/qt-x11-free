@@ -1,11 +1,12 @@
    VERSION=( "3.3.6" "3.3.5" "3.3.4" "3.3.3" )
-      SAFE=( "3.3.6" "3.3.5" "3.3.4" "3.3.3" )
     IGNORE="\.0b"
   CATEGORY="graphic"
  ATTRIBUTE="library kde"
-    SOURCE="qt-x11-free-$VERSION.tar.bz2"
+    SOURCE=( "qt-x11-free-$VERSION.tar.bz2"
+             "qt-x11-immodule-unified-qt3.3.6-20060317-gentoo.diff.bz2" )
   HOMEPAGE="http://www.trolltech.com/products/qt/x11.html"
-       URL="ftp://ftp.trolltech.com/qt/source/"
+       URL=( "ftp://ftp.trolltech.com/qt/source/"
+             "http://distro.ibiblio.org/pub/linux/distributions/gentoo/distfiles/" )
 # is cups required or optional?
        REQ=( "fontconfig jpeg libmng libpng x11"
              "cups:-cups:-no-cups:for common unix printing support"
@@ -16,8 +17,6 @@
   ESTIMATE="5586"
       DESC="qt-x11-free simplifies the task of writing and maintaining GUI applications."
 
-FIX_MSG="Fixing the include path in qmake.conf..."
-
 build()  {
   fix_qmake_conf() {
    # This should be used when the qt headers are NOT instaled in 
@@ -25,7 +24,6 @@ build()  {
    # /usr/share/qt/include or whatever then this is NEEDED because the
    # qmake.conf sets the QT include directory to $(QTDIR)/include.
    # Some applications need this to be correct in order for them to compile.
-   echo   "$FIX_MSG" 
    sed    -i  's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:'		\
               mkspecs/${SPECS}/qmake.conf
    cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
@@ -49,6 +47,13 @@ build()  {
          *)  SPECS=linux-g++
              LIBS=lib  ;;
   esac
+
+
+  if    [  -n  "${SOURCE[1]}"  ]
+  then  decompress  $SOURCE_CACHE/qt-x11-free/$VERSION/${SOURCE[1]} | patch -p1 
+        sh  ./make-symlinks.sh
+        OPTS="$OPTS -inputmethod"
+  fi
 
   prepare_install             &&  # doesn't make right if installed.
 
@@ -150,6 +155,7 @@ cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
 }
 
 current() {
- grep  -qx  "$FIX_MSG"  $COMPILE_LOGS/$SPELL	&&  
-  [  -h  /usr/include/qt  ]
+  case  $VERISON  in
+    3.3.*)  grep  -qx  "patching file ChangeLog.immodule"  $COMPILE_LOGS/qt-x11-free  ;;
+  esac
 }

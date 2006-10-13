@@ -1,4 +1,6 @@
-   VERSION=( "1.1.0" "1.1.2" "1.0.4" "1.0.3" )
+# akode requires flac 1.1.1 or newer
+   VERSION=( "1.1.2" "1.1.0" "1.0.4" "1.0.3" )
+#  VERSION=( "1.1.0" "1.1.2" "1.0.4" "1.0.3" )
 # flac 1.1.1 has compile error
 # flac 1.1.2 installs a broken xmms plugin
     IGNORE="^1\.1\.[1-2]\|flac\|123\|win\|beta\|sparc"
@@ -37,5 +39,12 @@ then  OPTS="$OPTS  --enable-3dnow"
 else  OPTS="$OPTS  --disable-3dnow"
 fi
 
-default_build
+default_build  &&
+case  $VERSION  in
+  1.1.2)  rm  -f  /usr/lib/xmms/Input/libxmms-flac.*  ;;
+esac
+# Do not play flac files with xmms since the plugin of 1.1.2
+# causes xmms to crash.  Yes, I know.
+# However, flac has been held at 1.0.4 as long as possible.
+
 }

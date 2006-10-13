@@ -21,7 +21,8 @@ build()  {
     cd     .extract
     ar     xv  ../libpython2.2.a  1>/dev/null 2>&1
     cd     ..
-    cc     -shared -o libpython2.2.so .extract/*.o
+    gcc    -lpthread -ldl -lutil -lm  \
+           -shared -o libpython2.2.so .extract/*.o
     cp     libpython2.2.so  /usr/lib
     ln     -sf  /usr/lib/libpython2.2.so  \
                 /usr/lib/python2.2/config/libpython2.2.so
@@ -43,6 +44,9 @@ build()  {
 
 current()  {
   case  $VERSION  in
-    2.2.3)  grep  -qx  "patching file Lib/SimpleXMLRPCServer.py"  $COMPILE_LOGS/Python-v2.2  ;;
+#   2.2.3)  grep  -qx  "patching file Lib/SimpleXMLRPCServer.py"  $COMPILE_LOGS/Python-v2.2  ;;
+    2.2.3)  [  -f  /usr/lib/libpython2.2.so  ] &&
+            ldd    /usr/lib/libpython2.2.so  |
+            grep  -q  "libpthread"  ;;
   esac
 }
