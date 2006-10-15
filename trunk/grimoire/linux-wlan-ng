@@ -1,23 +1,69 @@
-   VERSION=( "0.2.5" "0.2.2" )
+   VERSION=( "0.2.5" )
+  PVERSION=( "3.2.8" )
   CATEGORY="kernel network wireless"
  ATTRIBUTE="linux-26-module new"
     SOURCE=( "linux-wlan-ng-$VERSION.tar.gz"
-             "pcmcia-cs/pcmcia-cs-3.2.8.tar.gz" )
+             "pcmcia-cs/pcmcia-cs-$PVERSION.tar.gz" )
        URL=( "ftp://ftp.linux-wlan.org/pub/linux-wlan-ng/"
              "$SOURCEFORGE_URL" )
-case  $VERSION  in
-  0.2.2)  USE_GCC="gcc-v3.4"  ;;
-esac
   HOMEPAGE="http://www.linux-wlan.com/linux-wlan/index.html"
-       REQ=""
+       REQ=( ""
+             ":PCMCIA::Build Prism2.x PCMCIA Card Services (_cs) driver?"
+             ":PLX::Build Prism2 PLX9052 based PCI (_plx) adapter driver?"
+             ":PCI:: Build Prism2.5 native PCI driver?"
+             ":USB::Build Prism2.5 USB (_usb) driver?" )
   ESTIMATE="480"
       DESC="linux-wlan-ng provides drivers for 11Mbps wireless networking."
 
 build() {
-#  yes  ""          |
-  echo  -e  "n\nn\nn\ny\n\n"  |
+  y_n()  (
+    if    echo  "$OPTS"  |  grep  -q  "$1"
+    then  echo  "y"
+    else  echo  "n"
+    fi
+  }
+
+  sed  -i  "s:/usr/local:/usr:"  man/Makefile
+
+
+  cd  pcmcia-cs-$PVERSION
+  sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network.opts
+  sed  -i  "s:/sbin/dhcpcd:/usr/sbin/dhcpcd:g"    etc/network
+  sed  -i  "s:	/sbin/depmod -a:	/sbin/depmod -a -q -F /boot/System.map:"  etc/install-etc
+
+  sed  -i  "s:/var/run/dhcpcd:/etc/dhcpc/dhcpcd:" etc/network
+  sed  -i  "s:/sbin/depmod -a::"                  etc/install-etc
+  sed  -i  "s:modules clients wireless::"         Makefile
+  sed  -i  "s:-O3:$CFLAGS:"                       rules.mk
+
+  sed  -i  "s:^fail:pass:"                        Configure
+  sed  -i  "s:install_sysv$:true:"                etc/install-etc
+
+  make    clean    &&
+  ./Configure      \
+  --noprompt       \
+  --srctree        &&
+
+  (  y_n "PCMCIA"
+     y_n "PLX"
+     y_n "PCI"
+     y_n "USB"
+     echo
+     echo  "$PWD/pcmcia-cs-$PVERSION"
+     echo
+     echo
+     echo
+     echo
+     echo
+  ) |
   make config      &&
   make             &&
   prepare_install  &&
   make    install
+}
+
+build() {
+make        all  &&
+prepare_install  &&
+make    install
 }
