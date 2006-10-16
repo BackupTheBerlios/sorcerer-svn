@@ -1,0 +1,56 @@
+# Template for wireless DHCP configured network connection
+# See also man iwconfig
+
+INTERFACE="wlan0"		# Required, might also be wifi0
+MODULE=				# Optional
+KEY=				# Optional for encrypted networks
+MODE="Managed"			# Required
+ESSID="-- any"			# Required
+
+
+restore_resolv_conf()  {
+  if    [    -f  /etc/resolv.conf.${0##*/}  ]
+  then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
+        cp       /etc/resolv.conf.${0##*/}  /etc/resolv.conf
+  fi
+}
+
+test_dns() {
+  local  NS=$(  grep   "nameserver"  /etc/resolv.conf  |
+                sed  "s/nameserver//"  )
+  if    [  -n  "$NS"  ]  &&
+        which  nmap  &>/dev/null
+  then         nmap  -n  -p 53  $NS  |  grep  -q  "open.*domain"
+  fi
+}
+
+verify_connection()  {
+  if    [  -d  /sys/class/net/$INTERFACE  ]
+  then  restore_resolv_conf
+        test_dns
+  else  false
+  fi
+}
+
+start()  {
+  [  -n  "$MODULE"  ]  &&  modprobe  "$MODULE"
+
+                           iwconfig  $INTERFACE mode $MODE essid $ESSID
+  [  -n  "$KEY"     ]  &&  iwconfig  $INTERFACE key "$KEY"
+
+  if    [  -x  /sbin/dhclient  ];  then  /sbin/dhclient $INTERFACE
+  elif  [  -x  /sbin/dhcpcd    ];  then  /sbin/dhcpcd   $INTERFACE
+  else  false
+  fi  &&
+
+  verify_connection
+}
+
+stop()  {
+               PIDF=/var/run/dhclient.pid ;  [  -f  $PIDF  ]  ||
+               PIDF=/var/run/dhcpcd-$INTERFACE.pid
+  [    -f     $PIDF  ]  &&
+  kill -p $(< $PIDF ) -s 15
+}
+
+$1

@@ -1,0 +1,48 @@
+# Network configuration scripts for use in Sorcerer only.
+
+   VERSION=( "0.1" )
+  CATEGORY="network"
+ ATTRIBUTE="console new"
+  HOMEPAGE="http://sorcerer.aakin.net"
+  ESTIMATE="3"
+disable archive reuse
+      DESC="networks provides scripts and templates to aid network configuration.
+
+networks is an approach to network configuration
+that embraces both simplicity and flexibility.
+To configure a network connection copy only
+the most appropriate template files from
+/etc/networks.d/templates/ to /etc/networks.d/
+Then, modify the files in /etc/networks.d/
+Finally, start the network connection by executing:
+# bash /etc/init.d/networks start
+
+
+Rationale for Change
+
+An ancient fact that shapes Sorcerer development
+differently than the majority of distros is that
+Sorcerer SAs prefer having both variables and instructions
+involving a service start and stop to be in the same file.
+This way SAs can quickly and completely customize
+exactly what is done when a service starts and stops.
+However, to grant better support for common
+network configurations the old /etc/init.d/network
+script would eventually become both large and complicated.
+Therefore, this compromise was established that
+maintains simplicity while allowing for a box
+to be simultaneously configured for multiple networks.
+This change does not depart from the tradition.
+Files in /etc/networks.d/ must contain both the variables and 
+the instructions required for each type of network configuration.
+Having each template contains only and exactly what is
+required for that type of network configuration avoids
+SAs becomming bewildered and fatigued by reading and modifying
+a long and complex single /etc/init.d/network script."
+
+
+build() {
+  prepare_install  &&
+  cp  -av  $SCRIPT_DIR/networks.d  /etc  &&
+  echo  "networks $VERSION installed"
+}

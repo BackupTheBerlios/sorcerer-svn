@@ -1,0 +1,48 @@
+# Template for ethernet PPPoE configured network connection.
+# PPPoE is also used for ADSL in somme places.
+
+INTERFACE=eth0			# Required
+MODULE=				# Optional
+
+restore_resolv_conf()  {
+  if    [    -f  /etc/resolv.conf.${0##*/}  ]
+  then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
+        cp       /etc/resolv.conf.${0##*/}  /etc/resolv.conf
+  fi
+}
+
+test_dns() {
+  local  NS=$(  grep   "nameserver"  /etc/resolv.conf  |
+                sed  "s/nameserver//"  )
+  if    [  -n  "$NS"  ]  &&
+        which  nmap  &>/dev/null
+  then         nmap  -n  -p 53  $NS  |  grep  -q  "open.*domain"
+  fi
+}
+
+verify_connection()  {
+  if    [  -d  /sys/class/net/$INTERFACE  ]
+  then  restore_resolv_conf
+        test_dns
+  else  false
+  fi
+}
+
+start()  {
+  [  -n  "$MODULE"  ]  &&  modprobe  "$MODULE"
+
+  if    [  -f  /usr/sbin/pppoe-start  ]
+  then         /usr/sbin/pppoe-start
+  else  false
+  fi  &&
+
+  verify_connection
+}
+
+stop()  {
+  if    [  -f  /usr/sbin/pppoe-stop  ]
+  then         /usr/sbin/pppoe-stop
+  fi
+}
+
+$1
