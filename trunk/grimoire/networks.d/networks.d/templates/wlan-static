@@ -1,10 +1,11 @@
 # Template for wireless statically configured network connection.
 
 
-INTERFACE="wlan0"		# Required, might also be wifi0
+INTERFACE="wlan0"		# Required, might also be wifi0, eth1, ra0, ...
 KEY=				# Optional
 MODE="Managed"			# Required
-ESSID="-- any"			# Required
+ESSID="any"			# Required
+AP=				# Optional address of the Access Point
 
 IP=				# Required
 NETMASK=			# Optional
@@ -29,7 +30,7 @@ test_dns() {
 }
 
 verify_connection()  {
-  if    [  -d  /sys/class/net/$INTERFACE  ]
+  if    [  $( cat  /sys/class/net/$INTERFACE/carrier ) -eq 1  ]
   then  restore_resolv_conf
         test_dns
   else  false
@@ -39,8 +40,14 @@ verify_connection()  {
 start()  {
   [  -n  "$MODULE"     ]  &&  modprobe  "$MODULE"
 
-                              iwconfig $INTERFACE mode $MODE essid $ESSID
-  [  -n  "$KEY"        ]  &&  iwconfig $INTERFACE key "$KEY"
+                              iwconfig $INTERFACE mode  "$MODE"
+  [  -n  "$KEY"        ]  &&  iwconfig $INTERFACE key   "$KEY"	\
+                          ||  iwconfig $INTERFACE key   off
+  [  -n  "$ESSID"      ]  &&  iwconfig $INTERFACE essid "$ESSID"  \
+                          ||  iwconfig $INTERFACE essid any
+  [  -n  "$AP"         ]  &&  iwconfig $INTERFACE ap    "$AP"	\
+                          ||  iwconfig $INTERFACE ap    off
+
                               ifconfig $INTERFACE $IP
   [  -n  "$BROADCAST"  ]  &&  ifconfig $INTERFACE broadcast $BROADCAST 
   [  -n  "$NETMASK"    ]  &&  ifconfig $INTERFACE netmask $NETMASK
