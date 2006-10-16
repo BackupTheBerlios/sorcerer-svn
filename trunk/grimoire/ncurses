@@ -5,9 +5,9 @@
   HOMEPAGE="http://www.gnu.org/software/ncurses/ncurses.html"
        URL="$GNU_URL"
        REQ="awk"
-      OPTS="--enable-widec"
+      OPTS="--without-debug"
    PROTECT="/usr/share/terminfo"
-  ESTIMATE="1439"
+  ESTIMATE="8520"
       DESC="ncurses displays and updates text on text-only terminals.
 The ncurses (new curses) library is a free software
 emulation of curses in System V Release 4.0 and more.
@@ -32,6 +32,8 @@ build()  {
 	;;
   esac
 
+  mkdir  -p  destdir/usr/{lib,share/tabset}
+
   ./configure        \
   --build=$BUILD     \
   --prefix=/usr      \
@@ -41,8 +43,32 @@ build()  {
   --disable-termcap  \
   $OPTS              &&
   make               &&
+  make    install    \
+    DESTDIR=$PWD/destdir  &&
+  make    clean      &&
+
+  ./configure        \
+  --build=$BUILD     \
+  --prefix=/usr      \
+  --libdir=$LIBDIR   \
+  --with-normal      \
+  --with-shared      \
+  --disable-termcap  \
+  --enable-widec     \
+  $OPTS              &&
+  make               &&
   prepare_install    &&
+  cd      c++        &&
+  make               &&
+  prepare_install    &&  cp  -av  ../destdir/*  /  &&
+  make    install    &&  cd       ..               &&
   make    install
 }
 
 post_install() { backup_lib; }
+
+current()  {
+  case  $VERSION  in
+    5.5)  [  -f  /lib/libncursesw.so.5.5  ]  ;;
+  esac
+}
