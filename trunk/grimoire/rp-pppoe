@@ -5,6 +5,7 @@
        URL="http://www.roaringpenguin.com/penguin/pppoe/"
   HOMEPAGE="http://www.roaringpenguin.com/pppoe/"
        REQ="ppp"
+   PROTECT="/etc/init.d/adsl"
       DESC="rp-pppoe is a PPP over Ethernet client/server suite.
 rp-pppoe, Roaring Penguin, is a PPPoE client and server
 suite for Linux, NetBSD, Solaris, and Mac OS X Beta.
@@ -12,17 +13,6 @@ It is fully RFC-compliant and supports cookies, relay-IDs,
 and multiple simultaneous PPPoE discovery phases.
 It is cleanly coded and fairly efficient,
 and supports kernel-mode PPPoE on Linux 2.4.x."
-
-configure() {
-  if  [  -z  "$CONFIGURE"  ]; then
-    if    query "run pppoe-setup after install step to setup the connection?" y
-    then  echo "RUN_PPPOE_SETUP=true"   >  $SPELL_CONFIG
-    else  echo "RUN_PPPOE_SETUP=false"  >  $SPELL_CONFIG
-    fi
-    echo "CONFIGURE=true" >>  $SPELL_CONFIG
-  fi
-}
-	
 
 build() {
   install_extra()  {
@@ -48,14 +38,4 @@ build() {
   cd  ../src            &&
   make  install         &&
         install_extra
-}
-
-
-post_install()  {
-  if  [  -z  "$CONFIGURED"  ]; then
-    echo "CONFIGURED=true" >>  $SPELL_CONFIG
-    $RUN_PPPOE_SETUP &&
-    pppoe-setup
-    true
-  fi
 }
