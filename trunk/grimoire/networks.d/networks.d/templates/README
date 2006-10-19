@@ -3,12 +3,12 @@ Select the template or templates that
 best describe the networking connections.
 Copy template files to /etc/networks.d/
 Edit the files in      /etc/networks.d/
-Finally, start the network by
-bash /etc/init.d/networks start
+Finally, start the network with
+# bash /etc/init.d/networks start
 
 A box can be configured for more than one network.
 The order in which network connections are attempted during
-the execution of bash /etc/init.d/networks start
+the execution of /etc/init.d/networks start
 is determined by the order of the filenames in /etc/networks.d/
 For example if the files are named:
 
@@ -18,3 +18,23 @@ For example if the files are named:
 Upon bash /etc/init.d/networks start
 00-eth0-dhcp  would be attempted first and if unsuccessful
 01-wlan0-dhcp would be attempted.
+
+
+	Notes about DNS and resolver configuration files.
+
+Optionally, each network connections can have their own /etc/resolv.conf
+The naming of that file follows this pattern.
+
+Network config file	->	resolv.conf name
+00-eth0-dhcp		->	/etc/resolv.conf.00-eth0-dhcp
+01-wlan-dhcp		->	/etc/resolv.conf.01-wlan-dhcp
+
+If the /etc/resolv.conf.$network_config exists
+then it is copied to /etc/resolv.conf
+when attempting to connect to that network
+
+Rarely, will this be used.
+If the same resolver configuration can be used for all networks
+then edit /etc/resolv.conf instead.
+When a network interface is configured by DHCP
+then /etc/resolv.conf is usually automatically modified.
