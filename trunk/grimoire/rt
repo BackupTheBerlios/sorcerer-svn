@@ -1,37 +1,62 @@
    VERSION=( "3.6.1" )
-  CATEGORY="administration/monitoring web"
+  CATEGORY="administration/monitoring network/web"
  ATTRIBUTE="x11 new"
     SOURCE="pub/rt/release/rt-$VERSION.tar.gz"
        URL="http://download.bestpractical.com/"
   HOMEPAGE="http://www.bestpractical.com/rt"
-       REQ=( "perl httpd perl--Test-Inline perl--DBIx-SearchBuilder 
-              perl--Text-Template perl--HTML-Scrubber 
-              perl--Locale-Maketext-Fuzzy perl--Locale-Maketext-Lexicon 
-              perl--Log-Dispatch perl--Net-SNMP perl--MIME-tools 
-              perl--Text-Wrapper perl--Time-modules perl--TermReadKey 
-              perl--Text-Quoted perl--Tree-Simple perl--Module-Versions-Report 
-              perl--UNIVERSAL-require perl--Calendar-Simple perl--Regexp-Common
-              perl--Apache-Test perl--libwww perl--Test-WWW-Mechanize 
-              perl--XML-Simple perl--GD perl--Test-Expect perl--Module-Refresh
-              perl--HTML-Format perl--HTML-Mason perl--MLDBM perl--XML-RSS
-              perl--Apache-Session perl--HTTP-Server-Simple-Mason
-              perl--GDGraph perl--Text-WikiFormat perl--Apache-DBI" 
+       REQ=( "httpd
+              perl--Apache-DBI
+              perl--Apache-Session
+              perl--Apache-Test
+              perl--DBIx-SearchBuilder
+              perl--Calendar-Simple
+              perl--GD
+              perl--GDGraph
+              perl--HTML-Format
+              perl--HTML-Mason
+              perl--HTML-Scrubber
+              perl--HTTP-Server-Simple-Mason
+              perl--Locale-Maketext-Fuzzy
+              perl--Locale-Maketext-Lexicon
+              perl--Log-Dispatch
+              perl--MIME-tools
+              perl--MLDBM
+              perl--Module-Refresh
+              perl--Module-Versions-Report
+              perl--Net-SNMP
+              perl--Regexp-Common
+              perl--Test-Expect
+              perl--Test-Inline
+              perl--Text-Template
+              perl--Text-Wrapper
+              perl--TermReadKey
+              perl--Text-Quoted
+              perl--Time-modules
+              perl--Tree-Simple
+              perl--Test-WWW-Mechanize
+              perl--Text-WikiFormat
+              perl--UNIVERSAL-require
+              perl--XML-RSS
+              perl--XML-Simple
+              perl--libwww"
              "perl--DBD-mysql:--with-db-type=mysql::for mysql support (choose one database)"
-             "perl--DBD-Pg:--with-db-type=Pg::for PostgreSQL support (choose onedatabase)"
-           )
+             "perl--DBD-Pg:--with-db-type=Pg::for PostgreSQL support (choose onedatabase)" )
    EXCLUDE="/opt/rt3.sav"
   ESTIMATE="229"
-      DESC="rt is an enterprise-grade ticketing system
-that enables a group of people to intelligently and 
-efficiently manage tasks, issues, and requests submitted
-by a community of users. The RT platform is used by
-systems administrators, customer support staffs, IT
-managers, developers and marketing departments at 
-thousands of sites around the world. RT manages key tasks
-such as the identification, prioritization, assignment, 
-resolution and notification required by enterprise-critical 
-applications including project management, help desk, NOC 
-ticketing, CRM and software development."
+      DESC="rt is an enterprise-grade ticketing system.
+It enables a group of people to intelligently and efficiently
+manage tasks, issues, and requests submitted by a community of users.
+The RT platform is used by systems administrators,
+customer support staffs, IT managers,
+developers and marketing departments
+at thousands of sites around the world.
+RT manages key tasks such as the identification,
+prioritization, assignment, resolution and notification
+required by enterprise-critical applications
+including project management, help desk, NOC ticketing,
+CRM and software development."
+
+build() {
 
 echo_instructions() {
   echo "or by running"
@@ -52,43 +77,46 @@ etc_link() {
   ln  -sf /etc/rt/RT_SiteConfig.pm  $RTPATH   
 }
 
-rt_dir() {
+
+rt_dir_save() {
   # OK, this is nasty but RT installation process somehow claims everything
   # within /opt/rt3 to be installed by RT. This is bad because some other
   # spells like AssetTracker also install into this directory. So the following
   # kludge tries to separate files installed by RT and other spells and make them
   # log appropriately.
-  case $1 in
-     save)  [ -d /opt/rt3 ]  &&  mv /opt/rt3 /opt/rt3.sav  ||  :  ;;
-  restore)  echo -en '\e[1m''\e[36m'
-            echo -en "Restoring pre-existing files in /opt/rt3\n"
-            echo -en '\e[0m'
-            find  /opt/rt3.sav/* 2>/dev/null |
-            while read 
-            do  DEST=$( echo $REPLY | sed "s:/rt3.sav/:/rt3/:" )
-                [ -d $DEST ]  ||  cp -av  $REPLY $DEST
-            done
-            rm -rf /opt/rt3.sav    ;;
-  esac
+  if    [ -d /opt/rt3 ]
+  then  mv   /opt/rt3  /opt/rt3.sav
+  fi
 }
 
-build() {
-  groupadd  rt		2>/dev/null
-  useradd   rt  -g rt	2>/dev/null
+  groupadd  -K GID_MIN=256 -K GID_MAX=512  rt                        2>/dev/null
+  useradd   -K UID_MIN=256 -K UID_MAX=512  rt  -d /var/empty  -g rt  2>/dev/null
 
   ./configure  $OPTS	&&
   make  testdeps	&& 
   make 			&&
   prepare_install	&&
-  rt_dir  save		&&
+  rt_dir_save		&&
   make  install		&&
   etc_link		&&
   echo_instructions
-
 }
 
 post_install() {
-  rt_dir  restore
+
+rt_dir_restore() {
+  echo -en '\e[1m''\e[36m'
+  echo -en "Restoring pre-existing files in /opt/rt3\n"
+  echo -en '\e[0m'
+  find  /opt/rt3.sav/* 2>/dev/null |
+  while read 
+  do  DEST=$( echo $REPLY | sed "s:/rt3.sav/:/rt3/:" )
+      [ -d $DEST ]  ||  cp -av  $REPLY $DEST
+  done
+  rm -rf /opt/rt3.sav
+}
+
+  rt_dir_restore
                 RT_PLUGIN="$( show_installed rt-plugin )"
   if   [  -n  "$RT_PLUGIN"  ];  then  #  unlock cast
     echo      "$RT_PLUGIN"  |  pipe_queue  "$CAST_QUEUE"  "com"
