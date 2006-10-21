@@ -15,29 +15,6 @@ automatically configures the network interface, and tries to
 renew the lease time."
 
 
-configure()  {
-  if    !  grep  -q  "INTERFACE="  $SPELL_CONFIG;  then
-    [  -x  $SPELL_CONFIG.old  ]  &&
-        .  $SPELL_CONFIG.old
-    INTERFACE="$(
-      dialog  \
-        --backtitle  "$SPELL configuration"  \
-        --title      "Networking Interface"  \
-        --timeout    60        \
-        --ok-label   "Commit"  \
-        --stdout     \
-        --no-cancel  \
-        --inputbox   \
-        "Please enter name of interface to raise via dhcp:"  \
-        0 0 "${INTERFACE:-eth0}"
-    )"
-    if    [  -n           "$INTERFACE"  ]
-    then  echo  "INTERFACE=$INTERFACE"  >  $SPELL_CONFIG
-    fi
-  fi
-}
-
-
 build() {
 case  $HOSTTYPE  in
   x86_64)
@@ -45,11 +22,6 @@ case  $HOSTTYPE  in
     sed  -i  's:i\[34567\]86):i\[34567\]86|x86_64):'  config.sub
   ;;
 esac
-
-if    [    -n   "$INTERFACE"  ]
-then  sed  -i  "s:INTERFACE=.*:INTERFACE=$INTERFACE:"  \
-           $GRIMOIRE/dhcpcd.d/../dhcpcd.d/init.d/dhcpcd
-fi
 
 default_build
 }

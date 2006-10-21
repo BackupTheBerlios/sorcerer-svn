@@ -36,138 +36,6 @@ slattach attaches a network interface to a serial line,
 i.e.. puts a normal terminal line into one of several
 network modes."
 
-reconfigure()  { :; }
-
-configure()  {
-  show_menu()  {
-    inputbox()  {
-      dialog  \
-      --stdout                              \
-      --timeout  ${PROMPT_DELAY:-120}       \
-      --title "Network Configuration Menu"  \
-      --inputbox "$1" 0 0 "$2"
-    }
-
-    set_interface()  {
-      INTERFACE=$( inputbox "Name of ethernet interface" "${INTERFACE:-eth0}" )
-    }
-
-    set_ip()  { IP=$( inputbox "IP address" ); }
-
-    set_broadcast()  {
-      if    [  -z  "$BROADCAST"  ]  &&
-            [  -n  "$IP"         ]
-      then  BROADCAST="${IP%.*}.255"
-      fi
-      BROADCAST=$( inputbox "broadcast IP address" "$BROADCAST" )
-    }
-
-    set_netmask()  {
-      NETMASK=$( inputbox "netmask" "${NETMASK:-255.255.255.255}" )
-    }
-
-    set_gateway()  {
-      if    [  -z  "$GATEWAY"  ]  &&
-            [  -n  "$IP"       ]
-      then  GATEWAY="${IP%.*}.255"
-      fi
-      GATEWAY=$( inputbox "gateway" "$GATEWAY" )
-    }
-
-    set_module()  {
-      MODULE=$( inpubox "kernel module if necessary to load" "$MODULE" )
-    }
-
-    set_dns()  {
-      DNS=$( inputbox "Enter IP addresses for DNS" "${DNS:-$GATEWAY}" )
-      DNS="${DNS//,/}"
-    }
-
-    save_config()  {
-      SAVED="yes"
-      (  echo  "INTERFACE=$INTERFACE"
-         echo  "IP=$IP"
-         echo  "NETMASK=$NETMASK"
-         echo  "GATEWAY=$GATEWAY"
-         echo  "BROADCAST=$BROADCAST"
-         echo  "DNS=\"$DNS\""
-      )  >  $SPELL_CONFIG
-    }
-
-    check_save()  {
-      if    [  -z  "$SAVED"  ]
-      then  query "Save configuration now?" y  &&
-            save_config           
-      fi
-    }
-
-    while
-      WHAT=$( dialog  \
-              --stdout                              \
-              --ok-label      "Select"              \
-              --cancel-label  "Done"                \
-              --timeout  ${PROMPT_DELAY:-120}       \
-              --title "Network Configuration Menu"  \
-              --menu  ""  0 0 0                     \
-              "interface"  "$INTERFACE"             \
-              "ip"         "$IP"                    \
-              "netmask"    "$NETMASK"               \
-              "gateway"    "$GATEWAY"               \
-              "dns"        "$DNS"                   \
-              "broadcast"  "$BROADCAST"             \
-              "module"     "$MODULE"                \
-              "save"       "Save Configuration"     )
-    do
-      case  $WHAT  in
-        interface)  set_interface  ;;
-               ip)  set_ip         ;;
-          netmask)  set_netmask    ;;
-          gateway)  set_gateway    ;;
-              dns)  set_dns        ;;
-        broadcast)  set_broadcast  ;;
-           module)  set_module     ;;
-             save)  save_config    ;;
-      esac
-    done
-
-    check_save
-  }
-
-  import_old()  {
-    local  N=/etc/init.d/network
-    if  [  -f  $N  ];  then
-      [ -n "$INTERFACE" ] || INTERFACE=$( grep "INTERFACE=" $N | cut -d '=' -f2 )
-      [ -n "$INTERFACE" ] || INTERFACE=$( grep "DEVICE="    $N | cut -d '=' -f2 )
-      [ -n "$IP"        ] ||        IP=$( grep "IP="        $N | cut -d '=' -f2 )
-      [ -n "$NETMASK"   ] ||   NETMASK=$( grep "NETMASK="   $N | cut -d '=' -f2 )
-      [ -n "$GATEWAY"   ] ||   GATEWAY=$( grep "GATEWAY="   $N | cut -d '=' -f2 )
-      [ -n "$DNS"       ] ||       DNS=$( grep "DNS="       $N | cut -d '=' -f2 )
-      [ -n "$BROADCAST" ] || BROADCAST=$( grep "BROADCAST=" $N | cut -d '=' -f2 )
-      [ -n "$MODULE"    ] ||    MODULE=$( grep "MODULE="    $N | cut -d '=' -f2 )
-    fi
-  }
-
-  modify_init()  {
-    sed  -i  "s:INTERFACE=.*$:INTERFACE=$INTERFACE:
-              s:IP=.*$:IP=$IP:
-              s:NETMASK=.*$:NETMASK=$NETMASK:
-              s:GATEWAY=.*$:GATEWAY=$GATEWAY:
-              s:BROADCAST=.*$:BROADCAST=$BROADCAST:
-              s:MODULE=.*$:MODULE=$MODULE:
-              s:DNS=.*$:DNS=\"$DNS\":"  $SCRIPT_DIR/init.d//network
-  }
-
-        [ -n "$INTERFACE"      ] || import_old
-  if    [ -z "$INTERFACE"      ] ||
-        [ -n "$RECONFIGURE"    ];  then
-    if    query  "Configure ethernet with permanent IP address?" n
-    then  show_menu
-    fi
-  fi
-
-  modify_init
-}
-
 
 build() {
   case  $VERSION  in
@@ -175,11 +43,11 @@ build() {
   esac
 
   sed  -i  "s:-O2:$CFLAGS:
-            s?LOPTS =?LOPTS = $LDFLAGS?"  Makefile
+            s:LOPTS =:LOPTS = $LDFLAGS:"  Makefile
 
   cp  $SCRIPT_DIR/config.h  .
 
   make             &&
   prepare_install  &&
-  make  BASEDIR=/  install
+  make    install  BASEDIR=/
 }
