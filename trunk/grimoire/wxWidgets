@@ -12,13 +12,15 @@ case  $VERSION  in
 #  2.6.3)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
   2.6.2)  USE_GCC="gcc-v3.4"  ;;
 esac
-       REQ=( "x11 pango gtk+"
-             "libpng:--with-libpng:--without-libpng:for PNG image support" 
-             "jpeg:--with-libjpeg:--without-libjpeg:for JPEG image support"
-             "tiff:--with-libtiff:--without-libtiff:for TIFF image support" 
-             "expat::--without-expat:for XML classes support" 
-             "zlib:--with-zlib:--without-zlib:for LZW compression support" )
+       REQ="gtk+"
       OPTS="--enable-unicode"
+# 4 libraries below are all required by gtk+
+#            "jpeg:--with-libjpeg:--without-libjpeg:for JPEG image support"
+#            "libpng:--with-libpng:--without-libpng:for PNG image support"
+#            "tiff:--with-libtiff:--without-libtiff:for TIFF image support" 
+#            "zlib:--with-zlib:--without-zlib:for LZW compression support"
+# expat probably installed, SA probably wants XML classes supported.
+#            "expat::--without-expat:for XML classes support"
   ESTIMATE="1909"
       DESC="wxWidgets is a cross-platform c++ framework writing GUI applications
 wxWidgets gives you a single, easy-to-use API for
@@ -26,39 +28,38 @@ writing GUI applications on multiple platforms."
 
 install_contrib_headers() {
   cd  contrib/include
-  
-  find  |  while read
-  do
-	install  -D -v  $REPLY  /usr/include/wx-${VERSION:0:3}/$REPLY
+  find  |
+  while read
+  do    install  -D -v  $REPLY  /usr/include/wx-${VERSION:0:3}/$REPLY
   done  
 }
 
 build() {
+
 case $VERSION in
- 2.7.1)  sed -i "s:animate:#animate:"  contrib/src/Makefile.in  ;;
+  2.7.1)  sed  -i  "s:animate:#animate:"  contrib/src/Makefile.in  ;;
 esac 
 
-sed -i "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":" configure	&&
+sed  -i  "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":"  configure
 
-./configure                \
-    --build=$BUILD         \
-    --prefix=/usr          \
-    --sysconfdir=/etc      \
-    --localstatedir=/var   \
-    $OPTS                  &&
-make                       &&
-cd      contrib		   &&
-make		           &&
-cd      ..                 &&
-prepare_install            &&
-make    install	           &&
-cd      contrib            &&
-make    install            &&
-cd      ..                 &&
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&
+make                  &&
+cd      contrib       &&
+make                  &&
+cd      ..            &&
+prepare_install       &&
+make    install	      &&
+cd      contrib       &&
+make    install       &&
+cd      ..            &&
 install_contrib_headers
 }
 
 current() {
   grep -qx "checking for --enable-unicode... yes"  $COMPILE_LOGS/$SPELL
 }
-
