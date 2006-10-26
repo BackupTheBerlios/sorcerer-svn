@@ -4,7 +4,8 @@
     SOURCE="coreutils/coreutils-$VERSION.tar.bz2"
        URL="$GNU_URL"
 # acl for access control lists and extended attribute support.
-       REQ="acl"
+       REQ=( "acl"
+             ":-static::make some programs static linked for faster script execution" )
 
 case  $VERSION  in
   5.97)  USE_GCC="gcc-v4.0"
@@ -165,6 +166,28 @@ place_files()  {
 }
 
 
+static_linking()  {
+# bash when invoked as /bin/sh or /bin/bash
+# internally handles "[ echo test"
+# Therefore, "[ test" are not statically linked.
+# However, some scripts invoke the echo executable.
+# So echo is statically linked.
+# bash loadables exist for "basename cat cut dirname head tee"
+# but not all scripts explicitly load them.
+
+  if    echo  "$OPTS"  |
+        grep  -q  "\-static"
+  then
+    cd   src
+    rm   basename cat cut dirname  \
+         echo head ls readlink rm  \
+         sort stat tail tr uniq wc
+    sed  -i  "s:$LDFLAGS:$LDFLAGS -static:"  Makefile
+    cd   ..
+    make
+  fi
+}
+
 export  ac_cv_sys_xsi_stack_overflow_heuristic=no
 
 ./configure     \
@@ -173,6 +196,7 @@ export  ac_cv_sys_xsi_stack_overflow_heuristic=no
 make            &&
 prepare_install &&
 hash   -r       &&
+static_linking  &&
 make    install &&
 place_files     &&
 hash -r

@@ -4,7 +4,8 @@
     SOURCE="grep/grep-$VERSION.tar.bz2"
   HOMEPAGE="http://www.gnu.org/software/grep/grep.html"
        URL="$GNU_URL"
-       REQ="gettext pcre"
+       REQ=( "gettext pcre"
+             ":-static::make static linked grep" )
    PROTECT="/usr/bin/grep"
   ESTIMATE="557"
       DESC="grep finds lines that match specified patterns.
@@ -15,5 +16,13 @@ GNU grep is based on a fast lazy-state deterministic matcher
 (about twice as fast as the standard Unix grep) hybridized with a
 Boyer-Moore-Gosper search for a fixed string that eliminates impossible
 text from being considered by the full regexp match without having to
-look at every chanracter; the result is usually many times faster that
+look at every character; the result is usually many times faster that
 UNIX 'grep' or 'egrep.'"
+
+build()  {
+  if    echo  "$OPTS"  |  grep  -q  "\-static"
+  then  LDFLAGS="$LDFLAGS -static"
+        OPTS="${OPTS/-static}"
+  fi
+  default_build
+}
