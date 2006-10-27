@@ -30,7 +30,7 @@
 case  $VERSION  in
   1.2.4)  USE_GCC="gcc-v4.0"  ;;
 esac
-       REQ="freealut glut libpng plib"
+       REQ="glut libpng openal plib"
       OPTS="--bindir=/usr/games"
 case  $VERSION  in
   1.2.4)  case  $HOSTTYPE  in
@@ -53,6 +53,11 @@ build() {
   export  CPPFLAGS="-I/usr/X11R6/include"
 # sed  -i  "s:gcc -E:gcc -E -I/usr/X11R6/include:"  Make-config
   USGT=/usr/share/games/torcs
+
+  case  $VERSION  in
+    1.2.4)  export LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/torcs/lib -lalut"  ;;
+  esac
+
   default_build      &&
   mkdir  -p   $USGT  &&
   cp     -rv  cars categories data menu tracks  $USGT
