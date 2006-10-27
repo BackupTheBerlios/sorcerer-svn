@@ -17,11 +17,8 @@ fi
 
   HOMEPAGE="${HOMEPAGE:-http://www.x.org}"
 
-if [ -z "${X_VERSION}" ]; then
-   X_VERSION=( "X11R7.1" "X11R7.0" )
-fi
-   VERSION=( "X11R7.1-20060717" )
 if  [  "$SPELL"  ==  "xf86"  ];  then
+   VERSION=( "X11R7.1-20060717" )
   CATEGORY="xserver profile"
   EPROVIDE="x11"
 # gnome-settings-daemon from control-center requires xrdb
@@ -29,14 +26,13 @@ if  [  "$SPELL"  ==  "xf86"  ];  then
   ESTIMATE="5"
      DESC="xf86 is a fork of XFree86 4.4.0."
 else
-#           "http://xorg.freedesktop.org/releases/${X_VERSION}/src"
-      URL=( "ftp://ftp.x.org/pub/${X_VERSION}/src/"
-            "ftp://ftp.x.org/pub/${X_VERSION}/patches/" )
-
-#          "http://xorg.freedesktop.org/releases/${X_VERSION}/patches/" )
-#      URL=( "ftp://ftp.x.org/pub/${X_VERSION}/src/
-#             http://ftp.skynet.be/pub/ftp.x.org/pub/${X_VERSION}/src/"
-#            "http://xorg.freedesktop.org/releases/${X_VERSION}/patches/" )
+  case  $VERSION  in
+    X11R*)
+      URL=( "ftp://ftp.x.org/pub/${VERSION:0:7}/src/"
+            "ftp://ftp.x.org/pub/${VERSION:0:7}/patches/" )  ;;
+        *)
+      URL=( "ftp://ftp.x.org/pub/individual/" )  ;;
+  esac
 fi
 
 
@@ -82,6 +78,3 @@ build()  {
   fix_sym_dir
   default_build
 }
-
-
-
