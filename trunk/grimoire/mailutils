@@ -1,4 +1,4 @@
-   VERSION=( "1.0" "0.6.95" "0.6.94" "0.6" "0.5" "0.4" )
+   VERSION=( "1.1" "1.0" "0.6.95" "0.6.94" "0.6" "0.5" "0.4" )
     IGNORE="texi"
   CATEGORY="network/email"
  ATTRIBUTE="console client server"
@@ -6,9 +6,6 @@
 #      URL="ftp://alpha.gnu.org/pub/gnu/"
        URL="$GNU_URL"
   HOMEPAGE="http://www.gnu.org/software/mailutils"
-case  $VERSION  in
-  0.6)  USE_GCC="gcc-v3.4"  ;;
-esac
        REQ=( "guile libtool ncurses readline"
              "Linux-PAM::--disable-pam:for pluggable authentication"
              "db:::can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db"
@@ -23,7 +20,7 @@ esac
              "stunnel:::for imaps or pops services"
              "xinetd:::for running servers" )
    PROVIDE="email-client pop3 pop3s imap imaps mailx"
-  ESTIMATE="3490"
+  ESTIMATE="3500"
       DESC="mailutils contains a series of useful mail clients, servers, and libraries.
 
 mailutils contains a series of useful mail clients, servers and libraries.
@@ -37,14 +34,10 @@ If it does not, please fix and report it
 or use pine's SSL mail servers instead."
 
 build()  {
-  case  $VERSION  in
-    0.6)  sed  -i  "\,extern int,d"  mailbox/getline.h  ;;
-  esac
-
-
-if    grep  -qx  "db"    $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-db2"
-elif  grep  -qx  "gdbm"  $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-gdbm"
-fi
-
-default_build  &&  ln  -s  mail  mailx
+    if  grep  -qx  "db"    $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-db2"
+  elif  grep  -qx  "gdbm"  $OPT_ON_LOGS/mailutils;  then  OPTS="$OPTS  --with-gdbm"
+  fi
+  default_build  &&
+  rm  -f        /usr/bin/mailx  &&
+  ln  -s  mail  /usr/bin/mailx
 }

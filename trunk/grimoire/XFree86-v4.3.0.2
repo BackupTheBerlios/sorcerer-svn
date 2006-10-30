@@ -443,15 +443,44 @@ pkgconf_install()  {
 }
 
 post_install() {
+
+  provide()  {
+    [      -d  "$PROVIDE_LOGS  ]  ||
+    mkdir  -p  "$PROVIDE_LOGS  ]
+    while  read
+    do     echo  "$SPELL"  >  $PROVIDE_LOGS/$REPLY
+    done  <  $SCRIPT_DIR/provides.txt
+    generate_index
+    while  read;  do
+      if    spell_installed   "$REPLY"
+      then  dispel  --unsafe  "$REPLY"
+      fi
+    done  <  $SCRIPT_DIR/provides.txt
+  }
+
   default_post_install
   # unlock_cast
 
-  if    spell_installed   Xprint
+  if    spell_installed    Xprint
   then  touch  $CAST_QUEUE/Xprint
   fi
 
   touch        $CAST_QUEUE/{fontconfig,libXft-v2.1.7,xft}
 
   fc-cache
+  provide
   true
+}
+
+
+post_remove()  {
+  release()  {
+    if  [    -d              "$PROVIDE_LOGS"  ];  then
+      grep   -lqrx  "$SPELL"  $PROVIDE_LOGS   |
+      xargs  -r  -l64  rm  -f
+      generate_index
+    fi
+  }
+
+  release
 }

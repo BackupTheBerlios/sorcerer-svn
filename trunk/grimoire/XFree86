@@ -435,6 +435,21 @@ add_libGL_symlink()  {
 }
 
 post_install() {
+
+  provide()  {
+    [      -d  "$PROVIDE_LOGS  ]  ||
+    mkdir  -p  "$PROVIDE_LOGS  ]
+    while  read
+    do     echo  "$SPELL"  >  $PROVIDE_LOGS/$REPLY
+    done  <  $SCRIPT_DIR/provides.txt
+    generate_index
+    while  read;  do
+      if    spell_installed   "$REPLY"
+      then  dispel  --unsafe  "$REPLY"
+      fi
+    done  <  $SCRIPT_DIR/provides.txt
+  }
+
   default_post_install
   # unlock_cast
 
@@ -453,5 +468,19 @@ post_install() {
   # cast  fontconfig  libXft-v2.1.7  xft
 
   fc-cache
+  provide
   true
+}
+
+
+post_remove()  {
+  release()  {
+    if  [    -d              "$PROVIDE_LOGS"  ];  then
+      grep   -lqrx  "$SPELL"  $PROVIDE_LOGS   |
+      xargs  -r  -l64  rm  -f
+      generate_index
+    fi
+  }
+
+  release
 }
