@@ -14,7 +14,7 @@
 
    VERSION=( "3.3.7" "3.3.6" "3.3.5" "3.3.4" )
   CATEGORY="utility/terminal-emulator"
- ATTRIBUTE="x11"
+ ATTRIBUTE="broken x11"
  SOURCE[0]="vnc-${VERSION}-unixsrc.tar.gz"
 # SOURCE[1]="4.4.0/source/XFree86-4.4.0-src-1.tgz"
 # SOURCE[2]="4.4.0/source/XFree86-4.4.0-src-2.tgz"
@@ -26,38 +26,38 @@
 # HOMEPAGE="http://www.uk.research.att.com/vnc"
     URL[0]="http://www.realvnc.com/dist/"
     URL[1]="$XFREE86_URL"
-       REQ="x11"
+       REQ=""
  FRESHMEAT="virtualnetworkcomputing"
       DESC="vnc provides virtual network computing.
 
 vnc stands for Virtual Network Computing.
-It is, in essence, a remote display system 
+It is, in essence, a remote display system
 which allows you to view a computing desktop
-environment not only on the machine where it 
-is running, but from anywhere on the Internet 
-and from a wide variety of machine architectures. 
-"
+environment not only on the machine where it
+is running, but from anywhere on the Internet
+and from a wide variety of machine architectures."
 
 
 build() {
 [  -f           xc.patch  ]  &&
 patch  -Np0  <  xc.patch
 
-./configure  --build=$BUILD          \
-             --prefix=/usr           \
-             --sysconfdir=/etc       \
-             --localstatedir=/var    \
-             --with-installed-zlib   \
-             $OPTS                   &&
-make                                 &&
+./configure             \
+--build=$BUILD          \
+--prefix=/usr           \
+--sysconfdir=/etc       \
+--localstatedir=/var    \
+--with-installed-zlib   \
+$OPTS                   &&
+make                    &&
 if    [  -d  xc  ]
 then  cd     xc
 else  cd     Xvnc
-fi                                   &&
-make  World                          &&
-cd ..                                &&
-prepare_install                      &&
-./vncinstall   /usr/bin              &&
+fi                      &&
+make  World             &&
+cd ..                   &&
+prepare_install         &&
+./vncinstall   /usr/bin &&
 mkdir  -p      /usr/bin/vnc.classes  &&
 cp  classes/*  /usr/bin/vnc.classes
 }

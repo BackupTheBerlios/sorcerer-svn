@@ -14,7 +14,6 @@
              "Xfcyr:::for Cryillic fonts"
              "Xfscl:::for Scalable Fonts (Speedo, Type1, and TrueType)" )
   HOMEPAGE="http://www.xfree86.org"
-  EPROVIDE="x11"
    #   REQ="Xfenc Xfnts bison expat flex freetype libpng ncurses perl"
    PROTECT="/etc/X11/XF86Config
             /etc/X11/XftConfig.gdkxftsaved
@@ -483,4 +482,27 @@ post_remove()  {
   }
 
   release
+}
+
+
+current() {
+
+  provide()  {
+    read    <  $SCRIPT_DIR/provides.txt
+    if  !  grep  -qx  "$SPELL"  $PROVIDE_LOGS/$REPLY; then
+      [      -d  "$PROVIDE_LOGS  ]  ||
+      mkdir  -p  "$PROVIDE_LOGS  ]
+      while  read
+      do     echo  "$SPELL"  >  $PROVIDE_LOGS/$REPLY
+      done  <  $SCRIPT_DIR/provides.txt
+      generate_index
+      while  read;  do
+        if    spell_installed   "$REPLY"
+        then  dispel  --unsafe  "$REPLY"
+        fi
+      done  <  $SCRIPT_DIR/provides.txt
+    fi
+  }
+
+  provide
 }

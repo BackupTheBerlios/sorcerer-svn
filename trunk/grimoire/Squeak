@@ -1,14 +1,12 @@
-   VERSION=( "3.7-5989" )
+   VERSION=( "3.7-7" )
   CATEGORY="development/interpreter"
  ATTRIBUTE="new x11"
-    SOURCE=( "${VERSION:0:3}/unix-linux/Squeak-3.6-3.src.tar.gz"
-             "${VERSION:0:3}/Squeak$VERSION-full.zip"
-             "sources_files/SqueakV3.sources.gz" )
-       URL="ftp://st.cs.uiuc.edu/Smalltalk/Squeak/
-            ftp://ftp.cs.uni-magdeburg.de/pub/Smalltalk/Smalltalk/Squeak/"
-       REQ="x11"
+    SOURCE=( "unix-linux/Squeak-$VERSION.src.tar.gz"
+             "SqueakV3.sources.gz" )
+       URL="http://ftp.squeak.org/current_stable/"
+       REQ="MesaLib Squeak-image"
   HOMEPAGE="http://squeak.org"
-  ESTIMATE="429"
+  ESTIMATE="960"
       DESC="Squeak is a SmallTalk Development system.
 Squeak is an OpenSource and super-portable implementation of a 
 multi-media capable Smalltalk-80 
@@ -22,16 +20,19 @@ To run squeak first copy the Image file from /usr/share/squeak
 to your home directory and call the file squeak.image"
 
 build()  {
+  install_sources()  {
+    mkdir  -m 0755  -p  /usr/lib/squeak/$VERSION
+    gunzip         $SOURCE_CACHE/Squeak/$VERSION/${SOURCE[1]##*/}  >  \
+                        /usr/lib/squeak/$VERSION/SqueakV3.sources
+    chmod  0644         /usr/lib/squeak/$VERSION/SqueakV3.sources
+  }
+
 mkdir  bld
 cd     bld
-../platforms/unix/config/configure  --prefix=/usr  &&
+../platforms/unix/config/configure  \
+--prefix=/usr    &&
 make             &&
 prepare_install  &&
 make    install  &&
-cd      ..       &&
-mkdir   -p                                     /usr/share/squeak  &&
-install -m 0644 Squeak*.changes Squeak*.image  /usr/share/squeak  &&
-install -m 0644 $SOURCE_CACHE/Squeak/$VERSION/${SOURCE[2]##*/}  \
-        /usr/lib/squeak/3.6-3/  &&
-gunzip  /usr/lib/squeak/3.6-3/${SOURCE[2]##*/}
+        install_sources
 }

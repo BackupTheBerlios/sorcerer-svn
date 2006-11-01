@@ -9,9 +9,9 @@
             ftp://ftp.ntua.gr/pub/lang/slang/jed/v${VERSION:0:4}/"
   HOMEPAGE="http://www.jedsoft.org/jed/"
        REQ=( "slang"
-             "x11:--with-x::for xjed" )
+             "libX11:--with-x::for xjed" )
    PROVIDE="console-editor"
-  ESTIMATE="323"
+  ESTIMATE="400"
       DESC="jed is a powerful editor with both terminal and X11 interfaces.
 Color syntax highlighting is one of its strong suits,
 along with emulation of GNU Emacs, Wordstar, EDT and Brief.
@@ -20,16 +20,16 @@ Jed has a multitude of programming modes and couples
 with the Slang library for powerful extensions."
 
 build() {
- cp  $SCRIPT_DIR/jed.rc lib   &&
- JED_ROOT=/var/lib/jed        \
- ./configure  --build=$BUILD  \
- --prefix=/usr   &&
- make                         &&
- make  getmail   &&
- if    echo      "$OPTS"      |
-  grep  -q  "\--with-x"
- then  make  xjed
- fi    &&
- make  install
+  cp  $SCRIPT_DIR/jed.rc  lib  &&
+  JED_ROOT=/var/lib/jed  \
+  ./configure     \
+  --build=$BUILD  \
+  --prefix=/usr   &&
+  make            &&
+  make  getmail   &&
+  if    echo  "$OPTS"  |  grep  -q  "\--with-x"
+  then  make  xjed
+  fi    &&
+  prepare_install  &&
+  make    install
 }
-

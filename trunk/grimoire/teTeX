@@ -3,11 +3,12 @@
   CATEGORY="documentation"
  ATTRIBUTE="console"
     SOURCE="systems/unix/teTeX/current/distrib/tetex-src-$VERSION.tar.gz"
-       REQ=( "awk bison dialog ed ghostscript teTeX-texmf texinfo w3c-libwww"
+       REQ=( "awk bison dialog ed ghostscript libpng teTeX-texmf texinfo w3c-libwww"
              "pgf:::for the latest pgf and tikz graphics generating classes"
-             "libpng:::for png support"
              "lesstif:::for MOTIF/lesstif support"
-             "x11::--without-x11:to build xdvi" )
+             "libXmu::--without-x:to build xdvi"
+             "libXpm::--without-x11:to build xdvi" )
+
 # XFree86 -> Linux-PAM -> teTeX -> teTex,src -> x11
 # recursive requirement loop.
 # Altered Linux-PAM to no longer optionally require teTeX
@@ -100,17 +101,18 @@ build()  {
       mv       texk/kpathsea/readlink.man     texk/kpathsea/readlink-teTeX.man  ;;
   esac
 
-  ./configure  --prefix=/usr            \
-               --with-system-zlib       \
-               --with-system-pnglib     \
-               --with-system-ncurses    \
-               --with-system-libwww     \
-               --with-system-ncurses    \
-               --without-texinfo        \
-               --without-dialog         \
-               --disable-multiplatform  \
-               $OPTS                    &&
-  make        all                       &&
-  prepare_install                       &&
+  ./configure              \
+  --prefix=/usr            \
+  --with-system-zlib       \
+  --with-system-pnglib     \
+  --with-system-ncurses    \
+  --with-system-libwww     \
+  --with-system-ncurses    \
+  --without-texinfo        \
+  --without-dialog         \
+  --disable-multiplatform  \
+  $OPTS                    &&
+  make        all          &&
+  prepare_install          &&
   make    install
 }
