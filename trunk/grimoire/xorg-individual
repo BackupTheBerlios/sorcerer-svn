@@ -1,0 +1,66 @@
+inherit xorg
+   VERSION=( "X11R7.1-20061101" )
+unset  SOURCE  URL  REQ
+  CATEGORY="xserver profile"
+ ATTRIBUTE="data"
+  ESTIMATE="5"
+      DESC="xorg-individual enables individual instead of release version for spells."
+
+configure() {
+
+checklist()  {
+  status()  {
+    unset  VERSION  IVERSION
+      .  $GRIMOIRE/$REPLY
+      if    [  "${VERSION/X11R7.[0-9]-/}"  ==  "$IVERSION"  ]
+      then  echo  "same"
+      else  echo  "newer"
+      fi
+  }
+
+  find   -L  $GRIMOIRE  -maxdepth 1  -type f |
+  xargs  -l64  grep  -l  "inherit xorg"      |
+  xargs  -l64  grep  -l  "IVERSION="         |
+  basenames  |
+  while  read;  do
+    echo    "$REPLY"
+    status
+    if    [  -f  $CONFIG_LOGS/xorg-individual/spells/$REPLY  ]
+    then  echo  "on"
+    else  echo  "off"
+    fi
+  done
+}
+
+select_individuals()  {
+  BACKTITLE="xorg individual versions selection"
+      TITLE="Xorg Release or Individual Versions Selection"
+       HELP="Between release versions of xorg sometimes
+newer source tarballs become available.
+If unexpected problems or bugs can be solved by using a newer 
+individual tarball rather than an older release tarball
+then selecting it here can allow sorcery to update that
+installed spell to an individual version.
+Individual versions for xorg sources are not tested by Sorcerer Gurus.
+If they break you can keep the pieces."
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --separate-output          \
+          --no-cancel                \
+          --checklist  "$HELP"       \
+          0 0 0                      \
+          $(  checklist  )
+}
+
+  if  !  grep  -q  "INDIVIDUALS="  $SPELL_CONFIG  2>/dev/null  &&
+      INDIVIDUALS="$( select_individuals )";  then
+    rm     -fr  $CONFIG_LOGS/xorg-individual/spells
+    mkdir  -p   $CONFIG_LOGS/xorg-individual/spells
+    echo   "$INDIVIDUALS"  |
+    sed    "s:^:$CONFIG_LOGS/xorg-individual/spells/:"  |
+    xargs  -r  -l64  touch
+    echo   "INDIVIDUALS=\"$INDIVIDUALS\"" >  $SPELL_CONFIG
+  fi
+}
