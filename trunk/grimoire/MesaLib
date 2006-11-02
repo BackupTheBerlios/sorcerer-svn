@@ -1,7 +1,4 @@
-   VERSION=(         "6.5" "6.4.2" "6.4.1" "6.4" "6.2.1" )
-  IVERSION=( "6.5.1" "6.5" "6.4.2" "6.4.1" "6.4" "6.2.1" )
-# 6.5 is developmental
-# However xorg-server now requires 6.5
+   VERSION=( "6.5.1" "6.5" "6.4.2" "6.4.1" "6.4" "6.2.1" )
   CATEGORY="graphic"
  ATTRIBUTE="library"
     SOURCE=( "mesa3d/MesaLib-$VERSION.tar.bz2"
@@ -29,11 +26,14 @@ build() {
   }
 
   install_dri() {
-    mkdir  -pv                 /usr/$LIB/dri		&&
-    cp     -av  $LIB/*_dri.so  /usr/$LIB/dri/		&&
-    mkdir  -pv                 /usr/$LIB/modules	&&
+    mkdir  -pv  -m 0755        /usr/$LIB/dri
+    cp     -av  $LIB/*_dri.so  /usr/$LIB/dri/
+    rm     -frv                                   /usr/$LIB/modules
+    mkdir  -pv  -m 0755                           /usr/$LIB/modules
     ln     -sfv                /usr/$LIB/dri      /usr/$LIB/modules/
   }
+
+  install_drirc()  {  install  -m 0644  $SCRIPT_DIR/drirc  /etc;  }
 
   case $VERSION in
     6.5)  patch  -p1  <  $SCRIPT_DIR/savage-drop-static-inline.patch
@@ -41,9 +41,7 @@ build() {
           ;;
   esac
 
-  [      -f    Makefile  ]  &&
-  grep   -rl              "/usr/local/"  *  |
-  xargs  -l64  sed  -i  "s:/usr/local:/usr:g"
+  sed  -i  "s:/usr/local:/usr:g"  configs/default*  &&
   make    "$CONFIG_NAME"           &&
   cd      progs/xdemos             &&
   make    PROGS='glxinfo glxgears' &&
@@ -51,5 +49,6 @@ build() {
   prepare_install        &&  echo   -e  "\n/usr/${LIB}\n\n"  |
   make    install        &&
           install_demos  &&
-          install_dri
+          install_dri    &&
+          install_drirc
 }
