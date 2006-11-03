@@ -17,28 +17,6 @@ fi
 
   HOMEPAGE="${HOMEPAGE:-http://www.x.org}"
 
-if  [  "$SPELL"  ==  "xorg"  ];  then
-   VERSION=( "X11R7.1-20061101" )
-  CATEGORY="xserver profile"
-# gnome-settings-daemon from control-center requires xrdb
-      REQ=( "gccmakedep imake libICE libSM libXScrnSaver libXaw libXcomposite libXcursor libXdamage libXevie libXft libXinerama libXp libXrandr libXt libXtst libXv libXxf86dga libdmx lndir makedepend util-macros xf86-app xf86-font xf86-input xf86-video xorg-cf-files xrdb" )
-  EPROVIDE="xf86"
-  ESTIMATE="5"
-     DESC="xorg is a fork of XFree86 4.4.0."
-else
-  if    [  -f  $CONFIG_LOGS/xorg-individual/spells/$SPELL  ]
-  then   VERSION=(  ${IVERSION[*]} )
-        MVERSION=( ${IMVERSION[*]} )
-  fi
-
-  if  [  "${VERSION:0:4}"  ==  "X11R"  ];  then
-      URL=( "ftp://ftp.x.org/pub/${VERSION:0:7}/src/"
-            "ftp://ftp.x.org/pub/${VERSION:0:7}/patches/" )
-  else
-      URL=( "ftp://ftp.x.org/pub/individual/" )
-  fi
-fi
-
 
 fix_sym_dir()  {
 
@@ -77,8 +55,41 @@ fix_sym_dir()  {
       fsd  "/usr/X11R6/lib64"      "../lib64"      "/usr/lib64"
   fi
 }
-  
+
+
+if  [  "$SPELL"  ==  "xorg"  ];  then
+   VERSION=( "X11R7.1-20061101" )
+  CATEGORY="xserver profile"
+# gnome-settings-daemon from control-center requires xrdb
+      REQ=( "gccmakedep imake libICE libSM libXScrnSaver libXaw libXcomposite libXcursor libXdamage libXevie libXft libXinerama libXp libXrandr libXt libXtst libXv libXxf86dga libdmx lndir makedepend util-macros xf86-app xf86-font xf86-input xf86-video xorg-cf-files xrdb" )
+  EPROVIDE="xf86"
+  ESTIMATE="5"
+     DESC="xorg is a fork of XFree86 4.4.0."
+
 build()  {
+  fix_sym_dir
+  default_build  &&
+  touch  /usr/X11R6/{bin,include,lib,man}
+}
+
+else
+  if    [  -f  $CONFIG_LOGS/xorg-individual/spells/$SPELL  ]
+  then   VERSION=(  ${IVERSION[*]} )
+        MVERSION=( ${IMVERSION[*]} )
+  fi
+
+  if  [  "${VERSION:0:4}"  ==  "X11R"  ];  then
+      URL=( "ftp://ftp.x.org/pub/${VERSION:0:7}/src/"
+            "ftp://ftp.x.org/pub/${VERSION:0:7}/patches/" )
+  else
+      URL=( "ftp://ftp.x.org/pub/individual/" )
+  fi
+
+build() {
   fix_sym_dir
   default_build
 }
+
+fi
+
+current()  {  grep  -qx  "/usr/X11R6/lib"  $INSTALL_LOGS/xorg;  }

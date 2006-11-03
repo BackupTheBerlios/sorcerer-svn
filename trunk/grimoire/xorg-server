@@ -44,22 +44,35 @@ build()  {
 #    OPTS="--with-mesa-source=$PWD/Mesa"
 #  else
 #  fi
-  case $HOSTTYPE in
-   x86_64)  OPTS="--with-dri-driver-path=/usr/lib64/dri  $OPTS"  ;;
-  esac
+
+
+# Why are we changing the default path to the dri-drivers, please?
+# This is confusing me about what MesaLib should do about dri installation.
+#  case $HOSTTYPE in
+#   x86_64)  OPTS="--with-dri-driver-path=/usr/lib64/dri  $OPTS"  ;;
+#  esac
 
   OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
 
-case  $VERSION  in
-  X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
-esac
+  case  $VERSION  in
+    X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
+  esac
+
+  if    [  "$VERSION"   ==  "X11R7.1-1.1.0"  ]  &&
+        [  "$HOSTTYPE"  ==  "x86_64"  ]
+  then  echo  "Using default dri path."
+  fi
+
   default_build
 }
 
 
 current()  {
   case  $VERSION  in
-    X11R7.1-1.1.0)  grep  -qx  "patching file os/utils.c"  $COMPILE_LOGS/xorg-server  ;;
+    X11R7.1-1.1.0)  if  [  "$HOSTTYPE"  ==  "x86_64"  ]
+                    then  grep  -qx  "Using default dri path."  $COMPILE_LOGS/xorg-server
+                    fi  &&
+                    grep  -qx  "patching file os/utils.c"  $COMPILE_LOGS/xorg-server  ;;
     X11R7.1-1.0.1)  grep  -qx  "patching file os/utils.c"  $COMPILE_LOGS/xorg-server  ;;
   esac
 }

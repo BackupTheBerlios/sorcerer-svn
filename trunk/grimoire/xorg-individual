@@ -9,15 +9,6 @@ unset  SOURCE  URL  REQ
 configure() {
 
 checklist()  {
-  status()  {
-    unset  VERSION  IVERSION
-      .  $GRIMOIRE/$REPLY
-      if    [  "${VERSION/X11R7.[0-9]-/}"  ==  "$IVERSION"  ]
-      then  echo  "same"
-      else  echo  "newer"
-      fi
-  }
-
   find   -L  $GRIMOIRE  -maxdepth 1  -type f |
   xargs  -l64  grep  -l  "inherit xorg"      |
   xargs  -l64  grep  -l  "IVERSION="         |
@@ -25,11 +16,18 @@ checklist()  {
   basenames  |
   while  read;  do
     echo    "$REPLY"
-    status
+    unset  VERSION  IVERSION  DESC
+    .  $GRIMOIRE/$REPLY
+    if    [  "${VERSION/X11R7.[0-9]-/}"  ==  "$IVERSION"  ]
+    then  echo  "same"
+    else  echo  "newer"
+    fi
     if    [  -f  $CONFIG_LOGS/xorg-individual/spells/$REPLY  ]
     then  echo  "on"
     else  echo  "off"
     fi
+    DESC="${DESC%%$LF*}"
+    echo  "${DESC:-undescribed}"
   done
 }
 
@@ -44,15 +42,16 @@ then selecting it here can allow sorcery to update that
 installed spell to an individual version.
 Individual versions for xorg sources are not tested by Sorcerer Gurus.
 If they break you can keep the pieces."
-
+  export  IFS="$ENTER_IFS"
   dialog  --backtitle  "$BACKTITLE"  \
           --title      "$TITLE"      \
           --stdout                   \
           --separate-output          \
+          --item-help                \
           --no-cancel                \
           --checklist  "$HELP"       \
           0 0 0                      \
-          $(  checklist  )
+          $(  checklist )
 }
 
   if  !  grep  -q  "INDIVIDUALS="  $SPELL_CONFIG  2>/dev/null  &&
