@@ -3,32 +3,23 @@
       SAFE=( "4.2.1" )
     IGNORE="rc"
   CATEGORY="graphic"
- ATTRIBUTE="library kde new broken"
-# This is not a drop in replacement for qt 3.3.x
-# The spell is not broken, however do not install
-# until we have something which can use it.
-#    SOURCE="qt-x11-opensource-desktop-$VERSION.tar.bz2"
-
-#Updated to reflect new download tarball
+ ATTRIBUTE="library kde new"
     SOURCE="qt-x11-opensource-src-$VERSION.tar.gz"
-
-  HOMEPAGE="http://www.trolltech.com/developer/downloads/qt/x11"
-
        URL="ftp://ftp.trolltech.com/qt/source/"
-#      URL="http://ftp.silug.org/mirrors/ftp.trolltech.com/qt/source/"
-# is cups required or optional?
-#      REQ=( "fontconfig jpeg libmng libpng x11"
+  HOMEPAGE="http://www.trolltech.com/developer/downloads/qt/x11"
 # Requirement list incomplete
-       REQ=( "jpeg libmng libpng"
+       REQ=( "dbus jpeg libmng libpng sqlite"
              "cups:-cups:-no-cups:for common unix printing support"
              "freetype:-fontconfig:-no-fontconfig:for quality font engine" )
-# qt-x11-free does not support nas network audio.
   EPROVIDE="qt-x11-opensource-desktop"
  FRESHMEAT="qt"
   ESTIMATE="3696"
       DESC="qt-x11-opensource simplifies the task of writing and maintaining GUI applications."
 
 build()  {
+# The -R breaks compilation in 4.2.1
+# -R$BUILD_DIR/lib  \
+mkdir  lib
 echo  "yes"       |
 ./configure       \
 -v                \
@@ -36,13 +27,13 @@ echo  "yes"       |
 -shared           \
 -system-libpng    \
 -system-libjpeg   \
+-system-sqlite    \
 -system-zlib      \
 -qt-gif           \
 -xinerama         \
 -no-exceptions    \
 -bindir /usr/bin  \
 -libdir /usr/lib  \
--R$BUILD_DIR/lib  \
 -prefix /usr/share/qt    \
 -headerdir /usr/include  \
 $OPTS                    &&
