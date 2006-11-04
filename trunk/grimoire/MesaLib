@@ -1,8 +1,6 @@
    VERSION=( "6.5.1" "6.5" "6.4.2" "6.4.1" "6.4" "6.2.1" )
   CATEGORY="graphic"
- ATTRIBUTE="library solo"
-# Made solo spell incase it removes symbolic link /usr/X11R6/lib
-# during the dispel during an update.
+ ATTRIBUTE="library"
     SOURCE=( "mesa3d/MesaLib-$VERSION.tar.bz2"
              "mesa3d/MesaGLUT-$VERSION.tar.bz2" 
              "mesa3d/MesaDemos-$VERSION.tar.bz2" )
@@ -15,6 +13,12 @@
 
 build() {
 
+  install_demos()  {
+    install   -v  -m 755  progs/xdemos/{glxgears,glxinfo}  /usr/bin
+  }
+
+  install_drirc()  {  install  -m 0644  $SCRIPT_DIR/drirc  /etc;  }
+
   case $HOSTTYPE in
     x86_64)  CONFIG_NAME="linux-dri-x86-64"
              LIB="lib64"   ;;
@@ -22,49 +26,7 @@ build() {
              LIB="lib"     ;;
   esac
 
-  install_demos()  {
-    install   -v  -m 755  progs/xdemos/{glxgears,glxinfo}  /usr/bin
-  }
-
-  install_drirc()  {  install  -m 0644  $SCRIPT_DIR/drirc  /etc;  }
-
-fix_sym_dir()  {
-
-  fsd() {
-    local SYM="$1"
-    local DES="$2"
-    local DIR="$3"
-
-    if    !  [   -e        $SYM  ]  ||
-             [   -f        $SYM  ]
-    then  rm     -f        $SYM
-          ln     -s  $DES  $SYM
-    elif  !  [   -h        $SYM  ]  &&
-             [   -d        $SYM  ]
-    then  cp     -a        $SYM/*  $DIR/
-          rm     -r        $SYM
-          ln     -s  $DES  $SYM
-    fi
-  }
-
-  if     !  [   -d  /usr/X11R6  ]
-  then   rm     -f  /usr/X11R6
-         mkdir  -p  /usr/X11R6
-  fi
-
-  [  -h  /usr/include/GL   ]  &&  rm  -f  /usr/include/GL
-  [  -h  /usr/include/X11  ]  &&  rm  -f  /usr/include/X11
-  [  -h  /usr/lib/X11      ]  &&  rm  -f  /usr/lib/X11
-
-  fsd  "/usr/X11R6/bin"      "../bin"      "/usr/bin"
-  fsd  "/usr/X11R6/include"  "../include"  "/usr/include"
-  fsd  "/usr/X11R6/lib"      "../lib"      "/usr/lib"
-
-  if  [ "$HOSTTYPE" == "x86_64" ]; then
-      [  -h  /usr/lib64/X11      ]  &&  rm  -f  /usr/lib64/X11
-      fsd  "/usr/X11R6/lib64"      "../lib64"      "/usr/lib64"
-  fi
-}
+  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/modules/dri" >> configs/${CONFIG_NAME}
 
   case $VERSION in
     6.5)  patch  -p1  <  $SCRIPT_DIR/savage-drop-static-inline.patch
@@ -78,7 +40,6 @@ fix_sym_dir()  {
   make    PROGS='glxinfo glxgears' &&
   cd      ../..                    &&
   prepare_install        &&  echo   -e  "\n/usr/${LIB}\n\n"  |
-  fix_sym_dir            &&
   make    install        &&
           install_demos  &&
           install_drirc
