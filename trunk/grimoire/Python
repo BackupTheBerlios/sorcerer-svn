@@ -26,6 +26,17 @@ Newbuilt-in modules are easily written in C or C++.
 Python is also usable as an extension language for
 applications that need a programmable interface."
 
+ast_patch() {
+cat << EOF  |  patch  Python/ast.c
+533c533,534
+<     /* testlist: test (',' test)* [','] */
+---
+>     /* testlist:  test (',' test)* [',']
+>        testlist1: test (',' test)* */
+537a539
+>            || TYPE(n) == testlist1
+EOF
+}
 
 build()  {
   case  $VERSION  in
@@ -35,6 +46,10 @@ build()  {
 
   case  $VERSION  in
     2.5)  export  LDFLAGS="$LDFLAGS -L$PWD"  ;;
+  esac
+
+  case  $VERSION  in
+    2.5)  ast_patch ;;
   esac
 
   ./configure          \
