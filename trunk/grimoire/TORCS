@@ -43,18 +43,13 @@ joystick, and perhaps steering wheel and pedal."
 
 
 build() {
-  export    CFLAGS="-I/usr/X11R6/include   $CFLAGS"
-  export  CXXFLAGS="-I/usr/X11R6/include $CXXFLAGS"
-  export  CPPFLAGS="-I/usr/X11R6/include"
-# sed  -i  "s:gcc -E:gcc -E -I/usr/X11R6/include:"  Make-config
-  USGT=/usr/share/games/torcs
+  export    CFLAGS="-I/opt/torcs-openal/include   $CFLAGS"
+  export  CXXFLAGS="-I/opt/torcs-openal/include $CXXFLAGS"
+  export  CPPFLAGS="-I/opt/torcs-openal/include"
+  export      PATH="/opt/torcs-openal/bin:$PATH"
+  export   LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/torcs/lib -Wl,-rpath,/opt/torcs-openal/lib -L/opt/torcs-openal/lib"
 
-  case  $VERSION  in
-    1.3.0)  export LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/torcs/lib"  ;;
-    1.2.4)  export LDFLAGS="$LDFLAGS -Wl,-rpath,/usr/lib/torcs/lib -lalut"  ;;
-  esac
-
-  default_build      &&
-  mkdir  -p   $USGT  &&
-  cp     -rv  cars categories data menu tracks  $USGT
+  default_build  &&
+  mkdir  -p                                     /usr/share/games/torcs  &&
+  cp     -rv  cars categories data menu tracks  /usr/share/games/torcs
 }

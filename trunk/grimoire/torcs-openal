@@ -6,14 +6,24 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://torcs.sourceforge.net"
        REQ=""
-  EPROVIDE="freealut openal"
-# Does not provide a separate libalut.so.0
-# Causes VDrift to fail compilation.
+      OPTS="--prefix=/opt/torcs-openal"
  FRESHMEAT="torcs"
   ESTIMATE="180"
       DESC="torcs-openal provides a modified openal for use with TORCS."
 
 build()  {
-  cd  linux
+  cd      linux
   default_build
+}
+
+post_install()  {
+  if    grep  -qx  "torcs-openal"  $PROVIDE_LOGS/openal
+  then  rm    -f                   $PROVIDE_LOGS/openal
+  fi
+}
+
+current()  {
+  case  $VERSION  in
+    1.2.4)  grep  -qx  "/opt/torcs-openal/lib/libopenal.so.0.0.8"  $INSTALL_LOGS/torcs-openal  ;;
+  esac
 }
