@@ -12,7 +12,7 @@
 # gnome-python needed for hal-device-manager but it creates a loop due to its
 # dependence on gnome-vfs which requires hal
 #             "gnome-python:::for hal-device-manager" 
-             )
+           )
       OPTS="--with-hwdata=/usr/share/pci.ids
             --with-pid-file=/var/run/haldaemon.pid
             --disable-policy-kit"
@@ -29,5 +29,10 @@ build()  {
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    haldaemon                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g haldaemon -d /var/empty haldaemon 2>/dev/null
+
+  case  $VERSION  in
+    0.5.8.1)  LDFLAGS="-lz $LDFLAGS"  ;;
+  esac
+
 default_build
 }
