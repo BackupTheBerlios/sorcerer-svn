@@ -1,0 +1,61 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: acct
+# Required-Start: $local_fs
+# Required-Stop: kill
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: acct starts or stops process accounting
+# Description: acct starts or stops process accounting
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/accton
+NAME=acct
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+start()  {
+  log_warning_msg  "Starting process accounting"
+  touch      /var/account/pacct
+  chmod 0640 /var/account/pacct
+  $SERV      /var/account/pacct 2>/dev/null
+  case "$?" in
+    0)  log_success_msg  "Process accounting started"  ;;
+   16)  log_warning_msg  "Process accounting already running"  ;;
+   38)  log_failure_msg  "Process accounting not available on this system"  ;;
+    *)  log_failure_msg  "Process accounting not started"  ;;
+  esac
+}
+
+stop()  {
+  log_warning_msg "Stopping process accounting"
+  $SERV 2>/dev/null
+  if    [ $? -eq 0 ]
+  then  log_success_msg "Process accounting stopped"
+  else  log_failure_msg "Process accounting not stopped"
+  fi
+}
+
+restart() {  stop;  start;  }
+
+help()  {
+  echo "Usage: $0 {restart|force-reload|start|stop}" 1>&2
+}
+
+case  $1  in
+       restart)      restart  ;;
+  force-reload)      restart  ;;
+         start)  start        ;;
+#        status)  status       ;;
+          stop)  stop         ;;
+             *)  help         ;;
+esac
