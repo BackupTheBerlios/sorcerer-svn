@@ -1,10 +1,12 @@
-   VERSION=( "0.6.14" "0.6.13" "0.6.12" "0.6.11" "0.6.10" )
-      SAFE=( "0.6.14" "0.6.13" "0.6.12" )
+   VERSION=( "0.6.15" "0.6.13" "0.6.12" "0.6.11" "0.6.10" )
+      SAFE=( "0.6.15" "0.6.13" "0.6.12" )
 # maybe write init script for avahi-autoipd introduced in 0.6.14
   CATEGORY="utility"
  ATTRIBUTE="library"
     SOURCE="avahi-$VERSION.tar.gz"
-       URL="http://avahi.org/download/"
+# New location for the sources since 0.6.15
+       URL="http://lathiat.net/"
+       #URL="http://avahi.org/download/"
   HOMEPAGE="http://avahi.org/"
        REQ=( "dbus glib libcap libdaemon libglade"
              "gtk+::--disable-gtk:for gtk+ integration"
@@ -20,6 +22,12 @@ For example, you can plug into a network and instantly
 find printers to print to, files to look at, and people to talk to."
 
 build()  {
+
+# Needed when using dbus 1.0 and higher
+case $VERSION in
+  0.6.14|0.6.15)  sed  -i '1072,1074d'  avahi-daemon/dbus-protocol.c
+                  sed  -i '1070d'       avahi-daemon/dbus-protocol.c   ;;
+esac
 
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    avahi                     2>/dev/null
