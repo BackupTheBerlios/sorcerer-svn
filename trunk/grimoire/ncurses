@@ -21,6 +21,10 @@ a decompiler infocmp, clear, tput, tset,
 and a termcap conversion tool captoinfo."
 
 build()  {
+  move_ar_libs()  {
+    mv  -v  $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a /usr$LIBDIR
+  }
+
   if    [ "$HOSTTYPE" == "x86_64" ]
   then  LIBDIR=/lib64
   else  LIBDIR=/lib
@@ -62,7 +66,8 @@ build()  {
   make               &&
   prepare_install    &&  cp  -av  ../destdir/*  /  &&
   make    install    &&  cd       ..               &&
-  make    install
+  make    install    &&
+  move_ar_libs
 }
 
 post_install() { backup_lib; }

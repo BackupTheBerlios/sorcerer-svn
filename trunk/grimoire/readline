@@ -16,6 +16,10 @@ to recall and perhaps reedit those lines, and perform
 csh-like history expansion on previous commands."
 
 build()  {
+  move_ar_libs()  {
+    mv  -v  $LIBDIR/lib{history,readline}.a  /usr$LIBDIR
+  }
+
   if    [ "$HOSTTYPE" == "x86_64" ]
   then  LIBDIR=/lib64
   else  LIBDIR=/lib
@@ -34,6 +38,7 @@ build()  {
   make    shared   &&
   prepare_install  &&
   make    install  &&
+  move_ar_libs     &&
   install  -m 0644  -o root  -g root  $SCRIPT_DIR/inputrc  /etc
 }
 
