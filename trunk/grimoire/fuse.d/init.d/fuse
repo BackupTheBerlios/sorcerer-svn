@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: $local_fs
+# Provides: fuse
 # Required-Start: 
 # Should-Start: udev
 # Required-Stop: halt reboot
@@ -17,9 +17,10 @@
 
 
 start()  {
-  log_warning_msg  "fuse about to start"; mount_local_fs
-  if    grep -qw fuse /proc/filesystems  ||
-        modprobe fuse
+  log_warning_msg  "fuse about to start"
+  [  -f                /proc/mounts    ]  ||
+  mount -nrt proc proc /proc
+  modprobe fuse  &>/dev/null
   then
     if    mount -t fusectl none /sys/fs/fuse/connections
     then  log_success_msg  "fuse started"

@@ -13,3 +13,17 @@
       DESC="pcre is the Perl compatible regular expression library.
 pcre is a library that implement regular expression pattern matching
 using the same syntax and semantics as Perl 5, with just a few differences."
+
+build()  {
+  mv_so_libs()  {
+    for          file  in  /usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
+      if  [ -f  $file  ];  then
+        mv      $file  ${file#/usr}
+        ln  -sf        ${file#/usr}  $file
+      fi
+    done
+  }
+
+  default_build  &&
+  mv_so_libs
+}

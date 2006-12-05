@@ -6,7 +6,7 @@
        URL="$GNU_URL"
        REQ=( "gettext pcre"
              ":-static::make static linked grep" )
-   PROTECT="/usr/bin/grep"
+   PROTECT="/bin/grep"
   ESTIMATE="557"
       DESC="grep finds lines that match specified patterns.
 grep - Finds lines that match entered patterns
@@ -24,5 +24,14 @@ build()  {
   then  LDFLAGS="$LDFLAGS -static"
         OPTS="${OPTS/-static}"
   fi
-  default_build
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --bindir=/bin          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  make    install
 }

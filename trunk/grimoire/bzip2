@@ -5,7 +5,7 @@
     SOURCE="bzip2-$VERSION.tar.gz"
        URL="http://www.bzip.org/$VERSION/"
   HOMEPAGE="http://www.bzip.org"
-   PROTECT="/usr/bin/bzip2"
+   PROTECT="/bin/bzip2"
   ESTIMATE="63"
       DESC="bzip2 is a free, patent free, high-quality data compressor.
 It typically compresses files to within 10% to 15% of the best
@@ -15,6 +15,11 @@ faster at decompression."
 
 
 build() {
+
+if    [ "$HOSTTYPE" == "x86_64" ]
+then  LIBDIR=/lib64
+else  LIBDIR=/lib
+fi
 
 export  CFLAGS="$CFLAGS -fPIC"
 
@@ -28,7 +33,11 @@ make    install  "PREFIX=/usr"       &&
 make   -f        Makefile-libbz2_so  \
                  "CFLAGS=$CFLAGS"    \
                  "LDFLAGS=$LDFLAGS"  &&
-cp  -a   libbz2.so.$VERSION  /usr/lib  &&
-ln  -sf  libbz2.so.$VERSION  /usr/lib/libbz2.so.1.0
-ln  -sf  libbz2.so.$VERSION  /usr/lib/libbz2.so
+cp  -a           libbz2.so.$VERSION      $LIBDIR                     &&
+ln  -sf          libbz2.so.$VERSION      $LIBDIR/libbz2.so.1.0       &&
+ln  -sf          libbz2.so.$VERSION      $LIBDIR/libbz2.so           &&
+ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so.$VERSION  &&
+ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so.1.0       &&
+ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so           &&
+mv   /usr/bin/bzip2  /bin/
 }

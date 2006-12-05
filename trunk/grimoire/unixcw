@@ -1,10 +1,11 @@
-   VERSION=( "2.2" "2.0" )
+   VERSION=( "2.3" "2.2" "2.0" )
   CATEGORY="utility/ham"
  ATTRIBUTE="kde"
     SOURCE="unixcw-$VERSION.tgz"
        URL="ftp://sunsite.unc.edu/pub/Linux/apps/ham/morse/"
        REQ="qt-x11-free"
-      DESC="Complete suite of morse code programs.
+  ESTIMATE="240"
+      DESC="unixcw provides a complete suite of morse code programs.
 UnixCW is a package of UNIX-based programs that fit together
 to form a CW tutor program similar to CP222 by VU2ZAP.
 The core of the package is cwlib, a general-purpose CW functions library.
@@ -17,22 +18,19 @@ The Qt-based tutor program offers send practice as well as receive.
 The package includes complete man pages."
 
 build() {
- mkdir  qt
- ln  -s /usr/include/qt  qt/include
- ln  -s /usr/bin         qt/bin
- ln  -s /usr/lib         qt/lib
- export QTDIR=$PWD/qt
+  export  QTDIR=/usr/share/qt
 
- sed  -i  "s:-lqt:-lqt-mt:"  xcwcp/Makefile.in
+  sed  -i  "s:-lqt:-lqt-mt:"  src/xcwcp/Makefile*
 
- ./configure --prefix=/usr          \
-            --sysconfdir=/etc      \
-       --localstatedir=/var   \
-       $OPTS                  &&
- make      all                       &&
- make  install                       &&
- ln  -sf  /usr/man/man1/xcwcp.1.gz   \
- /usr/man/man1/unixcw.1.gz  &&
- cp  $SCRIPT_DIR/unixcw  /usr/bin
+  ./configure           \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  $OPTS                 &&
+  make        all       &&
+  prepare_install       &&
+  make    install       &&
+  ln  -sf  /usr/man/man1/xcwcp.1.gz   \
+           /usr/man/man1/unixcw.1.gz  &&
+  cp  $SCRIPT_DIR/unixcw  /usr/bin
 }
-

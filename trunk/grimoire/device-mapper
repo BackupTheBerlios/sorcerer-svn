@@ -2,6 +2,11 @@
     IGNORE="^1\.02\.00"
 # 1.02.00 is developmental
 # Must check download directory to discover what is stable
+
+# device-mapper now installs libraries into /lib or /lib64
+# because /sbin/lilo requires device-mapper libraries.
+# While /sbin/lilo is not usually run at boot time a SA might run it.
+
   CATEGORY="disk"
  ATTRIBUTE="console"
     SOURCE="device-mapper.$VERSION.tgz"
@@ -19,11 +24,25 @@ The original LVM (included in stock 2.4 kernels) does not use it."
 
 build() {
   case  $VERSION  in
-    1.01.05)  sed -i 's^-lselinux^-lselinux -lsepol^' configure*  ;;
+    1.01.05)  sed -i "s:-lselinux:-lselinux -lsepol:" configure*  ;;
   esac
-  default_build
-}
 
-current()  {
-  [  -f  /usr/lib/libdevmapper.a  ]
+  if    [ "$HOSTTYPE" == "x86_64" ]
+  then  LIBDIR=/lib64
+  else  LIBDIR=/lib
+  fi
+
+  move_ar_libs()  { mv  $LIBDIR/libdevmapper.a*  /usr$LIBDIR; }
+
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --libdir=$LIBDIR       \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  make    install        &&
+  move_ar_libs
 }

@@ -16,6 +16,28 @@ for use on virtually any computer hardware and operating system.
 The zlib data format is portable across platforms."
 
 build() {
+
+if    [ "$HOSTTYPE" == "x86_64" ]
+then  LIBDIR=/lib64
+else  LIBDIR=/lib
+fi
+
+
+add_compat_symlinks_old()  {
+  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so
+  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so.${VERSION:0:1}
+  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so.${VERSION}
+}
+
+  add_compat_symlinks()  {
+    for          file  in  /usr/{lib64,lib}/libz.so*; do
+      if  [ -f  $file  ];  then
+        mv      $file  ${file#/usr}
+        ln  -sf        ${file#/usr}  $file
+      fi
+    done
+  }
+
 export    CFLAGS="$CFLAGS -fPIC"
 export  CXXFLAGS="$CXXFLAGS -fPIC"
 
@@ -30,5 +52,6 @@ make    install         &&
 ./configure             \
 --prefix=/usr           &&
 make  "CFLAGS=$CFLAGS"  &&
-make    install
+make    install         &&
+add_compat_symlinks
 }

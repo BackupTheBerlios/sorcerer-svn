@@ -8,7 +8,7 @@
     SOURCE="fuse/fuse-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
 #     OPTS="--with-kernel=/usr/src/linux"
-      OPTS="--disable-kernel-module"
+      OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig"
   HOMEPAGE="http://fuse.sourceforge.net"
        REQ="automake libtool"
   ESTIMATE="320"
@@ -19,3 +19,34 @@ It also aims to provide a secure method for non privileged users
 to create and mount their own filesystem implementations.
 This spell installs the library only.
 Install the fuse kernel module using linux."
+
+build()  {
+  mv_ar_libs()  {
+    if    [       /lib/libfuse.a ]
+    then  mv  -v  /lib/lib{fuse,ulockmgr}.{a,la} /usr/lib/
+    elif  [       /lib64/libfuse.a  ]
+    then  mv  -v  /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
+    fi
+  }
+
+  if    [ "$HOSTTYPE" == "x86_64" ]
+  then  LIBDIR=/lib64
+  else  LIBDIR=/lib
+  fi
+
+  sed  -i  "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
+            s:which \${FSTYPE}:hash \${FSTYPE}:"  util/mount.fuse
+
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --bindir=/bin          \
+  --libdir=$LIBDIR       \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  make    install        &&
+  mv_ar_libs
+}
