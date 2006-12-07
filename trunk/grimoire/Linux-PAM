@@ -22,6 +22,14 @@ build() {
     cd    -
   }
 
+  move_la_files()  {
+    for              file  in  /lib{,64}/libpam{,c_misc}.la;  do
+      if    [   -f  $file  ]
+      then  mv  -v  $file  /usr/$file
+      fi
+    done
+  }
+
   export HAVE_SGML2LATEX=no 
   sed  -i  "s: doc examples::g"      Makefile.in
 
@@ -29,8 +37,9 @@ build() {
   do    touch  $DIR/.ignore_age
   done
 
-  unpack_docs           &&
-  default_build  
+  unpack_docs    &&
+  default_build  &&
+  move la_files
 }
 
 post_install()  {  [  -f  /etc/pam.d/system-auth  ];  }
