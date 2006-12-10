@@ -1,12 +1,13 @@
-   VERSION=( "2.1" "2.1pre1" "2.0" )
+   VERSION=( "061209" "2.1" "2.1pre1" "2.0" )
+# 061209 has link errors, missing -lx11, wonder why.
     IGNORE="alpha\|pre\|gl\|^0[5-6]\|win"
   CATEGORY="game"
- ATTRIBUTE="new x11"
+ ATTRIBUTE="x11"
     SOURCE="stratagus/stratagus-$VERSION-src.tar.gz"
   HOMEPAGE="http://stratagus.sourceforge.net"
        URL="$SOURCEFORGE_URL"
        REQ="SDL libmikmod lua"
-  ESTIMATE="144"
+  ESTIMATE="210"
       DESC="stratagus is a free cross-platform real-time strategy gaming engine.
 stratagus is a free cross-platform real-time strategy gaming engine.
 It includes support for playing over the internet/LAN, or playing a
@@ -24,13 +25,16 @@ fix_install()  {
 
 
 case  $VERSION  in
-  2.0)  sed  -i  "s:install-tools::"  Makefile  ;;
+  061209)  OPTS="$OPTS --x-libraries=/usr/lib --x-includes=/usr/include"
+           export  LDFLAGS="$LDFLAGS -lX11"        ;;
+  2.0)     sed  -i  "s:install-tools::"  Makefile  ;;
 esac
 
 
 ./configure          \
 --prefix=/usr        \
---bindir=/usr/games  &&
+--bindir=/usr/games  \
+$OPTS                &&
 make                 &&
 prepare_install      &&
 make    install      &&
