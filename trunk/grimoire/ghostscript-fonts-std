@@ -1,18 +1,24 @@
-   VERSION=( "6.0" )
-    IGNORE="8\.11"
-# Wed Aug 27 23:06:53 UTC 2003
-# only getting partial file transfer of 8.11
-# was upload to sourceforge servers aborted before finished?
+   VERSION=( "8.11" "6.0" )
   CATEGORY="font"
  ATTRIBUTE="data"
-    SOURCE="ghostscript/ghostscript-fonts-std-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
+    SOURCE="ghostscript-fonts-std-$VERSION.tar.gz"
+       URL="http://mirror3.cs.wisc.edu/pub/mirrors/ghost/fonts/"
+  EPROVIDE="ghostscript-fonts-other"
   HOMEPAGE="http://www.ghostscript.com"
-  ESTIMATE="3"
+  ESTIMATE="10"
       DESC="ghostscript-fonts-std provides fonts for ghostscript."
 
 build() {
-prepare_install                                   &&
-mkdir    -p         /usr/share/ghostscript/fonts  &&
-install  -m 644  *  /usr/share/ghostscript/fonts
+prepare_install  &&
+mkdir    -p             /usr/share/ghostscript/fonts  &&
+install  -v  -m 644  *  /usr/share/ghostscript/fonts
 }
+
+build_new() {
+# symbolic link probably not required
+prepare_install  &&
+mkdir    -p             /usr/share/ghostscript/fonts  /usr/share/fonts/  &&
+install  -v  -m 644  *  /usr/share/ghostscript/fonts                     &&
+ln       -s             /usr/share/ghostscript/fonts  /usr/share/fonts/ghostscript
+}
+
