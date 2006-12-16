@@ -54,6 +54,14 @@ build()  {
 
 
   compile_and_install()  {
+    uClibc_include="-I$( find /usr/*-linux-uclibc -type d -name include 2>/dev/null )"
+    uClibc_libs="$(      find /usr/*-linux-uclibc -type d -name lib -o -name lib64 2>/dev/null |
+                         sed -r "s:(.*):-L\1 -Wl,-rpath,\1:" )"
+
+    export    CFLAGS="$uClibc_include"
+    export  CXXFLAGS="$uClibc_include"
+    export   LDFLAGS="$uClibc_libs"
+
     yes   ""  |  make  oldconfig
     store_config     &&
     make             &&
