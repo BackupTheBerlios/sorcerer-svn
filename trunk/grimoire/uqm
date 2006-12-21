@@ -1,36 +1,27 @@
-   VERSION=( "0.5.0" "0.4.0" "0.3" "0.2" "0.1" )
+   VERSION=( "0.6.0" "0.5.0" "0.4.0" "0.3" "0.2" "0.1" )
     IGNORE="extras\|remix\|music\|voice\|content"
   CATEGORY="game"
  ATTRIBUTE="x11"
-    SOURCE="sc2/uqm-$VERSION-source.tar.gz"
-#    SOURCE="uqm-$VERSION-source.tar.gz"
-       REQ=( "SDL_image uqm-content libvorbis"
+case  $SPELL  in
+  uqm) REQ=( "SDL_image uqm-content libvorbis"
              "uqm-3domusic:::for excellent but large music files"
              "uqm-voice:::for excellent but large voice files" )
+        SOURCE="sc2/uqm-$VERSION-source.tgz"  ;;
+    *)  SOURCE="sc2/uqm-$VERSION-${SPELL:4}.uqm"
+        pre_build()  {  :;  }  ;;
+esac
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://sc2.sourceforge.net"
-  ESTIMATE="636"
+  ESTIMATE="640"
       DESC="uqm is a port of the 3DO version of the game StarControl 2."
 
-if  !  [  "$SPELL" == "uqm"  ];  then
-  unset  REQ
-  ESTIMATE="5"
-  pre_build()  {  :;  }
-  if     !  [  "$SPELL"  ==  "uqm-remix"  ]
-  then   SOURCE="sc2/uqm-${VERSION}-${SPELL:4}.uqm"
-  fi
-fi
-
+build()  {
 
 install_source()  {
-  cat  > config.state  <<  EOF
-CHOICE_debug_VALUE='nodebug'
-CHOICE_graphics_VALUE='opengl'
-CHOICE_sound_VALUE='mixsdl'
-INPUT_install_prefix_VALUE='/usr'
-INPUT_install_bindir_VALUE='\$prefix/games'
-INPUT_install_libdir_VALUE='\$prefix/share'
-EOF
+  patch  -p1  <  $SCRIPT_DIR/uqm-0.6.0.patch
+
+  [  -d  sc2  ]  &&
+  cd     sc2
 
   mkdir  -p  content
   echo  |  ./build.sh  uqm  depend          &&
@@ -61,24 +52,26 @@ install_data()  {
 install_remix()  {
   CONTENT1=$(  guess_filename  ${SOURCE[0]}  )
   CONTENT2=$(  guess_filename  ${SOURCE[1]}  )
+  CONTENT3=$(  guess_filename  ${SOURCE[2]}  )
   PACKAGE=/usr/share/uqm/content/packages/addons/uqmremix
   if    [  -n  "$CONTENT1"  ]  &&
-        [  -n  "$CONTENT2"  ]
+        [  -n  "$CONTENT2"  ]  &&
+        [  -n  "$CONTENT3"  ]
   then
     prepare_install            &&
     set      -x                &&
     mkdir    -p      $PACKAGE  &&
     install  -m 0644  -o root  -g  root  $CONTENT1   $PACKAGE  &&
     install  -m 0644  -o root  -g  root  $CONTENT2   $PACKAGE  &&
+    install  -m 0644  -o root  -g  root  $CONTENT3   $PACKAGE  &&
     set      +x
   else
-    echo  "$SOURCE not found"
+    echo  "Not all remixes tarballs found."
     false
   fi
 }
 
 
-build()  {
   case  $SPELL  in
     uqm)        install_source  ;;
     uqm-remix)  install_remix   ;;
