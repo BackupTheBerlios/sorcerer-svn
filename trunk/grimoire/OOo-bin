@@ -2,14 +2,16 @@
       SAFE=( "2.1.0_LinuxIntel_install_en-US" )
     IGNORE="wJRE\|system"
   CATEGORY="utility/office utility/editor"
- ATTRIBUTE="x86 noheal x11"
+ ATTRIBUTE="x86 noheal x11 new"
     SOURCE="${VERSION:0:5}/OOo_$VERSION.tar.gz"
        URL="http://mirrors.isc.org/pub/openoffice/stable/"
 #    SOURCE="openoffice_net_install-${VERSION}.tar.bz2"
 #       URL="http://sorcerer.wox.org/download/sources/openoffice/$VERSION/"
   HOMEPAGE="http://www.openoffice.org"
   disable  archive
-       REQ=( "desktop-file-utils gnome-vfs jdk unzip zip"
+# desktop-file-utils requires gnome-vfs
+#      REQ=( "desktop-file-utils gnome-vfs jdk unzip zip"
+       REQ=( "desktop-file-utils jdk unzip zip"
              "kdelibs:::for optional kde support"
              "libsndfile:::for optional libsndfile support" )
   ESTIMATE="85"
@@ -47,9 +49,9 @@ build() {
 
   add_mailcap()  {
     sed  "s:^:application/:
-          s:; openoffice.org-${VERSION:0:3} -view %s"  \
+          s:; openoffice.org-${VERSION:0:3} -view %s:"  \
          $SCRIPT_DIR/mailcap  |
-    sort  -u       >  /etc/mailcap.OOo
+    sort  -u       >  /etc/mailcap.OOo-bin
   }
 
   [  -d  RPMS  ]   &&
@@ -61,8 +63,7 @@ build() {
 
 post_install()  {
   default_post_install
-  touch                        /usr/share/icons/{gnome,hicolor,locolor}/icon-theme.cache
-  gtk-update-icon-cache        /usr/share/icons/{gnome,hicolor,locolor}/icon-theme.cache
+  gtk-update-icon-cache  -fqt  /usr/share/icons/{gnome,hicolor,locolor}
   update-mime-database         /usr/share/mime
   sed  "s/:\*\./ /"            /usr/share/mime/globs  >  /etc/mime.types
   update-desktop-database  -q  /usr/share/applications
@@ -80,9 +81,8 @@ post_remove()  {
   update-mime-database         /usr/share/mime
   sed  "s/:\*\./ /"            /usr/share/mime/globs  >  /etc/mime.types
   update-desktop-database  -q  /usr/share/applications
+  gtk-update-icon-cache  -fqt  /usr/share/icons/{gnome,hicolor,locolor}
   # update-menus
-  touch                        /usr/share/icons/{gnome,hicolor,locolor}/icon-theme.cache
-  gtk-update-icon-cache        /usr/share/icons/{gnome,hicolor,locolor}/icon-theme.cache
   default_post_remove
 }
 
