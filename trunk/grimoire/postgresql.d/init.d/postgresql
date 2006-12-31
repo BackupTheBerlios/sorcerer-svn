@@ -1,0 +1,127 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: postgresql
+# Required-Start: $local_fs $network $remote_fs
+# Should-Start: ypbind nscd ldap ntpd xntpd
+# Required-Stop: $local_fs $network $remote_fs
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: postgresql is an object-relational database
+# Description: postgresql is an object-relational database management system
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# Configuration variables
+PGENGINE=/usr/bin
+PGDATA=/var/lib/pgsql/data
+PGLOG=/var/lib/pgsql/pgstartup.log
+
+SU="/bin/su -l postgres"
+
+NAME="PostgreSQL"
+
+export PGDATA
+
+PGVERSION=$( augur version postgresql )
+PGMAJORVERSION=$( echo "$PGVERSION" | sed 's/^\([0-9]*\.[0-9]*\).*$/\1/' )
+
+if [ -f "$PGDATA/PG_VERSION" ] && [ -d "$PGDATA/base/template1" ]
+then
+	log_warning_msg "$NAME is using old-style directory structure"
+fi
+
+status() {
+  $SU -c "$PGENGINE/pg_ctl status -D '$PGDATA' -l '$PGLOG'"	&&
+  log_warning_msg "$NAME is running"	||
+  log_warning_msg "$NAME is not running"
+}  
+
+start() {
+  log_warning_msg "$NAME about to start"
+  
+  # Check for the PGDATA structure
+  if [ -f "$PGDATA/PG_VERSION" ] && [ -d "$PGDATA/base" ]
+  then
+	  # Check version of existing PGDATA
+	  if [ x$( cat "$PGDATA/PG_VERSION"  ) != x"$PGMAJORVERSION" ]
+	  then
+		  log_failure_msg "$NAME - An old version of the database format was found. You need to upgrade the data format before using $NAME."
+		  exit 1
+	  fi
+
+  else
+	  # No existing PGDATA! Warn the user to initdb it.
+	  log_failure_msg "$NAME - $PGDATA is missing. Use '$0 initdb' to initialize the database first."
+	  exit 1
+  fi
+
+  # Start the server (wait for the start to complete)
+  $SU -c "$PGENGINE/pg_ctl start -D '$PGDATA' -l '$PGLOG' -w"  &&
+  log_success_msg "$NAME started."	||
+  log_failure_msg "$NAME not started."
+} 
+
+stop() {
+  log_warning_msg "Stopping $NAME service."
+  $SU -c "$PGENGINE/pg_ctl stop -D '$PGDATA' -l '$PGLOG' -m fast"	&&
+  log_success_msg "$NAME stopped."	||
+  log_failure_msg "$NAME shutdown failure."
+}
+
+restart() {
+  log_warning_msg "$NAME restarting."
+  $SU -c "$PGENGINE/pg_ctl restart -D '$PGDATA' -l '$PGLOG' -w"   &&
+  log_success_msg "$NAME started."		||
+  log_failure_msg "$NAME not started."
+}
+
+reload() {
+  log_warning_msg "Reloading $NAME configuration."
+  $SU -c "$PGENGINE/pg_ctl reload -D '$PGDATA' -l '$PGLOG'"	&&
+  log_success_msg "$NAME started."		||
+  log_failure_msg "$NAME not started."
+}
+
+initdb() {
+  if [ -f "$PGDATA/PG_VERSION" ]
+  then
+	  log_failure_msg "$NAME: Data directory $PGDATA is not empty!"
+	  exit 1
+  else
+	  log_warning_msg "$NAME: Initializing database."
+	  if [ ! -e "$PGDATA" -a ! -h "$PGDATA" ]
+	  then
+		  mkdir -p "$PGDATA"	||
+		  ( log_failure_msg "$NAME: Could not create $PGDATA" ; exit 1 )
+		  chown postgres:postgres "$PGDATA"
+		  chmod 0700 "$PGDATA"
+	  fi
+	  # Clean up SELinux tagging for PGDATA
+	  [ -x /sbin/restorecon ] && /sbin/restorecon "$PGDATA"
+	  # Initialize the database
+	  $SU -c "$PGENGINE/initdb --pgdata='$PGDATA' --auth='ident sameuser'" >> "$PGLOG" 2>&1 < /dev/null
+	  # Make sure $PGLOG is owned by postgres user
+	  chown postgres:postgres "$PGLOG"
+	  chmod 0600 "$PGLOG"
+	   
+	  [ -f "$PGDATA/PG_VERSION" ]	&&
+	  log_success_msg "$NAME: Database cluster created."	||
+	  log_failure_msg "$NAME: Dababase cluster not created."
+  fi
+}
+
+help()  {
+  echo "Usage: $0 {initdb|restart|reload|start|status|stop}" 1>&2
+}
+
+case  $1  in
+  initdb)  initdb	;;
+ restart)  restart	;;
+  reload)  reload	;;
+   start)  start        ;;
+  status)  status       ;;
+    stop)  stop         ;;
+       *)  help         ;;
+esac
