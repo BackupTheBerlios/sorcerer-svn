@@ -53,7 +53,7 @@ start() {
 
   else
 	  # No existing PGDATA! Warn the user to initdb it.
-	  log_failure_msg "$NAME - $PGDATA is missing. Use '$0 initdb' to initialize the database first."
+	  log_failure_msg "$NAME - $PGDATA is missing. Use '$0 initdb' to initialize the database cluster first."
 	  exit 1
   fi
 
@@ -100,8 +100,8 @@ initdb() {
 	  fi
 	  # Clean up SELinux tagging for PGDATA
 	  [ -x /sbin/restorecon ] && /sbin/restorecon "$PGDATA"
-	  # Initialize the database
-	  $SU -c "$PGENGINE/initdb --pgdata='$PGDATA' --auth='ident sameuser'" >> "$PGLOG" 2>&1 < /dev/null
+	  # Initialize the database cluster
+	  $SU -c "$PGENGINE/initdb --pgdata='$PGDATA' --auth='md5'" >> "$PGLOG" 2>&1 < /dev/null
 	  # Make sure $PGLOG is owned by postgres user
 	  chown postgres:postgres "$PGLOG"
 	  chmod 0600 "$PGLOG"
