@@ -1,21 +1,25 @@
    VERSION=( "1.3.1" "1.1.3" "1.1.2" "1.1.1" "1.1.0" "1.2.2" "1.2.1" "1.2.0" )
-    IGNORE="pre\|rc\|^1\.2\.\|^1\.0"
+  UVERSION=( "0.9.28" )
+    IGNORE="pre\|rc"
   CATEGORY="utility/shell"
  ATTRIBUTE="console"
+       URL=( "http://www.busybox.net/downloads/"
+             "http://www.uclibc.org/downloads/" )
 case  $VERSION  in
   1.3.1)
     SOURCE=( "busybox-$VERSION.tar.bz2"
-             "fixes-$VERSION/busybox-$VERSION.shadow.patch" ) ;;
+             "uClibc-$UVERSION.tar.bz2"
+             "fixes-$VERSION/busybox-$VERSION.shadow.patch" )
+      URL[2]="${URL[0]}"  ;;
       *)
-    SOURCE="busybox-$VERSION.tar.bz2"  ;;
+    SOURCE=( "busybox-$VERSION.tar.bz2"
+             "uClibc-$UVERSION.tar.bz2" )  ;;
 esac
-       URL="http://www.busybox.net/downloads/"
   HOMEPAGE="http://www.busybox.net"
-       REQ=( ""
-             "uClibc:-static:-dynamic:link with uClibc if statically linking" )
+       REQ=""
  FRESHMEAT="busybox"
   ESTIMATE="800"
-      DESC="busybox is a tiny rescue shell.
+      DESC="busybox is a tiny rescue shell configured for use with the Install/Rescue CD.
 busybox combines tiny versions of many common
 UNIX utilities into a single small executable.
 It provides minimalist replacements for most
@@ -23,73 +27,84 @@ of the utilities you usually find in GNU
 fileutils, shellutils, etc."
 
 
-configure()  {
-  local  CUR="$CONFIG_LOGS/$SPELL/busybox-config"
-  local  OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
+build()  {
+  local_install_uClibc()  {
+    local       DEST=$PWD/uClibc-install
+    mkdir  -p  $DEST
 
-  if      !  [  -f  $CUR  ];  then
-    if    !  sources_cached;  then
-      echo  "Sources must be download before configuration."
-      leech  -w  $SPELL
-    fi
-    pre_build                    &&
-    optimize                     &&
-    cp         "$OLD"   .config  &&
-    make       menuconfig        &&
-    cp         .config  $CUR
-    if    [   -n   "$BUILD_DIR"  ]  &&
-          [   -d   "$BUILD_DIR"  ]
-    then  rm  -fr  "$BUILD_DIR"
-    fi
-  fi
+    local DT="default TARGET_"
+    local DC="default CONFIG_"
+    local  G="GENERIC_"
+    local WR="-Wl,-rpath"
+
+    cd  uClibc-$UVERSION
+
+    case  $HOSTTYPE  in
+      x86_64)  sed  -i  "s:${DT}i386:${DT}$HOSTTYPE:"  \
+                    extra/Configs/Config.in
+               ULC="/usr/x86-64-linux-uclibc"
+               CPU_LDFLAGS="$WR,$ULC/lib $WR,$ULC/usr/lib $LDFLAGS"  ;;
+       i*86)   ULC="/usr/i386-linux-uclibc"
+               CPU_LDFLAGS="$WR,$ULC/lib $WR,$ULC/usr/lib $LDFLAGS"  ;;
+    esac
+
+    # because it invokes ld directly rather than through gcc.
+    CPU_LDFLAGS="$(  echo  "$CPU_LDFLAGS"  |
+                     tr    ',' ' ' |
+                     sed   "s/-Wl//g"  )"
+
+    # the following line fixes what appears to be a typo error
+    # discovered in uClibc version 0.9.28
+    sed  -i  "s:CPU_LDFLAGS-y:CPU_LDFLAGS:"  Rules.mak
+
+    make defconfig  &&
+    if      [ -d /isolinux ]  &&
+          ! [ "$HOSTTYPE" == "x86_64"  ]
+    then  make  "CPU_LDFLAGS=$CPU_LDFLAGS"
+    else  make  "CPU_LDFLAGS=$CPU_LDFLAGS" "CPU_CFLAGS=$CFLAGS"
+    fi  &&
+    make    install  PREFIX=$DEST  &&
+    cd  ..
 }
 
+  if  !  [  -d  /isolinux  ];  then
+    echo  "Please install busybox only on intended Install Rescue images."
+    return 1
+  fi
 
-build()  {
+  local_install_uClibc  &&
+  uClibc_okay=1
 
-  restore_busybox_configs()  {
-    local  CUR="$CONFIG_LOGS/$SPELL/busybox-config"
-    local  OLD="$CONFIG_LOGS/$SPELL/busybox-config.old"
+  case  $VERSION  in
+    1.3.1)  patch  -p1  <  $SOURCE_CACHE/busybox/1.3.1/${SOURCE[2]##*/}  ;;
+  esac
+  
+  uClibc="--sysroot=$( find $PWD/uClibc-install/usr/*-linux-uclibc -maxdepth 0 -type d )"
+  export  CPPFLAGS="$uClibc"
+  export   LDFLAGS="$uClibc"
+  cp  $SCRIPT_DIR/config  .config
 
-    if    [  -f   $CUR  ];  then  cp  $CUR  .config
-    elif  [  -f   $OLD  ];  then  cp  $OLD  .config
-    fi
-  }
+  case  $HOSTTYPE  in
+    x86_64)  export  CFLAGS="$uClibc -Os -march=k8"    ;;
+         *)  export  CFLAGS="$uClibc -Os -march=i586"  ;;
+  esac
 
-
-  store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/busybox-config;  }
-
-
-  compile_and_install()  {
-    if  echo  "$OPTS"  |  grep  -q  "static";  then
-      uClibc_include="--sysroot=$( find /usr/*-linux-uclibc -maxdepth 0 -type d )"
-      export  CPPFLAGS="$uClibc_include"
-      export    CFLAGS="$uClibc_include $CFLAGS"
-      export   LDFLAGS="$uClibc_include"
-    else
-      unset  LDFLAGS
-    fi
-
-    yes   ""  |  make  oldconfig
-    store_config                      &&
-    make  "CFLAGS=$CFLAGS"            \
-          KBUILD_VERBOSE=1            &&
-    prepare_install                   &&
-    install  -m 0755  busybox  /bin   &&
-    mkdir    -p                /bbin  &&
-    cd                         /bbin  &&
-    busybox  --help |
-    grep "^	"   |
-    grep ","        |
-    tr   -d ' \t'   |
-    tr   ',' '\n'   |
-    grep '.'        |
-    while  read;  do
-      rm  -f           "$REPLY"
-      ln  /bin/busybox "$REPLY"
-    done
-  }
-
-  restore_busybox_configs
-  compile_and_install
+  yes   ""  |  make  oldconfig
+  [  "$uClibc_okay"  == "1"  ]      &&
+  make  "CFLAGS=$CFLAGS"            \
+        KBUILD_VERBOSE=1            &&
+  prepare_install                   &&
+  install  -m 0755  busybox  /bin   &&
+  mkdir    -p                /bbin  &&
+  cd                         /bbin  &&
+  busybox  --help |
+  grep "^	" |
+  grep ","        |
+  tr   -d ' \t'   |
+  tr   ',' '\n'   |
+  grep '.'        |
+  while  read;  do
+    rm  -f           "$REPLY"
+    ln  /bin/busybox "$REPLY"
+  done
 }
