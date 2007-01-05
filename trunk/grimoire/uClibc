@@ -7,56 +7,39 @@
   HOMEPAGE="http://www.uclibc.org"
   ESTIMATE="3300"
       DESC="uClibc is a C library for developing embedded Linux systems.
-uClibc is installed in /opt/uClibc
+uClibc provides a uClibc library with default configuration.
 uClibc is not a drop in replacement for glibc on Sorcerer."
 
-
-configure()  {
-  local  CUR="$CONFIG_LOGS/$SPELL/uClibc-config"
-  local  OLD="$CONFIG_LOGS/$SPELL/uClibc-config.old"
-
-  if      !  [  -f  $CUR  ];  then
-    if    !  sources_cached;  then
-      echo  "Sources must be download before configuration."
-      leech  -w  $SPELL
-    fi
-    pre_build                    &&
-    optimize                     &&
-    cp         "$OLD"   .config  &&
-    make       menuconfig        &&
-    cp         .config  $CUR
-    if    [   -n   "$BUILD_DIR"  ]  &&
-          [   -d   "$BUILD_DIR"  ]
-    then  rm  -fr  "$BUILD_DIR"
-    fi
-  fi
-}
-
-
 build()  {
+  local DT="default TARGET_"
+  local DC="default CONFIG_"
+  local  G="GENERIC_"
+  local WR="-Wl,-rpath"
 
-  restore_uClibc_configs()  {
-    local  CUR="$CONFIG_LOGS/$SPELL/uClibc-config"
-    local  OLD="$CONFIG_LOGS/$SPELL/uClibc-config.old"
+  case  $HOSTTYPE  in
+    x86_64)  sed  -i  "s:${DT}i386:${DT}$HOSTTYPE:"  \
+                  extra/Configs/Config.in
+             ULC="/usr/x86-64-linux-uclibc"
+             CPU_LDFLAGS="$WR,$ULC/lib $WR,$ULC/usr/lib $LDFLAGS"  ;;
+     i*86)   ULC="/usr/i386-linux-uclibc"
+             CPU_LDFLAGS="$WR,$ULC/lib $WR,$ULC/usr/lib $LDFLAGS"  ;;
+  esac
 
-    if    [  -f   $CUR  ];  then  cp  $CUR  .config
-    elif  [  -f   $OLD  ];  then  cp  $OLD  .config
-    fi
-  }
+  # because it invokes ld directly rather than through gcc.
+  CPU_LDFLAGS="$(  echo  "$CPU_LDFLAGS"  |
+                   tr    ',' ' ' |
+                   sed   "s/-Wl//g"  )"
 
+  # the following line fixes what appears to be a typo error
+  # discovered in uClibc version 0.9.28
+  sed  -i  "s:CPU_LDFLAGS-y:CPU_LDFLAGS:"  Rules.mak
 
-  store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/uClibc-config;  }
-
-
-  compile_and_install()  {
-    unset  CFLAGS  CXXFLAGS  LDFLAGS
-    yes   ""  |  make  oldconfig
-    store_config     &&
-    make             &&
-    prepare_install  &&  mkdir  -p  /opt/uClibc  &&
-    make    install
-  }
-
-  restore_uClibc_configs
-  compile_and_install
+  make defconfig  &&
+  if      [ -d /isolinux ]  &&
+        ! [ "$HOSTTYPE" == "x86_64"  ]
+  then  make  "CPU_LDFLAGS=$CPU_LDFLAGS"
+  else  make  "CPU_LDFLAGS=$CPU_LDFLAGS" "CPU_CFLAGS=$CFLAGS"
+  fi  &&
+  prepare_install  &&
+  make    install
 }

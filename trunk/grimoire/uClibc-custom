@@ -1,0 +1,63 @@
+   VERSION=( "0.9.28" )
+    IGNORE="pre\|rc\|^1\.2\.\|^1\.0\|locale"
+  CATEGORY="development"
+ ATTRIBUTE="library"
+    SOURCE="uClibc-$VERSION.tar.bz2"
+       URL="http://www.uclibc.org/downloads/"
+  HOMEPAGE="http://www.uclibc.org"
+  ESTIMATE="3300"
+      DESC="uClibc-custom is a C library for developing embedded Linux systems.
+uClibc is not a drop in replacement for glibc on Sorcerer.
+uClibc-custom can be configured in a similar fashion to
+linux's make menuconfig."
+
+
+configure()  {
+  local  CUR="$CONFIG_LOGS/$SPELL/uClibc-config"
+  local  OLD="$CONFIG_LOGS/$SPELL/uClibc-config.old"
+
+  if      !  [  -f  $CUR  ];  then
+    if    !  sources_cached;  then
+      echo  "Sources must be download before configuration."
+      leech  -w  $SPELL
+    fi
+    pre_build                    &&
+    optimize                     &&
+    cp         "$OLD"   .config  &&
+    make       menuconfig        &&
+    cp         .config  $CUR
+    if    [   -n   "$BUILD_DIR"  ]  &&
+          [   -d   "$BUILD_DIR"  ]
+    then  rm  -fr  "$BUILD_DIR"
+    fi
+  fi
+}
+
+
+build()  {
+
+  restore_uClibc_configs()  {
+    local  CUR="$CONFIG_LOGS/$SPELL/uClibc-config"
+    local  OLD="$CONFIG_LOGS/$SPELL/uClibc-config.old"
+
+    if    [  -f   $CUR  ];  then  cp  $CUR  .config
+    elif  [  -f   $OLD  ];  then  cp  $OLD  .config
+    fi
+  }
+
+
+  store_config()  {  cp  .config  $CONFIG_LOGS/$SPELL/uClibc-config;  }
+
+
+  compile_and_install()  {
+    unset  CFLAGS  CXXFLAGS  LDFLAGS
+    yes   ""  |  make  oldconfig
+    store_config     &&
+    make             &&
+    prepare_install  &&
+    make    install
+  }
+
+  restore_uClibc_configs
+  compile_and_install
+}

@@ -1,0 +1,59 @@
+   VERSION=( "1.3.1" "1.1.3" "1.1.2" "1.1.1" "1.1.0" "1.2.2" "1.2.1" "1.2.0" )
+    IGNORE="pre\|rc\|^1\.2\.\|^1\.0"
+  CATEGORY="utility/shell"
+ ATTRIBUTE="console"
+case  $VERSION  in
+  1.3.1)
+    SOURCE=( "busybox-$VERSION.tar.bz2"
+             "fixes-$VERSION/busybox-$VERSION.shadow.patch" ) ;;
+      *)
+    SOURCE="busybox-$VERSION.tar.bz2"  ;;
+esac
+       URL="http://www.busybox.net/downloads/"
+  HOMEPAGE="http://www.busybox.net"
+       REQ="uClibc"
+ FRESHMEAT="busybox"
+  ESTIMATE="800"
+      DESC="busybox-IR is a tiny rescue shell configured for use with the Install/Rescue CD.
+busybox-IR combines tiny versions of many common
+UNIX utilities into a single small executable.
+It provides minimalist replacements for most
+of the utilities you usually find in GNU
+fileutils, shellutils, etc."
+
+
+build()  {
+  if  !  [  -d  /isolinux  ];  then
+    echo  "Please install busybox-IR only on intended Install Rescue images."
+    echo  "Please use the busybox spell to configure and install busybox."
+    return 1
+  fi
+
+  uClibc="--sysroot=$( find /usr/*-linux-uclibc -maxdepth 0 -type d )"
+  export  CPPFLAGS="$uClibc"
+  export   LDFLAGS="$uClibc"
+  cp  $SCRIPT_DIR/config  .config
+
+  case  $HOSTTYPE  in
+    x86_64)  export  CFLAGS="$uClibc -Os -march=k8"    ;;
+         *)  export  CFLAGS="$uClibc -Os -march=i586"  ;;
+  esac
+
+  yes   ""  |  make  oldconfig
+  make  "CFLAGS=$CFLAGS"            \
+        KBUILD_VERBOSE=1            &&
+  prepare_install                   &&
+  install  -m 0755  busybox  /bin   &&
+  mkdir    -p                /bbin  &&
+  cd                         /bbin  &&
+  busybox  --help |
+  grep "^	" |
+  grep ","        |
+  tr   -d ' \t'   |
+  tr   ',' '\n'   |
+  grep '.'        |
+  while  read;  do
+    rm    -f         "$REPLY"
+    ln  /bin/busybox "$REPLY"
+  done
+}
