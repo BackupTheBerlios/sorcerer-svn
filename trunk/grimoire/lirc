@@ -1,14 +1,17 @@
-   VERSION=( "0.8.0" "0.7.2" "0.7.1" "0.7.0" "0.6.6" )
+   VERSION=( "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" "0.6.6" )
     IGNORE="xmms-plugin\|services\|alpha"
   CATEGORY="kernel"
- ATTRIBUTE="library old_init broken"
-# May want to interact during build()
+ ATTRIBUTE="library old_init"
     SOURCE="lirc/lirc-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
-       REQ="libtool"
+       REQ=( "libtool libusb"
+             "alsa-lib:::for alsa support"
+             "libSM:::for x11 utilities"
+             "libX11:::for x11 utilities" )
+      OPTS="--with-driver=all --enable-sandboxed"
   HOMEPAGE="http://www.lirc.org"
   disable archive
-  ESTIMATE="230"
+  ESTIMATE="1240"
       DESC="lirc (Linux Infrared Remote Control).
 lirc is a package that allows you to decode
 and send infra-red signals of many,
@@ -17,13 +20,20 @@ If you want to run the daemon add a command
 to /etc/init.d/bootmisc to invoke it."
 
 build() {
+mkdir    -p -m 0755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
+default_build
+}
+
+
+build_old() {
 
 conf()  {
   if    [  -f  $CONFIG_LOGS/$SPELL/configure.sh  ]
   then  cp     $CONFIG_LOGS/$SPELL/configure.sh  .
   else
     patch  -p0  <  $SCRIPT_DIR/lirc-setup.patch
-    wiz_kill
     ./setup.sh  &&
     cp  configure.sh  $CONFIG_LOGS/$SPELL/
   fi
@@ -35,24 +45,12 @@ sed_source()  {
   sed -i "s:-O2 -g:$CFLAGS:" configure.in
 }
 
-update_cvs_source()  {
-  if   [  "$BRANCH"  ==  "cvs"  ];  then
-    [  -x  autogen.sh  ]  &&
-    unset  CVSROOT  CVS_RSH
-    echo   $OPTS  |  grep  -q  update  &&
-    cvs    -z9  update
-    ./autogen.sh
-  fi
-}
-
-
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
 
-  update_cvs_source  &&
-  conf               &&
-  sed_source         &&
+  # conf               &&
+  # sed_source         &&
 
   libtoolize  --force
   sh  configure.sh     &&
