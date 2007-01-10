@@ -6,16 +6,19 @@ COMPACT="on"
 inherit xorg
     URL[2]="${URL[1]}"
     URL[1]="$SOURCEFORGE_URL"
+
 case  $VERSION  in
+  X11R7.1-1.1.0)
+    SAFE=( "X11R7.1-1.1.0" )
+    SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
+             "mesa3d/MesaLib-$MVERSION.tar.bz2"
+             "xorg-xserver-1.1.0-setuid.diff"
+             "xorg-xserver-1.1.0-dbe-render.diff" )  ;;
   X11R7.1-1.0.1)
     SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
              "mesa3d/MesaLib-$MVERSION.tar.bz2"
-             "xorg-server-1.0.1-geteuid.diff" )  ;;
+             "xorg-server-1.0.1-geteuid.diff" ) ;;
 #   USE_LINUX="linux-headers-v2.6.15.6"  ;;
-  X11R7.1-1.1.0)
-    SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
-             "mesa3d/MesaLib-$MVERSION.tar.bz2"
-             "xorg-xserver-1.1.0-setuid.diff" )  ;;
   *)
     SOURCE=( "xserver/xorg-server-$VERSION.tar.bz2"
              "mesa3d/MesaLib-$MVERSION.tar.bz2" ) ;;
@@ -27,13 +30,6 @@ esac
 # Mesa from cvs is incompatible with xorg-server X11R7.1-1.0.1
   ESTIMATE="12500"
       DESC="xorg-server provides a x11 server for X11R7"
-
-
-case  $VERSION  in
-  X11R7.1-1.1.0)       SAFE=( "X11R7.1-1.1.0" )
-                  SOURCE[2]="xorg-xserver-1.1.0-setuid.diff"
-                     URL[2]="ftp://ftp.x.org/pub/X11R7.1/patches/"  ;;
-esac
 
 
 build()  {
@@ -55,13 +51,9 @@ build()  {
   OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
 
   case  $VERSION  in
-    X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
+    X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}
+                    patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[3]}  ;;
   esac
-
-  if    [  "$VERSION"   ==  "X11R7.1-1.1.0"  ]  &&
-        [  "$HOSTTYPE"  ==  "x86_64"  ]
-  then  echo  "Using default dri path."
-  fi
 
   default_build
 }
@@ -69,10 +61,7 @@ build()  {
 
 current()  {
   case  $VERSION  in
-    X11R7.1-1.1.0)  if  [  "$HOSTTYPE"  ==  "x86_64"  ]
-                    then  grep  -qx  "Using default dri path."  $COMPILE_LOGS/xorg-server
-                    fi  &&
-                    grep  -qx  "patching file os/utils.c"  $COMPILE_LOGS/xorg-server  ;;
-    X11R7.1-1.0.1)  grep  -qx  "patching file os/utils.c"  $COMPILE_LOGS/xorg-server  ;;
+    X11R7.1-1.1.0)  grep  -qx  "patching file render/render.c"  $COMPILE_LOGS/xorg-server  ;;
+    X11R7.1-1.0.1)  grep  -qx  "patching file os/utils.c"       $COMPILE_LOGS/xorg-server  ;;
   esac
 }
