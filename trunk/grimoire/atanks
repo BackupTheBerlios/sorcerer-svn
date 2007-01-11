@@ -1,16 +1,16 @@
-   VERSION=( "1.5a" "1.1.0" "1.0.0" "1.0.0-rc2" "1.0.0-rc1" "0.9.9d" "0.9.9b" )
+   VERSION=( "2.0-final" "1.5a" "1.1.0" "1.0.0" "1.0.0-rc2" "1.0.0-rc1" "0.9.9d" "0.9.9b" )
     IGNORE="beta"
   CATEGORY="game"
  ATTRIBUTE="x11"
-#   SOURCE="atanks/atanks-$VERSION.tar.gz"
-    SOURCE="atanks/atanks-$VERSION.tar.bz2"
+    SOURCE="atanks/atanks-$VERSION.tar.gz"
+#   SOURCE="atanks/atanks-$VERSION.tar.bz2"
   HOMEPAGE="http://atanks.sourceforge.net"
        URL="$SOURCEFORGE_URL"
        REQ="allegro"
 case  $VERSION  in
   1.5a)  USE_GCC="gcc-v3.3" ;;
 esac
-  ESTIMATE="30"
+  ESTIMATE="40"
       DESC="atanks is a scorched earth clone.
 atanks is a multi-platform scorched earth clone similar to Worms. 
 Annihilate the other tanks to earn money, then spend it on bigger 
@@ -21,27 +21,51 @@ weather, parachutes, teleports and a wide range of other features."
 
 build() {
 install_atanks()  {
+  mkdir    -v -p                    $UB  $USA
+  install  -v -m  0755  atanks      $UB
+  install  -v -m  0644 *.{dat,txt}  $USA
+}
 
-  mkdir    -p                $USA
-  install  -m  0755  atanks  $USA
-  mkdir    -p                $USA
-  cp           *.dat         $USA
+USA="/usr/share/atanks"
+ UB="/usr/bin"
+
+ CF="CFLAGS=$CFLAGS"
+ LF="LDFLAGS=$LDFLAGS $( allegro-config  --libs )"
+
+rm  -f  atanks
+cd  src  &&
+sed  -i  's:-DDATA_DIR=\".\":-DDATA_DIR=\"/usr/share/atanks\":'  Makefile  &&
+make  "$CF"  "$LF"  DATA_DIR=$USA  &&
+cd  ..   &&
+prepare_install  &&
+        install_atanks
+}
+
+
+build_old() {
+install_atanks()  {
+
+  mkdir    -p                $USA  $UL  $UB
+  install  -m  0755  atanks  $UL
+  cp           *.{dat,txt}   $USA
   chmod    a+r               $USA/*
-  mkdir    -p                $UG
   echo     -e  "$RA"  >      $AT
   chmod    0755              $AT
 
 }
 
+ UL="/usr/libexec"
 USA="/usr/share/atanks"
- UG="/usr/games"
- AT="$UG/atanks"
- RA="#!/bin/bash\ncd  $USA\n./atanks"
+ UB="/usr/bin"
+ AT="$UB/atanks"
+ RA="#!/bin/bash\ncd  $USA\n$UL/atanks"
 
  CF="CFLAGS=$CFLAGS"
  LF="LDFLAGS=$LDFLAGS $( allegro-config  --libs )"
 
-make  "$CF"  "$LF"  &&
+rm  -f  atanks
+                        cd  src  &&
+make  "$CF"  "$LF"  &&  cd  ..   &&
 prepare_install     &&
         install_atanks
 }
