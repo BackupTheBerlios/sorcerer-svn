@@ -22,20 +22,13 @@ It is also provides the kernel modules."
 
 pre_build() {
   default_pre_build
-  mkdir -p $BUILD_DIR
-  cd    $BUILD_DIR
-
-  FN=$(  guess_filename  $SOURCE  )
-  SKIP=$(  grep -a    "skip="  $FN  |
-  sed      "s:skip=::"     )
-
-  tail  -n +$SKIP  $FN  |
-  gzip  -cd             |
-  tar   -xf  -
+  FN=$(  guess_filename  $SOURCE $SOURCE_CACHE/$SPELL/$VERSION )
+  chmod +x $FN
+  rm -rf $BUILD_DIR
+  $FN -x --target $BUILD_DIR
 }
 
 build() {
-
   cd  $BUILD_DIR
 
   install_libs()  {
