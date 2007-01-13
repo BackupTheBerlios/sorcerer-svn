@@ -18,7 +18,9 @@ inherit kde
 # something in kdenetwork may have optional requirement on gsm
 
 case  $VERSION  in
-  3.4.1)
+  3.5.5)  SAFE=( "3.5.5" )
+ SOURCE[1]="security_patches/post-3.5.5-kdenetwork-ksirc.diff"  ;;
+  3.4.1)  SAFE=( "3.4.1" )
  SOURCE[1]="security_patches/post-3.4.1-kdenetwork-libgadu.patch"  ;;
 esac
   ESTIMATE="11600"
@@ -30,6 +32,7 @@ network-related programs like kopete."
 
 build() {
   case  $VERSION  in
+    3.5.5)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
     3.4.1)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
   esac
   kde_build
@@ -38,6 +41,7 @@ build() {
 
 current()  {
   case  $VERSION  in
+    3.5.5) grep -qx "patching file ksirc/iocontroller.cpp"  $COMPILE_LOGS/kdenetwork ;;
     3.4.1) grep -qx "patching file kopete/protocols/gadu/libgadu/pubdir50.c"  $COMPILE_LOGS/kdenetwork ;;
   esac
 }
