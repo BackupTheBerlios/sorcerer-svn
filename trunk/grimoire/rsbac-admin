@@ -1,4 +1,4 @@
-   VERSION=( "1.3.0" "1.2.8" "1.2.7" "1.2.6" "v1.2.5" "v1.2.3" )
+   VERSION=( "1.3.1" "1.3.0" "1.2.8" "1.2.7" "1.2.6" "v1.2.5" "v1.2.3" )
   CATEGORY="security"
  ATTRIBUTE="console"
     SOURCE=( "rsbac-admin-$VERSION.tar.bz2"
@@ -6,7 +6,7 @@
        URL="http://download.rsbac.org/code/$VERSION/"
   HOMEPAGE="http://www.rsbac.org/"
        REQ="dialog"
-  ESTIMATE="456"
+  ESTIMATE="460"
       DESC="rsbac-admin provides administrations tools for RSBAC.
 Rule Set Based Access Control (RSBAC) provides
 security extension for current Linux kernels.
@@ -21,7 +21,10 @@ and generates a combined decision.
 This decision is then enforced by the system call extensions."
 
 build() {
-make             PREFIX=/usr  &&
-prepare_install               &&
-make    install  PREFIX=/usr
+  grep   -rl             "\-O2"  *  |
+  xargs  -l64  sed  -i  "s:-O2:$CFLAGS:"
+  make    build    LDFLAGS="-L/lib $LDFLAGS" VERBOSE=1  \
+                   PREFIX=/usr  &&
+  prepare_install               &&
+  make    install  PREFIX=/usr
 }
