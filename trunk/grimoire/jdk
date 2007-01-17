@@ -5,7 +5,7 @@ case  $MACHTYPE  in
            VERSION=( "1_5_0_09" "1_5_0_06" )
            ;;
        *)  JARCH=i586  
-           VERSION=( "1_5_0_09" "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
+           VERSION=( "6" "1_5_0_09" "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
            ;;
 esac
 # Fix the openvrml spell also when updating jdk
@@ -23,7 +23,7 @@ esac
 # XFree86 -> perl -> db -> j2sdk -> gtk+-v1.2 -> XFree86
 # but db no longer optionally requires j2sdk
   disable  archive
-  ESTIMATE="2830"
+  ESTIMATE="3447"
   EPROVIDE="java"
       DESC="jdk is Sun's java development kit.
 You must manually download the source from sun's 
@@ -34,7 +34,10 @@ build()  {
 install_jdk()  {
   set    -x
 
-  DIR="jdk${VERSION/_5_/.5.}"
+  case $VERSION in
+	1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
+	   6) DIR="jdk1.6.0" ;;
+  esac
 
 # /opt/jdk should be a symbolic link to the current version and NOT a directory
   cd              /opt
@@ -90,3 +93,4 @@ check_downloaded()  {
   prepare_install   &&
           install_jdk
 }
+# Origin grimoire
