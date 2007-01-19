@@ -2,10 +2,12 @@
       SAFE=( "4.13b" )
   CATEGORY="printer"
  ATTRIBUTE="console"
+# a2ps 4.13b has a problem with acroread during compilation
     SOURCE="a2ps-$VERSION.tar.gz"
        URL="ftp://ftp.enst.fr/pub/unix/a2ps/"
   HOMEPAGE="http://www.inf.enst.fr/~demaille/a2ps"
        REQ="ghostscript psutils ImageMagick teTeX"
+  ESTIMATE="1550"
       DESC="a2ps is an any to postscript filter.
 a2ps is an Any to PostScript filter.
 Of course it processes plain text files,
@@ -19,13 +21,15 @@ heterogeneous files."
 build() {
 
 case  $VERSION  in
-  4.13b)  sed  -i  "s:char \*malloc ();:#include <malloc.h>:"  lib/path-concat.c  ;;
+  4.13b)  sed  -i  "s:char \*malloc ();:#include <malloc.h>:"  lib/path-concat.c
+          export  ac_cv_prog_COM_acroread="no"  ;;
 esac
 
-./configure  --prefix=/usr           \
-             --sysconfdir=/etc/a2ps  &&
-make                                 &&
-prepare_install                      &&
-make    install                      &&
+./configure             \
+--prefix=/usr           \
+--sysconfdir=/etc/a2ps  &&
+make                    &&
+prepare_install         &&
+make    install         &&
 rm    -f  /a2ps*.el
 }
