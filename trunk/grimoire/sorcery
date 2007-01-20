@@ -1,4 +1,4 @@
-   VERSION=( "thaumaturgy-20070120-0" "thaumaturgy-20070111-0" "thaumaturgy-20070108-0" "thaumaturgy-20070104-1" "thaumaturgy-20070101-1" "thaumaturgy-20061228-0" "thaumaturgy-20061220-0" "thaumaturgy-20061215-0" "thaumaturgy-20061211-2" "thaumaturgy-20061206-0" "thaumaturgy-20061204-0" "thaumaturgy-20061128-0" "thaumaturgy-20061122-0" "thaumaturgy-20061115-4" "thaumaturgy-20061114-3" "thaumaturgy-20061113-4" "thaumaturgy-20061103-0" "thaumaturgy-20061102-0" "thaumaturgy-20061031-0" "thaumaturgy-20061025-0" "thaumaturgy-20061024-0" "thaumaturgy-20061021-0" "thaumaturgy-20061019-0" "thaumaturgy-20061018-0" "thaumaturgy-20061016-0" "thaumaturgy-20061015-0" "thaumaturgy-20061013-0" "thaumaturgy-20061012-1" "thaumaturgy-20061011-0" "thaumaturgy-20061006-0" "thaumaturgy-20061005-0" "thaumaturgy-20061001-2" )
+   VERSION=( "thaumaturgy-20070120-1" "thaumaturgy-20070111-0" "thaumaturgy-20070108-0" "thaumaturgy-20070104-1" "thaumaturgy-20070101-1" "thaumaturgy-20061228-0" "thaumaturgy-20061220-0" "thaumaturgy-20061215-0" "thaumaturgy-20061211-2" "thaumaturgy-20061206-0" "thaumaturgy-20061204-0" "thaumaturgy-20061128-0" "thaumaturgy-20061122-0" "thaumaturgy-20061115-4" "thaumaturgy-20061114-3" "thaumaturgy-20061113-4" "thaumaturgy-20061103-0" "thaumaturgy-20061102-0" "thaumaturgy-20061031-0" "thaumaturgy-20061025-0" "thaumaturgy-20061024-0" "thaumaturgy-20061021-0" "thaumaturgy-20061019-0" "thaumaturgy-20061018-0" "thaumaturgy-20061016-0" "thaumaturgy-20061015-0" "thaumaturgy-20061013-0" "thaumaturgy-20061012-1" "thaumaturgy-20061011-0" "thaumaturgy-20061006-0" "thaumaturgy-20061005-0" "thaumaturgy-20061001-2" )
   CATEGORY="utility"
  ATTRIBUTE="noheal solo sorcery"
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -81,54 +81,7 @@ post_install() {
     fi
   }
 
-
-  rebuild_ldd_logs()  {
-    if    [  -n  "$LDD_LOGS"  ]  &&
-          grep  -q  "/lib/ld-linux.so.2\|/lib64/ld-linux-x86-64.so.2"  $LDD_LOGS/bash;  then
-      (  .  /etc/sorcery/config
-         echo  "Rebuilding ldd logs.  Please be patient."
-         mkdir  -p  ${LDD_LOGS}.new
-         show_installed  |
-         while  read
-         do     show_ldd_of  "$REPLY"  >  ${LDD_LOGS}.new/$REPLY
-         done
-         mv       ${LDD_LOGS}      ${LDD_LOGS}.old
-         mv       ${LDD_LOGS}.new  ${LDD_LOGS}
-         rm  -fr  ${LDD_LOGS}.old
-      )
-    fi
-  }
-
-
-  remove_necropolis()  {
-    if    [   -d   ${NECROPOLIS_CACHE:=/var/cache/necropolis}  ]
-    then  rm  -fr  ${NECROPOLIS_CACHE}
-          echo    "${NECROPILIS_CACHE} was removed."
-          echo    "${NECROPOLIS_CACHE} is no longer used."
-    fi
-    if    [   -d   ${MORGUE_CACHE:=/var/cache/morgue}  ]
-    then  rm  -fr  ${MORGUE_CACHE}
-          echo    "${NECROPILIS_CACHE} was removed."
-          echo    "${MORGUE_CACHE} is no longer used."
-    fi
-
-    local  REZ=$EVENT_LOGS/Resurrection
-    local  RES=$EVENT_LOGS/Restore
-
-    if    [  -d  $REZ          ];  then
-      mkdir  -p          $RES
-      mv         $REZ/*  $RES
-      rmdir      $REZ  2>/dev/null
-    fi
-  }
-
-
   [  -d  /lib.old  ]  ||  backup_lib
   install_sentinel
   linux_headers_check
-  rebuild_ldd_logs
-  remove_necropolis
-  sleep  1
-  /usr/sbin/immune
-  sleep  1
 }
