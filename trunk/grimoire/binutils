@@ -11,6 +11,9 @@
    PROTECT="/usr/bin/as
             /usr/bin/ld
             /usr/bin/ranlib"
+# sysroot option given so that binutils supports sysroot parameter.
+# that way programs like busybox can be compiled using an alternate
+# sysroot that enables compiling and linking with uClibc instead of glibc.
       OPTS="--with-sysroot=/"
   ESTIMATE="2980"
       DESC="binutils is an essential collection of binary utilities.
@@ -39,6 +42,10 @@ build()  {
            sed   -i   "s:-Werror::g"  ;;
   esac
 
+  case  $VERSION  in
+    2.17)  echo  "Compiling binutils with sysroot support"  ;;
+  esac
+
   export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
   export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
@@ -53,4 +60,11 @@ build()  {
   prepare_install            &&
   make    install       $TD  &&
   make    install-info  $TD
+}
+
+
+current()  {
+  case  $VERSION  in
+    2.17)  grep  -qx  "Compiling binutils with sysroot support"  $COMPILE_LOGS/binutils  ;;
+  esac
 }
