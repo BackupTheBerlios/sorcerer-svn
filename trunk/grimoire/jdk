@@ -1,20 +1,14 @@
 case  $MACHTYPE  in
-  x86_64*) JARCH=amd64
-           # The 1_5_0_07 version is not ELF64 even though it is named amd64
-           # Don't you love Sun?
-           VERSION=( "1_5_0_09" "1_5_0_06" )
+  x86_64*) VERSION=( "6" "1_5_0_09" "1_5_0_06" )
+           SOURCE="jdk-$VERSION-linux-i586.bin"
            ;;
-       *)  JARCH=i586  
-           VERSION=( "6" "1_5_0_09" "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
+       *)  VERSION=( "6" "1_5_0_09" "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
+           SOURCE="jdk-$VERSION-linux-amd64.bin"
            ;;
 esac
-# Fix the openvrml spell also when updating jdk
-# JM: openvrml fixed so it should not need fixing anymore when jdk changes :)
      PRUNE="1"
   CATEGORY="development/interpreter"
  ATTRIBUTE="x11 noheal x86 seamonkey-plugin"
-    SOURCE="jdk-$VERSION-linux-$JARCH.bin"
-#  HOMEPAGE="http://java.sun.com/j2se/1.5.0/download.jsp"
   HOMEPAGE="http://java.sun.com/javase/downloads"
        URL="http://192.18.108.229/ECom/EComTicketServlet/BEGIN9F7D216D0E02BF6628F5ED9374C7C8FE/-2147483648/1608060987/1/732086/731846/1608060987/2ts+/westCoastFSEND/jdk-1.5.0_07-oth-JPR/jdk-1.5.0_07-oth-JPR:4/"
        REQ="alsa-lib libXi libXp libXt libXtst unixODBC unzip"
@@ -23,7 +17,7 @@ esac
 # XFree86 -> perl -> db -> j2sdk -> gtk+-v1.2 -> XFree86
 # but db no longer optionally requires j2sdk
   disable  archive
-  ESTIMATE="3447"
+  ESTIMATE="2830"
   EPROVIDE="java"
       DESC="jdk is Sun's java development kit.
 You must manually download the source from sun's 
@@ -35,46 +29,50 @@ install_jdk()  {
   set    -x
 
   case $VERSION in
-	1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
-	   6) DIR="jdk1.6.0" ;;
+        1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
+           6) DIR="jdk1.6.0" ;;
   esac
 
 # /opt/jdk should be a symbolic link to the current version and NOT a directory
-  cd              /opt
-  unzip           $SOURCE_CACHE/jdk/$VERSION/$SOURCE
-  rm    -rf       /opt/jdk	 
-  ln    -sf       /opt/$DIR  /opt/jdk	
+  cd                /opt
+  if    unzip       $SOURCE_CACHE/jdk/$VERSION/$SOURCE;  then
+    rm    -rf       /opt/jdk
+    ln    -sf       /opt/$DIR  /opt/jdk	
  
-  for             FILE  in  /opt/jdk/bin/*
-  do    ln  -sf  $FILE  /usr/bin/${FILE##*/}
-  done
+    for             FILE  in  /opt/jdk/bin/*
+    do    ln  -sf  $FILE  /usr/bin/${FILE##*/}
+    done
 
-  if    [   -x   /opt/jdk/jre/bin/java_vm  ]
-  then  ln  -sf  /opt/jdk/jre/bin/java_vm  /usr/bin/java_vm
-  fi 
+    if    [   -x   /opt/jdk/jre/bin/java_vm  ]
+    then  ln  -sf  /opt/jdk/jre/bin/java_vm  /usr/bin/java_vm
+    fi 
 
-  if    [  -d   /opt/jdk/jre/plugin  ]  &&  [  -d  /usr/lib/mozilla/plugins  ]
-  then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
-                    /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+    if    [  -d   /opt/jdk/jre/plugin  ]  &&  [  -d  /usr/lib/mozilla/plugins  ]
+    then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
+                      /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+    fi
+
+    mkdir  -p   /etc/.java/.systemPrefs
+    touch       /etc/.java/.systemPrefs/.system.lock
+    touch       /etc/.java/.systemPrefs/.systemRootModFile
+    chmod  644  /etc/.java/.systemPrefs/.system*
+
+    find  .  -name \*.pack  |
+    while  read;  do
+      unpack200  $REPLY  ${REPLY/.pack/.jar}
+      rm  -f     $REPLY
+    done
+
+    if    uname  -m  |
+          grep   -q  "[[:digit:]]86"
+    then  java   -client  -Xshare:dump
+    fi
+    set  +x
+  else
+    rm   -fr  /opt/$DIR
+    set  +x
+    false
   fi
-
-  mkdir  -p   /etc/.java/.systemPrefs
-  touch       /etc/.java/.systemPrefs/.system.lock
-  touch       /etc/.java/.systemPrefs/.systemRootModFile
-  chmod  644  /etc/.java/.systemPrefs/.system*
-
-  find  .  -name \*.pack  |
-  while  read;  do
-    unpack200  $REPLY  ${REPLY/.pack/.jar}
-    rm  -f     $REPLY
-  done
-
-  if    uname  -m  |
-        grep   -q  "[[:digit:]]86"
-  then  java   -client  -Xshare:dump
-  fi
-
-  set  +x
 }
 
 check_downloaded()  {
@@ -93,4 +91,3 @@ check_downloaded()  {
   prepare_install   &&
           install_jdk
 }
-# Origin grimoire
