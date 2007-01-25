@@ -8,10 +8,10 @@
   ESTIMATE="32"
  FRESHMEAT="gpart"
       DESC="gpart is a tool which tries to guess the primary partition table
-of a PC-type hard disk in case the primary partition table in 
-sector 0 is damaged, incorrect or deleted. The guessed table 
-can be written to a file or device. Supported (guessable) 
-filesystem or partition types: 
+of a PC-type hard disk in case the primary partition table
+in sector 0 is damaged, incorrect or deleted.
+The guessed table can be written to a file or device.
+Supported (guessable) filesystem or partition types: 
   DOS/Windows FAT (FAT 12/16/32)
   Linux ext2
   Linux swap partitions versions 0 and 1 (Linux >= v2.2.X)
@@ -24,13 +24,13 @@ filesystem or partition types:
   Linux LVM physical volume module (LVM by Heinz Mauelshagen) 
   SGI XFS on Linux
   BeOS filesystem
-  QNX 4.x filesystem
-"
+  QNX 4.x filesystem"
 
 build() {
-  sed  -i "s:prefix=/usr/local:prefix=/usr:"  inst.defs	                   &&
-  sed  -i "s:pedantic:pedantic -include /usr/include/errno.h:"  make.defs  &&
-  make			&&
-  prepare_install	&&
-  make install
+  sed  -i "s:prefix=/usr/local:prefix=/usr:"  inst.defs  &&
+  sed  -i "s:-O2 -pedantic:$CFLAGS -pedantic -include /usr/include/errno.h:"  make.defs  &&
+  sed  -i "/defined(i386)/d" src/gm_ntfs.h  &&
+  make             &&
+  prepare_install  &&
+  make    install
 }

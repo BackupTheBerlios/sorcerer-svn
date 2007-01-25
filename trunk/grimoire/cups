@@ -25,16 +25,9 @@
   EPROVIDE="lpr"
   ESTIMATE="3090"
       DESC="cups provides a portable printing layer."
+disable reduce
    
 build() {
-  case $HOSTTYPE in
-   x86_64) #This fix is needed for gcc >=4 
-	case $VERSION in
-	  1.1.23)  sed -i "972s:int:long:" pdftops/GfxFont.cxx  ;;
-	esac
-	;;
-  esac
- 
   check_for_smb_backend() {
     if    spell_installed  samba;  then  
       echo "Setting smb backend for cups"
@@ -48,21 +41,10 @@ build() {
   if  spell_installed  openssl;    then  OPTS="$OPTS  --enable-ssl";  fi
 
   default_build             &&
-  cd      drivers           &&
   cp     -R  usr/*  /usr    &&
   cp     -R  var/*  /var    &&
   cd         var/cups/conf  &&
   mkdir  -p  /etc/cups      &&
   cp     *   /etc/cups      &&
   check_for_smb_backend
-}
-
-pre_build() {
-  default_pre_build
-  unpack  ${SOURCE[0]}  &&
-  cd      $BUILD_DIR    &&
-  mkdir   drivers       &&
-  cd      drivers       &&
-  unpack  ${SOURCE[1]}  &&
-  cd      $BUILD_DIR
 }
