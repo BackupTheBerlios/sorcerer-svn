@@ -1,4 +1,4 @@
-   VERSION=( "1.4.2" "1.4.0" "1.3.2" "1.3.1" "1.3.0" "1.2.3" "1.2.1" "1.2.0" )
+   VERSION=( "1.4.3" "1.4.2" "1.4.0" "1.3.2" "1.3.1" "1.3.0" "1.2.3" "1.2.1" "1.2.0" )
     IGNORE="deps"
   CATEGORY="development"
  ATTRIBUTE="console perl-module python-module"
@@ -17,38 +17,39 @@
 # Can not compile, dispel, install.
 # Must be uninstalled during compilation.
 # Too much apache in subversion
-  ESTIMATE="2750"
+  ESTIMATE="2840"
       DESC="subversion is a version control system like cvs."
 
 
-svn-python-path() {
- PVER=$( installed_version  $( get_provider Python ) )
- echo /usr/lib/svn-python > /usr/lib/python${PVER:0:3}/site-packages/subversion.pth
-}
-
 build() {
- # subversions 1.2.3 not compatibile with neon 0.25.3
- case  $VERSION  in 
-  1.4.0)  DICTIONARY="subversion-1.3.2.tar.bz2"  ;;
-  1.2.*)
-    NEON_VERSION=$(installed_version neon)
-    case ${NEON_VERSION} in
-      0.24*) OPTS="$OPTS --disable-debug --with-neon=/usr" ;;
-      0.25*) OPTS="$OPTS --with-zlib --without-neon";;
-    esac
-  ;;
- esac
+  svn-python-path() {
+    PVER=$( installed_version  $( get_provider Python ) )
+    echo /usr/lib/svn-python > /usr/lib/python${PVER:0:3}/site-packages/subversion.pth
+  }
+
+  # subversions 1.2.3 not compatibile with neon 0.25.3
+  case  $VERSION  in 
+   1.4.0)  DICTIONARY="subversion-1.3.2.tar.bz2"  ;;
+   1.2.*)
+     NEON_VERSION=$(installed_version neon)
+     case ${NEON_VERSION} in
+       0.24*) OPTS="$OPTS --disable-debug --with-neon=/usr" ;;
+       0.25*) OPTS="$OPTS --with-zlib --without-neon";;
+     esac
+   ;;
+  esac
  
- ./configure  --prefix=/usr		\
-              --sysconfdir=/etc		\
-              --localstatedir=/var	\
-              $OPTS			&&
- make			&&
- make  swig-py		&&
- make  swig-pl		&&
- prepare_install	&&
- make  install		&&
- make  install-swig-py	&&
- make  install-swig-pl	&&
- svn-python-path
+  ./configure            \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  make  swig-py          &&
+  make  swig-pl          &&
+  prepare_install        &&
+  make  install          &&
+  make  install-swig-py  &&
+  make  install-swig-pl  &&
+  svn-python-path
 }
