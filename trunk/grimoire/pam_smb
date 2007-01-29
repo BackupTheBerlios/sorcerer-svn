@@ -29,21 +29,25 @@ pam_smb is a module which allows Linux users to be
 authenticated from Samba, NT or Windows 95/8 machines."
 
 build() {
-make_install()  {
+  LIB="/usr/lib"
+  case  $MACHTYPE  in
+    x86_64*)  LIB+="64"  ;;
+  esac
 
-  install  -m 0755  pam_smb_auth.so       /lib/security
-  install  -m 0644  pam_smb.conf.example  /etc
-  mkdir    -p                             /usr/doc/pam_smb
-  cp                README  CHANGES       /usr/doc/pam_smb
+  make_install()  {
+    install  -v  -m 0755  pam_smb_auth.so       $LIB/security
+    install  -v  -m 0644  pam_smb.conf.example  /etc
+    mkdir    -v  -p                             /usr/doc/pam_smb
+    cp                    README  CHANGES       /usr/doc/pam_smb
+  }
 
-}
-
-./configure  --build=$BUILD        \
-             --prefix=/usr         \
-             --sysconfdir=/etc     \
-             --localstatedir=/var  \
-             $OPTS                 &&
-make                               &&
-prepare_install                    &&
-   make_install
+  ./configure           \
+  --build=$BUILD        \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+   $OPTS                &&
+  make                  &&
+  prepare_install       &&
+     make_install
 }

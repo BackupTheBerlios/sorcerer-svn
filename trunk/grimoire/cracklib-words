@@ -1,22 +1,25 @@
    VERSION=( "1.1" )
   CATEGORY="security/authentication dictionary"
- ATTRIBUTE="console data new"
+ ATTRIBUTE="console data"
     SOURCE="cracklib/cracklib-words.gz"
   HOMEPAGE="http://sourceforge.net/project/cracklib"
        URL="$SOURCEFORGE_URL"
-  ESTIMATE="5"
+  ESTIMATE="10"
+disable scavenge
+
       DESC="cracklib-words provides a list for breaking English passwords.
-It contains a recommended word list 
+It contains a recommended word list
 for English-speaking countries used.
-There are additional word lists available for download, e.g., from
+There are additional word lists available for download from
 http://www.cotse.com/tools/wordlists.htm.
 Cracklib can utilize as many or as few word lists you choose to install."
 
 build() {
  PATH_DICT=/usr/share/dict
-
- prepare_install			&&
- install -v -m644 -D $( guess_filename $SOURCE ) $PATH_DICT/$SPELL.gz	&&
- gunzip -v $PATH_DICT/$SPELL.gz		&&
- ln -v -s $SPELL /usr/share/dict/words
+ prepare_install &&
+ install -v -m 0755 -d        $PATH_DICT &&
+ install -v -m 0644 $SOURCE_CACHE/cracklib-words/$VERSION/${SOURCE##*/} \
+                              $PATH_DICT &&
+ gunzip  -v                   $PATH_DICT/${SOURCE##*/} &&
+ ln      -v -s cracklib-words $PATH_DICT/words
 }

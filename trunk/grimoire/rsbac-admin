@@ -5,7 +5,7 @@
              "rsbac-common-$VERSION.tar.bz2" )
        URL="http://download.rsbac.org/code/$VERSION/"
   HOMEPAGE="http://www.rsbac.org/"
-       REQ="dialog"
+       REQ="Linux-PAM dialog"
   ESTIMATE="460"
       DESC="rsbac-admin provides administrations tools for RSBAC.
 Rule Set Based Access Control (RSBAC) provides
@@ -17,14 +17,19 @@ All security relevant system calls are
 extended by security enforcement code.
 This code calls the central decision component,
 which in turn calls all active decision modules
-and generates a combined decision. 
+and generates a combined decision.
 This decision is then enforced by the system call extensions."
 
 build() {
+  LIB+="/usr/lib"
+  case  $MACHTYPE  in
+    x86_64*)  LIB+="64"  ;;
+  esac
+
   grep   -rl             "\-O2"  *  |
   xargs  -l64  sed  -i  "s:-O2:$CFLAGS:"
   make    build    LDFLAGS="-L/lib -L/lib64 $LDFLAGS" VERBOSE=1  \
                    PREFIX=/usr  &&
   prepare_install               &&
-  make    install  PREFIX=/usr
+  make    install  PREFIX=/usr  DIR_PAM=$LIB/security
 }
