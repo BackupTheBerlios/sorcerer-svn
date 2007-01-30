@@ -21,11 +21,14 @@ This spell installs the library only.
 Install the fuse kernel module using linux."
 
 build()  {
-  mv_ar_libs()  {
-    if    [       /lib/libfuse.a ]
-    then  mv  -v  /lib/lib{fuse,ulockmgr}.{a,la} /usr/lib/
-    elif  [       /lib64/libfuse.a  ]
-    then  mv  -v  /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
+  mv_libs()  {
+    if    [   -f      /lib/libfuse.a ]
+    then  mv  -v      /lib/lib{fuse,ulockmgr}.{a,la}   /usr/lib/
+          ln  -v  -s  /lib/lib{fuse,ulockmgr}.so*      /usr/lib/
+
+    elif  [   -f      /lib64/libfuse.a  ]
+    then  mv  -v      /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
+          ln  -v  -s  /lib64/lib{fuse,ulockmgr}.so*    /usr/lib64/
     fi
   }
 
@@ -48,7 +51,7 @@ build()  {
   make                   &&
   prepare_install        &&
   make    install        &&
-  mv_ar_libs
+  mv_libs
 }
 
 
