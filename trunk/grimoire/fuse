@@ -1,17 +1,13 @@
-   VERSION=( "2.6.1" "2.6.0" "2.5.3" "2.5.2" "2.5.1" "2.5.0" "2.4.2" )
-# The kernel part of fuse will be included in linux 2.6.14
-# fuse only builds a module if not already enabled in the kernel
+   VERSION=( "2.6.2" "2.6.1" "2.6.0" "2.5.3" "2.5.2" "2.5.1" "2.5.0" "2.4.2" )
     IGNORE="pre\|box\|rc"
   CATEGORY="utility"
  ATTRIBUTE="library"
-#ATTRIBUTE="console linux-26-module"
     SOURCE="fuse/fuse-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
-#     OPTS="--with-kernel=/usr/src/linux"
       OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig"
   HOMEPAGE="http://fuse.sourceforge.net"
        REQ="automake libtool"
-  ESTIMATE="320"
+  ESTIMATE="330"
       DESC="fuse is a file system in userspace program and kernel module.
 fuse is a simple interface for userspace programs
 to export a virtual filesystem to the Linux kernel.
@@ -40,24 +36,16 @@ build()  {
   sed  -i  "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
             s:which \${FSTYPE}:hash \${FSTYPE}:"  util/mount.fuse
 
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --bindir=/bin          \
-  --libdir=$LIBDIR       \
-  --sysconfdir=/etc      \
-  --localstatedir=/var   \
-  $OPTS                  &&
-  make                   &&
-  prepare_install        &&
-  make    install        &&
+  ./configure           \
+  --build=$BUILD        \
+  --prefix=/usr         \
+  --bindir=/bin         \
+  --libdir=$LIBDIR      \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  $OPTS                 &&
+  make                  &&
+  prepare_install       &&
+  make    install       &&
   mv_libs
-}
-
-
-current()  {
-  case  $VERSION  in
-    2.6.1)  [  -f    /lib/libfuse.so  ]  ||
-            [  -f  /lib64/libfuse.so  ]  ;;
-  esac
 }
