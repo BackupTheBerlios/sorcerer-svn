@@ -58,6 +58,7 @@ build() {
   --localstatedir=/var  \
   --with-smbmount       \
   --with-fhs            \
+  --with-shared-modules=idmap_rid \   
   $WITH_PAM             \
   $OPTS                 &&
   make                  &&
@@ -71,5 +72,9 @@ build() {
     ! [  -f  /usr/lib/libsmbclient.so        ];  then
     ln   -s     samba/libsmbclient.so  /usr/lib/libsmbclient.so
     ln   -s     samba/libsmbclient.so  /usr/lib/libsmbclient.so.0
-   fi
+  fi
+  if [ -f nsswitch/libnss_winbind.so ]; 
+  then
+     cp -av nsswitch/libnss_winbind.so /lib/
+  fi
 }
