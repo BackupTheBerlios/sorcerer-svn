@@ -61,11 +61,12 @@ build() {
 post_install() {
 
   install_sentinel()  {
-    local           SENTINEL=/usr/libexec/sorcery/sentinel
-    local                     ARCH=$( uname -m )
-    if    [    -x  $SENTINEL-$ARCH  ]
-    then  cmp  -s  $SENTINEL-$ARCH  $SENTINEL  ||
-          cp       $SENTINEL-$ARCH  $SENTINEL
+    local              SENTINEL=/usr/libexec/sorcery/sentinel
+    local                        ARCH=$( uname -m )
+    if    [       -x  $SENTINEL-$ARCH  ];  then
+      if  !  cmp  -s  $SENTINEL-$ARCH  $SENTINEL
+      then   rm   -f                   $SENTINEL
+             cp       $SENTINEL-$ARCH  $SENTINEL
     fi
   }
 
