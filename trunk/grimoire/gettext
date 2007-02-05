@@ -8,7 +8,7 @@
 # Once someone writes spells for
 # http://www.southern-storm.com.au/portable_net.html
 # we can do the --disable-csharp as no on an optional requirement
-      OPTS="--disable-csharp --without-emacs"
+      OPTS="--disable-csharp --without-emacs --disable-static"
 # segementation faults during compilation if emacs installed
 # and --without-emacs not passed to configure
   ESTIMATE="4550"
@@ -19,10 +19,12 @@ library and tools."
 build()  {
 
 x86_64-pc-linux-gnu-build()  {
-  ./configure  --build=$BUILD        \
-               --prefix=/usr         \
-               --sysconfdir=/etc     \
-               --localstatedir=/var  &&
+  ./configure           \
+  --build=$BUILD        \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  $OPTS                 &&
   sed -i 's@^\(archive_cmds.*-shared \)\(.*predep_objects.*\)@\1 -nostartfiles -nostdlib \2 @ g' gettext-runtime/libasprintf/libtool  &&
   make             &&
   prepare_install  &&
