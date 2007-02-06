@@ -10,10 +10,11 @@
        REQ=""
 #     OPTS="--disable-static --enable-shared"
 # --disable-static has no effect
-case  $VERSION  in
-  1.26)  USE_GCC="gcc-v3.4"  ;;
-esac
-  ESTIMATE="170"
+# case  $VERSION  in
+#   1.26)  USE_GCC="gcc-v3.4"  ;;
+# esac
+# Patch takes care of compile problem.
+  ESTIMATE="180"
       DESC="isapnptools provides tools to configure ISA devices."
 
 build() {
@@ -22,5 +23,9 @@ build() {
     cp  pciutils-$PVERSION/lib/pci.h             include/linux
     cp  pciutils-$PVERSION/lib/{header,types}.h  include
   fi
-  default_build
+  case  $VERSION  in
+    1.26)  patch  -p1  <  $SCRIPT_DIR/isapnptools-1.26.patch  ;;
+  esac
+  default_build  &&
+  ln -v -s libisapnp.so.1 /usr/lib/libisapnp.so
 }

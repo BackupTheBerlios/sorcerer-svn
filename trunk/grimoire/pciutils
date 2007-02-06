@@ -5,7 +5,7 @@
   HOMEPAGE="ftp://ftp.kernel.org/pub/software/utils/pciutils"
        URL="$KERNEL_URL"
        REQ="zlib"
-  ESTIMATE="40"
+  ESTIMATE="60"
       DESC="pciutils provides setpci and lspci utils.
 
 pciutils include:
@@ -20,14 +20,20 @@ setpci		allows to read from and write to
 		the latency timers with it."
 
 build() {
-export  LDFLAGS="$LDFLAGS -L/lib"
-sed  -i  "s:-O2:${CFLAGS}:
-          s:/usr/local:/usr:"  Makefile
+# export  LDFLAGS="$LDFLAGS -L/lib"
+# sed  -i  "s:-O2:${CFLAGS}:
+#           s:/usr/local:/usr:"  Makefile
+
+case  $VERSION  in
+  2.2.4)  patch  -p1  <  $SCRIPT_DIR/pciutils-$VERSION.patch
+          sed    -i      "s:/usr/local:/usr:"  Makefile  ;;
+esac
 
 make             &&
 prepare_install  &&
 make    install  &&
-install  -m 755  -d       /usr/include/pci  &&
-install  -m 644  lib/*.h  /usr/include/pci  &&
-install  -m 644  lib/*.a  /usr/lib
+install  -v -m 755  -d               /usr/include/pci  &&
+install  -v -m 644  lib/*.h          /usr/include/pci  &&
+install  -v -m 755  lib/libpci.so.2  /usr/lib          &&
+ln       -v -s          libpci.so.2  /usr/lib/libpci.so
 }
