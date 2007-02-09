@@ -6,9 +6,11 @@
        URL="$SOURCEFORGE_URL"
       OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig"
   HOMEPAGE="http://fuse.sourceforge.net"
-       REQ="automake libtool"
+       REQ=( "automake libtool"
+             "libselinux:::for selinux support" )
+# no configure switch to disable selinux support with fuse 2.6.3
       OPTS="--disable-static"
-  ESTIMATE="340"
+  ESTIMATE="320"
       DESC="fuse is a file system in userspace program and kernel module.
 fuse is a simple interface for userspace programs
 to export a virtual filesystem to the Linux kernel.
@@ -26,6 +28,12 @@ build()  {
     elif  [   -f      /lib64/libfuse.a  ]
     then  mv  -v      /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
           ln  -v  -s  /lib64/lib{fuse,ulockmgr}.so*    /usr/lib64/
+    fi
+
+    if    [      -f   /lib/pkgconfig/fuse.pc ]
+    then  mkdir  -v  -p  -m 0755              /usr/lib/pkgconfig
+          mv     -v   /lib/pkgconfig/fuse.pc  /usr/lib/pkgconfig/
+          rmdir  -v   /lib/pkgconfig
     fi
   }
 
@@ -49,4 +57,10 @@ build()  {
   prepare_install       &&
   make    install       &&
   mv_libs
+}
+
+current()  {
+  case  $VERSION  in
+    2.6.3)  [  -f  /usr/lib/pkgconfig/fuse.pc  ]  ;;
+  esac
 }

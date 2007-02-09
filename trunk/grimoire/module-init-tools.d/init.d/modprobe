@@ -1,30 +1,29 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: module-init-tools
+# Provides: modprobe
 # Required-Start:
 # Should-Start: udev
 # Required-Stop:  
 # Default-Start: S
 # Default-Stop:
-# Short-Description: module-init-tools loads modules during boot
-# Description: module-init-tools loads modules during boot
+# Short-Description: modprobe loads modules during boot
+# Description: modprobe loads modules specified in /etc/modules during boot
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 start()  {
   if    [  -f  /etc/modules    ]   &&
-        [  -x  /sbin/depmod    ]   &&
         [  -x  /sbin/modprobe  ]
   then
     log_warning_msg  "Modules about to load"
-    depmod  -a
+#   depmod  -Aa
     while  read  MODULE ARGS;  do
       case  $MODULE in
         \#*|"")  continue  ;;
       esac
-      modprobe  $MODULE  $ARGS
+      modprobe  -v  $MODULE  $ARGS
     done  < /etc/modules
     log_success_msg  "Modules loaded"
   fi
@@ -35,6 +34,6 @@ help()  {
 }
 
 case  $1  in
-         start)  start        ;;
-             *)  help         ;;
+  start)  start  ;;
+      *)  help   ;;
 esac
