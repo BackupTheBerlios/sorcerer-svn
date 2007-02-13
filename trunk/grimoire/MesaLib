@@ -26,13 +26,8 @@ build() {
              LIB="lib"     ;;
   esac
 
-  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/modules/dri" >> configs/${CONFIG_NAME}
-
-  case $VERSION in
-    6.5)  patch  -p1  <  $SCRIPT_DIR/savage-drop-static-inline.patch
-          sed -i  "s:/usr/X11R6/lib:/usr/$LIB:"  src/glx/x11/dri_glx.c  
-          ;;
-  esac
+#  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/modules/dri" >> configs/${CONFIG_NAME}
+  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/dri" >> configs/${CONFIG_NAME}
 
   sed  -ri  "s:/usr/local:/usr:g"  configs/default*
 
@@ -42,7 +37,7 @@ build() {
   cd      progs/xdemos             &&
   make    PROGS='glxinfo glxgears' &&
   cd      ../..                    &&
-  prepare_install        &&  echo   -e  "\n/usr/${LIB}\n\n"  |
+  prepare_install        &&  # echo   -e  "\n/usr/${LIB}\n\n"  |
   make    install        &&
           install_demos  &&
           install_drirc
