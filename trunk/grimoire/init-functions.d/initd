@@ -83,14 +83,16 @@ make_slinks() {
       for LEVEL in  $DEF_START;  do
         RANK=0
         for  REQ  in  $REQ_START;  do
-          PRO="$(  get_provides  "$REQ"  )"
-          for  SYML in $INIT_NEW/rc$LEVEL.d/S?$PRO; do
-            if    [  -h  "$SYML"  ]
-            then     NRANK="${SYML##*/}"
-                     NRANK="${NRANK:1:1}"
-                  (( NRANK++ ))
-              if  (( NRANK > RANK ));  then  RANK=$NRANK;  fi
-            fi
+          PROS="$(  get_provides  "$REQ"  )"
+          for  PRO  in  $PROS;  do
+            for  SYML in $INIT_NEW/rc$LEVEL.d/S?$PRO; do
+              if    [  -h  "$SYML"  ]
+              then     NRANK="${SYML##*/}"
+                       NRANK="${NRANK:1:1}"
+                    (( NRANK++ ))
+                if  (( NRANK > RANK ));  then  RANK=$NRANK;  fi
+              fi
+            done
           done
         done
         ln  -s  /etc/init.d/$SCRIPT  $INIT_NEW/rc$LEVEL.d/S${RANK}${SCRIPT}
