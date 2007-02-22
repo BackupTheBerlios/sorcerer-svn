@@ -1,5 +1,6 @@
+    VERSION=( "0.4.2" "0.4.0-rc2" )
 #   VERSION=( "0.4.2" "0.4.0-rc2" )
-   VERSION=( "0.4.0-rc2" )
+#  VERSION=( "0.4.0-rc2" )
 # 0.4.2 has compile errors
     IGNORE="full\|xvidcore\|rc"
   CATEGORY="video"
@@ -24,6 +25,11 @@ install_headers()  {
   cp  -av  include/gpac  /usr/include/gpac
 }
 
+case  $VERSION  in
+  0.4.2)  sed  -i  "s:wx-config:wxx-config:"  configure  ;;
+# disabling wxWidget support in gpac 0.4.2
+esac
+
 export  CFLAGS="$CFLAGS -fPIC"
 
 sed    -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:
@@ -31,7 +37,8 @@ sed    -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:
 chmod  +x                                     configure
 
 ./configure      \
---prefix=/usr    &&
+--prefix=/usr    \
+$OPTS            &&
 make             &&
 prepare_install  &&
 make    install  &&
