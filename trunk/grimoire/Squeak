@@ -1,12 +1,17 @@
-   VERSION=( "3.7-7" )
-# 3.9 distribution appears incomplete
+# No useful programs to run, no mouse picture at startup?
+# Squeak 3.9-8 appears useless and/or buggy.
+# Perhaps I installed it wrong
+
+   VERSION=( "3.9-8" "3.7-7" )
+  IVERSION=( "3.9-final-7067" )
     IGNORE="powerpc"
   CATEGORY="development/interpreter"
- ATTRIBUTE="new x11"
+ ATTRIBUTE="x11"
     SOURCE=( "unix-linux/Squeak-$VERSION.src.tar.gz"
-             "SqueakV3.sources.gz" )
+             "Squeak${IVERSION}.zip" )
        URL="http://ftp.squeak.org/${VERSION:0:3}/"
-       REQ="MesaLib Squeak-image"
+       REQ="MesaLib"
+  EPROVIDE="Squeak-full Squeak-basic"
   HOMEPAGE="http://squeak.org"
   ESTIMATE="960"
       DESC="Squeak is a SmallTalk Development system.
@@ -22,19 +27,26 @@ To run squeak first copy the Image file from /usr/share/squeak
 to your home directory and call the file squeak.image"
 
 build()  {
-  install_sources()  {
-    mkdir  -m 0755  -p  /usr/lib/squeak/$VERSION
-    gunzip         $SOURCE_CACHE/Squeak/$VERSION/${SOURCE[1]##*/}  >  \
-                        /usr/lib/squeak/$VERSION/SqueakV3.sources
-    chmod  0644         /usr/lib/squeak/$VERSION/SqueakV3.sources
+  image_install()  {
+    cd  ../Squeak${IVERSION}
+    install  -v  -m 0644  *   /usr/lib/squeak/$VERSION/
   }
 
-mkdir  bld
-cd     bld
+  ini_install()  {
+    mv       -v  /usr/bin/squeak  /usr/libexec/squeak
+    install  -v  -m  0755  $SCRIPT_DIR/inisqueak  /usr/bin
+    install  -v  -m  0755  $SCRIPT_DIR/inisqueak  /usr/bin/squeak
+  }
+
+[  -d  Squeak${IVERSION}  ]  &&
+[  -d  platforms          ]  &&
+mkdir  bld  &&
+cd     bld  &&
 ../platforms/unix/config/configure  \
 --prefix=/usr    &&
 make             &&
 prepare_install  &&
 make    install  &&
-        install_sources
+  image_install  &&
+    ini_install
 }
