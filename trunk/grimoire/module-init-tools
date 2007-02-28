@@ -1,75 +1,36 @@
    VERSION=( "3.2.2" "3.2.1" "3.1" "3.0" )
     IGNORE="pre"
- MUVERSION=( "2.4.27" "2.4.26" )
   CATEGORY="kernel"
  ATTRIBUTE="console"
-    SOURCE=( "/pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2"
-             "/pub/linux/utils/kernel/modutils/v2.4/modutils-$MUVERSION.tar.bz2" )
+    SOURCE="/pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
   HOMEPAGE="ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ"
-       REQ=( "bison flex init-functions"
-             ":--enable-modutils::Enable loading modules on older linux 2.4.x kernels" )
+       REQ="bison flex init-functions"
    EXCLUDE="/etc/modprobe.conf
             /etc/modules
             /etc/modules.conf"
   EPROVIDE="linux-module-tools"
-#FRESHMEAT="module-init-tools"
   ESTIMATE="183"
-      DESC="module-init-tools provides modules utilities for linux 2.6.x"
-
-if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
-case  $MUVERSION  in
-  2.4.27)  GCC_VER=$( installed_version  gcc  )
-           if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ]
-           then  REQ="$REQ gcc-v3.4"
-           fi  ;;
-esac
-fi
+      DESC="module-init-tools provides modules utilities for linux 2.6.x and later kernels"
 
 build() {
 
-if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
-case  $MUVERSION  in
-  2.4.27)  if    !  [  ${GCC_VER:0:3}  ==  "3.4"  ];  then
-           GCC3_VER=$( installed_version gcc-v3.4 )
-           export  PATH="${PATH/gcc\/current/gcc/$GCC3_VER}"
-           export  CCACHE_PATH="/opt/gcc/$GCC3_VER/bin"
-           fi  ;;
-esac
-fi
-
-install_conf()  {
-mkdir  -p  /etc/modules.d
-touch      /etc/modules  /etc/modprobe.conf
+conf_install()  {
+  mkdir  -p  /etc/modules.d
+  touch      /etc/modules  /etc/modprobe.conf
 }
 
 sed  -i  "s:share/man/man:man/man:"  Makefile.in
 
-case  $VERSION  in
- 3.1)  touch *.5 *.8 ;;
-esac
 
-if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
-cd  modutils-$MUVERSION      &&
-./configure                  \
---build=$BUILD               &&
-make                         &&
-cd      ..
-fi                          &&
-./configure                  \
---build=$BUILD               \
---prefix=/                   \
---sysconfdir=/etc            \
---localstatedir=/var         \
-$OPTS                        &&
-make                         &&
-prepare_install              &&
-if  echo  "$OPTS"  |  grep  -q  "enable-modutils";  then
-cd      modutils-$MUVERSION  &&
-make    install              &&
-cd      ..                   &&
-make    moveold
-fi                           &&
-make    install              &&
-install_conf
+./configure           \
+--build=$BUILD        \
+--prefix=/            \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
+make    install       &&
+   conf_install
 }
