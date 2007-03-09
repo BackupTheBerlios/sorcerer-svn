@@ -18,7 +18,9 @@
 PIDF=/var/run/dbus/pid
 SERV=/usr/bin/dbus-daemon
 NAME=dbus-daemon
-
+MAID=/var/lib/dbus/machine-id
+ VLS=/var/lock/subsys
+VLSM=/var/lock/subsys/messagebus
 
 status()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -30,17 +32,20 @@ status()  {
 
 
 start()  {
-  status  &>/dev/null
-  if    (( $? == 1  ))
-  then  rm  -f  $PIDF
-  fi
+  local  STATUS
   log_warning_msg  "$NAME about to start"
-  [      -d  /var/run/dbus  ]  ||
-  mkdir  -p  /var/run/dbus
-  if    start_daemon     -p $PIDF $SERV --system
-  then  [             -d /var/lock/subsys  ]  ||
-        mkdir         -p /var/lock/subsys
-        touch            /var/lock/subsys/messagebus
+  status  &>/dev/null
+  STATUS=$?
+  if    (( STAUTS == 3 ))  &&  [  -f  $MAID  ];  then  rm  -f  $MAID
+  elif  (( STATUS == 1 ));                       then  rm  -f  $PIDF
+  elif  (( STATUS == 0 ));                       then  status; exit 1
+  fi
+  [  -d  /var/run/dbus             ]  ||  mkdir  -p  /var/run/dbus
+  [  -d  /var/lib/dbus             ]  ||  mkdir  -p  /var/lib/dbus
+  [  -d  $VLS                      ]  ||  mkdir  -p  $VLS
+  if    start_daemon  -p $PIDF $SERV --system
+  then  dbus-uuidgen  --ensure
+        echo  -n  ""  >  $VLSM
         log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
@@ -50,9 +55,8 @@ start()  {
 
 stop()  {
   log_warning_msg "$NAME about to stop"
-  if    killproc        -p $PIDF -s 15  $SERV
-  then  rm -f /var/lock/subsys/messagebus
-        rm -f /var/run/dbus/pid
+  if    killproc  -p $PIDF -s 15  $SERV
+  then  rm        -f $PIDF $VLSM $MAID
   log_success_msg "$NAME stopped"
   else  log_failure_msg "$NAME not stopped"
         status
