@@ -3,7 +3,7 @@
 inherit xorg
     SOURCE="extras/libxcb-$VERSION.tar.bz2"
        REQ="libXau libXdmcp libpthread-stubs libxslt xcb-proto"
-  ESTIMATE="1490"
+  ESTIMATE="1440"
       DESC="libxcb provides the X protocol C-language Binding
 xcb is a replacement for Xlib.
 It has a small footprint,
@@ -12,21 +12,15 @@ direct access to the protocol,
 improved threading support,
 and extensibility."
 
-case  $VERSION  in
-  1.0)  SOURCE[1]="libxcb_1.0-1.1.diff.gz"
-           URL[1]="http://ftp.debian.org/debian/pool/main/libx/libxcb/"  ;;
-esac
-
 build()  {
   case  $VERSION  in
-    1.0)  gzip   -cd  $SOURCE_CACHE/libxcb/$VERSION/${SOURCE[1]}  |
-          patch  -p1  ;;
+    1.0)  patch -p1  <  $SCRIPT_DIR/libxcb-1.0.patch  ;;
   esac
   default_build
 }
 
 current()  {
   case  $VERSION  in
-    1.0)  grep  -qx  "patching file src/xcb_util.c"  $COMPILE_LOGS/libxcb  ;;
+    1.0)  grep  -qx  "patching file src/xcb_conn.c"  $COMPILE_LOGS/libxcb  ;;
   esac
 }
