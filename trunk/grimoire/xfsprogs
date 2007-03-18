@@ -1,35 +1,15 @@
-   VERSION=( "2.8.18-1" "2.8.16-1" "2.8.15-1" "2.8.11-1" "2.8.10-1" "2.8.4-1" "2.8.3-1" "2.7.11" "2.7.10" )
+   VERSION=( "2.8.18-1" "2.8.16-1" "2.8.15-1" "2.8.11-1" "2.8.10-1" "2.8.4-1" "2.8.3-1" )
   CATEGORY="disk/file-system"
  ATTRIBUTE="console"
     SOURCE="xfsprogs_$VERSION.tar.gz"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars/"
   HOMEPAGE="http://oss.sgi.com/projects/xfs/"
-case  $VERSION  in
-  2.7.11)  USE_GCC="gcc-v3.4"  ;;
-esac
        REQ="e2fsprogs"
   ESTIMATE="880"
       DESC="xfsprogs contains the required utilities for the XFS file system."
 
 build()  {
 build_old()  {
-
-  patch_progs()  {
-    local  LVER
-    LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
-    if    !  [  "${LVER:0:3}"  ==  "2.4"  ];  then
-      sed  -i  "s:sizeof(__uint64_t):size_t:
-                s:sizeof(int):size_t:"        libxfs/linux.c
-    fi
-  }
-
-  case  $VERSION  in
-    2.5.6)  patch_progs  ;;
-  esac
-
-  case  $VERSION  in
-    2.7.11)  autoconf  ;;
-  esac
 
   ./configure          \
   --prefix=/usr        \
