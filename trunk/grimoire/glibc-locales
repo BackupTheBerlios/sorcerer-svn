@@ -76,11 +76,30 @@ build() {
   }
 
 
+  tmp_locale_archive()  {
+    local  TMP=/tmp/locale.$RANDOM$RANDOM
+    local  DIR=$TMP/usr/lib/locale
+
+    mkdir  -p  $DIR
+    echo  "$LOCALES"  |
+    tr    '/'  ' '    |
+    while  read        NAME  CHARMAP;  do
+      echo       -n  "$NAME.$CHARMAP..."
+      localedef  -i   $NAME  -c  -f $CHARMAP  --prefix=$TMP  $NAME
+      echo           " done"
+    done
+    mv  $DIR/locale-archive  /usr/lib/locale
+    rm  -rf  $TMP
+  }
+
   prepare_install
   rm     -rf  /usr/lib/locale
   mkdir  -p   /usr/lib/locale
-  if    grep -q  "fuse.gunzip /usr" /proc/mounts
-  then  use_locale_dir
-  else  use_locale_archive
-  fi
+  tmp_locale_archive
+
+#   if    grep -q  "fuse.gunzip /usr" /proc/mounts
+#   then  use_locale_dir
+#   else  use_locale_archive
+#   fi
+
 }
