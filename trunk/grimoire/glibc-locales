@@ -6,11 +6,19 @@ unset  SOURCE  URL  REQ
       DESC="glibc-locales provides locale databases for translating messages."
 
 configure() {
+
 locales_checklist()  { 
-  cat  $SCRIPT_DIR/locales  |
-  while  read  LC  DESCRIPTION;  do
-    echo  "$LC"
-    echo  "$DESCRIPTION"
+  if    [  -f      /usr/share/i18n/SUPPORTED  ]
+  then  cat        /usr/share/i18n/SUPPORTED
+  else  cat            $SCRIPT_DIR/SUPPORTED
+  fi  |  grep  "/"  |  cut  -d ' '  -f1  |
+  while  read;  do
+#   CHARMAP="${REPLY##*/}"
+       NAME="${REPLY%/*}"
+     SOURCE="${NAME%.*}"
+
+    echo  "$REPLY"
+    grep  "title "  /usr/share/i18n/locales/$SOURCE  |  cut -d '"' -f2
     echo  "off"
   done
 }
@@ -33,59 +41,36 @@ If none are selected then all will be installed."
           $(  locales_checklist  )
 }
 
- if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null;  then
-  (
-  export  IFS=$'	\n'
-  if    query  "Select individual locales?"  n
-  then  LOCALES="$(  select_locales  )"
+  if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null;  then
+    (
+      export  IFS=$'	\n'
+      if    query  "Select individual locales?"  n
+      then         LOCALES="$(  select_locales  )"
+      else  unset  LOCALES
+      fi
+      echo    "LOCALES=\"$LOCALES\""      >  $SPELL_CONFIG
+    )
   fi
-
-  ALL_LOCALES="$(  cat  $SCRIPT_DIR/locales  |  cut  -f1  )"
-  if    [  -n  "$LOCALES"  ]
-  then  echo    "LOCALES=\"$LOCALES\""      >  $SPELL_CONFIG
-  else  echo    "LOCALES=\"$ALL_LOCALES\""  >  $SPELL_CONFIG
-  fi
-  )
- fi
 }
 
 build() {
-  use_locale_archive()  {
-    echo  "$LOCALES"  |
-    tr    '/'  ' '    |
-    while  read        NAME  CHARMAP;  do
-      echo       -n  "$NAME.$CHARMAP..."
-      localedef  -i   $NAME  -c  -f $CHARMAP  $NAME
-      echo           " done"
-    done
-    touch  /usr/lib/locale/locale-archive
-  }
-
-  use_locale_dir()  {
-    local  TMP=/tmp/locale.$RANDOM$RANDOM
-    echo  "$LOCALES"  |
-    tr    '/'  ' '    |
-    while  read        NAME  CHARMAP;  do
-      echo       -n  "$NAME.$CHARMAP..."
-      mkdir  -p                               $TMP/$NAME
-      localedef  -i   $NAME  -c  -f $CHARMAP  $TMP/$NAME
-      echo           " done"
-    done
-    cp  -a   $TMP/*  /usr/lib/locale
-    rm  -rf  $TMP
-  }
-
-
   tmp_locale_archive()  {
     local  TMP=/tmp/locale.$RANDOM$RANDOM
     local  DIR=$TMP/usr/lib/locale
+    local  SUPPORTED="/usr/share/i18n/SUPPORTED"
 
     mkdir  -p  $DIR
-    echo  "$LOCALES"  |
-    tr    '/'  ' '    |
-    while  read        NAME  CHARMAP;  do
-      echo       -n  "$NAME.$CHARMAP..."
-      localedef  -i   $NAME  -c  -f $CHARMAP  --prefix=$TMP  $NAME
+
+      if  [  -n  "$LOCALES"             ];  then  echo  "$LOCALES"
+    elif  [  -f             $SUPPORTED  ];  then  cat              $SUPPORTED
+    elif  [  -f  $SCRIPT_DIR/SUPPORTED  ];  then  cat   $SCRIPT_DIR/SUPPORTED
+    fi  |  grep  "/"  |  cut  -d ' '  -f1  |
+    while  read;  do
+      CHARMAP="${REPLY##*/}"
+         NAME="${REPLY%/*}"
+       SOURCE="${NAME%.*}"
+      echo       -n  "$NAME..."
+      localedef  -i $SOURCE  -c  -f $CHARMAP  --prefix=$TMP  $NAME
       echo           " done"
     done
     mv  $DIR/locale-archive  /usr/lib/locale
@@ -96,10 +81,4 @@ build() {
   rm     -rf  /usr/lib/locale
   mkdir  -p   /usr/lib/locale
   tmp_locale_archive
-
-#   if    grep -q  "fuse.gunzip /usr" /proc/mounts
-#   then  use_locale_dir
-#   else  use_locale_archive
-#   fi
-
 }
