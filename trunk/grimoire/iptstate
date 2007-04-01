@@ -1,12 +1,18 @@
-   VERSION=( "2.1" )
+   VERSION=( "2.2.1" "2.2" "2.1" )
+  LVERSION="2.6.20.4"
   CATEGORY="network/security utility"
  ATTRIBUTE="console new"
-    SOURCE="$SPELL-$VERSION.tar.bz2"
-       URL="http://www.phildev.net/iptstate/"
+    SOURCE=( "iptstate/iptstate-$VERSION.tar.bz2"
+             "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
+       URL=( "$SOURCEFORGE_URL"
+             "$KERNEL_URL" )
+
+#     VURL="http://www.phildev.net/iptstate/download.shtml"
+#      URL="http://www.phildev.net/iptstate/"
   HOMEPAGE="http://www.phildev.net/iptstate/"
-       REQ="ncurses"
+       REQ="libnetfilter_conntrack ncurses"
   ESTIMATE="24"
-      DESC="$SPELL is a state top for iptables
+      DESC="iptstate is a state top for iptables
 IP Tables State (iptstate) was originally written to implement
 the 'state top' feature of IP Filter in IP Tables. 
 State top displays the states held by your stateful
@@ -23,11 +29,17 @@ Features include:
   - Display filtering
   - Color-coding
   - Open Source (specifically I'm using the zlib license)
-  - much more...
-"
+  - much more..."
 
 build() {
-  make			&&
-  prepare_install	&&
+#  cd  linux-$LVERSION
+#  make                include/linux/version.h
+#  make                include/asm
+#  export    CFLAGS="-I$PWD/include $CFLAGS"
+#  export  CXXFLAGS="-I$PWD/include $CXXFLAGS"
+#  cd  ..
+
+  make  &&
+  prepare_install  &&
   make    install
 }
