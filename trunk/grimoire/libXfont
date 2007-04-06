@@ -6,3 +6,25 @@ inherit xorg
        REQ="fontcacheproto fontsproto freetype libfontenc"
   ESTIMATE="930"
       DESC="libXfont provides libraries required by X11R7"
+
+case  $VERSION  in
+  X11R7.2-1.2.7)       SAFE=( "X11R7.2-1.2.7" )
+                  SOURCE[1]="xorg-libXfont-1.2.7-bdf-fontdir.diff"  ;;
+  1.2.7)               SAFE=( "1.2.7" )
+                  SOURCE[1]="xorg-libXfont-1.2.7-bdf-fontdir.diff"  ;;
+esac
+
+build()  {
+case  $VERSION  in
+  X11R7.2-1.2.7)  patch  -p1  <  $SOURCE_CACHE/libXfont/$VERSION/${SOURCE[1]}  ;;
+          1.2.7)  patch  -p1  <  $SOURCE_CACHE/libXfont/$VERSION/${SOURCE[1]}  ;;
+esac
+default_build
+}
+
+current() {
+case  $VERSION  in
+          1.2.7)  grep  -qx  "patching file src/fontfile/fontdir.c"  $COMPILE_LOGS/libXfont  ;;
+  X11R7.2-1.2.7)  grep  -qx  "patching file src/fontfile/fontdir.c"  $COMPILE_LOGS/libXfont  ;;
+esac
+}
