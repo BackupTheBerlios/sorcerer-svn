@@ -86,6 +86,15 @@ fix_config()  {
  sed  -i  "s:/usr/lib/seamonkey-[^ ]*:/usr/lib/seamonkey:g"  /usr/bin/seamonkey-config
 }
 
+# The firefox/mozilla/seamonkey tarball package does not install 
+# the nss includes as it should. This annoying problem seems to 
+# be well known and worked around by packagers
+install_security() {
+ local       NSS_DIR=/usr/include/seamonkey/nss
+ mkdir  -p  $NSS_DIR
+ cp     -fv $BUILD_DIR/dist/{private,public}/nss/*.h  \
+            $NSS_DIR
+}
 
   IVERSION=$(  installed_version  $SPELL  )
 
@@ -176,7 +185,8 @@ EOF
   prepare_install     &&
   make    install     &&
   install_symlinks    &&
-  fix_config
+  fix_config          &&
+  install_security
 }
 
 
