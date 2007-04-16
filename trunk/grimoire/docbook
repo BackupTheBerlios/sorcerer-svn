@@ -1,0 +1,116 @@
+   VERSION=( "4.x" )
+  CATEGORY="documentation profile"
+ ATTRIBUTE="data"
+       URL="http://www.docbook.org/"
+  HOMEPAGE="http://www.docbook.org/"
+       REQ="libxslt unzip"
+   PROTECT="/etc/xml"
+  ESTIMATE="5"
+      DESC="$SPELL docbook standards."
+
+case  ${SPELL:8:3}  in
+  sgm)  VERSION="${SPELL:13:5}"  ;;
+  xml)  VERSION="${SPELL:12:5}"  ;;
+  xsl)  VERSION="${SPELL:12:6}"  ;;
+esac
+
+case  ${SPELL:8:9}  in
+   sgml-4.1)    SOURCE="sgml/$VERSION/docbk41.zip"  ;;
+   sgml-*)      SOURCE="sgml/$VERSION/docbook-$VERSION.zip"  ;;
+    xml-4.1.2)  SOURCE="xml/$VERSION/docbkx412.zip"  ;;
+    xml-*)      SOURCE="xml/$VERSION/docbook-xml-$VERSION.zip"  ;;
+    xsl-*)      SOURCE="docbook/docbook-xsl-$VERSION.tar.bz2"
+                   URL="$SOURCEFORGE_URL"  ;;
+        *)   ATTRIBUTE="data profile"
+                   REQ=( "libxslt unzip"
+                         "docbook-xml-4.5:::for XML DTD"
+                         "docbook-sgml-4.5:::for SGML DTD"
+                         "docbook-xml-4.4:::for XML DTD"
+                         "docbook-sgml-4.4:::for SGML DTD"
+                         "docbook-xml-4.3:::for XML DTD"
+                         "docbook-sgml-4.3:::for SGML DTD"
+                         "docbook-xml-4.2:::for XML DTD"
+                         "docbook-sgml-4.2:::for SGML DTD" )  ;;
+#                         "docbook-xml-4.1.2:::for XML DTD"
+#                         "docbook-sgml-4.1:::for SGML DTD" )  ;;
+esac
+
+
+build()  {
+  local   WHAT="$( echo "$SPELL" | cut -d '-' -f2  )"
+  local  WHERE=/usr/share/xml/docbook/$WHAT/$VERSION
+
+  if !  [ -f catalog.xml  ]  &&
+        [ -f docbook.cat  ];  then
+    xmlcatalog --noout --create catalog.xml
+    grep  PUBLIC  docbook.cat  |
+    sed  "s: \":\t:g"          |
+    tr   -d  '"'               |
+    while  IFS="$TAB$ENTER"  read  PUB    ORIG    REPLACE
+    do  xmlcatalog -noout -add "public" "$ORIG" "$REPLACE" catalog.xml
+    done
+  fi
+
+  if  [  -f catalog.xml  ];  then
+    local  URI="http://www.oasis-open.org/docbook/$WHAT/$VERSION"
+    sed  -i  "s,uri=\",uri=\"file://$WHERE/,"                       catalog.xml
+    xmlcatalog --noout --add "rewriteSystem" "$URI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteURI"    "$URI" "file://$WHERE" catalog.xml
+  fi
+
+  if  [  "${SPELL:0:11}"  ==  "docbook-xsl"  ];  then
+    local  URI="http://docbook.sourceforge.net/release/xsl/$version"
+    local  CRI="http://docbook.sourceforge.net/release/xsl/current"
+    rm         -f                                                   catalog.xml
+    xmlcatalog --noout --create                                     catalog.xml
+    xmlcatalog --noout --add "rewriteSystem" "$CRI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteSystem" "$URI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteURI"    "$CRI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteURI"    "$URI" "file://$WHERE" catalog.xml
+  fi
+
+  prepare_install            &&
+  mkdir  -m 0755  -p $WHERE  &&
+  cp     -rv  *      $WHERE
+}
+
+
+post_install()  {
+create_root_catalog()  {
+  local  ROOTCATALOG=/etc/xml/catalog
+  local  CATALOG=/etc/xml/docbook
+  local  WHERE="file://$CATALOG"
+  local   ORUL="http://www.oasis-open.org/docbook/"
+  local    XCP="--noout --add"
+
+  mkdir  -m 0755  -p  /etc/xml
+  if  !  [  -f  $ROOTCATALOG ];  then
+    xmlcatalog --noout --create $ROOTCATALOG
+    xmlcatalog $XCP "delegatePublic" "-//OASIS//ENTITIES DocBook XML"  "$WHERE" $ROOTCATALOG
+    xmlcatalog $XCP "delegatePublic" "-//OASIS//DTD DocBook XML"       "$WHERE" $ROOTCATALOG
+    xmlcatalog $XCP "delegateSystem" "$OURL"         "$WHERE" $ROOTCATALOG
+    xmlcatalog $XCP "delegateURI"    "$OURL"         "$WHERE" $ROOTCATALOG
+    xmlcatalog $XCP "delegatePublic" "ISO 8879:1986" "$WHERE" $ROOTCATALOG
+  fi
+}
+
+
+update_docbook_catalog()  {
+  local  CATALOG=/etc/xml/docbook
+
+  mkdir  -m 0755  -p  /etc/xml
+  rm              -f  /etc/xml/docbook
+  xmlcatalog --noout --create  $CATALOG
+  sed   -i  "s:/>:>:"          $CATALOG
+  grep  -v  "xml version\|catalog xmlns\|/catalog"     \
+               /usr/share/xml/docbook/*/*/catalog.xml  |
+  tr    -d   '\n'          |
+  sed   "s:>:>\n:g"        |
+  sed   "s: *uri=: uri=:"  |
+  grep  -v  "<\!--"  >>  $CATALOG
+  echo "</catalog>"  >>  $CATALOG
+}
+
+  update_docbook_catalog
+  create_root_catalog
+}

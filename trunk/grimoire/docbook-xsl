@@ -1,14 +1,39 @@
-   VERSION=( "1.48" )
+   VERSION=( "1.72.0" "1.48" )
   CATEGORY="documentation"
  ATTRIBUTE="data"
-    SOURCE="docbook-xsl-$VERSION.tgz"
-       URL="http://scrollkeeper.sourceforge.net/data/"
-  HOMEPAGE="http://www.oasis-open.org/"
-       REQ=""
+    SOURCE="docbook/docbook-xsl-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE="http://docbook.sourceforge.net/"
+
+#   SOURCE="docbook-xsl-$VERSION.tgz"
+#      URL="http://scrollkeeper.sourceforge.net/data/"
+# HOMEPAGE="http://www.oasis-open.org/"
+       REQ="libxml2"
   ESTIMATE="30"
       DESC="docbook-xsl provides XSL stylesheets"
 
 build()  {
+  make_install()  {
+    local  WHERE="/usr/share/xml/docbook/xsl/$VERSION"
+    local    URI="http://docbook.sourceforge.net/release/xsl/$version"
+    local    CRI="http://docbook.sourceforge.net/release/xsl/current"
+
+    xmlcatalog --noout --create catalog.xml
+    xmlcatalog --noout --add "rewriteSystem" "$URI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteURI"    "$URI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteSystem" "$CRI" "file://$WHERE" catalog.xml
+    xmlcatalog --noout --add "rewriteURI"    "$CRI" "file://$WHERE" catalog.xml
+
+    mkdir  -p      $WHERE
+    cp     -rv  *  $WHERE
+  }
+
+  prepare_install  &&
+     make_install
+}
+
+
+build_old()  {
   prepare_install  &&
   make    install
 }
