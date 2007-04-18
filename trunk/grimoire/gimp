@@ -1,4 +1,4 @@
-   VERSION=( "2.2.14" "2.2.13" "2.2.12" "2.2.11" "2.2.10" "2.2.9" "2.2.8" "2.2.7" "2.2.6" )
+   VERSION=( "2.2.14" "2.2.13" "2.2.12" )
       SAFE=( "2.2.14" "2.2.13" "2.2.12" )
   CATEGORY="graphic/viewer graphic/editor"
  ATTRIBUTE="x11"
@@ -48,10 +48,12 @@
 #case  $VERSION  in
 #  2.2.11)  USE_LINUX="linux-headers-v2.6.15.6"  ;;
 #esac
-       REQ=( "fontconfig libexif libgnomecanvas libgtkhtml libmng librsvg"
+       REQ=( "fontconfig libXpm libexif libart_lgpl libgtkhtml libmng librsvg"
+             "alsa-lib::: for midi controller input module to support alsa"
+             "libwmf:::for plugin to convert wmf files"
              "perl::--disable-perl:for perl modules and plugins" )
 #            "gnome-libs:::for gnome support"
-  ESTIMATE="8230"
+  ESTIMATE="7880"
  FRESHMEAT="thegimp"
       DESC="gimp is the GNU Image Manipulation Program.
 It is a freely distributed piece of software 
@@ -61,7 +63,9 @@ It can be used as a simple paint program,
 an expert quality photo retouching program, 
 an online batch processing system, 
 a mass production image renderer, 
-a image format converter, etc."
+a image format converter, etc.
+
+To print from gimp cast gutenprint."
 
 build() {
   OF="/opt/fontconfig"
@@ -74,21 +78,15 @@ export               CC="gcc  -I$OFI"
 export          LDFLAGS="-L$OFL  -Wl,-rpath,$OFL  -Wl,-rpath-link,$OFL  $LDFLAGS"
 OPTS="$OPTS --disable-print"
 
-case $VERSION in
- 2.2.11)  patch -p1 < $SCRIPT_DIR/png.patch  ;;
-esac
-
 default_build
 }
 
 
 post_install()  {
-GP=$(  get_provider  gutenprint  )
+local  GP=$(  get_provider  gutenprint  )
 
-if     spell_installed  $GP  &&
-    !  grep   -q   "GIMP plugin... yes"  $COMPILE_LOGS/$GP
-then   # unlock_cast
-       # cast  $GP
-       touch  $CAST_QUEUE/$GP
+if     spell_installed           $GP  &&
+       !  [  -f      $CAST_QUEUE/$GP  ]
+then   echo  com  >  $CAST_QUEUE/$GP
 fi
 }
