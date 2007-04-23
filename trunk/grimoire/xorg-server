@@ -61,7 +61,10 @@ build()  {
   OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
 
   case  $VERSION  in
-    X11R7.2-1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
+    X11R7.2-1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]} 
+                    # Fix a makefile for configure adds libdl to elements to be built
+                    # This was encountered on x86_64 but the fix should be harmless anywhere
+                    sed -i "789i-ldl:\n\t:" hw/xfree86/Makefile.in ;;
             1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
     X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}
                     patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[3]}  ;;
