@@ -1,0 +1,38 @@
+# Template for networks 
+
+restore_resolv_conf()  {
+  if    [    -f  /etc/resolv.conf.${0##*/}  ]
+  then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
+        { cp       /etc/resolv.conf.${0##*/}  /var/run/resolv.conf;
+          [ -f /etc/resolv.conf.default ] || cp  /etc/resolv.conf /etc/resolv.conf.default
+          ln -sf /var/run/resolv.conf /etc/resolv.conf
+        }
+  fi
+}
+
+test_dns() {
+  local  NS=$(  grep   "nameserver"  /etc/resolv.conf  |
+                sed  "s/nameserver//;s/#.*$//"  )
+  if    [  -n  "$NS"      ]  &&
+        [  -x  /bin/nmap  ]
+  then         /bin/nmap  -n  -p 53  $NS  |  grep  -q  "open.*domain"
+  fi
+}
+
+verify_connection()  {
+  restore_resolv_conf  &&
+  test_dns
+}
+
+start()  {
+  #/etc/networks.d/links/eth-static start &&
+  #/etc/networks.d/links/pppoe  start    &&
+  verify_connection
+}
+
+stop()  { 
+  #/etc/networks.d/links/pppoe   stop   &&
+  #/etc/networks.d/links/eth-static stop   
+}
+
+$1

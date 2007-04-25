@@ -7,27 +7,12 @@ MODE="Managed"			# Required
 ESSID="any"			# Required
 AP=				# Optional address of the Access Point
 
-IP=				# Required
-NETMASK=			# Optional
+IP=				# Required in format ip/netmask for example 192.168.0.1/24
+IPV6=     # Optional
+IPV6_GATEWAY=  # Optional
 GATEWAY=			# Good idea
 BROADCAST=			# Optional
 MODULE=				# Optional
-
-restore_resolv_conf()  {
-  if    [    -f  /etc/resolv.conf.${0##*/}  ]
-  then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
-        cp       /etc/resolv.conf.${0##*/}  /etc/resolv.conf
-  fi
-}
-
-test_dns() {
-  local  NS=$(  grep   "nameserver"  /etc/resolv.conf  |
-                sed  "s/nameserver//;s/#.*$//"  )
-  if    [  -n  "$NS"      ]  &&
-        [  -x  /bin/nmap  ]
-  then         /bin/nmap  -n  -p 53  $NS  |  grep  -q  "open.*domain"
-  fi
-}
 
 verify_connection()  {
   carrier()  {
@@ -43,9 +28,7 @@ verify_connection()  {
   do     sleep 0.1
   done
 
-  carrier              &&
-  restore_resolv_conf  &&
-  test_dns
+  carrier  
 }
 
 start()  {
@@ -59,14 +42,21 @@ start()  {
   [  -n  "$AP"         ]  &&  iwconfig $INTERFACE ap    "$AP"	\
                           ||  iwconfig $INTERFACE ap    off
 
-                              ifconfig $INTERFACE $IP
-  [  -n  "$BROADCAST"  ]  &&  ifconfig $INTERFACE broadcast $BROADCAST 
-  [  -n  "$NETMASK"    ]  &&  ifconfig $INTERFACE netmask $NETMASK
-  [  -n  "$GATEWAY"    ]  &&  route add default gateway $GATEWAY
+  IP_CMD="ip addr replace $IP "
+  [  -n  "$BROADCAST"  ]  &&  IP_CMD="$IP_CMD broadcast $BROADCAST "
+  IP_CMD="$IP_CMD dev $INTERFACE"
 
+  $IP_CMD
+ 
+  [  -n  "$GATEWAY"    ]  &&  ip route add to default via $GATEWAY
+
+  [ -n "$IPV6" ] && ip -6 addr replace $IP dev $INTERFACE
+  [  -n  "$IPV6_GATEWAY"    ]  &&  ip -6 route add to default via $IPV6_GATEWAY
+
+  ip link set $INTERFACE  up
   verify_connection
 }
 
-stop()  {  ifconfig   $INTERFACE  down;  }
+stop()  {  ip link set $INTERFACE  down;  }
 
 $1

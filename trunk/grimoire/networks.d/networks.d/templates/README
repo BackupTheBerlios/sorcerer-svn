@@ -1,8 +1,20 @@
 This directory holds templates for network configurations.
-Select the template or templates that
-best describe the networking connections.
-Copy template files to /etc/networks.d/
-Edit the files in      /etc/networks.d/
+
+there is 2 kinds of templates :
+link templates located in link subdir
+network template 
+
+copy a network template to /etc/networks.d/
+edit it to have the required links started/stoped according the rule
+of the network
+for example you can have
+/etc/networks.d/home
+/etc/networks.d/work
+
+Select the template or templates in link subdir that
+best describe the links in the networking connections.
+Copy and rename template files to /etc/networks.d/links
+Edit the files in      /etc/networks.d/links
 Finally, start the network with
 # bash /etc/init.d/networks start
 
@@ -12,25 +24,26 @@ the execution of /etc/init.d/networks start
 is determined by the order of the filenames in /etc/networks.d/
 For example if the files are named:
 
-00-eth0-dhcp
-01-wlan0-dhcp
+00-work
+01-home
 
 Upon bash /etc/init.d/networks start
-00-eth0-dhcp  would be attempted first and if unsuccessful
-01-wlan0-dhcp would be attempted.
+00-work would be attempted first and if unsuccessful
+01-home would be attempted.
 
 
 	Notes about DNS and resolver configuration files.
 
 Optionally, each network connections can have their own /etc/resolv.conf
 The naming of that file follows this pattern.
+the /etc/resolv.conf is a link to /var/run/resolv.conf
 
 Network config file	->	resolv.conf name
-00-eth0-dhcp		->	/etc/resolv.conf.00-eth0-dhcp
-01-wlan-dhcp		->	/etc/resolv.conf.01-wlan-dhcp
+00-work             ->	/etc/resolv.conf.00-work
+01-home             ->	/etc/resolv.conf.01-home
 
 If the /etc/resolv.conf.$network_config exists
-then it is copied to /etc/resolv.conf
+then it is copied to /var/run/resolv.conf
 when attempting to connect to that network
 
 Rarely, will this be used.

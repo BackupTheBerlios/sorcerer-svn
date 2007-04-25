@@ -9,22 +9,6 @@ ESSID=				# Optional (default is any)
 AP=				# Optional address of the Access Point
 DHCP_OPTS="-d -N"               # Optional
 
-restore_resolv_conf()  {
-  if    [    -f  /etc/resolv.conf.${0##*/}  ]
-  then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
-        cp       /etc/resolv.conf.${0##*/}  /etc/resolv.conf
-  fi
-}
-
-test_dns() {
-  local  NS=$(  grep   "nameserver"  /etc/resolv.conf  |
-                sed  "s/nameserver//"  )
-  if    [  -n  "$NS"  ]  &&
-        which  nmap  &>/dev/null
-  then         nmap  -n  -p 53  $NS  |  grep  -q  "open.*domain"
-  fi
-}
-
 verify_connection()  {
   carrier()  {
     local  REPLY
@@ -39,9 +23,7 @@ verify_connection()  {
   do     sleep 0.1
   done
 
-  carrier              &&
-  restore_resolv_conf  &&
-  test_dns
+  carrier 
 }
 
 start()  {
