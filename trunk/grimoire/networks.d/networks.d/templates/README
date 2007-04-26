@@ -1,23 +1,56 @@
 This directory holds templates for network configurations.
 
-there is 2 kinds of templates :
-link templates located in link subdir
-network template 
+=======================IMPORTANT==============================
+sorcerer network configuration is devided into 2 concepts :
+-  the concept of links : a link is a physical link that is part of a 
+   network (ethernet, ppp, pppoe, wlan....)
+- the concept of network that is an agregation of links ran into proper order
 
-copy a network template to /etc/networks.d/
-edit it to have the required links started/stoped according the rule
-of the network
-for example you can have
-/etc/networks.d/home
-/etc/networks.d/work
+for example a home network might require ethernet then pppoe then ipv6tunnel links
+to be started in that order 
 
-Select the template or templates in link subdir that
-best describe the links in the networking connections.
-Copy and rename template files to /etc/networks.d/links
-Edit the files in      /etc/networks.d/links
-Finally, start the network with
+for this a network template is provided in /etc/networks.d/templates and links
+templates are found in /etc/networks.d/templates/links
+
+======================INSTALLATION=============================
+copy a network template to /etc/networks.d/ with a name best describing
+the network
+
+copy the associated links to /etc/networks.d/links with appropriate names
+you find templates into /etc/networks.d/templates/links
+
+note1 : if your network has only one link you can copy the link directly into
+       /etc/networks.d/
+
+note2 : if you have several networks, copy several network templates (note1
+        still apply) into /etc/networks.d/, each network will be brougth 
+        up in alphabetical order until first success (see section misc info)
+
+
+=====================configuration============================
+take your favorite editor
+
+if you used single link method of note1 then simply edit this files
+
+if you used multilink method :
+     -  edit the network template to have it launch the links in the
+        order you need (see note3)
+     -  edit and configure each link that you copied into /etc/networks.d/links
+
+if you used multiple network of note2 : redo previous step for each networks
+
+note3 : if you look into start function of network template you will see
+        commented lines with eth-static and pppoe. Modify thoses lines 
+        according to the links you need to bring on for this network. You 
+        might also see that pppoe will only be brought up if eth-static 
+        has successfully started (the && at end of line means continue on
+        success)
+
+======================starting================================
 # bash /etc/init.d/networks start
 
+
+=========================misc info===========================
 A box can be configured for more than one network.
 The order in which network connections are attempted during
 the execution of /etc/init.d/networks start
@@ -31,7 +64,7 @@ Upon bash /etc/init.d/networks start
 00-work would be attempted first and if unsuccessful
 01-home would be attempted.
 
-
+-----------------------------------------------------------
 	Notes about DNS and resolver configuration files.
 
 Optionally, each network connections can have their own /etc/resolv.conf
