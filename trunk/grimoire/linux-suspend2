@@ -3,30 +3,27 @@ inherit linux
 #
 # Every kernel version has to be tested against the swsusp patch
 # Don't change the version blindly
-   VERSION=( "2.6.16.20" "2.6.16.9" )
-      SAFE=( "2.6.16.20" )
-  SUSP_VER=( "2.2.5" )
+   VERSION=( "2.6.21.1" "2.6.16.20" "2.6.16.9" )
+      SAFE=( "2.6.21.1" "2.6.16.20" )
+  SUSP_VER=( "2.2.9.13" "2.2.5" )
 # For which kernel version are the suspend patches intended
 # This can slightly lag behind the $VERSION (usually in the minor revision
 # number)
-   S4K_VER=( "2.6.16.9")
+   S4K_VER=( "2.6.21-rc7")
   CATEGORY="kernel"
  ATTRIBUTE="core"
     SOURCE=( "pub/linux/kernel/v${VERSION:0:3}/linux-${VERSION}.tar.bz2"
-             "downloads/all/suspend2-${SUSP_VER}-for-${S4K_VER}.tar.bz2"
-             "archive/vesafb-tng-1.0-rc1-r3-2.6.16.patch"
-             "archive/fbsplash-0.9.2-r5-2.6.16.patch"
+             "downloads/all/suspend2-${SUSP_VER}-for-${S4K_VER}.patch.bz2"
+             "archive/vesafb-tng-1.0-rc2-2.6.20-rc2.patch"
            )
        URL=( "$KERNEL_URL"
              "http://www.suspend2.net/"
              "http://dev.gentoo.org/~spock/projects/vesafb-tng/"
-             "http://dev.gentoo.org/~spock/projects/gensplash/"
            )
    HOMEPAGE="http://www.suspend2.net"
-#  HOMEPAGE="http://www.kernel.org   
+	#  HOMEPAGE="http://www.kernel.org   
 #            http://www.suspend2.net
 #            http://dev.gentoo.org/~spock/projects/vesafb-tng/
-#            http://dev.gentoo.org/~spock/projects/gensplash/
 #            "
 # glibc added to requirement for linux spell to temporarily
 # adjust ordering of spell so glibc is cast first when both are queued
@@ -40,40 +37,14 @@ inherit linux
             /lib/modules"
   EPROVIDE="linux-kernel"
   disable  archive
-  ESTIMATE="2600"
+  ESTIMATE="4273"
       DESC="$SPELL provides 2.6.x stable kernels with suspend capability.
 This version is patched to provide software suspend, aka suspend2."
-
-swsusp_patch() {
-  apply_susp_patch() {
-    patch -p1 -s -f --dry-run < "$1" > /dev/null 2>&1
-    [ $? -ne 0 ]  &&  return 1
-    patch -p1 < "$1"
-    [ $? -ne 0 ]  &&  return 2
-    return 0
-  }
-
-  unpack ${SOURCE[1]}
-  SWSDIR="suspend2-${SUSP_VER}-for-${S4K_VER}"
-  for SWSPATCH in $SWSDIR/[1-9]*; do
-    echo  "Patching with $( basename $SWSPATCH )"
-    apply_susp_patch  "$SWSPATCH"
-    ret=$?
-    case $ret in
-      1)  echo "Patch $SWSPATCH will not apply cleanly. Exiting."
-          return 1 ;;
-      2)  echo "Eeep! Patch $SWSPATCH was supposed to apply cleanly but didn't! Exiting."
-          return 1 ;;
-    esac
-  done
-}
 
 apply_linux_patch() {
  # vesa-tng
  cat  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[2]##*/}  |  patch -p1	&&
- # gensplash
- cat  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[3]##*/}  |  patch -p1	&&
  # suspend2
- swsusp_patch
+ bzcat  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}  |  patch -p1
 }
 
