@@ -6,8 +6,8 @@
     SOURCE="wpa_supplicant-$VERSION.tar.gz"
        URL="http://hostap.epitest.fi/releases/"
   HOMEPAGE="http://hostap.epitest.fi/wpa_supplicant"
-       REQ="openssl readline ncurses"
-  ESTIMATE="70"
+       REQ="openssl readline ncursesi qt-x11-free"
+  ESTIMATE="107"
       DESC="wpa_supplicant is a WPA/WPA2 supplicant
 wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
 It is suitable for both desktop/laptop
@@ -22,6 +22,8 @@ that runs in the background and acts as the backend
 component controlling the wireless connection.
 It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant."
+
+export QTDIR=/usr
 
 create_config() {
   cat > .config << EOF
@@ -48,7 +50,7 @@ EOF
 }
 
 install_examples() {
-  cp   -v  *.conf  examples
+  cp   -v  *.conf  examples		&&
   cp  -av          examples  doc
 }
 
@@ -59,9 +61,10 @@ install_man() {
 }
 
 install_wpa_files() {
-  install -v -d       /etc/wpa_supplicant
-  install -v -m 0755  wpa_{cli,passphrase,supplicant}  /usr/bin
-  install_examples
+  install -v -d       /etc/wpa_supplicant		&&
+  install -v -m 0755  wpa_{cli,passphrase,supplicant} 	/usr/bin	&&
+  install -v -m 0755  wpa_gui/wpa_gui  			/usr/bin	&&
+  install_examples	&&
   install_man	
 }
 
@@ -69,6 +72,7 @@ build() {
   export  LDFLAGS="-L/lib -L/lib64 $LDFLAGS"
   create_config    &&
   make             &&
+  make wpa_gui     &&
   prepare_install  &&
   install_wpa_files
 }
