@@ -1,0 +1,82 @@
+case $HOSTTYPE in
+  x86_64)  VERSION=( "7-ea-bin-b12-linux-amd64-06_may_2007" )
+           SOURCE="jdk-$VERSION-linux-amd64.bin"
+           RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
+           ;;
+       *)  VERSION=( "7-ea-bin-b12-linux-i586-06_may_2007" )
+           SOURCE="jdk-$VERSION-linux-i586.bin"
+           RPATH="/opt/jdk/jre/lib/i386${LF}/opt/jdk/jre/lib/i386/jli${LF}/opt/jdk/jre/lib/i386/client${LF}/opt/jdk/jre/lib/i386/server${LF}/opt/jdk/jre/lib/i386/headless${LF}/opt/jdk/jre/lib/i386/motif21${LF}/opt/jdk/jre/lib/i386/xawt"
+           ;;
+esac
+  CATEGORY="development/interpreter"
+ ATTRIBUTE="x11 x86 seamonkey-plugin"
+    SOURCE="jdk-${VERSION}.bin"
+  HOMEPAGE="http://openjdk.java.net"
+       URL="http://www.java.net/download/jdk7/binaries/"
+       REQ="alsa-lib libXi libXp libXtst unixODBC libxcb"
+# gcc-v3.3 is needed only for libdeploy.so (as of jdk 1.7.0) but nothing from jdk
+# requires it so it seems safe to not install gcc-v3.3
+#      EREQ="gcc-v3.3"
+  disable  archive
+  ESTIMATE="3450"
+  EPROVIDE="java jdk"
+      DESC="openjdk is the open-source JDK (Java Platform SE)"
+
+build()  {
+
+install_jdk()  {
+  set    -x
+
+  case $VERSION in
+        1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
+           6) DIR="jdk1.6.0" ;;
+	  7*) DIR="jdk1.7.0" ;;
+  esac
+
+# /opt/jdk should be a symbolic link to the current version and NOT a directory
+  cd                /opt
+  if    unzip       $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE
+        [  -f  ${DIR}/man/ja_JP.eucJP/man1/xjc.1  ]
+  then
+    rm    -rf       /opt/jdk
+    ln    -sf       /opt/$DIR  /opt/jdk	
+ 
+    for             FILE  in  /opt/jdk/bin/*
+    do    ln  -sf  $FILE  /usr/bin/${FILE##*/}
+    done
+
+    if    [   -x   /opt/jdk/jre/bin/java_vm  ]
+    then  ln  -sf  /opt/jdk/jre/bin/java_vm  /usr/bin/java_vm
+    fi 
+
+    if    [  -d   /opt/jdk/jre/plugin  ]  &&  [  -d  /usr/lib/mozilla/plugins  ]
+    then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
+                      /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+    fi
+
+    mkdir  -p   /etc/.java/.systemPrefs
+    touch       /etc/.java/.systemPrefs/.system.lock
+    touch       /etc/.java/.systemPrefs/.systemRootModFile
+    chmod  644  /etc/.java/.systemPrefs/.system*
+
+    find  .  -name \*.pack  |
+    while  read;  do
+      unpack200  $REPLY  ${REPLY/.pack/.jar}
+      rm  -f     $REPLY
+    done
+
+    if    uname  -m  |
+          grep   -q  "[[:digit:]]86"
+    then  java   -client  -Xshare:dump
+    fi
+    set  +x
+  else
+    rm   -fr  /opt/$DIR
+    set  +x
+    false
+  fi
+}
+
+  prepare_install   &&
+          install_jdk
+}
