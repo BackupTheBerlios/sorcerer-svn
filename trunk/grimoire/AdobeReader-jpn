@@ -1,0 +1,30 @@
+inherit  AdobeReader
+unset  VERSION  EREQ  EPROVIDE  REQ
+   VERSION=( "708_jpn_i386-linux" )
+  CATEGORY="documentation font"
+ ATTRIBUTE="data"
+    SOURCE="FontPack$VERSION.tar.gz"
+       URL="http://download.adobe.com/pub/adobe/reader/unix/7x/7.0.8/misc/"
+       REQ="AdobeReader"
+      DESC="AdobeReader-jpn provides Japanese fonts for Adobe Acrobat Reader"
+
+build() {
+  if    [  -f  BINCOM.TAR   ]
+        [  -f  LANGCOM.TAR  ]
+        [  -f  LANGJPN.TAR  ]
+  then
+                  mkdir  bc;  cd  bc;  tar  -xf  ../BINCOM.TAR
+    cd  $OLDPWD;  mkdir  lc;  cd  lc;  tar  -xf  ../LANGCOM.TAR
+    cd  $OLDPWD;  mkdir  lj;  cd  lj;  tar  -xf  ../LANGJPN.TAR
+    cd  $OLDPWD
+    chown  -R  root:root  bc lc lj
+    find   *      -type d  |  xargs  -L64  chmod  0755
+    find   bc     -type f  |  xargs  -L64  chmod  0755
+    find   lc lj  -type f  |  xargs  -L64  chmod  0644
+  else  false
+  fi               &&
+  prepare_install  &&
+  mkdir  -v  -m 0755  -p    /usr/lib/acrobat/{Reader,Resource}  &&
+  cp     -v  -r  bc/*       /usr/lib/acrobat/  &&
+  cp     -v  -r  {lc,lj}/*  /usr/lib/acrobat/Resource/
+}
