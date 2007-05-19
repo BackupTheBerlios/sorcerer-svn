@@ -7,10 +7,7 @@
       VURL="http://www.mozilla.com/en-US/thunderbird/"
        URL="ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source/"
   HOMEPAGE="http://www.mozilla.org/products/thunderbird/"
-case  $VERSION  in
-  1.0.7)  USE_GCC="gcc-v3.4"  ;;
-esac
-       REQ=( "gss gtk+ heimdal jpeg libIDL libpng libmng perl mozilla zip zlib"
+       REQ=( "gss gtk+ heimdal jpeg libIDL libpng libmng perl zip zlib"
              "libgnome:::may use libgnome if you have it installed" )
   ESTIMATE="36040"
       DESC="thunderbird is a new UI to gecko the mozilla mail client engine."
@@ -41,33 +38,33 @@ export BUILD_OFFICIAL=1
 export MOZ_THUNDERBIRD=1
 
 cat  <<  EOF  >  .mozconfig
+. ./mail/config/mozconfig
+#mk_add_options MOZ_CO_PROJECT=mail
 
-mk_add_options MOZ_CO_PROJECT=mail
-
-ac_add_options --with-pthreads
-ac_add_options --enable-default-toolkit=gtk2
-ac_add_options --enable-application=mail
-ac_add_options --disable-native-uconv
-ac_add_options --enable-elf-dynstr-gc
+#ac_add_options --with-pthreads
+#ac_add_options --enable-default-toolkit=gtk2
+#ac_add_options --enable-application=mail
+#ac_add_options --disable-native-uconv
+#ac_add_options --enable-elf-dynstr-gc
 ac_add_options --prefix=/opt/thunderbird
-ac_add_options --with-default-mozilla-five-home=/opt/thunderbird
-ac_add_options --enable-shared
-ac_add_options --disable-static
-ac_add_options --with-system-jpeg
-ac_add_options --with-system-zlib
-ac_add_options --with-system-png
-ac_add_options --with-system-mng
-ac_add_options --enable-crypto
-ac_add_options --disable-tests
-ac_add_options --disable-debug
-ac_add_options --enable-optimize="$CFLAGS"
-ac_add_options --enable-xft
-ac_add_options --disable-freetype2
-ac_add_options --disable-profilesharing
-ac_add_options --enable-single-profile
-ac_add_options --disable-logging
-ac_add_options --disable-debug
-ac_add_options --enable-extensions="cookie,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
+#ac_add_options --with-default-mozilla-five-home=/opt/thunderbird
+#ac_add_options --enable-shared
+#ac_add_options --disable-static
+#ac_add_options --with-system-jpeg
+#ac_add_options --with-system-zlib
+#ac_add_options --with-system-png
+#ac_add_options --with-system-mng
+#ac_add_options --enable-crypto
+#ac_add_options --disable-tests
+#ac_add_options --disable-debug
+#ac_add_options --enable-optimize="$CFLAGS"
+#ac_add_options --enable-xft
+#ac_add_options --disable-freetype2
+#ac_add_options --disable-profilesharing
+#ac_add_options --enable-single-profile
+#ac_add_options --disable-logging
+#ac_add_options --disable-debug
+#ac_add_options --enable-extensions="cookie,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
 EOF
 
   export  LDFLAGS="-Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION  $LDFLAGS"
@@ -76,10 +73,10 @@ EOF
 
 
 check_space                    &&
-# ./configure  $OPTS           &&
-make   -f  client.mk  build    &&
+./configure  $OPTS             &&
+make                           &&
 prepare_install                &&
-make   -f  client.mk  install  &&
+make                  install  &&
 ln     -s   /opt/thunderbird/bin/thunderbird /usr/bin/thunderbird  &&
 rm     -rf  /opt/thunderbird/lib/thunderbird-$VERSION/install
 }
