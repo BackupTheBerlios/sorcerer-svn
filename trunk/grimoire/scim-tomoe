@@ -10,3 +10,19 @@
        REQ="libtomoe-gtk scim"
   ESTIMATE="530"
       DESC="scim-tomoe provides tomoe handwriting identification input module for scim"
+
+build()  {
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  case  $VERSION  in
+    0.5.0)  rm  -fr     /usr/lib/scim-1.0/1.4.0/1.4.0
+            ln  -s   .  /usr/lib/scim-1.0/1.4.0/1.4.0  ;;
+  esac  &&
+  make    install
+}
