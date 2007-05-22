@@ -1,29 +1,26 @@
 case $HOSTTYPE in
-  x86_64)  VERSION=( "6" "1_5_0_09" "1_5_0_06" )
+  x86_64)  VERSION=( "7-ea-bin-b12-linux-amd64-06_may_2007" )
            SOURCE="jdk-$VERSION-linux-amd64.bin"
            RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
            ;;
-       *)  VERSION=( "6u1" "6" "1_5_0_09" "1_5_0_08" "1_5_0_07" "1_5_0_06" "1_5_0_04" )
+       *)  VERSION=( "7-ea-bin-b12-linux-i586-06_may_2007" )
            SOURCE="jdk-$VERSION-linux-i586.bin"
            RPATH="/opt/jdk/jre/lib/i386${LF}/opt/jdk/jre/lib/i386/jli${LF}/opt/jdk/jre/lib/i386/client${LF}/opt/jdk/jre/lib/i386/server${LF}/opt/jdk/jre/lib/i386/headless${LF}/opt/jdk/jre/lib/i386/motif21${LF}/opt/jdk/jre/lib/i386/xawt"
            ;;
 esac
   CATEGORY="development/interpreter"
  ATTRIBUTE="x11 x86 seamonkey-plugin"
-  HOMEPAGE="http://java.sun.com/javase/downloads"
-       URL="http://192.18.108.229/ECom/EComTicketServlet/BEGIN9F7D216D0E02BF6628F5ED9374C7C8FE/-2147483648/1608060987/1/732086/731846/1608060987/2ts+/westCoastFSEND/jdk-1.5.0_07-oth-JPR/jdk-1.5.0_07-oth-JPR:4/"
-       REQ="alsa-lib libXi libXp libXt libXtst unixODBC unzip"
-      EREQ="gcc-v3.3"
-# Probably requires x11 as well.
-#      REQ="gtk+-v1.2 unixODBC"
-# XFree86 -> perl -> db -> j2sdk -> gtk+-v1.2 -> XFree86
-# but db no longer optionally requires j2sdk
+    SOURCE="jdk-${VERSION}.bin"
+  HOMEPAGE="http://openjdk.java.net"
+       URL="http://www.java.net/download/jdk7/binaries/"
+       REQ="alsa-lib libXi libXp libXtst unixODBC libxcb"
+# gcc-v3.3 is needed only for libdeploy.so (as of jdk 1.7.0) but nothing from jdk
+# requires it so it seems safe to not install gcc-v3.3
+#      EREQ="gcc-v3.3"
   disable  archive
-  ESTIMATE="2830"
-  EPROVIDE="java"
-      DESC="jdk is Sun's java development kit.
-You must manually download the source from sun's 
-website for this spell to successfully cast."
+  ESTIMATE="3450"
+  EPROVIDE="java jdk"
+      DESC="openjdk is the open-source JDK (Java Platform SE)"
 
 build()  {
 
@@ -32,13 +29,13 @@ install_jdk()  {
 
   case $VERSION in
         1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
-         6u1) DIR="jdk1.6.0_01"  ;;
            6) DIR="jdk1.6.0" ;;
+	  7*) DIR="jdk1.7.0" ;;
   esac
 
 # /opt/jdk should be a symbolic link to the current version and NOT a directory
   cd                /opt
-  if    unzip       $SOURCE_CACHE/jdk/$VERSION/$SOURCE
+  if    unzip       $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE
         [  -f  ${DIR}/man/ja_JP.eucJP/man1/xjc.1  ]
   then
     rm    -rf       /opt/jdk
@@ -74,26 +71,12 @@ install_jdk()  {
     fi
     set  +x
   else
-           [  -n  "$DIR"  ]  &&
     rm   -fr  /opt/$DIR
     set  +x
     false
   fi
 }
 
-check_downloaded()  {
-  if  !  sources_cached
-  then
-    echo  "Due to Sun Microsystems requiring users to"
-    echo  "explicitly agree to their license"
-    echo  "you must manually download the sources for jdk"
-    echo  "before casting the spell."
-    sleep 30
-    false
-  fi
-}
-
-  check_downloaded  &&
   prepare_install   &&
           install_jdk
 }
