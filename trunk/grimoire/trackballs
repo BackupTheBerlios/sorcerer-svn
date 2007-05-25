@@ -1,4 +1,4 @@
-   VERSION=( "1.1.2" "1.1.1" "1.1.0" "1.0.0" "0.9.2" "0.9.1" "0.9.0" )
+   VERSION=( "1.1.4" "1.1.2" "1.1.1" "1.1.0" "1.0.0" "0.9.2" "0.9.1" "0.9.0" )
     IGNORE="noarch\|x86"
   CATEGORY="game"
  ATTRIBUTE="x11"
@@ -7,9 +7,12 @@
              "trackballs-music:::for additional music" )
 # Extra levels already included in 1.1.1
 #            "trackballs-extra-levels:::for more fun" )
+case  $VERSION  in
+  1.1.4)  REQ+=" guile-v1.8"  ;;
+esac
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://trackballs.sourceforge.net"
-  ESTIMATE="540"
+  ESTIMATE="780"
       DESC="trackballs is a game similar to marble madness.
 trackballs is a simple game similar
 to the classic game Marble Madness.
@@ -26,15 +29,21 @@ build()  {
   sed  -i   "s:g++-3/set.h:set.h:"  src/general.h
 
   case  $VERSION  in
+    1.1.4)  export  CFLAGS="-I/opt/guile/1.8/include $CFLAGS"
+            export  CXXFLAGS="-I/opt/guile/1.8/include $CXXFLAGS"
+            export  LDFLAGS="-L/opt/guile/1.8/lib -Wl,-rpath-link,/opt/guile/1.8/lib"
+            export   PATH="/opt/guile/1.8/bin:$PATH"  ;;
     1.1.0)  sed  -i  "s:mkinstalldirs =.*:mkinstalldirs = ../mkinstalldirs:"  po/Makefile.in.in  ;;
   esac
 
-  ./configure          \
-  --build=$BUILD       \
-  --prefix=/usr        \
-  --bindir=/usr/games  \
-  $OPTS                &&
-  make                 &&
-  prepare_install      &&
-  make    install
+  default_build
+
+#  ./configure          \
+#  --build=$BUILD       \
+#  --prefix=/usr        \
+#  --bindir=/usr/games  \
+#  $OPTS                &&
+#  make                 &&
+#  prepare_install      &&
+#  make    install
 }
