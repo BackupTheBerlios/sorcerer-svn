@@ -1,0 +1,34 @@
+   VERSION=( "2.6.01" )
+  CATEGORY="audio/utility"
+ ATTRIBUTE="console x11 new"
+    SOURCE="mp3stat_$VERSION.tar.gz"
+# There is a problem with server CA certificate so curl needs
+# the -k (or --insecure) option to download the file
+# How do I pass this to sorcery?
+       URL="https://signal-lost.homeip.net/files/"
+  HOMEPAGE="https://signal-lost.homeip.net/projects/"
+       REQ="libvorbis gtk+"
+  ESTIMATE="100"
+      DESC="mp3stat displays bitrates of mp3 and ogg files
+mp3stats shows differences  caused by encoders
+on the same audio file or between codecs. It only 
+looks at the bitstream differences of bitrates,  
+it in no way capable of showing which encoder is
+better or which codec is better.  It's merely an 
+informational tool for someone interested in knowing 
+where an encoder is putting larger bitrates and
+smaller bitrates throughout the file.  How those 
+change depending on quality levels and how different 
+encoders handle certain audio files."
+
+build() {
+  sed  -i "s:/usr/local:/usr:"  Makefile	\
+		input/vorbis/Makefile		\
+		input/mp3/Makefile		\
+		ui/gtk/Makefile			\
+		ui/console/Makefile	
+
+  make			&&
+  prepare_install	&&
+  make    install
+}
