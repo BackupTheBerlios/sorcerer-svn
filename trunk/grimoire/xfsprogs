@@ -1,57 +1,20 @@
-   VERSION=( "2.8.18-1" "2.8.16-1" "2.8.15-1" "2.8.11-1" "2.8.10-1" "2.8.4-1" "2.8.3-1" )
+   VERSION=( "2.8.21-1" "2.8.18-1" "2.8.16-1" "2.8.15-1" "2.8.11-1" "2.8.10-1" "2.8.4-1" "2.8.3-1" )
   CATEGORY="disk/file-system"
  ATTRIBUTE="console"
     SOURCE="xfsprogs_$VERSION.tar.gz"
        URL="ftp://oss.sgi.com/projects/xfs/cmd_tars/"
   HOMEPAGE="http://oss.sgi.com/projects/xfs/"
        REQ="e2fsprogs"
-  ESTIMATE="880"
+  ESTIMATE="700"
       DESC="xfsprogs contains the required utilities for the XFS file system."
 
 build()  {
-build_old()  {
-
-  ./configure          \
-  --prefix=/usr        \
-  --enable-elf-shlibs  \
-  --with-root-prefix=  \
-  --libexec=/usr/lib   \
-  $OPTS                 &&
-  make    "DEBUG="     &&
-  prepare_install      &&
-  make    install      \
-          install-dev  &&
-  case  $VERSION  in
-    2.5.6)
-      rm     -f  /usr/lib/libhandle.so        &&
-      ln    -sf           libhandle.so.1.0.2  \
-                 /usr/lib/libhandle.so  ;;
-    2.6.25)
-      rm     -f  /usr/lib/libhandle.so        &&
-      ln    -sf           libhandle.so.1.0.3  \
-                 /usr/lib/libhandle.so  ;;
-    2.6.36)
-      rm     -f  /usr/lib/libhandle.so        &&
-      ln    -sf           libhandle.so.1.0.3  \
-                 /usr/lib/libhandle.so  ;;
-    2.7.3)
-      rm     -f  /usr/lib/libhandle.so        &&
-      ln    -sf           libhandle.so.1.0.3  \
-                 /usr/lib/libhandle.so  ;;
-    2.7.11)
-      rm     -f  /usr/lib/libhandle.so        &&
-      ln    -sf           libhandle.so.1.0.3  \
-                 /usr/lib/libhandle.so  ;;
-  esac
-}
-
-  export  OPTIMIZER=-O
+  export  OPTIMIZER="$CFLAGS"
+  unset               CFLAGS
   export  DEBUG=-DNDEBUG
 
   make  configure  &&
   make             &&
   prepare_install  &&
   make    install  install-dev
-# make    install  install-lib  install-dev
-
 }
