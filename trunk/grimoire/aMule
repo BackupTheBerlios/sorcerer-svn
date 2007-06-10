@@ -1,12 +1,16 @@
-   VERSION=( "2.1.0" "2.0.3" "2.0.2" "2.0.1" "2.0.0" )
+   VERSION=( "2.1.3" "2.1.0" "2.0.3" "2.0.2" "2.0.1" "2.0.0" )
+  WVERSION=( "2.6.4" )
    IGNORE="SuSE\|wx\|debian\|rc\|Mac"
   CATEGORY="network/file-share"
  ATTRIBUTE="x11 client server"
-    SOURCE="aMule-$VERSION.tar.bz2"
-       URL="http://download.berlios.de/amule/"
+    SOURCE=( "aMule-$VERSION.tar.bz2"
+             "wxwindows/wxWidgets-$WVERSION.tar.bz2" )
+       URL=( "http://download.berlios.de/amule/"
+             "$SOURCEFORGE_URL" )
   HOMEPAGE="http://www.amule.org"
 #      REQ=( "curl gd wxGTK zlib"
-       REQ=( "curl gd wxWidgets zlib"
+#      REQ=( "curl gd wxWidgets zlib"
+       REQ=( "curl gtk+-v1.2 libXinerama libpng tiff"
              ":--enable-amule-daemon::create experimental server support"
              ":--enable-webserver::create webserver access"
              ":--enable-webservergui::create webserver gui"
@@ -15,9 +19,37 @@
 #            ":--enable-amulecmd::create amule command line tool"
 #            ":--enable-amulecmdgui::create command line gui"
 #            ":--enable-amule-gui::create x11 gui"
+#case  $VERSION  in
+#  2.1.3)  USE_GCC="gcc-v4.1"  ;;
+#esac
   EPROVIDE="amule xmule"
    PROVIDE="xmule"
   ESTIMATE="379"
       DESC="amule is the continuation of xMule project a mldonkey client.
 This new version has a lot of new feature
 including the support for an edonkey server."
+
+build()  {
+  local  WXI="$PWD/wx"
+  local  WXC="$PWD/wx/bin/wx-config"
+
+  cd  wxWidgets-$WVERSION
+  ./configure            \
+  --prefix=$WXI          \
+  --disable-gtk2         \
+  --disable-shared       \
+  --with-gtk             &&
+  make                   &&
+  make  install          &&
+  cd    ..               &&
+  ./configure            \
+  --build=$BUILD         \
+  --prefix=/usr          \
+  --sysconfdir=/etc      \
+  --localstatedir=/var   \
+  --with-wx-config=$WXC  \
+  $OPTS                  &&
+  make                   &&
+  prepare_install        &&
+  make    install
+}
