@@ -1,5 +1,5 @@
-   VERSION=( "2.2.0_LinuxIntel_install_en-US" "2.1.0_LinuxIntel_install_en-US" "2.0.4_LinuxIntel_install" "2.0.3_LinuxIntel_install" "2.0.2_LinuxIntel_install" )
-      SAFE=( "2.2.0_LinuxIntel_install_en-US" )
+   VERSION=( "2.2.1_LinuxIntel_install_en-US" "2.2.0_LinuxIntel_install_en-US" "2.1.0_LinuxIntel_install_en-US" "2.0.4_LinuxIntel_install" "2.0.3_LinuxIntel_install" "2.0.2_LinuxIntel_install" )
+      SAFE=( "2.2.1_LinuxIntel_install_en-US" "2.2.0_LinuxIntel_install_en-US" )
     IGNORE="wJRE\|system\|sdk"
   CATEGORY="utility/office utility/editor"
  ATTRIBUTE="x86 noheal x11 new"
@@ -35,6 +35,14 @@ build() {
              /etc/openoffice.org${VERSION:0:3}
 
     case  $VERSION  in
+      2.2.1_LinuxIntel_install_en-US)  \
+        AGAIN=$BUILD_DIR/RPMS/openoffice.org-core04u-2.2.1-9161.i586.rpm
+        echo "---> Unpacking $AGAIN"
+        # rpmunpack misdetects gzip magic signature on 1st attempt.
+        # It can not be directly piped to rpmunpack, unknown why.
+        ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
+        rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm  ;;
+
       2.2.0_LinuxIntel_install_en-US)  \
         AGAIN=$BUILD_DIR/RPMS/desktop-integration/openoffice.org-freedesktop-menus-2.2-9119.noarch.rpm
         echo "---> Unpacking $AGAIN"
