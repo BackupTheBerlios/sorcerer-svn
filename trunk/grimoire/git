@@ -3,18 +3,20 @@
   CATEGORY="development"
  ATTRIBUTE="console"
     SOURCE="/pub/software/scm/git/git-$VERSION.tar.bz2"
-       REQ=( "curl asciidoc xmlto"
-             "web-server:::to install gitweb"
+       REQ=( "curl"
+             "git-htmldocs:::to install documentation in HTML format"
+             "git-manpages:::to install git man pages"
+             "web-server:--gitweb::to install gitweb"
            )
        URL="$KERNEL_URL"
   HOMEPAGE="http://git.or.cz/"
-  ESTIMATE="2003"
+  ESTIMATE="432"
       DESC="git is a fast distributed revision control system
 with an unusually rich command set that provides both
 high-level operations and full access to internals."
 
 install_gitweb() {
-  if echo $OPT | grep -q web-server
+  if echo $OPTS | grep -q '\--gitweb'
   then
     local GITWEB_DIR=/usr/share/gitweb
     install -v -d  $GITWEB_DIR
@@ -27,8 +29,8 @@ install_gitweb() {
 build() {
   autoconf			&&
   ./configure  prefix=/usr	&&
-  make  all doc			&&
+  make  all 			&&
   prepare_install		&&
-  make  install install-doc
+  make  install			&&
   install_gitweb  
 }
