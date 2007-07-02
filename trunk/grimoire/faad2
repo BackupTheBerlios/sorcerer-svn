@@ -1,21 +1,20 @@
-# VERSION=( "2.5" "2.0" "1.1" )
-# 2.5 has compile error
-   VERSION=( "2.0" "1.1" )
+   VERSION=( "2.5" "2.0" "1.1" )
     IGNORE="2003\|rc"
   CATEGORY="audio/codec audio/library"
  ATTRIBUTE="console"
     SOURCE="faac/faad2-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
-#      URL="http://faac.sourceforge.net/files/"
-  HOMEPAGE="http://faac.sourceforge.net"
+  HOMEPAGE="http://www.audiocoding.com/modules/wiki/?id=FAAD2"
 case  $VERSION  in
   2.0)  USE_GCC="gcc-v3.4"  ;;
 esac
+# bmpx support is broken in faad2 2.5 and 2.0
 #            "bmpx:--with-bmp:--without-bmp: for bmpx media player support"
        REQ=( "automake libsndfile libtool id3lib"
              "xmms:--with-xmms:--without-xmms:to compile XMMS plugins"
-             ":--with-drm:--without-drm:to compile libfaad with DRM support"
-             ":--with-mp4v2:--without-mp4v2:to compile libmp4v2" )
+             ":--with-drm:--without-drm:to compile libfaad with DRM support" )
+#            ":--with-mp4v2:--without-mp4v2:to compile libmp4v2" )
+      OPTS="--with-mp4v2"
   EPROVIDE="libmp4v2"
   ESTIMATE="1183"
       DESC="faad2 is the freeware advanced audio decoder 2."
@@ -23,9 +22,10 @@ esac
 
 build() {
  case  $VERSION  in
-  1.1)  patch  -p1  <  $SCRIPT_DIR/faad2-1.1.patch  ;;
+  2.5)  patch  -p1  <  $SCRIPT_DIR/faad2-2.5.patch  ;;
   2.0)  patch  -p1  <  $SCRIPT_DIR/faad2-2.0.patch
         sed    -i      "2,9d"  Makefile.am  ;;
+  1.1)  patch  -p1  <  $SCRIPT_DIR/faad2-1.1.patch  ;;
  esac
 
   # ./bootstrap
