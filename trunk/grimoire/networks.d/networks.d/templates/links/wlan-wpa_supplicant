@@ -2,9 +2,9 @@
 #
 INTERFACE="eth1"		# Required, might also be wifi0, eth1, ra0, ...
    MODULE="ipw2200"		# Optional
-      KEY="" 			# Optional for encrypted networks
+      KEY=			# Optional for encrypted networks
      MODE="Managed"		# Required
-    ESSID="any"			# Optional (default is any)
+    ESSID=			# Optional (default is any)
        AP=			# Optional address of the Access Point
 DHCP_OPTS="-d -N -n"            # Optional
   WPA_SUP="yes"                 # Use wpa_supplicant
@@ -14,8 +14,8 @@ restore_resolv_conf()  {
   if    [    -f  /etc/resolv.conf.${0##*/}  ]
   then  cmp  -s  /etc/resolv.conf.${0##*/}  /etc/resolv.conf  ||
         { cp     /etc/resolv.conf.${0##*/}  /var/run/resolv.conf;
-          [ -f   /etc/resolv.conf.default ]  ||
-             cp  /etc/resolv.conf      /etc/resolv.conf.default
+          [ -f   /etc/resolv.conf.default ]  || 
+             cp  /etc/resolv.conf      /etc/resolv.conf.default 
           ln -sf /var/run/resolv.conf  /etc/resolv.conf
         }
   fi
@@ -75,24 +75,23 @@ start()  {
      # Run wpa control interface in daemon mode executing the 
      # action file (-a <file>) that will perform actions on 
      # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
+     # The script should, for example call dhcpcd on 'CONNECT'
      /usr/bin/wpa_cli -a /usr/local/sbin/wifi_autoconf.sh -i $INTERFACE -B -P "$PID"
   else
   # Use iwconfig
-                           iwconfig  $INTERFACE mode  "$MODE" 
-  [  -n  "$KEY"     ]  &&  iwconfig  $INTERFACE key   "$KEY"	\
-                       ||  iwconfig  $INTERFACE key   off
-  [  -n  "$ESSID"   ]  &&  iwconfig  $INTERFACE essid "$ESSID"	\
-                       ||  iwconfig  $INTERFACE essid any
-  [  -n  "$AP"      ]  &&  iwconfig  $INTERFACE ap    "$AP"	\
-                       ||  iwconfig  $INTERFACE ap    off
+                              iwconfig  $INTERFACE mode  "$MODE" 
+     [  -n  "$KEY"     ]  &&  iwconfig  $INTERFACE key   "$KEY"	\
+                          ||  iwconfig  $INTERFACE key   off
+     [  -n  "$ESSID"   ]  &&  iwconfig  $INTERFACE essid "$ESSID"	\
+                          ||  iwconfig  $INTERFACE essid any
+     [  -n  "$AP"      ]  &&  iwconfig  $INTERFACE ap    "$AP"	\
+                          ||  iwconfig  $INTERFACE ap    off
+
+     sleep 1
+
+     [  -x  /usr/sbin/dhcpcd   ]  &&  
+            /usr/sbin/dhcpcd   $DHCP_OPTS  $INTERFACE
   fi
-
-  sleep 1
-
-  if    [  -x  /sbin/dhclient  ];  then  /sbin/dhclient             $INTERFACE
-  elif  [  -x  /sbin/dhcpcd    ];  then  /sbin/dhcpcd   $DHCP_OPTS  $INTERFACE
-  else  false
-  fi  &&
 
   verify_connection
 }
@@ -103,7 +102,9 @@ stop()  {
   [    -f     $PIDF  ]  	&&
   kill -p $(< $PIDF ) -s 15	&&
   rm   -f     $PIDF		
+
   ifconfig    $INTERFACE  down
+  /usr/bin/wpa_cli -i $INTERFACE terminate 2>/dev/null
 }
 
 $1
