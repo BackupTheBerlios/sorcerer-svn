@@ -13,22 +13,14 @@ Decompression speed is aproximately, the same as bzip2.
 However, compression speed is about 500% slower."
 
 build()  {
-# sed  -i  "s:-O[1-2, ]:$CFLAGS :"  makefile.*
-# sed  -i  "s:\$(CXX):g++:"         makefile.glb
-# make               &&
-# prepare_install    &&
-# install  -m 0755  -o root  -g root  bin/7za  /usr/bin
-
 rm  -f  /usr/bin/7za
 
 sed   -i  "s:\$(CXX):g++:"  makefile.glb
-sed   -i  "s:\[-x:[ -x:"    install.sh
+# sed   -i  "s:\[-x:[ -x:"    install.sh
 make  OPTFLAGS="$CXXFLAGS"  &&
-./install.sh  /bin /usr/share /usr/man  $DESTDIR
+./install.sh  /bin /usr/lib/p7zip /usr/man /usr/share/p7zip $DESTDIR
 }
 
 current()  {
-  if    [   -f  /usr/bin/7za  ]
-  then  rm  -f  /usr/bin/7za
-  fi
+  grep  -qx  "/bin/7za"  $INSTALL_LOGS/p7zip
 }
