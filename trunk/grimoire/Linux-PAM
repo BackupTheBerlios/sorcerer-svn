@@ -8,10 +8,10 @@
        URL="$KERNEL_URL"
        REQ=( "db"
              "cracklib:::for password checking library" )
-      OPTS="--enable-read-both-confs"
+#     OPTS="--enable-read-both-confs"
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
-#     OPTS="--libdir=/lib --enable-read-both-confs"
+      OPTS="--enable-read-both-confs --libdir=/lib"
    PROTECT="/etc/security"
  FRESHMEAT="linux-pam"
   ESTIMATE="2680"
@@ -40,15 +40,12 @@ build() {
   do    touch  $DIR/.ignore_age
   done
 
-  OPTS+=" --libdir=/usr/lib"
   case  $MACHTYPE  in
-    x86_64*)  OPTS+="64"  ;;
+    x86_64*)  OPTS+="64"  ;;  # for making the libdir /usr/lib64 on x86_64
   esac
 
   unpack_docs    &&
   default_build
-#  &&
-#  move_la_files
 }
 
 post_install()  {  [  -f  /etc/pam.d/system-auth  ];  }
