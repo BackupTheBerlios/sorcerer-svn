@@ -1,15 +1,15 @@
-   VERSION=( "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" "0.6.1+1" "0.6.1" "0.6.0" )
+   VERSION=( "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" "0.6.1+1" "0.6.1" "0.6.0" )
 # 0.8.0 and 0.7.2 have a compatibility problem with current PAM?
     IGNORE="^200\|rc\|w32\|binaries"
   CATEGORY="network/ftp"
 #ATTRIBUTE="server console new"
  ATTRIBUTE="server console new broken"
+# 0.8.2 has install errors
     SOURCE="wzdftpd/wzdftpd-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://wzdftpd.sourceforge.net"
   EPROVIDE="ftpd"
        REQ=( "init-functions"
-             "Linux-PAM:--with-pam:--without-pam:for PAM authentication"
              "mysql::--without-mysql:for mysql authentication"
              "postgresql::--without-pgsql:for postgresql authentication"
              "gnutls:--enable-gnutls:--disable-gnutls:for gnutls ssl"
@@ -18,6 +18,9 @@
              "tcl::--without-tcl:for tcl scripting support"
              ":--enable-ipv6::for experimental IPv6 support"
              ":--enable-utf8::for experimental UTF8 support" )
+        OPTS="--without-pam"
+#            "Linux-PAM:--with-pam:--without-pam:for PAM authentication"
+# Linux-PAM support is broken with wzdftpd
   ESTIMATE="511"
       DESC="wzdftpd is modular ftp server.
 It supports IPv6, multi-threading, and external scripts."
@@ -31,6 +34,9 @@ finish_install() {
                                 /etc/wzdftpd/wzd.cfg
   fi
 }
+
+[  -x  bootstrap  ]  &&
+     ./bootstrap
 
 # sed  -i  "s:#pid_file = /usr/share/wzdftpd/wzdftpd.pid:pid_file = /var/run/wzdftpd.pid:"  src/wzd.cfg.sample
 ./configure                \
