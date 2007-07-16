@@ -26,11 +26,26 @@ install_gitweb() {
   fi
 }
 
+install_completion() {
+  # Install bash completion script
+  local  CDIR=/etc/bash_completion.d
+  local  CFILE=contrib/completion/git-completion.bash
+
+  if [ -f $CFILE ]
+  then
+    install -v -d              $CDIR		&&
+    install -v -m 755  $CFILE  $CDIR/git
+  else
+    true
+  fi
+}
+
 build() {
   autoconf			&&
   ./configure  prefix=/usr	&&
   make  all 			&&
   prepare_install		&&
   make  install			&&
-  install_gitweb  
+  install_gitweb  		&&
+  install_completion
 }
