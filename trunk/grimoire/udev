@@ -1,4 +1,4 @@
-   VERSION=( "105" "100" "095" "090" "085" "084" "079" "075" "074" "073" "072" "071" "070" )
+   VERSION=( "113" "105" "100" "095" "090" "085" "084" "079" "075" "074" "073" "072" "071" "070" )
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
@@ -8,7 +8,7 @@
        URL="$KERNEL_URL"
   HOMEPAGE="http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html"
    EXCLUDE="/dev"
-  ESTIMATE="157"
+  ESTIMATE="320"
       DESC="udev provides an auto-populating /dev.
 
 Add custom rules for udev nodes to the file:
@@ -20,7 +20,7 @@ KERNEL==\"dsp\",	  NAME=\"sound/%k\",  SYMLINK=\"dsp0\", GROUP=\"audio\"
 KERNEL==\"psaux\", NAME=\"misc/%k\",   SYMLINK=\"%k mouse\""
 
 build() {
-init_install()  {
+init_install_old()  {
   sed      -i       "s:/sbin/udev_run:/lib/udev/udev_run:"  \
                     etc/udev/gentoo/udev.rules
   install  -m 0700  $SCRIPT_DIR/init.d/udev        /etc/init.d
@@ -30,6 +30,17 @@ init_install()  {
   ln       -sf   ../examples/gentoo/udev.rules     /etc/udev/rules.d
   mkdir    -p                                      /etc/udev/scripts
   install  -m 0755  extras/*.sh                    /etc/udev/scripts
+}
+
+init_install()  {
+  install  -m 0700  $SCRIPT_DIR/init.d/udev        /etc/init.d
+  mkdir    -p      /etc/udev/rules.d               /etc/udev/examples
+  cp       -a       etc/udev/*                     /etc/udev/examples
+  chmod    -R og-w                                 /etc/udev/examples
+  cd                                               /etc/udev/rules.d/
+  ln       -sf   ../examples/gentoo/*              /etc/udev/rules.d/
+  mkdir    -p                                      /etc/udev/scripts
+#  install  -m 0755  extras/*.sh                    /etc/udev/scripts
 }
 
 
@@ -44,7 +55,10 @@ symlink_install()  {
 
 
 install_missing()  {
-  install  -m 0755  udevstart udevsend  /sbin/
+  case  $VERSION  in
+    105)  install  -m 0755  udevstart udevsend  /sbin/  ;;
+      *)  install  -m 0755  udevstart           /sbin/  ;;
+  esac
 
   # Default rules script (Gentoo) expects extra binaries in /sbin while udev
   # installation puts them only in /lib/udev - make symlinks to fix this
@@ -57,8 +71,9 @@ install_missing()  {
 
 
   case  $VERSION  in
+    105)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
     075)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
-      *)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
+      *)  EXTRAS="extras/ata_id extras/cdrom_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/scsi_id extras/usb_id extras/volume_id"  ;;
   esac
 
   # sed  -i  "s:/local::

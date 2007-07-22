@@ -1,7 +1,7 @@
 # On next update of gcc recompile and test coreutils and procps
 # without the USE_GCC to see if uptime, ps, and top segmentation fault
 # when run.
-   VERSION=( "4.2.0" "4.1.2" "4.1.1" "4.1.0" )
+   VERSION=( "4.2.1" "4.2.0" "4.1.2" "4.1.1" "4.1.0" )
     IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|200"
   CATEGORY="development/compiler"
  ATTRIBUTE="console library solo"
@@ -11,7 +11,7 @@
              "mpfr:::for C and Fortran library for multiple-pression computations" )
   HOMEPAGE="http://gcc.gnu.org"
   disable lib64 reduce
-  ESTIMATE="9400"
+  ESTIMATE="12800"
       DESC="gcc is the GNU compiler collection.
 gcc - GNU Compiler Collection.
 The GNU Compiler Collection is a suite of compilers
@@ -107,6 +107,13 @@ x86_64_fix() {
   esac
 }
 
+
+fix_la()  {
+  grep   -l             "/opt/gcc/${VERSION[1]}"  {,/usr}/lib{64,}/*.la  2>/dev/null  |
+  xargs  -r  sed  -i  "s:/opt/gcc/${VERSION[1]}/:/opt/gcc/current/:g"
+}
+
+
 ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
 export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
@@ -171,7 +178,8 @@ make    install  DESTDIR=$DESTDIR  \
         "$LCF"  "$LCXF"  "$LDF"    \
         "$LJCF" "$LJCXF"           && 
 prepare_install                    &&
- finish_install
+ finish_install                    &&
+    fix_la
 }
 
 
