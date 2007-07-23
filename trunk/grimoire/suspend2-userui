@@ -1,9 +1,9 @@
-#  VERSION=( "0.7.1" "0.7.0" "0.6.4" "0.6.3" "0.6.1" )
-   VERSION=(         "0.7.0" "0.6.4" "0.6.3" "0.6.1" )
-# 0.7.1 requires usplash which appears to not have it's own website
+   VERSION=( "0.7.2" "0.7.0" "0.6.4" "0.6.3" "0.6.1" )
+# 0.7.1 and newer requires usplash which appears to not have it's own website
 # and is developed either within ubuntu or debian.
 # http://ftp.debian.org/debian/pool/main/u/usplash/usplash_0.4-43.orig.tar.gz
 # if you want a source tarball for it.
+# The usplash module is therefore disabled at this moment.
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="suspend2-userui-$VERSION.tar.gz"
@@ -33,8 +33,14 @@ There currently exists two user interfaces for Software Suspend 2:
   Otherwise, the speed of suspending is notably reduced."
 
 build() {
+
+  case $VERSION in 
+    0.7.2) sed -i "s:\(MODULES = .*\)usplash:\1:" Makefile 
+           make  clean	;;
+  esac
+
   sed  -i  "s:/usr/local:/usr:"  Makefile  &&
-  make  &&
-  prepare_install  &&
+  make  		&&
+  prepare_install 	&&
   make    install
 }
