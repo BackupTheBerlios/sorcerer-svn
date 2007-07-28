@@ -3,31 +3,24 @@
     IGNORE="\-apple-\|-dec-\|-hp-\|-ibm-\|-sgi-\|-unknown-\|-x86\|^5\.0\.\|debug\|win"
   CATEGORY="db"
  ATTRIBUTE="console"
-    SOURCE=( "MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz" )
-#            "linux-libc-headers-2.6.12.0.tar.bz2" )
+    SOURCE="MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz"
       VURL="http://dev.mysql.com/downloads/mysql/5.0.html"
-       URL=( "$MYSQL_URL" )
-#            "http://ep09.pld-linux.org/~mmazur/linux-libc-headers/" )
+       URL="$MYSQL_URL"
   HOMEPAGE="http://www.mysql.com"
+       REQ=( "db ncurses openssl perl readline zlib"
+             ":--enable-assembler::to use assembler version of some string functions if available"
+             ":--enable-thread-safe-client --with-pthread::for thread support"
+             ":--with-archive-storage-engine:--without-archive-storage-engine:to enable the archive storage engine"
+             ":--with-blackhole-storage-engine:--without-blackhole-storage-engine:to enable blackhole storage engine"
+             ":--with-csv-storage-engine:--without-csv-storage-engine:to enable the csv storage engine"
+             ":--with-embedded-server:--without-embedded-server:to build embedded server libmysqld"
+             ":--with-innodb:--without-innodb:to include the InnoDB table handler"
+             ":--with-ndbcluster:--without-ndbcluster:to include the NDB cluster table handler"
+             ":--with-server:--without-server:to build mysql server"
+             ":--with-vio:--without-vio:to include virtual IO support" )
+#            "openssl:--with-openssl:--without-openssl:for SSL support"
 # Raid support seems to be broken
 #            ":--with-raid::to enable RAID support"
-
-# mysql not compatibile with current system installed berkely db.
-#            "db:--with-berkeley-db=/usr:--without-berkeley-db:for berkeley sleepycat database support"
-       REQ=( "ncurses openssl perl zlib"
-             "db:--with-berkeley-db:--without-berkeley-db:for berkeley sleepycat database support"
-             "readline:--without-readline::to use system installed instead of included readline"
-             ":--with-server:--without-server:to build mysql server"
-             ":--enable-thread-safe-client --with-pthread::for thread support"
-             ":--with-vio:--without-vio:to include virtual IO support"
-             ":--with-innodb:--without-innodb:to include the InnoDB table handler"
-             ":--with-archive-storage-engine:--without-archive-storage-engine:to enable the archive storage engine"
-             ":--with-csv-storage-engine:--without-csv-storage-engine:to enable the csv storage engine"
-             ":--with-blackhole-storage-engine:--without-blackhole-storage-engine:to enable blackhole storage engine"
-             ":--with-ndbcluster:--without-ndbcluster:to include the NDB cluster table handler"
-             ":--with-embedded-server:--without-embedded-server:to build embedded server libmysqld"
-             ":--enable-assembler::Use assembler version of some string functions if available" )
-#            "openssl:--with-openssl:--without-openssl:for SSL support"
    EXCLUDE="/var/lib/mysql"
   ESTIMATE="7100"
       DESC="mysql is a widely used and fast SQL database server.
@@ -37,40 +30,10 @@ of a server daemon (mysqld) and many different
 client programs/libraries."
 
 build() {
-if    [  -n  "${SOURCE[1]}"  ];  then
-  case  $HOSTTYPE  in
-    i*86)  ln  -s  asm-i386      linux-libc-headers-2.6.12.0/include/asm  ;;
-    x*86*) ln  -s  asm-x86_64    linux-libc-headers-2.6.12.0/include/asm  ;;
-  esac
-  export    CFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include   $CFLAGS"
-  export  CXXFLAGS="-I$BUILD_DIR/linux-libc-headers-2.6.12.0/include $CXXFLAGS"
-fi
-
-
-# sed  -i  "/	cd libmysqld\/examples; \$(MAKE) link_sources/d"  Makefile.in
-# sed  -i  "s:examples::"                                 libmysqld/Makefile.in
-
-# export  CXXFLAGS="$CXXFLAGS  -O3 -felide-constructors -fno-exceptions -fno-rtti -DHAVE_ERRNO_AS_DEFINE=1"
-# export    CFLAGS="$CFLAGS  -DHAVE_ERRNO_AS_DEFINE=1"
-
 mkdir    -p -m 0755 /var/lib/mysql
 groupadd -K GID_MIN=256 -K GID_MAX=512    mysql                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g mysql -d /var/lib/mysql mysql 2>/dev/null
 chown    -R mysql:mysql /var/lib/mysql
-
-# sed  -i  "s:/libssl.a:/libssl.so:"  configure
-# sed  -i  "s:Linuxthreads:pthread:"  configure
-
-	case  $VERSION  in
-		4.1.1[0-2])  mkdir  -p                     system/asm
-		sed  "s/new/nneww/"     /usr/include/asm/system.h  >  \
-		system/asm/system.h
-		export    CFLAGS="-isystem $PWD/system $CFLAGS"
-		export  CXXFLAGS="-isystem $PWD/system $CXXFLAGS"
-		sed  -i  "/#define _global_h/a #define CONFIG_NR_CPUS 1\n"  \
-		./include/my_global.h
-		;;
-	esac
 
 ./configure                     \
 --prefix=/usr                   \

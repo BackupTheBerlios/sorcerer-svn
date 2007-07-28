@@ -83,7 +83,15 @@ post_install() {
     fi
   }
 
+  fix_provide_logs()  {
+    (  find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  -empty
+       find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  -size 1c
+       find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  |  grep  ","
+    )  |  xargs   -L64  rm  -f
+  }
+
   [  -d  /lib.old  ]  ||  backup_lib
   install_sentinel
+  fix_provide_logs
   linux_headers_check
 }
