@@ -15,38 +15,40 @@ fix_sym_dir()  {
     local DES="$2"
     local DIR="$3"
 
-    if    !  [   -e        $SYM  ]  ||
-             [   -f        $SYM  ]
-    then  rm     -f        $SYM
-          ln     -s  $DES  $SYM
-    elif  !  [   -h        $SYM  ]  &&
-             [   -d        $SYM  ]
-    then  cp     -a        $SYM/*  $DIR/
-          rm     -r        $SYM
-          ln     -s  $DES  $SYM
+      if [ -h $SYM ]; then  :;
+    elif [ -f $SYM ]; then                    rm  -f $SYM; ln -s $DES $SYM
+    elif [ -d $SYM ]; then cp -a $SYM/* $DIR; rm -rf $SYM; ln -s $DES $SYM
+    else                                                   ln -s $DES $SYM
     fi
   }
 
-  if     !  [   -d  /usr/X11R6  ]
-  then   rm     -f  /usr/X11R6
-         mkdir  -p  /usr/X11R6
-  fi
+  mk_dir()  {
+    if    !  -d  $1   ]
+    then  rm -f  $1
+      mkdir  -p  $1
+      chmod 0755 $1
+    fi
+ }
 
-  [  -h  /usr/include/GL   ]  &&  rm  -f  /usr/include/GL
-  [  -h  /usr/include/X11  ]  &&  rm  -f  /usr/include/X11
-  [  -h  /usr/lib/X11      ]  &&  rm  -f  /usr/lib/X11
+  mk_dir  /usr/X11R6
+  mk_dir  /usr/include/GL
+  mk_dir  /usr/include/X11
+  mk_dir  /usr/lib/X11
 
   fsd  "/usr/X11R6/bin"      "../bin"      "/usr/bin"
   fsd  "/usr/X11R6/include"  "../include"  "/usr/include"
   fsd  "/usr/X11R6/lib"      "../lib"      "/usr/lib"
 
   if  [ "$HOSTTYPE" == "x86_64" ]; then
-      [  -h  /usr/lib64/X11      ]  &&  rm  -f  /usr/lib64/X11
-      fsd  "/usr/X11R6/lib64"      "../lib64"      "/usr/lib64"
+      mk_dir  /usr/lib64/X11
+      fsd    "/usr/X11R6/lib64"    "../lib64"  "/usr/lib64"
   fi
 }
 
   fix_sym_dir
   prepare_install  &&
-  touch  /usr/X11R6{,/bin,/include,/lib,/man}
+  touch  /usr/X11R6{,/bin,/include,/lib,/man}  &&
+  if    [  "$HOSTTYPE"  ==  "x86_64"  ];
+  then  touch  /usr/X11R6/lib64
+  fi
 }

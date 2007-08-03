@@ -34,6 +34,15 @@ build()  {
 
   unset  LANG  LC_CTYPE
 
+  #  gcc 4.2.1 ouputs command-line instead of command line
+  case  $VERSION  in
+    5.8.8)
+      if    gcc   --version  |  grep  -q  "4\.2\.1"
+      then  grep  -rl  "<command line>"  *  |  xargs  -r  \
+            sed   -i   "s:ommand line:ommand-line:"
+      fi  ;;
+  esac
+
   ./Configure                                         \
   -Dprefix=/usr -d -e -Dusethreads                    \
   -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \

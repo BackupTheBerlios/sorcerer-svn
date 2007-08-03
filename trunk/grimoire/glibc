@@ -2,13 +2,13 @@
 #   VERSION=(             "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )
 #      SAFE=(             "2.3.6" "2.3.5" "2.3.4" )
   LVERSION=( "2.6.22.1" )
-   VERSION=( "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" ) 
-      SAFE=( "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" )
+   VERSION=( "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" ) 
+      SAFE=( "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" )
     IGNORE="ref\|2001\|^2\.[4-5]\|libidn\|linuxthreads\|ports"
   CATEGORY="development"
  ATTRIBUTE="library solo"
 case  $VERSION  in
-  2.6)
+  2.6*)
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
             "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
@@ -60,7 +60,7 @@ esac
             /sbin/ldconfig"
 #           /usr/include/bits/syscall.h
 #           /usr/include/gnu/stubs.h"
-  disable  lib64
+  disable  lib64  reduce
 case $HOSTTYPE in
  x86_64)  RPATH="/usr/lib64/gconv"  ;;
       *)  RPATH="/usr/lib/gconv"    ;;
@@ -197,7 +197,7 @@ cp     -a   $IR/usr/include/*                           /usr/include
 # ^^ linux headers installed before glibc begins compilation.
 
 case  $VERSION  in
-  2.6)  mv  glibc-libidn-*    libidn
+  2.6*) mv  glibc-libidn-*    libidn
         KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
         (( KVER >= 2615 ))  &&
         OPTS="$OPTS --enable-kernel=2.6.15"  ;;
