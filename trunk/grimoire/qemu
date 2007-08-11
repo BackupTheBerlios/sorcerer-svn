@@ -7,14 +7,21 @@
        URL="http://fabrice.bellard.free.fr/qemu/"
       VURL="http://fabrice.bellard.free.fr/qemu/download.html"
   HOMEPAGE="http://fabrice.bellard.free.fr/qemu/"
-case  $VERSION  in
-  0.9.*)  USE_GCC="gcc-v3.4"  ;;
-  0.8.*)  USE_GCC="gcc-v3.4"  ;;
-  0.7.2)  USE_GCC="gcc-v3.4"  ;;
-esac
        REQ=( "SDL"
              "alsa-lib:--enable-alsa:--disable-alsa:for audio output through alsa drivers"
              ":--enable-adlib:--disable-adlib:for adlib and midi emulation support" )
       OPTS="--disable-gcc-check"
+case  $VERSION  in
+# 0.9.*)  USE_GCC="gcc-v3.4"; OPTS+=" --disable-system"  ;;
+  0.8.*)  USE_GCC="gcc-v3.4"  ;;
+  0.7.2)  USE_GCC="gcc-v3.4"  ;;
+esac
   ESTIMATE="1070"
       DESC="qemu is a computer emulator."
+
+build()  {
+  grep   -rl  "\-Wall -O2 -g -fno-strict-aliasing"  *  |
+  xargs  -r  -L64  \
+  sed    -i  "s:-Wall -O2 -g -fno-strict-aliasing:-Wall -O2 -fno-strict-aliasing:"
+  default_build
+}
