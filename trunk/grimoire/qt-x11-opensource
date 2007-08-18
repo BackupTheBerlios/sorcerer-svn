@@ -6,7 +6,7 @@
     SOURCE="qt-x11-opensource-src-$VERSION.tar.gz"
        URL="ftp://ftp.trolltech.com/qt/source/"
   HOMEPAGE="http://www.trolltech.com/developer/downloads/qt/x11"
-       REQ=( "dbus glib jpeg libmng libpng sqlite unixODBC"
+       REQ=( "dbus glib jpeg libmng libpng sqlite tiff unixODBC"
              "cups:-cups:-no-cups:for common unix printing support"
              "freetype:-fontconfig:-no-fontconfig:for quality font engine"
              "mysql:::for mysql support"
@@ -19,21 +19,29 @@
 qt-x11-opensource will probably require more than 2G to compile."
 
 build()  {
+rm  -rf  demos examples
+
 # The -R breaks compilation in 4.2.1
 # -R$BUILD_DIR/lib  \
 mkdir  lib
 echo  "yes"       |
 ./configure       \
 -v                \
+-fast             \
 -release          \
 -shared           \
--system-libpng    \
+-optimized-qmake  \
+-system-libmng    \
 -system-libjpeg   \
+-system-libpng    \
+-system-libtiff   \
 -system-sqlite    \
 -system-zlib      \
 -qt-gif           \
 -xinerama         \
 -no-exceptions    \
+-nomake demos     \
+-nomake examples  \
 -bindir /usr/bin  \
 -libdir /usr/lib  \
 -prefix /usr/share/qt4   \
