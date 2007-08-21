@@ -1,0 +1,60 @@
+   VERSION=( "8.40.4-x86.x86_64" )
+  CATEGORY="kernel"
+ ATTRIBUTE="linux-26-module x11 x86 broken"
+# This will probably work, however I have not had a chance to test it.
+    SOURCE="ati-driver-installer-$VERSION.run"
+       URL="http://www2.ati.com/drivers/linux/"
+  HOMEPAGE="http://www.ati.com/support/drivers/linux/radeon-linux.html"
+      VURL="http://ati.amd.com/support/drivers/linux/linux-radeon.html"
+       REQ=""
+  EPROVIDE="ati_firegl fglrx"
+  ESTIMATE="74"
+      DESC="ati-driver-installer is provided by ATI for radeon class graphics cards"
+
+pre_build()  {
+  default_pre_build
+  cd  $BUILD_DIR
+  sh  $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE  --extract  $BUILD_DIR
+}
+
+
+build()  {
+  make_install()  {
+    cd          $BUILD_DIR/common
+    mkdir  -p                            usr/share/applications/kde
+    mv          opt/kde3/share/applnk/*  usr/share/applications/kde/
+    rm     -rf  opt
+    cd          ..
+
+    /sbin/ldconfig  -n             arch/*/usr/X11R6/lib
+    rm  -rf  common/{lib,usr/src}  arch/$AVER/lib
+    cp  -av  common/*  $XVER/*     arch/$AVER/usr  /
+  }
+
+
+  case  $HOSTTYPE  in
+    x86_64)  XVER+="710_64a"  ;  AVER="x86_64"  ;;
+         *)  XVER+="710"      ;  AVER="x86"     ;;
+  esac
+
+  LVER=$(  installed_version  $(  get_provider  linux  )  )
+  LVER="${LVER:-$( uname -r )}"
+
+  cd  common/lib/modules/fglrx/build_mod
+
+  sed  -i  "s:modprobe \$module:true:
+            s:rmmod \$module:true:"        ../make_install.sh
+  sed  -i  "s:\`uname -r\`:\"$LVER\":"     ../make_install.sh  make.sh
+  sed  -i  "s:hit=0:hit=1:"                                    make.sh
+  sed  -i  "s:^KVER *=.*:KVER = $LVER:"    2.6.x/Makefile
+
+  LIBIP_PREFIX=../../../../../arch/$AVER/lib/modules/fglrx/build_mod  \
+  sh  ./make.sh          &&
+  prepare_install        &&
+  cd ..                  &&
+  sh  ./make_install.sh  &&
+        make_install
+}
+
+
+post_install() { depmod  -a  -q  -F  /boot/System.map; }
