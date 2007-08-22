@@ -1,15 +1,21 @@
    VERSION=( "8.40.4-x86.x86_64" )
   CATEGORY="kernel"
- ATTRIBUTE="linux-26-module x11 x86 broken"
-# This will probably work, however I have not had a chance to test it.
+ ATTRIBUTE="linux-26-module x11 x86 new"
     SOURCE="ati-driver-installer-$VERSION.run"
        URL="http://www2.ati.com/drivers/linux/"
   HOMEPAGE="http://www.ati.com/support/drivers/linux/radeon-linux.html"
       VURL="http://ati.amd.com/support/drivers/linux/linux-radeon.html"
-       REQ=""
+       REQ="MesaLib gcc-v3.3"
   EPROVIDE="ati_firegl fglrx"
   ESTIMATE="74"
-      DESC="ati-driver-installer is provided by ATI for radeon class graphics cards"
+      DESC="ati-driver-installer is provided by ATI for radeon class graphics cards
+
+The fglrx module will probably load if agpgart and radeon
+modules are not loaded nor compiled directly into the kernel.
+
+A sample configuration file is in:
+$GRIMOIRE/ati-driver-installer.d/"
+
 
 pre_build()  {
   default_pre_build
@@ -26,15 +32,38 @@ build()  {
     rm     -rf  opt
     cd          ..
 
-    /sbin/ldconfig  -n             arch/*/usr/X11R6/lib
+# If the dri module install location is changed
+# then prior to running programs the environment variable
+# LIBGL_DRIVERS_PATH must be exported to the 
+# directory where the fglrx_dri.so file exists
+
+#     mkdir  -p  arch/{x86,x86_64}/usr/lib/dri
+
+#     mv         arch/x86/usr/X11R6/lib/modules/dri/fglrx_dri.so  \
+#                arch/x86/usr/lib/dri
+
+#     mv         arch/x86_64/usr/X11R6/lib64/modules/dri/fglrx_dri.so  \
+#                arch/x86_64/usr/lib64/dri
+
+    /sbin/ldconfig  -n             arch/$AVER/usr/X11R6/lib
     rm  -rf  common/{lib,usr/src}  arch/$AVER/lib
-    cp  -av  common/*  $XVER/*     arch/$AVER/usr  /
+
+    find  common  $XVER  arch/$AVER  -type f  -printf  "%p %P\n"  |
+    while  read           FROM    TO
+    do     install  -vD  $FROM  /$TO
+    done
+    find  common  $XVER  arch/$AVER  -type l  -printf  "%p %P\n"  |
+    while  read           FROM    TO
+    do     mv      -v    $FROM  /$TO
+    done
+
+    #   cp  -rv  common/*  $XVER/*     arch/$AVER/usr  /
   }
 
 
   case  $HOSTTYPE  in
-    x86_64)  XVER+="710_64a"  ;  AVER="x86_64"  ;;
-         *)  XVER+="710"      ;  AVER="x86"     ;;
+    x86_64)  XVER+="x710_64a"  ;  AVER="x86_64"  ;;
+         *)  XVER+="x710"      ;  AVER="x86"     ;;
   esac
 
   LVER=$(  installed_version  $(  get_provider  linux  )  )
