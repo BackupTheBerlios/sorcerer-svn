@@ -1,6 +1,11 @@
-   VERSION=( "0.8.23" "0.8.22" "0.8.15" "0.8.14" "0.8.12" "0.8.11" "0.8.10" "0.8.9" "0.8.8" )
+   VERSION=( "0.9.1" "0.8.23" "0.8.22" "0.8.15" "0.8.14" "0.8.12" "0.8.11" "0.8.10" )
   CATEGORY="game"
- ATTRIBUTE="x11"
+ ATTRIBUTE="x11 broken"
+# From 0.8.23 to 0.9.1 glob2 switched from boost to scons
+# However, scons does not check the environment variable PATH
+# in order to invoke gcc.
+# Therefore, compilation ends quickly.
+# This makes about as much sense as drinking ice cubes.
     SOURCE="glob2-$VERSION.tar.gz"
        URL="http://dl.sv.nongnu.org/releases/glob2/$VERSION/"
 #      URL="http://globulation2.org/releases/$VERSION/"
@@ -8,7 +13,7 @@
   HOMEPAGE="http://globulation2.org/"
 #      URL="http://www.ysagoon.com/glob2/data/"
 # HOMEPAGE="http://www.ysagoon.com/glob2/"
-       REQ=( "SDL_image SDL_net SDL_ttf boost jpeg libvorbis speex"
+       REQ=( "SDL_image SDL_net SDL_ttf jpeg libvorbis scons speex"
              "fribidi:::for right to left texts" )
       OPTS="--bindir=/usr/games"
   ESTIMATE="2290"
@@ -20,3 +25,9 @@ The player has to choose the number of units
 they want for the different tasks, and the units
 will do their best to satisfy the requests.
 This allows the player to manage more units and to focus on the strategy."
+
+build()  {
+scons  "CXXFLAGS=$CXXFLAGS"  &&
+prepare_install  &&
+scons   install
+}
