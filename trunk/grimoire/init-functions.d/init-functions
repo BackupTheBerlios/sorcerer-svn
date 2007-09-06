@@ -1,5 +1,8 @@
 # LSB-compliant init.d scripts for use with the distribution sorcerer only!
-# Copyright Kyle Sallee 2005.  All rights reserved.
+# Copyright Kyle Sallee 2005, 2007.  All rights reserved.
+# The following functions are written as specified by the following URL
+# http://www.linuxbase.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
+
 
 DEFAULT="\e[0m"
    BOLD="\e[1m"
@@ -50,6 +53,8 @@ locked()  {
 }
 
 pidofproc()  {
+# pidofproc [-p pidfile] pathname
+
   local  BASE  PIDF  PIDS
 
   while
@@ -73,7 +78,7 @@ pidofproc()  {
 
   if    [  -n       "$PIDF"  ];  then
     if    locked    "$PIDF"  "$BASE"
-    then  echo  "$(< $PIDF )"
+    then  read  <  $PIDF;  echo     $REPLY
     else  false
     fi
   elif  [  -n  "$PIDS"  ]
@@ -83,6 +88,9 @@ pidofproc()  {
 }
 
 killproc()  {
+# killproc [-s signal] [-p pidfile] pathname [signal]
+# [-s signal] supported for backward compatibility
+
   local  PIDF  PID  BASE  PIDS  SIGL
 
   while
@@ -95,6 +103,10 @@ killproc()  {
   done
 
   BASE=${1##*/}
+
+  if    [  -n  "$2"     ]  &&
+  then  SIGL="${SIGL:-$2}"
+  fi
 
   if    [  -n  "$PIDF"  ]
   then  PIDS="$( pidofproc -p $PIDF "$@" )"
@@ -117,6 +129,9 @@ killproc()  {
 }
 
 start_daemon()  {
+# start_daemon [-b] [-f] [-n nicelevel] [-p pidfile] pathname [args...]
+# -b for start in background
+
   local  FORC  NICE  PIDF  BASE  PIDS  BACK
 
   while
@@ -156,5 +171,35 @@ start_daemon()  {
     fi
   else
     false
+  fi
+}
+
+
+status()  {
+# status  [-p pidfile] [-l lockfile] pathname
+
+# status function not specified in LSB 3.1
+# however return codes for a status request are specified.
+
+  local  LOCK  NAME  PIDF  PIDS
+
+  while
+    case  $1  in
+      -p)  PIDF="$2";  shift  2  ;;
+      -l)  LOCK="$2";  shift  2  ;;
+       *)  false                 ;;
+    esac
+  do  :
+  done
+
+  if    [  -n  "$PIDF"  ]
+  then  PIDS="$( pidofproc -p $PIDF "$@" )"
+  else  PIDS="$( pidofproc          "$@" )"
+  fi
+
+  if                              [  -n  "$PIDS"  ];  then  return  0
+  elif  [  -n  "$PIDF"  ]  &&  !  [  -f  "$PIDF"  ];  then  return  1
+  elif  [  -n  "$LOCK"  ]  &&     [  -f  "$LOCK"  ];  then  return  2
+                                                      else  return  3
   fi
 }

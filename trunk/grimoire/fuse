@@ -1,4 +1,4 @@
-   VERSION=( "2.6.5" "2.6.4" "2.6.3" "2.6.2" "2.6.1" "2.6.0" "2.5.3" "2.5.2" "2.5.1" "2.5.0" )
+   VERSION=( "2.7.0" "2.6.5" "2.6.4" "2.6.3" "2.6.2" "2.6.1" "2.6.0" "2.5.3" "2.5.2" "2.5.1" "2.5.0" )
     IGNORE="pre\|box\|rc\|^2\.7\.0"
 # 2.7.0 has compile errors
   CATEGORY="utility"
@@ -9,8 +9,10 @@
        REQ=( "automake init-functions libtool"
              "libselinux:::for selinux support" )
 # no configure switch to disable selinux support with fuse 2.6.3
-      OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig --disable-static"
-  ESTIMATE="320"
+#     OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig --disable-static"
+      OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig"
+# --disable-static causes compilation error with fuse 2.7.0
+  ESTIMATE="300"
       DESC="fuse is a file system in userspace program and kernel module.
 fuse is a simple interface for userspace programs
 to export a virtual filesystem to the Linux kernel.
@@ -42,8 +44,10 @@ build()  {
   else  LIBDIR=/lib
   fi
 
-  sed  -i  "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
-            s:which \${FSTYPE}:hash \${FSTYPE}:"  util/mount.fuse
+  case  $VERSION  in
+    2.6*)  sed  -i  "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
+                     s:which \${FSTYPE}:hash \${FSTYPE}:"  util/mount.fuse  ;;
+  esac
 
   ./configure           \
   --build=$BUILD        \
@@ -57,10 +61,4 @@ build()  {
   prepare_install       &&
   make    install       &&
   mv_libs
-}
-
-current()  {
-  case  $VERSION  in
-    2.6.3)  [  -f  /usr/lib/pkgconfig/fuse.pc  ]  ;;
-  esac
 }
