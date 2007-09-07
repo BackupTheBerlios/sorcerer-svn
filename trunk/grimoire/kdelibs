@@ -1,10 +1,5 @@
-COMPACT="on"
 inherit kde
   CATEGORY="development"
-# libxft removed from requirements while spell transitions
-#      REQ=( "bzip2 docbook-dtd e2fsprogs lesstif libXft libpng libxml2 libxslt qt-x11-free pcre"
-#      REQ=( "bzip2 docbook-dtd e2fsprogs lesstif libpng libxml2 libxslt qt-x11-free pcre"
-#      REQ=( "arts bzip2 docbook-dtd e2fsprogs libxml2 libxslt pcre"
        REQ=( "arts bzip2 docbook-dtd e2fsprogs libxml2 libxslt lua pcre"
              "openexr:--with-openexr:--without-openexr:for HDR image file format support"
              "cups:--enable-cups:--disable-cups:for intergration with common unix printing system"
@@ -26,40 +21,18 @@ kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel."
 
+
 case  $VERSION  in
+  3.5.7) SAFE=( "3.5.7" ); SOURCE[1]="security_patches/post-3.5.7-kdelibs-kdecore.diff"  ;;
   3.5.6) # USE_GCC="gcc-v4.0"
          SOURCE[1]="security_patches/post-3.5.6-kdelibs.diff"
          SOURCE[2]="security_patches/CVE-2007-1564-kdelibs-3.5.6.diff"  ;;
 esac
 
 
-build()  {
-  case  $VERSION  in
-    3.5.6)
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[2]##*/}
-  ;;
-    3.5.0)
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
-  ;;
-    3.4.3)
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
-  ;;
-    3.4.0)
-    patch  -p0  -d kimgio   <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
-  ;;
-    3.3.2)
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[1]##*/}
-    patch  -p0  -d kio/kio  <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[2]##*/}
-    patch  -p0              <  $SOURCE_CACHE/kdelibs/$VERSION/${SOURCE[3]##*/}
-  ;;
-  esac
-  kde_build
-}
-
-
 current()  {
   case  $VERSION  in
+    3.5.7) grep -qx "patching file kdecore/tests/kurltest.cpp" $COMPILE_LOGS/kdelibs ;;
     3.5.6) grep -qx "patching file kioslave/ftp/ftp.cc" $COMPILE_LOGS/kdelibs ;;
   esac
 }
