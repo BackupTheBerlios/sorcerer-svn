@@ -1,5 +1,5 @@
-   VERSION=( "7.16.4" "7.16.3" "7.16.2" "7.16.1" "7.16.0" "7.15.5" "7.15.4" "7.15.3" )
-      SAFE=( "7.16.4" )
+   VERSION=( "7.17.0" "7.16.4" "7.16.3" "7.16.2" "7.16.1" "7.16.0" )
+      SAFE=( "7.17.0" "7.16.4" )
     IGNORE="\-arm\|vms\|win"
   CATEGORY="network/ftp"
  ATTRIBUTE="console"
@@ -9,10 +9,15 @@
    PROTECT="/usr/bin/curl"
        REQ=( "libidn zlib"
              "gnutls:--with-gnutls=/usr:--without-gnutls:for ftps and https"
+             "libssh2::--without-libssh2:for sftp support"
              "openldap:--enable-ldap:--disable-ldap:for LDAP support"
              "openssl::--without-ssl:for ftps and https" )
       OPTS="--enable-ipv6"
-  ESTIMATE="850"
+# curl 7.17.0 can have optional on c-ares 1.4.0 library for async DNS resolv.
+# However, c-ares does not support ipv6.
+# libcurl can get also use yassl for the TLS/SSL layer
+# However, yassl support is very recent in libcurl and it has not been tested.
+  ESTIMATE="1080"
       DESC="curl and libcurl is a tool for transferring files using URL syntax.
 It supports HTTP, HTTPS, FTP, FTPS, DICT, TELNET,
 LDAP, FILE, and GOPHER, as well as HTTP-post, HTTP-put,
