@@ -1,19 +1,16 @@
-   VERSION=( "7.0.9-1.i386" "7.0.8-1.i386" "7.0.5-1.i386" "5010" "70" "509" "508" "507" "506" )
-      SAFE=( "7.0.9-1.i386" )
+   VERSION=( "8.1.1-1.i486" "7.0.9-1.i386" "7.0.8-1.i386" )
+      SAFE=( "8.1.1-1.i486" "7.0.9-1.i386" )
   CATEGORY="documentation"
  ATTRIBUTE="i386 x11 seamonkey-plugin"
-    SOURCE="AdobeReader_enu-$VERSION.tar.gz"
-       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/7x/${VERSION:0:5}/enu/"
+    SOURCE="AdobeReader_enu-$VERSION.tar.bz2"
+       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/8.x/8.1.1/enu/"
+#      URL="http://ardownload.adobe.com/pub/adobe/reader/unix/7x/${VERSION:0:5}/enu/"
   HOMEPAGE="http://www.adobe.com"
   disable  archive
        REQ="gtk+"
-case $VERSION in
- 7.0.5-1.i386)  EREQ="gcc-v3.3"  ;; # Needs libstdc++.so.5
-esac
-     RPATH="/usr/lib/acrobat/Reader/intellinux/lib"
-  EPROVIDE="acroread"
+     RPATH="/usr/lib/acrobat/Adobe/Reader8/Reader/intellinux/lib/"
  FRESHMEAT="acrobatreader"
-  ESTIMATE="11"
+  ESTIMATE="870"
       DESC="acroread provides a precompiled portable document file viewer.
 acorread provides an acrobat reader for viewing,
 navigating and printing Portable Document Format (PDF) files.
@@ -23,66 +20,33 @@ that require a different version of libstdc++ than current."
 
 build() {
 install_files()  {
-  mkdir    -p     /usr/lib/acrobat
-  cp       -R  *  /usr/lib/acrobat/
+  local  BASE="/usr/lib/acrobat/Adobe/Reader8"
 
-          PLUG="Browser/intellinux/nppdf.so"
-  MOZ_PLUG_DIR="/usr/lib/mozilla/plugins"
+  mkdir    -p   -m 0755   /usr/lib/acrobat
+  cp       -Rv  *         /usr/lib/acrobat/
 
-  mkdir    -p                                $MOZ_PLUG_DIR
-  install  -o root  -g root  -m 0755  $PLUG  $MOZ_PLUG_DIR
-  chmod    0755  /usr/lib/acrobat/bin/acroread
-  ln       -s    /usr/lib/acrobat/bin/acroread  /usr/bin/acroread
-  set      +x
+      PLUG="Browser/intellinux/nppdf.so"
+  PLUG_DIR="/usr/lib/mozilla/plugins"
+
+  if    [    -d                        $PLUG_DIR  ];  then
+    ln       -f    $BASE/$PLUG         $PLUG_DIR
+    chmod    0755  $BASE/bin/acroread
+    ln       -fs   $BASE/bin/acroread  /usr/bin/
+  fi
 }
 
 unpack_tars()  {
-  set     -x
-  tar     -xf    COMMON.TAR  2>/dev/null;  rm  -f    COMMON.TAR
-  tar     -xf  LINUXRDR.TAR  2>/dev/null;  rm  -f  LINUXRDR.TAR
+  tar     -xf  COMMON.TAR
+  tar     -xf  ILINXR.TAR  
+  rm      -f   COMMON.TAR ILINXR.TAR
   chown   -R   root:root  *
-  set     +x
+  find    *  -type  f  |  escape_qs  |  xargs  -rL256  chmod og-w
+  find    *  -type  d  |  escape_qs  |  xargs  -rL256  chmod 0755
 }
 
-unpack_tars_new()  {
-  set     -x
-  tar     -xf  COMMON.TAR  2>/dev/null;  rm  -f  COMMON.TAR
-  tar     -xf  ILINXR.TAR  2>/dev/null;  rm  -f  ILINXR.TAR
-  chown   -R   root:root  *
-  set     +x
-}
-
-fix_sources() {
- case $VERSION in
-  7.0.[89]-1.i386)
-		case $( installed_version gtk+ ) in
-		  2.10*) patch -p0  <  $SCRIPT_DIR/gtk+-2.10.patch	;;
-		esac
-		;;
- esac
-}
-
-do_old()  {
   [  -f  COMMON.TAR    ]  &&
-  [  -f  LINUXRDR.TAR  ]  &&
+  [  -f  ILINXR.TAR    ]  &&
   unpack_tars             &&
   prepare_install         &&
   install_files
-}
-
-
-do_new()  {
-  [  -f  COMMON.TAR    ]  &&
-  [  -f  ILINXR.TAR    ]  &&
-  unpack_tars_new         &&
-  fix_sources             &&
-  prepare_install         &&
-  install_files
-}
-
-if  [  -f  ILINXR.TAR  ]
-then  do_new
-else  do_old
-fi
-
 }

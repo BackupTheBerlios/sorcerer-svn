@@ -1,28 +1,31 @@
-   VERSION=( "1.7" "1.5" "1.4b" )
+   VERSION=( "1.9" "1.7" "1.5" "1.4b" )
   CATEGORY="educational"
  ATTRIBUTE="gnome"
-    SOURCE="kana-no-quiz/kana-no-quiz-1.4b.tar.bz2"
+# With version 1.7 source name changed from kana_no_quiz to Kana_no_quiz
+    SOURCE="kana-no-quiz/Kana-no-quiz-$VERSION.tar.gz"
        URL="http://download.berlios.de/"
+#      URL="http://prdownload.berlios.de/"
+      VURL="http://developer.berlios.de/project/showfiles.php?group_id=1783&release_id=13414"
   HOMEPAGE="http://choplair.org/?en/Kana%20no%20quiz"
        REQ="psyco pygtk"
-  ESTIMATE="300"
+  ESTIMATE="800"
       DESC="kana-no-quiz is a Japanese Kana memorization tool.
 Choose the correct Hepburn romaji for the displayed kana."
 
 build()  {
   install_files()  {
     install  -m 0755  kana-no-quiz.py  /usr/bin
-    find   data  -type d | xargs -l64 chmod 0755
-    find   data  -type f | xargs -l64 chmod 0644
+    find   data  -type d  |  xargs  -rL256  chmod 0755
+    find   data  -type f  |  xargs  -rL256  chmod 0644
     chown  -R    root:root data
-    rm     -rf         /usr/share/kana-no-quiz
-    cp     -av   data  /usr/share/kana-no-quiz
+    rm     -rf                   /usr/share/kana-no-quiz
+    cp     -av             data  /usr/share/kana-no-quiz
   }
 
 # sed    -i   "s:data/options.conf:~/.kana-no-quiz:"  data/py/options.py
   sed    -i   "s:data/options.conf:/tmp/knq:"  data/py/options.py
   grep   -rl              "data/"  *  |  grep  "\.py$"  |
-  xargs  -l64  sed  -i  "s:data/:/usr/share/kana-no-quiz/:"
+  xargs  -rL256  sed  -i  "s:data/:/usr/share/kana-no-quiz/:"
   prepare_install  &&
           install_files
 }
