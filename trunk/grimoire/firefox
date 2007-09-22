@@ -1,18 +1,16 @@
-COMPACT="on"
-    VERSION=( "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.3" "2.0.0.2" "2.0.0.1" "2.0" )
-       SAFE=( "2.0.0.6" )
+    VERSION=( "2.0.0.7" "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.3" "2.0.0.2" "2.0.0.1" "2.0" )
+       SAFE=( "2.0.0.7" "2.0.0.6" )
   CATEGORY="network/web"
  ATTRIBUTE="client solo x11"
     SOURCE="firefox-${VERSION}-source.tar.bz2"
        URL="ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/"
   HOMEPAGE="http://www.mozilla.org/products/firefox/"
-       REQ=( "gss gtk+ heimdal jpeg libIDL libpng libmng perl zip zlib" )
+       REQ=( "gss gtk+ heimdal libIDL libmng zip" )
 #            "jdk:::for building the javaXPCOM components" )
 # compilation with javaXPCOM component support is not working
   EPROVIDE="mozilla"
-  ESTIMATE="39270"
+  ESTIMATE="39000"
       DESC="firefox is a new UI to gecko the mozilla HTML rendering engine."
-
 
 build() {
 check_space()  {
@@ -134,6 +132,19 @@ ac_add_options --enable-xft
 ac_add_options --disable-freetype2
 ac_add_options --disable-gnomevfs
 EOF
+
+
+# firefox versions 2.0.0.6 and 2.0.0.7 are not compatible with
+# pango versions 1.18.2 1.18.1 1.18.0
+# bug in pango?
+case  $VERSION  in
+  2.0.0.7)  mkdir  -p  include/pango-1.0/pango
+            cp    /usr/include/pango-1.0/pango/pangocairo.h  \
+                       include/pango-1.0/pango/
+            sed  -i   "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
+            export    CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+            export  CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0"  ;;
+esac
 
 
 ## Causes a compile error.
