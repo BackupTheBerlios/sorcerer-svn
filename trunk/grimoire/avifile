@@ -13,13 +13,14 @@ esac
              "faad2:::for faad2 audio decoder" )
 # avifile doesn't want to compile with qt-x11-free
 #   "qt-x11-free:--with-qt-libraries=/usr/lib:--without-qt:for building qtvidcap"
-      OPTS="--disable-lame"
+      OPTS="--disable-lame --disable-samples"
 # 0.7-0.7.38 lame support does not work with gcc 3.4.1
-  ESTIMATE="4500"
+  ESTIMATE="4000"
       DESC="avifile is a library for reading and writing compressed AVI files."
 
 build() {
 case  $VERSION  in
+  0.7-0.7.45)  sed  -i  "s:player samples:player:"  Makefile.in  ;;
   0.7-0.7.41)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  \
                           ffmpeg/libavformat/grab.c       \
                           samples/qtvidcap/kv4lsetup.cpp  \
@@ -33,5 +34,5 @@ $OPTS            &&
 make             &&
 prepare_install  &&
 make    install  &&
-ln  -s  avifile-${VERSION:0:3}  /usr/include/avifile
+ln  -sf  avifile-${VERSION:0:3}  /usr/include/avifile
 }

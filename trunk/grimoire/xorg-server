@@ -1,8 +1,7 @@
-   VERSION=( "X11R7.2-1.2.0"                                         "X11R7.1-1.1.0"                                                                   "X11R7.0-1.0.1" )
-  IVERSION=( "X11R7.2-1.2.0" "1.2.99.0" "1.1.99.901" "1.1.1" "1.1.0" "X11R7.1-1.1.0" "1.0.99.903" "1.0.99.902" "1.0.99.901" "1.0.99.2" "1.0.2" "1.0.1" "X11R7.0-1.0.1" )
-  MVERSION=( "6.5.2" "6.5.1" "6.5" "6.4.2" )
- IMVERSION=( "6.5.2" "6.5.1" "6.5" "6.4.2" )
-COMPACT="on"
+   VERSION=( "1.4" "X11R7.2-1.2.0"                                         "X11R7.1-1.1.0"                                                                   "X11R7.0-1.0.1" )
+  IVERSION=( "1.4" "X11R7.2-1.2.0" "1.2.99.0" "1.1.99.901" "1.1.1" "1.1.0" "X11R7.1-1.1.0" "1.0.99.903" "1.0.99.902" "1.0.99.901" "1.0.99.2" "1.0.2" "1.0.1" "X11R7.0-1.0.1" )
+  MVERSION=( "7.0.1" "6.5.2" "6.5.1" "6.5" "6.4.2" )
+ IMVERSION=( "7.0.1" "6.5.2" "6.5.1" "6.5" "6.4.2" )
 
 case  $VERSION  in
             X11R7.2-1.2.0)
@@ -37,12 +36,20 @@ inherit xorg
     URL[2]="${URL[1]}"
     URL[1]="$SOURCEFORGE_URL"
 
-       REQ=( "MesaLib compositeproto damageproto evieext fixesproto fontsproto glproto libdmx libXaw libXfixes libXfont libXrender libXres libXxf86misc libXxf86vm liblbxutil libxkbui ncurses randrproto recordproto renderproto resourceproto rgb scrnsaverproto trapproto videoproto xauth xf86dgaproto xf86driproto xf86vidmodeproto xineramaproto xinit"
-             "twm:::for twm, the window manager"
-             "xdm:::for graphical login" )
-#            ":--mesa-from-cvs::to compile with MesaLib from cvs instead of release tarball" )
-# Mesa from cvs is incompatible with xorg-server X11R7.1-1.0.1
-  ESTIMATE="9760"
+       REQ="MesaLib compositeproto evieext hal libXfont libxkbfile pixman randrproto recordproto renderproto resourceproto scrnsaverproto trapproto videoproto xcmiscproto xf86dgaproto xf86driproto xf86miscproto xineramaproto xinit"
+
+## twm and xdm made optionals for xf86-app
+#             "twm:::for twm, the window manager"
+#             "xdm:::for graphical login" )
+
+
+# Requirements from version X11R7.2-1.2.0"
+#       REQ=( "MesaLib compositeproto damageproto evieext fixesproto fontsproto glproto libdmx libXaw libXfixes libXfont libXrender libXres libXxf86misc libXxf86vm liblbxutil libxkbui ncurses randrproto recordproto renderproto resourceproto rgb scrnsaverproto trapproto videoproto xauth xf86dgaproto xf86driproto xf86vidmodeproto xineramaproto xinit"
+#             "twm:::for twm, the window manager"
+#             "xdm:::for graphical login" )
+
+
+  ESTIMATE="7000"
       DESC="xorg-server provides a x11 server for X11R7"
 
 
@@ -57,11 +64,11 @@ build()  {
 
 
   case $HOSTTYPE in
-   x86_64)  OPTS="--with-dri-driver-path=/usr/lib64/dri  $OPTS"  ;;
-        *)  OPTS="--with-dri-driver-path=/usr/lib/dri  $OPTS"  ;;
+   x86_64)  OPTS+=" --with-dri-driver-path=/usr/lib64/dri"  ;;
+        *)  OPTS+=" --with-dri-driver-path=/usr/lib/dri"    ;;
   esac
 
-  OPTS="--with-mesa-source=$PWD/Mesa-$MVERSION $OPTS"
+  OPTS+=" --with-mesa-source=$PWD/Mesa-$MVERSION"
 
   case  $VERSION  in
     X11R7.2-1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]} 

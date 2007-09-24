@@ -5,14 +5,14 @@
     SOURCE="sources/gtk+/${VERSION%.*}/gtk+-$VERSION.tar.bz2"
        URL="$GNOME_URL"
   HOMEPAGE="http://www.gtk.org"
-       REQ=( "atk jpeg libXcomposite libXcursor libXdamage libXinerama libXrandr libpng pango tiff"
+       REQ=( "atk libXcomposite libXcursor libXdamage libXinerama libXrandr pango tiff"
              "cups:::for optional cups print backend" )
 # Xinput is needed for tablets and other extended input devices 
       OPTS="--with-xinput=yes"
 # Can not add cups optional requirement which exists at this time
 # To avoid circuliar requirement loop with cups dbus gtk+
 # dbus's optional requirement on gtk+ was dropped
-  ESTIMATE="8160"
+  ESTIMATE="7800"
  FRESHMEAT="gtk"
       DESC="gtk+ is a toolkit for creating GUIs."
 
@@ -31,6 +31,14 @@ build_old() {
     then  rm  -fr  /etc.sav/gtk-2.0
     fi
   }
+
+# The following case statement is because
+# firefox 1.0.0.7 fails compilation with pango 1.17.3
+# Maybe a bug in pango 1.17.[0-3] ?
+# Fortuantely, gtk+ 2.12.0 can compile with pango 1.17.3
+  case  $VERSION  in
+    2.12.0)  sed  -i  "s:1\.17\.3:1.16.5:g"  configure  ;;
+  esac
 
   ./configure            \
   --build=$BUILD         \

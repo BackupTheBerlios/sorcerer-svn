@@ -1,14 +1,15 @@
-   VERSION=( "1.5.0.1" "1.5" "1.4.1" )
+   VERSION=( "1.6" "1.5.0.1" "1.5" "1.4.1" )
     IGNORE="test\|pre"
   CATEGORY="audio/player video/player"
-  ATTRIBUTE="library new broken"
-    SOURCE="mpeg4ip/$SPELL-$VERSION.tar.gz"
+ATTRIBUTE="library new"
+    SOURCE="mpeg4ip/mpeg4ip-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://mpeg4ip.sourceforge.net"
 case  $VERSION  in
+  1.6)      USE_GCC="gcc-v4.0"  ;;
   1.5.0.1)  USE_GCC="gcc-v4.0"  ;;
 esac
-       REQ=( "SDL ffmpeg gtk+ libmpeg2"
+       REQ=( "ffmpeg gtk+ libmpeg2"
              "XviD:::for mpeg-4 video encoding"
              "a52dec:::for AC3 mpeg deconding and mpeg2 transport streams"
              "faac:::for aac encoding, need for encoding mpeg-4 and H.264"
@@ -18,7 +19,7 @@ esac
              "x264:::for H.264 video encoding" )
   EPROVIDE="libmp4v2"
  CONFLICTS="faad2"
-  ESTIMATE="474"
+  ESTIMATE="16000"
       DESC="mpeg4ip provides a system to explore streaming multimedia. 
 The package includes many existing open source packages and 
 the glue to integrate them together. This is a tool for 
@@ -30,6 +31,7 @@ as an MP4 file creator and hinter, and an player that can
 both stream and playback from local file."
 
 build() {
+  grep  -lr  "\-Werror"  *  |  xargs  -rL256  sed  -i  "s:-Werror::"
   ./bootstrap           \
   --prefix=/usr         \
   --sysconfdir=/etc     \

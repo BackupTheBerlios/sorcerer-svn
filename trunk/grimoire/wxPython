@@ -1,6 +1,8 @@
-#  VERSION=( "2.8.4.0" "2.8.3.0" "2.8.1.1" "2.8.0.2" "2.8.0.1" "2.6.3.3" "2.6.3.2" "2.6.3.0" "2.6.2.1" "2.6.1.0" "2.6.0.1" "2.6.0.0" "2.5.5.1" "2.5.4.1" "2.5.3.1" )
-   VERSION=(           "2.8.3.0" "2.8.1.1" "2.8.0.2" "2.8.0.1" "2.6.3.3" "2.6.3.2" "2.6.3.0" "2.6.2.1" "2.6.1.0" "2.6.0.1" "2.6.0.0" "2.5.5.1" "2.5.4.1" "2.5.3.1" )
-    IGNORE="^2\.9\.\|^2\.8\.4\.0"
+# wxPython 2.8.4.2 requires pango 1.18.x
+# pango currently being held back so firefox 1.0.0.7 can compile
+#  VERSION=(           "2.8.3.0" "2.8.1.1" "2.8.0.2" "2.8.0.1" "2.6.3.3" "2.6.3.2" "2.6.3.0" "2.6.2.1" "2.6.1.0" "2.6.0.1" "2.6.0.0" "2.5.5.1" "2.5.4.1" "2.5.3.1" )
+   VERSION=( "2.8.4.2" "2.8.3.0" "2.8.1.1" "2.8.0.2" "2.8.0.1" "2.6.3.3" "2.6.3.2" "2.6.3.0" "2.6.2.1" "2.6.1.0" "2.6.0.1" "2.6.0.0" "2.5.5.1" "2.5.4.1" "2.5.3.1" )
+    IGNORE="^2\.9\."
 # wxWidgets 2.8.4 has compile error, so did not bother to test wxPython 2.8.4.0
 # 2.7.x.x is developmental branch
   CATEGORY="graphic"
@@ -9,17 +11,44 @@
   HOMEPAGE="http://wxpython.org"
        URL="$SOURCEFORGE_URL"
 case  $VERSION  in
+  2.8.3.0)  USE_GCC="gcc-v4.1"  ;;
   2.6.3.0)  USE_GCC="gcc-v3.4"  ;;
   2.6.2.*)  USE_GCC="gcc-v3.4"  ;;
 esac
-       REQ=( "Python gtk+ wxWidgets"
-             "SDL_mixer:--with-sdl::to use SDL for audio" )
+       REQ=( "Python wxWidgets"
+             "PyOpenGL:::for wxGLCanvas"
+             "SDL_mixer:--enable-sound --with-sdl:--disable-sound --without-sdl:to use SDL for audio"
+             "libgnomeprint:--with-gnomeprint:--without-gnomeprint:for gnome print support" )
       OPTS="--enable-unicode --enable-optimise"
   ESTIMATE="7040"
       DESC="wxPython is Python extention module that wraps wxGTK library."
 
+
+build_new()  {
+mkdir  bld
+cd     bld
+../configure               \
+--prefix=/usr              \
+--with-gtk                 \
+--with-opengl              \
+--disable-debug            \
+--enable-geometry          \
+--enable-graphics_ctx      \
+--enable-sound --with-sdl  \
+--enable-mediactrl         \
+--enable-display           \
+--disable-debugreport      \
+$OPTS                      &&
+make                       &&
+prepare_install            &&
+make    install            &&
+cd      ../wxPython        &&
+python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
+}
+
+
 build() {
-  grep   -rl              "-O3"  *  |
+  grep   -rl             "\-O3"  *  |
   xargs  -l64  sed  -i  "s:-O3:-Os:"
   default_build  &&
   cd  wxPython   &&
