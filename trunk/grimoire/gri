@@ -1,0 +1,40 @@
+    VERSION=( "2.12.16" "2.12.13" "2.12.12" "2.12.11" "2.12.10" )
+   CATEGORY="graphic science"
+  ATTRIBUTE="new console"
+     SOURCE="gri/gri-$VERSION.tar.gz"
+   HOMEPAGE="http://gri.sourceforge.net"
+        URL="$SOURCEFORGE_URL"
+	REQ=( "teTeX texinfo ImageMagick ghostscript netcdf"
+	   "xemacs:::for writing gri command files"
+	   )
+   ESTIMATE="353"
+  FRESHMEAT="gri"
+       DESC="gri is a plotting language for scientific graphics programming.
+The word \"language\" is important: Gri is command-driven, 
+not point/click.
+Some users consider Gri similar to LaTeX, since both 
+provide extensive power as a reward for tolerating a 
+learning curve.
+Gri can make x-y graphs, contour graphs, and image 
+graphs, in PostScript and (someday) SVG formats. Control 
+is provided over all aspects of drawing, e.g. line widths, 
+colors, and fonts. A TeX-like syntax provides common 
+mathematical symbols. 
+"
+
+function build() {
+ LISPDIR=/usr/lib/xemacs/xemacs-packages/lisp
+
+ ./configure  --build=$BUILD		\
+ 	     --prefix=/usr		\
+	     --sysconfdir=/etc		\
+	     --localstatedir=/var	\
+	     --enable-frepo		\
+	     $OPTS			&&
+ make					&&
+ make  check				&&
+ prepare_install				&&
+ make  install				&&
+ [ -d $LISPDIR ]  &&  
+      /usr/bin/install  -m 644  src/gri-mode.el  $LISPDIR
+}
