@@ -15,8 +15,15 @@ However, compression speed is about 500% slower."
 build()  {
 rm  -f  /usr/bin/7za
 
-sed   -i  "s:\$(CXX):g++:"  makefile.glb
+## g++ fix no longer required with current versions of p7zip
+# sed   -i  "s:\$(CXX):g++:"  makefile.glb
+## typo fix no longer requried with current versions of p7zip
 # sed   -i  "s:\[-x:[ -x:"    install.sh
-make  OPTFLAGS="$CXXFLAGS"  &&
+
+# avoid the inconvenient libstdc++ ELF requirement by static linking
+# export  LDFLAGS+=" -Wl,-Bstatic"
+export  LDFLAGS+=" -static"
+
+make  OPTFLAGS="$CXXFLAGS"  all  &&
 ./install.sh  /bin /usr/lib/p7zip /usr/man /usr/share/p7zip $DESTDIR
 }
