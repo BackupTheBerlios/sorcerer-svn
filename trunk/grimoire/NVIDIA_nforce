@@ -1,9 +1,7 @@
    VERSION=( "1.0-0292" "1.0-0261" "1.0-0256" )
   CATEGORY="audio/driver network/driver kernel"
- ATTRIBUTE="x86"
-#   SOURCE="NVIDIA_nforce-${VERSION}"
+ ATTRIBUTE="archive_off x86"
     SOURCE="NFORCE-Linux-x86-$VERSION-pkg1.run"
-disable archive
        URL="http://download.nvidia.com/XFree86/nforce/${VERSION}/"
   HOMEPAGE="http://www.nvidia.com"
        REQ="mktemp"
@@ -15,20 +13,17 @@ The network driver is from NVIDIA, the audio driver
 is based on the open source i810 audio driver but
 has been modified to work with NVIDIA hardware."
 
-fix_source_files()  {
- sed  -i "s:if(REMAP_NEW):if(!REMAP_NEW):"            nvsound/main/nvmain.c
- sed  -i "s:priv->pdev, priv->pci_state:priv->pdev:"         nvnet/nvenet.c
-}
 
-
-##########################################################
 pre_build()  {
   cd  $BUILD_DIR
-   bash -- $(  guess_filename  $SOURCE  )  --extract-only
+  bash -- $SOURCE_CACHE/NVIDIA_nforce/$VERSION/$SOURCE --extract-only
 }
 
 build() {
-
+  fix_source_files()  {
+   sed  -i "s:if(REMAP_NEW):if(!REMAP_NEW):"            nvsound/main/nvmain.c
+   sed  -i "s:priv->pdev, priv->pci_state:priv->pdev:"         nvnet/nvenet.c
+  }
 
   LV=$(  installed_version  linux  )
 
