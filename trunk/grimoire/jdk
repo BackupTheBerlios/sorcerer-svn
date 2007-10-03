@@ -82,6 +82,21 @@ install_jdk()  {
   fi
 }
 
-  prepare_install   &&
-          install_jdk
+xcb_error_fix() {
+# http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6532373
+#  xcb_xlib.c:52: xcb_xlib_unlock: Assertion `c->xlib.lock' failed.
+# Many jdk binary versions exhibit this bug. Furthermore it is
+# triggered depending on libX11 and libxcb version. It only
+# occurs if Java finds the Xinerama extension, at which point 
+# it does something broken with locking and triggers the assertion.  
+# If Java never finds the Xinerama extension, it doesn't trigger 
+# the assertion for broken locking.
+
+# This fix should be eventually dropped (once JDK is fixed)
+  find -H /opt/jdk/ -name libmawt.so -exec sed -i 's/XINERAMA/FAKEEXTN/g' '{}' \; 
+}
+
+  prepare_install      &&
+          install_jdk  &&
+  xcb_error_fix
 }
