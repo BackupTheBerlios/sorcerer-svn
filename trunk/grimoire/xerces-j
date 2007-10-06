@@ -1,0 +1,28 @@
+   VERSION=( "2.9.1" )
+  CATEGORY="utility"
+ ATTRIBUTE="console library new"
+    SOURCE=( "xerces/j/source/Xerces-J-src.${VERSION}.tar.gz"
+             "xerces/j/source/Xerces-J-tools.${VERSION}.tar.gz" )
+       URL="$APACHE_URL"
+  HOMEPAGE="http://xml.apache.org/xerces2-j"
+       REQ="jdk"
+  ESTIMATE="68"
+      DESC="xerces-j is a fully compliant XML parser from Apache"
+
+xerces_install() {
+  XJDIR=/usr/share/xerces-j
+  mkdir -p         $XJDIR	&&
+  cp -a ./build/*  $XJDIR
+}
+
+build() {
+  export JAVA_HOME=/opt/jdk
+
+  # This should force java not to use X11 during installation but
+  # it does not help so we cannot build target 'all'
+  sed -i "s:\(/bin/java\):\1 -Djava.awt.headless=true:" build.sh
+
+  bash ./build.sh jars		&&
+  prepare_install		&&
+  xerces_install  
+}
