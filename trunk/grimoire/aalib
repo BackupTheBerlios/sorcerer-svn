@@ -1,18 +1,10 @@
-   VERSION=( "1.2" )
-    IGNORE="^1\.4"
+# The stable release of aalib no longer used,
+# because it fails compilation
+# 1.4rc5 used instead
+# However project ceased updating in Apr 25 2001
+   VERSION=( "1.4rc5" "1.2" )
   CATEGORY="graphic/library"
- ATTRIBUTE="console library broken"
-# When it has support for the ncurses library the
-# library aalib installs is not linked with the ncurses library
-# and therefore it can cause problems when SDL is compiled with
-# the optional requirement of aalib and
-# a program that is attempting to compile that requires
-# the SDL library tries to compile it but then ends up
-# with unresolved symbols because it did not explicitly
-# link with ncurses library using the -lncurses.
-# To make a long story short you probably won't want to use aalib
-# so just leave it with the attribute broken until
-# there is a fixed release of the source.
+ ATTRIBUTE="console library"
     SOURCE="aa-project/aalib-$VERSION.tar.gz"
   HOMEPAGE="http://aa-project.sourceforge.net/aalib"
        URL="$SOURCEFORGE_URL"
@@ -20,11 +12,12 @@
              "ncurses:--with-curses-driver=yes:--with-curses-driver=no:use ncurses for output"
              "slang:--with-slang-driver=yes:--with-slang-driver=no:use slang for output"
              "gpm:::for general purpose mouse driver support"
-             "libX11:::for x11 mouse input and graphic output support" )
+             "libX11:--with-x:--without-x:for x11 mouse input and graphic output support" )
+  ESTIMATE="500"
+ FRESHMEAT="aalib"
       DESC="aalib is a portable ASCII art GFX library."
 
 build() {
-
   if [ $HOSTTYPE == "x86_64" ]; then
     sed -i '155i   | x86_64-* \\'                   config.sub
     sed -i 's:i\[34567\]86):i\[34567\]86|x86_64):'  config.sub

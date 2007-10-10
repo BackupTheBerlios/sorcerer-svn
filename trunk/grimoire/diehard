@@ -1,13 +1,15 @@
    VERSION=( "1.1" "1.0.2" "1.0.1" "1.0" )
     IGNORE="windows"
   CATEGORY="security"
- ATTRIBUTE="console broken"
-# Problems downloading 1.1
+ ATTRIBUTE="console"
     SOURCE="diehard-$VERSION.tar.gz"
        URL="http://www.cs.umass.edu/~emery/diehard/download/$VERSION/"
-      VURL="http://www.cs.umass.edu/%7Eemery/diehard/download/"
-  HOMEPAGE="http://www.cs.umass.edu/~emery/diehard/"
+      VURL="http://prisms.cs.umass.edu/emery/index.php?page=download-diehard"
+  HOMEPAGE="http://prisms.cs.umass.edu/emery/index.php?page=diehard"
        REQ=""
+case  $VERSION  in
+  1.1)  USE_GCC="gcc-v4.0"  ;;
+esac
   ESTIMATE="10"
       DESC="diehard hardens software against exploits aimed at bugs.
 Bugs such as memory errors, often end up as serious security
@@ -30,7 +32,7 @@ Because each replica is randomized differently,
 each replica will likely have a different output
 if it has an error, and some replicas are likely
 to run correctly despite the error.
-Extra protection comes at the cost 
+Extra protection comes at the cost
 of increased memory and CPU usage.
 
 
@@ -58,7 +60,7 @@ build()  {
 
   sed   -i  "s: -march=pentiumpro -march=pentiumpro -O3:$CFLAGS:"  src/Makefile
   cd    src           &&
-  make  OSTYPE=linux  &&
+  make  linux         &&
   cd    replicated    &&
   make                &&
   install_diehard

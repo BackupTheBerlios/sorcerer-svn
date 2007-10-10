@@ -1,19 +1,25 @@
    VERSION=( "0.3.0" "0.2.0" "0.1.1" "0.1.0" "0.0.19" )
     IGNORE="data\|i386\|win32"
   CATEGORY="game"
- ATTRIBUTE="x11 new broken"
-# 0.2 has data files in a separate .zip
-# 0.1.1 installs in /usr/local, bad source.
+  ATTRIBUTE="x11 new"
     SOURCE=( "dangerdeep/dangerdeep-$VERSION.tar.gz"
              "dangerdeep/dangerdeep-data-$VERSION.zip" )
        URL="$SOURCEFORGE_URL"
   HOMEPAGE="http://dangerdeep.sourceforge.net"
        REQ="SDL_image SDL_mixer SDL_net fftw scons"
-      OPTS="--bindir=/usr/games"
-  ESTIMATE="133"
+  ESTIMATE="150"
       DESC="dangerdeep is a World War II german submarine simulation."
 
-build() {
+build()  {
+sed  -i  "s:/usr/local/:/usr/:"  SConstruct
+scons            &&
+prepare_install  &&
+scons   install  &&
+# mv  /usr/local/bin/dangerdeep  /usr/bin/  &&
+cp     -r  data  /usr/share/dangerdeep
+}
+
+build_old() {
 sed    -i  "s:libpath = \[\]:libpath = ['/usr/X11R6/lib']:
             s:-Wall -g -O2:$CXXFLAGS:" SConstruct
 scons            &&

@@ -1,14 +1,15 @@
    VERSION=( "1.3.9" "1.2.9" )
     IGNORE="dev\|src\|1\.3\.\|x86\|java\|bin"
   CATEGORY="utility/terminal-emulator"
- ATTRIBUTE="new x11 broken"
+ ATTRIBUTE="new x11"
+#ATTRIBUTE="new x11 broken"
 # This might still be broken.
 # 1.2.9 has compile error
     SOURCE="vnc-tight/tightvnc-${VERSION}_unixsrc.tar.bz2"
   HOMEPAGE="http://www.tightvnc.com"
        URL="$SOURCEFORGE_URL"
 # incomplete requirement list
-       REQ="jpeg"
+       REQ="imake jpeg"
   ESTIMATE="4573"
       DESC="tightvnc is a fork of vnc optimized for use on slow network links.
 
@@ -22,7 +23,21 @@ The modified servers and viewers are fully compatible
 with the original VNC software."
 
 
-build() {
+build()  {
+cd  libvncauth   &&
+xmkmf            &&
+cd  ../Xvnc      &&
+./configure      \
+--prefix=/usr    &&
+make             &&
+prepare_install  &&
+cd ..            &&
+./vncinstall /usr/local/bin /usr/local/man
+}
+
+
+
+build_old() {
 
 sed  -i  "s:-D_POSIX_SOURCE:-D_POSIX_SOURCE -D_XOPEN_SOURCE=500:"  Xvnc/config/cf/linux.cf
 

@@ -1,25 +1,33 @@
    VERSION=( "2.45" "2.44" "2.43" "2.41" "2.40" "2.37a" "2.37" "2.36" )
-# 2.44 may have optional on ffmpeg
-
-# From 2.45:
-# ====> make all in intern/SoundSystem/openal
-# g++ -c -DUSE_SUMO_SOLID -pipe -fPIC -funsigned-char -fno-strict-aliasing -DNDEBUG -Os -march=pentium3 -msse -Wall -Wno-reorder -DMOZ_NOT_NET -I/usr/include     -I/usr/src/sorcery/blender/blender-2.45/../lib/linux-glibc2.6.1-i386/string/include     -I/usr/src/sorcery/blender/blender-2.45/../lib/linux-glibc2.6.1-i386/moto/include -I../intern -I.. -I. -I../sdl SND_OpenALDevice.cpp -o /usr/src/sorcery/blender/blender-2.45/obj/linux-glibc2.6.1-i386/intern/OpenALSoundSystem/SND_OpenALDevice.o
-# In file included from SND_OpenALDevice.cpp:53:
-# /usr/include/AL/alc.h:190: error: '<anonymous>' has incomplete type
-# /usr/include/AL/alc.h:190: error: invalid use of 'ALCvoid'
-# /usr/include/AL/alc.h:251: error: '<anonymous>' has incomplete type
-# /usr/include/AL/alc.h:251: error: invalid use of 'ALCvoid'
+# Configuring library blender_creator
+# Configuring program blender
+# scons: done reading SConscript files.
+# scons: Building targets ...
+# Compiling ==> 'buildinfo.c'
+# Linking program ==> 'blender'
+# /usr/src/sorcery/blender/build/linux2/lib/libbf_soundsystem.a(SND_OpenALDevice.o): 
+# In function `SND_OpenALDevice::LoadSample(STR_String const&, void*, int)':
+# SND_OpenALDevice.cpp:(.text+0x495): undefined reference to `alutLoadWAVMemory'
+# SND_OpenALDevice.cpp:(.text+0x527): undefined reference to `alutUnloadWAV'
+# SND_OpenALDevice.cpp:(.text+0x5c4): undefined reference to `alutLoadWAVFile'
+# collect2: ld returned 1 exit status
+# scons: *** [/usr/src/sorcery/blender/build/linux2/bin/blender] Error 1
+# scons: building terminated because of errors.
 
   CATEGORY="graphic/editor video/editor"
+# ATTRIBUTE="new x11"
 ATTRIBUTE="new x11 broken"
     SOURCE="blender-$VERSION.tar.gz"
        URL="http://download.blender.org/source/"
   HOMEPAGE="http://www.blender3d.org"
 	#to fix ogg and vorbis are really required if compiled in
 #       REQ="Python alsa-lib freetype jpeg libvorbis mozilla freealut"
-       REQ="Python alsa-lib freetype jpeg libvorbis mozilla freealut"
+        REQ="Python alsa-lib freealut freetype jpeg libvorbis mozilla scons"
+#       REQ="Python alsa-lib freetype jpeg libvorbis mozilla scons"
+# CONFLICTS="openal freealut"
 # Requirement list incomplete while blender is broken.
 case  $VERSION  in
+  2.45)  USE_GCC="gcc-v3.4"  ;;
   2.41)  USE_GCC="gcc-v3.4"  ;;
 esac
  FRESHMEAT="blender"
@@ -29,7 +37,17 @@ Blender is a fully integrated 3D graphics creation suite allowing
 modeling, animation, rendering, post-production, real-time interactive
 3D, and game creation and playback with cross-platform compatibility."
 
-build() {
+
+build()  {
+export  LDFLAGS+=" -lalut"
+scons            &&
+prepare_install  &&
+scons   install
+}
+
+
+
+build_old() {
 
 create_config() {
                                   PVER="$( installed_version Python )"
