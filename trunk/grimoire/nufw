@@ -1,0 +1,60 @@
+   VERSION=( "2.2.6" )
+  CATEGORY="network security"
+ ATTRIBUTE="server"
+    SOURCE="nufw-$VERSION.tar.bz2"
+       URL="http://www.nufw.org/download/nufw/"
+  HOMEPAGE="http://www.nufw.org"
+       REQ=( "glib gnutls gsasl init-functions iptables libtool openssl"
+             "Linux-PAM:--with-system-auth:--without-system-auth:for authentication via PAM"
+             "gdbm:::for user authnetication from gdbm database"
+             "libident:::for identification by ident server response"
+             "libprelude:--with-prelude-log::for logging to prelude"
+             "mysql:--with-mysql-log::for logging to mysql database"
+             "openldap:--with-ldap::for ldap authnetication and acl check"
+             "postgresql:--with-pgsql-log::for logging to pgsql database" )
+      OPTS="--with-nfqueue"
+# May be required to compile on x86_64?
+#     OPTS+=" --with-pic"
+  ESTIMATE="330"
+      DESC="nufw provides an authentication network filtering daemon.
+It fully integrates with Netfilter and Iptables
+and adds authentication capabilities.
+
+If you run a kernel higher than 2.6.14 (and you should!),
+you should set the following options:
+
+CONFIG_NETFILTER_XT_TARGET_NFQUEUE=Y or m
+CONFIG_NETFILTER_NETLINK=Y or m
+CONFIG_IP_NF_CONNTRACK=m (we advise you don't set this option statically)
+CONFIG_IP_NF_CONNTRACK_EVENTS=Y
+
+Setting these options will allow you to use the NFQUEUE target,
+and use very simple Netfilter rules.
+
+Read:
+http://www.nufw.org/docs/howto20.html
+
+And create your own unique certificates
+
+
+nufw is the server running on the firewall
+which receives the packets coming from kernel and
+send them to the authentication server and wait a response.
+
+nuauth is the authentication server
+which receives the packets coming from nufw and
+the packets coming from user and
+send back a decision to nufw."
+
+
+build()  {
+  install_etc()  {
+    install -D -m 0700  /etc/nufw
+    for   file  in  conf/certs/*.pem conf/*.conf  conf/*.nufw
+    do    install  -m 0600  "$file"  /etc/nufw
+    done
+  }
+
+  default_build  &&
+  install_etc
+}
