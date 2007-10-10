@@ -1,4 +1,4 @@
-   VERSION=( "0.99.8.1" "0.99.7.1" "0.99.7.0" "0.99.6.3" "0.99.6.1" "0.99.5.0" "0.99.4.0" "0.99.3.0" "0.99.2.0" )
+   VERSION=( "0.99.9.0" "0.99.8.1" "0.99.7.1" "0.99.7.0" "0.99.6.3" "0.99.6.1" "0.99.5.0" "0.99.4.0" "0.99.3.0" "0.99.2.0" )
     IGNORE="s"
   CATEGORY="security/authentication"
  ATTRIBUTE="library solo"
@@ -6,47 +6,35 @@
              "pub/linux/libs/pam/pre/doc/Linux-PAM-$VERSION-docs.tar.bz2" )
   HOMEPAGE="http://www.kernel.org/pub/linux/libs/pam"
        URL="$KERNEL_URL"
-       REQ=( "db"
-             "cracklib:::for password checking library" )
-#     OPTS="--enable-read-both-confs"
+       REQ=( ""
+             "cracklib::--disable-cracklib:for password checking library"
+             "db:--enable-db=db:--enable-db=no:for db support"
+             "libprelude::--disable-prelude:for prelude support"
+             "libselinux::--disable-selinux:for selinux support" )
+
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
       OPTS="--enable-read-both-confs"
+
+## The configure paramaters below do not work as they should
+#  case  $MACHTYPE  in
+#    x86_64*)  OPTS+=" --libdir=/usr/lib64 --enable-securedir=/usr/lib64"  ;;
+#          *)  OPTS+=" --libdir=/usr/lib   --enable-securedir=/usr/lib"    ;;
+#  esac
    PROTECT="/etc/security"
  FRESHMEAT="linux-pam"
   ESTIMATE="2800"
       DESC="Linux-PAM provides a flexibile authentication mechanism."
 
 build() {
-  unpack_docs() {
-    mkdir docs          &&
-    cd    docs          &&
-    unpack ${SOURCE[1]} &&
-    cd    -
-  }
-
-  move_la_files()  {
-    for              file  in  /lib{,64}/libpam{,c,_misc}.la;  do
-      if    [   -f  $file  ]
-      then  mv  -v  $file  /usr/$file
-      fi
-    done
-  }
-
-  export HAVE_SGML2LATEX=no 
-  sed  -i  "s: doc examples::g"      Makefile.in
-
-  for   DIR  in  $(  find  .  -type d  )
-  do    touch  $DIR/.ignore_age
-  done
-
-  case  $MACHTYPE  in
-    x86_64*)  OPTS+=" --libdir=/usr/lib64"  ;;  # for making the libdir /usr/lib64 on x86_64
-          *)  OPTS+=" --libdir=/usr/lib"    ;;  # for making the libdir /usr/lib elsewhere
-  esac
-
-  unpack_docs    &&
+  export  HAVE_SGML2LATEX=no
+  sed  -i  "s: doc examples::g"  Makefile.in
   default_build
 }
 
-post_install()  {  [  -f  /etc/pam.d/system-auth  ];  }
+
+## Not required since new Linux-PAM trips the ELF library check.
+# post_install()  {
+#   grep  -lqr  "/usr/lib/security/\|/usr/lib64/security"  $INSTALL_LOGS  |
+#   basenames  |  pipe_queue  "$CAST_QUEUE"  "com"
+# }

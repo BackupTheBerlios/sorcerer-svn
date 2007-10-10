@@ -9,7 +9,8 @@
        URL="http://www.snort.org/dl/current/"
       VURL="http://www.snort.org/dl/"
   HOMEPAGE="http://www.snort.org/"
-       REQ="init-functions libpcap pcre"
+       REQ=( "init-functions libpcap pcre"
+             "libprelude:--eanble-prelude:--disable-prelude:for prelude support" )
   ESTIMATE="1600"
       DESC="snort is a lightweight network intrustion detection program.
 snort is a lightweight network intrusion detection system,
@@ -37,6 +38,13 @@ build() {
     set    +x
   }
 
+  prelude_register()  {
+    if     [  -x  /usr/bin/prelude-admin      ]  &&
+        !  [  -d  /etc/prelude/profile/snort  ]
+    then  prelude-admin register snort "idmef:w admin:r" localhost --uid 0 --gid 0
+    fi
+  }
+
   sed  -i  "s:/etc/snort.conf:/etc/snort/snort.conf:"  src/snort.c
   ./configure              \
   --build=$BUILD           \
@@ -48,5 +56,6 @@ build() {
   make                     &&
   prepare_install          &&
   make    install          &&
-          install_etc
+          install_etc      &&
+  prelude_register
 }
