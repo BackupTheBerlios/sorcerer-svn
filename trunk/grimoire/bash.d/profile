@@ -1,18 +1,23 @@
 umask   022
 export  PATH=/usr/local/bin:/usr/bin:/bin; [ "$UID" == "0" ] &&
-export  PATH=$PATH:/usr/local/sbin:/usr/sbin:/sbin
+export  PATH+=:/usr/local/sbin:/usr/sbin:/sbin
 
+# PS1 is set during an interactive shell
 if        [  -n  "$PS1"    ];  then
   for              REPLY  in  /etc/bash_completion{,.d/*};  do
     if    [  -x  "$REPLY"  ]
-    then      .  "$REPLY"  ]
+    then      .  "$REPLY"
     fi
   done
-fi
 
-export   PS1='\n\d \t \n\u@\h:\w\$ '
-eval    `dircolors`
-alias   ls='ls --color=auto '
+  if    [  -z  "$LS_COLORS"        ]  &&
+        [  -f  /usr/bin/dircolors  ]
+  then  eval  `/usr/bin/dircolors`
+        alias  ls='ls --color=auto '
+  fi
+
+  export  PS1='\n\d \t \n\u@\h:\w\$ '
+fi
 
   if  [  -f    ~/.inputrc  ];  then  export    INPUTRC=~/.inputrc
 elif  [  -f  /etc/inputrc  ];  then  export  INPUTRC=/etc/inputrc
@@ -25,3 +30,11 @@ export  LANG="en_US.utf8"
 ## less with -irs parameters, which makes manual pages
 ## more difficult to read.
 # export  PAGER=less
+
+## The above variables can be changed by creating a local profile file
+## /etc/profile.local
+## that is not not installed by nor overwritten by spells.
+
+if    [  -f  /etc/profile.local  ]
+then  .      /etc/profile.local
+fi
