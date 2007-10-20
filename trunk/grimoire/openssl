@@ -42,13 +42,24 @@ and Transport Layer Security (TLS v1) protocols as well
 as a full-strength general purpose cryptography library."
 
 build() {
-grep  -rl              "\-O3 -fomit-frame-pointer"  *  |
-xargs -rL64  sed  -i  "s:-O3 -fomit-frame-pointer:$CFLAGS:"
+# grep  -rl              "\-O3 -fomit-frame-pointer"  *  |
+# xargs -rL64  sed  -i  "s:-O3 -fomit-frame-pointer:$CFLAGS:"
+grep  -rl              "\-O3 -Wall"  *  |
+xargs -rL64  sed  -i  "s:-O3 -Wall:$CFLAGS:"
+
+# The following case statement might only apply
+# to openssl version 0.9.8f
+# also no-see2 might suffice.
+# Might merely be needed to work around a bug in qemu's x86_64 emulation.
+case  $HOSTTYPE  in
+  x86_64)  OPTS+=" no-asm"  ;;
+esac
 
 ./config               \
 --prefix=/usr          \
 --openssldir=/etc/ssl  \
-shared                 &&
+shared                 \
+$OPTS                  &&
 make                   &&
 prepare_install        &&
 make    install  MANDIR=/usr/man
