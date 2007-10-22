@@ -1,5 +1,5 @@
-#  VERSION=( "0.9.0" "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" )
-   VERSION=(         "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" )
+   VERSION=( "0.9.0" "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" )
+#  VERSION=(         "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" )
 # 0.9.0 has compile error
   CATEGORY="development/emulator"
  ATTRIBUTE="x11"
@@ -12,7 +12,8 @@
              ":--enable-adlib:--disable-adlib:for adlib and midi emulation support" )
       OPTS="--disable-gcc-check"
 case  $VERSION  in
-  0.9.*)  USE_GCC="gcc-v3.4"  ;;
+  0.9.0)  USE_GCC="gcc-v3.4.3"  ;;
+#  0.9.*)  USE_GCC="gcc-v3.4"  ;;
 # ; OPTS+=" --disable-system"  ;;
   0.8.*)  USE_GCC="gcc-v3.4"  ;;
   0.7.2)  USE_GCC="gcc-v3.4"  ;;
@@ -21,8 +22,12 @@ esac
       DESC="qemu is a computer emulator."
 
 build()  {
-  grep   -rl  "\-Wall -O2 -g -fno-strict-aliasing"  *  |
-  xargs  -r  -L64  \
-  sed    -i  "s:-Wall -O2 -g -fno-strict-aliasing:-Wall -O2 -fno-strict-aliasing:"
+#   grep   -rl  "\-Wall -O2 -g -fno-strict-aliasing"  *  |
+#   xargs  -r  -L64  \
+#   sed    -i  "s:-Wall -O2 -g -fno-strict-aliasing:-Wall -O2 -fno-strict-aliasing:"
+unset  CFLAGS
+unset  CXXFLAGS
+export  CCACHE_DISABLE=1
+export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
   default_build
 }
