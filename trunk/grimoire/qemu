@@ -12,21 +12,29 @@
              ":--enable-adlib:--disable-adlib:for adlib and midi emulation support" )
       OPTS="--disable-gcc-check"
 case  $VERSION  in
-  0.9.0)  USE_GCC="gcc-v3.4.3"  ;;
-#  0.9.*)  USE_GCC="gcc-v3.4"  ;;
+  0.9.0)  USE_GCC="gcc-v3.4"  ;;
+#  0.9.*)  USE_GCC="gcc-v3.4.3"  ;;
 # ; OPTS+=" --disable-system"  ;;
   0.8.*)  USE_GCC="gcc-v3.4"  ;;
   0.7.2)  USE_GCC="gcc-v3.4"  ;;
 esac
-  ESTIMATE="1070"
+  ESTIMATE="1200"
       DESC="qemu is a computer emulator."
 
 build()  {
 #   grep   -rl  "\-Wall -O2 -g -fno-strict-aliasing"  *  |
 #   xargs  -r  -L64  \
 #   sed    -i  "s:-Wall -O2 -g -fno-strict-aliasing:-Wall -O2 -fno-strict-aliasing:"
+
+grep  -rl              "\-g -fno-strict-aliasing"  *  |
+xargs -rL64  sed  -i  "s:-g -fno-strict-aliasing:-fno-strict-aliasing:"
+
+# grep  -rl              "\-Wall -O2"  *  |
+# xargs -rL64  sed  -i  "s:-Wall -O2::"
+
 unset  CFLAGS
 unset  CXXFLAGS
+
 export  CCACHE_DISABLE=1
 export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
   default_build
