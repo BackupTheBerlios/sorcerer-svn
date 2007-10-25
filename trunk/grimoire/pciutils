@@ -1,4 +1,4 @@
-   VERSION=( "2.2.7" "2.2.6" "2.2.5" "2.2.4" "2.2.3" "2.2.1" "2.2.0" "2.1.11" "2.1.10" "2.1.9" )
+   VERSION=( "2.2.8" "2.2.7" "2.2.6" "2.2.5" "2.2.4" "2.2.3" "2.2.1" "2.2.0" )
   CATEGORY="utility"
  ATTRIBUTE="console"
     SOURCE="pub/software/utils/pciutils/pciutils-$VERSION.tar.bz2"
@@ -26,9 +26,9 @@ build() {
     for                         file  in  lib/*.h
     do   install  -v  -m 0644  $file  /usr/include/pci/
     done
-    case  $MACHTYPE  in
-      x86_64*)  install  -v  -m 0755  lib/libpci.a  /usr/lib64  ;;
-            *)  install  -v  -m 0755  lib/libpci.a  /usr/lib    ;;
+    case  $HOSTTYPE  in
+      x86_64)  install  -v  -m 0755  lib/libpci.a  /usr/lib64  ;;
+           *)  install  -v  -m 0755  lib/libpci.a  /usr/lib    ;;
     esac
   }
 
@@ -37,24 +37,4 @@ prepare_install  &&
 make    install  &&
         install_lib
 # libpci.a is 30K, small enough that there is no shared library for it.
-}
-
-
-build_old() {
-# export  LDFLAGS="$LDFLAGS -L/lib"
-# sed  -i  "s:-O2:${CFLAGS}:
-#           s:/usr/local:/usr:"  Makefile
-
-case  $VERSION  in
-  2.2.4)  patch  -p1  <  $SCRIPT_DIR/pciutils-$VERSION.patch
-          sed    -i      "s:/usr/local:/usr:"  Makefile  ;;
-esac
-
-make             &&
-prepare_install  &&
-make    install  &&
-install  -v -m 755  -d               /usr/include/pci  &&
-install  -v -m 644  lib/*.h          /usr/include/pci  &&
-install  -v -m 755  lib/libpci.so.2  /usr/lib          &&
-ln       -v -s          libpci.so.2  /usr/lib/libpci.so
 }
