@@ -1,5 +1,5 @@
    VERSION=( "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.0" )
-# 2.0.0.6 may be broken
+      SAFE=( "2.0.0.6" )
   CATEGORY="network/email"
  ATTRIBUTE="client solo x11"
     SOURCE="thunderbird-${VERSION}-source.tar.bz2"
@@ -71,11 +71,20 @@ EOF
   xargs  -l64  sed  -i  "s:-Wl,-soname:-Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION -Wl,-soname:"
 
 
-check_space                    &&
-./configure  $OPTS             &&
-make                           &&
-prepare_install                &&
-make                  install  &&
+case  $VERSION  in
+  2.0.0.6)  mkdir  -p  include/pango-1.0/pango
+            cp    /usr/include/pango-1.0/pango/pangocairo.h  \
+                       include/pango-1.0/pango/
+            sed  -i   "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
+            export    CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+            export  CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0"  ;;
+esac
+
+check_space         &&
+./configure  $OPTS  &&
+make                &&
+prepare_install     &&
+make    install     &&
 ln     -s   /opt/thunderbird/bin/thunderbird /usr/bin/thunderbird  &&
 rm     -rf  /opt/thunderbird/lib/thunderbird-$VERSION/install
 }

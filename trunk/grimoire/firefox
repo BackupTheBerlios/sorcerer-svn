@@ -1,7 +1,5 @@
-# 2.0.0.8 failed compilation.
-#   VERSION=( "2.0.0.8" "2.0.0.7" "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.3" "2.0.0.2" "2.0.0.1" "2.0" )
-    VERSION=(           "2.0.0.7" "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.3" "2.0.0.2" "2.0.0.1" "2.0" )
-       SAFE=( "2.0.0.8" "2.0.0.7" "2.0.0.6" )
+    VERSION=( "2.0.0.8" "2.0.0.7" "2.0.0.6" "2.0.0.5" "2.0.0.4" "2.0.0.3" "2.0.0.2" "2.0.0.1" "2.0" )
+       SAFE=( "2.0.0.8" )
   CATEGORY="network/web"
  ATTRIBUTE="client solo x11"
     SOURCE="firefox-${VERSION}-source.tar.bz2"
@@ -140,6 +138,12 @@ EOF
 # pango versions 1.18.2 1.18.1 1.18.0
 # bug in pango?
 case  $VERSION  in
+  2.0.0.8)  mkdir  -p  include/pango-1.0/pango
+            cp    /usr/include/pango-1.0/pango/pangocairo.h  \
+                       include/pango-1.0/pango/
+            sed  -i   "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
+            export    CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+            export  CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0"  ;;
   2.0.0.7)  mkdir  -p  include/pango-1.0/pango
             cp    /usr/include/pango-1.0/pango/pangocairo.h  \
                        include/pango-1.0/pango/
