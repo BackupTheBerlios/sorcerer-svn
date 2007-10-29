@@ -1,5 +1,7 @@
-   VERSION=( "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" "0.6.1+1" "0.6.1" "0.6.0" )
+   VERSION=( "0.8.3" "0.8.2" "0.8.1" "0.8.0" "0.7.2" "0.7.1" "0.7.0" )
+      SAFE=( "0.8.3" )
 # 0.8.0 and 0.7.2 have a compatibility problem with current PAM?
+# 0.8.3 has a perl module which does not install properly.
     IGNORE="^200\|rc\|w32\|binaries"
   CATEGORY="network/ftp"
 #ATTRIBUTE="server console new"
@@ -19,6 +21,19 @@
              ":--enable-ipv6::for experimental IPv6 support"
              ":--enable-utf8::for experimental UTF8 support" )
         OPTS="--without-pam"
+#
+# Installing wzdftpd.pm
+# make[3]: Entering directory `/usr/src/sorcery/wzdftpd/wzdftpd-0.8.3/libwzd-perl/ext'
+# Use of uninitialized value in -d at /usr/lib/perl5/5.8.8/File/Path.pm line 159.
+# fileparse(): need a valid pathname at /usr/lib/perl5/5.8.8/File/Path.pm line 160
+# make[3]: *** [pure_vendor_install] Error 2
+#
+case  $VERSION  in
+  0.8.3)  OPTS+=" --disable-perl"  ;;
+esac
+#  Well the above case statement still does not avoid the problem.
+# wzdftpd is junk?  Does it ever compile and work as expected?
+
 #            "Linux-PAM:--with-pam:--without-pam:for PAM authentication"
 # Linux-PAM support is broken with wzdftpd
   ESTIMATE="511"
