@@ -1,0 +1,38 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: bootblaze
+# Required-Start: $local_fs
+# Should-Start:
+# Required-Stop: 
+# Should-Stop:
+# Default-Start: S
+# Default-Stop:
+# Short-Description: bootblaze reduces system startup and login time
+# Description: bootblaze reduces system startup and login time
+#     bootblaze remembers files accessed during the first 5 minutes.
+#     On subsequent boots those files are loaded ASAP.
+#     Therefore, when the files are needed
+#     their content is already cached by the kernel
+#     and neither human nor CPU time is wasted.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=bootblaze
+
+start() {
+  log_warning_msg  "$NAME about to start"
+  if  [  -x  /usr/sbin/bootblaze  ]  &&
+             /usr/sbin/bootblaze
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+  fi
+}
+
+help()  { echo "Usage: $0 {start}" 1>&2; }
+
+case  $1  in
+ start) start ;;
+     *) help  ;;
+esac
