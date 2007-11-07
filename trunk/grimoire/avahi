@@ -1,5 +1,8 @@
    VERSION=( "0.6.21" "0.6.20" "0.6.19" "0.6.18" "0.6.17" "0.6.16" )
-# maybe write init script for avahi-autoipd introduced in 0.6.14
+# avahi-autoipd if started should be started from a template
+# provided by networks rather than a separate init script
+# since the purpose of avahi-autoipd is to automatically assign
+# an IP address to a network interface.
 # 0.6.21 may have acquired a requirement on libcap
   CATEGORY="utility"
  ATTRIBUTE="library"
@@ -12,7 +15,11 @@
              "gtk+::--disable-gtk:for gtk+ integration"
              "qt-x11-free::--disable-qt3:for Qt3 mainloop integration"
              "qt-x11-opensource::--disable-qt4:for Qt4Core mainloop integration" )
-      OPTS="--with-distro=none --disable-mono --disable-python --disable-static"
+      OPTS="--with-distro=none --disable-mono --disable-python --disable-static --enable-compat-libdns_sd"
+# --enable-compat-libdns_sd
+# The above switch added so kdelibs can use avahi for zeroconf
+# instead of mDNSResponder
+  EPROVIDE="mDNSResponder"
   ESTIMATE="1800"
       DESC="avahi is a library and daemon for Multicast DNS Service Discovery.
 It may also be called zeroconf.

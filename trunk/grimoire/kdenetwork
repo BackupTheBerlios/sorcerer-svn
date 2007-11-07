@@ -1,7 +1,8 @@
 inherit kde
   CATEGORY="network/email network/news"
-       REQ=( "gnupg kdelibs libXScrnSaver libXtst openslp ortp speex"
+       REQ=( "gnupg kdelibs libXScrnSaver libXtst procps openslp ortp speex"
              "openssl:--with-ssl:--without-ssl:for SSL support"
+             "samba:::for nmblookup if you want lisa to discover windoze boxes"
              "wireless_tools:--with-wifi:--without-wifi:for wireless networking support"
              "xmms:--with-xmms:--without-xmms:for kopete chat client to display what you are listening to with xmms" )
 
@@ -35,7 +36,8 @@ build() {
     3.5.5)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
     3.4.1)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
   esac
-  kde_build
+  kde_build  &&
+  install  -m 0600  $SCRIPT_DIR/lisarc  /etc
 }
 
 
