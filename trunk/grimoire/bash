@@ -67,7 +67,12 @@ build() {
 
 
   [  -d  /isolinux  ]  ||
-  BUILD="$( uname -m )-pc-linux-gnu"
+  BUILD="$( uname -m )-$( echo $MACHTYPE | cut -d '-' -f2- )"
+
+  case  $BUILD  in
+    *-uclibc)  grep  -q         uclibc     support/config.sub  ||
+               sed   -i  "s:gnu:uclibc:g"  support/config.sub  ;;
+  esac
 
   ./configure                \
   --build=$BUILD             \
