@@ -43,8 +43,20 @@ build()  {
       fi  ;;
   esac
 
+# Even with UCLIBC_HAS_THREADS=y
+# perl says when compiling with uClibc:
+#     The recommended value for $d_getlogin_r_proto on this machine was "define"!
+#     The recommended value for $d_readdir64_r_proto on this machine was "define"!
+
+  case  $MACHTYPE  in
+    *-uclibc)  THREADS=""  ;;
+           *)  THREADS="-Dusethreads"  ;;
+  esac
+
+# could add -s : silent mode, only echoes questions and essential information.
+
   ./Configure                                         \
-  -Dprefix=/usr -d -e -Dusethreads                    \
+  -Dprefix=/usr -d -e $THREADS                        \
   -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \
   $SETARCH
   make  "OPTIMIZE=$CFLAGS"  &&
