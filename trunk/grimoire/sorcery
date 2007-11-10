@@ -61,6 +61,17 @@ post_install() {
 
   install_sentinel()  {
     local              SENTINEL=/usr/libexec/sorcery/sentinel
+    if    [       -x  $SENTINEL-$MACHTYPE  ];  then
+      if  !  cmp  -s  $SENTINEL-$MACHTYPE  $SENTINEL
+      then   rm   -f                       $SENTINEL
+             cp       $SENTINEL-$MACHTYPE  $SENTINEL
+      fi
+    fi
+  }
+
+
+  install_sentinel_old()  {
+    local              SENTINEL=/usr/libexec/sorcery/sentinel
     local                        ARCH=$( uname -m )
     if    [       -x  $SENTINEL-$ARCH  ];  then
       if  !  cmp  -s  $SENTINEL-$ARCH  $SENTINEL
@@ -91,7 +102,11 @@ post_install() {
 
   default_post_install
   [  -d  /lib.old  ]  ||  backup_lib
-  install_sentinel
+  case  $VERSION  in
+    implosion-20071109-0)  install_sentinel_old  ;;
+                       *)  install_sentinel  ;;
+  esac
+  # install_sentinel
   fix_provide_logs
   linux_headers_check
 }
