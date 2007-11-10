@@ -130,7 +130,9 @@ export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 case  $MACHTYPE  in
   *-uclibc)  for   file  in  $SCRIPT_DIR/uClibc/*.patch
              do    patch  -p1  <  $file
-             done  ;;
+             done
+             OPTS+=" --enable-clocale=uclibc"  ;;
+  *-gnu)     OPTS+=" --enable-clocale=gnu"     ;;
 esac
 
   LCF="LIBCFLAGS=$CFLAGS"
@@ -161,12 +163,14 @@ case  $HOSTTYPE  in
   x86_64)  OPTS+=" --disable-multilib"  ;;
 esac
 
+# --enable-clocale can not be specified below since
+# the libc library may not be GNU's glibc
+# --enable-clocale=gnu
 
-OPTS="$OPTS
+OPTS+="
   --host=$BUILD
   --prefix=/opt/gcc/$VERSION
   --enable-__cxa_atexit
-  --enable-clocale=gnu
   --enable-shared
   --infodir=/usr/info
   --mandir=/usr/man
