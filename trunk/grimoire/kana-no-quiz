@@ -15,8 +15,8 @@ Choose the correct Hepburn romaji for the displayed kana."
 build()  {
   install_files()  {
     install  -m 0755  kana-no-quiz.py  /usr/bin
-    find   data  -type d  |  xargs  -rL256  chmod 0755
-    find   data  -type f  |  xargs  -rL256  chmod 0644
+    find   data  -type d  |  xargs  -r --max-lines 256  chmod 0755
+    find   data  -type f  |  xargs  -r --max-lines 256  chmod 0644
     chown  -R    root:root data
     rm     -rf                   /usr/share/kana-no-quiz
     cp     -av             data  /usr/share/kana-no-quiz
@@ -25,7 +25,7 @@ build()  {
 # sed    -i   "s:data/options.conf:~/.kana-no-quiz:"  data/py/options.py
   sed    -i   "s:data/options.conf:/tmp/knq:"  data/py/options.py
   grep   -rl              "data/"  *  |  grep  "\.py$"  |
-  xargs  -rL256  sed  -i  "s:data/:/usr/share/kana-no-quiz/:"
+  xargs  -r  --max-lines 256  sed  -i  "s:data/:/usr/share/kana-no-quiz/:"
   prepare_install  &&
           install_files
 }
