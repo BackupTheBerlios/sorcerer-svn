@@ -1,7 +1,7 @@
-   VERSION=( "2.13-pre7" )
+   VERSION=( "2.13.0.1" "2.13-pre7" )
   CATEGORY="utility"
  ATTRIBUTE="console"
-    SOURCE="pub/linux/utils/util-linux/testing/util-linux-$VERSION.tar.bz2"
+    SOURCE="pub/linux/utils/util-linux-ng/v2.13/util-linux-ng-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
   HOMEPAGE="ftp://ftp.kernel.org/pub/linux/utils/util-linux/"
        REQ=( "e2fsprogs gettext ncurses zlib"
@@ -14,7 +14,7 @@
    EXCLUDE="/etc/fstab
             /etc/mtab"
   EPROVIDE="util-linux schedutils"
-  ESTIMATE="733"
+  ESTIMATE="700"
       DESC="util-linux contains essential utilities.
 util-linux is a suite of essential utilities for any Linux system.
 Its primary audience is system integrators and DIY Linux hackers.
@@ -31,7 +31,7 @@ rescuept reset rev rootflags script scriptreplay setsid setterm sfdisk
 shutdown simpleinit sln swapoff swapon taskset tunelp ul umount vidmode vipw
 whereis write."
 
-build()  {
+build_old()  {
   if    echo  "$OPTS"  |  grep  -q  "\--localtime"
   then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d/hwclock
         OPTS=$( echo $OPTS | sed "s:\--localtime::" )
@@ -42,6 +42,26 @@ build()  {
   echo "OPTS=$OPTS"
   default_build  &&
   install -v -m 0700 -o root -g root  $SCRIPT_DIR/init.d/hwclock  /etc/init.d
+}
+
+build()  {
+  if    echo  "$OPTS"  |  grep  -q  "\--with-selinux"  &&
+        spell_installed  $( get_provider  libselinux  )
+  then  sed  -i  "s:HAVE_SELINUX=no:HAVE_SELINUX=yes:"  MCONFIG
+  fi
+
+  if    echo  "$OPTS"  |  grep  -q  "\--localtime"
+  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d/hwclock
+  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d/hwclock
+  fi
+
+  unset  OPTS
+  sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
+            s:\$(OPT)::
+            s:_WRITE=no:_WRITE=yes:"  MCONFIG
+  default_build					&&
+  install -v -m 0700 -o root -g root 		\
+	$SCRIPT_DIR/init.d/hwclock  /etc/init.d
 }
 
 post_install() {
