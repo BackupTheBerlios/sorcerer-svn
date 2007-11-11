@@ -1,45 +1,45 @@
 #!/bin/bash
 
-trap    ":" INT QUIT TSTP
+trap ":" INT QUIT TSTP
 
-parallelize() {
-  for ((SEQ=0;SEQ<10;SEQ++));  do
-    for  SCRIPT  in  /etc/rc.d/rc${RL}.d/$1${SEQ}*;  do
-      if    [  -f  "$SCRIPT"  ]  && 
-            [  -x  "$SCRIPT"  ]
-      then          $SCRIPT  $2 &
-      fi
-    done
-    wait
+parallel() {
+ for ((SEQ=0;SEQ<10;SEQ++)); do
+  for SCRIPT in /etc/rc.d/rc${RL}.d/$1${SEQ}*; do
+   if   [ -f "$SCRIPT" ] && 
+        [ -x "$SCRIPT" ]
+   then       $SCRIPT $2 &
+   fi
   done
+  wait
+ done
 }
 
 linear() {
-  for  SCRIPT  in  /etc/rc.d/rc${RL}.d/${1}*;  do
-    if    [  -f  "$SCRIPT"  ]  && 
-          [  -x  "$SCRIPT"  ]
-    then          $SCRIPT  $2
-    fi
-  done
+ for SCRIPT in /etc/rc.d/rc${RL}.d/${1}*; do
+  if   [ -f "$SCRIPT" ] && 
+       [ -x "$SCRIPT" ]
+  then       $SCRIPT $2
+  fi
+ done
 }
 
 ssp() {
-  parallelize K stop
-  parallelize S start
+ parallel K stop
+ parallel S start
 }
 
 ssl()  {
-  linear  K  stop
-  linear  S  start
+ linear K stop
+ linear S start
 }
 
-export  PATH="/sbin:/bin:/usr/sbin:/usr/bin"
-umask   022
+export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
+umask 022
  RL=$1
 RLL=/var/log/runlevel.$RL.log
 
-case  $RL  in
-    6|0)   ssl  ;;
-  3|5|1)   ssl  &>  $RLL &   echo  "$RLL is the runlevel log."  ;;
-    2|4)   ssp  &>  $RLL &   echo  "$RLL is the runlevel log."  ;;
+case $RL in
+   6|0) ssl ;;
+ 3|5|1) ssl &> $RLL & ;;
+   2|4) ssp &> $RLL & ;;
 esac
