@@ -1,43 +1,43 @@
-   VERSION=( "1.0.1" "1.0" "0.8.1" "0.8" )
-      SAFE=( "1.0.1" "1.0" "0.8.1" "0.8" )
-    IGNORE="^200\|snap\|rc"
-  CATEGORY="security/authentication security/encryption"
- ATTRIBUTE="console"
+   VERSION=( 1.0.1 1.0 0.8.1 0.8 )
+      SAFE=( 1.0.1 1.0 0.8.1 0.8 )
+    IGNORE='^200\|snap\|rc'
+  CATEGORY='security/authentication security/encryption'
+ ATTRIBUTE='console'
     SOURCE="heimdal-$VERSION.tar.gz"
-       URL="ftp://ftp.sunet.se/pub/unix/admin/mirror-pdc/heimdal/src/
+       URL='ftp://ftp.sunet.se/pub/unix/admin/mirror-pdc/heimdal/src/
             ftp://ftp.pdc.kth.se/pub/heimdal/src/
             ftp://ftp.ayamura.org/pub/heimdal/
-            ftp://ftp.sunet.se/pub/unix/admin/mirror-pdc/pub/heimdal/src/"
-  HOMEPAGE="http://www.pdc.kth.se/heimdal/"
-       REQ=( "bison db e2fsprogs flex ncurses openssl"
-             "libXt:::for forwarding X connections and locking the screen" )
-      EREQ=( ""
-             "openldap:--with-openldap::for storing the database in LDAP" )
+            ftp://ftp.sunet.se/pub/unix/admin/mirror-pdc/pub/heimdal/src/'
+  HOMEPAGE='http://www.pdc.kth.se/heimdal/'
+       REQ=( 'bison db e2fsprogs flex ncurses openssl'
+             'libXt:::for forwarding X connections and locking the screen' )
+      EREQ=( ''
+             'openldap:--with-openldap::for storing the database in LDAP' )
 
 # optional on x11 removed because causes circuliar requirement with xsm
-#            "x11:::for forwarding X connections and for locking the screen"
+#            'x11:::for forwarding X connections and for locking the screen'
 
-      OPTS="--enable-shared=yes  --enable-static=no"
-  ESTIMATE="6380"
-      DESC="heimdal is a free implementation of Kerberos 5."
+      OPTS='--enable-shared=yes  --enable-static=no'
+  ESTIMATE='6380'
+      DESC='heimdal is a free implementation of Kerberos 5.'
 
 build() {
-export CFLAGS="$CFLAGS -fPIC"
-export CXXFLAGS="$CXXFLAGS -fPIC"
+export CFLAGS+=' -fPIC'
+export CXXFLAGS+=' -fPIC'
 
-sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:
-          s:db, db->name, NULL,:db, NULL, db->name, NULL,:"  \
+sed  -i  's:db, fn, NULL,:db, NULL, fn, NULL,:
+          s:db, db->name, NULL,:db, NULL, db->name, NULL,:'  \
      lib/hdb/db3.c
 
-sed  -i  "s:db, fn, NULL,:db, NULL, fn, NULL,:"  \
+sed  -i  's:db, fn, NULL,:db, NULL, fn, NULL,:'  \
      lib/roken/ndbm_wrap.c
 
-LOG="
+LOG='
 [logging]
  kdc = FILE:/var/heimdal/kdc.log
  kdc = SYSLOG:INFO
  default = SYSLOG:INFO:USER
-"
+'
 
 copy_headers()  {
   mkdir  -p                   save
@@ -61,6 +61,13 @@ restore_headers()  {
 
 }
 
+install_conf()  {
+  echo  "$LOG"  >>   krb5.conf
+  install  -vm 0600  krb5.conf  /etc/
+}
+
+install_dir()  {  mkdir  -p 0700  /var/heimdal;  }
+
 # export  ac_cv_func_glob_working=yes
 
 ./configure            \
@@ -74,9 +81,6 @@ prepare_install        &&
    copy_headers        &&
 make    install        &&
 restore_headers        &&
-
-if    !  [  -f      /etc/krb5.conf  ];  then
-  cp    krb5.conf   /etc/krb5.conf
-  echo  "$LOG"  >>  /etc/krb5.conf
-fi
+        install_conf   &&
+        install_dir
 }

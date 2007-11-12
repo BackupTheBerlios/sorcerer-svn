@@ -1,40 +1,50 @@
-   VERSION=( "0.99.9.0" "0.99.8.1" "0.99.7.1" "0.99.7.0" "0.99.6.3" "0.99.6.1" "0.99.5.0" "0.99.4.0" "0.99.3.0" "0.99.2.0" )
-    IGNORE="s"
-  CATEGORY="security/authentication"
- ATTRIBUTE="library solo"
+   VERSION=( 0.99.9.0 0.99.8.1 0.99.7.1 0.99.7.0 )
+    IGNORE='s'
+  CATEGORY='security/authentication'
+ ATTRIBUTE='library solo'
     SOURCE=( "pub/linux/libs/pam/pre/library/Linux-PAM-$VERSION.tar.bz2"
              "pub/linux/libs/pam/pre/doc/Linux-PAM-$VERSION-docs.tar.bz2" )
-  HOMEPAGE="http://www.kernel.org/pub/linux/libs/pam"
+  HOMEPAGE='http://www.kernel.org/pub/linux/libs/pam'
        URL="$KERNEL_URL"
-       REQ=( ""
-             "cracklib::--disable-cracklib:for password checking library"
-             "db:--enable-db=db:--enable-db=no:for db support"
-             "libprelude::--disable-prelude:for prelude support"
-             "libselinux::--disable-selinux:for selinux support" )
+       REQ=( ''
+             'cracklib::--disable-cracklib:for password checking library'
+             'db:--enable-db=db:--enable-db=no:for db support'
+             'libprelude::--disable-prelude:for prelude support'
+             'libselinux::--disable-selinux:for selinux support' )
 
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
-      OPTS="--enable-read-both-confs"
+      OPTS='--enable-read-both-confs'
 
 ## The configure paramaters below do not work as they should
   case  $MACHTYPE  in
-    x86_64*)  OPTS+=" --libdir=/usr/lib64 --enable-securedir=/usr/lib64/security"  ;;
-          *)  OPTS+=" --libdir=/usr/lib   --enable-securedir=/usr/lib/security"    ;;
+    x86_64*)  OPTS+=' --libdir=/usr/lib64 --enable-securedir=/usr/lib64/security'  ;;
+          *)  OPTS+=' --libdir=/usr/lib   --enable-securedir=/usr/lib/security'    ;;
   esac
-   PROTECT="/etc/security"
- FRESHMEAT="linux-pam"
-  ESTIMATE="2800"
-      DESC="Linux-PAM provides a flexibile authentication mechanism."
+   PROTECT='/etc/security'
+ FRESHMEAT='linux-pam'
+  ESTIMATE='2800'
+      DESC='Linux-PAM provides a flexibile authentication mechanism.'
 
 build() {
   export  HAVE_SGML2LATEX=no
-  sed  -i  "s: doc examples::g"  Makefile.in
+  sed  -i  's: doc examples::g'  Makefile.in
   default_build
+}
+
+
+post_install() {
+  default_post_install
+            get_provider  pam_ldap |
+  pipe      show_installed         |
+  LC_ALL=C  sort                   |
+            uniq  -d               |
+            pipe_queue  $CAST_QUEUE  com
 }
 
 
 ## Not required since new Linux-PAM trips the ELF library check.
 # post_install()  {
-#   grep  -lqr  "/usr/lib/security/\|/usr/lib64/security"  $INSTALL_LOGS  |
+#   grep  -lqr  '/usr/lib/security/\|/usr/lib64/security'  $INSTALL_LOGS  |
 #   basenames  |  pipe_queue  "$CAST_QUEUE"  "com"
 # }

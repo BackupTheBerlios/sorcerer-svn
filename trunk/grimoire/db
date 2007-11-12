@@ -1,14 +1,11 @@
 # remeber check /usr/lib/libdb-4.6.so or whatever library it installs
 # to make sure it linked with libpthread.
 
-   VERSION=( "4.6.21" "4.6.19" "4.6.18" "4.5.20" "4.4.20" "4.4.16" "4.3.29" "4.3.28" "4.3.27" "4.3.21" "4.2.52" "4.2.50" "4.1.25" "4.1.24" "4.0.14" )
-      SAFE=( "4.6.21" "4.6.19" "4.6.18" "4.5.20" "4.4.20" )
-
-#   VERSION=( "4.6.19" "4.6.18" "4.5.20" "4.4.20" "4.4.16" "4.3.29" "4.3.28" "4.3.27" "4.3.21" "4.2.52" "4.2.50" "4.1.25" "4.1.24" "4.0.14" )
-#      SAFE=( "4.6.19" "4.6.18" "4.5.20" "4.4.20" )
-    IGNORE="\.NC\|cd\|^4\.1\.24"
-  CATEGORY="db"
- ATTRIBUTE="library"
+   VERSION=( 4.6.21 4.6.19 4.6.18 4.5.20 4.4.20 )
+      SAFE=( 4.6.21 4.6.19 4.6.18 4.5.20 4.4.20 )
+    IGNORE='\.NC\|cd\|^4\.1\.24'
+  CATEGORY='db'
+ ATTRIBUTE='library'
     SOURCE=( "db-$VERSION.tar.gz" )
 #              "patch.$VERSION.1"
 #              "patch.$VERSION.2" )
@@ -21,20 +18,20 @@
 #            "http://www.sleepycat.com/update/snapshot"
 # j2sdk is not gcc 3.4.1 compatibile.
 # and so we must get rid of it for db to link
- CONFLICTS="j2sdk"
+ CONFLICTS='j2sdk'
 #  Removing j2sdk as an optional requirement helps
 #  avoid a recrusive requirement loop
-#   "j2sdk:--enable-java::for java support"
-# HOMEPAGE="http://www.sleepycat.com"
-  HOMEPAGE="http://www.oracle.com/technology/software/products/berkeley-db/db/index.html"
-      VURL="http://www.oracle.com/technology/software/products/berkeley-db/db/index.html"
- FRESHMEAT="berkeleydb"
-  ESTIMATE="1200"
-      DESC="db also called Berkeley DB provides database support.
+#   'j2sdk:--enable-java::for java support'
+# HOMEPAGE='http://www.sleepycat.com'
+  HOMEPAGE='http://www.oracle.com/technology/software/products/berkeley-db/db/index.html'
+      VURL='http://www.oracle.com/technology/software/products/berkeley-db/db/index.html'
+ FRESHMEAT='berkeleydb'
+  ESTIMATE='1200'
+      DESC='db also called Berkeley DB provides database support.
 db also called Berkeley DB is a programmatic toolkit that provides 
 fast, reliable, scalable, and mission-critical database support in 
 software ranging from applications running on hand-held appliances 
-to enterprise-scale servers."
+to enterprise-scale servers.'
 
 build()  {
 PCX=1
@@ -67,6 +64,16 @@ make                &&
 prepare_install     &&
 make    install     &&
 rm     -rf  /usr/docs
+}
+
+
+post_install()  {
+  default_post_install
+            get_provider  openldap |
+  pipe      show_installed         |
+  LC_ALL=C  sort                   |
+            uniq  -d               |
+            pipe_queue  $CAST_QUEUE  com
 }
 
 

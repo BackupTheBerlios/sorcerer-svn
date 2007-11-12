@@ -1,21 +1,18 @@
-#  LVERSION=( "2.6.22.1" )
-#   VERSION=( "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" ) 
-#      SAFE=( "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" )
-  LVERSION=( "2.6.22.9" "2.6.22.1" )
-   VERSION=( "2.7" "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" ) 
-      SAFE=( "2.7" "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" )
+  LVERSION=( 2.6.22.9 2.6.22.1 )
+   VERSION=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
+      SAFE=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
 
 case  $HOSTTYPE  in
-   i586)  VERSION=( "2.6.1" "2.6" "2.5" "2.4" "2.3.6" "2.3.5" "2.3.4" "2.3.3" "2.3.2" "2.3.1" "2.3" )   ;;
+   i586)  VERSION=( 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 2.3.3 2.3.2 2.3.1 2.3 )   ;;
 esac
 
 # Compilation of glibc 2.7 with gcc 4.2.2 fails on i586 architecture.
 # Complaint to glibc authors if you want.
 # Compilation is successful on x86_64 and i686 architectures.
 
-    IGNORE="ref\|2001\|^2\.[4-5]\|libidn\|linuxthreads\|ports"
-  CATEGORY="development"
- ATTRIBUTE="library solo"
+    IGNORE='ref\|2001\|^2\.[4-5]\|libidn\|linuxthreads\|ports'
+  CATEGORY='development'
+ ATTRIBUTE='library solo'
 case  $VERSION  in
   2.7*)
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
@@ -52,15 +49,15 @@ case  $VERSION  in
     URL[2]="$KERNEL_URL"  ;;
 esac
 
-  HOMEPAGE="http://www.gnu.org/software/libc"
-       REQ=( "perl"
-             "libselinux:--with-selinux:--without-selinux:for selinux support" )
-#            ":--enable-add-ons=nptl::for linux 2.6.x only NP thread library" )
-   EXCLUDE="/etc/ld.so.cache
+  HOMEPAGE='http://www.gnu.org/software/libc'
+       REQ=( 'perl'
+             'libselinux:--with-selinux:--without-selinux:for selinux support' )
+#            ':--enable-add-ons=nptl::for linux 2.6.x only NP thread library' )
+   EXCLUDE='/etc/ld.so.cache
             /etc/ld.so.conf
-            /etc/localtime"
-#           /etc/nsswitch.conf"
-   PROTECT="/etc/hostname
+            /etc/localtime'
+#           /etc/nsswitch.conf'
+   PROTECT='/etc/hostname
             /etc/hosts
             /etc/host.conf
             /etc/hosts
@@ -73,16 +70,16 @@ esac
             /etc/resolv.conf
             /lib/ld-linux.so.2
             /lib64/ld-linux-x86-64.so.2
-            /sbin/ldconfig"
+            /sbin/ldconfig'
 #           /usr/include/bits/syscall.h
-#           /usr/include/gnu/stubs.h"
+#           /usr/include/gnu/stubs.h'
   disable  lib64  reduce
 case $HOSTTYPE in
- x86_64)  RPATH="/usr/lib64/gconv"  ;;
-      *)  RPATH="/usr/lib/gconv"    ;;
+ x86_64)  RPATH='/usr/lib64/gconv'  ;;
+      *)  RPATH='/usr/lib/gconv'    ;;
 esac
-  ESTIMATE="19500"
-      DESC="glibc is a C library for use with GNU/Hurd and GNU/Linux.
+  ESTIMATE='19500'
+      DESC='glibc is a C library for use with GNU/Hurd and GNU/Linux.
 glibc - Library for use with GNU/Hurd and GNU/Linux.
 GNU C Library is one of the most important components
 of the GNU Hurd and most modern Linux distributions.
@@ -91,7 +88,7 @@ most essential program interface.
 
 gd libpng and zlib are optional requirements for
 building memusagestat, a program to generate graphic
-from memory profiling data."
+from memory profiling data.'
 
 
 build() {
@@ -247,7 +244,11 @@ install_glibc
 
 post_install() {
   default_post_install
-  backup_lib
+            get_provider  nss_ldap |
+  pipe      show_installed         |
+  LC_ALL=C  sort                   |
+            uniq  -d               |
+            pipe_queue  $CAST_QUEUE  com
 }
 
 
