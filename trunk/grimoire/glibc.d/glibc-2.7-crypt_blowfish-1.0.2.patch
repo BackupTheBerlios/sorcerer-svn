@@ -1,0 +1,49 @@
+diff -r -U2 glibc-2.7/crypt/crypt-entry.c glibc-2.7/crypt/crypt-entry.c
+--- glibc-2.7/crypt/crypt-entry.c	2007-09-19 13:37:15.000000000 -0700
++++ glibc-2.7/crypt/crypt-entry.c	2007-09-19 13:37:15.000000000 -0700
+@@ -83,5 +83,5 @@
+ 
+ char *
+-__crypt_r (key, salt, data)
++__des_crypt_r (key, salt, data)
+      const char *key;
+      const char *salt;
+@@ -138,4 +138,5 @@
+   return data->crypt_3_buf;
+ }
++#if 0
+ weak_alias (__crypt_r, crypt_r)
+ 
+@@ -161,4 +162,5 @@
+   return __crypt_r (key, salt, &_ufc_foobar);
+ }
++#endif
+ 
+ 
+diff -r -U2 glibc-2.7/crypt/Makefile glibc-2.7/crypt/Makefile
+--- glibc-2.7/crypt/Makefile	2007-09-19 13:37:33.000000000 -0700
++++ glibc-2.7/crypt/Makefile	2007-09-19 13:37:33.000000000 -0700
+@@ -22,5 +22,5 @@
+ subdir	:= crypt
+ 
+-headers := crypt.h
++headers := crypt.h gnu-crypt.h ow-crypt.h
+ 
+ extra-libs := libcrypt
+@@ -28,5 +28,6 @@
+ 
+ libcrypt-routines := crypt-entry md5-crypt md5 sha256-crypt sha256 \
+-		     sha512-crypt sha512 crypt crypt_util
++		     sha512-crypt sha512 crypt crypt_util \
++		     crypt_blowfish x86 crypt_gensalt wrapper
+ 
+ tests := cert md5test md5c-test sha256test sha256c-test sha512test sha512c-test
+diff -r -U2 glibc-2.7/crypt/Versions glibc-2.7/crypt/Versions
+--- glibc-2.7/crypt/Versions	2000-03-03 17:47:30.000000000 -0700
++++ glibc-2.7/crypt/Versions	2000-03-03 17:47:30.000000000 -0700
+@@ -2,4 +2,5 @@
+   GLIBC_2.0 {
+     crypt; crypt_r; encrypt; encrypt_r; fcrypt; setkey; setkey_r;
++    crypt_rn; crypt_ra; crypt_gensalt; crypt_gensalt_rn; crypt_gensalt_ra;
+   }
+ }

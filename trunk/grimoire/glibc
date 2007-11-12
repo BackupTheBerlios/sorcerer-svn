@@ -15,11 +15,15 @@ esac
  ATTRIBUTE='library solo'
 case  $VERSION  in
   2.7*)
+ BVERSION=( 1.0.2 )
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
             "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
+#           "crypt_blowfish-$BVERSION.tar.gz" )
        URL="$GNU_URL"
-    URL[2]="$KERNEL_URL"  ;;
+    URL[2]="$KERNEL_URL"
+    URL[3]="http://www.openwall.com/crypt/
+             ftp://ftp.openwall.com/pub/projects/crypt/"  ;;
   2.6*)
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
@@ -155,6 +159,13 @@ build() {
   }
 
 
+  blowfish_patch()  {
+    patch  -p1  <  $SCRIPT_DIR/glibc-$VERSION-crypt_blowfish-$BVERSION.patch
+    mv  crypt/sysdeps/unix/crypt.h          crypt/sysdeps/unix/gnu-crypt.h
+    cp  crypt_blowfish-$BVERSION/*.{h,c,S}  crypt/sysdeps/unix/
+  }
+
+
    LPO="$LD_PRELOAD"
   unset  LD_PRELOAD LTDL_LIBRARY_PATH  LD_LIBRARY_PATH  LD_RUN_PATH
 # unset  LDFLAGS  LTDL_LIBRARY_PATH  LD_LIBRARY_PATH  LD_RUN_PATH
@@ -200,7 +211,8 @@ cp     -a   $IR/usr/include/*                           /usr/include
 # ^^ linux headers installed before glibc begins compilation.
 
 case  $VERSION  in
-  2.7*) mv  glibc-libidn-*    libidn
+  2.7*) # blowfish_patch
+        mv  glibc-libidn-*    libidn
         KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
         (( KVER >= 2619 ))  &&
         OPTS="$OPTS --enable-kernel=2.6.19"  ;;
