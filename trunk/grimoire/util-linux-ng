@@ -1,40 +1,5 @@
-   VERSION=( 2.13 )
+   VERSION=( deprecated )
   CATEGORY='utility'
- ATTRIBUTE='console new'
-    SOURCE="/pub/linux/utils/util-linux-ng/v${VERSION}/util-linux-ng-$VERSION.tar.bz2"
-       URL="$KERNEL_URL"
-  HOMEPAGE='ftp://ftp.kernel.org/pub/linux/utils/util-linux-ng/'
-       REQ=( "e2fsprogs gettext ncurses zlib udev"
-             "libselinux::--without-selinux:for selinux support"
-             "nfs-utils:::to mount NFS filesystems"
-             ":--utc:--localtime:Does the hardware clock store time in UTC" )
-       OPTS="--enable-kill --without-pam --enable-rdev --enable-raw 
-             --disable-wall --with-fsprobe=volume_id"
-   PROTECT="/usr/bin/column
-            /usr/bin/renice"
-   EXCLUDE="/etc/fstab
-            /etc/mtab"
-  EPROVIDE="util-linux"
-  ESTIMATE='811'
-      DESC="util-linux-ng  contains essential utilities.
-util-linux-ng (based on version 2.13-pre7 of util-linux)
-is a suite of essential utilities for any Linux system."
-
-build()  {
-  if    echo  "$OPTS"  |  grep  -q  "\--localtime"
-  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d/hwclock
-        OPTS=$( echo $OPTS | sed "s:\--localtime::" )
-  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d/hwclock
-        OPTS=$( echo $OPTS | sed "s:\--utc::" )
-  fi
-
-  echo "OPTS=$OPTS"
-  default_build					&&
-  install -v -m 0700 -o root -g root 		\
-	$SCRIPT_DIR/init.d/hwclock  /etc/init.d
-}
-
-post_install() {
-  default_post_install		&&
-  /lib/lsb/install_initd  /etc/init.d/hwclock
-}
+ ATTRIBUTE='console deprecated'
+      DESC='util-linux-ng is deprecated in favor of util-linux'
+current()  {  echo  util-linux  |  pipe  $CAST_QUEUE;  }
