@@ -5,32 +5,74 @@
        URL='ftp://ftp.cistron.nl/pub/people/miquels/sysvinit/'
   HOMEPAGE='ftp://ftp.cistron.nl/pub/people/miquels/sysvinit/'
        REQ='init-functions'
-   PROTECT="/etc/init.d/bootmisc"
+   PROTECT='/etc/init.d/bootmisc'
   ESTIMATE='35'
-      DESC="sysvinit is the parent process of all process.
+      DESC='sysvinit is the parent process of all process.
 Its primary role is to create processes from
 a script stored in the file /etc/inittab.
 This package also contains well known and used utilities like:
 reboot, shutdown, killall, poweroff, tellinit, sulogin, wall, etc.
 Before asking questions about how init scripts work please read:
-http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html"
+http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html'
+
+
+configure() {
+
+  char_dev_menu()  { find  /dev  -type c  |  sed  'acharacter device'; }
+
+  select_char_dev()  {
+    BACKTITLE='sysvinit Configuration'
+        TITLE='Character Device Selection Menu'
+
+    dialog  --backtitle  "$BACKTITLE"  \
+            --title      "$TITLE"      \
+            --stdout                   \
+            --timeout   "$PROMPT_DELAY"\
+            --default-item "$2"        \
+            --no-cancel                \
+            --menu  "$1"               \
+            0 0 0                      \
+            $(  char_dev_menu  )
+  }
+
+  if  !  grep  -q  "SI_DEV="  $SPELL_CONFIG  2>/dev/null  ||
+      !  grep  -q  "RL_DEV="  $SPELL_CONFIG  2>/dev/null
+  then
+    (
+      FOR='Please select the device to display the scroll
+from programs started during'
+
+      export  IFS=$'	\n'
+      SI_DEV="$( select_char_dev "$FOR sysinit."   '/dev/tty9'  )"
+      RL_DEV="$( select_char_dev "$FOR runlevels." '/dev/tty10' )"
+      if  [ -n "$SI_DEV"  ]; then echo "SI_DEV=$SI_DEV" >  $SPELL_CONFIG; fi
+      if  [ -n "$RL_DEV"  ]; then echo "RL_DEV=$RL_DEV" >> $SPELL_CONFIG; fi
+    )
+  fi
+}
+
 
 build() {
 install_init() {
-  mkdir   -p                                  /etc/init.d
-  install -m 0600  $SCRIPT_DIR/inittab        /etc
-  install -m 0700  $SCRIPT_DIR/prc            /etc/init.d
-  install -m 0700  $SCRIPT_DIR/rcS            /etc/init.d
-  install -m 0700  $SCRIPT_DIR/init.d/halt    /etc/init.d
-  install -m 0700  $SCRIPT_DIR/init.d/kill    /etc/init.d
-  install -m 0700  $SCRIPT_DIR/init.d/reboot  /etc/init.d
-  sed     -i       "s:ulimit :# ulimit :"  \
-                   src/initscript.sample
-  install -m 0700  src/initscript.sample      /etc
+  mkdir   -vp                                  /etc/init.d
+  install -vm 0600  $SCRIPT_DIR/inittab        /etc
+  install -vm 0700  $SCRIPT_DIR/prc            /etc/init.d
+  install -vm 0700  $SCRIPT_DIR/rcS            /etc/init.d
+  install -vm 0700  $SCRIPT_DIR/init.d/halt    /etc/init.d
+  install -vm 0700  $SCRIPT_DIR/init.d/kill    /etc/init.d
+  install -vm 0700  $SCRIPT_DIR/init.d/reboot  /etc/init.d
+  sed     -i        "s:ulimit :# ulimit :"  \
+                    src/initscript.sample
+  install -vm 0700  src/initscript.sample      /etc
+  install -vm 0700  -d                         /etc/init.d/dev
+  cp      -av       ${SI_DEV:-/dev/null}       /etc/init.d/dev/si
+  cp      -av       ${RL_DEV:-/dev/null}       /etc/init.d/dev/rl
+  install -vm 0700  -d                         /etc/init.d/log
+  return
 }
 
   case $HOSTTYPE in
-   x86_64)  sed  -i  's:/usr/lib/libcrypt.a:/usr/lib64/libcrypt.a:' src/Makefile  ;;
+   x86_64) sed -i 's:/usr/lib/libcrypt.a:/usr/lib64/libcrypt.a:' src/Makefile ;;
   esac
 
   sed   -i "s:-O2 -fomit-frame-pointer:${CFLAGS}:" src/Makefile
@@ -42,6 +84,7 @@ install_init() {
 }
 
 post_install() {
+  default_post_install
   [  -x  /usr/sbin/sorcerer.install  ]  ||  /sbin/init u
   /lib/lsb/install_initd /etc/init.d/reboot
 }

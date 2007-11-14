@@ -1,6 +1,7 @@
 #!/bin/bash
-
-trap ":" INT QUIT TSTP
+trap : INT QUIT TSTP
+export PATH=/sbin:/bin:/usr/sbin:/usr/bin
+umask 022
 
 parallel() {
  for ((SEQ=0;SEQ<10;SEQ++)); do
@@ -23,23 +24,16 @@ linear() {
  done
 }
 
-ssp() {
- parallel K stop
- parallel S start
-}
+ssp() { parallel K stop; parallel S start; }
+ssl() { linear   K stop; linear   S start; }
+log() { $1; echo End runlevel $RL; }
 
-ssl()  {
- linear K stop
- linear S start
-}
-
-export PATH="/sbin:/bin:/usr/sbin:/usr/bin"
-umask 022
  RL=$1
-RLL=/var/log/runlevel.$RL.log
+RLL=/etc/init.d/log/runlevel.$RL.log
+RLC=/etc/init.d/dev/rl
 
 case $RL in
    6|0) ssl ;;
- 3|5|1) ssl &> $RLL & ;;
-   2|4) ssp &> $RLL & ;;
+ 3|5|1) log ssl 2>&1 | tee $RLL > $RLC & ;;
+   2|4) log ssp 2>&1 | tee $RLL > $RLC & ;;
 esac

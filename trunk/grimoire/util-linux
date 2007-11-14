@@ -1,31 +1,26 @@
-   VERSION=( 2.12r 2.12q 2.12p 2.12o 2.12m )
-      SAFE=( "2.12r" "2.12q" )
-    IGNORE="pre"
+   VERSION=( 2.13 )
   CATEGORY='utility'
  ATTRIBUTE='console'
-    SOURCE="pub/linux/utils/util-linux/util-linux-$VERSION.tar.gz"
-       URL='$KERNEL_URL'
-#      URL='http://ftp.cwi.nl/aeb/util-linux/'
-#      URL='ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux/'
-  HOMEPAGE='ftp://ftp.win.tue.nl/pub/linux-local/utils/util-linux/'
-       REQ=( "e2fsprogs gettext ncurses zlib"
-             "libselinux:--with-selinux::for selinux support"
-             ":--utc:--localtime:Does the hardware clock store time in UTC" )
+    SOURCE="/pub/linux/utils/util-linux-ng/v${VERSION}/util-linux-ng-$VERSION.tar.bz2"
+       URL="$KERNEL_URL"
+  HOMEPAGE='ftp://ftp.kernel.org/pub/linux/utils/util-linux-ng/'
+       REQ=( 'e2fsprogs gettext ncurses zlib udev'
+             'libselinux::--without-selinux:for selinux support'
+             'nfs-utils:::to mount NFS filesystems'
+             ':--utc:--localtime:Does the hardware clock store time in UTC' )
+       OPTS='--enable-kill --without-pam --enable-rdev --enable-raw 
+             --disable-wall --with-fsprobe=volume_id'
+   PROTECT='/usr/bin/column
+            /usr/bin/renice'
+   EXCLUDE='/etc/fstab
+            /etc/mtab'
+  EPROVIDE='schedutils'
+ CONFLICTS='util-linux-dev util-linux-ng'
+  ESTIMATE='811'
+      DESC='util-linux-ng contains essential utilities.
+util-linux-ng (based on version 2.13-pre7 of util-linux)
+is a suite of essential utilities for any Linux system.
 
-case  $VERSION  in
-  2.13*)  EPROVIDE="schedutils"  ;;
-esac
-
-   PROTECT="/usr/bin/column
-            /usr/bin/renice"
-   EXCLUDE="/etc/fstab
-            /etc/mtab"
-  ESTIMATE='233'
-      DESC="util-linux contains essential utilities.
-util-linux is a suite of essential utilities for any Linux system.
-Its primary audience is system integrators and DIY Linux hackers.
-Util-linux is attempting to be portable, but the only platform it
-has been tested much on is Linux i386.
 It contains the following programs:
 agetty arch blockdev cal cfdisk chfn chkdupexe chsh clear col colcrt
 colrm column ctrlaltdel cytune ddate dmesg elvtune fastboot fasthalt
@@ -35,7 +30,7 @@ mesg mkfs mkfs.bfs mkfs.cramfs mkfs.minix mkswap more mount namei need
 passwd pg pivot_root ramsize raw rdev readprofile reboot rename renice
 rescuept reset rev rootflags script setfdprm setsid setterm sfdisk
 shutdown simpleinit sln swapoff swapon tunelp ul umount vidmode vipw
-wall whereis write."
+wall whereis write.'
 
 build()  {
   if    echo  "$OPTS"  |  grep  -q  "\--with-selinux"  &&
@@ -44,20 +39,15 @@ build()  {
   fi
 
   if    echo  "$OPTS"  |  grep  -q  "\--localtime"
-  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d/hwclock
-  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d/hwclock
+  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d//hwclock
+  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d//hwclock
   fi
 
   unset  OPTS
-  sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
-            s:\$(OPT)::
-            s:_WRITE=no:_WRITE=yes:"  MCONFIG
-  default_build					&&
-  install -v -m 0700 -o root -g root 		\
+#  sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
+#            s:\$(OPT)::
+#            s:_WRITE=no:_WRITE=yes:"  MCONFIG
+  default_build  &&
+  install -v -m 0700 -o root -g root  \
 	$SCRIPT_DIR/init.d/hwclock  /etc/init.d
-}
-
-post_install() {
-  default_post_install		&&
-  /lib/lsb/install_initd  /etc/init.d/hwclock
 }

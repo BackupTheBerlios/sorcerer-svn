@@ -28,14 +28,18 @@ match()  {
 }
 
 
+list_init()  {  find  /etc/init.d  -maxdepth 1  -type f;  }
+
 get_provides()  {
-  grep  -ir "#.*Provides:.* $1"  /etc/init.d  |
+  list_init |
+  xargs -r --max-lines=256 grep -Hi "#.*Provides:.* $1"  |
   match  "$1"
 }
 
 
 req_this()  {
-  grep  -ir "#.*Required-Stop:.* $1\|#.*Should-Stop:.* $1"  /etc/init.d  |
+  list_init |
+  xargs -r --max-lines=256 grep -Hi "#.*Required-Stop:.* $1\|#.*Should-Stop:.* $1"  |
   match  "$1"
 }
 
@@ -97,17 +101,18 @@ get_rank()  {
 }
 
 levels()  {
-    for LEVEL in  $1;  do
-      RANK="$( get_rank  "$2" "$3"  \
-                              "$INIT_NEW/rc$LEVEL.d/$4"  )"
-      ln  -s  /etc/init.d/$2   $INIT_NEW/rc$LEVEL.d/$4${RANK}$2
-    done
+  for LEVEL in  $1;  do
+    RANK="$( get_rank  "$2" "$3"  \
+                            "$INIT_NEW/rc$LEVEL.d/$4"  )"
+    ln  -s  /etc/init.d/$2   $INIT_NEW/rc$LEVEL.d/$4${RANK}$2
+  done
 }
 
-
 make_slinks() {
-  ( grep  -ir "#.*Provides:"                          /etc/init.d  |  expand
-    grep  -ir "#.*Required-Start:\|#.*Should-Start:"  /etc/init.d  |  expand r
+  (
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Provides:"       |  expand
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Required-Start:" |  expand r
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Should-Start:"   |  expand r
   )  |
   tsort       |
   executable  |
@@ -121,8 +126,10 @@ make_slinks() {
 
 
 make_klinks() {
-  ( grep  -ir "#.*Provides:"                        /etc/init.d  |  expand r
-    grep  -ir "#.*Required-Stop:\|#.*Should-Stop:"  /etc/init.d  |  expand
+  (
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Provides:"      | expand r
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Required-Stop:" | expand
+  list_init | xargs -r --max-lines=256 grep -Hi "#.*Should-Stop:"   | expand
   )  |
   tsort       |
   executable  |
@@ -153,13 +160,13 @@ make_links() {
 }
 
 remove_initd()  {
-  echo        "$@ will not be started during boot"  1>&2
-  chmod  a-x  "$@"
+  echo         "$@ will not be started during boot"  1>&2
+  chmod  0600  "$@"
 }
 
 install_initd() {
-  echo         "$@ will be started during boot"  1>&2
-  chmod  ug+x  "$@"
+  echo          "$@ will be started during boot"  1>&2
+  chmod  0700   "$@"
 }
 
 if      [  -f  "$1"  ];  then
