@@ -1,11 +1,16 @@
    VERSION=( 3.02pl2 3.02pl1 3.02 3.01 3.00 2.03 2.02pl1 )
-      SAFE=( "3.02pl2" )
-    IGNORE="arabic\|dos\|chinese\|cyrillic\|greek\|hebrew\|japanese\|korean\|latin\|thai\|turkish\|pl"
+      SAFE=( 3.02pl2 )
+    IGNORE='arabic\|dos\|chinese\|cyrillic\|greek\|hebrew\|japanese\|korean\|latin\|thai\|turkish\|pl'
   CATEGORY='documentation'
  ATTRIBUTE='x11'
-    SOURCE=( "xpdf-${VERSION:0:4}.tar.gz"
-             "xpdf-$VERSION.patch" )
+    SOURCE="xpdf-${VERSION:0:4}.tar.gz"
        URL='ftp://ftp.foolabs.com/pub/xpdf/'
+case  $VERSION  in
+  3.02pl2)  SOURCE[1]='xpdf-3.02pl1.patch'
+            SOURCE[2]='xpdf-3.02pl2.patch'  ;;
+#            SOURCE[3]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'
+#               URL[3]='ftp://ftp.kde.org/pub/kde/'  ;;
+esac
   HOMEPAGE='http://www.foolabs.com/xpdf/'
        REQ='autoconf lesstif libpaper t1lib'
 case  $VERSION  in
@@ -13,14 +18,22 @@ case  $VERSION  in
   3.02pl1)  USE_GCC="gcc-v4.0"  ;;
 esac
   ESTIMATE='280'
-      DESC="xpdf is a PDF, portable document format, viewer.
+      DESC='xpdf is a PDF, portable document format, viewer.
 xpdf is a viewer for Portable Document Format (PDF) files.
 It also comes with two other programs: pdftops and pdftotext
-which convert PDF files to postscript and plain text respectively."
+which convert PDF files to postscript and plain text respectively.'
 
 build() {
   case  $VERSION in
-  3.02pl1) patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]}  ;;
+  3.02pl2) patch  -p1  <  $SOURCE_CACHE/xpdf/3.02pl2/${SOURCE[1]}
+           patch  -p1  <  $SOURCE_CACHE/xpdf/3.02pl2/${SOURCE[2]}  ;;
+#           patch  -p4  <  $SOURCE_CACHE/xpdf/3.02pl2/${SOURCE[3]##*/}  ;;
   esac
   default_build
+}
+
+current()  {
+  case  $VERSION  in
+    3.02pl2)  grep  -qx  'patching file xpdf/Stream.h'  $COMPILE_LOGS/xpdf  ;;
+  esac
 }
