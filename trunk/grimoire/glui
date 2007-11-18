@@ -1,0 +1,27 @@
+   VERSION=( "2.36" )
+  CATEGORY='graphic/library'
+ ATTRIBUTE='library x11'
+    SOURCE="glui/glui-$VERSION.tgz"
+  HOMEPAGE='http://glui.sourceforge.net/'
+       URL="$SOURCEFORGE_URL"
+       REQ='glut'
+  ESTIMATE='552'
+      DESC="Glui is a grahic toolkit on top of glut written in C++ and OpenGL"
+
+build() {
+    cd src &&
+    if [ "$(augur  cur_provider glut)" == "freeglut" ]; then
+        sed -i "s:# LIBGLUT   = -L/usr/X11R6/lib -lfreeglut:LIBGLUT   = -L/usr/X11R6/lib -lfreeglut:" makefile
+        sed -i "s:# CPPFLAGS += -I/usr/X11R6/include -DGLUI_FREEGLUT:CPPFLAGS += -I/usr/X11R6/include -DGLUI_FREEGLUT:" makefile
+        sed -i "s:LIBGLUT   = -L/usr/X11R6/lib -lglut:#LIBGLUT   = -L/usr/X11R6/lib -lglut:" makefile
+        sed -i "s:CPPFLAGS += -I/usr/X11R6/include$:#CPPFLAGS += -I/usr/X11R6/include:" makefile
+    fi
+    make && 
+    prepare_install &&
+    cp lib/* /usr/lib &&
+    mkdir -p /usr/share/doc/glui &&
+    mkdir -p /usr/share/glui &&
+    cp -a bin /usr/share/glui   &&
+    cp -a doc/* /usr/share/doc/glui &&
+	cp -a include/* /usr/include
+}
