@@ -1,54 +1,9 @@
-umask  022
-export PATH=/usr/local/bin:/usr/bin:/bin; [ "$UID" == "0" ] &&
-export PATH+=:/usr/local/sbin:/usr/sbin:/sbin
+for          REPLY in /etc/bash.d/noninteractive/*
+do  if [ -x $REPLY ]; then . $REPLY; fi
+done
 
-# PS1 is set during an interactive shell
 if [ -n "$PS1" ]; then
-
-  # load bash command completions
-  if  ! complete -p su &>/dev/null; then
-    for           REPLY in /etc/bash_completion{,.d/*}; do
-      if   [ -x "$REPLY" ]
-      then    . "$REPLY"
-      fi
-    done
-  fi
-
-  # set ls color codes
-  if    [ -z "$LS_COLORS" ]  &&
-        [ -f  /usr/bin/dircolors ]
-  then  eval `/usr/bin/dircolors`; alias ls='ls --color=auto '
-  fi
-
-  # set a useful and informative command prompt
-  if   [ -x /etc/PS1 ]
-  then    . /etc/PS1
-  else export    PS1='\n\d \t \n\u@\h:\w\$ '
-  fi
-
-  # set the default editor
-  if   [ -z "$EDITOR" ] && [ -f /etc/EDITOR ]
-  then read   EDITOR  <         /etc/EDITOR; export EDITOR
-  fi
-fi
-
-# set the readline startup file
-if   [ -z "$INPUTRC" ]; then        INPUTRC=~/.inputrc
-  if [ -f  $INPUTRC  ]; then export INPUTRC
-                        else export INPUTRC=/etc/inputrc
-  fi
-fi
-
-# set the desired human language
-if    [ -z "$LANG" ] && [ -f /etc/LANG ]
-then  read   LANG  <         /etc/LANG; export LANG
-fi
-
-
-# Above variables can be changed without modifying this file.
-# Instead create the file    /etc/profile.local
-# The conditional below runs /etc/profile.local
-
-if   [ -f /etc/profile.local ]
-then .    /etc/profile.local
+ for         REPLY in /etc/bash.d/interactive/*
+ do if [ -x $REPLY ]; then . $REPLY; fi
+ done
 fi
