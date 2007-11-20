@@ -100,6 +100,13 @@ post_install() {
     )  |  xargs  --max-lines=64  rm  -f
   }
 
+  fix_fstab()  {
+    if    grep  -q     "/root/.sorcery.*size=32m"          /etc/fstab
+    then  sed   -ir "s:(/root/.sorcery.*size=)32m:\164m:"  /etc/fstab
+          mount -o remount /root/.sorcery
+    fi
+  }
+
   default_post_install
   [  -d  /lib.old  ]  ||  backup_lib
   case  $VERSION  in
@@ -109,4 +116,5 @@ post_install() {
   # install_sentinel
   fix_provide_logs
   linux_headers_check
+  fix_fstab
 }
