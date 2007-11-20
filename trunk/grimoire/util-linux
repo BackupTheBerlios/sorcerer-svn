@@ -8,8 +8,7 @@
              'libselinux::--without-selinux:for selinux support'
              'nfs-utils:::to mount NFS filesystems'
              ':--utc:--localtime:Does the hardware clock store time in UTC' )
-       OPTS='--enable-kill --without-pam --enable-rdev --enable-raw 
-             --disable-wall --with-fsprobe=volume_id'
+     OPTS2='--enable-arch'
    PROTECT='/usr/bin/column
             /usr/bin/renice'
    EXCLUDE='/etc/fstab
@@ -43,11 +42,10 @@ build()  {
   else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d//hwclock
   fi
 
-  unset  OPTS
-#  sed  -i  "s:HAVE_SLN=no:HAVE_SLN=yes:
-#            s:\$(OPT)::
-#            s:_WRITE=no:_WRITE=yes:"  MCONFIG
-  default_build  &&
-  install -v -m 0700 -o root -g root  \
-	$SCRIPT_DIR/init.d/hwclock  /etc/init.d
+  OPTS=OPTS2
+
+  default_build                                        &&
+  install -v -m 0700 -o root -g root           \
+       $SCRIPT_DIR/init.d/hwclock  /etc/init.d
 }
+
