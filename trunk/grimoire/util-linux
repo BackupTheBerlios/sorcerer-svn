@@ -4,11 +4,15 @@
     SOURCE="/pub/linux/utils/util-linux-ng/v${VERSION:0:4}/util-linux-ng-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
   HOMEPAGE='ftp://ftp.kernel.org/pub/linux/utils/util-linux-ng/'
-       REQ=( 'e2fsprogs gettext ncurses zlib udev'
-             'libselinux::--without-selinux:for selinux support'
-             'nfs-utils:::to mount NFS filesystems'
-             ':--utc:--localtime:Does the hardware clock store time in UTC' )
-     OPTS2='--enable-arch'
+       REQ=( 'e2fsprogs gettext ncurses udev zlib'
+             ':--enable-arch::to build arch'
+             ':--enable-write::to build write'
+             ':--utc:--localtime:Does the hardware clock store time in UTC'
+             'Linux-PAM:--with-pam:--without-pam:for pluggable authentication'
+             'libselinux:--with-selinux:--without-selinux:for selinux support'
+             'nfs-utils:::to mount NFS filesystems' )
+# sysvinit:/usr/bin/wall
+      OPTS='--disable-wall'
    PROTECT='/usr/bin/column
             /usr/bin/renice'
    EXCLUDE='/etc/fstab
@@ -16,7 +20,7 @@
   EPROVIDE='schedutils'
  CONFLICTS='util-linux-dev util-linux-ng'
   ESTIMATE='700'
-      DESC='util-linux-ng contains essential utilities.
+      DESC='util-linux contains essential utilities.
 util-linux-ng (based on version 2.13-pre7 of util-linux)
 is a suite of essential utilities for any Linux system.
 
@@ -32,20 +36,11 @@ shutdown simpleinit sln swapoff swapon tunelp ul umount vidmode vipw
 wall whereis write.'
 
 build()  {
-  if    echo  "$OPTS"  |  grep  -q  "\--with-selinux"  &&
-        spell_installed  $( get_provider  libselinux  )
-  then  sed  -i  "s:HAVE_SELINUX=no:HAVE_SELINUX=yes:"  MCONFIG
-  fi
-
   if    echo  "$OPTS"  |  grep  -q  "\--localtime"
   then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d//hwclock
   else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d//hwclock
   fi
 
-  OPTS=$OPTS2
-
-  default_build                                        &&
-  install -v -m 0700 -o root -g root           \
-       $SCRIPT_DIR/init.d/hwclock  /etc/init.d
+  default_build
 }
 
