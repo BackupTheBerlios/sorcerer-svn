@@ -95,7 +95,7 @@ build()  {
 
 
   case $HOSTTYPE in
-   x86_64)  OPTS+=" --with-dri-driver-path=/usr/lib64/dri"  ;;
+   x86_64)  OPTS+=" --with-dri-driver-path=/usr/lib64/dri"; LDFLAGS+=" -ldl"  ;;
         *)  OPTS+=" --with-dri-driver-path=/usr/lib/dri"    ;;
   esac
 
@@ -103,10 +103,13 @@ build()  {
 
   case  $VERSION  in
               1.4)  patch  -p1  <  $SCRIPT_DIR/xorg-server-1.4.dbus.patch  ;;
-    X11R7.2-1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]} 
+    X11R7.2-1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
                     # Fix a makefile for configure adds libdl to elements to be built
                     # This was encountered on x86_64 but the fix should be harmless anywhere
-                    sed -i "789i-ldl:\n\t:" hw/xfree86/Makefile.in ;;
+                    # sed -i "789i-ldl:\n\t:" hw/xfree86/Makefile.in ;;
+## Uncertain the above fix still works.
+## probably causes compilation problem
+## -Kyle 20071125
             1.2.0)  patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}  ;;
     X11R7.1-1.1.0)  patch  -p0  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[2]}
                     patch  -p1  <  $SOURCE_CACHE/xorg-server/$VERSION/${SOURCE[3]}  ;;
