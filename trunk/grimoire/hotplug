@@ -1,15 +1,23 @@
    VERSION=( 2004_09_23 2004_03_29 2004_01_05 2003_08_05 )
-    IGNORE="^S2000"
+    IGNORE='^S2000'
   CATEGORY='utility'
  ATTRIBUTE='console'
+# more recent ng branch stalled in development before becomming useable.
     SOURCE="/pub/linux/utils/kernel/hotplug/hotplug-$VERSION.tar.bz2"
        URL="$KERNEL_URL"
        REQ='init-functions'
   HOMEPAGE='http://linux-hotplug.sourceforge.net'
   ESTIMATE='5'
-      DESC="hotplug lets you plug in new devices and use them immediately."
+      DESC='hotplug loads and unloads modules as devices are added and removed.'
 
 build() {
+
+install_also()  {
+  case  $VERISON  in
+    2004_09_23)  install  -m 0644  etc/hotplug/pnp.distmap  /etc/hotplug/  ;;
+  esac
+}
+
    TH="touch /var/lock/subsys/hotplug"
 MKDIR="s:$TH:mkdir -p /var/lock/subsys; $TH:"
 
@@ -27,7 +35,8 @@ sed  -i  "$MKDIR
 etc/rc.d/init.d/hotplug
 
 prepare_install  &&
-make    install
+make    install  &&
+        install_also
 }
 
 post_install() {
@@ -35,4 +44,9 @@ post_install() {
   true
 }
 
-current() { grep  -q  "kill"  /etc/init.d/hotplug; }
+
+current() {
+  case  $VERSION  in
+    2004_09_23)  [  -f  /etc/hotplug/pnp.distmap  ]  ;;
+  esac
+}
