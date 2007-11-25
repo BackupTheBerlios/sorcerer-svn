@@ -69,6 +69,14 @@ install_missing()  {
   done
 }
 
+adjust_rules()  {
+  local  REPLY=/etc/udev/rules.d/50-udev-default.rules
+  if    [     -f                                 $REPLY  ]  &&
+        grep  -q    'GROUP="kmem"'               $REPLY
+  then  sed   -i  's:GROUP="kmem":GROUP="mem":'  $REPLY
+  fi
+}
+
 
   case  $VERSION  in
     105)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
@@ -86,7 +94,9 @@ install_missing()  {
   make    install  "EXTRAS=$EXTRAS"  &&
           install_missing            &&
      init_install                    &&
-  symlink_install
+  symlink_install                    &&
+   adjust_rules
+
 }
 
 post_install() {
@@ -97,5 +107,7 @@ post_install() {
 }
 
 current() {
-   grep -q "^# Should-Start:$"  /etc/init.d/udev
+  case  $VERSION  in
+    115)  grep  -q  'GROUP="mem"'  /etc/udev/rules.d/50-udev-default.rules  ;;
+  esac
 }
