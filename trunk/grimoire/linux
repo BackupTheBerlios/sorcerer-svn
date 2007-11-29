@@ -11,6 +11,8 @@
        REQ=( 'lilo'
              'laptop-mode-tools:::for conserving battery power on laptops'
              'module-init-tools:::for tools for modular kernel' )
+## initramfs still being tested
+#            'initramfs:::to create an initramfs image'
    PROTECT='/boot
             /lib/modules'
   EPROVIDE='linux-kernel'
@@ -45,6 +47,7 @@ and TCP/IP networking.'
 # }
 
 
+## apply_linux_patch must not be nested within build()
 apply_linux_patch() {
  case $VERSION in
    2.6.12|2.6.12.1)
@@ -160,9 +163,33 @@ build() {
 
 
 post_install() {
+  create_initramfs()  {
+    [      -d  /media/initramfs  ]  ||
+    mkdir  -p  /media/initramfs
+
+    if    [  -d                     /lib64  ]
+    then  find  /bin /dev /etc /lib /lib64 /sbin  -not -type d
+    else  find  /bin /dev /etc /lib        /sbin  -not -type d
+    fi  |
+    sed   "\,^/etc/sorcery/,d
+           \,^/etc/gconf/,d
+           \,^/etc/fonts/,d
+           \,^/lib.*\.la$,d
+           \,^/lib.*lib.*\.a$,d
+           1i/media/initramfs
+           1i/proc
+           1i/sys"  |
+    cpio  -o -H newc              |
+    gzip  -9  > /boot/initramfs
+  }
+
 
   update_etc_lilo_conf
   backup_lib
+
+  case  $OPTS  in
+    initramfs)  create_initramfs  ;;
+  esac
 
   if    [  -x  /usr/bin/mail   ];  then  MAILER=/usr/bin/mail
   elif  [  -x  /usr/bin/mailx  ];  then  MAILER=/usr/bin/mailx
@@ -176,11 +203,11 @@ post_install() {
   fi
 
                  MODULES="$( show_installed linux-26-module )"
-  if    [  -n  "$MODULES"  ];  then  #  unlock_cast
+  if    [  -n  "$MODULES"  ];  then
     echo       "$MODULES"  |  pipe_queue  "$CAST_QUEUE"  "com"
-  # cast  -c    $MODULES
-    true
   fi
+
+  true
 }
 
 
