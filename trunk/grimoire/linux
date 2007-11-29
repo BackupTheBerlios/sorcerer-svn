@@ -163,13 +163,23 @@ build() {
 
 
 post_install() {
+  mkdir_p()  {  [  -d  "$1"  ]  ||  mkdir  -p  "$1"  ];  }
+  mk_init()  {
+     if  !  [  -f  /init  ]  &&
+            [  -x  /init  ]
+     then  echo  -n  '#!/bin/sh\nexec /sbin/init "$@"'  >  /init
+           chmod  0700  /init
+     fi
+  }
+
   create_initramfs()  {
-    [  -d  /media/initramfs  ]  ||  mkdir  -p  /media/initramfs
-    [  -d  /media/root       ]  ||  mkdir  -p  /media/root
+    mkdir_p  /media/initramfs
+    mkdir_p  /media/root
+    mk_init
 
     if    [  -d                     /lib64  ]
-    then  find  /bin /dev /etc /lib /lib64 /sbin  -not -type d
-    else  find  /bin /dev /etc /lib        /sbin  -not -type d
+    then  find  /bin /dev /etc /lib /lib64 /sbin
+    else  find  /bin /dev /etc /lib        /sbin
     fi  |
     sed   "\,^/etc/sorcery/,d
            \,^/etc/gconf/,d
@@ -180,16 +190,15 @@ post_install() {
            1i/media/root
            1i/proc
            1i/sys"  |
-    cpio  -o -H newc              |
+    cpio  -o -H newc  |
     gzip  -1  > /boot/initramfs
   }
-
-  update_etc_lilo_conf
-  backup_lib
 
   case  $OPTS  in
     initramfs)  create_initramfs  ;;
   esac
+
+  update_etc_lilo_conf
 
   if    [  -x  /usr/bin/mail   ];  then  MAILER=/usr/bin/mail
   elif  [  -x  /usr/bin/mailx  ];  then  MAILER=/usr/bin/mailx
