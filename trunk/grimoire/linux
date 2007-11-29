@@ -164,8 +164,8 @@ build() {
 
 post_install() {
   create_initramfs()  {
-    [      -d  /media/initramfs  ]  ||
-    mkdir  -p  /media/initramfs
+    [  -d  /media/initramfs  ]  ||  mkdir  -p  /media/initramfs
+    [  -d  /media/root       ]  ||  mkdir  -p  /media/root
 
     if    [  -d                     /lib64  ]
     then  find  /bin /dev /etc /lib /lib64 /sbin  -not -type d
@@ -177,12 +177,12 @@ post_install() {
            \,^/lib.*\.la$,d
            \,^/lib.*lib.*\.a$,d
            1i/media/initramfs
+           1i/media/root
            1i/proc
            1i/sys"  |
     cpio  -o -H newc              |
     gzip  -9  > /boot/initramfs
   }
-
 
   update_etc_lilo_conf
   backup_lib
