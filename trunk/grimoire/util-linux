@@ -53,9 +53,24 @@ build()  {
   must_install
 }
 
+# post_install can be removed in 2008
+# post_install corrects a bug when configuring util-linux
+# with old versions of sorcery
+# -Kyle
+
+post_install()  {
+  default_post_install
+  if       [  -f  /etc/init.d/proc  ]  &&
+        !  [  -x  /etc/init.d/proc  ]
+  then  sed   -i  '/^proc$/d;/^sys$/d'  $BOOT_OFF_LOGS/util-linux
+        echo  -n  'proc\nsys'  >>        $BOOT_ON_LOGS/util-linux
+        chmod 0700  /etc/init.d/{proc,sys}
+        /lib/lsb/install_initd
+  fi
+}
 
 current()  {
   case  $VERSION  in
-    2.13.0.1)  [  -f  /etc/init.d/proc  ]  ;;
+    2.13.0.1)  [  -x  /etc/init.d/proc  ]  ;;
   esac
 }
