@@ -3,14 +3,22 @@ trap : INT QUIT TSTP
 export PATH=/sbin:/bin:/usr/sbin:/usr/bin
 umask 022
 
+box() {
+  if    [  -f  "/media/root/$1"  ]
+  then  chroot  /media/root $1 start
+  else                      $1 start
+  fi
+}
+
+
 run() {
- for SCRIPT in /etc/rc.d/rcS.d/S*; do
-  if   [ -f "$SCRIPT" ] &&
-       [ -x "$SCRIPT" ]
-  then       $SCRIPT start
+ for  SCRIPT  in  /etc/rc.d/rcS.d/S*;  do
+  if    [  -f  "$SCRIPT"  ] &&
+        [  -x  "$SCRIPT"  ]
+  then  box    "$SCRIPT"
   fi
  done
- echo End sysinit
+ echo  End sysinit
 }
 
 mount -o size=24k,nr_inodes=8,mode=0700 -t tmpfs tmpfs /etc/init.d/log

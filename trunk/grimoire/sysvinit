@@ -62,12 +62,14 @@ install_init() {
   install -vm 0700  $SCRIPT_DIR/init.d/halt    /etc/init.d
   install -vm 0700  $SCRIPT_DIR/init.d/kill    /etc/init.d
   install -vm 0700  $SCRIPT_DIR/init.d/reboot  /etc/init.d
+  install -vm 0700  $SCRIPT_DIR/initscript     /etc
   sed     -i        "s:ulimit :# ulimit :"  \
                     src/initscript.sample
   install -vm 0700  src/initscript.sample      /etc
   install -vm 0700  -d                         /etc/init.d/dev
-  cp      -av       ${SI_DEV:-/dev/null}       /etc/init.d/dev/si
-  cp      -av       ${RL_DEV:-/dev/null}       /etc/init.d/dev/rl
+  rm      -f        /etc/init.d/dev/{si,rl}
+  cp      -afv      ${SI_DEV:-/dev/null}       /etc/init.d/dev/si
+  cp      -afv      ${RL_DEV:-/dev/null}       /etc/init.d/dev/rl
   install -vm 0700  -d                         /etc/init.d/log
   return
 }
@@ -89,6 +91,11 @@ post_install() {
   if    !  [  -x  /usr/sbin/sorcerer.install  ]
   then  /sbin/init u;  sleep  2
   fi
-  /lib/lsb/install_initd
-  # /lib/lsb/install_initd /etc/init.d/reboot
+}
+
+
+current()  {
+  case  $VERSION  in
+    2.86)  [  -f  /etc/initscript  ]  ;;
+  esac
 }
