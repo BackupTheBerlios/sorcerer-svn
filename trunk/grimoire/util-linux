@@ -36,17 +36,23 @@ shutdown simpleinit sln swapoff swapon tunelp ul umount vidmode vipw
 wall whereis write.'
 
 build()  {
+  must_install()  {
+    install  -vm 0700  $SCRIPT_DIR/init.d/proc  /etc/init.d/
+    install  -vm 0700  $SCRIPT_DIR/init.d/sys   /etc/init.d/
+  }
+
   if    echo  "$OPTS"  |  grep  -q  "\--localtime"
   then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d//hwclock
   else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d//hwclock
   fi
 
-  default_build
+  default_build  &&
+  must_install
 }
 
 
 current()  {
   case  $VERSION  in
-    2.13.0.1)  [  -f  /etc/init.d/devices  ]  ;;
+    2.13.0.1)  [  -f  /etc/init.d/proc  ]  ;;
   esac
 }
