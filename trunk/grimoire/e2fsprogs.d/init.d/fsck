@@ -1,0 +1,41 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: fsck
+# Required-Start: 
+# Should-Start: devices lvm udev
+# Required-Stop: 
+# Default-Start: S
+# Default-Stop: 
+# Short-Description: fsck checks local filesystems during boot
+# Description: fsck checks local filesystems during boot
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+fsc()  {
+  if  [ -f /fastboot      ]; then return;     fi
+  if  [ -f /forcefsck     ]; then FORCE='-f'; fi
+  if  [ "$FSCKFIX" == yes ]; then FIX='-y';
+                             else FIX='-a';   fi
+  fsck  -C  -A  $FIX  $FORCE
+  if [  $?  -gt  1  ];  then
+    log_failure_msg  'fsck failed'
+    log_failure_msg  'Repair file systems by running /sbin/fsck'
+    sulogin  -t  120
+  fi  >/dev/console
+}
+
+start()  {
+  log_warning_msg  'Local file systems checking'; fsc
+  log_success_msg  'Local file systems checked'
+}
+
+
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
+
+case  $1  in
+        start)  start  ;;
+  try-restart)  :      ;;
+            *)  help   ;;
+esac
