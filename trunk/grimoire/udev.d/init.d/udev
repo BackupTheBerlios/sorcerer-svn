@@ -14,16 +14,16 @@
 . /lib/lsb/init-functions
 
 start()  {
-  log_warning_msg  "udev about to activate"
-  /bin/mount  -n  -t proc   proc   /proc
-  /bin/mount  -f  -t proc   proc   /proc
-  /bin/mount      -t sysfs  sysfs  /sys 
-  /bin/mount      -t ramfs  ramfs  /dev
-  [           -d          /lib/udev/devices  ]  &&
-  /bin/cp     -a          /lib/udev/devices/*  /dev
+  log_warning_msg  'udev starting'
+  [  -h  /etc/mtab      ]  ||  echo        -n   >               /etc/mtab
+                               /bin/mount  -n  -t proc   proc   /proc
+  [  -h  /etc/mtab      ]  ||  /bin/mount  -f  -t proc   proc   /proc
+                               /bin/mount      -t sysfs  sysfs  /sys 
+                               /bin/mount      -t ramfs  ramfs  /dev
+  [  -d  /lib/udev/dev  ]  &&  /bin/cp     -a  /lib/udev/dev/*  /dev
   /sbin/udevstart
   /sbin/udevd --daemon
-  log_success_msg  "udev started"
+  log_success_msg  'udev started'
 }
 
 help()  {
