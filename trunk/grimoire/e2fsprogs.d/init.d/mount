@@ -1,0 +1,77 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: $local_fs
+# Required-Start: proc sys
+# Should-Start: devices fsck lvm udev 
+# Required-Stop: halt reboot
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: mount mounts local file systems
+# Description: mount mounts local file systems during
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+mount_local_fs() {
+  bnd()  {
+    if    [ "$ROOT"  ==  '/'  ];  then  return;  fi
+    mount  -n  -o ro                $ROOT
+    sed    "\,$ROOT,d;\,rootfs,d"   /proc/mounts  |
+    while  read   DEV      MNT       JNK
+    do     mount  --bind  $MNT      $ROOT/$MNT
+    done
+  }
+
+  srt()  {
+    if    [  -d  /var  ]
+    then  ROOT=/
+    else  ROOT=/media/root;  [  -d  $ROOT  ]  ||  mkdir  -p  $ROOT
+          sed  -i  "s:\t: :g;s: / : $ROOT :"  /etc/fstab
+    fi
+  }
+
+  srt
+  bnd
+
+  chroot  $ROOT  mount  -n -o remount  /
+  rm  -f                                  $ROOT/etc/mtab
+  chroot  $ROOT  cat    /proc/mounts   >       /etc/mtab
+  chroot  $ROOT  mount  -a
+}
+
+
+start()  {
+  log_warning_msg  'Local file systems mounting'; mount_local_fs
+  log_success_msg  'Local file systems mounted'
+}
+
+umount_local_fs() {
+  sync
+  [  -f                   /proc/mounts  ]  ||
+  mount  -nrt proc  proc  /proc
+
+  cut    -d ' '  -f2  /proc/mounts  |
+  sort   -ur                        |
+  while  read
+  do     mount  -no  remount,ro  $REPLY
+  done
+
+  if    !  mount  -no remount,ro  /
+  then  log_failure_msg  "/ failed to remount read only"
+        sulogin  -t 300
+  fi
+}
+
+stop()  {
+  log_warning_msg "umount about to unmount local file systems"; umount_local_fs
+  log_success_msg "umount finished"
+}
+
+help()  {  echo "Usage: $0 {start|stop}" 1>&2;  }
+
+case  $1  in
+  start)  start  ;;
+   stop)  stop   ;;
+      *)  help   ;;
+esac
