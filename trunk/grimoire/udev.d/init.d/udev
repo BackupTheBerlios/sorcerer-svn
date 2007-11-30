@@ -2,7 +2,7 @@
 
 ### BEGIN INIT INFO
 # Provides: udev
-# Required-Start: 
+# Required-Start: proc sys
 # Should-Start:
 # Required-Stop:  
 # Default-Start: S
@@ -15,22 +15,17 @@
 
 start()  {
   log_warning_msg  'udev starting'
-  [  -h  /etc/mtab      ]  ||  echo        -n   >               /etc/mtab
-                               /bin/mount  -n  -t proc   proc   /proc
-  [  -h  /etc/mtab      ]  ||  /bin/mount  -f  -t proc   proc   /proc
-                               /bin/mount      -t sysfs  sysfs  /sys 
-                               /bin/mount      -t ramfs  ramfs  /dev
-  [  -d  /lib/udev/dev  ]  &&  /bin/cp     -a  /lib/udev/dev/*  /dev
+  /bin/mount      -t ramfs  ramfs      /dev
+  /bin/cp         -a  /lib/udev/dev/*  /dev
   /sbin/udevstart
   /sbin/udevd --daemon
   log_success_msg  'udev started'
 }
 
-help()  {
-  echo "Usage: $0 {start}" 1>&2
-}
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
 
 case  $1  in
-  start)  start  ;;
-      *)  help   ;;
+        start)  start  ;;
+  try-restart)  :      ;;
+            *)  help   ;;
 esac
