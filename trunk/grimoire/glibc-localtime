@@ -1,0 +1,46 @@
+inherit glibc
+unset  SOURCE  URL  REQ
+  CATEGORY='documentation/i18n'
+ ATTRIBUTE='data'
+       REQ='glibc'
+  ESTIMATE='5'
+      DESC="glibc-localtime adjusts the /etc/localtime symbolic link."
+
+configure() {
+
+tz_menulist()  {
+  find  /usr/share/zoneinfo  -type f  -printf '%P	Zone\n'  |
+  LC_ALL=C  sort
+}
+  
+tz_menu()  {
+  BACKTITLE=$"glibc-localetime Timezone Configuration Menu"
+      TITLE=$"Timezone Selection"
+       HELP=$"Please an appropriate location"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --menu  "$HELP"            \
+          0 0 0                      \
+          $(  tz_menulist  )
+}
+
+  if  !  grep  -q   "LOCALTIME="  $SPELL_CONFIG  2>/dev/null;  then
+    ( export  IFS=$'	\n'
+      LOCALTIME="$(  tz_menu  )"
+      if    [  -n  "$LOCALTIME"  ]
+      then  echo    "LOCALTIME=\"$LOCALTIME\""  >>  $SPELL_CONFIG
+      fi
+    )
+  fi
+}
+
+build() {
+  prepare_install  &&
+  if [  -n                     "$LOCALTIME" ]; then rm -f /etc/localtime
+     ln -sv /usr/share/zoneinfo/$LOCALTIME                /etc/localtime
+  fi
+}

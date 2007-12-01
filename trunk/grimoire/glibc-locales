@@ -11,47 +11,80 @@ unset  SOURCE  URL  REQ
 configure() {
 
 locales_checklist()  { 
-  if    [  -f      /usr/share/i18n/SUPPORTED  ]
-  then  cat        /usr/share/i18n/SUPPORTED
-  else  cat            $SCRIPT_DIR/SUPPORTED
-  fi  |  grep  "/"  |  cut  -d ' '  -f1  |
+  sed  -n  's: .*::;/\//p'  /usr/share/i18n/SUPPORTED  |
   while  read;  do
-#   CHARMAP="${REPLY##*/}"
        NAME="${REPLY%/*}"
      SOURCE="${NAME%.*}"
 
     echo  "$REPLY"
-    grep  "^title"  /usr/share/i18n/locales/$SOURCE  |  cut -d '"' -f2
+    sed   -nr 's:^title[^"]*"([^"]*)".*:\1:p'  /usr/share/i18n/locales/$SOURCE
     echo  "off"
   done
 }
 
+
+locales_menulist()  { 
+  if    [    -n  "$LOCALES"  ]
+  then  echo     "$LOCALES"  |
+        sed  -n  's: .*::;/\//p'
+  else  sed  -n  's: .*::;/\//p'  /usr/share/i18n/SUPPORTED
+  fi  |
+  while  read;  do
+       NAME="${REPLY%/*}"
+     SOURCE="${NAME%.*}"
+
+    echo  "$NAME"
+    sed   -nr 's:^title[^"]*"([^"]*)".*:\1:p'  /usr/share/i18n/locales/$SOURCE
+  done
+}
+
+
 select_locales()  {
-  BACKTITLE="Glibc Locale Configuration Menu"
-      TITLE="Locale Selection"
-       HELP="Translated messages are automatically installed, 
-but the locale database that controls other behavior is not.  
-Please select desired locale or locales.
-If none are selected then all will be installed."
+  BACKTITLE=$"Glibc Locale Configuration Menu"
+      TITLE=$"Locale Selection"
+       HELP=$"Please select available language locales."
 
   dialog  --backtitle  "$BACKTITLE"  \
           --title      "$TITLE"      \
           --stdout                   \
           --separate-output          \
+          --timeout  "$PROMPT_DELAY" \
           --no-cancel                \
           --checklist  "$HELP"       \
           0 0 0                      \
           $(  locales_checklist  )
 }
 
-  if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null;  then
-    (
-      export  IFS=$'	\n'
+
+locale_menu()  {
+  BACKTITLE=$"Glibc Locale Configuration Menu"
+      TITLE=$"Locale Selection"
+       HELP=$"Please select the default locale"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --menu  "$HELP"            \
+          0 0 0                      \
+          $(  locales_menulist  )
+}
+
+  if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null  ||
+      !  grep  -q  "DLOCALE="  $SPELL_CONFIG  2>/dev/null
+  then
+    ( export  IFS=$'	\n'
       if    query  "Select individual locales?"  n
       then         LOCALES="$(  select_locales  )"
       else  unset  LOCALES
       fi
-      echo    "LOCALES=\"$LOCALES\""      >  $SPELL_CONFIG
+      echo    "LOCALES=\"$LOCALES\""  >>  $SPELL_CONFIG
+      if    query  "Select default locale for LANG environment variable?"  n
+      then         DLOCALE="$(  locale_menu  )"
+      else  unset  DLOCALE
+      fi
+      echo    "DLOCALE=\"$DLOCALE\""  >>  $SPELL_CONFIG
     )
   fi
 }
@@ -84,4 +117,11 @@ build() {
   rm     -rf  /usr/lib/locale
   mkdir  -p   /usr/lib/locale
   tmp_locale_archive
+}
+
+post_install()  {
+  default_post_install
+  if    [  -n  "$DLOCALE"  ]
+  then  echo  "export LANG=$DLOCALE"  >  /etc/bash.d/noninteractive/LANG
+  fi
 }
