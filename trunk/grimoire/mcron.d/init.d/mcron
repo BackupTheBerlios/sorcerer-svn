@@ -34,9 +34,12 @@ clear_socket() {
 
 start()  {
   export  TERM="dumb"
-  log_warning_msg  "$NAME about to start"
+  log_warning_msg  "$NAME starting"
   clear_socket
-  if    start_daemon     -p $PIDF $SERV -n
+# if    start_daemon     -p $PIDF $SERV -n
+# cron goes into background fine,
+# but does not detach from terminal
+  if    start_daemon     -p $PIDF $SERV -n  &>/dev/null
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
         status
