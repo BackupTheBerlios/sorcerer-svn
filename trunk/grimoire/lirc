@@ -1,29 +1,38 @@
+# both version 0.8.2 and cvs versions fail to compile
+# - Kyle Sat Dec  1 04:00:00 UTC 2007
    VERSION=( 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0 0.6.6 )
-    IGNORE="xmms-plugin\|services\|alpha"
+#version_year_week  10
+    IGNORE='xmms-plugin\|services\|alpha'
   CATEGORY='kernel'
- ATTRIBUTE='archive_off library'
-#ATTRIBUTE='library old_init broken'
+ ATTRIBUTE='archive_off library broken'
     SOURCE="lirc/lirc-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
-       REQ=( "libtool libusb"
-             "alsa-lib:::for alsa support"
-             "libSM:::for x11 utilities"
-             "libX11:::for x11 utilities"
-             "portaudio:::for portaudio support" )
-      OPTS="--with-driver=all --enable-sandboxed"
+#REPOSITORY=( "cvs     -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc login"
+#             "cvs -z3 -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc co -P lirc"
+#             "cvs -z3 -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc up -P lirc" )
+       REQ=( 'libtool libusb'
+             'alsa-lib:::for alsa support'
+             'libSM:::for x11 utilities'
+             'libX11:::for x11 utilities'
+             'portaudio:::for portaudio support' )
+      OPTS='--with-driver=all --enable-sandboxed'
+#  USE_GCC='gcc-v4.0'
   HOMEPAGE='http://www.lirc.org'
   ESTIMATE='1280'
-      DESC="lirc (Linux Infrared Remote Control).
+      DESC='lirc (Linux Infrared Remote Control).
 lirc is a package that allows you to decode
 and send infra-red signals of many,
 but not all, commonly used remote controls.
 If you want to run the daemon add a command
-to /etc/init.d/bootmisc to invoke it."
+to /etc/init.d/bootmisc to invoke it.'
 
 build() {
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
+if  [  -x  autogen.sh  ]
+then      ./autogen.sh
+fi  &&
 default_build
 }
 
