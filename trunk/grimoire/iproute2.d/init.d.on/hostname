@@ -6,15 +6,17 @@
 # Required-Stop:  
 # Default-Start: S
 # Default-Stop:
-# Short-Description: hostname sets the box's name and starts loopback
-# Description: hostname sets a box's name and starts the loopback device
+# Short-Description: hostname sets the box's name
+# Description: hostname sets a box's name
 ### END INIT INFO
 
+. /lib/lsb/init-functions
+
 start() {
- read < /etc/hostname
+ log_warning_msg "hostname setting"
+ read        <             /etc/hostname
  echo $REPLY > /proc/sys/kernel/hostname
- /sbin/ip addr replace 127.0.0.1 dev lo
- /sbin/ip link set lo up
+ log_success_msg "hostname: $REPLY set"
 }
 
 case $1 in
