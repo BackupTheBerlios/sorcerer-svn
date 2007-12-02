@@ -1,0 +1,125 @@
+# intiramfs spell is for the Sorcerer distribution only
+# Copyright 2007 by Kyle Sallee, all rights reserved.
+
+   VERSION=( 20071202 )
+  CATEGORY='administration/bootloader'
+ ATTRIBUTE='data'
+       REQ=( 'coreutils cpio findutils grep gzip sed'
+             ':module::for an initramfs that contains only modules' )
+  ESTIMATE='5'
+      DESC='initramfs provides an initramfs for use during booting'
+
+build()  {
+
+  local  OMIT='
+\,^/dev/.udev,d
+\,^/lib/modules/.*/kernel/drivers/acpi/,d
+\,^/lib/modules/.*/kernel/drivers/char/watchdog/,d
+\,^/lib/modules/.*/kernel/drivers/hwmon/,d
+\,^/lib/modules/.*/kernel/drivers/i2c/,d
+\,^/lib/modules/.*/kernel/drivers/input/gameport/,d
+\,^/lib/modules/.*/kernel/drivers/input/joy,d
+\,^/lib/modules/.*/kernel/drivers/input/tablet/,d
+\,^/lib/modules/.*/kernel/drivers/input/touchscreen/,d
+\,^/lib/modules/.*/kernel/drivers/media/,d
+\,^/lib/modules/.*/kernel/drivers/rtc/,d
+\,^/lib/modules/.*/kernel/net/ipv4/netfilter/,d
+\,^/lib/modules/.*/kernel/net/netfilter/,d
+\,^/lib/modules/.*/kernel/net/sched/,d
+\,^/lib/modules/.*/kernel/sound/,d
+'
+
+  gcpio()  {
+    local  OLD="/boot/initrf.gz"
+    local  NEW="$OLD.$$.$RANDOM.new"
+    sed    "$OMIT"  |
+    if    !  cpio  -o -H newc  --verbose;  then  rm  -f $NEW;  return 1;  fi  |
+    if    !  gzip  -1  > $NEW;             then  rm  -f $NEW;  return 1;  fi
+    if    !       [  -s  $NEW  ];          then  rm  -f $NEW;  return 1;  fi
+    rm  -f    $OLD
+    mv  $NEW  $OLD
+    if    !  grep  -q          /boot/initrf.gz       /etc/lilo.conf.head
+    then     echo      'initrd=/boot/initrf.gz'  >>  /etc/lilo.conf.head
+             echo      'large-memory'            >>  /etc/lilo.conf.head
+    fi
+  }
+
+  full()  {
+    mk_init()  {
+       if  !  [  -f  /init  ]  ||
+           !  [  -x  /init  ]
+       then  rm  -f  /init
+             echo  -n  '#!/bin/sh\nexec /sbin/init "$@"'  >  /init
+             chmod  0700  /init
+       fi
+    }
+
+    mkdir_p  /media/root
+    mk_init
+
+    if    [  -d                     /lib64  ]
+    then  find  /bin /dev /etc /lib /lib64 /sbin
+    else  find  /bin /dev /etc /lib        /sbin
+    fi  |
+    sed   "\,^/etc/sorcery/,d
+           \,^/etc/gconf/,d
+           \,^/etc/fonts/,d
+           \,^/lib.*\.la$,d
+           \,^/lib.*lib.*\.a$,d
+           1i/init
+           1i/media
+           1i/media/root
+           1i/proc
+           1i/sys"  |  exists  |  gcpio
+  }
+
+  module()  {
+    if    [   -f  /init  ]
+    then  rm  -f  /init
+    fi
+    local  NEW="$$.$RANDOM.new"
+    find  /dev /lib/modules  |
+    sed   "$OMIT_MODULES"    |
+    gcpio
+  }
+
+  echo  "OPTS=$OPTS"
+  prepare_install                    &&
+  echo  '/boot/initrf.gz contains:'  &&
+  if    echo      "$OPTS"  |
+        grep  -q  module
+  then            module
+  else  full
+  fi
+}
+
+
+current()  {
+  not_found()    { ! find "$@" -type f -newer /boot/initrf.gz | grep -q .; }
+  chk_lib_mod()  { not_found /lib/modules; }
+  chk_all()      { if   [ -d                /lib64 ]
+                   then not_found /bin /lib /lib64 /sbin
+                   else not_found /bin /lib        /sbin
+                   fi; }
+
+        [  -f          /boot/initrf.gz  ]  &&
+  if    [  -f  $BOOT_ON_LOGS/initramfs  ]
+  then  chk_lib_mod
+  else  chk_all
+  fi
+}
+
+
+pre_remove() {
+  if    [   -z  "$UPGRADING"  ]
+  then  rm   -f  /boot/initrf.gz
+        sed  -i  "/initrd/d;/large-memory/d"  /etc/lilo.conf.head
+  fi
+  default_pre_remove
+}
+
+
+post_install() {
+  update_etc_lilo_conf
+  default_post_install
+}

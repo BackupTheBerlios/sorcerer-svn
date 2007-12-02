@@ -1,4 +1,4 @@
-   VERSION=( implosion-20071202-0 implosion-20071201-3 implosion-20071130-7 implosion-20071127-0 implosion-20071124-2 implosion-20071124-1 implosion-20071124-0 implosion-20071123-0 implosion-20071120-9 implosion-20071119-5 implosion-20071114-1 implosion-20071111-0 implosion-20071109-0 )
+   VERSION=( implosion-20071202-1 implosion-20071201-3 implosion-20071130-7 implosion-20071127-0 implosion-20071124-2 implosion-20071124-1 implosion-20071124-0 implosion-20071123-0 implosion-20071120-9 implosion-20071119-5 implosion-20071114-1 implosion-20071111-0 implosion-20071109-0 )
   CATEGORY='utility'
  ATTRIBUTE='noheal solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -108,6 +108,12 @@ post_install() {
     fi
   }
 
+  fix_initramfs()  {
+    grep  -q     /boot/initramfs      /etc/lilo.conf.head
+    sed   -i  '\,/boot/initramfs/,d'  /etc/lilo.conf.head  &&
+    rm    -f     /boot/initramfs
+  }
+
   default_post_install
   [  -d  /lib.old  ]  ||  backup_lib
   case  $VERSION  in
@@ -118,4 +124,5 @@ post_install() {
   fix_provide_logs
   linux_headers_check
   fix_fstab
+  fix_initramfs
 }

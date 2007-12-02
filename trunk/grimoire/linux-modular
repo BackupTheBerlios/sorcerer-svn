@@ -1,5 +1,5 @@
 inherit linux
-       REQ=( 'lilo module-init-tools'
+       REQ=( 'initramfs lilo module-init-tools'
              'laptop-mode-tools:::for conserving battery power on laptops' )
   ESTIMATE='15000'
       DESC='linux-modular provides a modular plug and pray linux kernel.
@@ -64,22 +64,11 @@ build() {
     install_header
   }
 
-  enable_initramfs()  {
-    case  $INITRAMFS  in
-        full)  return  ;;
-      module)  return  ;;
-           *)  sed  -i  '/INITRAMFS=/d'          /etc/sorcery/local.config
-               echo      'INITRAMFS=module'  >>  /etc/sorcery/local.config
-                          INITRAMFS=module
-               update_initramfs  ;;
-    esac
-  }
-
   rm  -fr              /usr/src/linux  &&
   mv       $BUILD_DIR  /usr/src/linux  &&
   cd                   /usr/src/linux  &&
   compile_and_install                  &&
-  enable_initramfs
+  echo  initramfs  |  pipe_queue  "$CAST_QUEUE"  com
 }
 
 
