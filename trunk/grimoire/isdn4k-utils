@@ -1,82 +1,68 @@
    VERSION=( v3.2p1 v3.1pre1 )
   CATEGORY='network'
- ATTRIBUTE='console broken'
-# configuration happens in the background during build().
+ ATTRIBUTE='console'
 # Does anyone use this?
+# isdn4k-utils.v3.2p1.tar.bz2  	5116 KB  	08/01/2002  	12:00:00 AM
+# No new source releases since 2002
+# Probably does not compile with current versions of gcc.
     SOURCE="utils/isdn4k-utils.$VERSION.tar.bz2"
   HOMEPAGE='http://www.isdn4linux.org/'
-       URL="ftp://ftp.isdn4linux.de/pub/isdn4linux/
+       URL='ftp://ftp.isdn4linux.de/pub/isdn4linux/
             ftp://ftp.gwdg.de/pub/linux/isdn/isdn4linux/
             ftp://ftp.cs.tu-berlin.de/pub/net/isdn/isdn4linux/
             ftp://ftp.leo.org/pub/comp/os/unix/linux/isdn/isdn4linux/
-            ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/isdn4linux/"
-      DESC="isdn4k-utils contains utilitiles to make use of ISDN specific features.
+            ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/isdn4linux/'
+      DESC='isdn4k-utils contains utilitiles to make use of ISDN specific features.
 isdn4linux is a set of kernel modules which are part of the Linux kernel.
 It consists of the main module isdn and the actual hardware driver that
 control some specific card.In addition, the package isdn4k-utils
-contains utilities to make use of ISDN specific features."
-
-store_config()  {
- mkdir  -p    $CONFIG_LOGS/$SPELL
- cp  .config  $CONFIG_LOGS/$SPELL
-}
+contains utilities to make use of ISDN specific features.'
 
 
-restore_config()  {
- if    [  -f  $CONFIG_LOGS/$SPELL/.config  ]
- then  cp     $CONFIG_LOGS/$SPELL/.config  .
- fi
-}
+configure()  {
+  local  CUR="$CONFIG_LOGS/$SPELL/isdn4k-utils-config"
+  local  OLD="$CONFIG_LOGS/$SPELL/isdn4k-utils-config.old"
 
+  copy()  {  if  [[ -f $1 ]]; then cp "$1" "$2"; fi;  }
 
-make_menuconfig()  {
-
- restore_config
-
- wiz_kill
-
- while  $CONFIG_ISDN;  do
-  make  testconfig
-  if    query  "Repeat  config?"  n
-  then  CONFIG_ISDN="true"
-  else  CONFIG_ISDN="false"
+  if      !  [  -f  $CUR  ];  then
+    if    !  sources_cached  "$SPELL";  then
+      echo  "Sources must be download before configuration."
+      leech  -w  $SPELL
+    fi
+    pre_build                    &&
+    optimize                     &&
+    copy       "$OLD"   .config  &&
+    make        config           &&
+    cp         .config  $CUR
+    if    [   -n   "$BUILD_DIR"  ]  &&
+          [   -d   "$BUILD_DIR"  ]
+    then  rm  -fr  "$BUILD_DIR"
+    fi
+    clear
+    echo  "isdn4k-utils configuration complete."
+    cd    /tmp
   fi
- done
-
-}
-
-
-make_install()  {
-
- yes   ""         |
- make  subconfig  &&
- store_config     &&
- make             &&
- prepare_install  &&
- make    install
-
-}
-
-####################################################################333
-
-configure() {
- if  [  -f  $CONFIG_LOGS/$SPELL/.config  ];  then
-  if    query  "Configure isdn4k-utils?"  n
-  then  CONFIG_ISDN=true
-  else  CONFIG_ISDN=false
-  fi
- else
-  CONFIG_ISDN="true"
- fi
-
- TEMP=$(  grep  -v  "CONFIG_ISDN="     $SPELL_CONFIG  )
- echo  "$TEMP"                      >  $SPELL_CONFIG
- echo  "CONFIG_ISDN=$CONFIG_ISDN"  >>  $SPELL_CONFIG
 }
 
 build() {
- # patch  -p0  <  $SCRIPT_DIR/isdn4k-utils-v3.1pre1.patch
- make_menuconfig  &&
- make_install
-}
+  restore_linux_configs()  {
+    local  CUR="$CONFIG_LOGS/$SPELL/isdn4k-utils-config"
+    local  OLD="$CONFIG_LOGS/$SPELL/isdn4k-utils-config.old"
 
+    if    [  -f   $CUR  ];  then  cp  $CUR  .config
+    elif  [  -f   $OLD  ];  then  cp  $OLD  .config
+    fi
+  }
+
+  make_install()  {
+    yes   ""         |
+    make  subconfig  &&
+    make             &&
+    prepare_install  &&
+   make    install
+  }
+
+  restore_linux_configs
+  make_install
+}
