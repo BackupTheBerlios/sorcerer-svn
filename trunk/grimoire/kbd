@@ -4,59 +4,49 @@
     SOURCE="kbd-$VERSION.tar.gz"
        URL='ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/'
   HOMEPAGE='ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/'
-       REQ='init-functions perl'
+       REQ='flex init-functions perl'
 #            'linuxdoc-tools:::for building HTML documentation' )
 # linuxdoc-tools optional requirement creates problems on the I/R
 # linuxdoc-tools requires openjade and openjade requires gcc-v3.4
  CONFLICTS='console-tools console-data'
   ESTIMATE='121'
       DESC='kbd contains keytable files and keyboard utilities.
-Configuration files are keymap.conf and font.conf located in /etc/kbd'
+Configuration file is keymap.conf'
+# and font.conf located in /etc/kbd'
 
 configure()  {
   get()  {
+    menu_list()  {  sed  "1iask	$2
+                          s:$:	$2:"  <  $SCRIPT_DIR/$3;  }
+
     WHAT=$( dialog  --stdout                         \
                     --timeout  ${PROMPT_DELAY:-120}  \
                     --title "$2 Menu"                \
                     --default-item "$4"              \
                     --menu  ""  0 0 0                \
-                    $(  for  ITEM  in  $(<  $SCRIPT_DIR/$3  )
-                        do  echo  "$ITEM $2"
-                        done
-                     )  )    &&
+                    $(  menu_list  "$@"  )
+          )  &&
     if  [  -n      "$WHAT"  ]
     then  echo  "$1=$WHAT"  >>  $SPELL_CONFIG
     fi
   }
 
-  [      -d  "${SPELL_CONFIG%/*}"  ]  ||
-  mkdir  -p  "${SPELL_CONFIG%/*}"
-
-  if  [  -f          /etc/keymap.conf  ]
-  then  KEYMAP="$(<  /etc/keymap.conf  )"
-        rm  -f       /etc/keymap.conf
-        echo  "KEYMAP=$KEYMAP"  >>  $SPELL_CONFIG
-  fi
-
-  if  [  -f        /etc/font.conf  ]
-  then  FONT="$(<  /etc/font.conf  )"
-        rm  -f     /etc/font.conf
-        echo  "FONT=$FONT"  >>  $SPELL_CONFIG
+  if    [  -d  /isolinux  ]
+  then      KEYMAP=ask
   fi
 
   if [ -z "$KEYMAP" ]; then get "KEYMAP" "Keymap" "keymaps.txt" "us"; fi
-  if [ -z "$FONT"   ]; then get "FONT" "Font" "fonts.txt" "default8x16"; fi
+# if [ -z "$FONT"   ]; then get "FONT"   "Font"   "fonts.txt"   "default8x16"; fi
 }
 
 
 build()  {
+  rm   -f  /etc/keymap.conf
+  sed  -i  "s:KMAP=[^$]*$:KMAP=$KMAP:"  $SCRIPT_DIR/init.d.on/kbd
+
   # Fix setfont when compiled with gcc4
   patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
 
-  [  -n  "$KEYMAP"  ]  &&  [  -n  "$FONT"  ]  &&
-  sed  -i  "s:/bin/loadkeys.*:/bin/loadkeys $KEYMAP:
-            s:/usr/bin/setfont.*:/usr/bin/setfont $FONT:"  \
-       $SCRIPT_DIR/init.d/kbd
   ./configure      &&
   make             &&
   prepare_install  &&

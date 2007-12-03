@@ -3,17 +3,55 @@
 ### BEGIN INIT INFO
 # Provides: kbd
 # Required-Start: $local_fs $syslog
+# Should-Start: udev modprobe
 # Required-Stop:
-# Default-Start: 1 2 3 4 5
+# Default-Start: S
 # Default-Stop:
-# Short-Description: kbd loads the keyboard map and console font
-# Description:       kbd loads the keyboard map and console font
+# Short-Description: kbd loads the keyboard map
+# Description:       kbd loads the keyboard map
 ### END INIT INFO
 
+. /lib/lsb/init-functions
 
 start()  {
-  /bin/loadkeys  us
-  /usr/bin/setfont  default8x16
+  keymap_menu()  {
+    keymaps()  {
+      find  /usr/share/kbd/keymaps -type f  |
+      sed   -n  's:.*/::;s:\.map\.gz:	keymap:p'
+    }
+
+  TITLE=$"Keymap Selection Menu"
+   HELP=$"Please select desired keyboard mapping within 60 seconds."
+
+  /bin/dialog          \
+    --stdout           \
+    --no-cancel        \
+    --timeout  60      \
+    --default-item us  \
+    --title  "$TITLE"  \
+    --menu   "$HELP"   \
+    19 60 10           \
+    $( keymaps )
+}
+
+
+  log_warning_msg "keymap loading"
+
+  local          KMAP=ask
+
+  if    [  -f             /etc/keymap.conf  ]
+  then  read     KMAP  <  /etc/keymap.conf
+  fi
+
+  if    [  -z  "$KMAP"           ]  ||
+        [      "$KMAP"  ==  ask  ]
+  then           KMAP=$( keymap_menu > /dev/console )
+  fi
+
+  if    [  -n  "$KMAP"  ]  &&  /bin/loadkeys  $KMAP
+  then  log_success_msg "keymap loaded"
+  else  log_failure_msg "keymap not loaded";  false
+  fi
 }
 
 
@@ -21,8 +59,7 @@ help()  {  echo "Usage: $0 {start}" 1>&2;  }
 
 
 case  $1  in
-        start)  start  ;;
-         stop)  :      ;;
-  try-restart)  :      ;;
-            *)  help   ;;
+        start)  start ;;
+  try-restart)  :     ;;
+            *)  help  ;;
 esac
