@@ -13,6 +13,9 @@ build()  {
 
   local  OMIT='
 \,^/dev/.udev,d
+\,^/lib/modules/[^/]*\.old,d
+'
+  local  OMIT_MODULES='
 \,^/lib/modules/.*/kernel/drivers/acpi/,d
 \,^/lib/modules/.*/kernel/drivers/char/watchdog/,d
 \,^/lib/modules/.*/kernel/drivers/hwmon/,d
@@ -97,9 +100,9 @@ build()  {
 current()  {
   not_found()    { ! find "$@" -type f -newer /boot/initrf.gz | grep -q .; }
   chk_lib_mod()  { not_found /lib/modules; }
-  chk_all()      { if   [ -d                /lib64 ]
-                   then not_found /bin /lib /lib64 /sbin
-                   else not_found /bin /lib        /sbin
+  chk_all()      { if   [ -d      /lib64 ]
+                   then not_found /lib64 /bin /etc/init.d /lib /sbin
+                   else not_found        /bin /etc/init.d /lib /sbin
                    fi; }
 
         [  -f             /boot/initrf.gz  ]  &&
