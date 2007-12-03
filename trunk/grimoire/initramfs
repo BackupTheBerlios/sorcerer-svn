@@ -86,10 +86,10 @@ build()  {
   echo  "OPTS=$OPTS"
   prepare_install                    &&
   echo  '/boot/initrf.gz contains:'  &&
-  if    echo      "$OPTS"  |
-        grep  -q  module
-  then            module
-  else  full
+  if    [  -s    $BOOT_OFF_LOGS/iniramfs   ]  ||
+        [  -d    /isolinux                 ]
+  then  full
+  else  module
   fi
 }
 
@@ -102,9 +102,10 @@ current()  {
                    else not_found /bin /lib        /sbin
                    fi; }
 
-        [  -f          /boot/initrf.gz  ]  &&
-  if    [  -f  $BOOT_ON_LOGS/initramfs  ]
-  then  chk_lib_mod
+        [  -f             /boot/initrf.gz  ]  &&
+  if    [  -s    $BOOT_OFF_LOGS/iniramfs   ]  ||
+        [  -d    /isolinux                 ]
+  then  chk_all
   else  chk_all
   fi
 }
