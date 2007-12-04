@@ -88,16 +88,20 @@ get_rank()  {
   else  RANK=0
   fi
   for  CHK  in  $2;  do
-    for  SYML in $3?$CHK; do
+    for  SYML in $3??$CHK; do
       if    [  -h  "$SYML"  ]
       then     NRANK="${SYML##*/}"
-               NRANK="${NRANK:1:1}"
-            (( NRANK++ ))
-        if  (( NRANK > RANK ));  then  RANK=$NRANK;  fi
+               NRANK="${NRANK:1:2}"
+            (( NRANK=10#$NRANK ))
+            (( NRANK++         ))
+        if  (( NRANK   >  RANK ));  then  RANK=$NRANK;  fi
       fi
     done
   done
-  echo  "$RANK"
+  if    ((  10 > RANK  ))
+  then  echo  "0$RANK"
+  else  echo   "$RANK"
+  fi
 }
 
 levels()  {
