@@ -1,0 +1,81 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: find_ir
+# Required-Start:
+# Should-Start: udev modprobe loadkeys
+# Required-Stop:
+# Default-Start: S
+# Default-Stop:
+# Short-Description: find_ir locates and makes the Sorcerer IR / in /etc/fstab
+# Description:       find_ir locates and makes the Sorcerer IR / in /etc/fstab
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start()  {
+  block() { while read; do if [ -b "$REPLY" ]; then echo "$REPLY"; fi; done; }
+    try() { while read  &&  mtest  "$REPLY"; do :; done; }
+
+  mtest() {
+    if       mount  -nr  "$1"  /media/root;  then
+      if    !  [    -d         /media/root/isolinux  ]
+      then  umount  -n         /media/root;  false
+      else  umount  -n         /media/root;  echo  "$1"
+      fi
+    else  false
+    fi
+  }
+
+  search()  {
+    mkdir  -p       /media/root
+    grep   -l  '1'  /sys/block/*/removable     |
+    sed          's:/sys/block/:/dev/:
+                              s:/removable::'  |
+    block                                      |
+    try
+  }
+
+  manual() {
+    echo   "Install/Rescue Image not found."
+    echo   "Discover the block device for"
+    echo   "the Install/Rescue Image and"
+    echo   "make that the root device"
+    echo   "by editing /etc/fstab"
+    echo   "Sorry for the inconvenience."
+    echo   "Press enter when prompted for password."
+    echo   "When complete type exit to resume"
+    sulogin -t 300 /dev/console
+  }
+
+  set_root()  {
+          sed   -i  's:\t: :g'                       /etc/fstab
+    if    grep  -q  ' / '                            /etc/fstab
+    then  sed   -i  "s:.* / :$1 / :"                 /etc/fstab
+    else  echo      "$1 / auto defaults,ro 0 0"  >>  /etc/fstab
+    fi
+  }
+
+  log_warning_msg "Sorcerer Install/Rescue Image finding"
+  IRDEV=$( search )
+
+  if    [  -n     "$IRDEV"  ]
+  then  set_root  "$IRDEV"
+  else  manual  1>/dev/console
+  fi
+
+  if    grep  -q " / "  /etc/fstab
+  then  log_success_msg "Sorcerer Install/Rescue Image found"
+  else  log_failure_msg "Sorcerer Install/Rescue Image not found"
+  fi
+}
+
+
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
+
+
+case  $1  in
+        start)  start ;;
+  try-restart)  :     ;;
+            *)  help  ;;
+esac

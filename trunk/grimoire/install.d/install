@@ -1,0 +1,1281 @@
+#!/bin/bash
+############################################################
+# Copyright 2001 through 2007 by Kyle Sallee,              #
+# all rights reserved                                      #
+# and may not be reditribute in modified form without      # 
+# prior writen permission of Kyle Sallee                   #
+# It may only be used for installing Sorcerer              #
+############################################################
+# sorcerer.install menu driven process of for installing   #
+# installing the Sorcerer Install/Rescue ISO               #
+############################################################
+
+partition_layout() {
+  REC="	Recommended Partitioning for Sorcerer
+
+Part	Size	ID		FS	MNT
+1	128M	83 Linux	ext2	/boot
+2	2G	83 Linux	ext3	/tmp
+3	8G+	83 Linux	ext3	/
+
+Optional Performance Enhancing Partitions:
+Part	Size	ID		FS	MNT
+4		5  Extended
+5	6G+	83 Linux	ext3	/var
+6	1G+	83 Linux	ext3	/home
+7	2G	83 Linux	ext3	/usr/src/sorcery
+8	1G	82 Linux swap	swap	none
+
+Precisely sized dedicated filesystems for:
+/, /var, /home, /srv
+provide optimal filesystem performance.
+If uncertain of space requirements
+then /boot and one large / partition can be used."
+
+  $DIALOG  --cr-wrap  --no-collapse  --msgbox  "$REC"  20 70
+}
+
+
+inputbox()  {  $DIALOG  --nocancel  --inputbox  "$1"  0 0  "$2";  }
+
+
+chroot_run()  {
+  echo    $"Chrooting to $TARGET"
+
+  mkdir   -p                 $TARGET/tmp/.sorcery
+  mount   --bind   /dev      $TARGET/dev
+  mount   --bind   /dev/pts  $TARGET/dev/pts
+  mount   --bind   /proc     $TARGET/proc
+  chroot  $TARGET  swapon   -a
+  chroot  $TARGET  mount    /root/.sorcery
+  chroot  $TARGET  mount    /usr/src/sorcery
+  chroot  $TARGET  mount    /var/lock
+  chroot  $TARGET  "$@"
+  chroot  $TARGET  umount   /var/lock
+  chroot  $TARGET  umount   /usr/src/sorcery
+  chroot  $TARGET  umount   /root/.sorcery
+  chroot  $TARGET  swapoff  -a
+  umount                    $TARGET/proc
+  umount                    $TARGET/dev/pts
+  umount                    $TARGET/dev
+}
+
+
+chroot_build()  {
+  scry_finish()  {
+    while  ls      $TARGET/root/.sorcery/queue/cast  |  grep  -q  "."
+    do     chroot  $TARGET  augur  scry
+    done
+  }
+
+  echo    $"Chrooting to $TARGET"
+
+  mkdir   -p                 $TARGET/tmp/.sorcery
+  mount   --bind   /dev      $TARGET/dev
+  mount   --bind   /dev/pts  $TARGET/dev/pts
+  mount   --bind   /proc     $TARGET/proc
+  chroot  $TARGET  swapon   -a
+  chroot  $TARGET  mount    /root/.sorcery
+  chroot  $TARGET  mount    /usr/src/sorcery
+  chroot  $TARGET  mount    /var/lock
+  chroot  $TARGET  cast  -r  "$@"
+  scry_finish
+  chroot  $TARGET  umount   /var/lock
+  chroot  $TARGET  umount   /usr/src/sorcery
+  chroot  $TARGET  umount   /root/.sorcery
+  chroot  $TARGET  swapoff  -a
+  umount                    $TARGET/proc
+  umount                    $TARGET/dev/pts
+  umount                    $TARGET/dev
+}
+
+
+# confirm()  {  $DIALOG  $2  --nocancel  --yesno  "$1"  8 50;  }
+confirm()  {  $DIALOG  $2  --yesno  "$1"  8 50;  }
+
+
+goodbye() {
+  if    [  "$PMOUNTED"  ==  "true"  ]
+  then  filesystem_unmount
+  fi
+
+  umount  /media/cd
+
+  if    confirm  "Reboot now?"  "--defaultno"
+  then  shutdown  -r  now
+  fi
+  exit  0
+}
+
+
+check_transfer_arch()  {
+
+  if  !  [  -e  $TARGET/etc/sorcerer.version  ];  then
+    $DIALOG  --msgbox  "Transfer the Install/Rescue first."  8  50
+    return  1
+  fi
+
+  $DIALOG  --infobox "Checking previously transfered files.
+                      Please wait...."  8  50
+
+  BAD="$(  unset       LANG
+           cd          $TARGET
+           md5sum  -c  /IR.md5sums     |
+           tee         /dev/stderr     |
+           grep        ": FAILED"      |
+           sed       "s/: FAILED.*//"  |
+           grep    -v  "^etc/fstab"    )"
+
+  if    [  -z  "$BAD"  ];  then
+    $DIALOG  --msgbox  "Transfer verified correct."  8  50
+    return  0
+  else
+    $DIALOG  --msgbox  "Some checksums did not match.
+However the installer may have modified some files.
+This check is best done immediately after transfering the I/R"  12  60
+    echo  "$BAD"  |
+    while  read;  do
+      if    confirm  "Attempt to re-transfer $REPLY?"  ""
+      then  tar  --no-recursion  -C /media/cd  -c  "$REPLY"  |
+            tar                  -C $TARGET       -xvpf -
+      fi
+    done
+  fi
+}
+
+
+list_disks()  {
+  find  /dev  -mindepth 1  -group disk   \
+              -printf  "%p	disk\n"  |
+  sed       "/[0-9]/d"                   |
+  LC_ALL=C  sort
+}
+
+
+list_partitions_part()  {
+  find  /dev  -mindepth 1  -group disk        \
+              -printf  "%p	partition\n"  |
+  sed  -n  "/[0-9]/p"                         |
+  LC_ALL=C  sort
+}
+
+
+list_part_type()  {
+  sfdisk  -l  2>/dev/null  |
+  sed      '/Empty$/d
+            /Extended$/d'  |
+  grep        "^/dev/"     |
+  tr      -d '*'           |
+  tr      -s ' '           |
+  cut     -d ' '  -f1,7-
+}
+
+
+list_partitions()  {  list_part_type  |  cut  -d ' '  -f1;  }
+
+
+get_partition()  {
+
+  TITLE="Partition Selection Menu"
+   HELP="Please select a partition"
+
+  $DIALOG  --title     "$TITLE"  \
+           --menu      "$HELP"   \
+           0 0 0                 \
+           $(  list_partitions_part   )
+
+}
+
+
+list_bb()  {
+  list_disks            |  sed  "s:disk:Master Boot Record:"
+  list_partitions_part  |  sed  "s:partition:Boot Block:"
+}
+
+
+get_bb()  {
+  TITLE="Boot Block Selection Menu"
+   HELP="Please select MBR or boot block"
+
+  $DIALOG  --title     "$TITLE"  \
+           --menu      "$HELP"   \
+           0 0 0                 \
+           $(  list_bb           )
+}
+
+
+get_disc()  {
+  TITLE="Disk Selection Menu"
+   HELP="Please select a disk"
+
+  $DIALOG  --title     "$TITLE"  \
+           --menu      "$HELP"   \
+           0 0 0                 \
+           $(  list_discs  )
+}
+
+
+get_disk()  {
+  TITLE="Disk Selection Menu"
+   HELP="Please select a disk"
+
+  $DIALOG  --title     "$TITLE"  \
+           --menu      "$HELP"   \
+           0 0 0                 \
+           $(  list_disks  )
+}
+
+
+get_filesystem()  {
+
+  local  TITLE  HELP  EXT2  EXT3  JFS  XFS  REISER  SWAP  DEFAULT
+
+   TITLE="Filesystem Selection Menu"
+    HELP="Please select a filesystem"
+    EXT2="Second Extended             file system"
+    EXT3="Second Extended  journaling file system"
+     JFS="JFS              journaling file system"
+     XFS="XFS              journaling file system"
+  REISER="Reiserfs         journaling file system"
+    SWAP="Swap"
+
+  case  "${PMOUNT[$1]}"  in
+    /boot)  DEFAULT="ext2"  ;;
+     /tmp)  DEFAULT="ext3"  ;;
+     none)  DEFAULT="swap"  ;;
+        *)  DEFAULT="ext3"  ;;
+  esac
+
+  $DIALOG  --title         "$TITLE"    \
+           --default-item  "$DEFAULT"  \
+           --menu          "$HELP"     \
+           0 0 0                       \
+           "ext2"          "$EXT2"     \
+           "ext3"          "$EXT3"     \
+           "jfs"           "$JFS"      \
+           "reiserfs"      "$REISER"   \
+           "xfs"           "$XFS"      \
+           "swap"          "$SWAP"
+}
+
+
+
+fdisc()  {
+  TITLE="Partitioning Menu"
+   HELP="Select a partitioning program"
+
+  $DIALOG               \
+    --title   "$TITLE"  \
+    --no-cancel         \
+    --menu    "$HELP"   \
+    0 0 0               \
+   "cfdisk"  ""  \
+   "fdisk"   ""  \
+   "parted"  ""
+}
+
+
+partition_disks()  {
+  $(  fdisc  )  $(  get_disk  );
+  /sbin/udevstart
+  filesystem_table_load
+}
+
+
+write_mbr()  {  ms-sys  -s  $(  get_disk  );  }
+
+
+get_mount()  {
+  local       PLEASE="Please enter a mount point"
+  inputbox  "$PLEASE"  "${PMOUNT[$1]}"
+}
+
+
+list_swaps()  {
+  for  ((  CX=0;  CX<MP;  CX++  ));  do
+    if    [    "${PFILESYSTEM[$CX]}"  ==  "swap"  ]
+    then  echo     "${PDEVICE[$CX]} none swap defaults 0 0"
+    fi
+  done
+}
+
+
+fstab_line()  {
+  echo   -n  "${PDEVICE[$1]}	"
+  echo   -n  "${PMOUNT[$1]:-none} "
+  echo   -n  "${PFILESYSTEM[$1]:-unknown} "
+  echo   -n  "${POPTIONS[$1]} "
+  echo   -n  "${PDUMP[$1]} "
+  echo       "${PORDER[$1]}"
+}
+
+
+make_fstab()  {  
+  local  CX
+
+  sed  -n  "0,/# Real/p"  $TARGET/etc/fstab.empty  >   $TARGET/etc/fstab
+  (  list_mounts  |  sort  |  cut  -f2  |
+     while  read          CX
+     do     fstab_line  "$CX"
+     done
+     echo  "#:Swap";  list_swaps
+  )  |  column  -t  |  tr  ':' ' '                 >>  $TARGET/etc/fstab
+  sed      "0,/# Real/d"  $TARGET/etc/fstab.empty  >>  $TARGET/etc/fstab
+}
+
+
+option_menu()  {  chroot_run  sorcery  options;  }
+
+
+make_bootloader_conf()  {  (
+  
+  cp  $BL_CONF      $BL_CONF.save
+  cp  $BL_CONF.new  $BL_CONF
+
+  MESSAGE="Select the location to install ${BOOTLOADER}"
+  $DIALOG  --msgbox  "$MESSAGE" 8 50
+
+  BB=$(  get_boot_block  )
+
+  grep  -q  "boot="                       $BL_CONF  ||
+  echo      "boot=$BB"                >>  $BL_CONF
+  grep  -q  "root="                       $BL_CONF  ||
+  echo      "root=$( root_device  )"  >>  $BL_CONF
+
+  MESSAGE="${BOOTLOADER} will be installed to boot block: ${BB}"
+  $DIALOG  --msgbox  "$MESSAGE" 8 50
+
+)  }
+
+
+transfer_arch()  {
+  local  DIRS
+  DIRS=$( find /media/cd -maxdepth 1 -mindepth 1 -type d -printf "%P\n" |
+          sed "/isolinux/d;/rr_moved/d" )
+
+
+  tar    -C    /media/cd  -c  $DIRS  2>/dev/null  |
+  tar    -C    $TARGET    -xvpf -
+  tar    -c    /dev                  2>/dev/null  |
+  tar    -C    $TARGET    -xvpf -
+
+  chmod  1777  $TARGET/tmp
+  touch        $TARGET/{proc/mounts,etc/sorcery/local.config}
+
+  make_fstab
+  $DIALOG  --msgbox  $"Architecture specific files transferred."  8 50
+  ARCH_DONE="true"
+}
+
+
+select_extra_spells()  {
+    HELP="
+The sources CD contains sources for software
+that may be useful or required for networking.
+Please select software that will also be compiled and installed.
+Any of this software can also be installed after the first boot
+should you decide later that they will be required."
+
+  show_extra()  {
+    (  find  $TARGET/var/cache/sources  -maxdepth 1  -type d  -printf "%P\n"
+       echo  "$REQUIRED_SPELLS"
+       echo  "$REQUIRED_SPELLS"
+    )  |  sort  |  uniq  -u  |  grep  -vx  ""  |
+    while  read;  do
+      echo  "$REPLY"
+      echo  "Optional"
+      echo  "off"
+    done
+  }
+
+
+  $DIALOG  --title     "Additional Software Selection"  \
+           --nocancel            \
+           --ok-label  "Commit"  \
+           --separate-output     \
+           --checklist           \
+           "$HELP"               \
+           0 0 0                 \
+           $( show_extra )
+}
+
+
+editor_menu()  {
+  local  TITLE  ELVIS_HELP  NANO_HELP
+
+       TITLE="Text Editor Selection Menu"
+   NANO_HELP="nano is a very easy to use text editor."
+    VIM_HELP="vim is an improved version of vi."
+   ZILE_HELP="zile is a small, fast and powerful emacs clone."
+
+  EDITOR=$(  $DIALOG                       \
+               --title         "$TITLE"    \
+               --item-help                 \
+               --default-item  "nano"      \
+               --menu   ""                 \
+               0 0 0                       \
+               "nano"   ""  "$NANO_HELP"   \
+               "vim"    ""   "$VIM_HELP"   \
+               "zile"   ""  "$ZILE_HELP"   )
+  export  EDTIOR
+}
+
+
+edit()  {
+  if    [  -z  "$EDITOR"  ]
+  then  editor_menu
+  fi
+  $EDITOR  "$1"
+}
+
+
+get_boot_block()  {
+  local  BB
+  while  [  -z  "$BB"  ]
+  do      BB="$(  get_bb  )"
+  done
+  echo  "$BB"
+}
+
+
+edit_fstab()  {
+  if    [  -f  $TARGET/etc/fstab  ]
+  then  edit   $TARGET/etc/fstab
+  else  $DIALOG  --msgbox  $"Transfer first."  8 50
+  fi
+}
+
+
+get_options()  {
+  local  DEFAULT_OPTIONS
+
+  case  ${PFILESYSTEM[$1]}  in
+        swap)  DEFAULT_OPTIONS="defaults"                 ;;
+    reiserfs)  DEFAULT_OPTIONS="defaults,notail,noatime"  ;;
+         jfs)  DEFAULT_OPTIONS="defaults,noatime"         ;;
+        ext3)  DEFAULT_OPTIONS="defaults,noatime"         ;;
+         xfs)  DEFAULT_OPTIONS="defaults,noatime"         ;;
+        ext2)  DEFAULT_OPTIONS="defaults,noatime"         ;;
+  esac
+
+  case  ${PMOUNT[$1]}  in
+        /tmp)  [  "${PFILESYSTEM[$1]}" == "ext3"  ]  &&
+               DEFAULT_OPTIONS="defaults,noatime,commit=864000"  ;;
+  esac
+
+  if    [  -n  "$DEFAULT_OPTIONS"  ]
+  then  inputbox  "Please enter mount options"  "$DEFAULT_OPTIONS"
+  fi
+}
+
+
+get_size()  {
+  inputbox  "Please enter size in megabytes"  "${PSIZE[$1]:-128}"
+}
+
+
+get_dump()  {
+  if    confirm  "Should it be dumped?"  "--defaultno"
+  then  echo  "1"
+  else  echo  "0"
+  fi
+}
+
+
+get_check_order()  {
+
+  local  DEFAULT_CO  HELP  TITLE
+
+  TITLE="fsck check order menu"
+  HELP="Journaling file systems do not require fsck checking
+when booting if the they were not properly unmounted 
+on the previous boot.  However non journaling file 
+systems do require checking.  The root partition 
+should be checked first, and all other partitions second."
+
+
+  DEFAULT_CO=0
+
+  case  ${PFILESYSTEM[$1]}  in
+    ext2)  if     [  "$1"  ==   "0"  ]
+           then  DEFAULT_CO="1"
+           else  DEFAULT_CO="2"
+           fi  ;;
+  esac
+
+  $DIALOG  --title         "$TITLE"       \
+           --default-item  "$DEFAULT_CO"  \
+           --menu          ""             \
+           0 0 0                          \
+           "0"        "No check required" \
+           "1"        "Check on first pass"  \
+           "2"        "Check on second pass"
+
+}
+
+
+show_pinfo()  {
+  (
+    echo  "device"
+    echo  "mount filesys options d o"
+    for     ((  CX=0;  CX<MP;  CX++  ));  do
+      if    [  -n  "${PDEVICE[$CX]}"  ];  then
+        echo   -n   "${PMOUNT[$CX]:-none}	"
+        fstab_line           "$CX"
+      fi
+    done  | sort  |  cut  -f2-  |  tr  '\t' '\n'
+  )  |  column  -t
+}
+
+
+get_pcx()  {
+  if    [  -z  "$1"                ];  then  false
+  elif  [      "$1"  ==  "device"  ];  then
+    for  ((  CX=0;  CX<MP;     CX++  ));  do
+      if    [  -z  "${PDEVICE[$CX]}"  ]
+      then  echo             "$CX";  break
+      fi
+    done
+  else
+    for  ((  CX=0;  CX<MP;     CX++  ));  do
+      if    [      "${PDEVICE[$CX]}"  ==  "$1"  ]
+      then  echo             "$CX";  break
+      fi
+    done
+  fi
+}
+
+
+show_pinfo_init()  {
+  for     ((  CX=0;  CX<MP;       CX++  ));  do
+    if    [  -n        "${PMOUNT[$CX]}"              ]  ||
+          [       "${PFILESYSTEM[$CX]}"  ==  "swap"  ]
+    then
+      if  [           "${PDEVICE[$CX]:0:5}"  ==  "/dev/"  ];  then
+          fstab_line            "$CX"
+          echo                  "off"
+      fi
+    fi
+  done  |  tr  '\t'  '\n'  |  column  -t
+}
+
+
+show_sinfo_init()  {
+  for     ((  CX=0;  CX<MP;       CX++  ));  do
+    if    [       "${PFILESYSTEM[$CX]}"      ==  "swap"   ]  &&
+          [  -n         "${PSIZE[$CX]}"                   ]  &&
+        ! [           "${PDEVICE[$CX]:0:5}"  ==  "/dev/"  ]
+    then
+      fstab_line                "$CX"
+      echo                      "off"
+    fi
+  done  |  tr  '\t'  '\n'  |  column  -t
+}
+
+
+root_device()  {
+  for     ((  CX=0;  CX<MP;  CX++  ));  do
+    if    [  "/"  ==  "${PMOUNT[$CX]}"  ]
+    then  echo       "${PDEVICE[$CX]}";  break
+    fi
+  done
+}
+
+
+filesystem_table()  {
+
+  pselect()  {
+    local  TITLE=$"Filesystem Table Menu"
+    local   HELP=$"Filesystems with mount point of none are ignored unless swap."
+    $DIALOG  --title         "$TITLE"  \
+             --ok-label      "Select"  \
+             --cancel-label  "Done"    \
+             --default-item  "0"       \
+             --menu          "$HELP"   \
+             0 70 12                   \
+             $(  show_pinfo  )
+  }
+
+
+  pempty()  {
+    local  SURE="Please confirm that you want to remove this entry?"
+
+    if    confirm  "$SURE"  "--defaultno";  then
+          PDEVICE[$1]=""
+           PMOUNT[$1]=""
+          PRMOUNT[$1]=""
+      PFILESYSTEM[$1]=""
+         POPTIONS[$1]=""
+            PDUMP[$1]=""
+           PORDER[$1]=""
+    fi
+  }
+
+
+  check_pentry()  {
+    local  NOT_DONE
+    NOT_DONE="Emptying partition entry.  Next time complete all the fields."
+
+    if    [  -z  "${PDEVICE[$1]}"      ]  ||
+          [  -z  "${PFILESYSTEM[$1]}"  ]  ||
+          [  -z  "${PMOUNT[$1]}"       ]  ||
+          [  -z  "${POPTIONS[$1]}"     ]  ||
+          [  -z  "${PDUMP[$1]}"        ]  ||
+          [  -z  "${PORDER[$1]}"       ]
+    then
+      $DIALOG  --msgbox  "$NOT_DONE"  8  50
+          PDEVICE[$1]=""
+           PMOUNT[$1]=""
+          PRMOUNT[$1]=""
+      PFILESYSTEM[$1]=""
+         POPTIONS[$1]=""
+            PDUMP[$1]=""
+           PORDER[$1]=""
+      false
+    fi
+  }
+
+
+  modify_pentry()  {
+
+    if    [  -z  "$1"  ]
+    then  false
+    else
+      local  COMMAND  TITLE  EHELP  HELP
+
+      TITLE="Filesystem entry menu"
+      EHELP="Emptying all fields will remove this filesystem entry"
+       HELP="Please visit every menu item except the Empty All Fields"
+
+      while
+        if     [  "${PFILESYSTEM[$1]}"  == "swap"   ]  &&
+            !  [  "${PDEVICE[$1]:0:5}"  == "/dev/"  ]
+        then
+          COMMAND=$(  $DIALOG                     \
+                        --title         "$TITLE"  \
+                        --ok-label      "Select"  \
+                        --cancel-label  "Done"    \
+                        --default-item  "$WHAT"   \
+                        --item-help               \
+                        --menu          "$HELP"   \
+                        15 60 8                   \
+                      "Device"      "${PDEVICE[$1]}"         ""  \
+                      "Filesystem"  "${PFILESYSTEM[$1]}"     ""  \
+                      "Mount"       "${PMOUNT[$1]}"          ""  \
+                      "Options"     "${POPTIONS[$1]}"        ""  \
+                      "Dump"        "${PDUMP[$1]}"           ""  \
+                      "Order"       "${PORDER[$1]}"          ""  \
+                      "Size"        "${PSIZE[$1]}"           ""  \
+                      "Empty"       "All Fields"             "$EHELP"  )
+        else
+          COMMAND=$(  $DIALOG                     \
+                        --title         "$TITLE"  \
+                        --ok-label      "Select"  \
+                        --cancel-label  "Done"    \
+                        --default-item  "$WHAT"   \
+                        --item-help               \
+                        --menu          "$HELP"   \
+                        14 60 7                   \
+                      "Device"      "${PDEVICE[$1]}"         ""  \
+                      "Filesystem"  "${PFILESYSTEM[$1]}"     ""  \
+                      "Mount"       "${PMOUNT[$1]}"          ""  \
+                      "Options"     "${POPTIONS[$1]}"        ""  \
+                      "Dump"        "${PDUMP[$1]}"           ""  \
+                      "Order"       "${PORDER[$1]}"          ""  \
+                      "Empty"       "All Fields"             "$EHELP"  )
+        fi
+      do
+        case  $COMMAND  in
+          Empty)       pempty  "$1"					;;
+          Device)          PDEVICE[$1]=$(  get_partition    "$1"  )	;;
+          Filesystem)  PFILESYSTEM[$1]=$(  get_filesystem   "$1"  )	;;
+          Mount)            PMOUNT[$1]=$(  get_mount        "$1"  )	;;
+          Options)        POPTIONS[$1]=$(  get_options      "$1"  )	;;
+          Dump)              PDUMP[$1]=$(  get_dump         "$1"  )	;;
+          Order)            PORDER[$1]=$(  get_check_order  "$1"  )	;;
+          Size)              PSIZE[$1]=$(  get_size         "$1"  )     ;;
+        esac
+
+        if    [  "${PFILESYSTEM[$1]}"  ==  "swap"  ]
+        then             PMOUNT[$1]="none"
+                       POPTIONS[$1]="default"
+                          PDUMP[$1]="0"
+                         PORDER[$1]="0"
+        fi
+      done
+      check_pentry  "$1"  &&
+      PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
+    fi
+
+  }
+
+
+  check_root_defined()  {
+    root_device  |  grep  -q  "."  ||
+    $DIALOG  --msgbox  $"Did you forget to define the root filesystem?"  18  65
+  }
+
+
+  local  HELP
+
+  HELP="The following menu is for specifying filesystems
+to mount prior to transfering sorcerer.
+The information prompted for corresponds
+to the fields on a line in /etc/fstab
+man fstab in separate virtual console if needed."
+
+  $DIALOG  --msgbox  "$HELP"  18  65
+  while  modify_pentry  $(  get_pcx  $(  pselect  )  )
+  do     true
+  done
+  check_root_defined
+  true
+}
+
+
+select_partitions_to_initialize()  {
+
+  local  TITLE  HELP
+
+  TITLE="Partition Initialization Selection Menu."
+   HELP="Select Partitions to initialize.
+All data on selected partitions will be lost.
+[x] = initialize  [ ] = leave alone 
+Up and Down arrows navigate.  Space toggles.  Enter proceeds."
+
+  $DIALOG  --title         "$TITLE"  \
+           --ok-label      "Done"    \
+           --no-cancel               \
+           --separate-output         \
+           --checklist     "$HELP"   \
+           18 74 8                   \
+           $(  show_pinfo_init  )
+}
+
+
+select_swapfile_to_initialize()  {
+
+  local  TITLE  HELP
+
+  TITLE="Swapfile Initialization Selection Menu."
+   HELP="If swapfiles have not been created and initialized
+then now is the time to do so.
+[x] = initialize  [ ] = leave alone 
+Up and Down arrows navigate.  Space toggles.  Enter proceeds."
+
+  $DIALOG  --title         "$TITLE"  \
+           --ok-label      "Done"    \
+           --no-cancel               \
+           --separate-output         \
+           --checklist     "$HELP"   \
+           18 74 8                   \
+           $(  show_sinfo_init  )
+}
+
+
+check_partition()  {
+  local  PROMPT
+  PROMPT="Check for errors?"
+
+  case  ${PFILESYSTEM[$1]}  in
+    ext2|ext3|jfs)
+      if    confirm  "$PROMPT"  "--defaultno"
+      then  echo     "-c";
+      fi    ;;
+    swap)
+      if    [  "${PDEVICE[$1]:0:5}" == "/dev/"  ]  &&
+            confirm  "$PROMPT"  "--defaultno"
+      then  echo     "-c";
+      fi    ;;
+    *)
+      true  ;;
+  esac
+}
+
+
+installed_fs()  {
+
+  check_jfs()  {
+    dd  if=$1  bs=64k  count=1  2>/dev/null  |
+    grep  -q  "JFS1"  &&
+    echo  jfs
+  }
+
+  case  $(  file  -k  -  <  $1  )  in
+    *swap\ file*)		echo  "swap"		;;
+    *ext3\ filesystem*)		echo  "ext3"		;;
+    *ext2\ filesystem*)		echo  "ext2"		;;
+    *SGI\ XFS*)			echo  "xfs"		;;
+    *ReiserFS*)			echo  "reiserfs"	;;    
+    *FAT*)			echo  "fat"		;;
+    *stdin:\ data*)  		check_jfs  "$1"		;;
+  esac
+}
+
+
+filesystem_table_load()  {
+  local  CX  PART
+
+      PDEVICE[0]="/swap.128m"
+  PFILESYSTEM[0]="swap"
+     POPTIONS[0]="defaults"
+        PDUMP[0]="0"
+       PORDER[0]="0"
+       PMOUNT[0]="none"
+        PSIZE[0]="128"
+
+  (( CX = 1 ))
+
+  for  PART  in  $(  list_partitions  );  do
+
+        PDEVICE[$CX]="$PART"
+    PFILESYSTEM[$CX]="$( installed_fs  $PART )"
+       POPTIONS[$CX]="defaults,noatime"
+          PDUMP[$CX]="0"    
+         PORDER[$CX]="0"
+
+    case  "${PFILESYSTEM[$CX]}"  in
+      ext2)    PORDER[$CX]="1"		;;
+      swap)  POPTIONS[$CX]="defaults"	;;
+    esac
+
+  (( CX++ ))
+  done
+
+  for  ((  ;  CX<MP;  CX++  ));  do
+        PDEVICE[$CX]=""
+         PMOUNT[$CX]=""
+    PFILESYSTEM[$CX]=""
+       POPTIONS[$CX]=""
+          PDUMP[$CX]=""    
+         PORDER[$CX]=""    
+          PSIZE[$CX]=""    
+  done
+}
+
+
+get_mk_command()  {
+  file_or_part()  {
+    case  ${PDEVICE[$1]:0:5}  in
+      /dev/)  echo  "mkswap	$CHECK	${PDEVICE[$1]}"		;;
+          *)  echo  "dd	of=$TARGET${PDEVICE[$1]}	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET${PDEVICE[$1]}	&&${LF}chmod	0000	$TARGET${PDEVICE[$1]}"  ;;
+    esac
+  }
+
+  local  CHECK
+
+  CHECK=$(  check_partition  "$1"  )
+
+  case  ${PFILESYSTEM[$1]}  in
+        ext3)  echo  "mkfs.ext3	$CHECK	${PDEVICE[$1]}"		;;
+        ext2)  echo  "mkfs.ext2	$CHECK	${PDEVICE[$1]}"		;;
+    reiserfs)  echo  "mkreiserfs	-f	${PDEVICE[$1]}"	;;
+         xfs)  echo  "mkfs.xfs	-f	${PDEVICE[$1]}"		;;
+         jfs)  echo  "jfs_mkfs	-q	$CHECK	${PDEVICE[$1]}"	;;
+        swap)  file_or_part  "$1"  ;;
+ esac
+}
+
+
+initialize()  {
+
+  local  SURE  SUCCESS  FAILURE  COMMAND
+
+  SURE="Please confirm it is okay that all data on  ${PDEVICE[$1]} is lost?"
+  SUCCESS="${PFILESYSTEM[$1]} successfully created on ${PDEVICE[$1]}"
+  FAILURE="No success at creating ${PFILESYSTEM[$1]} on ${PDEVICE[$1]}"
+
+  if    confirm  "$SURE"  "--defaultno";  then
+
+    COMMAND="$(  get_mk_command   "$1" )"
+
+    if    confirm  "$COMMAND"  "--defaultno"  &&
+          eval     "$COMMAND"
+    then  sleep   3;  $DIALOG  --msgbox  "$SUCCESS"  8  50
+    else  sleep  10;  $DIALOG  --msgbox  "$FAILURE"  8  50
+          return  1
+    fi
+  fi
+
+}
+
+
+filesystem_initialize()  {
+  local  PART
+
+  [  -n  "${PDEVICE[1]}"  ]  &&
+  for    PART  in  $(  select_partitions_to_initialize  )
+  do     initialize  $(  get_pcx  "$PART"  )
+  done
+}
+
+
+swapfile_initialize()  {
+  local  SWAP
+
+  [  -n  "${PDEVICE[1]}"  ]  &&
+  for    SWAP  in  $(  select_swapfile_to_initialize  )
+  do     initialize  $(  get_pcx  "$SWAP"  )
+  done
+}
+
+
+list_mounts()  {
+  for  ((  CX=0;  CX<MP;  CX++  ));  do
+    if       [  -n          "${PMOUNT[$CX]}"  ]  &&
+          !  [  "none"  ==  "${PMOUNT[$CX]}"  ]
+    then  echo              "${PMOUNT[$CX]}	$CX"
+    fi
+  done
+}
+
+
+filesystem_mount()  {
+
+  local  ALREADY  NOT_NOW  SUCCESS  FAILED
+
+  ALREADY=$"Partitions are already mounted."
+  NOT_NOW=$"No partitions to mount, yet."
+  SUCCESS=$"successfully mounted"
+   FAILED=$"failed mounting"
+
+  if   [ "$PMOUNTED" == "true" ]; then $DIALOG --msgbox "$ALREADY" 8 50; false
+  elif [ -z "${PMOUNT[*]}"     ]; then $DIALOG --msgbox "$NOT_NOW" 8 50; false
+  else
+    list_mounts  |
+    sort         |
+    cut  -f2     |
+    while  read  CX;  do
+      if    mkdir  -p      ${PRMOUNT[$CX]}  &&
+            mount  -t  ${PFILESYSTEM[$CX]}  \
+                      -o  ${POPTIONS[$CX]}  \
+                           ${PDEVICE[$CX]}  \
+                           ${PRMOUNT[$CX]}
+      then             $DIALOG  --msgbox  "${PRMOUNT[$CX]} $SUCCESS"  8 50
+      else  sleep  5;  $DIALOG  --msgbox  "${RPMOUNT[$CX]} $FAILED"   8 50
+      fi
+      if    [  -z  "$CHMOD_TMP"  ]
+      then           CHMOD_TMP=t ;  chmod  1777  $TARGET/tmp
+      fi
+    done
+    swapfile_initialize
+    PMOUNTED="true"
+  fi
+}
+
+
+filesystem_unmount()  {
+
+  local  ALREADY  NOT_NOW  SURE  SUCCESS  FAILED
+
+  SUCCESS="successfully unmounted"
+   FAILED="failed unmounting"
+  ALREADY="Partitions are not mounted."
+
+  SURE="Partitions must be mounted to transfer 
+Sorcerer and continue installation.
+Really unmount the currently mounted partitions?"
+
+  if    !  [  "$PMOUNTED"  ==  "true"  ]
+  then  $DIALOG  --msgbox  "$ALREADY"  8  50;  false
+  else
+    if    trans    ||  confirm  "$SURE"  "--defaultno";  then
+      list_mounts  |
+      sort   -r    |
+      cut    -f2   |
+      while  read  CX;  do
+        if    umount  ${PRMOUNT[$CX]}
+        then             $DIALOG  --msgbox  "${PRMOUNT[$CX]} $SUCCESS"  8 50
+        else  sleep  5;  $DIALOG  --msgbox  "${PRMOUNT[$CX]} $FAILED"   8 50
+        fi
+      done
+      PMOUNTED="false"
+    fi
+  fi
+}
+
+
+confirm_unmount()  {
+local  NOT_YET="
+Installation is incomplete the install image is transferred.
+Filesystems must be mounted to complete the above step.
+
+However to modify the filesystem table, create,
+initialize and/or mount more file systems
+then the currently mounted filesystems must be unmounted first.
+They can be re-mounted again after modifications.
+Otherwise please keep the filesystems mounted before 
+proceeding to the network configuration menus."
+
+  $DIALOG  --msgbox  "$NOT_YET"  20 70
+  if    confirm  "Really Unmount filesystems?"  "--defaultno"
+  then  filesystem_unmount
+  fi
+}
+
+
+
+disk_menu()  {
+
+  partition_layout
+
+  if    [  -z  "${PDEVICE[*]}"  ]
+  then  filesystem_table_load
+  fi
+
+  WHAT="Partition"
+
+  while
+
+     TITLE=$"Disk Menu"
+
+    A_HELP=$"Transfer architecture specific files to mounted filesystems"
+
+    B_HELP=$"Write LBA addressing enabled bootable public domain syslinux MBR to disk"
+    C_HELP=$"Define filesystem table"
+    E_HELP=$"Edit $TARGET/etc/fstab after transfering"
+    I_HELP=$"Selectively create filesystems defined in filesystem table"
+    L_HELP=$"Load unmodified filesystem table by defined disk partitions"
+    M_HELP=$"Mount defined filesystems"
+    P_HELP=$"Create partitions on physical disks"
+    U_HELP=$"Unmount defined filesystems, do this only to correct mistakes"
+
+    if  [  "$PMOUNTED"  ==  "true"  ];  then
+
+      WHAT=$(  $DIALOG                     \
+                 --title         "$TITLE"  \
+                 --ok-label      "Select"  \
+                 --cancel-label  "Done"    \
+                 --default-item  "$WHAT"   \
+                 --item-help               \
+                 --menu          ""        \
+                 0 60 8                    \
+                 "Install"  "Transfer Base Files"       "$A_HELP"  \
+                 "Edit"     "$TARGET/etc/fstab"         "$E_HELP"  \
+                 "Unmount"  "Filesystems"               "$U_HELP"  )
+#                "install"  "Check Installed Files"     "$K_HELP"  \
+    else
+      WHAT=$(  $DIALOG                     \
+                 --title         "$TITLE"  \
+                 --ok-label      "Select"  \
+                 --cancel-label  "Done"    \
+                 --default-item  "$WHAT"   \
+                 --item-help               \
+                 --menu          ""        \
+                 0 60 8                    \
+                 "MBR"         "Master Boot Record" "$B_HELP"  \
+                 "Partition"   "Disks"              "$P_HELP"  \
+                 "Reload"      "Filesystem Table"   "$L_HELP"  \
+                 "Modify"      "Filesystem Table"   "$C_HELP"  \
+                 "Initialize"  "Filesystems"        "$I_HELP"  \
+                 "Mount"       "Filesystems"        "$M_HELP"  )
+    fi
+  do
+    case  $WHAT in
+            MBR)	write_mbr		;;
+        Install)	transfer_arch		;;
+      Partition)	partition_disks		;;
+         Reload)	filesystem_table_load	;;
+         Modify)	filesystem_table	;;
+     Initialize)	filesystem_initialize	;;
+          Mount)	filesystem_mount	;;
+        Unmount)	confirm_unmount		;;
+#        install)	check_transfer_arch	;;
+           Edit)	edit_fstab		;;
+    esac
+  done
+}
+
+
+compile_menu()  {
+
+  local  EXTRA_SPELLS
+
+  local  REQUIRED_SPELLS="\
+glibc-locales
+glibc-localtime
+kbd
+util-linux
+initramfs"
+
+  local  OBSOLETE_SPELLS="install"
+
+  case  $( uname -m )  in
+    i686)  REQUIRED_SPELLS+=" bash"  ;;
+  esac
+
+
+  if    [  -f  $TARGET/etc/lilo.conf.head.new  ]
+  then  BOOTLOADER="lilo"
+  else  BOOTLOADER="yaboot"
+  fi
+
+  BL_CONF="$TARGET/etc/$BOOTLOADER.conf.head"
+
+  make_bootloader_conf
+
+  EXTRA_SPELLS=$( select_extra_spells )
+
+  chroot_build	$REQUIRED_SPELLS	$EXTRA_SPELLS
+
+  for  ITEM  in  $EXTRA_SPELLS;  do
+    case  $ITEM  in
+      dial2net)		chroot_run  /bin/dial2net -s		;;
+      wvdial)		chroot_run  /usr/bin/wvdialconf
+			edit        $TARGET/etc/wvdial.conf	;;
+      rp-ppoe)		chroot_run  /usr/sbin/adsl-setup	;;
+    esac
+  done
+}
+
+
+load_mod()  {
+  param() { $DIALOG --nocancel --inputbox "Parameters for $1?" 0 0; }
+
+  avail() {
+    find          $1/  -type f  -printf "%P\n" |  LC_ALL=C  sort  |
+    sed   -nr  "s:(.*)/(.*):\2	\1:
+                s:\.ko	:	:p";  }
+  pick_mod()  {
+    local  MODULES_DIR="/lib/modules/$( uname -r )/kernel"
+    local        TITLE="Module Load Menu"
+    local         HELP="Select a module to load please"
+
+    $DIALOG  --title "$TITLE" --menu "$HELP" 0 0 0 $( avail_mod "$MODULES_DIR" )
+  }
+
+  local PARAM    MODULE
+  if             MODULE="$( pick_mod )"  &&
+        [  -n  "$MODULE"  ]              &&
+        PARAM="$( param "$MODULE" )"
+  then
+    modprobe  $MODULE  $PARAMETERS
+    read  -n 1  -t 900  -p "Press space to continue."
+    /sbin/udevstart
+  fi
+}
+
+
+list_mod()  {  lsmod  |  less;  }
+
+
+unload_mod()  {
+  TITLE="Module Unload Menu"
+   HELP="Select a module to unload please"
+
+  MODULE=$(  $DIALOG              \
+               --title  "$TITLE"  \
+               --menu   "$HELP"   \
+               0 0 0              \
+               $( lsmod | cut -d ' ' -f1 | sed 1d ) )
+
+  [  -n  "$MODULE"  ]  &&
+  rmmod  "$MODULE"
+  /sbin/udevstart
+}
+
+
+module_menu()  {
+
+  while
+    TITLE="Module Menu"
+     HELP="Hardware not being automatically detected?
+Try loading the appropriate module."
+
+    WHAT=$(  $DIALOG                       \
+               --title         "$TITLE"    \
+               --ok-label      "Select"    \
+               --cancel-label  "Done"      \
+               --menu                      \
+               "$HELP"                     \
+               0 0 0                       \
+               "List"    "Loaded Modules"  \
+               "Load"    "Module"          \
+               "Unload"  "Module"          )
+  do
+    case  $WHAT  in
+        List)    list_mod  ;;
+        Load)    load_mod  ;;
+      Unload)  unload_mod  ;;
+    esac
+  done
+}
+
+
+main_menu()  {
+
+  WHAT="Disk"
+  MVIS="Optional"
+  DVIS="Required"
+  OVIS="Required"
+  CVIS="Required"
+
+  while
+
+     TITLE="Main Menu"
+      HELP="Sorcerer comes with no warranty."
+
+    D_HELP="Prepare partitions and transfer operating system"
+    O_HELP="Select sorcery options"
+    K_HELP="Configure and install a boot loader and Linux"
+    E_HELP="Configure PPP or Ethernet TCP/IP networking"
+    F_HELP="Exit to a manual installation or reboot"
+    M_HELP="List load and unload modules"
+    C_HELP="Install kernel and networking programs to finish install" 
+
+
+    if    [  -f  $TARGET/usr/sbin/cast            ]  &&
+          [  -d  $TARGET/var/cache/sources/linux  ]
+    then
+      WHAT=$(  $DIALOG                    \
+                 --title  "$TITLE"        \
+                 --nocancel               \
+                 --default-item  "$WHAT"  \
+                 --item-help              \
+                 --menu                   \
+                 "$HELP"                  \
+                 0 50 10                  \
+                 "Module"   "Menu $MVIS"  "$M_HELP"  \
+                 "Disk"     "Menu $DVIS"  "$D_HELP"  \
+                 "Options"  "Menu $OVIS"  "$O_HELP"  \
+                 "Compile"  "Menu $CVIS"  "$C_HELP"  \
+                 "Done"     ""            "$F_HELP"  )
+    else
+      WHAT=$(  $DIALOG                    \
+                 --title  "$TITLE"        \
+                 --nocancel               \
+                 --default-item  "$WHAT"  \
+                 --item-help              \
+                 --menu                   \
+                 "$HELP"                  \
+                 0 0 0                    \
+                 "Module"   "Menu $MVIS"  "$M_HELP"  \
+                 "Disk"     "Menu $DVIS"  "$D_HELP"  \
+                 "Done"     ""            "$F_HELP"  )
+    fi
+  do
+    case  $WHAT in
+      Module)   module_menu;	MVIS="Visited"	;;
+      Disk)	disk_menu;	DVIS="Visited"	;;
+      Options)	option_menu;	OVIS="Visited"	;;
+      Compile)  compile_menu;   CVIS="Visited"	;;
+      Done)	goodbye		;;
+    esac
+  done
+}
+
+
+
+# Max Partitions
+MP=64
+TARGET="/media/root"
+
+LF="
+"
+
+export  IFS="	$LF"
+export  DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
+
+trap  ":"  INT QUIT
+
+main_menu
