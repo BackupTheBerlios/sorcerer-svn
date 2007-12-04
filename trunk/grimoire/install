@@ -5,6 +5,7 @@
   CATEGORY='administration/bootloader'
  ATTRIBUTE='archive_off console'
        REQ=( 'linux-modular' )
+   EXCLUDE='/etc/mtab'
   ESTIMATE='5'
       DESC='install provides the menu driven installer for Sorcerer.'
 
@@ -59,6 +60,8 @@ post_install() {
   pipe  find  $SOURCE_CACHE  -maxdepth 2  -mindepth 2  -type d  |
   LC_ALL=C  sort  |  uniq  -u  |
   xargs  -r  --max-lines=256  rm  -rf
+  rm  -f                /etc/mtab
+  ln  -s  /proc/mounts  /etc/mtab
   leech  $(<  $SCRIPT_DIR/sources.txt  )
   default_post_install
   echo  initramfs  |  pipe_queue  "$CAST_QUEUE"  com

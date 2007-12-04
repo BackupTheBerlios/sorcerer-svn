@@ -18,10 +18,8 @@
 
 start()  {
   log_warning_msg  "fuse starting"
-  [  -f                /proc/mounts    ]  ||
-  mount -nrt proc proc /proc
   modprobe fuse  &>/dev/null
-  if    mount -t fusectl none /sys/fs/fuse/connections
+  if    mount -t fusectl none /sys/fs/fuse/connections  2>/dev/null
   then  log_success_msg  "fuse started"
   else  log_failure_msg  "Unable to mount fuse control filesystem"
   fi
@@ -29,11 +27,9 @@ start()  {
 
 stop() {
   log_warning_msg  "fuse stopping"
-  if    grep  -qw  /sys/fs/fuse/connections  /proc/mounts  &&
-        umount     /sys/fs/fuse/connections
-  then  sleep 1
-        log_success_msg  "fuse stopped"
-  else  log_failure_msg  "fuse not stopped"
+  if    umount     /sys/fs/fuse/connections  2>/dev/null
+  then  log_success_msg  "fuse stopped";      sleep 0.5
+  else  log_failure_msg  "fuse not stopped";  sleep 0.5
   fi
 }
 
