@@ -51,10 +51,8 @@ build()  {
     mkdir    -pvm 0755  /media/root
     install   -vm 0700  $SCRIPT_DIR/init  /
 
-    if    [  -d                     /lib64  ]
-    then  find  /bin /dev /etc /lib /lib64 /sbin
-    else  find  /bin /dev /etc /lib        /sbin
-    fi  |
+    find  /bin /dev /etc /lib /lib64 /sbin     \
+          /usr/share/kbd/keymaps  2>/dev/null  |
     sed   "\,^/etc/sorcery/,d
            \,^/etc/gconf/,d
            \,^/etc/fonts/,d
@@ -67,10 +65,11 @@ build()  {
            1i/sys
            1i/usr
            1i/usr/share
+           1i/usr/share/kbd
+           1i/usr/share/kbd/keymaps
            1i/usr/share/terminfo
            1i/usr/share/terminfo/l
-           1i/usr/share/terminfo/l/linux
-"  |  exists  |  gcpio
+           1i/usr/share/terminfo/l/linux"  |  exists  |  gcpio
   }
 
   module()  {
