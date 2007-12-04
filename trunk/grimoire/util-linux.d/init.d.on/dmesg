@@ -6,11 +6,17 @@
 # Required-Stop:
 # Default-Start: S
 # Default-Stop:
-# Short-Description: dmesg prints kernel ring buffer to /var/log/dmesg
-# Description: dmesg prints kernel ring buffer to /var/log/dmesg
+# Short-Description: dmesg saves the kernel ring buffer to /etc/init.d/log/dmesg
+# Description: dmesg saves the kernel ring buffer to /etc/init.d/log/dmesg
 ### END INIT INFO
 
-start() { /bin/dmesg -c > /var/log/dmesg  2>/dev/null; }
+. /lib/lsb/init-functions
+
+start() {
+  log_warning_msg  "dmesg writing";  /bin/dmesg -c > /etc/init.d/log/dmesg
+  log_success_msg  "dmesg written"
+}
+
 help()  { echo "Usage: $0 {start}" 1>&2;  }
 
 case  $1  in
