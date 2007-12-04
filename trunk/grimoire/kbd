@@ -11,7 +11,7 @@
  CONFLICTS='console-tools console-data'
   ESTIMATE='121'
       DESC='kbd contains keytable files and keyboard utilities.
-Configuration file is keymap.conf'
+Configuration file is /etc/keymap.conf'
 # and font.conf located in /etc/kbd'
 
 configure()  {
@@ -42,7 +42,8 @@ configure()  {
 
 build()  {
   rm   -f  /etc/keymap.conf
-  sed  -i  "s:KMAP=[^$]*$:KMAP=$KMAP:"  $SCRIPT_DIR/init.d.on/loadkeys
+  [    -n   "$KEYMAP"  ]  &&
+  sed  -i  "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:"  $SCRIPT_DIR/init.d.on/loadkeys
 
   case  $VERSION  in
     1.12)  sed  -i  "s:-O2:$CFLAGS:"  openvt/Makefile  src/Makefile.in  ;;
@@ -60,7 +61,7 @@ build()  {
 
 current()  {
   case  $VERSION  in
-    1.12)  [     -f        /etc/init.d/loadkeys  ]  &&
-           grep  -q  sort  /etc/init.d/loadkeys  ;;
+    1.12)  [     -f         /etc/init.d/loadkeys  ]  &&
+           grep  -q  'ls '  /etc/init.d/loadkeys  ;;
   esac
 }

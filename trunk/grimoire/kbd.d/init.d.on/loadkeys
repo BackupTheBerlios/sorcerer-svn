@@ -16,9 +16,10 @@
 start()  {
   keymap_menu()  {
     keymaps()  {
-      find  /usr/share/kbd/keymaps -type f         |
+#     find      /usr/share/kbd/keymaps  -type f    |
+      ls    -R  /usr/share/kbd/keymaps             |
       sed   -n  's:.*/::;s:\.map\.gz:	keymap:p'  |
-      LC_ALL=C  sort
+      LC_ALL=C  sort  -u
     }
 
   TITLE=$"Keymap Selection Menu"
@@ -38,18 +39,18 @@ start()  {
 
   log_warning_msg "keymap loading"
 
-  local          KMAP=ask
+  local          KEYMAP=ask
 
-  if    [  -f             /etc/keymap.conf  ]
-  then  read     KMAP  <  /etc/keymap.conf
+  if    [  -f               /etc/keymap.conf  ]
+  then  read     KEYMAP  <  /etc/keymap.conf
   fi
 
-  if    [  -z  "$KMAP"           ]  ||
-        [      "$KMAP"  ==  ask  ]
-  then           KMAP=$( keymap_menu | tee /dev/console )
+  if    [  -z  "$KEYMAP"           ]  ||
+        [      "$KEYMAP"  ==  ask  ]
+  then           KEYMAP=$( keymap_menu | tee /dev/console )
   fi
 
-  if    [  -n  "$KMAP"  ]  &&  /bin/loadkeys  $KMAP
+  if    [  -n  "$KEYMAP"  ]  &&  /bin/loadkeys  $KEYMAP
   then  log_success_msg "keymap loaded"
   else  log_failure_msg "keymap not loaded";  false
   fi
