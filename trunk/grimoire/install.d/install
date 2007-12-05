@@ -306,7 +306,7 @@ list_swaps()  {
 
 
 fstab_line()  {
-  echo   -n  "${PDEVICE[$1]}	"
+  echo   -n  "${PDEVICE[$1]}${TAB}"
   echo   -n  "${PMOUNT[$1]:-none} "
   echo   -n  "${PFILESYSTEM[$1]:-unknown} "
   echo   -n  "${POPTIONS[$1]} "
@@ -316,16 +316,14 @@ fstab_line()  {
 
 
 make_fstab()  {  
-  local  CX
-
-  sed  -n  "0,/# Real/p"  $TARGET/etc/fstab.empty  >   $TARGET/etc/fstab
-  (  list_mounts  |  sort  |  cut  -f2  |
-     while  read          CX
-     do     fstab_line  "$CX"
-     done
-     echo  "#:Swap";  list_swaps
-  )  |  column  -t  |  tr  ':' ' '                 >>  $TARGET/etc/fstab
-  sed      "0,/# Real/d"  $TARGET/etc/fstab.empty  >>  $TARGET/etc/fstab
+  echo  "# Real file systems"
+  list_mounts  |  sort  |  cut  -f2  |
+  while  read          CX
+  do     fstab_line  "$CX"
+  done  |  tr  ' '  '\n'
+  echo  "# Swap"
+  list_swaps
+  cat  /etc/fstab.empty
 }
 
 
@@ -367,7 +365,7 @@ transfer_arch()  {
   tar    -C    $TARGET    -xvpf -
   chmod  1777  $TARGET/tmp
 
-  make_fstab
+  make_fstab  >  $TARGET/etc/fstab
   read  -n 1  -t 900  -p "Press space to continue."
   $DIALOG  --msgbox  $"Files transferred."  8 50
   ARCH_DONE="true"
@@ -1286,6 +1284,7 @@ main_menu()  {
 MP=64
 TARGET="/media/root"
 
+TAB="	"
 LF="
 "
 
