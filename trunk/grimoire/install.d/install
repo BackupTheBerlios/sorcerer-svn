@@ -42,10 +42,12 @@ inputbox()  {  $DIALOG  --nocancel  --inputbox  "$1"  0 0  "$2";  }
 chroot_run()  {
   echo    $"Chrooting to $TARGET"
 
-  mkdir   -p                 $TARGET/tmp/.sorcery
-  mount   --bind   /dev      $TARGET/dev
-  mount   --bind   /dev/pts  $TARGET/dev/pts
-  mount   --bind   /proc     $TARGET/proc
+  mkdir   -p                $TARGET/$TARGET/dev # avoids bug in linux?
+  mount   --bind   /dev     $TARGET/$TARGET/dev # avoids bug in linux?
+  mkdir   -p                $TARGET/tmp/.sorcery
+  mount   --bind   /dev     $TARGET/dev
+  mount   --bind   /dev/pts $TARGET/dev/pts
+  mount   --bind   /proc    $TARGET/proc
   chroot  $TARGET  swapon   -a
   chroot  $TARGET  mount    /root/.sorcery
   chroot  $TARGET  mount    /usr/src/sorcery
@@ -58,6 +60,7 @@ chroot_run()  {
   umount                    $TARGET/proc
   umount                    $TARGET/dev/pts
   umount                    $TARGET/dev
+  umount                    $TARGET/$TARGET/dev # avoids bug in linux?
 }
 
 
@@ -70,15 +73,18 @@ chroot_build()  {
 
   echo    $"Chrooting to $TARGET"
 
-  mkdir   -p                 $TARGET/tmp/.sorcery
-  mount   --bind   /dev      $TARGET/dev
-  mount   --bind   /dev/pts  $TARGET/dev/pts
-  mount   --bind   /proc     $TARGET/proc
+  mkdir   -p                $TARGET/$TARGET/dev # avoids bug in linux?
+  mount   --bind   /dev     $TARGET/$TARGET/dev # avoids bug in linux?
+  mkdir   -p                $TARGET/tmp/.sorcery
+  mount   --bind   /dev     $TARGET/dev
+  mount   --bind   /dev/pts $TARGET/dev/pts
+  mount   --bind   /proc    $TARGET/proc
   chroot  $TARGET  swapon   -a
   chroot  $TARGET  mount    /root/.sorcery
   chroot  $TARGET  mount    /usr/src/sorcery
   chroot  $TARGET  mount    /var/lock
-  chroot  $TARGET  cast  -r  "$@"
+  chroot  $TARGET  dispel   install
+  chroot  $TARGET  cast     -r  "$@"
   scry_finish
   chroot  $TARGET  umount   /var/lock
   chroot  $TARGET  umount   /usr/src/sorcery
@@ -87,6 +93,7 @@ chroot_build()  {
   umount                    $TARGET/proc
   umount                    $TARGET/dev/pts
   umount                    $TARGET/dev
+  umount                    $TARGET/$TARGET/dev # avoids bug in linux?
 }
 
 
@@ -364,7 +371,7 @@ transfer_arch()  {
 
   make_fstab
   read  -n 1  -t 900  -p "Press space to continue."
-  $DIALOG  --msgbox  $"Architecture specific files transferred."  8 50
+  $DIALOG  --msgbox  $"Files transferred."  8 50
   ARCH_DONE="true"
 }
 
@@ -956,8 +963,8 @@ filesystem_mount()  {
       then             $DIALOG  --msgbox  "${PRMOUNT[$CX]} $SUCCESS"  8 50
       else  sleep  5;  $DIALOG  --msgbox  "${RPMOUNT[$CX]} $FAILED"   8 50
       fi
-      if    [  -z  "$CHMOD_TMP"  ]
-      then           CHMOD_TMP=t ;  chmod  1777  $TARGET/tmp
+      if    [  -d        $TARGET/tmp  ]
+      then  chmod  1777  $TARGET/tmp
       fi
     done
     swapfile_initialize
@@ -1031,7 +1038,7 @@ disk_menu()  {
 
      TITLE=$"Disk Menu"
 
-    A_HELP=$"Transfer architecture specific files to mounted filesystems"
+    A_HELP=$"Transfer files to mounted filesystems"
 
     B_HELP=$"Write LBA addressing enabled bootable public domain syslinux MBR to disk"
     C_HELP=$"Define filesystem table"
@@ -1052,10 +1059,10 @@ disk_menu()  {
                  --item-help               \
                  --menu          ""        \
                  0 60 8                    \
-                 "Install"  "Transfer Base Files"       "$A_HELP"  \
-                 "Edit"     "$TARGET/etc/fstab"         "$E_HELP"  \
-                 "Unmount"  "Filesystems"               "$U_HELP"  \
-                 "Done"     ""                          ""         )
+                 "Install"  "Transfer Files"     "$A_HELP"  \
+                 "Edit"     "$TARGET/etc/fstab"  "$E_HELP"  \
+                 "Unmount"  "Filesystems"        "$U_HELP"  \
+                 "Done"     ""                   ""         )
 #                "install"  "Check Installed Files"     "$K_HELP"  \
     else
       WHAT=$(  $DIALOG                     \
