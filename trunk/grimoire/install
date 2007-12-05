@@ -1,20 +1,19 @@
 # install spell is for the Sorcerer distribution only
 # Copyright 2007 by Kyle Sallee, all rights reserved.
 
-   VERSION=( 20071202 )
+   VERSION=( 20071205 )
   CATEGORY='administration/bootloader'
  ATTRIBUTE='archive_off console'
-       REQ=( 'linux-modular' )
 # Spells that should be included on the I/R listed below
-       REQ+=' bash-completion cdrtools core dhcp dhcpcd dmidecode dump
+       REQ=( 'bash-completion cdrtools core dhcp dhcpcd dmidecode dump
               eject favor gpart hdparm inetutils isapnptools
-              jfsutils kbd lftp lshw lsof lsscsi LVM2 lynx
+              jfsutils kbd lftp linux-modular lshw lsof lsscsi LVM2 lynx
               mailutils man mcron mdadm minicom ms-sys mutt
               nano nmap ntfsprogs ntp openssh
               parted pciutils pcmciautils procinfo protocols
               raidtools reiserfsprogs
               sdelta3 sdparm services sg3_utils sshfs-fuse syslinux
-              traceroute unzip usbutils vim xfsdump zile'
+              traceroute unzip usbutils vim xfsdump zile' )
    EXCLUDE='/etc/mtab'
   ESTIMATE='5'
       DESC='install provides the menu driven installer for Sorcerer.'
@@ -70,8 +69,8 @@ post_install() {
   pipe  find  $SOURCE_CACHE  -maxdepth 2  -mindepth 2  -type d  |
   LC_ALL=C  sort  |  uniq  -u  |
   xargs  -r  --max-lines=256  rm  -rf
-  rm  -f                /etc/mtab
-  ln  -s  /proc/mounts  /etc/mtab
+  rm  -f                /etc/mtab		# CDROM has read only /etc/mtab
+  ln  -s  /proc/mounts  /etc/mtab		# Must be symbolic link
   leech  $(<  $SCRIPT_DIR/sources.txt  )
   default_post_install
   echo  initramfs  |  pipe_queue  "$CAST_QUEUE"  com
