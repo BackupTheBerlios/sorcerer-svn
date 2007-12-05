@@ -99,8 +99,6 @@ goodbye() {
   then  filesystem_unmount
   fi
 
-  umount  /media/cd
-
   if    confirm  "Reboot now?"  "--defaultno"
   then  shutdown  -r  now
   fi
@@ -349,20 +347,23 @@ make_bootloader_conf()  {  (
 
 
 transfer_arch()  {
-  local  DIRS
-  DIRS=$( find /media/cd -maxdepth 1 -mindepth 1 -type d -printf "%P\n" |
-          sed "/isolinux/d;/rr_moved/d" )
-
-
-  tar    -C    /media/cd  -c  $DIRS  2>/dev/null  |
+  find  /  |
+  sed  "\,^/dev/.udev,d
+        \,^/etc/init.d/log/,d
+        \,^/isolinux,d
+        \,^/media/root/,d
+        \,^/proc/,d
+        \,^/rr_moved,d
+        \,^/sys/,d
+        \,^/tmp/,d
+        \,^/var/lock/,d
+        \,^/var/run/,d"          |
+  tar    --no-recursion   -cT -  |
   tar    -C    $TARGET    -xvpf -
-  tar    -c    /dev                  2>/dev/null  |
-  tar    -C    $TARGET    -xvpf -
-
   chmod  1777  $TARGET/tmp
-  touch        $TARGET/{proc/mounts,etc/sorcery/local.config}
 
   make_fstab
+  read  -n 1  -t 900  -p "Press space to continue."
   $DIALOG  --msgbox  $"Architecture specific files transferred."  8 50
   ARCH_DONE="true"
 }
@@ -470,7 +471,7 @@ get_options()  {
 
 
 get_size()  {
-  inputbox  "Please enter size in megabytes"  "${PSIZE[$1]:-128}"
+  inputbox  "Please enter size in megabytes"  "${PSIZE[$1]:-256}"
 }
 
 
@@ -706,7 +707,6 @@ filesystem_table()  {
       check_pentry  "$1"  &&
       PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
     fi
-
   }
 
 
@@ -816,13 +816,13 @@ installed_fs()  {
 filesystem_table_load()  {
   local  CX  PART
 
-      PDEVICE[0]="/swap.128m"
+      PDEVICE[0]="/swap"
   PFILESYSTEM[0]="swap"
      POPTIONS[0]="defaults"
         PDUMP[0]="0"
        PORDER[0]="0"
        PMOUNT[0]="none"
-        PSIZE[0]="128"
+        PSIZE[0]="256"
 
   (( CX = 1 ))
 
@@ -836,6 +836,8 @@ filesystem_table_load()  {
 
     case  "${PFILESYSTEM[$CX]}"  in
       ext2)    PORDER[$CX]="1"		;;
+      ext3)    PORDER[$CX]="1"		;;
+      ext4)    PORDER[$CX]="1"		;;
       swap)  POPTIONS[$CX]="defaults"	;;
     esac
 
@@ -1235,9 +1237,7 @@ main_menu()  {
     C_HELP="Install kernel and networking programs to finish install" 
 
 
-    if    [  -f  $TARGET/usr/sbin/cast            ]  &&
-          [  -d  $TARGET/var/cache/sources/linux  ]
-    then
+    if  [  -f  $TARGET/usr/sbin/cast  ];  then
       WHAT=$(  $DIALOG                    \
                  --title  "$TITLE"        \
                  --nocancel               \
