@@ -1045,20 +1045,21 @@ disk_menu()  {
       WHAT=$(  $DIALOG                     \
                  --title         "$TITLE"  \
                  --ok-label      "Select"  \
-                 --cancel-label  "Done"    \
+                 --no-cancel               \
                  --default-item  "$WHAT"   \
                  --item-help               \
                  --menu          ""        \
                  0 60 8                    \
                  "Install"  "Transfer Base Files"       "$A_HELP"  \
                  "Edit"     "$TARGET/etc/fstab"         "$E_HELP"  \
-                 "Unmount"  "Filesystems"               "$U_HELP"  )
+                 "Unmount"  "Filesystems"               "$U_HELP"  \
+                 "Done"     ""                          ""         )
 #                "install"  "Check Installed Files"     "$K_HELP"  \
     else
       WHAT=$(  $DIALOG                     \
                  --title         "$TITLE"  \
                  --ok-label      "Select"  \
-                 --cancel-label  "Done"    \
+                 --no-cancel               \
                  --default-item  "$WHAT"   \
                  --item-help               \
                  --menu          ""        \
@@ -1068,7 +1069,8 @@ disk_menu()  {
                  "Reload"      "Filesystem Table"   "$L_HELP"  \
                  "Modify"      "Filesystem Table"   "$C_HELP"  \
                  "Initialize"  "Filesystems"        "$I_HELP"  \
-                 "Mount"       "Filesystems"        "$M_HELP"  )
+                 "Mount"       "Filesystems"        "$M_HELP"  \
+                 "Done"        ""                   ""         )
     fi
   do
     case  $WHAT in
@@ -1080,8 +1082,9 @@ disk_menu()  {
      Initialize)	filesystem_initialize	;;
           Mount)	filesystem_mount	;;
         Unmount)	confirm_unmount		;;
-#        install)	check_transfer_arch	;;
+#       install)	check_transfer_arch	;;
            Edit)	edit_fstab		;;
+           Done)	return			;;
     esac
   done
 }
@@ -1141,7 +1144,7 @@ load_mod()  {
     local        TITLE="Module Load Menu"
     local         HELP="Select a module to load please"
 
-    $DIALOG  --title "$TITLE" --menu "$HELP" 0 0 0 $( avail_mod "$MODULES_DIR" )
+    $DIALOG  --title "$TITLE" --menu "$HELP" 0 0 0 $( avail "$MODULES_DIR" )
   }
 
   local PARAM    MODULE
@@ -1151,15 +1154,23 @@ load_mod()  {
   then
     modprobe  $MODULE  $PARAMETERS
     read  -n 1  -t 900  -p "Press space to continue."
-    /sbin/udevstart
   fi
 }
 
 
-list_mod()  {  lsmod  |  less;  }
+list_mod()  {  ( lsmod; echo "Press q to return" )  |  less;  }
 
 
 unload_mod()  {
+  list()  {
+    echo  "Module
+    echo  "Used by"
+    lsmod                |
+    tr    -s ' '         |
+    cut   -d ' '  -f1,3- |
+    sed   "1d;s: :\n:"
+ }
+
   TITLE="Module Unload Menu"
    HELP="Select a module to unload please"
 
@@ -1167,38 +1178,38 @@ unload_mod()  {
                --title  "$TITLE"  \
                --menu   "$HELP"   \
                0 0 0              \
-               $( lsmod | cut -d ' ' -f1 | sed 1d ) )
+               $( list ) )
 
   [  -n  "$MODULE"  ]  &&
   rmmod  "$MODULE"
-  /sbin/udevstart
 }
 
 
 module_menu()  {
-
   while
     TITLE="Module Menu"
-     HELP="Hardware not being automatically detected?
-Try loading the appropriate module."
+     HELP="Add missing /dev nodes by loading modules."
 
     WHAT=$(  $DIALOG                       \
                --title         "$TITLE"    \
                --ok-label      "Select"    \
-               --cancel-label  "Done"      \
+               --no-cancel                 \
                --menu                      \
                "$HELP"                     \
                0 0 0                       \
                "List"    "Loaded Modules"  \
                "Load"    "Module"          \
-               "Unload"  "Module"          )
+               "Unload"  "Module"          \
+               "Done"    ""                )
   do
     case  $WHAT  in
         List)    list_mod  ;;
         Load)    load_mod  ;;
       Unload)  unload_mod  ;;
+        Done)   /sbin/udevstart &  return  ;;
     esac
   done
+  /sbin/udevstart &
 }
 
 
