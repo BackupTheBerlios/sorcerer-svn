@@ -332,25 +332,22 @@ make_fstab()  {
 option_menu()  {  chroot_run  sorcery  options;  }
 
 
-make_bootloader_conf()  {  (
-  
-  cp  $BL_CONF      $BL_CONF.save
+make_bootloader_conf()  {
+
   cp  $BL_CONF.new  $BL_CONF
 
   MESSAGE="Select the location to install ${BOOTLOADER}"
   $DIALOG  --msgbox  "$MESSAGE" 8 50
 
-  BB=$(  get_boot_block  )
+  local  BB=$( get_boot_block )
+  local  RD=$( root_device    )
 
-  grep  -q  "boot="                       $BL_CONF  ||
-  echo      "boot=$BB"                >>  $BL_CONF
-  grep  -q  "root="                       $BL_CONF  ||
-  echo      "root=$( root_device  )"  >>  $BL_CONF
+  echo  "boot${TAB}${TAB}${TAB}=${TAB}$BB"  >>  $BL_CONF
+  echo  "root${TAB}${TAB}${TAB}=${TAB}$RD"  >>  $BL_CONF
 
   MESSAGE="${BOOTLOADER} will be installed to boot block: ${BB}"
   $DIALOG  --msgbox  "$MESSAGE" 8 50
-
-)  }
+}
 
 
 transfer_arch()  {
