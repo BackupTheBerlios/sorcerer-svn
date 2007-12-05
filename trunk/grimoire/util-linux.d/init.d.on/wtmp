@@ -1,0 +1,31 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: wtmp
+# Required-Start: $local_fs
+# Required-Stop:
+# Default-Start: S
+# Default-Stop:
+# Short-Description: wtmp creates login record /var/log/wtmp
+# Description:       wtmp creates login record /var/log/wtmp
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start()  {
+  if    log_warning_msg  "/var/log/wtmp creating"
+        touch             /var/log/wtmp  &&
+        chown  root:tty   /var/log/wtmp  &&
+        chmod  0664       /var/log/wtmp
+  then  log_success_msg  "/var/log/wtmp created"
+  else  log_failure_msg  "/var/log/wtmp not created"
+}
+
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
+
+case  $1  in
+        start)  start  ;;
+         stop)  :      ;;
+  try-restart)  :      ;;
+            *)  help   ;;
+esac
