@@ -1,7 +1,8 @@
 # Version 41 and 41.1 have compile errors.
 # software author not correctly linking it with libraries?
-#   VERSION=( 41.1 41 40.1d 40.1c 40.1b 40.1 40 39.1 39 38.1 38 )
-    VERSION=(      40.1d 40.1c 40.1b 40.1 40 39.1 39 38.1 38 )
+# 41.1-64 has compile errors
+   VERSION=( 41.1 41 40.1d 40.1c 40.1b 40.1 40 39.1 39 38.1 38 )
+#    VERSION=( 41.1-64     40.1d 40.1c 40.1b 40.1 40 39.1 39 38.1 38 )
     IGNORE="datafix\|debug\|mac\|povfix\|pre\|stats\|beta"
   CATEGORY='game'
  ATTRIBUTE='x11'
@@ -9,10 +10,10 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://scorched3d.sourceforge.net'
 #      REQ='SDL_mixer SDL_net freealut wxGTK'
-       REQ='SDL_mixer SDL_net freealut wxWidgets'
+       REQ='SDL_mixer SDL_net fftw freealut wxWidgets'
       OPTS="--disable-openaltest"
 case  $VERSION  in
-  41)  USE_GCC="gcc-v4.1"  ;;
+  41*)  USE_GCC="gcc-v4.1"  ;;
   40.1d)  USE_GCC="gcc-v4.1"  ;;
 esac
 # openal headers requires gcc-v4.1 to compile
@@ -26,7 +27,8 @@ export  CXXFLAGS="-L/usr/X11R6/lib/ $CXXFLAGS"
 if  [  -f  /usr/lib/libalut.so.0  ];  then
 export   LDFLAGS="-lalut             $LDFLAGS"
 case  $VERSION  in
-     41)  grep  -rl  "\-lfftw3f"  *  |
+     41*) aclocal; automake --foreign; autoconf
+          grep  -rl  "\-lfftw3f"  *  |
           xargs  -r --max-lines=64  sed  -i  "s:-lfftw3f:-lfftw3:"  
           OPTS+=" --disable-fftwtest"  ;;
   40.1d)  sed  -i  "s:\$LIBS \`\$OPENAL:\$LIBS -lalut \`\$OPENAL:"  configure  ;;
