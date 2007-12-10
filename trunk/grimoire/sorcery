@@ -1,4 +1,4 @@
-   VERSION=( implosion-20071209-3 implosion-20071208-0 implosion-20071206-1 implosion-20071205-0 implosion-20071204-2 implosion-20071203-1 implosion-20071202-1 implosion-20071201-3 implosion-20071130-7 implosion-20071127-0 implosion-20071124-2 implosion-20071124-1 implosion-20071124-0 implosion-20071123-0 implosion-20071120-9 implosion-20071119-5 implosion-20071114-1 implosion-20071111-0 implosion-20071109-0 )
+   VERSION=( implosion-20071210-0 implosion-20071209-3 implosion-20071208-0 implosion-20071206-1 implosion-20071205-0 implosion-20071204-2 implosion-20071203-1 implosion-20071202-1 implosion-20071201-3 implosion-20071130-7 implosion-20071127-0 implosion-20071124-2 implosion-20071124-1 implosion-20071124-0 implosion-20071123-0 implosion-20071120-9 implosion-20071119-5 implosion-20071114-1 implosion-20071111-0 implosion-20071109-0 )
   CATEGORY='utility'
  ATTRIBUTE='noheal solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -69,19 +69,6 @@ post_install() {
     fi
   }
 
-
-  install_sentinel_old()  {
-    local              SENTINEL=/usr/libexec/sorcery/sentinel
-    local                        ARCH=$( uname -m )
-    if    [       -x  $SENTINEL-$ARCH  ];  then
-      if  !  cmp  -s  $SENTINEL-$ARCH  $SENTINEL
-      then   rm   -f                   $SENTINEL
-             cp       $SENTINEL-$ARCH  $SENTINEL
-      fi
-    fi
-  }
-
-
   linux_headers_check()  {
     if    !  [  -f  /usr/include/asm-generic/errno.h  ];  then
       echo        'Attempting to install some missing linux headers'
@@ -114,15 +101,18 @@ post_install() {
     rm    -f     /boot/initramfs
   }
 
-  [  -d  /lib.old  ]  ||  backup_lib
-  case  $VERSION  in
-    implosion-20071109-0)  install_sentinel_old  ;;
-                       *)  install_sentinel  ;;
-  esac
-  # install_sentinel
+  remove_source_all()  {
+    if    [   -d   $SOURCE_CACHE/ALL  ]
+    then  rm  -fr  $SOURCE_CACHE/ALL
+    fi
+  }
+
+  remove_source_all
+  install_sentinel
   fix_provide_logs
   linux_headers_check
   fix_fstab
   fix_initramfs
+  remove_source_all
   default_post_install
 }
