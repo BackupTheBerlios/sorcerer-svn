@@ -1,128 +1,23 @@
 # intiramfs spell is for the Sorcerer distribution only
 # Copyright 2007 by Kyle Sallee, all rights reserved.
 
-   VERSION=( 20071202 )
+   VERSION=( 20071210 20071202 )
   CATEGORY='administration/bootloader'
-# not actually linux-26-module,
-# but causes initramfs to cast after linux or linux-modular
-# if initramfs is installed
- ATTRIBUTE='archive_off data linux-26-module solo'
+ ATTRIBUTE='archive_off data solo'
        REQ=( 'coreutils cpio findutils grep gzip sed' )
-#            ':module::for an initramfs that contains only modules' )
-  ESTIMATE='5'
-      DESC='initramfs provides an initramfs for use during booting'
+  ESTIMATE='2'
+      DESC='initramfs provides an initramfs for use during booting
+An initramfs is essential for booting boxes with a modular kernel
+that does not have the required filesystem and hardware drivers
+required to mount the root filesystem compiled into the kernel.'
 
-build()  {
-
-  local  OMIT='
-\,^/dev/.udev,d
-\,^/lib/modules/[^/]*\.old,d
-'
-  local  OMIT_MODULES='
-\,^/lib/modules/.*/kernel/drivers/acpi/,d
-\,^/lib/modules/.*/kernel/drivers/char/watchdog/,d
-\,^/lib/modules/.*/kernel/drivers/hwmon/,d
-\,^/lib/modules/.*/kernel/drivers/i2c/,d
-\,^/lib/modules/.*/kernel/drivers/input/gameport/,d
-\,^/lib/modules/.*/kernel/drivers/input/joy,d
-\,^/lib/modules/.*/kernel/drivers/input/tablet/,d
-\,^/lib/modules/.*/kernel/drivers/input/touchscreen/,d
-\,^/lib/modules/.*/kernel/drivers/media/,d
-\,^/lib/modules/.*/kernel/drivers/rtc/,d
-\,^/lib/modules/.*/kernel/net/ipv4/netfilter/,d
-\,^/lib/modules/.*/kernel/net/netfilter/,d
-\,^/lib/modules/.*/kernel/net/sched/,d
-\,^/lib/modules/.*/kernel/sound/,d
-'
-
-  gcpio()  {
-    local  OLD="/boot/initrf.gz"
-    local  NEW="$OLD.$$.$RANDOM.new"
-    sed    "$OMIT"  |
-    if    !  cpio  -o -H newc  --verbose;  then  rm  -f $NEW;  return 1;  fi  |
-    if    !  gzip  -1  > $NEW;             then  rm  -f $NEW;  return 1;  fi
-    if    !       [  -s  $NEW  ];          then  rm  -f $NEW;  return 1;  fi
-    rm  -f    $OLD
-    mv  $NEW  $OLD
-    if    !  grep  -q          /boot/initrf.gz       /etc/lilo.conf.head
-    then     echo      'initrd=/boot/initrf.gz'  >>  /etc/lilo.conf.head
-             echo      'large-memory'            >>  /etc/lilo.conf.head
-    fi
-  }
-
-  full()  {
-    mkdir    -pvm 0755  /media/root
-    install   -vm 0700  $SCRIPT_DIR/init  /
-
-    find  /bin /dev /etc /lib /lib64 /sbin     \
-          /usr/share/kbd/keymaps  2>/dev/null  |
-    sed   "\,^/etc/sorcery/,d
-           \,^/etc/gconf/,d
-           \,^/etc/fonts/,d
-           \,^/lib.*\.la$,d
-           \,^/lib.*lib.*\.a$,d
-           1i/init
-           1i/media
-           1i/media/root
-           1i/proc
-           1i/sys
-           1i/usr
-           1i/usr/share
-           1i/usr/share/kbd
-           1i/usr/share/kbd/keymaps
-           1i/usr/share/terminfo
-           1i/usr/share/terminfo/l
-           1i/usr/share/terminfo/l/linux"  |  exists  |  gcpio
-  }
-
-  module()  {
-    rm  -f  /init
-    local  NEW="$$.$RANDOM.new"
-    find  /dev /lib/modules  |
-    sed   "$OMIT_MODULES"    |
-    gcpio
-  }
-
-  prepare_install  &&
-  echo  '/boot/initrf.gz contains:'  &&
-full
-#  if    [  -s    $OPT_OFF_LOGS/initramfs  ]  ||
-#        [  -d    /boot/isolinux           ]
-#  then  full
-#  else  module
-#  fi
-}
-
-
-current()  {
-  not_found()    { ! find "$@" -type f -newer /boot/initrf.gz | grep -q .; }
-  chk_lib_mod()  { not_found /lib/modules; }
-  chk_all()      { if   [ -d      /lib64 ]
-                   then not_found /lib64 /bin /etc/init.d /lib /sbin
-                   else not_found        /bin /etc/init.d /lib /sbin
-                   fi; }
-
-        [  -f             /boot/initrf.gz  ]  &&
-chk_all
-
-#  if    [  -s    $OPT_OFF_LOGS/initramfs   ]  ||
-#        [  -d    /boot/isolinux            ]
-#  then  chk_all
-#  else  chk_lib_mod
-#  fi
-}
-
+build()  {  prepare_install;  }
 
 pre_remove() {
-  if    [   -z  "$UPGRADING"  ]
-  then  rm   -f  /boot/initrf.gz
-        sed  -i  "/initrd/d;/large-memory/d"  /etc/lilo.conf.head
+  if    [    -z  "$UPGRADING"  ]
+  then  rm   -f  /boot/initrf.gz  /init
+        sed  -i  "/initrd/d;/large-memory/d"  /etc/lilo.conf{,.head}
+        update_etc_lilo_conf
   fi
   default_pre_remove
-}
-
-
-post_install() {
-  update_etc_lilo_conf
-  default_post_install
 }

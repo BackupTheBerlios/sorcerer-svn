@@ -1,0 +1,126 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: initramfs
+# Required-Start: 
+# Required-Stop:  $local_fs udev
+# Default-Start: 
+# Default-Stop: 0 6
+# Short-Description: initramfs creates the initramfs when required.
+# Description: initramfs creates the initramfs when required.
+### END INIT INFO
+
+# intiramfs script is for the Sorcerer distribution only
+# Copyright 2007 by Kyle Sallee, all rights reserved.
+
+. /lib/lsb/init-functions
+
+NAME="initramfs"
+
+
+initramfs_update()  {
+
+  local  KBD  KEYMAPS  LIB64
+
+  update_lilo()  {
+    add_lines()  {
+      if    !  grep  -q            /boot/initrf.gz  $1
+      then     sed   -i  '1iinitrd=/boot/initrf.gz
+                          1ilarge-memory'           $1
+      fi
+    }
+
+    add_lines  /etc/lilo.conf.head
+    add_lines  /etc/lilo.conf
+    sync
+    /sbin/lilo  -P ignore
+  }
+
+
+  gcpio()  {
+    local  OUT='\,^/dev/.udev,d;\,^/lib/modules/[^/]*\.old,d'
+    local  OLD="/boot/initrf.gz"
+    local  NEW="/tmp/initrf.gz.$RANDOM$$$RANDOM.new"
+    sed    "$OUT"  |
+    if    !  cpio  -o  -H newc  --quiet;     then  rm  -f  $NEW;  return 1;  fi  |
+    if    !  gzip  -1  >  $NEW;     then  rm  -f  $NEW;  return 1;  fi
+    if    !  [     -s     $NEW  ];  then  rm  -f  $NEW;  return 1;  fi
+    rm  -f    $OLD
+    mv  $NEW  $OLD
+  }
+
+
+  exists()  {
+    while  read
+    do     [[  -e  $REPLY  ]]  &&
+           echo   "$REPLY"
+    done
+  }
+
+
+  if  !  [  -f   /init  ];  then
+    echo    -e   '#!/bin/bash\nexec /sbin/init "$@"'  >  /init
+    chmod   0700 /init
+  fi
+
+  [      -d       /media/root  ]  ||
+  mkdir  -pm 0755 /media/root
+
+  if    [  -d   /usr/share/kbd/keymaps  ]
+  then  KEYMAPS=/usr/share/kbd/keymaps
+         KBD='1i/usr/share/kbd
+              1i/usr/share/kbd/keymaps'
+  fi
+
+  if    [  -d  /lib64  ]
+  then   LIB64=/lib64
+  fi
+
+  find  /bin /dev /etc /lib $LIB64 /sbin $KEYMAPS  |
+  sed   "\,^/etc/sorcery/,d
+         \,^/etc/gconf/,d
+         \,^/etc/fonts/,d
+         \,^/lib.*\.la$,d
+         \,^/lib.*lib.*\.a$,d
+         1i/init
+         1i/media
+         1i/media/root
+         1i/proc
+         1i/sys
+         1i/usr
+         1i/usr/share
+         $KBD
+         1i/usr/share/terminfo
+         1i/usr/share/terminfo/l
+         1i/usr/share/terminfo/l/linux"  |  exists  |  gcpio  &&
+  update_lilo
+}
+
+initramfs_current()  {
+  local  DIRS='/bin /etc/bash.d /etc/init.d /etc/lvm /etc/modules.d'
+         DIRS+=' /etc/udev /lib /sbin'
+  [  -d          /lib64  ]  &&
+         DIRS+=' /lib64'
+
+  local  FILES='/etc/fstab /etc/hostname /etc/lilo.conf.head'
+         FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
+
+  not_found() { ! find "$@" -type f -newer /boot/initrf.gz | grep -q .; }
+
+  [  -f  /boot/initrf.gz  ]  &&
+  not_found  $DIRS  $FILES
+}
+
+
+begin()  {
+  if    initramfs_current
+  then  return
+  elif  log_warning_msg  "$NAME updating";  initramfs_update
+  then  log_success_msg  "$NAME updated"
+  else  log_failure_msg  "$NAME failed";    sulogin  -t 300
+  fi
+}
+
+
+log_warning_msg  "$NAME checking";  begin
+log_success_msg  "$NAME checked"
