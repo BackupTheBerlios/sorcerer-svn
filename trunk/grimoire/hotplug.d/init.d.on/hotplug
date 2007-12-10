@@ -1,0 +1,40 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: hotplug
+# Required-Start: udev
+# Required-Stop:  kill
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: hotplug loads modules for new devices 
+# Description: hotplug creates devices nodes and loads 
+#	kernel drivers for new devices immediately
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME="hotplug"
+
+common()  {
+  local  FILE
+  for    FILE in /etc/hotplug/*.rc
+  do    $FILE  $1
+  done
+}
+
+warn()    {  log_warning_msg  "$NAME $1"; }
+success() {  log_success_msg  "$NAME $1"; }
+status()  { common status; }
+start()   { warn Starting; common start; success Started; }
+stop()    { warn Stopping; common stop;  success Stopped; }
+restart() { stop; sleep 1; start; }
+help()    { echo  "Usage: $0 {restart|start|status|stop}" 1>&2; }
+
+case  $1  in
+       restart)  restart  ;;
+   try-restart)  :        ;;
+         start)  start    ;;
+        status)  status   ;;
+          stop)  stop     ;;
+             *)  help     ;;
+esac
