@@ -22,6 +22,24 @@ initramfs_update()  {
 
   local  KBD  KEYMAPS  LIB64
 
+  local  XTR='
+\,^/lib/modules/.*/kernel/drivers/acpi/,d
+\,^/lib/modules/.*/kernel/drivers/char/watchdog/,d
+\,^/lib/modules/.*/kernel/drivers/hwmon/,d
+\,^/lib/modules/.*/kernel/drivers/i2c/,d
+\,^/lib/modules/.*/kernel/drivers/input/gameport/,d
+\,^/lib/modules/.*/kernel/drivers/input/joy,d
+\,^/lib/modules/.*/kernel/drivers/input/tablet/,d
+\,^/lib/modules/.*/kernel/drivers/input/touchscreen/,d
+\,^/lib/modules/.*/kernel/drivers/media/,d
+\,^/lib/modules/.*/kernel/drivers/rtc/,d
+\,^/lib/modules/.*/kernel/net/ipv4/netfilter/,d
+\,^/lib/modules/.*/kernel/net/netfilter/,d
+\,^/lib/modules/.*/kernel/net/sched/,d
+\,^/lib/modules/.*/kernel/sound/,d
+'
+
+
   update_lilo()  {
     add_lines()  {
       if    !  grep  -q            /boot/initrf.gz  $1
@@ -43,10 +61,10 @@ initramfs_update()  {
     local  NEW="/tmp/initrf.gz.$RANDOM$$$RANDOM.new"
     echo  -n  > $NEW
     chmod 0600  $NEW
-    sed    "$OUT"  |
-    if    !  cpio  -o  -H newc  --quiet;     then  rm  -f  $NEW;  return 1;  fi  |
-    if    !  gzip  -1  >  $NEW;     then  rm  -f  $NEW;  return 1;  fi
-    if    !  [     -s     $NEW  ];  then  rm  -f  $NEW;  return 1;  fi
+    sed    "$OUT$XTR"  |
+    if    !  cpio  -o  -H newc  --quiet;  then  rm  -f  $NEW;  return 1;  fi  |
+    if    !  gzip  -1  >  $NEW;           then  rm  -f  $NEW;  return 1;  fi
+    if    !  [     -s     $NEW  ];        then  rm  -f  $NEW;  return 1;  fi
     rm  -f    $OLD
     mv  $NEW  $OLD
   }
