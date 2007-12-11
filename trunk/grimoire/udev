@@ -8,9 +8,7 @@
   HOMEPAGE='http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html'
    EXCLUDE='/dev'
   ESTIMATE='320'
-      DESC='udev provides an auto-populating /dev.
-Add custom rules for udev nodes to the file:
-/etc/udev/rules.d/1st.rules'
+      DESC='udev provides an auto-populating /dev.'
 
 build() {
 init_install_old()  {
@@ -43,14 +41,17 @@ symlink_install()  {
   ln     -fns  /proc/self/fd/1  /lib/udev/dev/stdout
   ln     -fns  /proc/self/fd/2  /lib/udev/dev/stderr
   ln     -fns  /proc/kcore      /lib/udev/dev/core
+  rm     -f                     /lib/udev/dev/{console,null}
+  mknod  -m 0600                /lib/udev/dev/console 5 1
+  mknod  -m 0666                /lib/udev/dev/null    1 3
 }
 
 
 install_missing()  {
-  case  $VERSION  in
-    105)  install  -m 0755  udevstart udevsend  /sbin/  ;;
-      *)  install  -m 0755  udevstart           /sbin/  ;;
-  esac
+#  case  $VERSION  in
+#    105)  install  -m 0755  udevstart udevsend  /sbin/  ;;
+#      *)  install  -m 0755  udevstart           /sbin/  ;;
+#  esac
 
   # Default rules script (Gentoo) expects extra binaries in /sbin while udev
   # installation puts them only in /lib/udev - make symlinks to fix this
@@ -68,7 +69,6 @@ adjust_rules()  {
   then  sed   -i  's:GROUP="kmem":GROUP="mem":'  $REPLY
   fi
 }
-
 
   case  $VERSION  in
     105)  EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id"  ;;
@@ -100,6 +100,6 @@ post_install() {
 
 current() {
   case  $VERSION  in
-    115)  grep  -q  'udev/dev/'  /etc/init.d/udev  ;;
+    115)  grep  -q  'udevtrigger' /etc/init.d/udev  ;;
   esac
 }
