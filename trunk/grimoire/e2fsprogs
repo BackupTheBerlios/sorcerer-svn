@@ -8,8 +8,6 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://e2fsprogs.sourceforge.net'
        REQ='awk init-functions'
-#     OPTS='--disable-static'
-# --disable-static has no effect with e2fsprogs
   ESTIMATE='2170'
       DESC='e2fsprogs contains the required utilities for the EXT2 file system.
 e2fsprogs - The EXT2 file system utilities and libraries.
@@ -28,31 +26,27 @@ build() {
   install  -m 0644  lib/uuid/libuuid.a        /usr/lib
  }
 
-  grep  -rl    "#include <linux/fd.h>"  *  |  xargs  --max-lines=16  \
-  sed   -i   "\,#include <linux/fd.h>,i#include <linux/compiler.h>"
+#   grep  -rl    "#include <linux/fd.h>"  *  |  xargs  --max-lines=16  \
+#   sed   -i   "\,#include <linux/fd.h>,i#include <linux/compiler.h>"
 
   ./configure               \
-  --host=$BUILD             \
+  --build=$BUILD            \
   --prefix=/usr             \
   --with-root-prefix=       \
   --enable-elf-shlibs       \
+  --enable-dynamic-e2fsck   \
   $OPTS                     &&
   make  "LDFLAGS=$LDFLAGS"  \
          LDCONFIG=/bin/true &&
   prepare_install           &&
-  make    install           &&
-  make    install-libs      &&
+  make    install-strip     &&
+# make    install           &&
+# make    install-libs      &&
           install_init
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/mount
-  true
 }
 
 current()  {
   case  $VERSION  in
-    1.40.2)  [     -f            /etc/init.d/fsck  ]  &&
-             grep  -q  loadkeys  /etc/init.d/fsck  ;;
+    1.40.2)  LC_ALL=C  file  /sbin/e2fsck  |  grep  -q  ', stripped$'  ;;
   esac
 }
