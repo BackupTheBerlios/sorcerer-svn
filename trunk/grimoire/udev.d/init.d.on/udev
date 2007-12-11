@@ -30,7 +30,6 @@ start()  {
   ramfs_dev()  {
     /bin/mount    -t  ramfs   ramfs    /dev
     /bin/cp       -a  /lib/udev/dev/*  /dev
-    # /bin/mount    -t  devpts  devpts   /dev/pts
   }
 
   if    status &>/dev/null
@@ -41,6 +40,7 @@ start()  {
   start_daemon  -p  $PIDF  $SERV  --daemon
   pidof  udevd   >  $PIDF
   /sbin/udevtrigger
+  /sbin/udevsettle  --timeout=10
 
   if    status  &>/dev/null
   then  log_success_msg  "$NAME started"
