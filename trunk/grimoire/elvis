@@ -9,7 +9,9 @@
        REQ=( 'ncurses' )
 #            'libXft:--with-xft=yes:--without-xft:for Xft under x11 support'
 #            'libXpm:--with-x=yes:--without-x:for elvis with X11 GUI' )
-      OPTS='--bindir=/bin --datadir=/var/lib/elvis --mandir=/usr/man'
+
+#     OPTS='--bindir=/bin --datadir=/var/lib/elvis     --mandir=/usr/man'
+      OPTS='--bindir=/bin --datadir=/etc/elvis.default --mandir=/usr/man'
 # EPROVIDE='vi'
    PROVIDE='console-editor'
   ESTIMATE='130'
@@ -26,8 +28,18 @@ on-line help, WYSIWYG printing, and other miscellaneous extensions.'
 build()  {
   sed  -i  "s/-O2/$CFLAGS/"                  configure
 # sed  -i  "s:/\$(LIBS):\$(LIBS) $LDFLAGS:"  Makefile.in
-  OPTS+=" --libs='-lncurses $LDFLAGS'"
-  default_build  &&
+
+  ./configure           \
+  --build=$BUILD        \
+  --prefix=/usr         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  --libs="-lncurses $LDFLAGS"  \
+  $OPTS                 &&
+  make                  &&
+  prepare_install       &&
+  make    install       &&
+
   if    !  [  -e         /bin/vi  ]
   then  ln    -s  elvis  /bin/vi
   fi
