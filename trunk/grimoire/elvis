@@ -6,9 +6,9 @@
        URL='ftp://ftp.cs.pdx.edu/pub/elvis/
             http://www.fh-wedel.de/pub/elvis/'
 #  HOMEPAGE='ftp://ftp.cs.pdx.edu/pub/elvis/README.html'
-       REQ=( 'ncurses'
-             'libXft:--with-xft=yes:--without-xft:for Xft under x11 support'
-             'libXpm:--with-x=yes:--without-x:for elvis with X11 GUI' )
+       REQ=( 'ncurses' )
+#            'libXft:--with-xft=yes:--without-xft:for Xft under x11 support'
+#            'libXpm:--with-x=yes:--without-x:for elvis with X11 GUI' )
       OPTS='--bindir=/bin --datadir=/var/lib/elvis --mandir=/usr/man'
 # EPROVIDE='vi'
    PROVIDE='console-editor'
@@ -24,7 +24,9 @@ on-line help, WYSIWYG printing, and other miscellaneous extensions.'
 
 
 build()  {
-  sed  -i  "s/-O2/$CFLAGS/"  configure   &&
+  sed  -i  "s/-O2/$CFLAGS/"                  configure
+# sed  -i  "s:/\$(LIBS):\$(LIBS) $LDFLAGS:"  Makefile.in
+  OPTS+=" --libs='-lncurses $LDFLAGS'"
   default_build  &&
   if    !  [  -e         /bin/vi  ]
   then  ln    -s  elvis  /bin/vi
