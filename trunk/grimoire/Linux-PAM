@@ -16,10 +16,11 @@
 # not necessarily ELFs required for login and authentication.
       OPTS='--enable-read-both-confs'
 
-## The configure paramaters below do not work as they should
-  case  $MACHTYPE  in
-    x86_64*)  OPTS+=' --libdir=/usr/lib64 --enable-securedir=/usr/lib64/security'  ;;
-          *)  OPTS+=' --libdir=/usr/lib   --enable-securedir=/usr/lib/security'    ;;
+# If the root filesystem can not be mounted
+# login must be possible from the initramfs
+  case  $HOSTTYPE  in
+    x86_64)  OPTS+=' --libdir=/lib64 --enable-securedir=/lib64/security'  ;;
+         *)  OPTS+=' --libdir=/lib   --enable-securedir=/lib/security'    ;;
   esac
    PROTECT='/etc/security'
  FRESHMEAT='linux-pam'
@@ -30,6 +31,7 @@ For additional Linux-PAM modules
 that are not provided with Linux-PAM
 please see:
 http://www.kernel.org/pub/linux/libs/pam/modules.html'
+
 
 build() {
   export  HAVE_SGML2LATEX=no
@@ -46,10 +48,3 @@ post_install() {
             uniq  -d               |
             pipe_queue  $CAST_QUEUE  com
 }
-
-
-## Not required since new Linux-PAM trips the ELF library check.
-# post_install()  {
-#   grep  -lqr  '/usr/lib/security/\|/usr/lib64/security'  $INSTALL_LOGS  |
-#   basenames  |  pipe_queue  "$CAST_QUEUE"  "com"
-# }
