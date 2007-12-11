@@ -18,7 +18,8 @@ PIDF=/var/run/udev.pid
 SERV=/sbin/udevd
 
 status() {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
+# PIDS="$( pidofproc -p $PIDF $SERV )"
+  PIDS="$( pidof -s udevd )"
   if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
   elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
                        else log_warning_msg "$NAME is not running"; return 3
@@ -38,7 +39,8 @@ start()  {
   fi
 
   start_daemon  -p  $PIDF  $SERV  --daemon
-  pidof  udevd   >  $PIDF
+  ## /var/run not mounted on initramfs when udev runs during sysinit
+  # pidof  udevd   >  $PIDF
   /sbin/udevtrigger
   /sbin/udevsettle  --timeout=10
 
@@ -48,10 +50,11 @@ start()  {
   fi
 }
 
-help()  {  echo "Usage: $0 {start}" 1>&2;  }
+help()  {  echo "Usage: $0 {start|status}" 1>&2;  }
 
 case  $1  in
-        start)  start  ;;
-  try-restart)  :      ;;
-            *)  help   ;;
+        start)  start   ;;
+  try-restart)  :       ;;
+       status)  status  ;;
+            *)  help    ;;
 esac
