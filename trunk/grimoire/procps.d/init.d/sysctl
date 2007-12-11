@@ -3,6 +3,7 @@
 ### BEGIN INIT INFO
 # Provides: sysctl
 # Required-Start:
+# Should-Start: udev
 # Required-Stop:
 # Default-Start: 1 2 3 4 5
 # Default-Stop:
@@ -12,21 +13,28 @@
 #	when /etc/sysctl.$RUNLEVEL.conf is not present
 ### END INIT INFO
 
+. /lib/lsb/init-functions
+
+NAME="sysctl"
+
 start()  {
-  if      [  -x  /sbin/sysctl  ];  then
-    if    [  -s                    /etc/sysctl.$RUNLEVEL.conf   ]
-    then         /sbin/sysctl  -p  /etc/sysctl.$RUNLEVEL.conf
-    elif  [  -s                    /etc/sysctl.conf  ]
-    then         /sbin/sysctl  -p
-    fi
+  local  FILE
+  if    [  -s         /etc/sysctl.$RUNLEVEL.conf   ]
+  then           FILE=/etc/sysctl.$RUNLEVEL.conf
+  elif  [  -s         /etc/sysctl.conf  ]
+  then           FILE=/etc/sysctl.conf
+  fi
+  if    [  -n  "$FILE"  ];  then
+    log_warning_msg  "$NAME executing /sbin/sysctl -p $FILE"
+                                      /sbin/sysctl -p $FILE
+    log_success_msg  "$NAME executed"
   fi
 }
 
-help()  {
-  echo "Usage: $0 {start}" 1>&2
-}
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
 
 case  $1  in
-         start)  start        ;;
-             *)  help         ;;
+      start)  start  ;;
+try-restart)  :      ;;
+          *)  help   ;;
 esac
