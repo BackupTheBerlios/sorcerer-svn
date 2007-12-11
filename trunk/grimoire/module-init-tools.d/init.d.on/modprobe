@@ -3,9 +3,9 @@
 ### BEGIN INIT INFO
 # Provides: modprobe
 # Required-Start:
-# Should-Start: udev
+# Should-Start: hotplug udev
 # Required-Stop:  
-# Default-Start: S
+# Default-Start: 1 2 3 4 5
 # Default-Stop:
 # Short-Description: modprobe loads modules during boot
 # Description: modprobe loads modules specified in /etc/modules during boot
@@ -14,9 +14,7 @@
 . /lib/lsb/init-functions
 
 start()  {
-  if    [  -f  /etc/modules    ]   &&
-        [  -x  /sbin/modprobe  ]
-  then
+  if    [  -f  /etc/modules  ];  then
     log_warning_msg  'Modules loading'
     while  read  MODULE ARGS;  do
       case  $MODULE in
@@ -28,9 +26,7 @@ start()  {
   fi
 }
 
-help()  {
-  echo "Usage: $0 {start}" 1>&2
-}
+help() { echo "Usage: $0 {start}" 1>&2; }
 
 case  $1  in
   start)  start  ;;
