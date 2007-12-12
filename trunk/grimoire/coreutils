@@ -18,12 +18,7 @@
             /bin/rmdir
             /bin/sleep
             /bin/sort
-            /bin/tail
             /bin/tee
-            /bin/touch
-            /bin/uname
-            /bin/uniq
-            /bin/wc
             /usr/bin/basename
             /usr/bin/chmod
             /usr/bin/cut
@@ -33,7 +28,12 @@
             /usr/bin/install
             /usr/bin/kill
             /usr/bin/md5sum
-            /usr/bin/tr'
+            /usr/bin/tail
+            /usr/bin/touch
+            /usr/bin/tr
+            /usr/bin/uname
+            /usr/bin/uniq
+            /usr/bin/wc'
   ESTIMATE='2670'
 disable reduce
       DESC='coreutils provides basic file, shell and text manipulation utilities.
@@ -130,34 +130,26 @@ build()  {
 place_files()  {
   echo  'Placing files'
   hash	-r
-  mv	-fv  /usr/bin/cat	/bin	# for mount
-  mv	-fv  /usr/bin/chroot	/bin	# for mount
-  mv	-fv  /usr/bin/cp	/bin	# for udev
+  mv	-fv  /usr/bin/cat	/bin	# /etc/init.d/mount
+  mv	-fv  /usr/bin/chroot	/bin	# /etc/init.d/mount
+  mv	-fv  /usr/bin/cp	/bin	# /etc/init.d/udev
   mv	-fv  /usr/bin/echo	/bin	# legacy probably not required
-  mv	-fv  /usr/bin/env	/bin	# for hotplug
   mv	-fv  /usr/bin/false	/bin	# legacy probably not required
-  mv	-fv  /usr/bin/ln	/bin
-  mv	-fv  /usr/bin/ls	/bin
-  mv	-fv  /usr/bin/mkdir	/bin
-  mv	-fv  /usr/bin/mknod	/bin
-  mv	-fv  /usr/bin/od	/bin	# for hotplug
-  mv	-fv  /usr/bin/printf	/bin	# for hotplug
-  mv	-fv  /usr/bin/pwd	/bin
-  mv	-fv  /usr/bin/readlink	/bin	# for hotplug
-  mv	-fv  /usr/bin/rm	/bin
-  mv	-fv  /usr/bin/rmdir	/bin
-  mv	-fv  /usr/bin/sync	/bin
-  mv	-fv  /usr/bin/sleep	/bin	# for hotplug
-  mv	-fv  /usr/bin/sort	/bin
-  mv	-fv  /usr/bin/stty	/bin
-  mv	-fv  /usr/bin/tail	/bin
-  mv	-fv  /usr/bin/tee	/bin
-  mv	-fv  /usr/bin/touch	/bin	# for hotplug
-  mv	-fv  /usr/bin/true	/bin
-  mv	-fv  /usr/bin/uname	/bin
-  mv	-fv  /usr/bin/uniq	/bin
-  mv	-fv  /usr/bin/wc	/bin	# for hotplug
-  mv	-fv  /usr/bin/mv	/bin	# always mv /usr/bin/mv last
+  mv	-fv  /usr/bin/ln	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/ls	/bin	# for SA and /etc/init.d/loadkeys
+  mv	-fv  /usr/bin/mkdir	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/mknod	/bin	# for SA
+  mv	-fv  /usr/bin/printf	/bin	# /lib/udev/path_id
+  mv	-fv  /usr/bin/pwd	/bin	# /lib/udev/path_id
+  mv	-fv  /usr/bin/readlink	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/rm	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/rmdir	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/sync	/bin	# /etc/init.d/mount
+  mv	-fv  /usr/bin/sleep	/bin	# /lib/udev/rule_generator.functions
+  mv	-fv  /usr/bin/sort	/bin	# /etc/init.d/{loadkeys,mount}
+  mv	-fv  /usr/bin/tee	/bin	# /etc/{rcS,prc}
+  mv	-fv  /usr/bin/true	/bin	# legacy probably not required
+  mv	-fv  /usr/bin/mv	/bin	# for SA
   hash	-r
 }
 
@@ -205,11 +197,13 @@ hash -r
 
 post_remove()  {
 hash  -r
+default_post_remove
 }
 
 
 current()  {
   case  $VERSION  in
-    6.9)  [  -f  /bin/env  ]  ;;
+    6.9)  [  -f      /bin/sort  ]  &&
+          [  -f  /usr/bin/uniq  ]  ;;
   esac
 }
