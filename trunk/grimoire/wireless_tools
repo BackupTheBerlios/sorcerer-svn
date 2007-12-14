@@ -4,22 +4,33 @@
     SOURCE="wireless_tools.$VERSION.tar.gz"
        URL='http://pcmcia-cs.sourceforge.net/ftp/contrib/'
   HOMEPAGE='http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html'
-       REQ=( "" "pcmciautils:::for PCMCIA Card Services" )
-  ESTIMATE='22'
-      DESC="wireless_tools is for wireless networking.
+       REQ=( '' 'pcmciautils:::for PCMCIA Card Services' )
+  ESTIMATE='30'
+      DESC='wireless_tools is for wireless networking.
 Includes:
 * iwconfig manipulate the basic wireless parameters
 * iwlist (formerly part of iwspy) allow to list addresses, 
   frequencies, bit-rates...
 * iwspy allow to get per node link quality
 * iwpriv allow to manipulate the Wireless Extensions 
-  specific to a driver (private)"
+  specific to a driver (private)'
 
 
 build() {
+case  $HOSTTYPE  in
+  x86_64)  LIB=/lib64  ;;
+       *)  LIB=/lib    ;;
+esac
 sed  -i  "s/-O2/$CFLAGS/
           s:/usr/local:/usr:"  Makefile
 make             &&
 prepare_install  &&
-make    install
+make    install  PREFIX=/usr  INSTALL_DIR=/sbin/  INSTALL_LIB=$LIB
+}
+
+
+current()  {
+  case  $VERSION  in
+    28)  [  -f  /sbin/iwconfig  ]  ;;
+  esac
 }
