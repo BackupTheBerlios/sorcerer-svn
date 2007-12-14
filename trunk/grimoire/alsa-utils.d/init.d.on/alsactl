@@ -1,0 +1,30 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: alsactl
+# Required-Start: 
+# Should-Start: modprobe udev
+# Required-Stop:
+# Default-Start: 1 2 3 4 5
+# Default-Stop:
+# Short-Description: alsactl restores the audio mixer volume settings
+# Description: alsactl restores the audio mixer volume settings
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start() {
+  [  -f  /etc/asound.state  ]  &&
+  if    log_warning_msg  "Audio volume setting";  alsactl restore
+  then  log_success_msg  "Audio volume set"
+  else  log_failure_msg  "Audio volume not set"
+  fi
+}
+
+help()  { echo "Usage: $0 {start}" 1>&2;  }
+
+case  $1  in
+       start)  start ;;
+ try-restart)  :     ;;
+           *)  help  ;;
+esac
