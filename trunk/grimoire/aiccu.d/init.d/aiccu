@@ -30,28 +30,30 @@ verify() {
     # Verify that the configuration file exists
     if [ ! -f /etc/aiccu.conf ]; then
     	echo "AICCU Configuration file /etc/aiccu.conf doesn't exist"
-    	exit 1;
+    	return 1;
     fi
     
     # Verify that the configuration is correct
     if [ `grep -c "^username" /etc/aiccu.conf 2>/dev/null` -ne 1 ]; then
     	echo "AICCU is not configured, edit /etc/aiccu.conf first"
-    	exit 1;
+    	return 1;
     fi
     
     # Verify that it is in daemonize mode, otherwise it won't ever return
     if [ `grep -c "^daemonize true" /etc/aiccu.conf 2>/dev/null` -ne 1 ]; then
     	echo "AICCU is not configured to daemonize on run"
-    	exit 1;
+    	return 1;
     fi
     
     if [ "$BACKGROUND" = "false" ]; then
-    	exit 1;
+    	return 1;
     fi
 }
 
 start() {
   log_warning_msg  "$NAME starting"
+  [      -d  /var/empty  ]  ||
+  mkdir  -p  /var/empty
   if    $SERV start
   then  log_success_msg  "$NAME started"
   else  log_failure_msg  "$NAME not started"
@@ -75,7 +77,7 @@ case "$1" in
   restart|reload|force-reload)   stop && sleep1 && start ;;
   *)
 	echo "Usage: /etc/init.d/$NAME {start|stop|reload|force-reload|restart}" >&2
-	exit 1
+	return 1
 esac
 
-exit 0
+return 0
