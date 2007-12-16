@@ -28,7 +28,7 @@ status() {
 
 
 start()  {
-  ramfs_dev()  {
+  tmpfs_dev()  {
     /bin/mount  -o nr_inodes=4096,size=1m,mode=0755 -t tmpfs tmpfs /dev
     /bin/cp     -a  /lib/udev/dev/*  /dev
   }
@@ -36,7 +36,7 @@ start()  {
   if    status &>/dev/null
   then  log_warning_msg  "$NAME restarting";  kill  -s 15   $PIDS
 # then  log_warning_msg  "$NAME restarting";  killproc  -p  $PIDF  -s 15  $SERV
-  else  log_warning_msg  "$NAME starting";    ramfs_dev
+  else  log_warning_msg  "$NAME starting";    tmpfs_dev
   fi
 
   start_daemon  -p  $PIDF  $SERV  --daemon
