@@ -1,12 +1,54 @@
-safe	clamav	0.91.2
-est	clamav	920
-all	clamav
-av	clamav	0.91.2
-sho	clamav	clamav is an anti-virus toolkit. 
-att	console	clamav
-cat	network/email	clamav
-cat	security/anti-virus	clamav
-req	clamav	bzip2
-req	clamav	curl
-req	clamav	gmp
-src	clamav	clamav/0.91.2/clamav-0.91.2.tar.gz
+   VERSION=( 0.92 0.91.2 0.91.1 0.91 0.90.3 0.90.2 0.90.1 0.90 )
+      SAFE=( 0.92 0.91.2 )
+    IGNORE='rc\|sharp\|RC'
+  CATEGORY='network/email security/anti-virus'
+ ATTRIBUTE='console'
+    SOURCE="clamav/clamav-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE='http://www.clamav.net'
+       REQ='bzip2 curl gmp'
+  ESTIMATE='920'
+      DESC='clamav is an anti-virus toolkit. 
+The main purpose of this software is the
+integration with mail servers (attachment scanning).
+The package provides a flexible and scalable multi-threaded daemon,
+a command line scanner, and a tool for automatic updating via Internet.
+The programs are based on a shared library distributed with the
+Clam AntiVirus package, which you can use with your own software.
+Most importantly, the virus database is kept up to date.'
+
+
+pre_remove() {
+                   GetFreshClamPid=$( pidof freshclam )
+  if   [     -n  "$GetFreshClamPid" ];  then
+                      FreshClamCmdline="$( tr '\0' '\t' < /proc/$GetFreshClamPid/cmdline )"
+       kill  -15  $GetFreshClamPid
+  fi
+
+                   GetClamPid=$( pidof clamd )
+  if   [     -n  "$GetClamPid" ];  then
+                      ClamdCmdline="$( tr '\0' '\t' < /proc/$GetClamPid/cmdline )"
+       kill  -15  $GetClamPid
+  fi
+ 
+   echo "START_FRESHCLAM=\"$FreshClamCmdline\" 
+         START_CLAMD=\"$ClamdCmdline\"" > $SPELL_CONFIG
+}
+
+
+build() {
+
+mkdir    -p -m 0755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=512    clamav                      2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=512 -g clamav -d /var/empty clamav 2>/dev/null
+
+  sed  -i  "s:^Example:# Example:"  etc/*.conf
+  default_build
+}
+
+
+post_install() {
+  ${START_FRESHCLAM:-:}
+  ${START_CLAMD:-:}
+  true
+}
