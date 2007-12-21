@@ -455,12 +455,12 @@ get_options()  {
   local  DEFAULT_OPTIONS
 
   case  ${PFILESYSTEM[$1]}  in
-        swap)  DEFAULT_OPTIONS="defaults"                 ;;
-    reiserfs)  DEFAULT_OPTIONS="defaults,notail,noatime"  ;;
-         jfs)  DEFAULT_OPTIONS="defaults,noatime"         ;;
-        ext3)  DEFAULT_OPTIONS="defaults,noatime"         ;;
-         xfs)  DEFAULT_OPTIONS="defaults,noatime"         ;;
-        ext2)  DEFAULT_OPTIONS="defaults,noatime"         ;;
+        swap)  DEFAULT_OPTIONS="defaults"                      ;;
+    reiserfs)  DEFAULT_OPTIONS="defaults,notail,noatime"       ;;
+         jfs)  DEFAULT_OPTIONS="defaults,noatime"              ;;
+        ext3)  DEFAULT_OPTIONS="defaults,noatime,commit=3600"  ;;
+         xfs)  DEFAULT_OPTIONS="defaults,noatime"              ;;
+        ext2)  DEFAULT_OPTIONS="defaults,noatime"              ;;
   esac
 
   case  ${PMOUNT[$1]}  in
@@ -1003,15 +1003,13 @@ Really unmount the currently mounted partitions?"
 
 confirm_unmount()  {
 local  NOT_YET="
-Installation is incomplete the install image is transferred.
-Filesystems must be mounted to complete the above step.
+Until the install image is transfered
+and compilation of initramfs is completed
+the filesystems should remain mounted.
 
 However to modify the filesystem table, create,
 initialize and/or mount more file systems
-then the currently mounted filesystems must be unmounted first.
-They can be re-mounted again after modifications.
-Otherwise please keep the filesystems mounted before 
-proceeding to the network configuration menus."
+then the currently mounted filesystems must be unmounted first."
 
   $DIALOG  --msgbox  "$NOT_YET"  20 70
   if    confirm  "Really Unmount filesystems?"  "--defaultno"
@@ -1037,7 +1035,7 @@ disk_menu()  {
 
     A_HELP=$"Transfer files to mounted filesystems"
 
-    B_HELP=$"Write LBA addressing enabled bootable public domain syslinux MBR to disk"
+    B_HELP=$"Write a LBA addressing enabled bootable public domain MBR"
     C_HELP=$"Define filesystem table"
     E_HELP=$"Edit $TARGET/etc/fstab after transfering"
     I_HELP=$"Selectively create filesystems defined in filesystem table"
@@ -1056,6 +1054,7 @@ disk_menu()  {
                  --item-help               \
                  --menu          ""        \
                  0 60 8                    \
+                 "MBR"      "Master Boot Record" "$B_HELP"  \
                  "Install"  "Transfer Files"     "$A_HELP"  \
                  "Edit"     "$TARGET/etc/fstab"  "$E_HELP"  \
                  "Unmount"  "Filesystems"        "$U_HELP"  \
@@ -1104,15 +1103,7 @@ compile_menu()  {
 glibc-locales
 glibc-localtime
 kbd
-util-linux
 initramfs"
-
-  local  OBSOLETE_SPELLS="install"
-
-  case  $( uname -m )  in
-    i686)  REQUIRED_SPELLS+="${LF}bash"  ;;
-  esac
-
 
   if    [  -f  $TARGET/etc/lilo.conf.head.new  ]
   then  BOOTLOADER="lilo"
