@@ -167,8 +167,16 @@ initramfs_current()  {
 }
 
 
+on_cd()  {
+    if  !  [   -d  /boot/isolinux  ];  then  return  1
+  elif  !  touch   /tmp/writeable   ;  then  return
+  else  rm     -f  /tmp/writeable            return  1
+    fi  2>/dev/null
+}
+
+
 begin()  {
-  if    initramfs_current
+  if    on_cd  ||  initramfs_current
   then  return
   elif  log_warning_msg  "$NAME updating";  initramfs_update
   then  log_success_msg  "$NAME updated"
