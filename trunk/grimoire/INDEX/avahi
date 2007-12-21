@@ -1,47 +1,20 @@
-   VERSION=( 0.6.22 0.6.21 0.6.20 0.6.19 0.6.18 0.6.17 0.6.16 )
-# avahi-autoipd if started should be started from a template
-# provided by networks rather than a separate init script
-# since the purpose of avahi-autoipd is to automatically assign
-# an IP address to a network interface.
-# 0.6.21 may have acquired a requirement on libcap
-  CATEGORY='utility'
- ATTRIBUTE='library'
-    SOURCE="avahi-$VERSION.tar.gz"
-# New location only for source version 0.6.15
-#      URL='http://lathiat.net/'
-       URL='http://avahi.org/download/'
-  HOMEPAGE='http://avahi.org/'
-       REQ=( 'dbus libdaemon libglade'
-             'gtk+::--disable-gtk:for gtk+ integration'
-             'qt-x11-free::--disable-qt3:for Qt3 mainloop integration' )
-# We do not want qt-x11-opensource installed on boxes until
-# it is truly backward compatible with qt-x11-free
-#             'qt-x11-opensource::--disable-qt4:for Qt4Core mainloop integration' )
-      OPTS='--disable-qt4 --with-distro=none --disable-mono --disable-python --disable-static --enable-compat-libdns_sd'
-# --enable-compat-libdns_sd
-# The above switch added so kdelibs can use avahi for zeroconf
-# instead of mDNSResponder
-  EPROVIDE='mDNSResponder'
-  ESTIMATE='1800'
- CONFLICTS='howl'
-      DESC='avahi is a library and daemon for Multicast DNS Service Discovery.
-It may also be called zeroconf.
-It allows programs to publish and discover services
-running on a local network with no specific configuration.
-For example, you can plug into a network and instantly
-find printers to print to, files to look at, and people to talk to.'
-
-build()  {
-
-# Needed when using dbus 1.0 and higher
-case $VERSION in
-  0.6.14|0.6.15)  sed  -i '1072,1074d'  avahi-daemon/dbus-protocol.c
-                  sed  -i '1070d'       avahi-daemon/dbus-protocol.c   ;;
-esac
-
-mkdir    -p -m 0755 /var/empty
-groupadd -K GID_MIN=256 -K GID_MAX=512    avahi                     2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=512 -g avahi -d /var/empty avahi 2>/dev/null
-
-default_build
-}
+safe	avahi	0.6.21
+safe	avahi	0.6.20
+safe	avahi	0.6.19
+safe	avahi	0.6.18
+safe	avahi	0.6.17
+safe	avahi	0.6.16
+est	avahi	1800
+all	avahi
+av	avahi	0.6.21
+sho	avahi	avahi is a library and daemon for Multicast DNS Service Discovery.
+pro	mDNSResponder	avahi
+epro	mDNSResponder	avahi
+att	library	avahi
+cat	utility	avahi
+req	avahi	dbus
+req	avahi	libdaemon
+req	avahi	libglade
+src	avahi	avahi/0.6.21/avahi-0.6.21.tar.gz
+opt	avahi	gtk+
+opt	avahi	qt-x11-free
