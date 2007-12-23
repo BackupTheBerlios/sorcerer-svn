@@ -56,9 +56,10 @@ start()  {
     fi
   }
 
-  tmpfs_var_log()  {
+  extra_tmpfs()  {
     mkdir  -p  /var/log
     mount  -o nr_inodes=64,size=64m,mode=0755 -t tmpfs tmpfs /var/log
+    mount  -o nr_inodes=256k,size=1g,mode=1777 -t tmpfs tmpfs /tmp
   }
 
 
@@ -71,7 +72,7 @@ start()  {
   fi
 
   if    grep  -q " / "  /etc/fstab
-  then  log_success_msg "Sorcerer Install/Rescue Image found"; tmpfs_var_log
+  then  log_success_msg "Sorcerer Install/Rescue Image found"; extra_tmpfs
   else  log_failure_msg "Sorcerer Install/Rescue Image not found"
   fi
 }
