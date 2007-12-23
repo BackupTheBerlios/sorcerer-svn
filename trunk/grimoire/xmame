@@ -1,53 +1,42 @@
    VERSION=( 0.106 0.104 0.103 0.102 0.101 0.100 0.99 0.95 0.94 0.92 )
-      SAFE=( "0.106" "0.104" "0.103" )
+      SAFE=( 0.106 0.104 0.103 )
   CATEGORY='game development/emulator'
- ATTRIBUTE='x11 broken'
+ ATTRIBUTE='x11'
     SOURCE="xmame-$VERSION.tar.bz2"
        URL='http://x.mame.net/download/'
   HOMEPAGE='http://x.mame.net/'
 # has incomplete requirement list
-       REQ=( "jpeg zlib"
-             "SDL:::SDL can be used for xmame output" )
-  ESTIMATE='2227'
-      DESC="xmame is (coin-op) video game emulator.
+       REQ=( 'alsa-lib jpeg zlib'
+             'SDL:--enable-sdl::SDL can be used for xmame output' )
+  ESTIMATE='2000'
+      DESC='xmame is (coin-op) video game emulator.
 xmame is the X11/Unix port of MAME.
 MAME is the Multiple Arcade Machine Emulator,
 an arcade (coin-op) video game emulator.
 The latest stable release is capable of
-playing over 2000 arcade games.
-
-You may have to do cast -r -r xmame to compile it."
-
-configure()  {
-  if    !  sources_cached  "$SPELL";  then
-    echo  "Sources must be download before configuration."
-    leech  -w  $SPELL
-  fi
-  pre_build
-  if    !  [  -f  $CONFIG_LOGS/$SPELL/makefile.unix  ]; then
-    ${EDITOR:-nano}  makefile.unix
-    mkdir  -p          $CONFIG_LOGS/$SPELL
-    cp  makefile.unix  $CONFIG_LOGS/$SPELL/
-  fi
-  cd  /tmp
-  rm  -fr  $BUILD_DIR
-}
-
+playing over 2000 arcade games.'
 
 build() {
+  case  $HOSTTYPE  in
+    i?86) sed   -i  "s:# X86_MIPS3_DRC:X86_MIPS3_DRC:
+                     s:# X86_PPC_DRC:X86_PPC_DRC:
+                     s:# X86_VOODOO_DRC:X86_VOODOO_DRC:"  Makefile
+          grep  -q  "mmx"  /proc/cpuinfo  &&
+          sed   -i  "s:# EFFECT_MMX_ASM:EFFECT_MMX_ASM:"  Makefile  ;;
+  esac
 
-  patch  -p1  <  $SCRIPT_DIR/xmame.int.fix
+  sed  -i  "s:CFLAGS = -O2:CFLAGS = $CFLAGS:
+            s:PREFIX = /usr/local:PREFIX = /usr:
+            s:# JOY_STANDARD:JOY_STANDARD:
+            s:# SOUND_ALSA:SOUND_ALSA:
+            s:# X11_OPENGL:X11_OPENGL:"  Makefile
 
-  grep -q "CRLF"  makefile.unix || sed -i "1iCRLF = 2"        makefile.unix
-  grep -q "EXPAT" makefile.unix || sed -i "1iBUILD_EXPAT = 1" makefile.unix
+  echo  "$OPTS"  |  grep  -q  sdl  &&
+  sed  -i  "s:# SOUND_SDL:SOUND_SDL:
+            s:DISPLAY_METHOD = x11:# DISPLAY_METHOD = x11:
+            s:# DISPLAY_METHOD = SDL:DISPLAY_METHOD = SDL:"  Makefile
 
-  make    PREFIX=/usr           \
-          BINDIR=/usr/games     \
-          CFLAGS="$CFLAGS"      \
-          CXXFLAGS="$CXXFLAGS"  \
-          -f  makefile.unix     &&
-  prepare_install               &&
-  make    install  PREFIX=/usr  \
-          BINDIR=/usr/games     \
-          -f  makefile.unix
+  make             &&
+  prepare_install  &&
+  make    install
 }
