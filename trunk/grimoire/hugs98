@@ -1,27 +1,30 @@
-#   VERSION=( Mar2005 Dec2001 )
-   VERSION=( Mar2005 )
-    IGNORE="Nov2002"
-# There is an install error in Nov2002 hugs
-# There is a  compile error in  Nov2003 hugs
+   VERSION=( May2006 )
+# May2006 fails compilation with gcc version 4.2.2
+# May2006 fails compilation with gcc version 4.1.2
+# May2006 fails compilation with gcc version 4.0.4
+# hugs98 no current version known to compile
   CATEGORY='development/compiler'
  ATTRIBUTE='console broken'
-# No versions are known to currently compile.
-    SOURCE="hugs98-$VERSION-patched.tar.gz"
-       URL='http://cvs.haskell.org/Hugs/downloads/$VERSION/'
-#      URL='http://cvs.haskell.org/Hugs/downloads/'
+    SOURCE="hugs98-plus-$VERSION.tar.gz"
+       URL='http://cvs.haskell.org/Hugs/downloads/2006-05/'
   HOMEPAGE='http://www.haskell.org/hugs/'
        REQ='readline'
-#   OPT[1]=":--with-pthreads::build Hugs using pthreads C library"
-#   OPT[2]=":--enable-path-canonicalization::enable filepath canonicalization"
- FRESHMEAT="hugs"
+case  $VERSION  in
+  May2006)  USE_GCC='gcc-v4.0'  ;;
+esac
+#   OPT[1]=':--with-pthreads::build Hugs using pthreads C library'
+#   OPT[2]=':--enable-path-canonicalization::enable filepath canonicalization'
+ FRESHMEAT='hugs'
   ESTIMATE='558'
-      DESC="hugs98 is a functional programming system based on Haskell 98
+      DESC='hugs98 is a functional programming system based on Haskell 98
 Hugs 98 is a functional programming system based on 
 interpreted Haskell 98, the de facto standard for 
-non-strict functional programming languages."
+non-strict functional programming languages.'
 
 
-build() {
+build()  {
+
+build_old() {
 ./configure                     \
 --prefix=/usr                   \
 --with-pthreads                 \
@@ -30,4 +33,9 @@ $OPTS  &&
 make              &&
 prepare_install   &&
 make    install  prefix=/usr
+}
+
+make             &&
+prepare_install  &&
+make    install
 }

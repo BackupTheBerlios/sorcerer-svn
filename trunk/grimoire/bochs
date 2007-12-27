@@ -1,33 +1,105 @@
-   VERSION=( 2.3.5 2.2.6 2.2.5 2.2.1 2.1.1 2.0.2 2.0.1 2.0 )
-    IGNORE="200\|smp\|pre\|win\|^2\.3$"
+   VERSION=( 2.3.6 2.3.5 2.2.6 2.2.5 2.2.1 2.1.1 2.0.2 2.0.1 2.0 )
+    IGNORE='200\|smp\|pre\|win\|^2\.3$'
   CATEGORY='development/emulator'
  ATTRIBUTE='x11'
     SOURCE="bochs/bochs-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://bochs.sourceforge.net'
 case  $VERSION  in
-   2.3)  USE_GCC="gcc-v4.0"  ;;
-  2.2*)  USE_GCC="gcc-v4.0"  ;;
+ 2.3.6)  :  ;;
+#  2.3.6)  USE_GCC='gcc-v3.4'  ;;
+   2.3)  USE_GCC='gcc-v4.0'  ;;
+  2.2*)  USE_GCC='gcc-v4.0'  ;;
 esac
-       REQ=( "ncurses readline zlib"
-             "SDL:--with-sdl::use SDL libraries"
-             "svgalib:--with-svga::add SVGAlib gui"
-             "wxWidgets:--with-wx::add wxGTK gui" )
-#            "wxGTK:--with-wx::add wxGTK gui" )
-      OPTS="--enable-readline"
-  ESTIMATE='3000'
-      DESC="bochs is an i386 hardware emulator
+       REQ=( 'libXpm ncurses readline zlib'
+             'SDL:--with-sdl::use SDL libraries'
+             'svgalib:--with-svga::add SVGAlib gui'
+             'wxWidgets:--with-wx::add wxGTK gui' )
+#            'wxGTK:--with-wx::add wxGTK gui' )
+  ESTIMATE='1400'
+      DESC='bochs is an i386 hardware emulator
 bochs is a portable x86 PC emulation software package that emulates
 enough of the x86 CPU, related AT hardware, and BIOS to run DOS,
-Windows 95, Linux, FreeBSD, and other OS's, all on your workstation."
+Windows 95, Linux, FreeBSD, and other OSs, all on your workstation.'
 
 build()  {
 # FDIR=/usr/X11R6/lib/X11/fonts/misc
 
+# --enable-smp             \
+# simulating more CPUs than 1 slows down simulation.
+# --enable-apic            \
+# --enable-cpu=5
+# docs suggest lvl 6 is incomplete and 5 is best choice.
+# --enable-usb             \
+# no need for usb support in the simulator?
 
-case  $VERSION  in
-  2.1.1)  sed  -i  "s:extern int FPU_load_int16(bx_address _s, FPU_REG \*loaded_data) BX_CPP_AttrRegparmN(2);:extern int FPU_load_int16(bx_address _s, FPU_REG *loaded_data) BX_CPP_AttrRegparmN(1);:"  fpu/fpu_proto.h  ;;
-esac
+# --enable-large-pages     \
+# the above replaces:
+# --enable-4meg-pages      \
+
+# --enable-all-optimizations  \
+#        Turn on the enables for all speed optimizations that the
+#        developers believe are safe to use:
+#         --enable-guest2host-tlb,
+#         --enable-repeat-speedups,
+#         --enable-icache,
+#         --enable-host-specific-asms,
+#         --enable-fast-function-calls.
+
+
+./configure              \
+--prefix=/usr            \
+--sysconfdir=/etc        \
+--enable-idle-hack       \
+--enable-plugins         \
+--enable-x86-64          \
+--enable-cpu-level-6     \
+--enable-ne2000          \
+--enable-pci             \
+--enable-pcidev          \
+--enable-pnic            \
+--enable-large-pages     \
+--enable-pae             \
+--enable-global-pages    \
+--enable-mtrr            \
+--enable-guest2host-tlb  \
+--enable-repeat-speedups \
+--enable-trace-cache     \
+--enable-icache          \
+--enable-fast-function-calls  \
+--enable-host-specific-asms  \
+--enable-ignore-bad-msr  \
+--enable-show-ips        \
+--enable-all-optimizations  \
+--enable-readline        \
+--enable-vbe             \
+--enable-clgd54xx        \
+--enable-fpu             \
+--enable-vme             \
+--enable-mmx             \
+--enable-3dnow           \
+--enable-sse=4           \
+--enable-sse-extension   \
+--enable-daz             \
+--enable-alignment-check \
+--enable-misaligned-sse  \
+--enable-sep             \
+--enable-popcnt          \
+--enable-cdrom           \
+--enable-sb16=linux      \
+--with-x11               \
+--with-rfb               \
+--with-term              \
+$OPTS                    &&
+make                     &&
+prepare_install          &&
+make    install
+}
+
+
+build_old()  {
+# FDIR=/usr/X11R6/lib/X11/fonts/misc
+
 
 ./configure              \
 --prefix=/usr            \

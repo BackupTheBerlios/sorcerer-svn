@@ -1,13 +1,16 @@
-   VERSION=( 3.1.0 3.0.6 3.0.5 3.0.4 3.0.3 )
+   VERSION=( 4.0.0 3.1.0 3.0.6 3.0.5 3.0.4 3.0.3 )
     IGNORE='rc\|a\|b'
   CATEGORY='network'
  ATTRIBUTE='console client server'
     SOURCE="dhcp-$VERSION.tar.gz"
   HOMEPAGE='http://www.isc.org/products/DHCP/'
        URL='ftp://ftp.isc.org/isc/dhcp/'
-      OPTS='--sbindir=/sbin'
-  ESTIMATE='450'
+       REQ=( '' 'openssl:::for DNS TSIG signature support so dhcpd can update bind9' )
+  ESTIMATE='400'
  FRESHMEAT='iscdhcp'
+# No longer installed in /sbin because it requires
+# /usr/lib/libcrypto.so.0.9.8 from openssl
+#     OPTS='--sbindir=/sbin'
       DESC='dhcdp contains a server and client for automatic IP configuration.
 dhcdp from the Internet Software Consortium includes
 a DHCP client, a DHCP server, and a DHCP relay agent.
@@ -16,7 +19,7 @@ The ISC DHCP server and client are well known for being extremely
 configurable, reasonably easy to use, and quite efficient.'
 
 
-build() {
+build_old() {
   sed  -i  's/\/local//'  Makefile.conf
   ./configure      &&
   make             &&
