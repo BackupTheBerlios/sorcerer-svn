@@ -1,7 +1,7 @@
    VERSION=( 2004_09_23 2004_03_29 2004_01_05 2003_08_05 )
     IGNORE='^S2000'
   CATEGORY='utility'
- ATTRIBUTE='console deprecated'
+ ATTRIBUTE='broken console deprecated'
 # udev replaces hotplug functionality
 # consequently no new hotplug releases in 3 years.
     SOURCE="/pub/linux/utils/kernel/hotplug/hotplug-$VERSION.tar.bz2"
@@ -13,40 +13,5 @@
   HOMEPAGE='http://linux-hotplug.sourceforge.net'
   ESTIMATE='5'
       DESC='hotplug loads and unloads modules as devices are added and removed.'
-
-build() {
-
-install_also()  {
-  case  $VERSION  in
-    2004_09_23)  install  -vm 0644  etc/hotplug/pnp.distmap  /etc/hotplug/  ;;
-  esac
-}
-
-   TH="touch /var/lock/subsys/hotplug"
-MKDIR="s:$TH:mkdir -p /var/lock/subsys; $TH:"
-
-sed  -i  "$MKDIR
-2i### BEGIN INIT INFO
-2i# Provides: hotplug
-2i# Required-Start: udev
-2i# Required-Stop:  kill
-2i# Default-Start: S
-2i# Default-Stop: 0 6
-2i# Short-Description: hotplug loads modules for new devices 
-2i# Description: hotplug creates devices nodes and loads 
-2i#	kernel drivers for new devices immediately
-2i### END INIT INFO"  \
-etc/rc.d/init.d/hotplug
-
-prepare_install  &&
-make    install  &&
-        install_also
-}
-
-post_install() {
-  /lib/lsb/install_initd /etc/init.d/hotplug
-  true
-}
-
 
 current()  {  echo  hotplug  |  pipe_queue  "$DISPEL_QUEUE";  }

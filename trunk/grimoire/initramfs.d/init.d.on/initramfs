@@ -86,11 +86,6 @@ initramfs_update()  {
   }
 
 
-  if  !  [  -f   /init  ];  then
-    echo    -e   '#!/bin/bash\nexec /sbin/init "$@"'  >  /init
-    chmod   0700 /init
-  fi
-
   [      -d       /media/root  ]  ||
   mkdir  -pm 0755 /media/root
 
@@ -157,10 +152,17 @@ initramfs_current()  {
   [  -d          /lib64  ]  &&
          DIRS+=' /lib64'
 
-  local  FILES='/etc/fstab /etc/hostname /etc/lilo.conf.head'
+  local  FILES='/etc/fstab /etc/hostname '
+         FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
          FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
 
-  not_found() { ! find "$@" -type f -newer /boot/initrf.gz | grep -q .; }
+  local  OMIT='\,/etc/init.d/log,d'
+
+  not_found() {
+    ! find "$@" -type f -newer /boot/initrf.gz  |
+    sed  "$OMIT"  |
+    grep -q .
+  }
 
   [  -f  /boot/initrf.gz  ]  &&
   not_found  $DIRS  $FILES
