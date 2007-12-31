@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: shm
+# Required-Start: 
+# Should-Start: udev
+# Required-Stop: 
+# Default-Start: 1 2 3 4 5
+# Default-Stop:
+# Short-Description: devshm mounts tmpfs on /dev/shm
+# Description: devshm mounts tmpfs on /dev/shm
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+
+start()  {
+  if    ! sed   's/#.*//'   /etc/fstab  |
+          grep  -q          /dev/shm;  then
+    if    log_warning_msg  '/dev/shm mounting'; mount -n -t tmpfs none /dev/shm
+    then  log_success_msg  '/dev/shm mounted'
+    else  log_failure_msg  '/dev/shm not mounted'
+    fi
+  fi
+}
+
+help()  {  echo "Usage: $0 {start}" 1>&2;  }
+
+case  $1  in
+        start)  start  ;;
+  try-restart)  :      ;;
+            *)  help   ;;
+esac

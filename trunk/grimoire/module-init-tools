@@ -15,6 +15,7 @@ esac
        URL="$KERNEL_URL"
   HOMEPAGE='ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ'
        REQ='bison flex init-functions'
+      OPTS='--enable-zlib'
 # Odd documentation building requirements for version 3.4
 # case  $VERSION  in
 #   3.[0-2])  :  ;;
@@ -40,7 +41,8 @@ esac
 
 build() {
 
-conf_install()  {
+remove_static()  {  rm  -f  /sbin/insmod.static;  }
+conf_install()   {
   mkdir  -p  /etc/modules.d
   touch      /etc/modules  /etc/modprobe.conf
 }
@@ -56,7 +58,13 @@ $OPTS                 &&
 make                  &&
 prepare_install       &&
 make    install       &&
-   conf_install
+   conf_install       &&
+remove_static
 }
 
-current() {  grep  -q  udev  /etc/init.d/modprobe;  }
+current() {
+  case  $VERSION  in
+    3.2.2)  grep  -q  udev  /etc/init.d/modprobe  &&
+            !  [  -f  /sbin/insmod.static  ]      ;;
+  esac
+}

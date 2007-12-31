@@ -27,6 +27,9 @@ The original LVM (included in stock 2.4 kernels) does not use it.'
 
 
 build() {
+  move_ar_libs()   { mv  $LIBDIR/libdevmapper.a*  /usr$LIBDIR; }
+  remove_static()  { rm  -f  /sbin/dmsetup.static;  }
+
   case  $VERSION  in
     1.01.05)  sed -i 's:-lselinux:-lselinux -lsepol:' configure*  ;;
   esac
@@ -35,8 +38,6 @@ build() {
   then  LIBDIR=/lib64
   else  LIBDIR=/lib
   fi
-
-  move_ar_libs()  { mv  $LIBDIR/libdevmapper.a*  /usr$LIBDIR; }
 
   ./configure            \
   --build=$BUILD         \
@@ -49,11 +50,13 @@ build() {
   make                   &&
   prepare_install        &&
   make    install        &&
-  move_ar_libs
+  move_ar_libs           &&
+  remove_static
 }
 
 current()  {
   case  $VERSION  in
-    1.01.05)  [  -f  /sbin/dmsetup  ]  ;;
+    1.01.05)     [  -f  /sbin/dmsetup         ]  &&
+              !  [  -f  /sbin/dmsetup.static  ]  ;;
   esac
 }

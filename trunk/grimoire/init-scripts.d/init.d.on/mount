@@ -17,9 +17,13 @@ mount_local_fs() {
   bnd()  {
     if    [ "$ROOT"  ==  '/'  ];  then  return;  fi
     mount  -n  -o ro                $ROOT
-    sed    "\,$ROOT,d;\,rootfs,d"   /proc/mounts  |
-    while  read   DEV      MNT       JNK
-    do     mount  --bind  $MNT      $ROOT/$MNT
+    sed    "\,$ROOT,d
+            \,rootfs,d
+            \,/dev/,d"   /proc/mounts  |
+    while  read   DEV     MNT        JNK
+    do     [  -d         $MNT  ]  &&
+           [  -d    $ROOT$MNT  ]  &&
+           mount  --move $MNT  $ROOT$MNT
     done
   }
 

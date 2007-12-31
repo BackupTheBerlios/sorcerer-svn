@@ -1,0 +1,28 @@
+# LSB-compliant init.d scripts for use with the distribution sorcerer only!
+# Copyright Kyle Sallee 2005, 2006, 2007, 2008.  All rights reserved.
+
+   VERSION=( 20071230 )
+  CATEGORY='administration/boot profile'
+ ATTRIBUTE='archive_off console'
+  HOMEPAGE='http://sorcerer.silverice.org'
+  ESTIMATE='3'
+       REQ=( 'coreutils grep sed util-linux'
+             ':--localtime:--utc::Hardware clock uses localtime' )
+      DESC='init-scripts provides several important scripts used during boot and shutdown.'
+
+build()  {
+  if    echo  "$OPTS"  |  grep  -q  "\--localtime"
+  then  sed  -i  "s:--utc:--localtime:"  $SCRIPT_DIR/init.d//hwclock
+  else  sed  -i  "s:--localtime:--utc:"  $SCRIPT_DIR/init.d//hwclock
+  fi
+
+  prepare_install  &&
+  echo  "init-scripts installed"
+}
+
+
+current()  {
+  case  $VERSION  in
+    20071230) [  -f  /etc/init.d/shm  ]  ;;
+  esac
+}
