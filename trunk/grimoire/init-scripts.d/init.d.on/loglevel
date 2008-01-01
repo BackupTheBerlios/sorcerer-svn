@@ -19,7 +19,15 @@
 #define KERN_DEBUG    "<7>"  /* debug-level messages             */
 ### END INIT INFO
 
-start() { /bin/dmesg -n 3; }
+. /lib/lsb/init-functions
+
+start() {
+  if   log_warning_msg 'Kernel logging to console level 3 setting';  /bin/dmesg -n 3
+  then log_success_msg 'Loglevel 3 set'
+  else log_failure_msg 'Loglevel 3 not set'
+  fi
+}
+
 help()  { echo "Usage: $0 {start}" 1>&2; }
 
 case $1 in
