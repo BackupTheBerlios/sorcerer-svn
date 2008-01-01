@@ -1,8 +1,5 @@
-   VERSION=( 0.5.9.1 0.5.9 0.5.8.1 0.5.8 )
-# 0.5.9 has compile error
+   VERSION=( 0.5.9.1 )
    IGNORE='info\|rc'
-# Hal 0.5.8.1 is needed to fix an interference with autofs
-# Requires pciutils <=2.3
   CATEGORY='disk'
  ATTRIBUTE='console'
     SOURCE="hal-$VERSION.tar.gz"
@@ -33,9 +30,11 @@ mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    haldaemon                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g haldaemon -d /var/empty haldaemon 2>/dev/null
 
-  case  $VERSION  in
-    0.5.8.1)  LDFLAGS="$LDFLAGS -L/lib64 -L/lib -L/usr/lib64 -L/usr/lib -lz"  ;;
-  esac
-
   default_build
+}
+
+current()  {
+  case  $VERSION  in
+    0.5.9.1)  grep  -q  'dbus run $syslog'  /etc/init.d/hald  ;;
+  esac
 }
