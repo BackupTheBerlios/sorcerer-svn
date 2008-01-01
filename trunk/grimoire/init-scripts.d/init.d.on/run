@@ -1,14 +1,14 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: shm
+# Provides: run
 # Required-Start: $local_fs
 # Should-Start:
 # Required-Stop: 
 # Default-Start: 1 2 3 4 5
 # Default-Stop:
-# Short-Description: shm mounts tmpfs on /dev/shm
-# Description: shm mounts tmpfs on /dev/shm
+# Short-Description: run mounts tmpfs on /var/run
+# Description: run mounts tmpfs on /var/run
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -16,10 +16,10 @@
 
 start()  {
   if    ! sed   's/#.*//'   /etc/fstab  |
-          grep  -q          /dev/shm;  then
-    if    log_warning_msg  '/dev/shm mounting'; mount -t tmpfs none /dev/shm
-    then  log_success_msg  '/dev/shm mounted'
-    else  log_failure_msg  '/dev/shm not mounted'
+          grep  -q          /var/run;  then
+    if    log_warning_msg  '/var/run mounting'; mount -o defaults,size=1m,nr_inodes=1k,mode=0750 -t tmpfs tmpfs /var/run
+    then  log_success_msg  '/var/run mounted'
+    else  log_failure_msg  '/var/run not mounted'
     fi
   fi
 }
