@@ -14,34 +14,31 @@
 . /lib/lsb/init-functions
 
 mount_local_fs() {
-  bnd()  {
-    if    [ "$ROOT"  ==  '/'  ];  then  return;  fi
-    mount  -n  -o ro                $ROOT
-    sed    "\,$ROOT,d
-            \,rootfs,d
-            \,/dev/,d"   /proc/mounts  |
-    while  read   DEV     MNT        JNK
-    do     [  -d         $MNT  ]  &&
-           [  -d    $ROOT$MNT  ]  &&
-           mount  --move $MNT  $ROOT$MNT
+  if    [  -d   /opt  ];  then
+    mount  -n   -o remount     /
+    rm     -fr                 /etc/mtab
+    cat         /proc/mounts > /etc/mtab
+    mount  -a
+  else
+                           ROOT=/media/root
+    [      -d             $ROOT  ]  ||
+    mkdir  -p             $ROOT
+    sed    -i  "s:\t: :g
+                   s: / : $ROOT :"  /etc/fstab
+    mount  -n             $ROOT
+    sed    "\,rootfs,d; \,$ROOT,d; \,/dev/,d"   /proc/mounts  |
+    while  read  DEV  MNT  JNK;  do
+      if     !  [   -d    $ROOT$MNT  ]
+      then   mkdir  -p    $ROOT$MNT;  fi  &&
+      mount  --move  $MNT $ROOT$MNT
     done
-  }
-
-  srt()  {
-    if    [  -d  /opt  ]
-    then  ROOT=/
-    else  ROOT=/media/root;  [  -d  $ROOT  ]  ||  mkdir  -p  $ROOT
-          sed  -i  "s:\t: :g;s: / : $ROOT :"  /etc/fstab
     fi
-  }
-
-  srt
-  bnd
-
-  chroot  $ROOT  mount  -n -o remount  /
-  rm  -f                                  $ROOT/etc/mtab  2>/dev/null
-  chroot  $ROOT  cat    /proc/mounts   >  $ROOT/etc/mtab  2>/dev/null
-  chroot  $ROOT  mount  -a
+    rm     -fr            $ROOT/etc/mtab
+    chroot                $ROOT           \
+    cat    /proc/mounts > $ROOT/etc/mtab
+    chroot                $ROOT           \
+    mount  -a
+  fi
 }
 
 
