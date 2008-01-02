@@ -15,9 +15,16 @@
 
 
 start()  {
+  run()  {
+    if    !  [   -d  /dev/shm  ]
+    then  mkdir  -p  /dev/shm
+    fi  &&
+    mount  -t tmpfs  tmpfs  /dev/shm
+  }
+
   if    ! sed   's/#.*//'   /etc/fstab  |
           grep  -q          /dev/shm;  then
-    if    log_warning_msg  '/dev/shm mounting'; mount -t tmpfs none /dev/shm
+    if    log_warning_msg  '/dev/shm mounting';  run
     then  log_success_msg  '/dev/shm mounted'
     else  log_failure_msg  '/dev/shm not mounted'
     fi

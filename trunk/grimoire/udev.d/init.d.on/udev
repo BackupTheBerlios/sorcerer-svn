@@ -29,8 +29,14 @@ status() {
 
 start()  {
   tmpfs_dev()  {
-    /bin/mount  -o nr_inodes=4096,size=1m,mode=0755 -t tmpfs tmpfs /dev
-    /bin/cp     -a  /lib/udev/dev/*  /dev
+    local  OPTIONS='nr_inodes=4096,size=1m,mode=0755'
+    if    !  [   -d           /dev  ]
+    then  mkdir  -p  -m 0755  /dev
+    fi  &&
+    mount  -o $OPTIONS  -t tmpfs  tmpfs  /dev  &&
+    if    [   -d  /lib/udev/dev  ]
+    then  cp  -a  /lib/udev/dev/*  /dev
+    fi
   }
 
   if    status &>/dev/null

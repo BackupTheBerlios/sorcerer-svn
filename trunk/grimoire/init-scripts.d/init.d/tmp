@@ -13,12 +13,16 @@
 
 . /lib/lsb/init-functions
 
+OPTIONS='defaults,size=2g,nr_inodes=1m,mode=1777'
 
 start()  {
   go()  {
-    mount -o defaults,size=2g,nr_inodes=1m,mode=1777 -t tmpfs tmpfs /tmp  &&
-    mkdir -p -m 0700 /tmp/.sorcery  /usr/src/sorcery  &&
-    mount --bind     /tmp/.sorcery  /usr/src/sorcery
+    if    !  [   -d           /tmp  ]
+    then  mkdir  -p  -m 1755  /tmp
+    fi    &&
+    mount  -o $OPTIONS  -t tmpfs  tmpfs  /tmp  &&
+    mkdir  -p  -m 0700  /tmp/.sorcery    /usr/src/sorcery  &&
+    mount  --bind       /tmp/.sorcery    /usr/src/sorcery
   }
 
   if    ! sed   's/#.*//'   /etc/fstab  |
