@@ -1,0 +1,58 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: smartd
+# Required-Start: $syslog modprobe run
+# Required-Stop: kill
+# Default-Start: 2 3 4 5
+# Default-Stop:  0 6
+# Short-Description: smartd monitors health status of hard drives
+# Description: smartd monitors health status of hard drives
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=smartd
+PIDF=/var/run/smartd.pid
+SERV=/usr/sbin/smartd
+
+status() {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; kill -SIGUSR1 $PIDS; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+
+start()  {
+  if    log_warning_msg  "$NAME starting"; start_daemon -p $PIDF $SERV -p $PIDF
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+  fi
+}
+
+stop()  {
+  if    log_warning_msg  "$NAME stopping"; killproc -p $PIDF -s 15 $SERV
+  then  log_success_msg  "$NAME stopped"
+  else  log_failure_msg  "$NAME not stopped"
+  fi
+}
+
+help()  {  echo  "Usage:  $0  {start|stop|restart|status}";  }
+
+restart() {  stop  &&  sleep  1;  start;  }
+
+try_restart() {
+  status  &&  restart
+  return 0
+}
+
+case $1 in
+      start)        start  ;;
+    restart)      restart  ;;
+try-restart)  try_restart  ;;
+       stop)  stop         ;;
+     status)  status       ;;
+          *)  help         ;;
+esac
