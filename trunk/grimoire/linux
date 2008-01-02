@@ -170,10 +170,10 @@ build() {
 
 
 post_install() {
+  update_etc_lilo_conf
+
   show_installed  initramfs       |
   sed  -n      '/^initramfs/p'    |  pipe_queue  "$CAST_QUEUE"  com
-
-  update_etc_lilo_conf
 
   if    [  -x  /usr/bin/mail   ];  then  MAILER=/usr/bin/mail
   elif  [  -x  /usr/bin/mailx  ];  then  MAILER=/usr/bin/mailx
@@ -182,14 +182,18 @@ post_install() {
   if    [  -n  "$MAILER"    ]  &&
         [  -n  "$SORCERER"  ]
   then
-    echo  -e  "New linux kernel installed.\nReboot the box, please."  |
+    echo     -e  "New linux kernel installed.\nReboot the box, please."  |
     $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
   fi
 
-                 MODULES="$( show_installed linux-26-module )"
-  if    [  -n  "$MODULES"  ];  then
-    echo       "$MODULES"  |  pipe_queue  "$CAST_QUEUE"  "com"
-  fi
+  grep  -lr   '^/lib/modules/'  $INSTALL_LOGS  |
+  sed         "s:.*[/]::;/^$/d;/^$SPELL$/d"    |
+  pipe_queue  "$CAST_QUEUE"  "com"
+
+#                 MODULES="$( show_installed linux-26-module )"
+#  if    [  -n  "$MODULES"  ];  then
+#    echo       "$MODULES"  |  pipe_queue  "$CAST_QUEUE"  "com"
+#  fi
 
   true
 }
