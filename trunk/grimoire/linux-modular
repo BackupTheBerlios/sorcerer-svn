@@ -53,13 +53,21 @@ build() {
     fi
   }
 
+  gzip_modules()  {
+    local  KO="/lib/modules/$VERSION/kernel/"
+    find  $KO  -type f  -size +4096c  |  xargs -r  --max-lines=64  gzip  -v1
+    find  $KO  -type f                |  sed   -n  '/\.gz$/p' |
+    while  read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+  }
+
+
   compile_and_install()  {
     # apply_linux_patch
     restore_linux_configs
     yes  ""  |  make  oldconfig
     make   bzImage          &&
     make   modules          &&  prepare_install  &&
-    make   modules_install  &&
+    make   modules_install  &&  gzip_modules     &&
     install_kernel          &&
     install_header
   }
