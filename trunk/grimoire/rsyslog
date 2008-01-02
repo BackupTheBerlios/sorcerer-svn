@@ -1,26 +1,28 @@
-   VERSION=( 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
-      SAFE=( 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 )
-    IGNORE="^1\.10\."
-# 1.10.x 1.12.x are developmental versions
-# 1.14.0 is a developmental version?
+   VERSION=( 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
+      SAFE=( 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 )
   CATEGORY='administration/log'
  ATTRIBUTE='server'
     SOURCE="rsyslog-$VERSION.tar.gz"
-       URL='http://download.adiscon.com/rsyslog/'
+       URL='http://download.rsyslog.com/rsyslog/'
+#      URL='http://download.adiscon.com/rsyslog/'
   HOMEPAGE='http://www.rsyslog.com/'
-       REQ='init-functions'
-  EPROVIDE="system-logger"
-  ESTIMATE='20'
-      DESC="rsyslog is an enhanced syslogd.
+       REQ=( 'init-functions zlib'
+             'mysql:--enable-mysql:--disable-mysql:for logging to mysql' 
+             'postgresql:--enable-pgsql:--disable-pgsql:for logging to postgresql' )
+  EPROVIDE='system-logger'
+  ESTIMATE='330'
+      DESC='rsyslog is an enhanced syslogd.
 Among other features, it offers support for MySQL and fully
 configurable output formats (including large timestamps).
 It has been forked from the standard sysklogd package.
-The project's goal is to provide a more
+The project goal is to provide a more
 configurable and reliable syslog deamon.
-"Reliable" in the previous sentence refers to support for reliable
-transmission modes like TCP or RFC 3195 (syslog-reliable)."
+Reliable in the previous sentence refers to support for reliable
+transmission modes like TCP or RFC 3195 (syslog-reliable).'
+
 
 build()  {
+build_old()  {
 install_init()  {
 cd  ..
 TRAD="\$template TraditionalFormat,\"%timegenerated% %HOSTNAME% %syslogtag%%msg:::drop-last-lf%\n\"
@@ -37,6 +39,10 @@ make             &&
 prepare_install  &&
 make    install  &&
 install_init
+}
+
+  default_build  &&
+  install  -m  0600  redhat/rsyslog.conf  /etc
 }
 
 
