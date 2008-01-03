@@ -38,7 +38,10 @@ update_lilo()  {
     grep  -q  "$IRF"                                     /etc/lilo.conf  ||
     sed   -i     "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:"  /etc/lilo.conf
   done
+}
 
+
+run_lilo()  {
   sync
   /sbin/lilo  -P ignore
 }
@@ -149,6 +152,8 @@ initrf_update()  {
 
   local  EVERY="$(  every  )"
 
+  update_lilo
+
   find  /boot  -maxdepth 2  -mindepth 2  \
                -type f      -name linux  \
                -printf      '%h\n'       |
@@ -156,7 +161,8 @@ initrf_update()  {
   while  read       VERSION
   do     mkinitrf  $VERSION
   done
-  update_lilo
+
+  run_lilo
 }
 
 
@@ -177,15 +183,22 @@ initrf_current()  {
   [  -d          /lib64  ]  &&
          DIRS+=' /lib64'
 
-  local  FILES='/etc/fstab /etc/hostname '
+  local  FILES='/etc/fstab /etc/hostname /etc/inittab'
          FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
          FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
 
   local  OMIT='\,/etc/init.d/log,d'
 
-  !  for  INITRF  in  /boot/*/initrf.gz
-     do   find  $DIRS  $FILES  -type f  -newer  $INITRF
-     done  |  sed  "$OMIT"  |  grep  -q .
+  find  /boot  -mindepth  2  -mindepth 2      \
+               -type f       -name initrf.gz  \
+               -printf '%T@	%p\n'         |
+  LC_ALL=C  sort  -g    |
+  while     read  JUNK  REPLY;  do
+    find  $DIRS  $FILES  -type f  -newer  $REPLY  |
+    sed  "$OMIT"  |  grep  -q  .  &&
+    return  1    ||
+    return
+  done
 }
 
 
