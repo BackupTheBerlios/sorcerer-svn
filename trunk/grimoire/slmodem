@@ -1,12 +1,14 @@
    VERSION=( 2.9.11-20070813 )
     IGNORE='Mandrake'
   CATEGORY='kernel network/ppp'
- ATTRIBUTE='linux-24-module linux-26-module new'
+#ATTRIBUTE='console new'
+ ATTRIBUTE='console linux-24-module linux-26-module new'
     SOURCE="slmodem-$VERSION.tar.gz"
        URL='http://linmodems.technion.ac.il/packages/smartlink/'
   HOMEPAGE='http://linmodems.technion.ac.il/packages/smartlink/'
   EPROVIDE='smartlink-drv'
-       REQ='ppp'
+       REQ='alsa-lib ppp'
+      OPTS='SUPPORT_ALSA=1'
   ESTIMATE='100'
       DESC='slmodem provides a soft modem driver for Linux.
 It features a 56K voice fax modem.
@@ -16,18 +18,114 @@ a set of hardware specific kernel-space drivers (slamr and slusb).
 Supported Hardware
 ==================
 
-HAMR5600 based AMR/CNR/MDC/ACR modem cards on the following Southbridge
-chips:
+HAMR5600 based AMR/CNR/MDC/ACR modem cards
+on the following Southbridge chips:
 - Intel ICH0,ICH2, ICH3, ICH4
 - Via 686A, 686B, 8231, 8233
 - SiS 630
 - ALI 1535.
 SmartPCI56/561/562/563 based PCI modem cards.
-SmartUSB56 based USB modem.'
+SmartUSB56 based USB modem.
 
+And using alsa drivers:
+NVidia NForce, SiS 630 (snd-intel8x0m),
+VIA686 (snd-via82xx-modem),
+ATI IXP (snd-atiixp-modem) based modems.
+
+The README file in the source tarball
+may be useful in understanding
+how to answer slmodem configuration questions.'
+
+configure()  {
+
+dev_menu()  {
+  BACKTITLE=$"slmodem Configuration"
+      TITLE=$"ALSA dev Menu"
+       HELP=$"Please select ALSA device name"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --default-item  "hw:1"     \
+          --menu  "$HELP"            \
+          0 0 0                      \
+          "hw:0"  ""  "hw:1"  ""     \
+          "hw:2"  ""  "hw:3"  ""     \
+          "hw:4"  ""  "hw:5"  ""     \
+          "hw:6"  ""  "hw:7"  ""
+}
+
+country_menu()  {
+  BACKTITLE=$"slmodem Configuration"
+      TITLE=$"Country Menu"
+       HELP=$"Please select country for appropriate tones"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --default-item  USA        \
+          --menu  "$HELP"            \
+          0 0 0                      \
+          $(  sed  "aCountry"  $SCRIPT_DIR/country  )
+}
+
+module_menu()  {
+  BACKTITLE=$"slmodem Configuration"
+      TITLE=$"Module Menu"
+       HELP=$"Please select appropraite module to load"
+     A_HELP="Intel ICH[0-4]; Via 686[A-B] 8231 8233; SiS 630 ALI 1535 SmartPCI56/56[1-3]"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --default-item  USA        \
+          --item-help                \
+          --menu  "$HELP"            \
+          0 0 0                      \
+          "slamr"              "HAMR5600 AMR/CNR/MDC/ACR"  "$A_HELP"  \
+          "slusb"              "SmartUSB56"                ""  \
+          "snd-intel8x0m"      "NVidia NForce, SiS 630"    ""  \
+          "snd-via82xx-modem"  "VIA686"                    ""  \
+          "snd-atiixp-modem"   "ATI IXP"                   ""
+}
+
+  if  !  grep  -q   "MODULE="  $SPELL_CONFIG  2>/dev/null;  then
+    ( export  IFS="$TAB_ENTER_IFS"
+      COUNTRY="$(  country_menu  )"
+       MODULE="$(   module_menu  )"
+      case  $MODULE  in
+        snd*)  DEV="$(  dev_menu  )"  ;;
+      esac
+
+      if    [  -n   "$COUNTRY"  ]  &&
+            [  -n   "$MODULE"   ]
+      then  echo     "MODULE=$MODULE"   >>  $SPELL_CONFIG
+            echo    "COUNTRY=$COUNTRY"  >>  $SPELL_CONFIG; [ -n "$DEV" ] &&
+            echo        "DEV=$DEV"      >>  $SPELL_CONFIG
+      fi
+
+      export  IFS="$STANDARD_IFS"
+    )
+  fi
+}
 
 build() {
-make             &&
-prepare_install  &&
-make    install
+  CONF="-c $COUNTRY "
+  case  $MODULE  in
+        slamr)  CONF+='/dev/slamr0'  ;;
+        slusb)  CONF+='/dev/slusb0'  ;;
+         snd*)  CONF+="-a $DEV"      ;;
+      esac
+  sed  -i  "s,MODULE=.*,MODULE=$MODULE,
+            s,CONF=.*,CONF='$CONF',"     $SCRIPT_DIR/init.d.on/slmodemd
+
+  make             $OPTS  &&
+  prepare_install         &&
+  make    install  $OPTS
 }
