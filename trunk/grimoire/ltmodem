@@ -1,0 +1,22 @@
+   VERSION=( 2.6-alk-9 )
+  CATEGORY='network'
+ ATTRIBUTE='archive_off console linux-26-module new'
+    SOURCE="ltmodem-$VERSION.tar.bz2"
+       URL='http://linmodems.technion.ac.il/packages/ltmodem/kernel-2.6/'
+  HOMEPAGE='http://martian.barrelsoutofbond.org/'
+  ESTIMATE='155'
+      DESC='ltmodem provides a kernel module for Agere Systems and LT Winmodems.
+It only works with winmodems that contain a Mars DSP164x device'
+
+build()  {
+  make_install()  {
+    LVER=$( installed_version $( get_provider linux-kernel ) )
+    DEST=/lib/modules/$LVER/kernel/drivers/net/
+    mkdir   -p                              $DEST
+    install -vm 0600 ltmodem.ko ltserial.ko $DEST  
+  }
+
+  make             &&
+  prepare_install  &&
+     make_install
+}
