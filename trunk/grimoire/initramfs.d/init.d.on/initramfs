@@ -17,66 +17,60 @@
 
 NAME="initramfs"
 
+update_lilo()  {
+  local  T="	"
 
-initramfs_update()  {
-
-  local  KBD  KEYMAPS  LIB64
-
-  local  XTR='
-\,^/lib/modules/.*/kernel/drivers/acpi/,d
-\,^/lib/modules/.*/kernel/drivers/char/watchdog/,d
-\,^/lib/modules/.*/kernel/drivers/fs/cifs/,d
-\,^/lib/modules/.*/kernel/drivers/fs/coda/,d
-\,^/lib/modules/.*/kernel/drivers/fs/nfs,d
-\,^/lib/modules/.*/kernel/drivers/hwmon/,d
-\,^/lib/modules/.*/kernel/drivers/i2c/,d
-\,^/lib/modules/.*/kernel/drivers/input/gameport/,d
-\,^/lib/modules/.*/kernel/drivers/input/joy,d
-\,^/lib/modules/.*/kernel/drivers/input/tablet/,d
-\,^/lib/modules/.*/kernel/drivers/input/touchscreen/,d
-\,^/lib/modules/.*/kernel/drivers/isdn/,d
-\,^/lib/modules/.*/kernel/drivers/media/,d
-\,^/lib/modules/.*/kernel/drivers/message/,d
-\,^/lib/modules/.*/kernel/drivers/net/,d
-\,^/lib/modules/.*/kernel/drivers/rtc/,d
-\,^/lib/modules/.*/kernel/drivers/telephony/,d
-\,^/lib/modules/.*/kernel/net/,d
-\,^/lib/modules/.*/kernel/net/ipv4/netfilter/,d
-\,^/lib/modules/.*/kernel/net/netfilter/,d
-\,^/lib/modules/.*/kernel/net/sched/,d
-\,^/lib/modules/.*/kernel/sound/,d
-'
-
-
-  update_lilo()  {
-    add_lines()  {
-      if    !  grep  -q            /boot/initrf.gz  $1
-      then     sed   -i  '1iinitrd=/boot/initrf.gz
-                          1ilarge-memory'           $1
-      fi
-    }
-
-    add_lines  /etc/lilo.conf.head
-    add_lines  /etc/lilo.conf
-    sync
-    /sbin/lilo  -P ignore
+  lm()  {
+    grep  -q     large-memory   $1  ||
+    sed   -i  '1ilarge-memory'  $1
   }
 
+  lm  /etc/lilo.conf.head
+  lm  /etc/lilo.conf
+
+  grep   -l  /boot/initrf.gz  /etc/lilo.conf  /etc/lilo.conf.head  |
+  xargs  -r  --max-lines=2  sed  -i  '\,/boot/initrf.gz,d'
+
+  find  /boot  -maxdepth 2  -mindepth 2  \
+               -type f      -name linux  \
+               -printf      '%h/initrf.gz\t%h/linux\n'  |
+  while  read   IRF  IMG;  do
+    grep  -q  "$IRF"                                     /etc/lilo.conf  ||
+    sed   -i     "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:"  /etc/lilo.conf
+  done
+
+  sync
+  /sbin/lilo  -P ignore
+}
+
+
+mkinitrf()  {
 
   gcpio()  {
-    local  OUT='\,^/dev/.udev,d;\,^/lib/modules/[^/]*\.old,d'
-    local  OLD="/boot/initrf.gz"
+    local  INC="\,/lib/modules/$1/,p"
+    local  OUT='\,^/dev/.udev,d;\,^/lib/modules/,d'
+    local  OLD="/boot/$1/initrf.gz"
     local  NEW="/tmp/initrf.gz.$RANDOM$$$RANDOM.new"
+
     echo  -n  > $NEW
     chmod 0600  $NEW
-    sed    "$OUT$XTR"  |
+
+    sed    "$INC;$OUT"  |
     if    !  cpio  -o  -H newc  --quiet;  then  rm  -f  $NEW;  return 1;  fi  |
     if    !  gzip  -1  >  $NEW;           then  rm  -f  $NEW;  return 1;  fi
     if    !  [     -s     $NEW  ];        then  rm  -f  $NEW;  return 1;  fi
+
     rm  -f    $OLD
     mv  $NEW  $OLD
   }
 
+  echo  "$EVERY"  |  gcpio   "$1"
+}
+
+
+
+every()  {
+  local  KBD  KEYMAPS  LIB64
 
   exists()  {
     while  read
@@ -84,10 +78,6 @@ initramfs_update()  {
            echo   "$REPLY"
     done
   }
-
-
-  [      -d       /media/root  ]  ||
-  mkdir  -pm 0755 /media/root
 
   if    [  -d   /usr/share/kbd/keymaps  ]
   then  KEYMAPS=/usr/share/kbd/keymaps
@@ -144,13 +134,45 @@ initramfs_update()  {
          $KBD
          1i/usr/share/terminfo
          1i/usr/share/terminfo/l
-         1i/usr/share/terminfo/l/linux"  |  exists  |  gcpio  &&
+         1i/usr/share/terminfo/l/linux"  |  exists
+}
+
+
+initrf_update()  {
+  if    [   -f  /boot/initrf.gz  ]
+  then  rm  -f  /boot/initrf.gz
+  fi
+
+  [      -d       /media/root  ]  ||
+  mkdir  -pm 0755 /media/root
+
+  local  EVERY="$(  every  )"
+
+  find  /boot  -maxdepth 2  -mindepth 2  \
+               -type f      -name linux  \
+               -printf      '%h\n'       |
+  cut  -d /  -f3                         |
+  while  read       VERSION
+  do     mkinitrf  $VERSION
+  done
   update_lilo
 }
 
-initramfs_current()  {
+
+initrf_present()  {
+  find  /boot  -maxdepth 2  -mindepth 2  \
+               -type f      -name linux  \
+               -printf      '%h\n'       |
+  while  read
+  do     [  -f  "$REPLY/initrf.gz"  ]    ||  return 1
+  done
+}
+
+
+initrf_current()  {
   local  DIRS='/bin /etc/bash.d /etc/init.d /etc/lvm /etc/modules.d'
          DIRS+=' /etc/udev /lib /sbin'
+ 
   [  -d          /lib64  ]  &&
          DIRS+=' /lib64'
 
@@ -160,14 +182,9 @@ initramfs_current()  {
 
   local  OMIT='\,/etc/init.d/log,d'
 
-  not_found() {
-    ! find "$@" -type f -newer /boot/initrf.gz  |
-    sed  "$OMIT"  |
-    grep -q .
-  }
-
-  [  -f  /boot/initrf.gz  ]  &&
-  not_found  $DIRS  $FILES
+  for  INITRF  in  /boot/*/initrf.gz
+  do   find  $DIRS  $FILES  -type f  -newer  $INITRF
+  done  |  sed  "$OMIT"  |  grep  -q .
 }
 
 
@@ -180,9 +197,12 @@ on_cd()  {
 
 
 begin()  {
-  if    on_cd  ||  initramfs_current
+  if    on_cd
   then  return
-  elif  log_warning_msg  "$NAME updating";  initramfs_update
+  elif  initrf_present  &&
+        initrf_current
+  then  return
+  elif  log_warning_msg  "$NAME updating";  initrf_update
   then  log_success_msg  "$NAME updated"
   else  log_failure_msg  "$NAME failed"
         if    [  "$1"  ==  stop  ]
