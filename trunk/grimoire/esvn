@@ -1,0 +1,25 @@
+   VERSION=( 0.6.12-1 0.6.11-1 )
+  CATEGORY='development'
+ ATTRIBUTE='x11 new'
+    SOURCE="esvn/esvn-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE='http://sourceforge.net/projects/esvn'
+       REQ=( 'qt-x11-free'
+             'kdiff3:::for external diff program' )
+  EPROVIDE='eSvn'
+  ESTIMATE='185'
+      DESC='esvn is a Qt-based GUI frontend for the Subversion revision system.'
+
+build()  {
+export   QTDIR=/usr
+export INCPATH="${INCPATH} -I/usr/include/qt -I./src"
+
+qmake  esvn.pro                 &&
+qmake  esvn-diff-wrapper.pro    &&
+make   -f esvn.mak              &&
+make   -f esvn-diff-wrapper.mak &&
+prepare_install                 &&
+make    install                 &&
+cp esvn              /usr/bin   &&
+cp esvn-diff-wrapper /usr/bin
+}

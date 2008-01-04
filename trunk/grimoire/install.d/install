@@ -479,6 +479,65 @@ get_size()  {
 }
 
 
+get_feature()  {
+  local  FEATURE
+
+  if  [  -z  "${PFEATURE[$1]}"  ];  then
+    case  "${PFILESYSTEM[$1]}"  in
+      ext*)  FEATURE="dir_index,filetype,sparse_super"  ;;
+    esac
+  fi
+  FEATURE="$(  inputbox  "Please enter optional features"  "$FEATURE"  )"
+  if    [  -n  "$FEATURE"  ]
+  then  echo   "-O	$FEATURE"
+  fi
+}
+
+
+get_check()  {
+
+  check_type()  {
+    echo  "Skip"
+    echo  "Do not check device for bad blocks"
+
+    case  "${PFILESYSTEM[$1]}"  in
+      ext*|jfs)  echo  "RO"
+                 echo  "Check for bad blocks before creating the file system"  ;;
+      swap)      if  [  "${PDEVICE[$1]:0:5}" == "/dev/"  ];  then
+                   echo  "RO"
+                   echo  "Check for bad blocks before creating the file system"
+                 fi  ;;
+      ext*)      echo  "RW"
+                 echo  "Use the slower read-write test."  ;;
+    esac
+  }
+
+
+  if    [  -z  "${PFILESYSTEM[$1]}"  ];  then
+    $DIALOG  --msgbox  "Please set filesystem type first."  8  50
+    return 1
+  elif  [  -z  "${PDEVICE[$1]}"  ];  then
+    $DIALOG  --msgbox  "Please set device first."  8  50
+    return 1
+  fi
+
+  local  TITLE="Filesystem Check Menu"
+
+  CHECK=$(  $DIALOG                     \
+              --title         "$TITLE"  \
+              --item-help               \
+              --default-item  "Skip"    \
+              --menu   ""               \
+              0 0 0                     \
+              $(  check_type  "$1"  )   )
+
+  case  $CHECK  in
+    RO)  echo  "-c"		;;
+    RW)  echo  "-c	-c"	;;
+  esac
+}
+
+
 get_dump()  {
   if    confirm  "Should it be dumped?"  "--defaultno"
   then  echo  "1"
@@ -613,6 +672,8 @@ filesystem_table()  {
          POPTIONS[$1]=""
             PDUMP[$1]=""
            PORDER[$1]=""
+         PFEATURE[$1]=""
+           PCHECK[$1]=""
     fi
   }
 
@@ -636,6 +697,8 @@ filesystem_table()  {
          POPTIONS[$1]=""
             PDUMP[$1]=""
            PORDER[$1]=""
+         PFEATURE[$1]=""
+           PCHECK[$1]=""
       false
     fi
   }
@@ -663,7 +726,7 @@ filesystem_table()  {
                         --default-item  "$WHAT"   \
                         --item-help               \
                         --menu          "$HELP"   \
-                        15 60 8                   \
+                        15 60 9                   \
                       "Device"      "${PDEVICE[$1]}"         ""  \
                       "Filesystem"  "${PFILESYSTEM[$1]}"     ""  \
                       "Mount"       "${PMOUNT[$1]}"          ""  \
@@ -671,6 +734,7 @@ filesystem_table()  {
                       "Dump"        "${PDUMP[$1]}"           ""  \
                       "Order"       "${PORDER[$1]}"          ""  \
                       "Size"        "${PSIZE[$1]}"           ""  \
+                      "Check"       "${PCHECK[$1]}"          ""  \
                       "Empty"       "All Fields"             "$EHELP"  )
         else
           COMMAND=$(  $DIALOG                     \
@@ -680,13 +744,15 @@ filesystem_table()  {
                         --default-item  "$WHAT"   \
                         --item-help               \
                         --menu          "$HELP"   \
-                        14 60 7                   \
+                        14 60 9                   \
                       "Device"      "${PDEVICE[$1]}"         ""  \
                       "Filesystem"  "${PFILESYSTEM[$1]}"     ""  \
                       "Mount"       "${PMOUNT[$1]}"          ""  \
                       "Options"     "${POPTIONS[$1]}"        ""  \
                       "Dump"        "${PDUMP[$1]}"           ""  \
                       "Order"       "${PORDER[$1]}"          ""  \
+                      "Feature"     "${PFEATURE[$1]}"        ""  \
+                      "Check"       "${PCHECK[$1]}"          ""  \
                       "Empty"       "All Fields"             "$EHELP"  )
         fi
       do
@@ -698,15 +764,19 @@ filesystem_table()  {
           Options)        POPTIONS[$1]=$(  get_options      "$1"  )	;;
           Dump)              PDUMP[$1]=$(  get_dump         "$1"  )	;;
           Order)            PORDER[$1]=$(  get_check_order  "$1"  )	;;
-          Size)              PSIZE[$1]=$(  get_size         "$1"  )     ;;
+          Size)              PSIZE[$1]=$(  get_size         "$1"  )	;;
+          Feature)        PFEATURE[$1]=$(  get_feature      "$1"  )	;;
+          Check)            PCHECK[$1]=$(  get_check        "$1"  )	;;
         esac
 
-        if    [  "${PFILESYSTEM[$1]}"  ==  "swap"  ]
-        then             PMOUNT[$1]="none"
-                       POPTIONS[$1]="default"
-                          PDUMP[$1]="0"
-                         PORDER[$1]="0"
-        fi
+        case  "${PFILESYSTEM[$1]}"  in
+          swap)     PDUMP[$1]="0"
+                   PMOUNT[$1]="none"
+                 POPTIONS[$1]="default"
+                   PORDER[$1]="0"  ;;
+          ext*)  PFEATURE[$1]="${PFEATURE[$1]:--O	dir_index,filetype,sparse_super}"  ;;
+        esac
+
       done
       check_pentry  "$1"  &&
       PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
@@ -777,26 +847,6 @@ Up and Down arrows navigate.  Space toggles.  Enter proceeds."
 }
 
 
-check_partition()  {
-  local  PROMPT
-  PROMPT="Check for errors?"
-
-  case  ${PFILESYSTEM[$1]}  in
-    ext2|ext3|jfs)
-      if    confirm  "$PROMPT"  "--defaultno"
-      then  echo     "-c";
-      fi    ;;
-    swap)
-      if    [  "${PDEVICE[$1]:0:5}" == "/dev/"  ]  &&
-            confirm  "$PROMPT"  "--defaultno"
-      then  echo     "-c";
-      fi    ;;
-    *)
-      true  ;;
-  esac
-}
-
-
 installed_fs()  {
 
   check_jfs()  {
@@ -856,6 +906,8 @@ filesystem_table_load()  {
           PDUMP[$CX]=""    
          PORDER[$CX]=""    
           PSIZE[$CX]=""    
+       PFEATURE[$CX]=""
+         PCHECK[$CX]=""
   done
 }
 
@@ -863,21 +915,17 @@ filesystem_table_load()  {
 get_mk_command()  {
   file_or_part()  {
     case  ${PDEVICE[$1]:0:5}  in
-      /dev/)  echo  "mkswap	$CHECK	${PDEVICE[$1]}"		;;
-          *)  echo  "dd	of=$TARGET${PDEVICE[$1]}	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET${PDEVICE[$1]}	&&${LF}chmod	0000	$TARGET${PDEVICE[$1]}"  ;;
+      /dev/)  echo  "mkswap	${PCHECK[$1]}	${PDEVICE[$1]}"		;;
+          *)  echo  "dd	of=$TARGET${PDEVICE[$1]}	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET${PDEVICE[$1]}	&&${LF}chmod	0	$TARGET${PDEVICE[$1]}"  ;;
     esac
   }
 
-  local  CHECK
-
-  CHECK=$(  check_partition  "$1"  )
-
   case  ${PFILESYSTEM[$1]}  in
-        ext3)  echo  "mkfs.ext3	$CHECK	${PDEVICE[$1]}"		;;
-        ext2)  echo  "mkfs.ext2	$CHECK	${PDEVICE[$1]}"		;;
+        ext2)  echo  "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}"		;;
+        ext*)  echo  "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}"		;;
     reiserfs)  echo  "mkreiserfs	-f	${PDEVICE[$1]}"	;;
          xfs)  echo  "mkfs.xfs	-f	${PDEVICE[$1]}"		;;
-         jfs)  echo  "jfs_mkfs	-q	$CHECK	${PDEVICE[$1]}"	;;
+         jfs)  echo  "jfs_mkfs	-q	${PCHECK[$1]}	${PDEVICE[$1]}"	;;
         swap)  file_or_part  "$1"  ;;
  esac
 }
