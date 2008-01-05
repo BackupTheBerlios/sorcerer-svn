@@ -1,14 +1,157 @@
-# LSB-compliant init.d scripts for use with the distribution sorcerer only!
 # Copyright Kyle Sallee 2005, 2006, 2007, 2008.  All rights reserved.
+# init-scripts spell for configuring optional init-script execution and
+# LSB-compliant init.d scripts for use with the distribution sorcerer only!
 
-   VERSION=( 20080102-3 )
+   VERSION=( 20080105-0 )
   CATEGORY='administration/boot profile'
  ATTRIBUTE='archive_off console'
   HOMEPAGE='http://sorcerer.silverice.org'
   ESTIMATE='3'
        REQ=( 'coreutils grep init-functions sed util-linux'
              ':--localtime:--utc::Hardware clock uses localtime' )
-      DESC='init-scripts provides several important scripts used during boot and shutdown.'
+      DESC='init-scripts provides several important scripts used during boot and shutdown.
+
+During boot init scripts are automatically executed
+in proper order with the parameter of start.
+During shutdown the same init scripts are automatically executed
+in proper order with the parameter of stop.
+Without init-scripts booting and shutdown
+is slow complex and requires human interaction.
+
+Some of the init scripts installed in /etc/init.d/
+will always be mode 0700 which indicates that
+they are run automatically during boot and shutdown.
+However, for some init scripts the possibility of
+not automatically starting and stopping exists.
+Those init scripts can have either mode 0700 or 0600.
+Mode 0600 prevents automatic execution of the init script.
+
+The selection of init scripts for automatic execution
+is normally done during the cast of a spell that installs the init scripts.
+However, by casting init-scripts the SA can
+properly change the automatic start status of init
+scripts of installed spells for init scripts that
+may be have optionally off automatic execution.
+
+init-scripts correctly updates sorcery configuration logs.
+Selected change become permanent.
+init-scripts invokes /lib/lsb/install_initd.
+/lib/lsb/install_initd updates symbolic links to init scripts.'
+
+
+configure()  {
+
+desc()  {
+  local  DESC="$(  grep  Short-Description  /etc/init.d/$1  |
+                   cut  -d :  -f2-  )"
+  echo  "${DESC:-No Description}"
+}
+
+
+checklist()  {
+  common()  {
+    while  read  SPELL     INIT;  do
+      echo     "$SPELL$TAB$INIT"
+      echo     "Optional"
+      echo     "$1"
+      desc               "$INIT"
+    done
+  }
+
+   export  IFS="$STANDARD_IFS"
+   [  -n   "$ON_INITS"  ]  &&  echo   "$ON_INITS"  |  common  on
+   [  -n  "$OFF_INITS"  ]  &&  echo  "$OFF_INITS"  |  common  off
+}
+
+
+select_inits()  {
+  export  IFS="$ENTER_IFS"
+  BACKTITLE=$"init-scripts Configuration Menu"
+      TITLE=$"Optionally automatically executing init-scripts"
+       HELP=$"[*]=on  [ ]=off"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --separate-output          \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --item-help                \
+          --checklist  "$HELP"       \
+          0 0 0                      \
+          $(  checklist  )
+}
+
+
+toggle()  {
+  while  read  SPELL  INIT;  do
+    sed  -i  "/^$INIT$/d"   $1/$SPELL
+    echo     "$INIT"  >>    $2/$SPELL
+    chmod  $3  /etc/init.d/$INIT
+  done
+}
+
+
+make_off()  {  toggle   $BOOT_ON_LOGS  $BOOT_OFF_LOGS  0600;  }
+make_on()   {  toggle  $BOOT_OFF_LOGS   $BOOT_ON_LOGS  0700;  }
+
+
+make_it_so()  {
+  off()  {
+    [  -n  "$NEW_INITS"  ]  &&  echo  "$NEW_INITS"
+    [  -n  "$ON_INITS"   ]  &&  echo   "$ON_INITS"
+  }
+
+  on()  {
+    [  -n  "$NEW_INITS"  ]  &&  echo  "$NEW_INITS"
+    [  -n  "$ON_INITS"   ]  &&  echo   "$ON_INITS"  |  sed  p
+  }
+
+  if    [  "$NEW_INITS"  ==  "$ON_INITS"  ]
+  then  return
+  fi
+
+  off  |  LC_ALL=C  sort  |  uniq  -u  |  make_off
+  on   |  LC_ALL=C  sort  |  uniq  -u  |  make_on
+# /lib/lsb/install_initd
+}
+
+
+all_inits()  {
+  grep  -r  /etc/init.d/  $INSTALL_LOGS     |
+  sed       "s:$INSTALL_LOGS/::
+             s,:/etc/init.d/,$TAB,"         |
+  while  read  SPELL  INIT;  do
+    [  -f  $GRIMOIRE/$SPELL.d/init.d/$INIT  ]  &&
+    echo            "$SPELL$TAB$INIT"
+  done
+}
+
+
+on_inits()  {
+  echo            "$ALL_INITS"  |
+  while  read    SPELL  INIT;  do
+    [  -x  /etc/init.d/$INIT  ]  &&
+    echo    "$SPELL$TAB$INIT"
+  done
+}
+
+off_inits()  {
+  (  [  -n  "$ALL_INITS"  ]  &&  echo  "$ALL_INITS"
+     [  -n   "$ON_INITS"  ]  &&  echo   "$ON_INITS"
+  )  |  LC_ALL=C  sort  |  uniq  -u
+}
+
+  if    query  "Toggle automatic execution of all optional init-scripts?"  n
+  then
+    ALL_INITS="$(     all_inits  )"
+     ON_INITS="$(      on_inits  )"
+    OFF_INITS="$(     off_inits  )"
+    NEW_INITS="$(  select_inits  )"
+  else  false
+  fi    &&  make_it_so
+}
+
 
 build()  {
   if    echo  "$OPTS"  |  grep  -q  "\--localtime"
