@@ -1,32 +1,37 @@
-    VERSION=( 3.2 3.1 2.7 )
-   CATEGORY='data science library'
-  ATTRIBUTE='new library'
-     SOURCE="cdf${VERSION:0:1}${VERSION:2:1}/linux/cdf${VERSION:0:1}${VERSION:2:1}-dist-all.tar.gz"
+# Even if the website says version 3.2
+# Both the directory name and tarball name have 32
+# Therefore, the released version of cdf is 32 :p
+    VERSION=( 32 )
+   CATEGORY='data science'
+  ATTRIBUTE='library new'
+     SOURCE="cdf$VERSION/linux/cdf${VERSION}-dist-all.tar.gz"
    HOMEPAGE='http://cdf.gsfc.nasa.gov/'
         URL='ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/'
-	REQ=( "ncurses"
-              "jdk:-java_api::to make CDF Java API available"
-              "xerces-j:::to enable CDFML, i.e. dumping CDF to XML"
-            )
+	REQ=( 'ncurses'
+              'jdk:-java_api::to make CDF Java API available'
+              'xerces-j:::to enable CDFML, i.e. dumping CDF to XML' )
    ESTIMATE='230'
-       DESC="cdf is a library for CDF data format
-cdf is a library for the Common Data Format (CDF) created
-by National Space Science Data Center (NSSDC). CDF is 
-self-describing data abstraction for the storage and 
-manipulation of multidimensional data in a discipline-
-independent fashion. Although CDF has its own internal 
-self describing format, it consists of more than just a 
-data format. CDF is a scientific data management package 
-(known as the \"CDF Library\") which allows programmers
- and application developers to manage and manipulate scalar, 
-vector, and multi-dimensional data arrays. The irony of 
-the term \"FORMAT\" is that the actual data format which 
-CDF utilizes is completely transparent to the user and 
-accessible through a consistent set of interface (known 
-as the \"CDF Interface\") routines. Therefore, programmers 
-are not burdened with performing low level I/Os to 
-physically format and unformat the data file. 
-"
+       DESC='cdf is a library for CDF data format
+cdf is a library for the Common Data Format (CDF)
+created by National Space Science Data Center (NSSDC).
+CDF is self-describing data abstraction for the storage
+and manipulation of multidimensional data
+in a discipline independent fashion.
+Although CDF has its own internal self describing format,
+it consists of more than just a data format.
+CDF is a scientific data management package 
+(known as the CDF Library)
+which allows programmers and application developers
+to manage and manipulate scalar, vector,
+and multi-dimensional data arrays.
+The irony of the term FORMAT is that the actual data format
+which CDF utilizes is completely transparent to the user
+and accessible through a consistent set of interface
+(known as the CDF Interface) routines.
+Therefore, programmers are not burdened with performing
+low level I/Os to physically format and unformat the data file.'
+
+build() {
 
 make_java_api() {
   if echo $OPTS | grep -q java_api ; then
@@ -84,33 +89,26 @@ install_java_api() {
   fi
 }
 
-function build() {
   INSTALLDIR=/usr
 
   case $VERSION in
-   2.7) DEFS=src/definitions/definitions
-        LINE=$( grep -n "^export CDF_BASE" $DEFS.B | cut -d ":" -f 1 )
-        sed  -i "${LINE},${LINE}d"	$DEFS.B
-        sed  -i "${LINE}iexport CDF_BASE; CDF_BASE=$INSTALLDIR"	$DEFS.B
-        LINE=$( grep -n "^setenv CDF_BASE" $DEFS.C | cut -d ":" -f 1 )
-        sed  -i "${LINE},${LINE}d"	$DEFS.C
-        sed  -i "${LINE}isetenv CDF_BASE $INSTALLDIR"	$DEFS.C
-        LINE=$( grep -n "^export CDF_BASE" $DEFS.K | cut -d ":" -f 1 )
-        sed  -i "${LINE},${LINE}d"	$DEFS.K
-        sed  -i "${LINE}iexport CDF_BASE=$INSTALLDIR"	$DEFS.K
-	;;
+    2.7)  DEFS=src/definitions/definitions
+          LINE=$( grep -n "^export CDF_BASE" $DEFS.B | cut -d ":" -f 1 )
+          sed  -i "${LINE},${LINE}d"	$DEFS.B
+          sed  -i "${LINE}iexport CDF_BASE; CDF_BASE=$INSTALLDIR"  $DEFS.B
+          LINE=$( grep -n "^setenv CDF_BASE" $DEFS.C | cut -d ":" -f 1 )
+          sed  -i "${LINE},${LINE}d"	$DEFS.C
+          sed  -i "${LINE}isetenv CDF_BASE $INSTALLDIR"	$DEFS.C
+          LINE=$( grep -n "^export CDF_BASE" $DEFS.K | cut -d ":" -f 1 )
+          sed  -i "${LINE},${LINE}d"	$DEFS.K
+          sed  -i "${LINE}iexport CDF_BASE=$INSTALLDIR"	$DEFS.K  ;;
   esac
-		
-  make  OS=linux ENV=gnu all		&&
-  make_java_api				&&
-  make  test				&&
-  prepare_install			&&
-  make  INSTALLDIR=/usr install		&&
+
+  make  OS=linux ENV=gnu all  &&
+  make_java_api               &&
+  make    test                &&
+  prepare_install             &&
+  make    install             \
+          INSTALLDIR=/usr     &&
   install_java_api
 }
-
-post_install() {
-  ldconfig
-  default_post_install
-}
-# Origin grimoire

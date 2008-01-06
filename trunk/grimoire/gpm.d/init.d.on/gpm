@@ -1,0 +1,67 @@
+#!/bin/sh
+
+### BEGIN INIT INFO
+# Provides: gpm
+# Required-Start: $local_fs run
+# Required-Stop: $local_fs
+# Default-Start:  2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: gpm
+# Description: gpm
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# Modify to match your setup.
+MOUSE="ps2"             # Your mouse type, eg. "ps2"
+DEV="/dev/input/mice"   # Mouse device, eg. "dev/mouse" 
+
+NAME="gpm"
+SERV="/usr/sbin/gpm"
+OPTS="-m $DEV -t $MOUSE"
+PIDF="/var/run/gpm.pid"
+
+start()  {
+  if    log_warning_msg  "$NAME starting"; start_daemon -p $PIDF $SERV $OPTS
+  then  log_success_msg  "$NAME started"
+  else  log_failure_msg  "$NAME not started"
+        status
+  fi
+}
+
+stop() {
+  if    log_warning_msg "$NAME stopping"; killproc -p $PIDF -s 15 $SERV
+  then  log_success_msg "$NAME stopped"
+  else  log_failure_msg "$NAME not stopped"; status
+  fi
+}
+
+stop_old() {
+  log_warning_msg "$NAME stopping"
+  $SERV -k &> /dev/null
+  log_success_msg "$NAME stopped"
+}
+
+status()  {
+  PIDS="$( pidofproc -p $PIDF $SERV )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+}
+
+help()  {
+  echo  "Usage:  $0  {start|stop|status|restart}"
+}
+
+restart()      {  stop  &&  sleep  1;  start;  }
+try_restart()  {  status  &>/dev/null  &&  restart;  }
+
+case $1 in
+        start)        start  ;;
+      restart)      restart  ;;
+  try-restart)  try_restart  ;;
+       status)  status       ;;
+         stop)  stop         ;;
+            *)  help         ;;
+esac
