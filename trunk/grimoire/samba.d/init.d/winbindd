@@ -18,40 +18,6 @@ PIDF=/var/run/winbindd.pid
 SERV=/usr/sbin/winbindd
 NAME=winbindd
 
-status()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
-}
-
-start()  {
-  log_warning_msg  "$NAME starting"
-  if    start_daemon     -p $PIDF $SERV
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        status
-  fi
-}
-
-stop()  {
-  log_warning_msg "$NAME stopping"
-  if    killproc        -p $PIDF -s 15  $SERV
-  then  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
-}
-
-restart() {  stop  &&  sleep  1;  start;  }
-
-try_restart() {
-  status  &&  restart
-  return 0
-}
-
 reload()  {
   PIDS="$( pidofproc -p $PIDF $SERV )"
   if    [ -n            "$PIDS" ]

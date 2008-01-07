@@ -1,0 +1,28 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: ICE-unix
+# Required-Start: $local_fs
+# Should-Start: tmp
+# Required-Stop: 
+# Default-Start: 1 2 3 4 5
+# Default-Stop:
+# Short-Description: ICE-unix creates /tmp/.ICE-unix
+# Description: ICE-unix creates /tmp/.ICE-unix
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME='ICE-unix'
+
+start() {
+ mk() { mkdir -p /tmp/.ICE-unix; chmod 1777 /tmp/.ICE-unix; }
+
+ if   [ -d /tmp/.ICE-unix ]; then return; fi
+ if   log_warning_msg "$NAME creating"; mk
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; return 1
+ fi
+}
+
+parse $1

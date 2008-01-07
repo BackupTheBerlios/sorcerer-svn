@@ -16,52 +16,40 @@
 NAME=udev
 PIDF=/var/run/udev.pid
 SERV=/sbin/udevd
+OPTS='--daemon'
 
-status() {
-# PIDS="$( pidofproc -p $PIDF $SERV )"
-  PIDS="$( pidof -s udevd )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
+start() {
+ tmpfs_dev() {
+  local OPTIONS='nr_inodes=4096,size=1m,mode=0755'
+  if    !  [   -d           /dev  ]
+  then  mkdir  -p  -m 0755  /dev
+  fi  &&
+  mount  -o $OPTIONS  -t tmpfs  tmpfs  /dev  &&
+  if    [   -d  /lib/udev/dev  ]
+  then  cp  -a  /lib/udev/dev/*  /dev
   fi
+ }
+
+ if   status &>/dev/null
+ then log_warning_msg "$NAME restarting"; killproc -s 15 "$SERV"
+ else log_warning_msg "$NAME starting"; tmpfs_dev
+ fi
+
+ start_daemon -p $PIDF $SERV $OPTS
+ /sbin/udevtrigger
+ /sbin/udevsettle --timeout=60
+
+ if   status  &>/dev/null
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"
+ fi
 }
 
+help() { echo "Usage: $0 {start|status}" 1>&2; }
 
-start()  {
-  tmpfs_dev()  {
-    local  OPTIONS='nr_inodes=4096,size=1m,mode=0755'
-    if    !  [   -d           /dev  ]
-    then  mkdir  -p  -m 0755  /dev
-    fi  &&
-    mount  -o $OPTIONS  -t tmpfs  tmpfs  /dev  &&
-    if    [   -d  /lib/udev/dev  ]
-    then  cp  -a  /lib/udev/dev/*  /dev
-    fi
-  }
-
-  if    status &>/dev/null
-  then  log_warning_msg  "$NAME restarting";  kill  -s 15   $PIDS
-# then  log_warning_msg  "$NAME restarting";  killproc  -p  $PIDF  -s 15  $SERV
-  else  log_warning_msg  "$NAME starting";    tmpfs_dev
-  fi
-
-  start_daemon  -p  $PIDF  $SERV  --daemon
-  ## /var/run not mounted on initramfs when udev runs during sysinit
-  # pidof  udevd   >  $PIDF
-  /sbin/udevtrigger
-  /sbin/udevsettle  --timeout=60
-
-  if    status  &>/dev/null
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-  fi
-}
-
-help()  {  echo "Usage: $0 {start|status}" 1>&2;  }
-
-case  $1  in
-        start)  start   ;;
-  try-restart)  start   ;;
-       status)  status  ;;
-            *)  help    ;;
+case $1 in
+       start) start  ;;
+ try-restart) start  ;;
+      status) status ;;
+           *) help   ;;
 esac

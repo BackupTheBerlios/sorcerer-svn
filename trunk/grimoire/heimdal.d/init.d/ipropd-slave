@@ -12,36 +12,10 @@
 
 . /lib/lsb/init-functions
 
-PIDF="/var/run/ipropd-slave.pid"
-SERV="/usr/libexec/ipropd-slave"
-NAME="ipropd-slave"
-
-status() {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
-}
-
-start() {
-  log_warning_msg  "$NAME starting"
-  if    start_daemon     -p $PIDF $SERV --detach
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        status
-  fi
-}
-
-stop() {
-  log_warning_msg "$NAME stopping"
-  if    killproc        -p $PIDF -s 15  $SERV
-  then  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
-}
+PIDF=/var/run/ipropd-slave.pid
+SERV=/usr/libexec/ipropd-slave
+NAME=ipropd-slave
+OPTS='--detach'
 
 reload() {
   PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -49,13 +23,6 @@ reload() {
   then  kill  -s SIGHUP  $PIDS  &&
         log_success_msg "$NAME configuration reloaded"
   fi
-}
-
-restart() {  stop  &&  sleep  1;  start;  }
-
-try_restart() {
-  status  &&  restart
-  return 0
 }
 
 help() {

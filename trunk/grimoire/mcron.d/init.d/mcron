@@ -16,63 +16,20 @@ SOCK=/var/cron/socket
 PIDF=/var/run/cron.pid
 SERV=/usr/sbin/cron
 NAME=mcron
-
-status()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
-}
-
-
-clear_socket() {
-  if    !  status  &>/dev/null
-  then     rm  -f  $SOCK
-  fi
-}
+OPTS='-n'
 
 start()  {
-  export  TERM="dumb"
-  log_warning_msg  "$NAME starting"
-  clear_socket
-# if    start_daemon     -p $PIDF $SERV -n
-# cron goes into background fine,
-# but does not detach from terminal
-  if    start_daemon     -p $PIDF $SERV -n  &>/dev/null
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        status
+ clear_socket() {
+  if   ! status  &>/dev/null
+  then   rm -f $SOCK
   fi
+ }
+
+ export TERM="dumb"
+ if    log_warning_msg  "$NAME starting"; clear_socket; start_daemon-p $PIDF $SERV $OPTS &>/dev/null
+ then  log_success_msg  "$NAME started"
+ else  log_failure_msg  "$NAME not started"; status
+ fi
 }
 
-stop()  {
-  log_warning_msg "$NAME stopping"
-  if    killproc        -p $PIDF -s 15  $SERV
-  then  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
-}
-
-restart() {  stop  &&  sleep  1;  start;  }
-
-try_restart() {
-  status  &&  restart
-  return 0
-}
-
-help()  {
-  echo "Usage: $0 {restart|try-restart|force-reload|start|status|stop}" 1>&2
-}
-
-case  $1  in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-  force-reload)      restart  ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse

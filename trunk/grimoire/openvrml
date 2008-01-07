@@ -1,25 +1,16 @@
-   VERSION=(          0.16.4 0.16.3 0.16.2 0.16.1 0.16.0 )
+# This uses over 1.5G of memory while merely invoking cc1plus
 
-#  VERSION=( 0.16.7 0.16.6 0.16.5 0.16.4 0.16.3 0.16.2 0.16.1 0.16.0 )
-# Version 0.16.5 same for 0.16.6 same for 0.16.7
-# checking for boost_thread library... no
-# configure: error: libboost_thread not found
-    IGNORE='^0\.16\.[0-1]'
-# 0.16.4 requires too much RAM during compile to test
-# 0.16.1 has compile error
-# 0.16.0 0.15.9 have odd ./configure error.
-# configure: error: The Java Native Interface is required for Script node Java support.
-# If it persists in 0.16.0 or 0.15.10 I will investigate.
+   VERSION=( 0.17.1 0.16.4 0.16.3 0.16.2 0.16.1 0.16.0 )
   CATEGORY='graphic'
- ATTRIBUTE='library'
+ ATTRIBUTE='library solo'
     SOURCE="openvrml/openvrml-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://openvrml.sourceforge.net'
        REQ=( 'SDL boost glut gtkglext'
              'doxygen::--without-doxygen --disable-api-docs:for documentation generation'
              'mozilla::--disable-mozilla-plugin:for mozilla openvrml plugin' )
-##            'j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node' )
-#             'jdk:--with-jdk=/opt/jdk/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node'
+##           'j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node' )
+#            'jdk:--with-jdk=/opt/jdk/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node'
 # java support broken?
       OPTS='--disable-script-node-javascript --disable-script-node-java'
   ESTIMATE='574'
@@ -42,14 +33,17 @@ JDK_LIB='-L/opt/jdk/jre/lib/i386/server'
 # BST_INC='-I/usr/include/boost-1_33_1'
 BST_INC='-I/usr/include/boost'
 
-export    CFLAGS="$CFLAGS   $JDK_INC   $MOZ_INC  $BST_INC"
-export  CXXFLAGS="$CXXFLAGS $JDK_INC   $MOZ_INC  $BST_INC"
-export   LDFLAGS="$LDFLAGS  $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
+export    CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+export  CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+export   LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
 
 #            --without-jdk           \
 #            --without-spidermonkey  \
 
 sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
+
+grep  -rl  boost_thread  *  |
+xargs -r  --max-lines=64  sed  -i  "s:boost_thread:boost_thread-gcc42-mt:g"
 
 default_build
 }

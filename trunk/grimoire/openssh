@@ -72,19 +72,27 @@
             ftp://ftp.tux.org/bsd/openbsd/OpenSSH/portable/
             ftp://mirror.cs.wisc.edu/pub/mirrors/OpenBSD/OpenSSH/portable/'
   HOMEPAGE='http://www.openssh.com/'
+
 ## Do _NOT_ remove tcp_wrappers - people can rely on this feature and 
 ## it can be a serious security problem if it suddenly stops working !!!
+
+### The person who wrote the above two lines should:
+### Use iptables for proper firwalling
+### instead of using tcp_wrappers
+### because tcp_wrappers is an ancient hack
+### for operating systems that lack proper firewalling support
+
        REQ=( 'init-functions openssl zlib'
              'Linux-PAM:--with-pam::for pluggable authentication' 
              'tcp_wrappers:--with-tcp-wrappers::for an optional method of controlling ssh access' )
    PROTECT='/etc/ssh'
    EXCLUDE='/var/empty'
   ESTIMATE='1060'
-      DESC="openssh is a client and server for encrypted remote logins and file transfers.
-openssh is a Unix/Linux port of OpenBSD's excellent OpenSSH.
-OpenSSH is a full implementation of the SSH1 protocol and
-a 99% implementation of the SSH 2 protocol, including sftp
-client and server support."
+      DESC='openssh is a client and server for encrypted remote logins and file transfers.
+openssh is a Unix/Linux port of the OpenBSD openssh.
+openssh is a full implementation of the SSH1 protocol
+and a 99% implementation of the SSH 2 protocol,
+including sftp client and server support.'
 
 build() {
 
@@ -103,7 +111,7 @@ make    install
 }
 
 
-post_install()  {
+post_install_old()  {
   default_post_install
   sleep 1
   if    [  -x  /etc/init.d/sshd  ]
