@@ -4,13 +4,67 @@
     SOURCE="gpm-$VERSION.tar.bz2"
        URL='http://linux.schottelius.org/gpm/archives/'
   HOMEPAGE='http://linux.schottelius.org/gpm/'
- CONFLICTS="imwheel"
+ CONFLICTS='imwheel'
        REQ='init-functions ncurses'
   ESTIMATE='200'
       DESC='gpm is a mouse server for the console'
 
+configure() {
+
+mouse_menu()  {
+ BACKTITLE=$"gpm Configuration Menu"
+     TITLE=$"Mouse Selection"
+      HELP=$"Please select the mouse protocol"
+
+ dialog  --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --menu  "$HELP"            \
+         0 0 0                      \
+         $(< $SCRIPT_DIR/mice )
+}
+
+dev_menu() {
+ BACKTITLE=$"gpm Configuration Menu"
+     TITLE=$"Device node Selection"
+      HELP=$"Please select the mouse device node"
+
+ dialog  --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --default-item /dev/psaux  \
+         --menu  "$HELP"            \
+         0 0 0                      \
+         $( find /dev -type c | sed "adev" )
+}
+
+ if   ! grep -qs MOUSE= $SPELL_CONFIG ||
+      ! grep -qs DEV=   $SPELL_CONFIG
+ then
+  ( export IFS=$'	\n'
+    MOUSE="$( mouse_menu )"
+      DEV="$( dev_menu   )"
+  )
+  if   [ -n "$MOUSE" ] &&
+       [ -n "$DEV"   ]
+  then echo "MOUSE=$MOUSE" >> $SPELL_CONFIG
+       echo "DEV=$DEV"     >> $SPELL_CONFIG
+  fi
+ fi
+}
+
 build() {
-  sed  -i  "s:doc contrib:contrib:"      Makefile.in
-  sed  -i  "40iLIBS  = -lm"          src/Makefile.in
-  default_build
+ if    [ -n "$MOUSE" ] &&
+       [ -n "$DEV"   ]; then
+  sed  -i  "s:MOUSE=.*:MOUSE=$MOUSE:
+            s:DEV=.*:DEV=$DEV:"  $SCRIPT_DIR/init.d/gpm
+ fi
+
+ sed -i "s:doc contrib:contrib:"     Makefile.in
+ sed -i "40iLIBS  = -lm"         src/Makefile.in
+ default_build
 }
