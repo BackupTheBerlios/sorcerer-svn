@@ -1,6 +1,4 @@
-   VERSION=( 0.9.0 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0 )
-#  VERSION=(         0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0 )
-# 0.9.0 has compile error
+   VERSION=( 0.9.1 0.9.0 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0 )
   CATEGORY='development/emulator'
  ATTRIBUTE='x11'
     SOURCE="qemu-$VERSION.tar.gz"
@@ -8,10 +6,11 @@
       VURL='http://fabrice.bellard.free.fr/qemu/download.html'
   HOMEPAGE='http://fabrice.bellard.free.fr/qemu/'
        REQ=( 'SDL'
-             'alsa-lib:--enable-alsa:--disable-alsa:for audio output through alsa drivers'
-             ':--enable-adlib:--disable-adlib:for adlib and midi emulation support' )
+             'alsa-lib:--enable-alsa::for audio output through alsa drivers'
+             ':--enable-adlib::for adlib and midi emulation support' )
       OPTS='--disable-gcc-check'
 case  $VERSION  in
+  0.9.1)  USE_GCC='gcc-v3.4'  ;;
   0.9.0)  USE_GCC='gcc-v3.4'  ;;
 #  0.9.*)  USE_GCC='gcc-v3.4.3'  ;;
 # ; OPTS+=' --disable-system'  ;;
@@ -32,10 +31,22 @@ xargs -r --max-lines=64  sed  -i  's:-g -fno-strict-aliasing:-fno-strict-aliasin
 # grep  -rl              '\-Wall -O2'  *  |
 # xargs -r --max-lines=64  sed  -i  's:-Wall -O2::'
 
+case  $HOSTTYPE  in
+ x86_64) : ;;
+      *) grep  -lr        '\-Wall -O2' * |
+         xargs -r sed -i "s:-Wall -O2:-O2 -march=i586:" ;;
+esac
+
 unset  CFLAGS
 unset  CXXFLAGS
 
 export  CCACHE_DISABLE=1
 export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
-  default_build
+
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
 }

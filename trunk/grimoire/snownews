@@ -1,18 +1,24 @@
-   VERSION=( 1.5.7 )
-    IGNORE="web"
+   VERSION=( 1.5.8 1.5.7 )
+    IGNORE='web'
   CATEGORY='network/rss'
  ATTRIBUTE='server console new'
     SOURCE="snownews-$VERSION.tar.gz"
        URL='http://kiza.kcore.de/software/snownews/download/'
   HOMEPAGE='http://kiza.kcore.de/software/snownews/'
        REQ='libxml2 ncurses'
-  ESTIMATE='38'
-      DESC="snownews is a text mode RSS/RDF newsreader.
+  ESTIMATE='80'
+      DESC='snownews is a text mode RSS/RDF newsreader.
 It supports all versions of RSS natively,
-and other feed formats via plugins."
+and other feed formats via plugins.'
 
 build()  {
-  grep   -lr  "\-lintl"   *  |  xargs  --max-lines=64  sed  -i  "s:-lintl::g"
-  grep   -lr  "\-liconv"  *  |  xargs  --max-lines=64  sed  -i  "s:-liconv::g"
-  default_build
+ grep -lr "\-lintl"  * | xargs --max-lines=64 sed -i "s:-lintl::g"
+ grep -lr "\-liconv" * | xargs --max-lines=64 sed -i "s:-liconv::g"
+
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
 }
