@@ -2,10 +2,10 @@
 
 ### BEGIN INIT INFO
 # Provides: modprobe
-# Required-Start:
-# Should-Start: udev
+# Required-Start: sys
+# Should-Start:
 # Required-Stop:  
-# Default-Start: 1 2 3 4 5
+# Default-Start: S
 # Default-Stop:
 # Short-Description: modprobe loads modules during boot
 # Description: modprobe loads modules specified in /etc/modules during boot
@@ -13,23 +13,25 @@
 
 . /lib/lsb/init-functions
 
-start()  {
-  if    [  -f  /etc/modules  ];  then
-    log_warning_msg  'Modules loading'
-    while  read  MODULE ARGS;  do
-      case  $MODULE in
-        \#*|"")  continue  ;;
-      esac
-      modprobe  -v  $MODULE  $ARGS
-    done  < /etc/modules
-    log_success_msg  'Modules loaded'
-  fi
+mp(){
+ if   [ -f          /etc/modules ]
+ then sed "s:#.*::" /etc/modules /sys/bus/pci/devices/*/modalias
+ else cat                        /sys/bus/pci/devices/*/modalias
+ fi |
+ while read
+ do modprobe $REPLY
+ done
 }
 
-help() { echo "Usage: $0 {start}" 1>&2; }
+start(){
+ log_warning_msg 'Modules loading'; mp
+ log_success_msg 'Modules loaded'
+}
 
-case  $1  in
-  start)  start  ;;
-try-restart)  :  ;;
-      *)  help   ;;
+help(){ echo "Usage: $0 {start}" 1>&2;}
+
+case $1 in
+  start) start ;;
+try-restart) : ;;
+      *) help  ;;
 esac
