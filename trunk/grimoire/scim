@@ -1,18 +1,30 @@
    VERSION=( 1.4.7 1.4.6 1.4.5 )
-    IGNORE="anthy\|bridge\|canna\|ccinput\|fcitx\|hangul\|input-pad\|m17n\|pinyin\|prime\|qtimm\|sinhala\|skk\|tables\|tomoe\|uim\|wnn\|itar\|ark"
+    IGNORE='anthy\|bridge\|canna\|ccinput\|fcitx\|hangul\|input-pad\|m17n\|pinyin\|prime\|qtimm\|sinhala\|skk\|tables\|tomoe\|uim\|wnn\|itar\|ark'
   CATEGORY='input'
  ATTRIBUTE='console library x11'
     SOURCE="scim/scim-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://www.scim-im.org/'
-       REQ=( ""
-             "gtk+::--disable-gtk2-immodule --disable-panel-gtk:for gtk tools and immodule" )
+       REQ=( ''
+             'gtk+::--disable-gtk2-immodule --disable-panel-gtk:for gtk tools and immodule' )
   ESTIMATE='5500'
-      DESC="scim is the smart common input method.
-it provides a user friendly, full featured input method."
+      DESC='scim is the smart common input method.
+it provides a user friendly, full featured input method.'
 
-build()  {
-  default_build  &&
-  ldconfig       &&
+build(){
+ extra_install(){
+  ldconfig
   gtk-query-immodules-2.0 > /etc/gtk-2.0/gtk.immodules
+  mkdir   -p                       /etc/bash.d/interactive
+  install -m 0755 $SCRIPT_DIR/scim /etc/bash.d/interactive
+ }
+
+ default_build &&
+   extra_install
+}
+
+current(){
+ case $VERSION in
+  1.4.7) [ -f /etc/bash.d/interactive/scim ] ;;
+ esac
 }
