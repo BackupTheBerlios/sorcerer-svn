@@ -17,11 +17,11 @@ Before asking questions about how init scripts work please read:
 http://www.linuxbase.org/spec/refspecs/LSB_3.0.0/LSB-Core-generic/LSB-Core-generic/tocsysinit.html'
 
 
-configure() {
+configure(){
 
-  char_dev_menu()  { find  /dev  -type c  |  sed  'acharacter device'; }
+  char_dev_menu(){ find /dev -type c | sed 'acharacter device'; }
 
-  select_char_dev()  {
+  select_char_dev(){
     BACKTITLE='sysvinit Configuration'
         TITLE='Character Device Selection Menu'
 
@@ -53,10 +53,12 @@ from programs started during'
 }
 
 
-build() {
-install_init() {
+build(){
+install_init(){
   mkdir   -vp                                  /etc/init.d
   install -vm 0600  $SCRIPT_DIR/inittab        /etc
+  install -vm 0700  $SCRIPT_DIR/0_No_Modification \
+                                               /etc/init.d
   install -vm 0700  $SCRIPT_DIR/prc            /etc/init.d
   install -vm 0700  $SCRIPT_DIR/rcS            /etc/init.d
 # install -vm 0700  $SCRIPT_DIR/initscript     /etc
@@ -83,16 +85,16 @@ install_init() {
                 install_init
 }
 
-post_install() {
-  default_post_install
-  if    !  [  -x  /usr/sbin/sorcerer.install  ]
-  then  /sbin/init u;  sleep  2
-  fi
+post_install(){
+ default_post_install
+ if   ! [ -x /usr/sbin/sorcerer.install ]
+ then /sbin/init u; sleep 2
+ fi
 }
 
 
-current()  {
-  case  $VERSION  in
-    2.86)  grep  -q  local  /etc/init.d/rcS  ;;
-  esac
+current(){
+ case $VERSION in
+  2.86) [ -f /etc/init.d/0_No_Modification ] ;;
+ esac
 }
