@@ -1,12 +1,12 @@
-# 1.0.11 has compile error
-   VERSION=( 1.1.1 1.1.0 1.0.12 1.0.11 1.0.10 1.0.9 1.0.8 )
+   VERSION=( 1.1.1 1.1.0 )
     IGNORE='pre\|rc'
   CATEGORY='network/file-share'
  ATTRIBUTE='console client server'
     SOURCE="nfs/nfs-utils-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://sourceforge.net/projects/nfs'
-       REQ='libevent libnfsidmap portmap'
+       REQ=( 'libevent libnfsidmap'
+             'portmap:::[*]=dynamic or [ ]=static port assignments' )
       OPTS='--disable-gss'
   ESTIMATE='900'
       DESC='nfs-utils provides utilities for the NFS, Network File System.
@@ -16,9 +16,101 @@ This allows for fast, seamless sharing of files across a network.
 Read the Security section of the NFS-HOWTO
 if you intend to implement an NFS setup.'
 
-build()  {
-# unalias  make
-  export    CFLAGS+=' -I /usr/include/et'
-  export  CXXFLAGS+=' -I /usr/include/et'
-  default_build
+configure(){
+
+ assigned(){
+  cat /etc/services |
+  tr      '\t'  ' ' |
+  tr   -s ' '       |
+  cut  -d ' '   -f2 |
+  cut  -d '/'   -f1 |
+  LC_ALL=C  sort  -ug
+ }
+
+ block4(){
+  assigned |
+  while read; do  echo "$REPLY"
+   (( REPLY-- )); echo "$REPLY"
+   (( REPLY-- )); echo "$REPLY"
+   (( REPLY-- )); echo "$REPLY"
+  done
+ }
+
+ all_ports(){
+  for((CX=0;CX<65536;CX++))
+  do echo "$CX"
+  done
+ }
+
+ avail_ports(){
+  ( all_ports
+    block4
+  ) | LC_ALL=C sort -g | uniq -u
+ }
+
+ port_menu(){
+  BACKTITLE=$"$SPELL Configuration Menu"
+      TITLE=$"Port Selection"
+       HELP=$"Please select the base port number for statd"
+
+  dialog  --backtitle  "$BACKTITLE"  \
+          --title      "$TITLE"      \
+          --stdout                   \
+          --timeout  "$PROMPT_DELAY" \
+          --no-cancel                \
+          --menu       "$HELP"       \
+          0 0 0                      \
+          $( avail_ports | sed "aport" )
+ }
+
+ ask_port(){
+  if          PORT_BASE="$( port_menu )" &&
+       [ -n "$PORT_BASE" ]
+  then echo  "PORT_BASE=$PORT_BASE" >> $SPELL_CONFIG
+  fi
+ }
+
+ if  grep -qx portmap $BOOT_OFF_LOGS/$SPELL; then
+  if   [ -z "$PORT_BASE" ]
+  then ask_ports
+  fi
+ fi
+}
+
+
+build(){
+
+ use_portmapper(){
+  # grep -q   lockd    /etc/modprobe.conf &&
+  # sed  -i '/lockd/d' /etc/modprobe.conf
+  grep -l  '^OPTS=' $SCRIPT_DIR/init.d/rpc.* |
+  sed  -i 's:OPTS=:#OPTS=:'
+ }
+
+
+ assigned_ports(){
+  (( STATD_LISTEN = PORT_BASE     ))
+  (( STATD_TALK   = PORT_BASE + 1 ))
+  (( MOUNTD       = PORT_BASE + 2 ))
+  (( LOCKD        = PORT_BASE + 3 ))
+
+  ID="$SCRIPT_DIR/init.d/"
+  LOCKD_OPTS="nlm_udpport=$LOCKD nlm_tcpport=$LOCKD"
+
+  sed -i "s:#OPTS=.*:OPTS='-p $STATD_LISTEN -o $STATD_TALK'" $ID/rpc.statd
+  sed -i "s:#OPTS=.*:OPTS='-p $MOUNTD'"                      $ID/rpc.mountd
+  sed -i "s:#OPTS=.*:OPTS='$LOCKD_OPTS'"                     $ID/rpc.lockd
+
+  # MP=/etc/modprobe.conf
+  # echo "options lockd nlm_udpport=$LOCKD nlm_tcpport=$LOCKD" > $MP
+ }
+
+ export   CFLAGS+=' -I /usr/include/et'
+ export CXXFLAGS+=' -I /usr/include/et'
+ default_build &&
+
+ if   grep -qx portmap $BOOT_OFF_LOGS/$SPELL
+ then assigned_ports
+ else use_portmapper
+ fi
 }

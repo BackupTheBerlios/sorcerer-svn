@@ -2,8 +2,10 @@
 
 ### BEGIN INIT INFO
 # Provides: rpc.nfsd
-# Required-Start: portmap
-# Required-Stop: portmap
+# Required-Start: rpc.mountd
+# Required-Stop:  rpc.mountd
+# Should-Start: portmap
+# Should-Stop:  portmap
 # Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
 # Short-Description: rpc.nfsd implements the user level part of the NFS service.
@@ -16,11 +18,19 @@ SERV=/usr/sbin/rpc.nfsd
 NAME=rpc.nfsd
 OPTS=8
 
-start() {
- run() {
+start(){
+ run(){
+  modprobe nfs
+  modprobe nfs_acl
+  modprobe nfsd
+
+  if ! grep  -qws    nfsd /proc/mounts
+  then mount -t nfsd nfsd /proc/fs/nfsd
+  fi
+
   /usr/sbin/exportfs -r
-  pkill  -1  "^nfsd$"
-  start_daemon              $SERV $OPTS
+  pkill -1 "^nfsd$"
+  start_daemon $SERV $OPTS
  }
 
  if   log_warning_msg  "$NAME starting"; run
@@ -29,11 +39,23 @@ start() {
  fi
 }
 
-stop()  {
-  log_warning_msg "$NAME stopping"
+stop(){
+ run(){
   /usr/sbin/exportfs -au
-  kill  -s 9  $( /bin/pidof -o %PPID nfsd )
-  log_success_msg "$NAME stopped"
+  $SERV 0 
+ }
+
+ log_warning_msg "$NAME stopping"; run
+ log_success_msg "$NAME stopped"
+}
+
+stop_old(){
+ run(){
+  /usr/sbin/exportfs -au
+  kill -s 9 $( /bin/pidof -o %PPID nfsd )
+ }
+ log_warning_msg "$NAME stopping"; run
+ log_success_msg "$NAME stopped"
 }
 
 parse "$@"
