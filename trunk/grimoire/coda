@@ -1,21 +1,26 @@
-   VERSION=( 6.9.2 6.9.1 6.9.0 6.1.2 6.1.1 6.1.0 )
-# I wonder if 6.9.0 is stable?
+   VERSION=( 6.9.3 6.9.2 6.9.1 6.9.0 6.1.2 6.1.1 6.1.0 )
   CATEGORY='network/file-share'
  ATTRIBUTE='console client server'
     SOURCE="coda-$VERSION.tar.gz"
        URL='http://www.coda.cs.cmu.edu/pub/coda/src/'
   HOMEPAGE='http://www.coda.cs.cmu.edu/'
 # I wonder why make is a requirement for coda?
-       REQ=( "make perl rpc2 rvm"
-             "fltk:::for optional vcodacon" )
-  ESTIMATE='12870'
-      DESC="coda is a distributed filesystem with its origin in AFS2."
+#      REQ=( 'make perl rpc2 rvm'
+       REQ=( 'perl rpc2 rvm'
+             ':--enable-client::for coda client'
+             ':--enable-server::for coda server'
+             'fltk:--with-vcodacon::for optional vcodacon graphical console' )
+#     OPTS='--enable-client --enable-server'
+  ESTIMATE='1700'
+      DESC='coda is a distributed filesystem with its origin in AFS2.'
 
-build()  {
-  OPTS+=" --enable-client --enable-server"
-  default_build         &&
-#  make  client-install  &&
-#  make  server-install  &&
-  mkdir  -p  /var/cache/coda      /coda  &&
-  ln     -s  /var/cache/coda  /usr/coda
+build(){
+ install_extra(){
+  mkdir -p /var/cache/coda     /coda
+  ln    -s /var/cache/coda /usr/coda
+  mv    /etc/init.d/{auth2,codasrv,update,venus}.init /etc/coda
+ }
+
+ default_build &&
+ install_extra
 }

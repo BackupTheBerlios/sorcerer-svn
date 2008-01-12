@@ -1,22 +1,22 @@
    VERSION=( 4.21 4.20 4.19 4.18 4.17 )
-      SAFE=( "4.21" "4.20" "4.19" "4.18" "4.17" )
-    IGNORE="b"
+      SAFE=( 4.21 4.20 4.19 4.18 4.17 )
+    IGNORE='b'
   CATEGORY='network/security'
  ATTRIBUTE='server'
     SOURCE="stunnel-$VERSION.tar.gz"
   HOMEPAGE='http://stunnel.mirt.net/'
-       URL="ftp://stunnel.mirt.net/stunnel/
+       URL='ftp://stunnel.mirt.net/stunnel/
            http://www.stunnel.org/download/stunnel/src/
            http://the.wiretapped.net/security/network-security/stunnel/
-            ftp://ftp.wiretapped.net/pub/security/network-security/stunnel/"
-   PROTECT="/etc/stunnel/stunnel.pem"
-       REQ=( "openssl zlib"
-             ":--enable-ipv6::for IPv6 support"
-             "tcp_wrappers:--enable-libwrap:--disable-libwrap:for extra filtering and access control of inbound tcp requests for services" )
+            ftp://ftp.wiretapped.net/pub/security/network-security/stunnel/'
+   PROTECT='/etc/stunnel/stunnel.pem'
+       REQ=( 'openssl zlib'
+             ':--enable-ipv6::for IPv6 support'
+             'tcp_wrappers:--enable-libwrap:--disable-libwrap:for extra filtering and access control of inbound tcp requests for services' )
 # What is dh support?
-#            ":--enable-dh::for DH support"
+#            ':--enable-dh::for DH support'
   ESTIMATE='300'
-      DESC="stunnel is a SSL tunneling proxy.
+      DESC='stunnel is a SSL tunneling proxy.
 
 To regenerate the self signed certificate
 remove /etc/stunnel/stunnel.pem
@@ -25,26 +25,26 @@ stunnel is works as an SSL encryption wrapper between remote
 client and local (inetd-startable) or remote server.
 It can be used to add SSL functionality to
 commonly used inetd daemons like POP2, POP3, and IMAP
-servers without any changes in the programs' code.
+servers without any changes in the programs code.
 Stunnel uses OpenSSL or SSLeay libraries for
 cryptography, so it supports whatever cryptographic
 algorithms you compiled into your library.
 
 See stunnel(8) manual for details.
-For UDP forwarding, also look at zebedee."
+For UDP forwarding, also look at zebedee.'
 
-fix_var_locations() {
-  sed -i  "s:@prefix@/var/lib:/var/lib:"	tools/stunnel.c
-  sed -i  "s:\$(prefix)/var/lib:/var/lib:"	tools/Makefile.in
-  sed -i  "s:\$(prefix)/var/run:/var/run:"	src/Makefile.in
-}
+build(){
+ fix_var_locations(){
+  sed -i "s:@prefix@/var/lib:/var/lib:"   tools/stunnel.c
+  sed -i "s:\$(prefix)/var/lib:/var/lib:" tools/Makefile.in
+  sed -i "s:\$(prefix)/var/run:/var/run:"   src/Makefile.in
+ }
 
-build()  {
-  fix_var_locations
+ fix_var_locations
 
-  if    [  -f  /etc/ssl/certs/stunnel.pem  ];   then
-    mkdir  -p                              /etc/stunnel
-    mv         /etc/ssl/certs/stunnel.pem  /etc/stunnel
-  fi
-  default_build
+ if     [ -f /etc/ssl/certs/stunnel.pem ]; then
+  mkdir   -p                             /etc/stunnel
+  mv         /etc/ssl/certs/stunnel.pem  /etc/stunnel
+ fi
+ default_build
 }

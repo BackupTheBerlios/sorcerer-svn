@@ -1,0 +1,57 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: codasrv
+# Required-Start: $network
+# Required-Stop:  $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: codasrv provides the coda server.
+# Description: codasrv provides the coda server.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PIDF=/vice/srv/pid
+SERV=/usr/sbin/codasrv
+NAME=codasrv
+
+start(){
+ run(){
+  if   [ -f /etc/coda/server.conf ]
+  then    . /etc/coda/server.conf
+  elif [ -f /vice/srv.conf ]
+  then OPTS=$( grep '^\-rvm ' /vice/srv.conf )
+  fi
+  coda-server-logrotate
+  rm     -f /vice/srv/CRASH
+  if   [ -f /vice/srv/ZOMBIFY ]
+  then OPTS+=' -zombify'
+  fi
+  start_daemon -p "$PIDF" $SERV $OPTS
+ }
+
+ if   log_warning_msg "$NAME starting"; run
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
+}
+
+
+stop(){
+run(){
+ volutil shutdown
+ while [ -f $PIDF ] && (( 30 > SECONDS ))
+ do    sleep 5
+ done
+ killproc -p "$PIDF" -s 9  $SERV
+}
+
+ if   status &>/dev/null
+ then log_warning_msg "$NAME stopping"; run
+      log_success_msg "$NAME stopped"
+ else status
+ fi
+}
+
+parse "$@"

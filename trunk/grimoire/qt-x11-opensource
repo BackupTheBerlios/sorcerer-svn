@@ -1,29 +1,25 @@
-# Not actually broken,
-# But will break your KDE updates if you install it.
-   VERSION=( 4.3.1 4.3.0 4.2.1 4.2.0 )
-      SAFE=( 4.3.1 4.3.0 )
-    IGNORE="rc"
+   VERSION=( 4.3.3 4.3.1 4.3.0 )
+      SAFE=( 4.3.3 4.3.1 4.3.0 )
+    IGNORE='rc'
   CATEGORY='graphic/library'
- ATTRIBUTE='library kde solo broken'
-#   SOURCE="qt-x11-opensource-src-$VERSION.tar.gz"
+ ATTRIBUTE='library kde solo'
+    SOURCE="qt-x11-opensource-src-$VERSION.tar.gz"
        URL='ftp://ftp.trolltech.com/qt/source/'
   HOMEPAGE='http://www.trolltech.com/developer/downloads/qt/x11'
 # are the unixODBC and sqlite SQL support truly optional?
-       REQ=( "dbus glib libmng libpng sqlite tiff unixODBC"
-             "cups:-cups:-no-cups:for common unix printing support"
-             "freetype:-fontconfig:-no-fontconfig:for quality font engine"
-             "mysql::-no-sql-mysql:for mysql support"
-             "postgresql::-no-sql-psql:for postgresql support" )
-  EPROVIDE="qt-x11-opensource-desktop"
- FRESHMEAT="qt"
+       REQ=( 'dbus glib libmng libpng sqlite tiff unixODBC'
+             'cups:-cups:-no-cups:for common unix printing support'
+             'freetype:-fontconfig:-no-fontconfig:for quality font engine'
+             'mysql::-no-sql-mysql:for mysql support'
+             'postgresql::-no-sql-psql:for postgresql support' )
+  EPROVIDE='qt-x11-opensource-desktop qt-x11-free'
+ FRESHMEAT='qt'
   ESTIMATE='9170'
-      DESC="qt-x11-opensource simplifies the task of writing and maintaining GUI applications.
-
-qt-x11-opensource will probably require more than 2G to compile."
+      DESC='qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
 
 build()  {
-  export    CFLAGS+=" -fPIC"
-  export  CXXFLAGS+=" -fPIC"
+  export    CFLAGS+=' -fPIC'
+  export  CXXFLAGS+=' -fPIC'
 
   rm  -rf  demos examples
 
@@ -37,32 +33,32 @@ build()  {
   # The -R breaks compilation in 4.2.1
   # -R$BUILD_DIR/lib  \
   mkdir  lib
-  echo  "yes"       |
-  ./configure       \
-  -v                \
-  -fast             \
-  -release          \
-  -shared           \
-  -optimized-qmake  \
-  -system-libmng    \
-  -system-libjpeg   \
-  -system-libpng    \
-  -system-libtiff   \
-  -system-sqlite    \
-  -system-zlib      \
-  -qt-gif           \
-  -xinerama         \
-  -no-exceptions    \
-  -nomake demos     \
-  -nomake examples  \
-  -bindir /usr/bin/qt4  \
-  -libdir /usr/$LIBS    \
-  -prefix $QT4_PREFIX   \
-  $OPTS                    &&
-  make                     &&
-  prepare_install          &&
-  make    install          &&
-  ln     -s   ${QT4_PREFIX}/include  /usr/include/qt4   &&
-  ln     -s   ../../bin              ${QT4_PREFIX}/bin  &&
-  ln     -s   ../../$LIBS            ${QT4_PREFIX}/lib
+  echo  "yes"      |
+  ./configure      \
+  -v               \
+  -fast            \
+  -release         \
+  -shared          \
+  -optimized-qmake \
+  -system-libmng   \
+  -system-libjpeg  \
+  -system-libpng   \
+  -system-libtiff  \
+  -system-sqlite   \
+  -system-zlib     \
+  -qt-gif          \
+  -xinerama        \
+  -no-exceptions   \
+  -nomake demos    \
+  -nomake examples \
+  -bindir /usr/bin/qt4 \
+  -libdir /usr/$LIBS   \
+  -prefix $QT4_PREFIX  \
+  $OPTS           &&
+  make            &&
+  prepare_install &&
+  make    install &&
+  ln     -s  ../share/qt4/include /usr/include/qt   &&
+  ln     -s   ../../bin           ${QT4_PREFIX}/bin &&
+  ln     -s   ../../$LIBS         ${QT4_PREFIX}/lib
 }
