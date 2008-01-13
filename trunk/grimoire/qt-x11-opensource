@@ -7,19 +7,27 @@
        URL='ftp://ftp.trolltech.com/qt/source/'
   HOMEPAGE='http://www.trolltech.com/developer/downloads/qt/x11'
 # are the unixODBC and sqlite SQL support truly optional?
-       REQ=( 'dbus glib libmng libpng sqlite tiff unixODBC'
+#       REQ=( 'dbus glib libXcursor libXinerama libXrandr libmng libpng sqlite tiff unixODBC'
+       REQ=( 'dbus glib libXcursor libXinerama libXrandr libmng libpng tiff'
              'cups:-cups:-no-cups:for common unix printing support'
              'freetype:-fontconfig:-no-fontconfig:for quality font engine'
              'mysql::-no-sql-mysql:for mysql support'
-             'postgresql::-no-sql-psql:for postgresql support' )
-  EPROVIDE='qt-x11-opensource-desktop qt-x11-free'
+             'postgresql::-no-sql-psql:for postgresql support'
+             'sqlite:::for current sqlite support'
+             'sqlite-v2.8:::for old sqlite support'
+             'unixODBC:::for connecting to windows database' )
+  EPROVIDE='qt-x11-opensource-desktop'
  FRESHMEAT='qt'
-  ESTIMATE='9170'
+  ESTIMATE='9000'
       DESC='qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
 
 build()  {
   export    CFLAGS+=' -fPIC'
   export  CXXFLAGS+=' -fPIC'
+
+  case $HOSTTYPE in
+   i586) OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2' ;;
+  esac
 
   rm  -rf  demos examples
 
@@ -46,19 +54,23 @@ build()  {
   -system-libtiff  \
   -system-sqlite   \
   -system-zlib     \
+  -qt3support      \
   -qt-gif          \
   -xinerama        \
   -no-exceptions   \
   -nomake demos    \
   -nomake examples \
+  -prefix $QT4_PREFIX  \
   -bindir /usr/bin/qt4 \
   -libdir /usr/$LIBS   \
-  -prefix $QT4_PREFIX  \
+  -headerdir /usr/include/qt4 \
   $OPTS           &&
   make            &&
   prepare_install &&
   make    install &&
-  ln -s ../share/qt4/include /usr/include/qt   &&
-  ln -s ../../bin            ${QT4_PREFIX}/bin &&
-  ln -s ../../$LIBS          ${QT4_PREFIX}/lib
+  ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
+  ln -s ../../bin/qt4     ${QT4_PREFIX}/bin &&
+  ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }
+
+# ln -s ../share/qt4/include /usr/include/qt4  &&
