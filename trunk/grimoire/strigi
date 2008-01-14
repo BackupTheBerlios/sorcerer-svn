@@ -1,0 +1,27 @@
+   VERSION=( 0.5.7 )
+  CATEGORY='utility/search'
+ ATTRIBUTE='library'
+    SOURCE="strigi/strigi-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE='http://strigi.sourceforge.net/'
+       REQ=( 'bzip2 clucene-core cmake libxml2 zlib'
+             'dbus:-DENABLE_DBUS:BOOL=ON:-DENABLE_DBUS:BOOL=OFF:for dbus support'
+             'qt-x11-opensource:::for a graphical interface' )
+#            'log4cxx:-DENABLE_LOG4CXX:BOOL=ON:-DENABLE_LOG4CXX:BOOL=OFF:for advanced logging features'
+# No tarball for log4cxx available as of 20080114
+      OPTS='-DCMAKE_BUILD_TYPE=Release'
+case $HOSTTYPE in
+ x86_64) OPTS+=' -DLIB_DESTINATION=lib64' ;;
+esac
+  ESTIMATE='160'
+      DESC='strigi is a search engine'
+
+build(){
+ export PATH="/usr/bin/qt4:$PATH"
+ mkdir build
+ cd    build
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
