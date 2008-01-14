@@ -21,56 +21,57 @@
   ESTIMATE='9000'
       DESC='qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
 
-build()  {
-  export    CFLAGS+=' -fPIC'
-  export  CXXFLAGS+=' -fPIC'
+build(){
+ export   CFLAGS+=' -fPIC'
+ export CXXFLAGS+=' -fPIC'
 
-  case $HOSTTYPE in
-   i586) OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2' ;;
-  esac
+ case $HOSTTYPE in
+  i586) OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2' ;;
+ esac
 
-  rm  -rf  demos examples
+ rm  -rf  demos examples
 
-  QT4_PREFIX=/usr/share/qt4
+ QT4_PREFIX=/usr/share/qt4
 
-  case  $HOSTTYPE  in
-    x86_64)  LIBS=lib64  ;;
-         *)  LIBS=lib    ;;
-  esac
+ case  $HOSTTYPE  in
+  x86_64) LIBS=lib64 ;;
+       *) LIBS=lib   ;;
+ esac
 
-  # The -R breaks compilation in 4.2.1
-  # -R$BUILD_DIR/lib  \
-  mkdir  lib
-  echo  "yes"      |
-  ./configure      \
-  -v               \
-  -fast            \
-  -release         \
-  -shared          \
-  -optimized-qmake \
-  -system-libmng   \
-  -system-libjpeg  \
-  -system-libpng   \
-  -system-libtiff  \
-  -system-sqlite   \
-  -system-zlib     \
-  -qt3support      \
-  -qt-gif          \
-  -xinerama        \
-  -no-exceptions   \
-  -nomake demos    \
-  -nomake examples \
-  -prefix $QT4_PREFIX  \
-  -bindir /usr/bin/qt4 \
-  -libdir /usr/$LIBS   \
-  -headerdir /usr/include/qt4 \
-  $OPTS           &&
-  make            &&
-  prepare_install &&
-  make    install &&
-  ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
-  ln -s ../../bin/qt4     ${QT4_PREFIX}/bin &&
-  ln -s ../../$LIBS       ${QT4_PREFIX}/lib
+ # The -R breaks compilation in 4.2.1
+ # -R$BUILD_DIR/lib  \
+ mkdir  lib
+ echo  "yes"      |
+ ./configure      \
+ -v               \
+ -fast            \
+ -release         \
+ -shared          \
+ -optimized-qmake \
+ -system-libmng   \
+ -system-libjpeg  \
+ -system-libpng   \
+ -system-libtiff  \
+ -system-sqlite   \
+ -system-zlib     \
+ -qt3support      \
+ -qt-gif          \
+ -xinerama        \
+ -no-exceptions   \
+ -nomake demos    \
+ -nomake examples \
+ -prefix $QT4_PREFIX  \
+ -bindir /usr/bin \
+ -libdir /usr/$LIBS   \
+ -no-separate-debug-info \
+ -headerdir /usr/include/qt4 \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
+ ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
+ ln -s ../../bin         ${QT4_PREFIX}/bin &&
+ ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }
 
 # ln -s ../share/qt4/include /usr/include/qt4  &&
