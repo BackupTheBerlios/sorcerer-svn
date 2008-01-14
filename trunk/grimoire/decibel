@@ -1,0 +1,29 @@
+# decibel has requirements for which there are no tarballs:
+# KDE CMake PKGCONFIG macro indicates that QtTapioca
+# is not installed on your computer.
+
+   VERSION=( 0.5.0 )
+  CATEGORY='network/chat'
+ ATTRIBUTE='library x11 broken'
+    SOURCE="decibel-$VERSION.tar.gz"
+       URL='http://decibel.kde.org/fileadmin/downloads/decibel/releases/'
+  HOMEPAGE='http://decibel.kde.org/'
+       REQ=''
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=Release'
+case $HOSTTYPE in
+ x86_64) OPTS+=' -DLIB_DESTINATION=lib64' ;;
+esac
+  ESTIMATE='100'
+      DESC='decibel is a realtime communications framework.
+decibel integrating services like CTI (Computer Telephone Integration), 
+VoIP (Voice over IP), text based chat and instant messaging.'
+
+build(){
+ export PATH="/usr/bin/qt4:$PATH"
+ mkdir build
+ cd    build
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}

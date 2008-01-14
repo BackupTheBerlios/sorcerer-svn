@@ -1,60 +1,59 @@
-   VERSION=( 2007-11-01 2007-06-10 2007-04-15 2007-03-28 2006-09-01 )
+   VERSION=( 2008-01-13 2007-11-01 2007-06-10 2007-04-15 2007-03-28 2006-09-01 )
   CATEGORY='video'
  ATTRIBUTE='library'
 disable sdelta
     SOURCE="ffmpeg-$VERSION.tar"
-       DIR="ffmpeg"
+       DIR='ffmpeg'
 REPOSITORY=( ""
              "svn co -r {$VERSION} svn://svn.mplayerhq.hu/ffmpeg/trunk ffmpeg"
              "svn up -r {$VERSION} svn://svn.mplayerhq.hu/ffmpeg/trunk" )
   HOMEPAGE='http://ffmpeg.sourceforge.net'
-       REQ=( "subversion"
-             "SDL::--disable-ffplay:to build ffplay media player"
-             "XviD:--enable-libxvid::for XviD MPEG-4 codec support"
-             "a52dec:--enable-liba52 --enable-liba52bin::for a52 support"
-             "faac:--enable-libfaac::for mpeg-2 and NBC/MPEG-4 decoding"
-             "faad2:--enable-gpl --enable-libfaad --enable-libfaadbin::for freeware advanced audio decoder support"
-             "gsm:--enable-libgsm::for gsm audio codec support"
-             "imlib2::--disable-vhook:for video hooking support"
-             "lame:--enable-libmp3lame::to enable mp3 encoding via lame"
-             "libtheora:--enable-libogg --enable-libtheora::for theora video codec support"
-             "libvorbis:--enable-libogg --enable-libvorbis::to decode ogg/vorbis streams"
-             "nasm::--disable-mmx:for MMX support"
-             "x264:--enable-libx264::for x264 support" )
-#            ":--enable-pp::post processing support" )
-##     OPTS="--enable-shared  --enable-pthreads  --disable-opts  --disable-debug"
-#      OPTS="--enable-pp --enable-gpl --enable-shared  --enable-pthreads  --disable-opts  --disable-debug"
-      OPTS="--enable-pp --enable-gpl --enable-shared  --enable-pthreads  --disable-debug"
+       REQ=( 'subversion'
+             'SDL::--disable-ffplay:to build ffplay media player'
+             'XviD:--enable-libxvid::for XviD MPEG-4 codec support'
+             'a52dec:--enable-liba52 --enable-liba52bin::for a52 support'
+             'faac:--enable-libfaac::for mpeg-2 and NBC/MPEG-4 decoding'
+             'faad2:--enable-gpl --enable-libfaad --enable-libfaadbin::for freeware advanced audio decoder support'
+             'gsm:--enable-libgsm::for gsm audio codec support'
+             'imlib2::--disable-vhook:for video hooking support'
+             'lame:--enable-libmp3lame::to enable mp3 encoding via lame'
+             'libtheora:--enable-libtheora::for theora video codec support'
+             'libvorbis:--enable-libvorbis::to decode ogg/vorbis streams'
+             'nasm::--disable-mmx:for MMX support'
+             'x264:--enable-libx264::for x264 support' )
+#            ':--enable-pp::post processing support' )
+##     OPTS='--enable-shared  --enable-pthreads  --disable-opts  --disable-debug'
+#      OPTS='--enable-pp --enable-gpl --enable-shared  --enable-pthreads  --disable-opts  --disable-debug'
+      OPTS='--enable-pp --enable-gpl --enable-shared  --enable-pthreads  --disable-debug'
 # libtheora support may not be implemented in svn version of ffmpeg.
 # --enable-pp also requires --enable-gpl
-  ESTIMATE='1000'
-      DESC="ffmpeg is complete video and audio broadcasting solution
+  ESTIMATE='1100'
+      DESC='ffmpeg is complete video and audio broadcasting solution
 ffmpeg is a complete and free Internet live audio
 and video broadcasting solution for Linux/Unix.
 It also includes a digital VCR.
 It can encode in real time in many formats including
-MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash."
+MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.'
 
 
-build()  {
+build(){
 
-export    CFLAGS="$( echo  $CFLAGS    |  sed  "s/-funroll-loops//"  )"
-export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  "s/-funroll-loops//"  )"
-export    CFLAGS="$( echo  $CFLAGS    |  sed  "s/pentium-m /i686 /" )"
-export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  "s/pentium-m /i686 /" )"
-export   LDFLAGS="$LDFLAGS -ldl"
+export   CFLAGS="${CFLAGS//-funroll-loops/}"
+export CXXFLAGS="${CXXFLAGS//-funroll-loops/}"
+export   CFLAGS="${CFLAGS//pentium-m /i686 }"
+export CXXFLAGS="${CXXFLAGS//pentium-m /i686 }"
 
-if  !  grep      "flags"  <  /proc/cpuinfo  |
-       grep  -q  "mmx"
-then  OPTS="$OPTS  --disable-mmx"
+export  LDFLAGS+=' -ldl'
+
+if   ! grep flags < /proc/cpuinfo | grep -q mmx
+then OPTS+=' --disable-mmx'
 fi
 
-./configure           \
---prefix=/usr         \
-$OPTS                 &&
-sed -i "s:LDFLAGS=:LDFLAGS+=:"  config.mak &&
-make                  &&
-prepare_install       &&
-make    install       &&
-install  -m 0644  doc/ffserver.conf  /etc
+./configure     \
+--prefix=/usr   \
+$OPTS           &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
+make            &&
+prepare_install &&
+make    install &&
+install -m 0644 doc/ffserver.conf /etc
 }

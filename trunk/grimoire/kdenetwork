@@ -1,22 +1,18 @@
 inherit kde
   CATEGORY='network/email network/news'
-       REQ=( "gnupg kdelibs libXScrnSaver libXtst procps openslp ortp speex"
-             "openssl:--with-ssl:--without-ssl:for SSL support"
-             "samba:::for nmblookup if you want lisa to discover windoze boxes"
-             "wireless_tools:--with-wifi:--without-wifi:for wireless networking support"
-             "xmms:--with-xmms:--without-xmms:for kopete chat client to display what you are listening to with xmms" )
-
-#            "ortp:--enable-jingle:--disable-jingle:for Jabber Jingle voice support"
-# Compiling with jingle enabled causes compile error during kopete
-
-
-#            "arts:--with-arts:--without-arts:for sound support"
-#            ":--enable-sametime-plugin:--disable-sametime-plugin:build the Kopete Sametime plugin" )
-# sametime plugin no longer exists
-
-# speex may only be required for jabber jingle support?  Not sure.
-# kopete jabber jingle may have optional requirement on ilbc
-# something in kdenetwork may have optional requirement on gsm
+# decibel is not yet ready for production use.
+#             'decibel:::for kopete telepathy protocol'
+       REQ=( 'kdebase-workspace kdepimlibs'
+             'LibVNCServer:::to build Krfb and VNC support in Krdc'
+             'avahi:::for service discovery and Krfb, Krd, dnssd ioslave'
+             'jpeg:::for JPEG images in Krdc'
+             'libidn:::for internationalized DNS in Kopete Jabber plugin'
+             'libxslt:::for ...'
+             'openslp:::for SLP support in Krfb'
+             'openssl:::for ...'
+             'qca:::to build kopete groupwise and jabber protocols'
+             'sqlite:::for kopete statistics plugin'
+             'xmms:::for music playing' )
 
 case  $VERSION  in
   3.5.5)  SAFE=( "3.5.5" )
@@ -24,20 +20,19 @@ case  $VERSION  in
   3.4.1)  SAFE=( "3.4.1" )
  SOURCE[1]="security_patches/post-3.4.1-kdenetwork-libgadu.patch"  ;;
 esac
-  ESTIMATE='10800'
-      DESC="kdenetwork contains an email and news client, and other programs.
+  ESTIMATE='4500'
+      DESC='kdenetwork contains an email and news client, and other programs.
 kdenetwork contains network applications.
 Currently contains the mail program, 
 the news reader, and several other 
-network-related programs like kopete."
+network-related programs like kopete.'
 
 build() {
   case  $VERSION  in
     3.5.5)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
     3.4.1)  patch  -p0  <  $SOURCE_CACHE/kdenetwork/$VERSION/${SOURCE[1]##*/}  ;;
   esac
-  kde_build  &&
-  install  -m 0600  $SCRIPT_DIR/lisarc  /etc
+  kde_build
 }
 
 

@@ -1,17 +1,25 @@
 [  -z  $VERSION  ]  &&
-   VERSION=( 3.5.8 3.5.7 3.5.6 3.5.5 3.5.4 3.5.3 3.5.2 3.5.1 3.5.0 )
+   VERSION=( 4.0.0 3.5.8 )
   CATEGORY='profile'
  ATTRIBUTE='kde'
   HOMEPAGE='http://www.kde.org'
        URL="$KDE_URL"
-       REQ=( "kdeaddons"
-             "kdewebdev:::for web page/site development tools"
-             "kdevelop:::for creating and development of software projects"
-             "kdesdk:::for applications and tools used by KDE developers"
-             "kdebindings:::for DCOP and kdejava bindings" )
-   PROTECT="/usr/share/config"
+       REQ=( 'kdeartwork kdebase kdebase-runtime kdebase-workspace'
+             'kdeaccessibility:::for enhanced usability'
+             'kdebindings:::for DCOP and kdejava bindings'
+             'kdeadmin:::for system administration programs'
+             'kdeedu:::for educational programs'
+             'kdegames:::for games'
+             'kdegraphics:::for image viewing programs'
+             'kdenetwork:::for networking utilities'
+             'kdemultimedia:::for audio/visual programs'
+             'kdesdk:::for applications and tools used by KDE developers'
+             'kdetoys:::for amusing programs'
+             'kdewebdev:::for web page/site development tools'
+             'kdevelop:::for creating and development of software projects' )
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=Release'
   ESTIMATE='5'
-      DESC="kde provides the K desktop environment.
+      DESC='kde provides the K desktop environment.
 It combines ease of use, contemporary
 functionality and outstanding graphical design.
 KDE is a completely new desktop, incorporating
@@ -21,7 +29,7 @@ panel, control center and many other components
 that one would expect to be part of a contemporary
 desktop environment, the true strength of this
 exceptional environment lies in the
-interoperability of its components."
+interoperability of its components.'
 
 kde_build()  {
 SCX=1
@@ -31,55 +39,57 @@ do     patch -p0 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$SCX]##*/}
 done
 
 # ppanula: tested with kde 3.5.1, OK
-sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
-        s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
-  ./configure          \
-  --prefix=/usr        \
-  --sysconfdir=/etc    \
-  --localstatedir=/var \
-  --with-xinerama      \
-  --disable-debug      \
-  --enable-final       \
-  $OPTS                &&
-  make                 &&
-  prepare_install      &&
-  make    install
+# sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
+#         s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
+
+#  ./configure          \
+#  --prefix=/usr        \
+#  --sysconfdir=/etc    \
+#  --localstatedir=/var \
+#  --with-xinerama      \
+#  --disable-debug      \
+#  --enable-final       \
+#  $OPTS                &&
+#  make                 &&
+#  prepare_install      &&
+#  make    install
+
+ export PATH="/usr/bin/qt4:$PATH"
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
 }
 
-bindings_build() {
-  cd        dcoppython/lib
-  unexpand  pydcop.py   >  pydcop.py.new
-  mv        pydcop.py.new  pydcop.py
-  cd  -
-  kde_build
+bindings_build(){
+ cd       dcoppython/lib
+ unexpand pydcop.py   > pydcop.py.new
+ mv       pydcop.py.new pydcop.py
+ cd -
+ kde_build
 }
 
-install_pamd() {
- # PAM scripts are installed from $SCRIPT_DIR/pam.d and by default use 
- # /etc/pam.d/system-auth provided by Linux-PAM
- true
+build(){
+#  kdebindings) bindings_build ;;
+ case $SPELL in
+           kde) default_build  ;;
+             *) kde_build ;;
+ esac
 }
 
-build()  {
-  case  $SPELL  in
-    kdebindings)  bindings_build  ;;
-        kdebase)  kde_build  &&
-                  install_pamd    ;;
-            kde)  default_build   ;;
-              *)  kde_build;
-  esac
-}
-
-case  $SPELL  in
-        kde)  :  ;;
-  kde-i18n*)  unset  REQ
-              CATEGORY='documentation/i18n'
-              SOURCE="stable/${VERSION}/src/kde-i18n/$SPELL-$VERSION.tar.bz2"
-            # SOURCE="stable/${VERSION:0:3}/src/kde-i18n/$SPELL-$VERSION.tar.bz2"
-              DESC="$SPELL provides translated KDE messages."
-              ;;
-          *)  unset  REQ
-              SOURCE="stable/${VERSION}/src/$SPELL-$VERSION.tar.bz2"
-            # SOURCE="stable/${VERSION:0:3}/src/$SPELL-$VERSION.tar.bz2"
-              ;;
+case $SPELL in
+       kde) : ;;
+ kde-l10n*) unset  REQ
+            CATEGORY='documentation/i18n'
+            SOURCE="stable/${VERSION}/src/kde-l10n/$SPELL-$VERSION.tar.bz2"
+            DESC="$SPELL provides translated KDE messages." ;;
+ kde-i18n*) unset  REQ
+            CATEGORY='documentation/i18n'
+            SOURCE="stable/${VERSION}/src/kde-i18n/$SPELL-$VERSION.tar.bz2"
+            DESC="$SPELL provides translated KDE messages." ;;
+         *) unset  REQ
+            SOURCE="stable/${VERSION}/src/$SPELL-$VERSION.tar.bz2"
+          # SOURCE="stable/${VERSION:0:3}/src/$SPELL-$VERSION.tar.bz2";;
 esac
