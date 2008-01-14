@@ -1,6 +1,6 @@
    VERSION=( 3.3.8 3.3.7 )
       SAFE=( 3.3.8 )
-    IGNORE="\.0b"
+    IGNORE='\.0b'
   CATEGORY='graphic/library'
  ATTRIBUTE='library kde solo'
 # Although it is not supposed to the broken library check could
@@ -25,84 +25,85 @@
   ESTIMATE='4870'
       DESC='qt-x11-free simplifies the task of writing and maintaining GUI applications.'
 
-build()  {
-  fix_qmake_conf() {
-   # This should be used when the qt headers are NOT instaled in 
-   # /usr/include, i.e. if they are installed to /usr/include/qt, 
-   # /usr/share/qt/include or whatever then this is NEEDED because the
-   # qmake.conf sets the QT include directory to $(QTDIR)/include.
-   # Some applications need this to be correct in order for them to compile.
-   sed    -i  's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:'		\
-              mkspecs/${SPECS}/qmake.conf
-   cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
-  }
+build(){
+ fix_qmake_conf(){
+  # This should be used when the qt headers are NOT instaled in 
+  # /usr/include, i.e. if they are installed to /usr/include/qt, 
+  # /usr/share/qt/include or whatever then this is NEEDED because the
+  # qmake.conf sets the QT include directory to $(QTDIR)/include.
+  # Some applications need this to be correct in order for them to compile.
+  sed    -i  's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:'		\
+             mkspecs/${SPECS}/qmake.conf
+  cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
+ }
 
-  echo  $OPTS           |
-  grep  -q  "\-qt-gif"  &&
-  sed   -i  "s:READER 0:READER 1:"  src/kernel/qgif.h
-
-
-  export  QTDIR=$BUILD_DIR
-  sed  -i  "s/sub-tutorial sub-examples//"  Makefile
-  rm   -rf  examples tutorial
-
-  unset  LD_LIBRARY_PATH
-
-  case  $HOSTTYPE  in
-    x86_64)  OPTS="$OPTS -platform linux-g++-64 -L/lib64 -L/usr/lib64"
-             SPECS=linux-g++-64
-             LIBS=lib64  ;;
-         *)  SPECS=linux-g++
-             LIBS=lib  ;;
-  esac
+ echo $OPTS |
+ grep -q  "\-qt-gif"  &&
+ sed  -i  "s:READER 0:READER 1:" src/kernel/qgif.h
 
 
-  if    [  -n  "${SOURCE[1]}"  ]
-  then  decompress  $SOURCE_CACHE/qt-x11-free/$VERSION/${SOURCE[1]} | patch -p1 
-        sh  ./make-symlinks.sh
-        OPTS="$OPTS -inputmethod"
-  fi
+ export  QTDIR=$BUILD_DIR
+ sed -i  "s/sub-tutorial sub-examples//"  Makefile
+ rm  -rf examples tutorial
 
-  # Fix for gcc 4.2.2(4.3?)
-  case $VERSION in
-        3.3.8)  sed -i '43i#include <cstdlib>' plugins/src/inputmethods/imsw-none/qnoneinputcontextplugin.cpp   ;;
-  esac
+ unset LD_LIBRARY_PATH
 
-  prepare_install             &&  # doesn't make right if installed.
+ case  $HOSTTYPE  in
+  x86_64) OPTS="$OPTS -platform linux-g++-64 -L/lib64 -L/usr/lib64"
+          SPECS=linux-g++-64
+          LIBS=lib64  ;;
+       *) SPECS=linux-g++
+          LIBS=lib  ;;
+ esac
 
-  # -R$BUILD_DIR/lib       \  # not required if qt-x11-free is not installed
-  # -L$PWD/lib       \
 
-  #  -cups           \
+ if   [ -n "${SOURCE[1]}" ]
+ then decompress $SOURCE_CACHE/qt-x11-free/$VERSION/${SOURCE[1]} | patch -p1 
+      sh ./make-symlinks.sh
+      OPTS="$OPTS -inputmethod"
+ fi
+
+ # Fix for gcc 4.2.2(4.3?)
+ case $VERSION in
+  3.3.8) sed -i '43i#include <cstdlib>' \
+         plugins/src/inputmethods/imsw-none/qnoneinputcontextplugin.cpp ;;
+ esac
+
+ prepare_install             &&  # doesn't make right if installed.
+
+ # -R$BUILD_DIR/lib       \  # not required if qt-x11-free is not installed
+ # -L$PWD/lib       \
+
+ #  -cups           \
 
 # -headerdir /usr/include/qt  \
 
-  echo  "yes"  |
-  ./configure  -v  \
-  -release         \
-  -shared          \
-  -thread          \
-  -system-libmng   \
-  -system-libpng   \
-  -system-libjpeg  \
-  -system-zlib     \
-  -tablet          \
-  -xinerama        \
-  -xft             \
-  -R$PWD/lib       \
-  -no-g++-exceptions     \
-  -prefix /usr/share/qt  \
-  -bindir /usr/bin       \
-  -libdir /usr/$LIBS     \
-  -docdir /usr/doc/qt-x11-free  \
-  $OPTS                  &&
-  make                   &&
-  make    install        &&
-  cp     -R   doc/man  /usr   &&
-  ln     -s   ../share/qt/include  /usr/include/qt    &&
-  ln     -s   ../../bin            /usr/share/qt/bin  &&
-  ln     -s   ../../$LIBS          /usr/share/qt/lib  &&
-  fix_qmake_conf
+ echo yes |
+ ./configure  -v  \
+ -release         \
+ -shared          \
+ -thread          \
+ -system-libmng   \
+ -system-libpng   \
+ -system-libjpeg  \
+ -system-zlib     \
+ -tablet          \
+ -xinerama        \
+ -xft             \
+ -R$PWD/lib       \
+ -no-g++-exceptions     \
+ -prefix /usr/share/qt  \
+ -bindir /usr/bin/qt3   \
+ -libdir /usr/$LIBS     \
+ -docdir /usr/doc/qt-x11-free  \
+ $OPTS                  &&
+ make                   &&
+ make    install        &&
+ cp     -R   doc/man  /usr   &&
+ ln     -s   ../share/qt/include  /usr/include/qt    &&
+ ln     -s   ../../bin/qt3        /usr/share/qt/bin  &&
+ ln     -s   ../../$LIBS          /usr/share/qt/lib  &&
+ fix_qmake_conf
 
 # QTDIR=/usr/share/qt
 # because some sources check for /usr/share/qt/include/qglobal.h
@@ -111,66 +112,9 @@ build()  {
 # rm                           /usr/share/qt/mkspecs/${SPECS}/${SPECS}
 }
 
-build_old()  {
-echo  $OPTS           |
-grep  -q  "\-qt-gif"  &&
-sed   -i  "s:READER 0:READER 1:"  src/kernel/qgif.h
-
-
-export  QTDIR=$BUILD_DIR
-sed  -i  "s/sub-tutorial sub-examples//"  Makefile
-rm   -rf  examples tutorial
-
-unset  LD_LIBRARY_PATH
-
-case  $HOSTTYPE  in
-  x86_64)  OPTS="$OPTS -platform linux-g++-64 -L/lib64 -L/usr/lib64"
-           SPECS=linux-g++-64
-           LIBS=lib64
-	   ;;
-       *)  SPECS=linux-g++
-           LIBS=lib
-           ;;
-esac
-
-prepare_install             &&  # doesn't make right if installed.
-
-# -R$BUILD_DIR/lib       \  # not required if qt-x11-free is not installed
-# -L$PWD/lib       \
-
-#  -cups           \
-echo  "yes"  |
-./configure  -v  \
--release         \
--shared          \
--thread          \
--system-libmng   \
--system-libpng   \
--system-libjpeg  \
--system-zlib     \
--xinerama        \
--xft             \
--R$PWD/lib       \
--no-g++-exceptions     \
--prefix /usr/share/qt  \
--bindir /usr/bin       \
--libdir /usr/$LIBS     \
--headerdir /usr/include/qt  \
-$OPTS                       &&
-make                        &&
-# prepare_install             &&  # might not make right if installed.
-make    install             &&
-cp     -R   doc/man  /usr   &&
-rm                           /usr/share/qt/mkspecs/${SPECS}/${SPECS}  &&
-# The next line should be only used if headerdir is /usr/include/qt because
-# the default value of it is /usr/include
-sed    -i  's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:'		\
-           mkspecs/${SPECS}/qmake.conf
-cp     -a  mkspecs/${SPECS}  /usr/share/qt/mkspecs/
-}
-
-current() {
-  case  $VERISON  in
-    3.3.6)  grep  -qx  "patching file ChangeLog.immodule"  $COMPILE_LOGS/qt-x11-free  ;;
-  esac
+current(){
+ case  $VERISON  in
+  3.3.8) [ -d /usr/bin/qt3 ] ;;
+  3.3.6) grep -qx "patching file ChangeLog.immodule" $COMPILE_LOGS/qt-x11-free ;;
+ esac
 }
