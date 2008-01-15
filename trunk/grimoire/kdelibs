@@ -1,7 +1,11 @@
 inherit kde
-    IGNORE='^3\.9\|orig'
+
+# case $VERSION in
+#  3.5.7) SAFE=( 3.5.7 ); SOURCE[1]="security_patches/post-3.5.7-kdelibs-kdecore-2.diff" ;;
+# esac
+
+    IGNORE='orig'
   CATEGORY='development'
-#      REQ=( 'arts bzip2 docbook-xml-4.1.2 e2fsprogs kde-symlinks lua pcre'
        REQ=( 'alsa-lib bzip2 cmake e2fsprogs giflib kde-symlinks libXpm libXtst lua pcre shared-mime-info soprano strigi'
              'aspell:::For spell checking' 
              'avahi:::for zero conf support'
@@ -11,17 +15,7 @@ inherit kde
              'jasper:::for jpeg 2000 support'
              'openexr:::for HDR image file format support'
              'openssl:::for secure socket layer support'
-             'soprano:::to build Nepomuk for semantic desktop'
-           )
-
-#             'cups:--enable-cups:--disable-cups:for intergration with common unix printing system'
-#             'heimdal:::for kerberos support'
-#             'libart_lgpl:::for high performance 2d graphics'    
-#             'openldap:::for ldap support'
-#             'tiff:--with-tiff:--without-tiff:for TIFF image support' )
-
-##            'arts:--with-arts:--without-arts:for sound support' )
-# has optional for sudo
+             'soprano:::to build Nepomuk for semantic desktop' )
   ESTIMATE='11100'
  FRESHMEAT='kde'
       DESC='kdelibs contains the base applications that form the core of KDE.
@@ -30,25 +24,8 @@ the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.'
 
 
-case  $VERSION  in
-  3.5.7) SAFE=( 3.5.7 ); SOURCE[1]="security_patches/post-3.5.7-kdelibs-kdecore-2.diff"  ;;
-  3.5.6) # USE_GCC='gcc-v4.0'
-         SOURCE[1]="security_patches/post-3.5.6-kdelibs.diff"
-         SOURCE[2]="security_patches/CVE-2007-1564-kdelibs-3.5.6.diff"  ;;
-esac
-
-
-current()  {
-  case  $VERSION  in
-    3.5.7) grep -qx "patching file kdecore/kurl.cpp" $COMPILE_LOGS/kdelibs ;;
-    3.5.6) grep -qx "patching file kioslave/ftp/ftp.cc" $COMPILE_LOGS/kdelibs ;;
-  esac
-}
-
-build() {
-  case  $VERSION  in
-    3.5.7) patch -p1 < $SCRIPT_DIR/cups13.patch ;;
-  esac
-
-  kde_build
-}
+# current(){
+#  case $VERSION in
+#   3.5.7) grep -qx "patching file kdecore/kurl.cpp" $COMPILE_LOGS/kdelibs ;;
+#  esac
+# }

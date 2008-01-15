@@ -44,3 +44,19 @@ useradd  -K UID_MIN=256 -K UID_MAX=512 -g avahi -d /var/empty avahi 2>/dev/null
 export PATH="/usr/bin/qt4:$PATH"
 default_build
 }
+
+current(){
+# Required for rolling back dbus to 2006 stable release.
+ local LIBR REPLY
+ case $VERSION in
+  0.6.22)
+   read < $VERSION_LOGS/dbus
+   if [ "$REPLY" == "1.0.2" ]; then
+    if   [ -f /usr/lib/libavahi-client.so.3.2.4 ]
+    then LIBR=/usr/lib/libavahi-client.so.3.2.4
+    else LIBR=/usr/lib64/libavahi-client.so.3.2.4
+    fi
+    ! grep -q dbus_watch_get_unix_fd $LIBR
+   fi ;;
+ esac
+}
