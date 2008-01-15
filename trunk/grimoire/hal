@@ -34,8 +34,15 @@ useradd  -K UID_MIN=256 -K UID_MAX=512 -g haldaemon -d /var/empty haldaemon 2>/d
   default_build
 }
 
-current()  {
-  case  $VERSION  in
-    0.5.9.1)  grep  -q  'dbus run $syslog'  /etc/init.d/hald  ;;
-  esac
+current(){
+# Required for rolling back dbus to 2006 stable release.
+ local LIBR REPLY
+ case $VERSION in
+  0.5.9.1)
+   read < $VERSION_LOGS/dbus
+   if   [ "$REPLY" == "1.0.2" ]
+   then grep  -q  '^dbus	1.0.2' $SNAP_LOGS/hal
+   fi &&
+   grep  -q  'dbus run $syslog'  /etc/init.d/hald  ;;
+ esac
 }
