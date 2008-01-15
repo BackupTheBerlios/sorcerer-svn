@@ -1,45 +1,54 @@
-   VERSION=( 1.6.3 1.6.2 1.6.1 1.6.0 1.5.2 1.5.1 1.5.0 )
-      SAFE=( 1.6.3 1.6.2 1.6.1 )
+# 1.9.x versions are required for kde 4.0
+   VERSION=( 1.9.95.1 1.6.3 1.6.2 1.6.1 )
+      SAFE=( 1.9.95.1 )
     IGNORE='l10n'
   CATEGORY='utility/editor utility/spreadsheet graphic/editor'
  ATTRIBUTE='kde'
-    SOURCE="stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2"
+    SOURCE="unstable/koffice-latest/src/koffice-$VERSION.tar.bz2"
+#   SOURCE="stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2"
 case  $VERSION  in
   1.6.3)  SOURCE[1]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'  ;;
 esac
   HOMEPAGE='http://www.koffice.org'
        URL="$KDE_URL"
-# security patches now in $KDE_URL/security_patches not website URL
-#            'http://www.koffice.org/releases/security' )
-# koffice 1.6.2 gained sqlite as mandatory requirement?
-#      REQ=( 'kdebase sqlite'
-       REQ=( 'kdebase'
-             'ImageMagick:::for image conversion support'
-             'Python:--with-pythondir=/usr::for Python support'
-             'aspell:::for spell checking' 
-             'koffice-l10n:::for internationalization support'
-             'lcms:::for Krita support'
-             'libwpd:::for reading word perfect documents'
-             'libexif:::to enable JPEG format in krita'
-             'mysql:--enable-mysql:--disable-mysql:for mysql support in Kexi'
-             'poppler:::to import pdf files into krita'
-             'postgresql:--enable-pgsql:--disable-pgsql: for postgresql support in Kexi'
-             'ruby:::for ruby scripting support'
-             'wv2:::to build MS word filter' )
-# ImageMagick filter deprecated
+       REQ=( 'bzip2 kdebase lcms'
+             'boost:::for kpresenter'
+             'eigen:::for kspread'
+             'qca:::for encrypted OpenDocument files'
+             'qimageblitz:::for krita' )
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=Release'
+
+
+## security patches now in $KDE_URL/security_patches not website URL
+##            'http://www.koffice.org/releases/security' )
+## koffice 1.6.2 gained sqlite as mandatory requirement?
+##      REQ=( 'kdebase sqlite'
+#       REQ=( 'kdebase'
 #             'ImageMagick:::for image conversion support'
-# koffice wants GraphicsMagick instead of ImageMagick now
-#             'GraphicsMagick:::for image conversion support'
-# GraphicsMagick is supposed to replace ImageMagick in koffice
-# for additional graphic input filters, but
-# GraphicsMagick has not made a release in a much longer time
-# than ImageMagick and GraphicsMagic has a compile error.
-# Therefore, staying with ImageMagick
+#             'Python:--with-pythondir=/usr::for Python support'
+#             'aspell:::for spell checking' 
+#             'koffice-l10n:::for internationalization support'
+#             'lcms:::for Krita support'
+#             'libwpd:::for reading word perfect documents'
+#             'libexif:::to enable JPEG format in krita'
+#             'mysql:--enable-mysql:--disable-mysql:for mysql support in Kexi'
+#             'poppler:::to import pdf files into krita'
+#             'postgresql:--enable-pgsql:--disable-pgsql: for postgresql support in Kexi'
+#             'ruby:::for ruby scripting support'
+#             'wv2:::to build MS word filter' )
+## ImageMagick filter deprecated
+##             'ImageMagick:::for image conversion support'
+## koffice wants GraphicsMagick instead of ImageMagick now
+##             'GraphicsMagick:::for image conversion support'
+## GraphicsMagick is supposed to replace ImageMagick in koffice
+## for additional graphic input filters, but
+## GraphicsMagick has not made a release in a much longer time
+## than ImageMagick and GraphicsMagic has a compile error.
+## Therefore, staying with ImageMagick
   ESTIMATE='24600'
       DESC='koffice is an integrated office suite.
-KOffice currently includes KWord, KSpread, KPresenter,
-KChart, Krayon, KIllustrator, KFormula, Kugar, Kexi,
-Krita and Kivio.'
+KOffice currently includes KWord, KSpread, KPresenter, KChart,
+Krayon, KIllustrator, KFormula, Kugar, Kexi, Krita and Kivio.'
 
 case  ${SPELL:8}  in
   l10n-*)  unset  REQ;  REQ='kdelibs'
@@ -50,19 +59,18 @@ case  ${SPELL:8}  in
            ESTIMATE='118'  ;;
 esac
 
-build()  {
-  case  $VERSION  in
-    1.6.3)  patch  -p0  <  $SOURCE_CACHE/koffice/1.6.3/${SOURCE[1]##*/}  ;;
-    1.5.2)  sed  -i  "s:\"\"2\.4\"\":\"\"2.5\"\":"  configure
-            sed  -i  "s:\"2\.4\":\"2.5\":"          acinclude.m4  \
-                                              admin/acinclude.m4.in  ;;
-  esac
-  default_build
-}
+build(){
+ case $VERSION in
+  1.6.3) patch -p0 < $SOURCE_CACHE/koffice/1.6.3/${SOURCE[1]##*/} ;;
+  1.5.2) sed   -i "s:\"\"2\.4\"\":\"\"2.5\"\":"  configure
+         sed   -i "s:\"2\.4\":\"2.5\":"          acinclude.m4 \
+                                           admin/acinclude.m4.in ;;
+ esac
 
-
-current()  {
-  case  $VERSION  in
-    1.6.3)  grep  -qx  'patching file filters/kword/pdf/xpdf/xpdf/Stream.h'  $COMPILE_LOGS/koffice  ;;
-  esac
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
 }
