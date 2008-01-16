@@ -1,109 +1,111 @@
-   VERSION=( 169.07 100.14.19 100.14.11 1.0-9755 1.0-9746 1.0-9631 1.0-9629 )
-    IGNORE="unified"
+   VERSION=( 169.07 169.04 )
+    IGNORE='unified'
   CATEGORY='kernel'
- ATTRIBUTE='linux-26-module x11 x86'
-    SOURCE="NVIDIA-Linux-x86-${VERSION}-pkg1.run"
+case $HOSTTYPE in
+ x86_64) ATTRIBUTE='linux-26-module x11 x86_64'
+            SOURCE="$VERSION/NVIDIA-Linux-x86_64-${VERSION}-pkg2.run"
+               URL='http://download.nvidia.com/XFree86/Linux-x86_64/' ;;
+      *) ATTRIBUTE='linux-26-module x11 x86'
+            SOURCE="$VERSION/NVIDIA-Linux-x86-${VERSION}-pkg1.run"
+               URL='http://download.nvidia.com/XFree86/Linux-x86/
+                   http://us.download.nvidia.com/XFree86/Linux-x86/' ;;
+esac
       VURL='http://www.nvidia.com/object/unix.html'
-       URL="http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/"
   HOMEPAGE='http://www.nvidia.com'
        REQ='MesaLib gtk+ mktemp'
- FRESHMEAT="nvidiaxfree86_40drivers"
+ FRESHMEAT='nvidiaxfree86_40drivers'
+  EPROVIDE='NVIDIA-Linux-x86_64'
   ESTIMATE='220'
-      DESC="NVIDIA-Linux-x86 contains drivers provided by NVIDIA for NVIDIA GPUs
-NVIDIA-Linux-x86 contains the nvidia provided binary 
-XFree86 drivers for their graphics cards.  
-It is also provides the kernel modules."
+      DESC='NVIDIA-Linux-x86 contains drivers provided by NVIDIA for NVIDIA GPUs
+NVIDIA-Linux-x86 contains both
+the nvidia provided binary xorg drivers
+and the linux kernel module.
+
+In order for this to work remember to edit Section "Files"
+of /etc/X11/xorg.conf and add:
+
+    ModulePath      "/usr/lib/modules"
+    ModulePath      "/usr/lib/xorg/modules"
+
+Included is a sample config file that works with 2 monitors.
+/root/.sorcery/grimoire/NVIDIA-Linux-x86.d/xorg.conf'
 
 pre_build() {
   default_pre_build
   cd  ..
   rmdir  $BUILD_DIR
-  sh $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE -x --target $BUILD_DIR
+  sh $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE##*/} -x --target $BUILD_DIR
   chown  -R  root:root  $BUILD_DIR
 }
 
-build() {
-  cd  $BUILD_DIR
+build(){
+ make_install(){
+  cd $BUILD_DIR/usr
 
-  make_install()  {
-    cd  $BUILD_DIR/usr
+  GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
+  sed -i "s:__LIBGL_PATH__:/usr/lib:
+          s,__GENERATED_BY__,$GB," lib/libGL.la
 
-    GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
-    sed  -i  "s:__LIBGL_PATH__:/usr/lib:
-         s,__GENERATED_BY__,$GB,"    lib/libGL.la
-
-    /sbin/ldconfig  -n  lib{,/tls}  X11R6/lib{,/modules/extensions}
-
-    ln  -s  libGL.so.1      lib/libGL.so
-    ln  -s  libGLcore.so.1  lib/libGLcore.so
-    ln  -s  libGL.so.1      lib/tls/libGL.so
-    ln  -s  libGLcore.so.1  lib/tls/libGLcore.so
-   
-    if    /lib/libc.so.6   |
-    grep  -q  "Thread-local storage"
-    then  cp    -a   lib/tls/*  lib
-    fi
-
-    # rm  -f  /usr/X11R6/lib/libGL.*
-    # rm  -f  /usr/lib/libGL.*
-    # rm  -f  /usr/X11R6/lib/modules/extensions/libglx.*
-    # rm  -f  /usr/X11R6/lib/modules/extensions/libGLcore.*
-
-    rm  -rf  src
-
-    if    [  -f  share/doc/Copyrights  ]
-    then  mv     share/doc NVIDIA-Linux-x86
-          mkdir  share/doc
-          mv               NVIDIA-Linux-x86  \
-                 share/doc
-    fi
-
-    cd  $BUILD_DIR
-
-    find   usr  -type f  |
-    while  read
-    do     install  -vD  $REPLY  /$REPLY
-    done
-
-    find   usr  -type l  |
-    while  read
-    do     mv      -v    $REPLY  /$REPLY
-    done
-  }
-
-
-  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
-
-  if    [  -z  "$LVER"  ]
-  then           LVER=$(  uname  -r  )
-  fi
-
-  cd  usr/src/nv
-
-  rm  -f  makefile  Makefile
-
-  case  $LVER  in
-   2.4*)  cp  Makefile.nvidia  Makefile  ;;
-      *)  cp  Makefile.kbuild  Makefile  ;;
+  case $HOSTTYPE in
+   x86_64)
+    /sbin/ldconfig -n lib{,32}{,/tls} X11R6/lib{,/modules/extensions}
+    ln -s libGL.so.1     lib32/libGL.so
+    ln -s libGLcore.so.1 lib32/libGLcore.so
+    ln -s libGL.so.1     lib32/tls/libGL.so
+    ln -s libGLcore.so.1 lib32/tls/libGLcore.so ;;
+   *) /sbin/ldconfig -n lib{,/tls} X11R6/lib{,/modules/extensions} ;;
   esac
 
+  ln -s libGL.so.1     lib/libGL.so
+  ln -s libGLcore.so.1 lib/libGLcore.so
+  ln -s libGL.so.1     lib/tls/libGL.so
+  ln -s libGLcore.so.1 lib/tls/libGLcore.so
 
-   SM="/usr/src/linux/System.map"
-  SSC="suser-sanity-check"
-  RSC="rmmod-sanity-check"
+  if /lib/libc.so.6 | grep -q  "Thread-local storage"; then
+    cp -a lib/tls/*   lib; [ -d lib32 ] &&
+    cp -a lib32/tls/* lib32
+  fi
 
-  sed  -i  "s/\$(shell uname -r)/$LVER/"  Makefile
-  sed  -i  "s:depmod:true:"               Makefile
-  sed  -i  "s:modprobe:true:"             Makefile
-  sed  -i  "s:$SSC $RSC:$SSC:"            Makefile
-  sed  -i  "s:install $RSC:install:"      Makefile
+  rm -rf src
 
-  prepare_install                        &&
-  make    install  IGNORE_CC_MISMATCH=1  &&
+  if    [  -f  share/doc/Copyrights  ]
+  then  mv     share/doc NVIDIA-Linux-x86
+        mkdir  share/doc
+        mv               NVIDIA-Linux-x86  \
+               share/doc
+  fi
+
+  cd $BUILD_DIR
+
+  find usr -type f | while read; do install -vD $REPLY /$REPLY; done
+  find usr -type l | while read; do mv      -v  $REPLY /$REPLY; done
+  }
+
+  LVER=$( installed_version $( get_provider linux-kernel ) )
+
+  if [ -z "$LVER" ]; then LVER=$( uname -r ); fi
+
+  cd $BUILD_DIR
+  cd usr/src/nv
+
+  rm -f makefile Makefile
+
+  case $LVER in
+   2.4*) cp Makefile.nvidia Makefile ;;
+      *) cp Makefile.kbuild Makefile ;;
+  esac
+
+   SM=/usr/src/linux/System.map
+  SSC=suser-sanity-check
+  RSC=rmmod-sanity-check
+
+  sed -i "s/\$(shell uname -r)/$LVER/" Makefile
+  sed -i "s:depmod:true:"              Makefile
+  sed -i "s:modprobe:true:"            Makefile
+  sed -i "s:$SSC $RSC:$SSC:"           Makefile
+  sed -i "s:install $RSC:install:"     Makefile
+
+  prepare_install &&
+  make    install IGNORE_CC_MISMATCH=1 &&
      make_install
-}
-
-post_install() {
-  default_post_install
-  depmod  -a
 }

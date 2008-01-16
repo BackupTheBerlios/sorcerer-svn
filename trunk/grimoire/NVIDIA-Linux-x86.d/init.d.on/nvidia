@@ -1,0 +1,39 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: sshd
+# Required-Start: $local_fs
+# Should-Start: udev
+# Default-Start: 2 3 4 5
+# Default-Stop: 
+# Short-Description: nvidia loads module and creates device nodes.
+# Description: nvidia loads module and creates device nodes.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=nvidia
+
+start(){
+ run(){
+  for ((CX=0;CX<8;CX++)); do
+  mknod            /dev/nvidia$CX c 195 $CX; done
+  mknod            /dev/nvidiactl c 195 255
+  chmod 0660       /dev/nvidia*
+  chown root:video /dev/nvidia*
+  rmmod    nvidiafb
+  modprobe agpgart
+  modprobe nvidia
+ }
+
+ log_warning_msg "$NAME starting"; run
+ log_warning_msg "$NAME started"
+}
+
+help(){ echo"Usage: $0 {start}" 1>&2; }
+
+case $1 in
+ start) start ;;
+ try-restart) : ;;
+ *) help ;;
+esac
