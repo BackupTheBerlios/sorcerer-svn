@@ -1,0 +1,37 @@
+   VERSION=( '12.2' '12.3.91-svn2814' )
+  CATEGORY='library'
+ ATTRIBUTE='console server'
+    SOURCE="iiimf-src-${VERSION}.tar.bz2"
+       URL='http://www.openi18n.org/download/im-sdk/src/'
+  HOMEPAGE='http://www.openi18n.org'
+       REQ='libX11'
+  ESTIMATE='3035'
+      DESC="IIIMF is a next generation of multilingual Unicode input method framework,
+ which is a compelling replacement of the existig other input method frameworks
+ and libraries, such as XIM."
+
+build() {
+	do_build() {
+		oldpwd=$(pwd)
+		cd $1               &&
+		./configure $OPTS   &&
+		make                &&
+        cd $oldpwd
+	}
+	do_install() {
+		oldpwd=$(pwd)
+		cd $1               &&
+		make install        &&
+        cd $oldpwd
+	}
+	OPTS+=" --prefix=/usr --with-imdir=/usr/lib/X11/locale/common"
+	DIRS="lib/iiimp lib/EIMIL lib/iiimcf lib/CSConv iiimxcf/xiiimp.so iiimxcf/htt_xbe"
+	for dir in $DIRS; do
+		do_build $dir
+	done                       && 
+	prepare_install                     &&
+	for dir in $DIRS; do
+		do_install $dir
+	done
+}
+
