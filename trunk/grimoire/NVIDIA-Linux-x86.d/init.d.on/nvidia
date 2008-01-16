@@ -16,17 +16,17 @@ NAME=nvidia
 
 start(){
  run(){
+  rmmod    nvidiafb
+  modprobe agpgart
+  modprobe nvidia
   for ((CX=0;CX<8;CX++)); do
   mknod            /dev/nvidia$CX c 195 $CX; done
   mknod            /dev/nvidiactl c 195 255
   chmod 0660       /dev/nvidia*
   chown root:video /dev/nvidia*
-  rmmod    nvidiafb
-  modprobe agpgart
-  modprobe nvidia
  }
 
- log_warning_msg "$NAME starting"; run
+ log_warning_msg "$NAME starting"; run 2>/dev/null
  log_warning_msg "$NAME started"
 }
 
