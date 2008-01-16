@@ -25,14 +25,26 @@
       DESC='qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
 
 build(){
+ rm -rf demos examples
+
  export   CFLAGS+=' -fPIC'
  export CXXFLAGS+=' -fPIC'
 
- case $HOSTTYPE in
-  i586) OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2' ;;
- esac
+ flags(){
+  while [ -n "$1" ]; do
+   sed -n '/^flags/p' /proc/cpuinfo | grep -qw "$1" || OPTS+=" -no-$1"
+   shift
+  done
+ }
 
- rm  -rf  demos examples
+ if   [ "$HOSTTYPE" = "i586" ] &&
+      [ -d /boot/isolinux ]
+ then OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2'
+ else
+  case $HOSTTYPE in
+   i?86) flags mmx 3dnow sse sse2 ;;
+  esac
+ fi
 
  QT4_PREFIX=/usr/share/qt4
 
@@ -41,8 +53,6 @@ build(){
        *) LIBS=lib   ;;
  esac
 
- # The -R breaks compilation in 4.2.1
- # -R$BUILD_DIR/lib  \
  mkdir  lib
  echo  "yes"      |
  ./configure      \
@@ -63,18 +73,16 @@ build(){
  -no-exceptions   \
  -nomake demos    \
  -nomake examples \
- -prefix $QT4_PREFIX  \
+ -prefix $QT4_PREFIX \
  -bindir /usr/bin \
- -libdir /usr/$LIBS   \
+ -libdir /usr/$LIBS \
  -no-separate-debug-info \
  -headerdir /usr/include/qt4 \
- $OPTS           &&
- make            &&
+ $OPTS &&
+ make  &&
  prepare_install &&
  make    install &&
  ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
  ln -s ../../bin         ${QT4_PREFIX}/bin &&
  ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }
-
-# ln -s ../share/qt4/include /usr/include/qt4  &&
