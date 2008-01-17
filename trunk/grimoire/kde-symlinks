@@ -5,18 +5,25 @@
   ESTIMATE='5'
       DESC='kde-symlinks ensures kde configuration files go into /etc'
 
-build()  {  echo  "kde-symlinks installed";  }
+build(){ echo "kde-symlinks installed"; }
 
-post_install()  {
-  move()  {
-    if    [  -h  $1  ];  then  return;  fi
-    if    [  -d  $1  ]
-    then  mv     $1  $2
-    fi
-    ln       -s      $2  $1
-  }
+post_install(){
+ move(){
+  if [ -h $1 ]; then return; fi
+  if [ -d $1 ]; then
+   mkdir -p        $2
+   cp    -a  $1/*  $2
+   rm    -fr $1
+  fi
+  ln -s $2 $1
+ }
 
-  move  /usr/share/config       /etc/kde.config
-  move  /usr/share/config.kcfg  /etc/kde.config.kcfg
-  default_post_install
+ move /usr/share/config      /etc/kde.config
+ move /usr/share/config.kcfg /etc/kde.config.kcfg
+ default_post_install
+}
+
+current(){
+ [ -h /usr/share/config ] &&
+ [ -h /usr/share/config.kcfg ]
 }
