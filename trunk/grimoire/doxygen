@@ -8,8 +8,6 @@
        REQ=( 'bison perl'
              'teTeX:::for generating LaTeX, Postscript, and PDF output'
              'graphviz:::for generating graphs' )
- #         Not currently compatibile with qt 3.0.1
- # 'qt-x11-free:--with-doxywizard::for GUI front-end'
   ESTIMATE='200'
       DESC='doxygen is a documentaiton system for C++, Jva, C and IDL.
 doxygen is a cross-platform, JavaDoc-like
@@ -24,25 +22,15 @@ and hyperlinked source code.
 This type of information can be very useful to
 quickly find your way in large source distributions.'
 
-build()  {
-#  would enable this if it was qt-x11-free 3.x compatible.
-#  if  [  -d  /usr/include/qt  ];  then
-#    mkdir    qt
-#    cd       qt
-#    ln  -sf  /usr/include/qt  include
-#    ln  -sf  /usr/lib         lib
-#    export   QTDIR="$PWD"
-#    cd       ..
-#  fi
-
-if    spell_installed  $(  get_provider  coreutils  )
-then  sed  -i  "s:fileutils:coreutils:g"  configure
+build(){
+if   spell_installed  $(  get_provider  coreutils  )
+then sed  -i  "s:fileutils:coreutils:g"  configure
 fi
 
-./configure      \
---prefix /usr    \
-$OPTS            &&
-make             &&
-prepare_install  &&
+./configure     \
+--prefix /usr   \
+$OPTS           &&
+make            &&
+prepare_install &&
 make    install
 }

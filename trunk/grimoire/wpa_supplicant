@@ -5,8 +5,6 @@
        URL='http://hostap.epitest.fi/releases/'
   HOMEPAGE='http://hostap.epitest.fi/wpa_supplicant'
        REQ=( 'openssl readline ncurses' )
-#            'qt-x11-free:--enable-qt-x11-free::for GUI' )
-# wpa_gui has compile errors in version 0.6.2
   ESTIMATE='70'
       DESC='wpa_supplicant is a WPA/WPA2 supplicant
 wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
@@ -23,47 +21,46 @@ component controlling the wireless connection.
 It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
-build()  {
+build(){
+# export QTDIR=/usr/share/qt4
 
-  export QTDIR=/usr
+ install_examples(){
+  mv *.conf examples
+  mv        examples doc
+ }
 
-  install_examples() {
-    mv  *.conf  examples
-    mv          examples  doc
-  }
+ install_man(){
+  for i in doc/docbook/*.[0-9]
+  do  install -v -m 0644 $i /usr/share/man/man${i##*.}
+  done
+ }
 
-  install_man() {
-    for  i  in doc/docbook/*.[0-9]
-    do   install -v -m 0644  $i  /usr/share/man/man${i##*.}
-    done
-  }
+ install_wpa_gui(){
+  if   echo "$OPTS" | grep -q enable-qt-x11-free
+  then install -v -m 0755 wpa_gui/wpa_gui /usr/bin
+  fi
+ }
 
-  install_wpa_gui()  {
-    if    echo  "$OPTS"  |  grep  -q  enable-qt-x11-free
-    then   install -v -m 0755  wpa_gui/wpa_gui  /usr/bin
-    fi
-  }
+ install_wpa_files(){
+  install -v -d /etc/wpa_supplicant
+  install_wpa_gui
+  install_examples
+  install_man	
+ }
 
-  install_wpa_files() {
-    install -v -d       /etc/wpa_supplicant
-    install_wpa_gui
-    install_examples
-    install_man	
-  }
+ make_gui(){
+  if   echo "$OPTS" | grep -q enable-qt-x11-free
+  then make wpa_gui
+  fi
+ }
 
-  make_gui()  {
-    if    echo  "$OPTS"  |  grep  -q  enable-qt-x11-free
-    then  make  wpa_gui
-    fi
-  }
-
-  sed  -i  's:/usr/local:/usr:'  wpa_supplicant/Makefile
-  export  LDFLAGS="-L/lib -L/lib64 $LDFLAGS"
-  cd  wpa_supplicant      &&
-  cp  defconfig  .config  &&
-  make                    &&
-  make_gui                &&
-  prepare_install         &&
-  make    install         &&
-  install_wpa_files
+ sed -i 's:/usr/local:/usr:' wpa_supplicant/Makefile
+ export  LDFLAGS+=' -L/lib -L/lib64'
+ cd  wpa_supplicant     &&
+ cp  defconfig  .config &&
+ make                   &&
+ make_gui               &&
+ prepare_install        &&
+ make    install        &&
+ install_wpa_files
 }

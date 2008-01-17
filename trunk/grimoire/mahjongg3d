@@ -6,37 +6,37 @@
        URL='http://www.reto-schoelly.de/mahjongg3d/'
   HOMEPAGE='http://www.reto-schoelly.de/mahjongg3d/'
        REQ='qt-x11-free'
-#FRESHMEAT="mahjongg3d"
+#FRESHMEAT='mahjongg3d'
   ESTIMATE='180'
-      DESC="mahjongg3d is a OpenGL tile game.
+      DESC='mahjongg3d is a OpenGL tile game.
 The goal of the game is to remove all tiles on the board
 by selecting matching pairs of tiles that have tile 
-adjacent on the left or right side."
+adjacent on the left or right side.'
 
 
-build() {
+build(){
 
-if    [   -d   patch2  ]
-then  cp  -av  patch2/*  .
-fi
+ if   [  -d  patch2 ]
+ then cp -av patch2/*  .
+ fi
 
-export    CFLAGS="-I/usr/include/qt    $CFLAGS"
-export  CXXFLAGS="-I/usr/include/qt  $CXXFLAGS"
+ export    CFLAGS+=" -I/usr/include/qt"
+ export  CXXFLAGS+=" -I/usr/include/qt"
+ export PATH="/usr/bin/qt3:$PATH"
 
-sed   -i  "s:/mkspecs:/share/qt/mkspecs:"  Makefile.doit
+ sed  -i "s:/mkspecs:/share/qt/mkspecs:" Makefile.doit
 
-grep  -rl               "-O2"  *  |
-xargs -r --max-lines=64  sed  -i  "s:-O2:$CFLAGS:"
+ grep  -rl                           "-O2"  *  |
+ xargs -r --max-lines=64  sed  -i  "s:-O2:$CFLAGS:"
 
-grep  -rl              "openglwidget\.h"  *  |
-xargs -r --max-lines=64  sed  -i  "/openglwidget\.h/d"
+ grep  -rl                          "openglwidget\.h"  *  |
+ xargs -r --max-lines=64  sed  -i  "/openglwidget\.h/d"
 
-export  QTDIR=/usr
+ export  QTDIR=/usr/share/qt3
 
-echo  "/usr
-/usr/share"      |
-./configure      &&
-make             &&
-prepare_install  &&
-make    install
+ echo  -e  "/usr\n/usr/share" |
+ ./configure     &&
+ make            &&
+ prepare_install &&
+ make    install
 }
