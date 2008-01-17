@@ -21,6 +21,7 @@
 #            ':-qt-gif::for gif support' )
 # qt-x11-free does not support nas network audio.
       OPTS='-qt-gif'
+ CONFLICTS='qt-x11-free'
  FRESHMEAT='qt'
   ESTIMATE='4870'
       DESC='qt-x11-free simplifies the task of writing and maintaining GUI applications.'
@@ -69,7 +70,7 @@ build(){
          plugins/src/inputmethods/imsw-none/qnoneinputcontextplugin.cpp ;;
  esac
 
- prepare_install             &&  # doesn't make right if installed.
+#prepare_install             &&  # doesn't make right if installed.
 
  # -R$BUILD_DIR/lib       \  # not required if qt-x11-free is not installed
  # -L$PWD/lib       \
@@ -78,8 +79,12 @@ build(){
 
 # -headerdir /usr/include/qt  \
 
+#-R$PWD/lib       \
+
  echo yes |
  ./configure  -v  \
+ -R/opt/qt3/lib   \
+ -L/opt/qt3/lib   \
  -release         \
  -shared          \
  -thread          \
@@ -90,19 +95,17 @@ build(){
  -tablet          \
  -xinerama        \
  -xft             \
- -R$PWD/lib       \
- -no-g++-exceptions     \
- -prefix /usr/share/qt  \
- -bindir /usr/bin/qt3   \
- -libdir /usr/$LIBS     \
- -docdir /usr/doc/qt-x11-free  \
- $OPTS                  &&
- make                   &&
- make    install        &&
- cp     -R   doc/man  /usr   &&
- ln     -s   ../share/qt/include  /usr/include/qt    &&
- ln     -s   ../../bin/qt3        /usr/share/qt/bin  &&
- ln     -s   ../../$LIBS          /usr/share/qt/lib  &&
+ -no-g++-exceptions \
+ -prefix /opt/qt3 \
+ $OPTS &&
+ make  &&
+ prepare_install &&
+ mkdir -p /opt/qt3 &&
+ make   install &&
+ cp -R  doc/man /usr &&
+# ln -s  ../share/qt/include /usr/include/qt   &&
+# ln -s  ../../bin/qt3       /usr/share/qt/bin &&
+# ln -s  ../../$LIBS         /usr/share/qt/lib &&
  fix_qmake_conf
 
 # QTDIR=/usr/share/qt
@@ -113,8 +116,9 @@ build(){
 }
 
 current(){
- case  $VERISON  in
-  3.3.8) [ -d /usr/bin/qt3 ] ;;
+ case $VERISON in
+  3.3.8) [ -d /opt/qt3 ] ;;
   3.3.6) grep -qx "patching file ChangeLog.immodule" $COMPILE_LOGS/qt-x11-free ;;
  esac
+# 3.3.8) [ -d /usr/bin/qt3 ] ;;
 }
