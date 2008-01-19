@@ -4,8 +4,9 @@
     SOURCE="wpa_supplicant-$VERSION.tar.gz"
        URL='http://hostap.epitest.fi/releases/'
   HOMEPAGE='http://hostap.epitest.fi/wpa_supplicant'
-       REQ=( 'openssl readline ncurses' )
-  ESTIMATE='70'
+       REQ=( 'openssl readline ncurses'
+             'qt-x11-opensource:::for GUI' )
+  ESTIMATE='110'
       DESC='wpa_supplicant is a WPA/WPA2 supplicant
 wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
 It is suitable for both desktop/laptop
@@ -22,8 +23,6 @@ It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
 build(){
-# export QTDIR=/usr/share/qt4
-
  install_examples(){
   mv *.conf examples
   mv        examples doc
@@ -36,7 +35,7 @@ build(){
  }
 
  install_wpa_gui(){
-  if   echo "$OPTS" | grep -q enable-qt-x11-free
+  if                 [ -f wpa_gui/wpa_gui ]
   then install -v -m 0755 wpa_gui/wpa_gui /usr/bin
   fi
  }
@@ -48,12 +47,9 @@ build(){
   install_man	
  }
 
- make_gui(){
-  if   echo "$OPTS" | grep -q enable-qt-x11-free
-  then make wpa_gui
-  fi
- }
+ make_gui(){ make wpa_gui; true; }
 
+ export QTDIR=/usr/share/qt4
  sed -i 's:/usr/local:/usr:' wpa_supplicant/Makefile
  export  LDFLAGS+=' -L/lib -L/lib64'
  cd  wpa_supplicant     &&

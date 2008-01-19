@@ -1,7 +1,7 @@
    VERSION=( 1.1.0-src )
     IGNORE='arm\|doc'
   CATEGORY='utility'
- ATTRIBUTE='kde new'
+ ATTRIBUTE='kde'
     SOURCE="roadmap/roadmap-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://roadmap.sourceforge.net/'
@@ -14,23 +14,19 @@ A specific area can be displayed by selecting a street address.
 It interfaces with gpsd to track a GPS position, and has been
 designed to be usable on a desktop, laptop, or PDA computer.'
 
+build(){
+cd src
 
-build() {
-cd    src
+export QTDIR=/opt/qt3
+export  PATH="/opt/qt3/bin:$PATH"
+export CFLAGS+=' -I/usr/include/libshp'
 
-export  QTDIR="/usr/share/qt3"
-export   PATH="/usr/bin/qt3:$PATH"
-export  CFLAGS+=' -I/usr/include/libshp'
+sed -i "s:/appl:/share/appl:
+        s:/usr/local:/usr:"  Makefile  */Makefile
+sed -i "s:/include/qt3:/include/qt:
+        s:-lqt$:-lqt-mt:"  qt/Makefile
 
-sed   -i  "s:/appl:/share/appl:
-           s:/usr/local:/usr:"  Makefile  */Makefile
-sed   -i  "s:/include/qt3:/include/qt:
-           s:-lqt$:-lqt-mt:"  qt/Makefile
-
-make  "MODECFLAGS=$CFLAGS"  runtime  build  icons  &&
-# cd    gtk2                                     &&
-# make  "STDCFLAGS=$CFLAGS"  all                 &&
-# make        all  &&
-prepare_install                                &&
+make "MODECFLAGS=$CFLAGS" runtime build icons &&
+prepare_install &&
 make    install
 }
