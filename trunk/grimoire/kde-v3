@@ -18,22 +18,30 @@ kde_build(){
  sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
          s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
 
- export LDFLAGS+=' -L/opt/qt3/lib -Wl,-rpath=/opt/qt3/lib'
- export LDFLAGS+=' -L/opt/kde3/lib -Wl,-rpath=/opt/kde3/lib'
+# case $HOSTTYPE in
+#  x86_64) export LDFLAGS+=' -L/opt/qt3/lib64 -Wl,-rpath,/opt/qt3/lib64' ;;
+#       *) export LDFLAGS+=' -L/opt/qt3/lib -Wl,-rpath,/opt/qt3/lib' ;;
+# esac
+
+#--prefix=/opt/kde3   \
+
+ case $HOSTTYPE in
+  x86_64) OPTS+=' --with-qt-libraries=/opt/qt3/lib64' LDFLAGS+=' -L/opt/qt3/lib64';;
+       *) OPTS+=' --with-qt-libraries=/opt/qt3/lib'   LDFLAGS+=' -L/opt/qt3/lib' ;;
+ esac
 
  ./configure \
+ --prefix=/usr \
  --with-qt-dir=/opt/qt3 \
- --prefix=/opt/kde3   \
  --with-qt-includes=/opt/qt3/include \
- --with-qt-libraries=/opt/qt3/lib \
- --enable-pch         \
- --with-xinerama      \
- --disable-debug      \
- --enable-final       \
- $OPTS                &&
- make                 &&
- prepare_install      &&
- mkdir  -p /opt/kde3  &&
+ --enable-pch    \
+ --with-xinerama \
+ --disable-debug \
+ --enable-final  \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ mkdir  -p /opt/kde3 &&
  make    install
 }
 
