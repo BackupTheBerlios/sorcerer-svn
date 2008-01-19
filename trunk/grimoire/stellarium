@@ -1,19 +1,30 @@
-   VERSION=(         0.8.2 0.8.1 0.8.0 )
-#  VERSION=( 0.9.0 0.8.2 0.8.1 0.8.0 )
-# 0.9.0 uses qt 4.x instead of SDL?
+   VERSION=( 0.9.1 0.9.0 0.8.2 0.8.1 0.8.0 )
   CATEGORY='game graphic'
  ATTRIBUTE='x11'
     SOURCE="stellarium/stellarium-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://stellarium.free.fr/'
-       REQ='SDL_mixer'
-  ESTIMATE='1270'
-      DESC="stellarium renders 3D photo-realistic skies using OpenGL.
+  HOMEPAGE='http://stellarium.org'
+       REQ='SDL_mixer qt-x11-opensource'
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/usr -DCMAKE_BUILD_TYPE=Release'
+case $HOSTTYPE in
+ x86_64) OPTS+=' -DLIB_DESTINATION=lib64' ;;
+esac
+  ESTIMATE='600'
+      DESC='stellarium renders 3D photo-realistic skies using OpenGL.
 It displays stars, constellations,
 planets, nebulas and others things
-like ground, landscape, fog, etc."
+like ground, landscape, fog, etc.'
 
-build() {
+build(){
+ mkdir build
+ cd    build
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
+
+build_old() {
 sed  -i  "s:\r::g
           s:CFLAGS=\" -Wall -s -O3\":CFLAGS=\" $CFLAGS\":
           s:CXXFLAGS=\" -Wall -s -O3\":CXXFLAGS=\" $CXXFLAGS\":"  configure

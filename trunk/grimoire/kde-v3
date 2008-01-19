@@ -1,0 +1,50 @@
+[  -z  $VERSION  ]  &&
+   VERSION=( 3.5.8 )
+  CATEGORY='profile'
+ ATTRIBUTE='kde'
+  HOMEPAGE='http://www.kde.org'
+       URL="$KDE_URL"
+  ESTIMATE='5'
+      DESC='kde-v3 provides part of the obsolete version 3 K desktop environment.'
+
+kde_build(){
+ SCX=1
+ while [     -n                                 "${SOURCE[$SCX]}"  ]
+ do    patch -p0 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$SCX]##*/}
+       (( SCX++ ))
+ done
+
+ # ppanula: tested with kde 3.5.1, OK
+ sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
+         s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
+
+ export LDFLAGS+=' -L/opt/qt3/lib -Wl,-rpath=/opt/qt3/lib'
+ export LDFLAGS+=' -L/opt/kde3/lib -Wl,-rpath=/opt/kde3/lib'
+
+ ./configure \
+ --with-qt-dir=/opt/qt3 \
+ --prefix=/opt/kde3   \
+ --with-qt-includes=/opt/qt3/include \
+ --with-qt-libraries=/opt/qt3/lib \
+ --enable-pch         \
+ --with-xinerama      \
+ --disable-debug      \
+ --enable-final       \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ mkdir  -p /opt/kde3  &&
+ make    install
+}
+
+build(){
+ case $SPELL in
+  kde-v3) default_build ;;
+       *) kde_build ;;
+ esac
+}
+
+case $SPELL in
+ kde) : ;;
+   *) unset REQ; SOURCE="stable/${VERSION}/src/${SPELL%-*}-$VERSION.tar.bz2" ;;
+esac
