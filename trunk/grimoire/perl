@@ -1,7 +1,7 @@
    VERSION=( 5.8.8 5.8.7 5.8.6 5.8.5 5.8.4 5.8.3 5.8.2 5.8.1 )
       SAFE=( 5.8.8 )
 # 5.10.0 is latest, however stable is 5.8.8 
-    IGNORE="\-slides\|^5\.9\."
+    IGNORE='\-slides\|^5\.9\.\|RC'
 # 5.9.x is developmental version
 # http://www.cpan.org/src/README.html#no_latest
 # Can they be any more confusing about what how the
@@ -12,68 +12,68 @@
     SOURCE="perl-$VERSION.tar.bz2"
        URL='http://www.cpan.org/src/'
 # Requirement on coreutils creates recursive requirement loop with attr
-#      REQ=( "coreutils"
-       REQ=( ""
-             "gdbm:::for database support"
-             "db:::for database support" )
-   EXCLUDE="perllocal.pod"
+#      REQ=( 'coreutils'
+       REQ=( ''
+             'gdbm:::for database support'
+             'db:::for database support' )
+   EXCLUDE='perllocal.pod'
   HOMEPAGE='http://www.perl.org/'
-  ESTIMATE='3367'
-      DESC="perl is Larry Wall's practical extraction and reporting language.
+  ESTIMATE='5500'
+      DESC='perl is the practical extraction and reporting language by Larry Wall.
 perl is a high-level, general-purpose programming language.
 It is optimized for scanning arbitrary
 text files and system administration.
 It has built-in extended regular expression
 matching and replacement, a dataflow mechanism
 to improve security with setuid scripts and is
-extendable via modules that can interface to C libraries."
+extendable via modules that can interface to C libraries.'
 
-build()  {
+build(){
 
-  export  CFLAGS="$CFLAGS -fPIC"
+ export CFLAGS+=' -fPIC'
 
-  if    echo  "$CFLAGS"  |  grep  -q  "march=i586"
-  then         SETARCH="-Darchname=i586-linux"
-  else  unset  SETARCH
-  fi
+ if   echo "$CFLAGS" | grep -q "march=i586"
+ then       SETARCH="-Darchname=i586-linux"
+ else unset SETARCH
+ fi
 
-  unset  LANG  LC_CTYPE
+ unset LANG LC_CTYPE
 
-  #  gcc 4.2.1 ouputs command-line instead of command line
-  case  $VERSION  in
-    5.8.8)
-      if    gcc   --version  |  grep  -q  "4\.2\.[12]"
-      then  grep  -rl  "<command line>"  *  |  xargs  -r  \
-            sed   -i   "s:ommand line:ommand-line:"
-      fi  ;;
-  esac
+ #  gcc 4.2.1 ouputs command-line instead of command line
+ case  $VERSION  in
+  5.8.8)
+   if   gcc  --version | grep -q '4\.2\.[12]'
+   then grep -rl '<command line>' * | xargs -r \
+        sed  -i  's:ommand line:ommand-line:'
+   fi ;;
+ esac
 
 # Even with UCLIBC_HAS_THREADS=y
 # perl says when compiling with uClibc:
 #     The recommended value for $d_getlogin_r_proto on this machine was "define"!
 #     The recommended value for $d_readdir64_r_proto on this machine was "define"!
 
-  case  $MACHTYPE  in
-    *-uclibc)  THREADS=""  ;;
-           *)  THREADS="-Dusethreads"  ;;
-  esac
+ case $MACHTYPE in
+  *-uclibc) unset THREADS ;;
+         *) THREADS='-Dusethreads' ;;
+ esac
 
 # could add -s : silent mode, only echoes questions and essential information.
 
-  ./Configure                                         \
-  -Dprefix=/usr -d -e $THREADS                        \
-  -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib"  \
-  $SETARCH
-  make  "OPTIMIZE=$CFLAGS"  &&
-  prepare_install           &&
-  make    install
+ ./Configure \
+ -Dprefix=/usr -d -e $THREADS \
+ -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib" \
+ $SETARCH
+ make  "OPTIMIZE=$CFLAGS" &&
+ prepare_install &&
+ make    install
 }
 
 
-post_install()  {
-  # unlock_cast
-  (  show_installed  perl-module
-     echo            "perl--XML-Parser"
-  ) |  pipe_queue    "$CAST_QUEUE"  "com"
-  true
+post_install(){
+ # unlock_cast
+ ( show_installed perl-module
+   echo           perl--XML-Parser
+ ) | pipe_queue "$CAST_QUEUE" com
+ true
 }
