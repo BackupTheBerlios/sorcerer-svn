@@ -4,6 +4,7 @@
 #version_year_week  10
     IGNORE='xmms-plugin\|services\|alpha'
   CATEGORY='kernel'
+#ATTRIBUTE='archive_off library'
  ATTRIBUTE='archive_off library broken'
     SOURCE="lirc/lirc-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
@@ -15,8 +16,12 @@
              'libSM:::for x11 utilities'
              'libX11:::for x11 utilities'
              'portaudio:::for portaudio support' )
-      OPTS='--with-driver=all --enable-sandboxed'
+      OPTS='--with-driver=all'
+#     OPTS='--with-driver=all --enable-sandboxed'
 #  USE_GCC='gcc-v4.0'
+case $VERSION in
+ 0.8.2) USE_GCC='gcc-v4.0' ;;
+esac
   HOMEPAGE='http://www.lirc.org'
   ESTIMATE='1280'
       DESC='lirc (Linux Infrared Remote Control).
@@ -30,9 +35,12 @@ build() {
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
-if  [  -x  autogen.sh  ]
-then      ./autogen.sh
-fi  &&
+
+KVER=$( installed_version $( get_provider linux-kernel ) )
+OPTS+=" --with-kerneldir=/usr/src/linux --with-moduledir=/lib/modules/$KVER/misc"
+if   [ -x autogen.sh ]
+then    ./autogen.sh
+fi &&
 default_build
 }
 
