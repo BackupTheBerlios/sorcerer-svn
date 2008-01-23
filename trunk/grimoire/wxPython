@@ -2,7 +2,7 @@
     IGNORE='^2\.9\.'
 # 2.9.x.x is developmental branch
   CATEGORY='graphic'
- ATTRIBUTE='library python-module x11 new'
+ ATTRIBUTE='library python-module x11'
     SOURCE="wxpython/wxPython-src-$VERSION.tar.bz2"
   HOMEPAGE='http://wxpython.org'
        URL="$SOURCEFORGE_URL"
@@ -19,6 +19,7 @@ esac
   ESTIMATE='8300'
       DESC='wxPython is Python extention module that wraps wxGTK library.'
 
+build() {
 # Who wrote build_new()  ?
 build_new()  {
 mkdir  bld
@@ -42,11 +43,9 @@ cd      ../wxPython        &&
 python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
 }
 
-
-build() {
-  grep   -rl             '\-O3'  *  |
-  xargs  --max-lines=64  sed  -i  's:-O3:-Os:'
-  default_build  &&
-  cd  wxPython   &&
+  grep  -rl  '\-O3' * |
+  xargs --max-lines=64 sed -i 's:-O3:-Os:'
+  default_build &&
+  cd wxPython &&
   python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
 }

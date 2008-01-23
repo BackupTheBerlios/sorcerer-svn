@@ -1,0 +1,214 @@
+#!/bin/bash
+# Copyright 2008 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+# bgz recompresses tarballs in the background,
+# during periods of low loadavg, to conserve disk space
+
+VC=/var/cache
+AC=$VC/archive
+CC=$VC/ccache
+SC=$VC/sources
+
+TAR='/\.tar$/p'
+TGZ='/\.tar\.gz$/p;/\.tgz$/p'
+BZ2='/\.tar\.bz2$/p'
+
+PIDF=/var/run/bgz.pid
+
+ZPROG=gzip
+FILES=$TAR
+
+declare -i NEXT=900
+declare -i LOW=2
+LC_ALL=C
+TERM="dumb"
+IFS=" 	
+"
+export IFS LC_ALL TERM
+
+ll(){
+ local REPLY
+ read < /proc/loadavg
+ REPLY=${REPLY%% *}
+ REPLY=${REPLY%%.*}
+ (( LOW > REPLY ))
+}
+
+decomp(){
+ local REPLY
+ compressor "$1"
+ case "$REPLY" in
+     7z) 7za x -so $1 2>/dev/null ;;
+  bzip2) bzip2 -cd $1 ;;
+   gzip) gzip  -cd $1 ;;
+      *) cat       $1 ;;
+ esac
+}
+
+found(){ while read; do return ; done; return 1; }
+
+compressor(){
+        REPLY="$( file -b $1 )"
+ case "$REPLY" in
+       *tar*) REPLY=tar   ;;
+       gzip*) REPLY=gzip  ;;
+      bzip2*) REPLY=bzip2 ;;
+   compress*) REPLY=gzip  ;;
+  7z*|7-zip*) REPLY=7z    ;;
+ esac
+}
+
+is_comp_tar(){ decomp "$1" | dd bs=4096 count=1 | file -b - | grep -q tar; }
+
+rootname(){
+ REPLY="${1%.7z}"
+ REPLY="${REPLY%.bz2}"
+ REPLY="${REPLY%.gz}"
+ REPLY="${REPLY%.tar}"
+ REPLY="${REPLY%.tgz}"
+ REPLY="${REPLY%.tbz2}"
+}
+
+recompress(){
+ local IN OUT SUF CIN COUT LIN LOUT TMP REPLY
+
+ chk(){
+  ( decomp "$1" | md5sum -
+    decomp "$2" | md5sum - ) |
+    uniq -d     |  found
+ }
+
+ rtmp(){ rm -f "$TMP"; }
+ uncompr(){           if ! decomp   "$IN"; then rtmp; fi; }
+ bzip_it(){ uncompr | if ! bzip2 > "$TMP"; then rtmp; fi; }
+ gzip_it(){ uncompr | if ! gzip  > "$TMP"; then rtmp; fi; }
+ 7zip_it(){ uncompr | if ! 7za a -bd -si "$TMP"; then rtmp; fi; }
+
+        IN="$1"
+ [ -f "$IN" ] || return 0
+
+ if   ! is_comp_tar "$IN" 2>/dev/null
+ then rm -f "$IN"; return 0
+ fi
+
+ compressor "$IN"
+ case "$REPLY" in
+  tar)   LIN=0 ;;
+  gzip)  LIN=1 ;;
+  bzip2) LIN=2 ;;
+  7z)    LIN=3 ;;
+ esac
+
+ COUT="$2"
+ COUT="${COUT:-$ZPROG}"
+ COUT="${COUT:-bzip2}"
+
+ case  $COUT  in
+  7za)   LOUT=3; SUF=7z   ;;
+  bzip2) LOUT=2; SUF=bz2  ;;
+  gzip)  LOUT=1; SUF=gz   ;;
+  *)     return 0 ;;
+ esac
+
+ rootname "$1"
+ OUT="$REPLY.tar.$SUF"
+ TMP="$OUT.new"
+
+ if   [ "$IN" == "$OUT" ] ||
+      (( LIN  >=  LOUT ))
+ then return 0
+ fi
+
+ if   [ -f  "$OUT" ] &&
+      [ -f  "$IN"  ] &&
+      chk   "$IN" "$OUT"
+ then rm -f "$IN"; return 0
+ fi
+
+ rm -f "$OUT"
+ umask 0077
+ case $COUT in
+  7za)   7zip_it ;;
+  bzip2) bzip_it ;;
+  gzip)  gzip_it ;;
+ esac &>/dev/null
+ umask 0022
+
+ if [ -f "$TMP" ]; then
+  mv "$TMP" "$OUT"
+  chmod $( stat -c "%a" "$IN" ) "$OUT"
+  touch -r "$IN" "$OUT"
+  rm    -f "$IN"
+ else false
+ fi
+}
+
+
+reduction(){
+ find -L $AC $CC $SC -maxdepth 3 -type f |
+ sed -n "$FILES" |
+ while read; do
+  if   ll
+  then recompress "$REPLY"
+  else (( NEXT = SECONDS + 300 )); return 1
+  fi
+ done
+
+ (( NEXT = SECONDS + 3600 ))
+}
+
+locked(){
+ local LEN STATUS LINE LPID
+
+ [ -n  "$1" ] && [ -f  $1 ] &&
+ [ -n  "$2" ] && LEN=${#2} &&
+ read  LPID  <  $1 &&
+ STATUS="/proc/$LPID/status" &&
+ [  -f       $STATUS ] &&
+ read LINE < $STATUS &&
+ [ "${LINE:6:$LEN}" == "$2" ]
+}
+
+lock_bgz(){
+ locked       $PIDF bgz &&
+ kill -15 $(< $PIDF ); sleep 0.1
+ echo  $!   > $PIDF
+ disown
+}
+
+acad(){
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then
+  read < /proc/acpi/ac_adapter/*/state
+  [ "${REPLY// /}" == "state:on-line" ]
+ fi
+}
+
+main(){
+ trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
+ while sleep 300; do
+  if   (( SECONDS > NEXT )) && acad && ll
+  then reduction
+  fi
+ done
+}
+
+while [ -n "$1" ]; do
+ case $1 in
+    7za) ZPROG=7za;   FILES="$TAR;$TGZ;$BZ2" ;;
+  bzip2) ZPROG=bzip2; FILES="$TAR;$TGZ" ;;
+   gzip) ZPROG=gzip;  FILES="$TAR" ;;
+      *) (( LOW = $1 )) ;;
+ esac
+ shift 1
+done
+
+(( LOW > 0 )) || return 1
+
+[ -x /usr/bin/nice   ] && renice  19 -p $$ &>/dev/null
+[ -x /usr/bin/ionice ] && ionice -c3 -p $$ &>/dev/null
+[ -f      /usr/libexec/bash/sleep ] &&
+enable -f /usr/libexec/bash/sleep sleep
+
+main 1>>/var/log/bgz 2>&1 &
+lock_bgz

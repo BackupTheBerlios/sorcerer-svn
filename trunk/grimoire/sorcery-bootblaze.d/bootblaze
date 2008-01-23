@@ -1,0 +1,58 @@
+#!/bin/bash
+# Copyright 2007, 2008 by Kyle Sallee,
+# All rights reserved.
+# For use with the distribution Sorcerer only.
+# bgz accelerates boot speed
+
+load(){ /usr/bin/cut -f2- $CFG | /bin/tar --no-recursion -chPT - | /bin/cat; }
+load(){ /usr/bin/cut -f2- $CFG | /usr/bin/xargs  -r --max-lines=256 /bin/cat; }
+file(){ while read T F; do [[ -f $F ]] && echo "$T	$F"; done; }
+used(){ find /bin /etc /usr /sbin -anewer $TMP -printf '%A@\t%p\n' | sort -g; }
+
+remo(){
+ /bin/cut  -d ' '  -f2  <  /proc/mounts |
+ /bin/sed  -n '\,^/$,p;\,^/usr$,p'      |
+ /bin/sort -u                           |
+ while read; do /bin/mount -o remount$1 $REPLY; done
+}
+
+base(){
+ declare -i  SEC    ORI=$(  head  -n 1  $1  |  cut  -f1  )
+ while read  SEC         WHT
+ do    ((    SEC -= ORI ))
+       echo "$SEC	$WHT"
+ done < $1
+}
+
+watch(){
+ if   [ -f $CFG ] && [ -z "$( find $CFG -mtime +1 )" ]
+ then return
+ fi
+
+ echo -n > $TMP
+ remo ,atime; sleep 300; remo
+
+ [ -f $TMP ] || return
+
+  used >       $RAW;  mv     $CFG $CFG.old
+  base         $RAW | cat -       $CFG.old |
+  sort -uk2         |
+  sort -g           | file > $CFG
+  rm   -f $TMP $RAW
+}
+
+main()  {
+[ -x /usr/bin/nice   ] && /usr/bin/renice  19     -p $$ &>/dev/null
+[ -x /usr/bin/ionice ] && /usr/bin/ionice -c2 -n7 -p $$ &>/dev/null
+[ -f $CFG            ] && load                          &>/dev/null & disown
+                          watch                         &>/dev/null & disown
+}
+
+trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP
+umask 077
+EXT="$$.$RANDOM$RANDOM"
+TMP=/tmp/bootblaze.tmp.$EXT
+RAW=/tmp/bootblaze.raw.$EXT
+CFG=/etc/bootblaze.conf
+export LC_ALL=C
+main &>/dev/null

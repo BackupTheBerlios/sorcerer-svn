@@ -1,4 +1,4 @@
-   VERSION=( 1.6.9p11 1.6.9p10 1.6.9p9 1.6.9p8 1.6.9p7 1.6.9p6 1.6.9p5 1.6.9p4 1.6.9p3 1.6.9p1 1.6.9 )
+   VERSION=( 1.6.9p12 1.6.9p11 1.6.9p10 1.6.9p9 1.6.9p8 1.6.9p7 1.6.9p6 1.6.9p5 1.6.9p4 1.6.9p3 1.6.9p1 1.6.9 )
   CATEGORY='utility'
  ATTRIBUTE='console'
   HOMEPAGE='http://www.sudo.ws/sudo/'
@@ -11,22 +11,21 @@
   ESTIMATE='260'
       DESC='sudo grant limited superuser ability to users.'
 
+build(){
+EDITOR=`which $EDITOR 2>/dev/null` ||
+EDITOR=`which nano`
+OPTS+=" --with-editor=$EDITOR"
 
-build() {
-EDITOR=`which  $EDITOR  2>/dev/null`  ||
-EDITOR=`which  nano`
-
-if    spell_installed  Linux-PAM  ||
-      spell_held       Linux-PAM
-then  LP='--with-pam'
-else  LP='--without-pam'
+if   spell_installed Linux-PAM ||
+     spell_held      Linux-PAM
+then OPTS+=' --with-pam'
+else OPTS+=' --without-pam'
 fi
 
-./configure            \
---prefix=/usr          \
---with-editor=$EDITOR  \
-$LP                    &&
-make                   &&
-prepare_install        &&
+./configure     \
+--prefix=/usr   \
+$OPTS           &&
+make            &&
+prepare_install &&
 make    install
 }

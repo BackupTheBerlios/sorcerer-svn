@@ -1,15 +1,14 @@
-   VERSION=( implosion-20080121-1 implosion-20080119-0 implosion-20080117-0 implosion-20080114-1 implosion-20080112-0 implosion-20080109-1 implosion-20080107-0 implosion-20080105-2 implosion-20080104-0 implosion-20080102-3 implosion-20080101-0 implosion-20071231-2 implosion-20071230-1 implosion-20071229-1 implosion-20071227-0 implosion-20071221-1 )
+   VERSION=( implosion-20080122-2 implosion-20080121-1 implosion-20080119-0 implosion-20080117-0 implosion-20080114-1 implosion-20080112-0 implosion-20080109-1 implosion-20080107-0 implosion-20080105-2 implosion-20080104-0 implosion-20080102-3 implosion-20080101-0 implosion-20071231-2 implosion-20071230-1 implosion-20071229-1 implosion-20071227-0 )
   CATEGORY='utility'
- ATTRIBUTE='noheal sorcery'
-#ATTRIBUTE='noheal solo sorcery'
+ ATTRIBUTE='noheal solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
   HOMEPAGE='http://sorcerer.silverice.org/'
        URL='http://sorcerer.silverice.org/download/sorcery/'
-#            'openntpd:::to keep system time accurate using network time servers'
-       REQ=( 'bash bzip2 ccache curl dialog diffutils file findutils gcc grep grimoire gzip init-functions init-scripts less make mktemp p7zip patch procps rpmunpack tar which'
+       REQ=( 'bash bzip2 ccache curl dialog diffutils file findutils gcc grep grimoire gzip init-functions init-scripts less make mktemp p7zip patch procps rpmunpack sorcery-sentinel tar which'
              'sdelta3:::for downloading source upgrade patches'
-             'strace:::for non alpha, ia32, and x86_64 architectures'  )
-#            'aexpl-db:::for scanning unpacked sources for suspicious files'
+             'sorcery-bgz:::for background compression of tarballs'
+             'sorcery-bootblaze:::for faster booting and login'
+             'sorcery-immune:::for an immune system' )
    EXCLUDE="$SOURCE_DIR
             /etc/sorcery/local.config
             /home
@@ -30,113 +29,99 @@
             /usr/libexec/sorcery/augur
             /usr/libexec/sorcery/cast
             /usr/libexec/sorcery/dispel
-            /usr/libexec/sorcery/immune
             /usr/libexec/sorcery/leech
-            /usr/libexec/sorcery/sentinel
             /usr/libexec/sorcery/share
             /usr/libexec/sorcery/sorcery
             /usr/sbin/augur
             /usr/sbin/cast
             /usr/sbin/dispel
-            /usr/sbin/immune
             /usr/sbin/leech
             /usr/sbin/sorcery'
   ESTIMATE='20'
       DESC='sorcery contains source management tools.
-augur    -  provides detailed information about the box
-cast     -  installs spells
-dispel   -  removes installed spells
-heal     -  checks and repairs installed spells
-leech    -  downloads sources for spells
-sorcery  -  menu driven source manager'
+augur   - provides detailed information about the box
+cast    - installs spells
+dispel  - removes installed spells
+heal    - checks and repairs installed spells
+leech   - downloads sources for spells
+sorcery - menu driven source manager'
 
-build() {
-  [  -x   install  ]   &&
-  prepare_install      &&
-  ./install  $VERSION
+build(){
+ [  -x   install ] &&
+ prepare_install   &&
+ ./install $VERSION
 }
 
 
 post_install() {
 
-  install_sentinel()  {
-    local              SENTINEL=/usr/libexec/sorcery/sentinel
-    if    [       -x  $SENTINEL-$MACHTYPE  ];  then
-      if  !  cmp  -s  $SENTINEL-$MACHTYPE  $SENTINEL
-      then   rm   -f                       $SENTINEL
-             cp       $SENTINEL-$MACHTYPE  $SENTINEL
-      fi
-    fi
-  }
+ linux_headers_check(){
+   if    ! [ -f /usr/include/asm-generic/errno.h  ]; then
+     echo      'Attempting to install some missing linux headers'
+     leech -w  glibc
+     cd        $(  untar  $SOURCE_CACHE/glibc/*/linux-*.tar*  )/linux* &&
+     make      include/linux/version.h &&
+     make      include/asm &&
+     cp    -rL include/{asm,asm-generic,linux}  /usr/include
+   fi
+ }
 
-  linux_headers_check()  {
-    if    !  [  -f  /usr/include/asm-generic/errno.h  ];  then
-      echo        'Attempting to install some missing linux headers'
-      leech  -w   glibc
-      cd          $(  untar  $SOURCE_CACHE/glibc/*/linux-*.tar*  )/linux*  &&
-      make        include/linux/version.h  &&
-      make        include/asm  &&
-      cp     -rL  include/{asm,asm-generic,linux}  /usr/include
-    fi
-  }
+ fix_provide_logs(){
+  ( find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f -empty
+    find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f -size 1c
+    find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f | grep ','
+  ) | xargs --max-lines=64 rm -f
+ }
 
-  fix_provide_logs()  {
-    (  find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  -empty
-       find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  -size 1c
-       find  $PROVIDE_LOGS  -maxdepth 1  -mindepth 1  -type f  |  grep  ','
-    )  |  xargs  --max-lines=64  rm  -f
-  }
+ fix_fstab(){
+  if   grep  -q     "/root/.sorcery.*size=32m"         /etc/fstab
+  then sed   -ir "s:(/root/.sorcery.*size=)32m:\164m:" /etc/fstab
+       mount -o remount /root/.sorcery
+       true
+  fi
+ }
 
-  fix_fstab()  {
-    if    grep  -q     "/root/.sorcery.*size=32m"          /etc/fstab
-    then  sed   -ir "s:(/root/.sorcery.*size=)32m:\164m:"  /etc/fstab
-          mount -o remount /root/.sorcery
-          true
-    fi
-  }
+ fix_initramfs(){
+  grep -q    /boot/initramfs     /etc/lilo.conf.head
+  sed  -i '\,/boot/initramfs/,d' /etc/lilo.conf.head &&
+  rm   -f    /boot/initramfs
+ }
 
-  fix_initramfs()  {
-    grep  -q     /boot/initramfs      /etc/lilo.conf.head
-    sed   -i  '\,/boot/initramfs/,d'  /etc/lilo.conf.head  &&
-    rm    -f     /boot/initramfs
-  }
+ remove_source_all(){
+  if   [  -d  $SOURCE_CACHE/ALL ]
+  then rm -fr $SOURCE_CACHE/ALL
+  fi
+ }
 
-  remove_source_all()  {
-    if    [   -d   $SOURCE_CACHE/ALL  ]
-    then  rm  -fr  $SOURCE_CACHE/ALL
-    fi
-  }
+ remove_old_spell_index(){
+  if   [  -d  $INDEX_DIR/spell ]
+  then rm -fr $INDEX_DIR/spell
+  fi
+ }
 
-  remove_old_spell_index()  {
-    if    [   -d  $INDEX_DIR/spell  ]
-    then  rm  -fr $INDEX_DIR/spell
-    fi
-  }
+ missing_init-script(){
+  find  $VERSION_LOGS -type f -printf '%f\n' |
+  while read
+  do    [ -d $GRIMOIRE/$REPLY.d/init.d.on ] &&
+        find $GRIMOIRE/$REPLY.d/init.d.on -type f -printf '%f\n'
+  done  |
+  while read
+  do    [ -f /etc/init.d/$REPLY ] || echo "$REPLY"
+  done  |
+  while read
+  do    find $GRIMOIRE/*.d/init.d.on/$REPLY -type f
+  done  |
+  sed   "s:$GRIMOIRE/::;s:\.d/.*::" |
+  pipe_queue $CAST_QUEUE com
+ }
 
-  missing_init-script(){
-   find  $VERSION_LOGS -type f -printf '%f\n' |
-   while read
-   do    [ -d $GRIMOIRE/$REPLY.d/init.d.on ] &&
-         find $GRIMOIRE/$REPLY.d/init.d.on -type f -printf '%f\n'
-   done  |
-   while read
-   do    [ -f /etc/init.d/$REPLY ] || echo "$REPLY"
-   done  |
-   while read
-   do    find $GRIMOIRE/*.d/init.d.on/$REPLY -type f
-   done  |
-   sed   "s:$GRIMOIRE/::;s:\.d/.*::" |
-   pipe_queue $CAST_QUEUE com
-  }
-
-  remove_source_all
-  install_sentinel
-  fix_provide_logs
-  linux_headers_check
-  fix_fstab
-  fix_initramfs
-  remove_source_all
-  remove_old_spell_index
-  missing_init-script
-  default_post_install
+ remove_source_all
+ fix_provide_logs
+ linux_headers_check
+ fix_fstab
+ fix_initramfs
+ remove_source_all
+ remove_old_spell_index
+ missing_init-script
+ default_post_install
 }
