@@ -1,3 +1,10 @@
+# cryptsetup dynamically links with libgcrypt
+# cryptsetup runs from sysinit
+# sysinit may run on an initramfs image
+# Therefore, libgcrypt must have libraries installed in /lib or /lib64
+# libgcrypt dynamically links with libgpg-error
+# Therefore, libgpg-error must have libraries installed in /lib or /lib64
+
    VERSION=( 1.6 1.5 1.4 1.3 1.2 1.1 1.0 )
   CATEGORY='security/encryption'
  ATTRIBUTE='library'
@@ -6,8 +13,29 @@
 #      URL='ftp://ftp.gnupg.org/gcrypt/alpha/libgpg-error/'
   HOMEPAGE='http://www.gnupg.org'
   ESTIMATE='380'
-      DESC="libgpg-error defines common error values for GnuPG components.
+      DESC='libgpg-error defines common error values for GnuPG components.
 libgpg-error is a library that defines
 common error values for all GnuPG components.
 Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt,
-pinentry, SmartCard Daemon and possibly more in the future."
+pinentry, SmartCard Daemon and possibly more in the future.'
+
+build(){
+ add_compat_symlinks(){
+  for        file in /usr/{lib64,lib}/libgpg-error.so*; do
+   if  [ -f $file ]; then
+    mv      $file ${file#/usr}
+    ln -sf        ${file#/usr} $file
+   fi
+  done
+ }
+
+ default_build &&
+ add_compat_symlinks
+}
+
+current(){
+ case $VERSION in
+  1.6) [ -f   /lib/libgpg-error.so ] ||
+       [ -f /lib64/libgpg-error.so ] ;;
+ esac
+}

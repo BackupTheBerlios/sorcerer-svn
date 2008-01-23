@@ -1,0 +1,71 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: cryptmount
+# Required-Start: $local_fs $syslog
+# Should-Start: udev
+# Required-Stop: $syslog
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: cryptmount configures encrypted devices at boot.
+# Description: cryptmount configures encrypted devices at boot.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=cryptmount
+SERV=/bin/cryptmount
+CONF=/etc/default/cryptmount
+
+CM_BOOTDV=
+CM_BOOTSW=
+CM_BOOTFS=
+
+status(){
+ local ON OFF
+ for TARGET in $CM_BOOTDV $CM_BOOTSW
+ do [ -b "/dev/mapper/${TARGET}" ] && ON+="$TARGET " || OFF+="$TARGET "
+ done
+ if [ -n "$OFF" ]
+ then log_warning_msg "$OFF not active"; return 3;
+ else log_warning_msg "$ON active";
+ fi
+}
+
+start(){
+ run(){
+  modprobe -aq dm-mod dm-crypt
+  status &>/dev/null &&
+  if [ -n "$CM_BOOTDV" ]; then $SERV --prepare $CM_BOOTDV; fi &&
+  if [ -n "$CM_BOOTSW" ]; then $SERV --swapon  $CM_BOOTSW; fi &&
+  if [ -n "$CM_BOOTFS" ]; then $SERV --mount   $CM_BOOTFS; fi
+ }
+
+ if   log_warning_msg "$NAME starting"; run
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
+}
+
+stop(){
+ run(){
+  if [ -n "$CM_BOOTFS" ]; then $SERV --unmount $CM_BOOTFS; fi
+  if [ -n "$CM_BOOTSW" ]; then $SERV --swapoff $CM_BOOTSW; fi
+  if [ -n "$CM_BOOTDV" ]; then $SERV --release $CM_BOOTDV; fi
+  $SERV -n
+ }
+
+ if   log_warning_msg "$NAME stopping"; $SERV $FPTS -n
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status
+ fi
+}
+
+[ -f $CONF ] &&
+   . $CONF
+
+if [ -n "$CM_BOOTDV" ] ||
+   [ -n "$CM_BOOTSW" ] ||
+   [ -n "$CM_BOOTFS" ]
+then parse "$@"
+fi

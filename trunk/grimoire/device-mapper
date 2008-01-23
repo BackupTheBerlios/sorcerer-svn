@@ -16,8 +16,7 @@
     SOURCE="device-mapper.$VERSION.tgz"
   HOMEPAGE='http://sources.redhat.com/dm/'
        URL='ftp://sources.redhat.com/pub/dm/'
-      OPTS='--enable-static_link'
-#FRESHMEAT='device-mapper'
+      OPTS='--sbindir=/sbin'
   ESTIMATE='220'
       DESC='device-mapper provides tools and library for using the kernel device-mapper.
 The Device-mapper is a new component of the linux
@@ -26,37 +25,28 @@ It is required by LVM2 and EVMS.
 The original LVM (included in stock 2.4 kernels) does not use it.'
 
 
-build() {
-  move_ar_libs()   { mv  $LIBDIR/libdevmapper.a*  /usr$LIBDIR; }
-  remove_static()  { rm  -f  /sbin/dmsetup.static;  }
+build(){
+#move_ar_libs(){ mv $LIBDIR/libdevmapper.a* /usr$LIBDIR; }
+#remove_static(){ rm -f /sbin/dmsetup.static; }
 
-  case  $VERSION  in
-    1.01.05)  sed -i 's:-lselinux:-lselinux -lsepol:' configure*  ;;
-  esac
+ case $VERSION in
+  1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure* ;;
+ esac
 
-  if    [ "$HOSTTYPE" == "x86_64" ]
-  then  LIBDIR=/lib64
-  else  LIBDIR=/lib
-  fi
+ if   [ "$HOSTTYPE" == "x86_64" ]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
 
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --sysconfdir=/etc      \
-  --libdir=$LIBDIR       \
-  --sbindir=/sbin        \
-  --localstatedir=/var   \
-  $OPTS                  &&
-  make                   &&
-  prepare_install        &&
-  make    install        &&
-  move_ar_libs           &&
-  remove_static
+ OPTS+=" --libdir=$LIBDIR"
+ default_build
+# &&
+#move_ar_libs  &&
+#remove_static
 }
 
-current()  {
-  case  $VERSION  in
-    1.01.05)     [  -f  /sbin/dmsetup         ]  &&
-              !  [  -f  /sbin/dmsetup.static  ]  ;;
-  esac
+current(){
+ case  $VERSION  in
+  1.01.05) [ -f /etc/init.d/dmsetup ] ;;
+ esac
 }

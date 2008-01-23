@@ -1,64 +1,59 @@
-   VERSION=( 1.2.3 1.2.2 1.2.1 )
-      SAFE=( "1.2.3" )
-    IGNORE="dll\|121\|delphi\|[0-9][0-9][0-9]"
+   VERSION=( 1.2.3 )
+      SAFE=( 1.2.3 )
+    IGNORE='dll\|121\|delphi\|[0-9][0-9][0-9]'
   CATEGORY='archive'
  ATTRIBUTE='library solo'
     SOURCE="zlib-$VERSION.tar.gz"
   HOMEPAGE='http://www.zlib.net/'
-       URL="http://www.zlib.net/
-            http://www.gzip.org/zlib/"
+       URL='http://www.zlib.net/
+            http://www.gzip.org/zlib/'
   ESTIMATE='80'
-      DESC="zlib is a legally unencumbered lossless data compression library.
+      DESC='zlib is a legally unencumbered lossless data compression library.
 zlib is designed to be a free, general-purpose,
 legally unencumbered -- that is, not covered by any patents
 -- lossless data-compression library
 for use on virtually any computer hardware and operating system.
-The zlib data format is portable across platforms."
+The zlib data format is portable across platforms.'
 
-build() {
+build(){
 
-if    [ "$HOSTTYPE" == "x86_64" ]
-then  LIBDIR=/lib64
-else  LIBDIR=/lib
-fi
+ if   [ "$HOSTTYPE" == "x86_64" ]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
 
+ add_compat_symlinks(){
+  for        file in /usr/{lib64,lib}/libz.so*; do
+   if  [ -f $file ]; then
+    mv      $file ${file#/usr}
+    ln -sf        ${file#/usr} $file
+   fi
+  done
+ }
 
-add_compat_symlinks_old()  {
-  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so
-  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so.${VERSION:0:1}
-  ln  -s  ../..$LIBDIR/libz.so.$VERSION  /usr$LIBDIR/libz.so.${VERSION}
+ export    CFLAGS+=' -fPIC'
+ export  CXXFLAGS+=' -fPIC'
+
+ ./configure            \
+ --prefix=/usr          \
+ --shared               &&
+ make  "CFLAGS=$CFLAGS" &&
+ strip  -s  libz.so*    &&
+ prepare_install        &&
+ make    install        &&
+ add_compat_symlinks
+
+## Are static zlib libraries necessary
+## When zlib ELF libraries are installed in /lib or /lib64 ?
+# ./configure            \
+# --prefix=/usr          &&
+# make  "CFLAGS=$CFLAGS" &&
+# make    install        &&
 }
 
-  add_compat_symlinks()  {
-    for          file  in  /usr/{lib64,lib}/libz.so*; do
-      if  [ -f  $file  ];  then
-        mv      $file  ${file#/usr}
-        ln  -sf        ${file#/usr}  $file
-      fi
-    done
-  }
-
-export    CFLAGS="$CFLAGS -fPIC"
-export  CXXFLAGS="$CXXFLAGS -fPIC"
-
-./configure             \
---prefix=/usr           \
---shared                &&
-make  "CFLAGS=$CFLAGS"  &&
-strip  -s  libz.so*     &&
-prepare_install         &&
-make    install         &&
-
-./configure             \
---prefix=/usr           &&
-make  "CFLAGS=$CFLAGS"  &&
-make    install         &&
-add_compat_symlinks
-}
-
-current()  {
-  case  $VERSION  in
-    1.2.3)  [  -f    /lib/libz.so  ]  ||
-            [  -f  /lib64/libz.so  ]  ;;
-  esac
+current(){
+ case $VERSION in
+  1.2.3) [ -f   /lib/libz.so ] ||
+         [ -f /lib64/libz.so ] ;;
+ esac
 }

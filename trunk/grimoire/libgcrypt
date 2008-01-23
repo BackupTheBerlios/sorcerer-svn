@@ -1,3 +1,8 @@
+# cryptsetup dynamically links with libgcrypt
+# cryptsetup runs from sysinit
+# sysinit may run on an initramfs image
+# Therefore, libgcrypt must have libraries installed in /lib or /lib64
+
    VERSION=( 1.4.0 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0 )
   CATEGORY='security/encryption'
  ATTRIBUTE='library'
@@ -9,3 +14,24 @@
       DESC='libgcrypt is a general purpose crypto library.
 libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
+
+build(){
+ add_compat_symlinks(){
+  for        file in /usr/{lib64,lib}/libgcrypt.so*; do
+   if  [ -f $file ]; then
+    mv      $file ${file#/usr}
+    ln -sf        ${file#/usr} $file
+   fi
+  done
+ }
+
+ default_build &&
+ add_compat_symlinks
+}
+
+current(){
+ case $VERSION in
+  1.4.0) [ -f   /lib/libgcrypt.so ] ||
+         [ -f /lib64/libgcrypt.so ] ;;
+ esac
+}
