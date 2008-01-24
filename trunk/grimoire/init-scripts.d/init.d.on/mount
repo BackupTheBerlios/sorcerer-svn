@@ -13,66 +13,65 @@
 
 . /lib/lsb/init-functions
 
-mount_local_fs() {
-  if    [  -d   /opt  ];  then
-    mount  -n   -o remount     /
-    rm     -fr                 /etc/mtab
-    cat         /proc/mounts > /etc/mtab
-    mount  -a
-  else
-                           ROOT=/media/root
-    [      -d             $ROOT  ]  ||
-    mkdir  -p             $ROOT
-    sed    -i  "s:\t: :g
-                   s: / : $ROOT :"  /etc/fstab
-    mount  -n             $ROOT
-    sed    "\,rootfs,d; \,$ROOT,d; \,/dev/,d"   /proc/mounts  |
-    while  read  DEV  MNT  JNK;  do
-      if     !  [   -d    $ROOT$MNT  ]
-      then   mkdir  -p    $ROOT$MNT;  fi  &&
-      mount  --move  $MNT $ROOT$MNT
-    done
-    rm     -fr            $ROOT/etc/mtab
-    chroot                $ROOT           \
-    cat    /proc/mounts > $ROOT/etc/mtab
-    chroot                $ROOT           \
-    mount  -a
-  fi
+mount_local_fs(){
+ if   [ -d  /opt  ]; then
+  mount -n  -o remount /
+  rm    -fr            /etc/mtab
+  cat   /proc/mounts > /etc/mtab
+  mount -a
+ else
+                        ROOT=/media/root
+   [     -d            $ROOT ] ||
+   mkdir -p            $ROOT
+   sed   -i "s:\t: :g
+                s: / : $ROOT :" /etc/fstab
+   mount -n            $ROOT
+   sed   "\,rootfs,d;\,$ROOT,d; \,/dev/,d" /proc/mounts |
+   while read DEV MNT JNK; do
+     if    !  [  -d    $ROOT$MNT ]
+     then  mkdir -p    $ROOT$MNT; fi &&
+     mount --move $MNT $ROOT$MNT
+   done
+   rm -fr              $ROOT/etc/mtab
+   chroot              $ROOT \
+   cat /proc/mounts >  $ROOT/etc/mtab
+   chroot              $ROOT \
+   mount -a
+ fi
 }
 
 
-start()  {
-  log_warning_msg  'Local file systems mounting'; mount_local_fs
-  log_success_msg  'Local file systems mounted'
+start(){
+ log_warning_msg 'Local file systems mounting'; mount_local_fs
+ log_success_msg 'Local file systems mounted'
 }
 
 umount_local_fs() {
-  sync
-  [  -f                   /proc/mounts  ]  ||
-  mount  -nrt proc  proc  /proc
+ sync
+ [  -f /proc/mounts ] || mount -nrt proc proc /proc
 
-  cut    -d ' '  -f2  /proc/mounts  |
-  sort   -ur                        |
-  while  read
-  do     mount  -no  remount,ro  $REPLY
-  done
+ cut   -d ' ' -f2 /proc/mounts |
+ sort  -ur |
+ while read
+ do    mount -no remount,ro $REPLY
+ done
 
-  if    !  mount  -no remount,ro  /
-  then  log_failure_msg  "/ failed to remount read only"
-        sulogin  -t 300
-  fi
+ if ! mount -no remount,ro /; then
+  log_failure_msg "/ failed to remount read only"
+  sulogin -t 300
+ fi
 }
 
-stop()  {
-  log_warning_msg "umounting local file systems"; umount_local_fs
-  log_success_msg "umounted"
+stop(){
+ log_warning_msg "umounting local file systems"; umount_local_fs
+ log_success_msg "umounted"
 }
 
-help()  {  echo "Usage: $0 {start|stop}" 1>&2;  }
+help(){ echo "Usage: $0 {start|stop}" 1>&2; }
 
-case  $1  in
-      start)  start  ;;
-       stop)  stop   ;;
-try-restart)  :      ;;
-          *)  help   ;;
+case $1 in
+       start) start ;;
+        stop) stop ;;
+ try-restart) : ;;
+           *) help  ;;
 esac

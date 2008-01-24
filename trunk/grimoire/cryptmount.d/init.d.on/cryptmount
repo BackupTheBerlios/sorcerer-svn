@@ -34,11 +34,11 @@ status(){
 
 start(){
  run(){
-  modprobe -aq dm-mod dm-crypt
-  status &>/dev/null &&
-  if [ -n "$CM_BOOTDV" ]; then $SERV --prepare $CM_BOOTDV; fi &&
-  if [ -n "$CM_BOOTSW" ]; then $SERV --swapon  $CM_BOOTSW; fi &&
-  if [ -n "$CM_BOOTFS" ]; then $SERV --mount   $CM_BOOTFS; fi
+  if ! status &>/dev/null; then
+   if [ -n "$CM_BOOTDV" ]; then $SERV --prepare $CM_BOOTDV; fi &&
+   if [ -n "$CM_BOOTSW" ]; then $SERV --swapon  $CM_BOOTSW; fi &&
+   if [ -n "$CM_BOOTFS" ]; then $SERV --mount   $CM_BOOTFS; fi
+  fi
  }
 
  if   log_warning_msg "$NAME starting"; run

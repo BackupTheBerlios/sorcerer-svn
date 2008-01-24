@@ -143,15 +143,24 @@ status(){
 
  statm(){
   if   mnt
-  then log_warning_msg "$NAME is mounted"; return $1
+  then log_warning_msg "$NAME is mounted"; return 0
   else log_warning_msg "$NAME is not mounted"; return 3
   fi
  }
 
- case $NAME in
-  /*) statm "${1:-0}" ;;
-   *) stats ;;
- esac
+ statk(){
+  if   lsmod | grep -qws "^${NAME//-/_}"
+  then log_warning_msg "$NAME module is loaded"; return 0
+  else log_warning_msg "$NAME module is not loaded"; return 3
+  fi
+ }
+
+ if   [ -n "$SERV" ]
+ then stats
+ elif [ / = "${NAME:0:1}" ]
+ then statm
+ else statk
+ fi
 }
 
 stop(){
@@ -169,10 +178,19 @@ stop(){
   fi
  }
   
- case $NAME in
-  /*) stopm ;;
-   *) stops ;;
- esac
+ stopk(){
+  if   log_warning_msg "$NAME module unloading"; modprobe -r $NAME
+  then log_success_msg "$NAME unloaded"
+  else log_failure_msg "$NAME not unloaded"
+  fi
+ }
+
+ if   [ -n "$SERV" ]
+ then stops
+ elif [ / = "${NAME:0:1}" ]
+ then stopm
+ else stopk
+ fi
 }
 
 mnt(){ grep -qws "$NAME" /proc/mounts;}
@@ -184,6 +202,7 @@ start(){
   else log_failure_msg "$NAME not started"; status
   fi
  }
+
  startm(){
   run(){
    if   !   [ -d "$NAME" ]
@@ -201,14 +220,23 @@ start(){
   fi
  }
 
- case $NAME in
-  /*) startm ;;
-   *) starts ;;
- esac
+ startk(){
+  if   log_warning_msg "$NAME module loading"; modprobe $NAME $OPTS
+  then log_success_msg "$NAME loaded"
+  else log_failure_msg "$NAME not loaded"
+  fi
+ }
+
+ if   [ -n "$SERV" ]
+ then starts
+ elif [ / = "${NAME:0:1}" ]
+ then startm
+ else startk
+ fi
 }
 
-    restart(){ stop     && sleep 1; start;}
-try_restart(){ status 1 && restart; return 0;}
+    restart(){ stop && sleep 1; start;}
+try_restart(){ [ -n "$SERV" ] && status &>/dev/null && restart; return 0;}
 
 help(){ echo "Usage: $0 {start|stop|status|restart}";}
 

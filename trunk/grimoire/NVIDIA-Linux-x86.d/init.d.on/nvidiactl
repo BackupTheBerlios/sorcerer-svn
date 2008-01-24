@@ -1,0 +1,36 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: nvidiactl
+# Required-Start: $local_fs nvidiafb agpgart nvidia
+# Should-Start: udev
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 
+# Short-Description: nvidiactl creates device nodes.
+# Description: nvidiactl creates device nodes.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=nvidiactl
+
+start(){
+ run(){
+  for ((CX=0;CX<8;CX++)); do
+  mknod            /dev/nvidia$CX c 195 $CX; done
+  mknod            /dev/nvidiactl c 195 255
+  chmod 0660       /dev/nvidia*
+  chown root:video /dev/nvidia*
+ }
+
+ log_warning_msg "$NAME starting"; run 2>/dev/null
+ log_warning_msg "$NAME started"
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $1 in
+ start) start ;;
+ try-restart) : ;;
+ *) help ;;
+esac

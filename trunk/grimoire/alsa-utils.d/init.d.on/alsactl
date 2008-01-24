@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Provides: alsactl
 # Required-Start: 
-# Should-Start: modprobe udev
+# Should-Start: snd-mixer-oss  snd-pcm-oss  snd-seq-oss
 # Required-Stop:
 # Default-Start: 1 2 3 4 5
 # Default-Stop:
@@ -13,24 +13,8 @@
 
 . /lib/lsb/init-functions
 
-start() {
-  [  -f  /etc/asound.state  ]  &&
-  if    log_warning_msg  "Audio volume setting";  alsactl restore
-  then  log_success_msg  "Audio volume set"
-  else  log_failure_msg  "Audio volume not set"
-  fi
+NAME=alsactl
+SERV=/usr/sbin/alsactl
+OPTS=restore
 
-  log_warning_msg  "OSS emulation modules loading"
-  modprobe snd-pcm-oss
-  modprobe snd-mixer-oss
-  modprobe snd-seq-oss
-  log_success_msg  "OSS emulation modules loaded"
-}
-
-help()  { echo "Usage: $0 {start}" 1>&2;  }
-
-case  $1  in
-       start)  start ;;
- try-restart)  :     ;;
-           *)  help  ;;
-esac
+parse "$@"
