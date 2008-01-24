@@ -1,5 +1,5 @@
 # Functions for LSB-compliant init-scripts
-# For use with sorcerer only!
+# For use with the distribution Sorcerer only!
 # Copyright Kyle Sallee 2005 through 2008.
 # All rights reserved.
 
@@ -7,12 +7,12 @@ NORM="\e[0m"; RED="\e[31m"; GREEN="\e[32m"; BLUE="\e[34m"; WHITE="\e[37m"
 
 S60="                                                            "
 
-log_start()  { echo -en "$GREEN * $NORM$1${S60:${#1}}" 1>&2;}
-log_finish() { echo -e  "$BLUE[$1 $BLUE]$NORM" 1>&2;}
+log_start() { echo -en "$GREEN * $NORM$1${S60:${#1}}" 1>&2;}
+log_finish(){ echo -e  "$BLUE[$1 $BLUE]$NORM" 1>&2;}
 
-log_success_msg() { log_start "$1"; log_finish "$GREEN success";}
-log_failure_msg() { log_start "$1"; log_finish "$RED failed ";}
-log_warning_msg() { log_start "$1"; log_finish "$WHITE warning";}
+log_success_msg(){ log_start "$1"; log_finish "$GREEN success";}
+log_failure_msg(){ log_start "$1"; log_finish "$RED failed ";}
+log_warning_msg(){ log_start "$1"; log_finish "$WHITE warning";}
 
 locked(){
  local L S P REPLY
@@ -131,31 +131,59 @@ start_daemon(){
 # $OPTS is optional except when mounting
 
 status(){
- PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
- if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
- elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
- elif [ -n "$LOCK" ] &&
-      [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
-                      else log_warning_msg "$NAME is not running"; return 3
- fi
+ stats(){
+  PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
+  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+  elif [ -n "$LOCK" ] &&
+       [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+                       else log_warning_msg "$NAME is not running"; return 3
+  fi
+ }
+
+ statm(){
+  if   mnt
+  then log_warning_msg "$NAME is mounted"; return $1
+  else log_warning_msg "$NAME is not mounted"; return 3
+  fi
+ }
+
+ case $NAME in
+  /*) statm "${1:-0}" ;;
+   *) stats ;;
+ esac
 }
 
 stop(){
- if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
- then log_success_msg "$NAME stopped"
- else log_failure_msg "$NAME not stopped"; status
- fi
+ stops(){
+  if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
+  then log_success_msg "$NAME stopped"
+  else log_failure_msg "$NAME not stopped"; status
+  fi
+ }
+
+ stopm(){
+  if   log_warning_msg "$NAME umount"; umount $NAME
+  then log_success_msg "$NAME unmounted"
+  else log_failure_msg "$NAME not unmounted"; status
+  fi
+ }
+  
+ case $NAME in
+  /*) stopm ;;
+   *) stops ;;
+ esac
 }
 
-start(){
+mnt(){ grep -qws "$NAME" /proc/mounts;}
 
+start(){
  starts(){
   if   log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" "$SERV" $OPTS
   then log_success_msg "$NAME started"
   else log_failure_msg "$NAME not started"; status
   fi
  }
-
  startm(){
   run(){
    if   !   [ -d "$NAME" ]
@@ -165,7 +193,6 @@ start(){
 
   stb(){ sed 's/#.*//' /etc/fstab | grep -qw $NAME;}
   chk(){ case $NAME in /dev|/proc|/sys) return 1;; esac; stb;}
-  mnt(){ grep -qws "$NAME" /proc/mounts;}
 
   if mnt || chk; then return; fi
   if   log_warning_msg "$NAME mounting"; run
@@ -174,14 +201,14 @@ start(){
   fi
  }
 
- case $SERV in
-  mount) startm ;;
-      *) starts ;;
+ case $NAME in
+  /*) startm ;;
+   *) starts ;;
  esac
 }
 
-    restart(){ stop   && sleep 1; start;}
-try_restart(){ status && restart; return 0;}
+    restart(){ stop     && sleep 1; start;}
+try_restart(){ status 1 && restart; return 0;}
 
 help(){ echo "Usage: $0 {start|stop|status|restart}";}
 

@@ -6,7 +6,7 @@
   HOMEPAGE='ftp://ftp.cistron.nl/pub/people/miquels/sysvinit/'
        REQ='init-functions'
    PROTECT='/etc/init.d/bootmisc'
-   EXCLUDE='/etc/init.d/dev'
+   EXCLUDE='/etc/init.d/dev.d'
   ESTIMATE='35'
       DESC='sysvinit is the parent process of all process.
 Its primary role is to create processes from
@@ -65,11 +65,18 @@ install_init(){
   sed     -i        "s:ulimit :# ulimit :"  \
                     src/initscript.sample
   install -vm 0700  src/initscript.sample      /etc
-  install -vm 0700  -d                         /etc/init.d/dev
+  install -vm 0700  -d                         /etc/init.d/log.d
+  install -vm 0700  -d                         /etc/init.d/dev.d
   rm      -f        /etc/init.d/dev/{si,rl}
-  cp      -afv      ${SI_DEV:-/dev/null}       /etc/init.d/dev/si
-  cp      -afv      ${RL_DEV:-/dev/null}       /etc/init.d/dev/rl
-  install -vm 0700  -d                         /etc/init.d/log
+  cp      -afv      ${SI_DEV:-/dev/null}       /etc/init.d/dev.d/si
+  cp      -afv      ${RL_DEV:-/dev/null}       /etc/init.d/dev.d/rl
+  if   [  -d  /etc/init.d/log ]
+  then umount /etc/init.d/log
+       rm -rf /etc/init.d/log ]
+  fi
+  if   [  -d  /etc/init.d/dev ]
+  then rm -rf /etc/init.d/dev ]
+  fi
   return
 }
 
@@ -95,6 +102,6 @@ post_install(){
 
 current(){
  case $VERSION in
-  2.86) [ -f /etc/init.d/0_No_Modification ] ;;
+  2.86) [ -d /etc/init.d/dev.d ] ;;
  esac
 }
