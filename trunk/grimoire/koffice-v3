@@ -1,0 +1,55 @@
+   VERSION=( 1.6.3 )
+    IGNORE='l10n'
+  CATEGORY='utility/editor utility/spreadsheet graphic/editor'
+ ATTRIBUTE='kde'
+    SOURCE="stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2"
+case  $VERSION  in
+  1.6.3)  SOURCE[1]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'  ;;
+esac
+  HOMEPAGE='http://www.koffice.org'
+       URL="$KDE_URL"
+# koffice 1.6.2 gained sqlite as mandatory requirement?
+#      REQ=( 'kdebase-v3 sqlite'
+       REQ=( 'kdebase-v3 libart_lgpl-v2.3.17'
+             'ImageMagick:::for image conversion support'
+             'Python:--with-pythondir=/usr::for Python support'
+             'aspell:::for spell checking' 
+             'koffice-l10n:::for internationalization support'
+             'lcms:::for Krita support'
+             'libwpd:::for reading word perfect documents'
+             'libexif:::to enable JPEG format in krita'
+             'mysql:--enable-mysql:--disable-mysql:for mysql support in Kexi'
+             'poppler:::to import pdf files into krita'
+             'postgresql:--enable-pgsql:--disable-pgsql: for postgresql support in Kexi'
+             'ruby:::for ruby scripting support'
+             'wv2:::to build MS word filter' )
+# ImageMagick filter deprecated
+#             'ImageMagick:::for image conversion support'
+# koffice wants GraphicsMagick instead of ImageMagick now
+#             'GraphicsMagick:::for image conversion support'
+# GraphicsMagick is supposed to replace ImageMagick in koffice
+# for additional graphic input filters, but
+# GraphicsMagick has not made a release in a much longer time
+# than ImageMagick and GraphicsMagic has a compile error.
+# Therefore, staying with ImageMagick
+ CONFLICTS='koffice'
+  ESTIMATE='24600'
+      DESC='koffice-v3 is an integrated office suite.
+KOffice currently includes KWord, KSpread, KPresenter, KChart,
+Krayon, KIllustrator, KFormula, Kugar, Kexi, Krita and Kivio.'
+
+case ${SPELL:8} in
+ -*l10n-*) unset REQ; REQ='kdelibs-v3'
+           unset SOURCE
+                 SOURCE="stable/koffice-$VERSION/src/koffice-l10n/${SPELL/-v3/}-${VERSION:0:5}.tar.bz2"
+           CATEGORY="$CATEGORY documentation/l10n"
+           EPROVIDE='koffice-l10n'
+           ESTIMATE='118' ;;
+esac
+
+build(){
+ case $VERSION in
+  1.6.3) patch -p0 < $SOURCE_CACHE/koffice/1.6.3/${SOURCE[1]##*/} ;;
+ esac
+ default_build
+}
