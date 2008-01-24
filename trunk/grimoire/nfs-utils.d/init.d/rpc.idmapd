@@ -1,0 +1,38 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: rpc.idmapd
+# Required-Start: 
+# Required-Stop:  kill
+# Should-Start: portmap $network
+# Should-Stop:  portmap $network
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: rpc.idmapd is the NFSv4 ID to name mapping daemon
+# Description: rpc.idmapd is the NFSv4 ID to name mapping daemon
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/rpc.idmapd
+NAME=rpc.idmapd
+OPTS="-c /etc/idmapd.conf"
+
+start(){
+ run(){
+  [ -d /var/lib/nfs/rpc_pipefs ]  ||  mkdir /var/lib/nfs/rpc_pipefs
+
+  if ! grep  -qws          rpc_pipefs /proc/mounts
+  then mount -t rpc_pipefs rpc_pipefs /var/lib/nfs/rpc_pipefs
+  fi
+
+  start_daemon $SERV $OPTS
+ }
+
+ if   log_warning_msg  "$NAME starting"; run
+ then log_success_msg  "$NAME started"
+ else log_failure_msg  "$NAME not started"; status
+ fi
+}
+
+parse "$@"
