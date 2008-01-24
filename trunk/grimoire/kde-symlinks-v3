@@ -1,0 +1,30 @@
+   VERSION=( 3.5.8 )
+  CATEGORY='administration'
+ ATTRIBUTE='kde solo'
+  HOMEPAGE='http://sorcerer.silverice.org/'
+  ESTIMATE='5'
+      DESC='kde-symlinks-v3 ensures kde configuration files go into /etc'
+
+build(){ echo "kde-symlinks-v3 installed"; }
+
+post_install(){
+ move(){
+  if [ -h $1 ]; then return; fi
+  if [ -d $1 ]; then
+   mkdir -p       $2
+   cp    -a  $1/* $2
+   rm    -fr $1
+  fi
+  ln -s $2 $1
+ }
+
+ move /opt/kde3/share/config      /etc/kde3.config
+ move /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
+ default_post_install
+}
+
+current(){
+ find /var/tmp -maxdepth 0 -perm 1777 | grep -q . || chmod 1777 /var/tmp
+ [ -h /opt/kde3/share/config ] &&
+ [ -h /opt/kde3/share/config.kcfg ]
+}
