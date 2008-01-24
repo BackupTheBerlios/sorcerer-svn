@@ -37,8 +37,7 @@ build(){
   done
  }
 
- if   [ "$HOSTTYPE" = "i586" ] &&
-      [ -d /boot/isolinux ]
+ if   [ i586 == "$HOSTTYPE" ] && [ -d /boot/isolinux ]
  then OPTS+=' -no-mmx -no-3dnow -no-sse -no-sse2'
  else
   case $HOSTTYPE in
@@ -46,15 +45,18 @@ build(){
   esac
  fi
 
- QT4_PREFIX=/usr/share/qt4
+ PREFIX=/opt/kde4
 
- case  $HOSTTYPE  in
-  x86_64) LIBS=lib64 ;;
-       *) LIBS=lib   ;;
- esac
+# case  $HOSTTYPE  in
+#  x86_64) LIBS=lib64 ;;
+#       *) LIBS=lib   ;;
+# esac
+#-headerdir /usr/include/qt4 \
+#-bindir /usr/bin \
+#-libdir /usr/$LIBS \
 
- mkdir  lib
- echo  "yes"      |
+ mkdir lib
+ echo yes         |
  ./configure      \
  -v               \
  -fast            \
@@ -73,16 +75,14 @@ build(){
  -no-exceptions   \
  -nomake demos    \
  -nomake examples \
- -prefix $QT4_PREFIX \
- -bindir /usr/bin \
- -libdir /usr/$LIBS \
+ -prefix $PREFIX \
  -no-separate-debug-info \
- -headerdir /usr/include/qt4 \
  $OPTS &&
  make  &&
  prepare_install &&
- make    install &&
- ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
- ln -s ../../bin         ${QT4_PREFIX}/bin &&
- ln -s ../../$LIBS       ${QT4_PREFIX}/lib
+ make    install
+# &&
+# ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
+# ln -s ../../bin         ${QT4_PREFIX}/bin &&
+# ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }

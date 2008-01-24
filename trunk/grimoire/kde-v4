@@ -1,0 +1,103 @@
+# Notes about problems and solutions.
+
+# if you are unable to login using kdm then execute:
+
+# cast kde
+# augur md5sum
+# cast
+
+# if jackd can not be started by qjackctl
+# re-configure it to begin without real-time priority.
+
+# If .xsession-errors  has errors about io-slave protocol file not being found
+# then as the user:
+# $ rm -f ~/.kde/share/config/ksycoca
+# $ rm -r /var/tmp/kdecache-$USERNAME/ksyscoca
+# $ kbuildsycoca4
+
+# The missing icon pictures for Home Trash and so forth
+# is because they are leftover from KDE 3.x in ~/Desktop
+# Simply remove them.
+
+if [ -z "$VERSION" ]; then
+  VERSION=( 4.0.0 3.5.8 )
+     SAFE=( 4.0.0 )
+fi
+
+  CATEGORY='profile'
+ ATTRIBUTE='kde'
+  HOMEPAGE='http://www.kde.org'
+       URL="$KDE_URL"
+       REQ=( 'kde-symlinks-v4 kdeartwork-v4 kdebase-v4 kdebase-runtime-v4 kdebase-workspace-v4'
+             'kdeaccessibility-v4:::for enhanced usability'
+             'kdebindings-v4:::for DCOP and kdejava bindings'
+             'kdeadmin-v4:::for system administration programs'
+             'kdeedu-v4:::for educational programs'
+             'kdegames-v4:::for games'
+             'kdegraphics-v4:::for image viewing programs'
+             'kdenetwork-v4:::for networking utilities'
+             'kdemultimedia-v4:::for audio/visual programs'
+             'kdesdk-v4:::for applications and tools used by KDE developers'
+             'kdetoys-v4:::for amusing programs'
+             'kdewebdev-v4:::for web page/site development tools'
+             'kdevelop-v4:::for creating and development of software projects'
+             'extragear-plasma:::for additional plasma apps/themes'
+             'kaider:::for computer-aided translation system'
+             'kcoloredit:::for a color editor'
+             'kfax:::for a G3/G4 fax viewing program'
+             'kgraphviewer:::for displaying graphviz .dot graphs'
+             'kiconedit:::for an icon editor'
+             'kmldonkey:::for a kde frontend to mldonkey'
+             'kphotoalbum:::for a program to index and find photographs'
+             'ktorrent:::for a BitTorrent application'
+             'rsibreak:::for a rest reminder to avoid strain'
+             'qjackctl:::for starting jackit audio server'
+             'scim-bridge-qt4:::to input in Japanese, Chineese, Korean' )
+
+#            'kpovmodeler:::broken'
+#            'ligature:::broken'
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4 -DCMAKE_BUILD_TYPE=Release'
+  ESTIMATE='5'
+      DESC='kde-v4 provides the K version 4.x desktop environment.
+It combines ease of use, contemporary
+functionality and outstanding graphical design.
+KDE is a completely new desktop, incorporating
+a large suite of applications.
+While KDE includes a window manager, file manager,
+panel, control center and many other components
+that one would expect to be part of a contemporary
+desktop environment, the true strength of this
+exceptional environment lies in the
+interoperability of its components.'
+
+kde_build()  {
+ SCX=1
+ while [    -n                                 "${SOURCE[$SCX]}"  ]
+ do    patch-p0 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$SCX]##*/}
+       (( SCX++ ))
+ done
+
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
+
+build(){
+ case $SPELL in
+  kde) default_build ;;
+    *) kde_build ;;
+ esac
+}
+
+case $SPELL in
+    kde-v4) : ;;
+ kde-l10n*) unset  REQ
+            CATEGORY='documentation/i18n'
+            SOURCE="stable/${VERSION}/src/kde-l10n/$SPELL-$VERSION.tar.bz2"
+            DESC="$SPELL provides translated KDE messages." ;;
+         *) unset  REQ
+            SOURCE="stable/${VERSION}/src/${SPELL%-v4}-$VERSION.tar.bz2"
+esac

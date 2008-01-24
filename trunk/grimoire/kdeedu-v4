@@ -1,19 +1,14 @@
-inherit kde
+inherit kde-v4
 
 # kdeedu 4.0.0 incompatible with gpsd version 2.36
 CONFLICTS='gpsd'
-
-case  $VERSION  in
- 3.4.2) # SAFE=( 3.4.2 )
-  SOURCE[1]="security_patches/post-3.4.2-kdeedu.diff" ;;
-esac
 
   CATEGORY='educational'
 # boost is an mandatory requirement for kdepimlibs
 #            'boost:::for Python scripting'
 # boost requires Python
 #            'Python:::for Python scripting'
-       REQ=( 'kdelibs kochi-substitute'
+       REQ=( 'kdelibs-v4 kochi-substitute'
              'eigen:::for kalzium chemical equation solver'
              'facile:::for kalzium chemical equation solver'
              'gnupg:::for verify authenticity of downloaded vocabulary files'
@@ -21,8 +16,9 @@ esac
              'libusb:::to support Apogee USB camera in kstars'
              'ocaml:::for kalzium chemical equation solver'
              'openbabel:::for kalzium chemical equation solver' )
+ CONFLICTS='kdeedu'
   ESTIMATE='5500'
-      DESC='kdeedu contains edutainment programs for KDE
+      DESC='kdeedu-v4 contains edutainment programs for KDE
 kdeedu contains:
 keduca		creation and revision of form-based tests and exams.
 kgeo		interactive geometry
@@ -35,11 +31,3 @@ kmessedwords	simple mind-training game
 kstars		desktop planetarium
 ktouch		program for learning touch typing
 kvoctrain	vocabulary trainer'
-
-
-build(){
- case $VERSION in
-  3.4.2) patch -p 0 < $SOURCE_CACHE/kdeedu/$VERSION/${SOURCE[1]##*/} ;;
- esac
- kde_build
-}
