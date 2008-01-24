@@ -25,6 +25,13 @@
       DESC='qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
 
 build(){
+
+ add_rpath_to_la(){
+  sed -i  's:-L/opt/kde4/lib:-L/opt/kde4/lib -R/opt/kde4/lib:
+           s:-L/opt/kde4/lib64:-L/opt/kde4/lib64 -R/opt/kde4/lib64:' \
+      $( find /opt/kde4/ -name libQt\*.la )
+ }
+
  rm -rf demos examples
 
  export   CFLAGS+=' -fPIC'
@@ -76,12 +83,13 @@ build(){
  -nomake demos    \
  -nomake examples \
  -prefix $PREFIX \
- -rpath \
  -no-separate-debug-info \
  $OPTS &&
  make  &&
  prepare_install &&
- make    install
+ make    install &&
+ add_rpath_to_la
+
 # &&
 # ln -s ../../include/qt4 ${QT4_PREFIX}/include &&
 # ln -s ../../bin         ${QT4_PREFIX}/bin &&

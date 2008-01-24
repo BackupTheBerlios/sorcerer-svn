@@ -27,6 +27,13 @@
       DESC='qt-x11-free simplifies the task of writing and maintaining GUI applications.'
 
 build(){
+
+ add_rpath_to_la(){
+  sed -i  's:-L/opt/kde3/lib:-L/opt/kde3/lib -R/opt/kde3/lib:
+           s:-L/opt/kde3/lib64:-L/opt/kde3/lib64 -R/opt/kde3/lib64:' \
+      $( find /opt/kde3/ -name libQt\*.la )
+ }
+
  fix_qmake_conf(){
   # This should be used when the qt headers are NOT instaled in 
   # /usr/include, i.e. if they are installed to /usr/include/qt, 
@@ -94,7 +101,8 @@ build(){
  mkdir -p /opt/kde3 &&
  make   install &&
  cp -R  doc/man /usr &&
- fix_qmake_conf
+ fix_qmake_conf &&
+ add_rpath_to_la
 }
 
 current(){
