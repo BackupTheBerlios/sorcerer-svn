@@ -1,0 +1,40 @@
+# Template for ethernet statically configured network connection with several
+# aliases.
+
+INTERFACE=eth0			# Required
+# Required in the format ip/netmask (ex 192.168.0.1/24 )
+IP=( "192.168.1.55/23"        # host55
+     "192.168.1.62/23"        # host62
+     "192.168.1.153/23"       # host153
+   )
+# You most likely want to define labels (aliases)
+LABEL=( "${INTERFACE}" "${INTERFACE}:1" "${INTERFACE}:2" )
+GATEWAY=			# Good idea
+BROADCAST=			# Optional
+MODULE=				# Optional
+
+start()  {
+
+  [  -n  "$MODULE"     ] && modprobe  "$MODULE"
+
+  for i in ${!IP[@]}
+  do    
+        IP_CMD="ip addr add ${IP[$i]}"
+        [  -n  "$BROADCAST"  ] && IP_CMD+=" broadcast $BROADCAST"
+        IP_CMD+=" dev $INTERFACE"
+        IP_CMD+=" label ${LABEL[$i]}"
+
+        $IP_CMD
+  done
+
+  ip link set $INTERFACE  up
+
+  [ -n      "$GATEWAY" ] && ip    route add to default via      $GATEWAY || :
+}
+
+stop()  {  
+  ip link set   $INTERFACE  down  &&
+  ip addr flush $INTERFACE
+}
+
+$1
