@@ -42,7 +42,7 @@ start()  {
   [  -n  "$AP"         ]  &&  iwconfig $INTERFACE ap    "$AP"	\
                           ||  iwconfig $INTERFACE ap    off
 
-  IP_CMD="ip addr replace $IP "
+  IP_CMD="ip addr add $IP "
   [  -n  "$BROADCAST"  ]  &&  IP_CMD="$IP_CMD broadcast $BROADCAST "
   IP_CMD="$IP_CMD dev $INTERFACE"
 
@@ -50,13 +50,16 @@ start()  {
  
   [  -n  "$GATEWAY"    ]  &&  ip route add to default via $GATEWAY
 
-  [ -n "$IPV6" ] && ip -6 addr replace $IP dev $INTERFACE
+  [ -n "$IPV6" ] && ip -6 addr add $IP dev $INTERFACE
   [  -n  "$IPV6_GATEWAY"    ]  &&  ip -6 route add to default via $IPV6_GATEWAY
 
   ip link set $INTERFACE  up
   verify_connection
 }
 
-stop()  {  ip link set $INTERFACE  down;  }
+stop()  {  
+  ip link set   $INTERFACE  down  &&
+  ip addr flush $INTERFACE
+}
 
 $1

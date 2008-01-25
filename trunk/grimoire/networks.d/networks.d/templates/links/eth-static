@@ -29,13 +29,13 @@ start()  {
 
   [  -n  "$MODULE"     ] && modprobe  "$MODULE"
 
-  IP_CMD="ip addr replace $IP"
+  IP_CMD="ip addr add $IP"
   [  -n  "$BROADCAST"  ] && IP_CMD+=" broadcast $BROADCAST"
   IP_CMD+=" dev $INTERFACE"
 
   $IP_CMD
 
-  [ -n "$IPV6"         ] && ip -6 addr replace $IPV6 dev $INTERFACE
+  [ -n "$IPV6"         ] && ip -6 addr add $IPV6 dev $INTERFACE
 
   ip link set $INTERFACE  up
 
@@ -45,6 +45,9 @@ start()  {
   verify_connection
 }
 
-stop()  {  ip link set $INTERFACE  down;  }
+stop()  {  
+  ip link set   $INTERFACE  down  &&
+  ip addr flush $INTERFACE
+}
 
 $1
