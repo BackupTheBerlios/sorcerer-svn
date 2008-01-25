@@ -10,14 +10,14 @@ build(){ echo "kde-symlinks-v4 installed"; }
 
 post_install(){
  move(){
+  if ! [ -d $2 ]
+  then mkdir -p $2
+  fi
   if [ -h $1 ]; then return; fi
   if [ -d $1 ]; then
    mkdir -p       $2
    cp    -a  $1/* $2
    rm    -fr $1
-  fi
-  if ! [ -d $2 ]
-  then mkdir -p $2
   fi
   ln -s $2 $1
  }
@@ -30,5 +30,7 @@ post_install(){
 current(){
  find /var/tmp -maxdepth 0 -perm 1777 | grep -q . || chmod 1777 /var/tmp
  [ -h /opt/kde4/share/config ] &&
- [ -h /opt/kde4/share/config.kcfg ]
+ [ -h /opt/kde4/share/config.kcfg ] &&
+ [ -d /etc/kde4.config ] &&
+ [ -d /etc/kde4.config.kcfg ]
 }
