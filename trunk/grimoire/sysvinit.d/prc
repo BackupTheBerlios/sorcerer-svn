@@ -3,12 +3,11 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
-parallel() {
+parallel(){
  for ((SEQ=0;SEQ<10;SEQ++)); do
   if (( 10 > SEQ )); then NOW="0$SEQ"; else NOW="$SEQ"; fi
   for SCRIPT in /etc/rc.d/rc${RL}.d/$1${NOW}*; do
-   if   [ -f "$SCRIPT" ] && 
-        [ -x "$SCRIPT" ]
+   if   [ -x "$SCRIPT" ]
    then       $SCRIPT $2 &
    fi
   done
@@ -18,16 +17,15 @@ parallel() {
 
 linear() {
  for SCRIPT in /etc/rc.d/rc${RL}.d/${1}*; do
-  if   [ -f "$SCRIPT" ] && 
-       [ -x "$SCRIPT" ]
+  if   [ -x "$SCRIPT" ]
   then       $SCRIPT $2
   fi
  done
 }
 
-ssp() { parallel K stop; parallel S start; }
-ssl() { linear   K stop; linear   S start; }
-log() { $1; echo End runlevel $RL; }
+ssp(){ parallel K stop; parallel S start; }
+ssl(){ linear   K stop; linear   S start; }
+log(){ $1; echo End runlevel $RL; }
 
  RL=$1
 RLL=/etc/init.d/log.d/runlevel.$RL.log

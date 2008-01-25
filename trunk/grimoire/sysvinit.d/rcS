@@ -3,26 +3,25 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
-box() {
-  if    [  -f  "/media/root/$1"  ]
-  then  chroot  /media/root $1 start
-  else                      $1 start
-  fi
+box(){
+ if   [ -f  "/media/root/$1"  ]
+ then chroot /media/root $1 start
+ else                    $1 start
+ fi
 }
 
 
-run() {
- for  SCRIPT  in  /etc/rc.d/rcS.d/S*;  do
-  if    [  -f  "$SCRIPT"  ] &&
-        [  -x  "$SCRIPT"  ]
-  then  box    "$SCRIPT"
+run(){
+ for SCRIPT in /etc/rc.d/rcS.d/S*; do
+  if   [ -x "$SCRIPT" ]
+  then box  "$SCRIPT"
   fi
  done
- echo  End sysinit
+ echo End sysinit
 }
 
 
-if  !  [  -f  /proc/version  ];  then
-  mount -o size=1m,nr_inodes=1k,mode=0700 -t tmpfs tmpfs /etc/init.d/log.d
-  run 2>&1 | tee /etc/init.d/log.d/sysinit.log > /etc/init.d/dev.d/si
+if ! [ -f /proc/version ]; then
+ mount -o size=1m,nr_inodes=1k,mode=0700 -t tmpfs tmpfs /etc/init.d/log.d
+ run 2>&1 | tee /etc/init.d/log.d/sysinit.log > /etc/init.d/dev.d/si
 fi
