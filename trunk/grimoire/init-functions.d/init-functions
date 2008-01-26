@@ -193,7 +193,14 @@ stop(){
  fi
 }
 
-mnt(){ grep -qws "$NAME" /proc/mounts;}
+mnt(){
+ if [ -f /proc/mounts ]; then
+  while read DEV MNT JNK
+  do [ $NAME == $MNT ] && return
+  done < /proc/mounts
+ fi
+ return 1
+}
 
 start(){
  starts(){
