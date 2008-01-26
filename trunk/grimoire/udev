@@ -5,7 +5,9 @@
   CATEGORY='utility'
  ATTRIBUTE='console'
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
-       REQ=( '' 'libselinux:USE_SELINUX::for selinux support' )
+#      REQ=( '' 'libselinux:USE_SELINUX::for selinux support' )
+# Temporarily mandate that sysvinit casts before udev
+       REQ=( 'sysvinit' 'libselinux:USE_SELINUX::for selinux support' )
       OPTS='USE_LOG=true'
        URL="$KERNEL_URL"
   HOMEPAGE='http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html'
@@ -78,15 +80,8 @@ adjust_rules(){
   adjust_rules
 }
 
-# post_install() {
-#  default_post_install
-#  pkill -15 "^udevd$"
-#  /sbin/udevd --daemon
-#  true
-# }
-
 current() {
  case  $VERSION  in
-  118) [ -f /etc/init.d/udevd ] ;;
+  118) [ -f /etc/init.d/dev ] ;;
  esac
 }
