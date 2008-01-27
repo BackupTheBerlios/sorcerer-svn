@@ -1,0 +1,37 @@
+#!/bin/bash
+# Copyright 2000 through 2008 by Kyle Sallee,
+# All rights reserved.
+# For use with the distribution Sorcerer only.
+# md5sum checks md5sums of files installed by spells.
+
+. /etc/sorcery/config
+
+export LC_ALL=C
+trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGTERM
+
+renice 19      -p $$ &>/dev/null
+ionice -c2 -n7 -p $$ &>/dev/null
+
+SKIP='\:  /etc/init.d/:p;\:  /etc/:d'
+WHAT='Unexpected md5sum'
+INST="$( show_installed )"
+ WHY="${TAB}Failed md5sum check"
+ LOG='Cast Reason'
+
+sums(){ find $MD5SUMS_LOGS -type f | xargs --max-lines=256 cat; }
+ old(){ sums | sed p; }
+name(){ sed 's:^[0-9a-f]*  ::'; }
+ use(){ sed "$SKIP"; }
+ now(){ sums | name | use | sort -u | escape_qs | md5sums; }
+nfil(){ while read; do [ -f "$REPLY" ] || echo "$REPLY"; done; }
+miss(){ sums | name | nfil; }
+ pos(){ while read; do echo  "$INST" | sed "s:$:\:$REPLY:"; done; }
+ cur(){ grep -Hrvx "" $INSTALL_LOGS | sort -u; }
+from(){ pos | pipe cur | sed "s:^$INSTALL_LOGS/::" | sort | uniq -d; }
+peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee  /dev/stderr | cut -f2 | sort -u; }
+ why(){ while read R; do inc_event_log "$R" "$LOG" "$WHY"; echo "$R"; done; }
+this(){ pipe_queue "$CAST_QUEUE" com; }
+
+old  | pipe now  | sort    | uniq -u |
+name | pipe miss | sort -u |
+from | peal      | why     | this

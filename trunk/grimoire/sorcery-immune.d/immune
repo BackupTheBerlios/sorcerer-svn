@@ -1,12 +1,10 @@
 #!/bin/bash
-# Copyright 2004, 2005, 2006, 2007, 2008 by Kyle Sallee,
+# Copyright 2000 through 2008 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
 # immune detects, corrects, and notifies the SA of problems.
-
 # critical: ELF library checks involving glibc, ncurses and readline / 2 minutes
-# health:   md5sum checks for installed files / 1 day
 # neglect:  update of installed spells / 2 weeks
 
 export  TEXTDOMAIN=${0##*/}
@@ -91,16 +89,6 @@ neglect_check(){
  fi
 }
 
-health_check(){
- if (( NEXT_HEAL <  SECONDS  )); then
-    (( NEXT_HEAL += DAY ))
-  ( augur md5sum
-    queued check "$CAST_QUEUE" &&
-    cast
-  ) &> /var/log/immune.heal
- fi
-}
-
 stall_check(){
  start(){ pgrep -u root "$1" >/dev/null || TERM="dumb" $1; }
 
@@ -116,7 +104,6 @@ stall_check(){
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  while sleep 120; do
-  $HEALTH
   $NEGLECT
   $CRITICAL
   $STALL
@@ -128,15 +115,13 @@ export  IFS="$STANDARD_IFS"
 export TERM="dumb"
 
 (( HOUR = 3600 ))
-(( DAY  = 86400 ))
 (( HALF = 1209600 ))
 
-unset     CRITICAL HEALTH NEGLECT STALL
-IMMUNITY='critical health neglect stall'
+unset     CRITICAL NEGLECT STALL
+IMMUNITY='critical neglect stall'
 
 if [ -n "$1" ]; then IMMUNITY="$@"; fi
 if enabled critical $IMMUNITY; then CRITICAL=crit_check; fi
-if enabled health   $IMMUNITY; then HEALTH=health_check; NEXT_HEAL=$DAY; fi
 if enabled neglect  $IMMUNITY; then NEGLECT=neglect_check; next_easy; fi
 if enabled stall    $IMMUNITY; then STALL=stall_check; NEXT_STAL=$HOUR; fi
 
