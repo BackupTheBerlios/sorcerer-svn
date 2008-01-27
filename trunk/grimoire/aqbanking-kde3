@@ -1,0 +1,28 @@
+# aqbanking compiles fine however gnucash version 2.2.1 requires aqbanking version 2.6.2
+#  VERSION=( 3.0.1 2.3.2 2.2.9 2.2.8 2.2.7 2.2.6 2.2.5 2.2.4 2.2.3 2.2.1 2.2.0 )
+   VERSION=(       2.3.2 2.2.9 2.2.8 2.2.7 2.2.6 2.2.5 2.2.4 2.2.3 2.2.1 2.2.0 )
+    IGNORE='beta'
+  CATEGORY='utility/finance'
+ ATTRIBUTE='library kde3'
+    SOURCE="aqbanking/aqbanking-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+case $VERSION in
+ 2.3*) REQ='kdelibs-v3 libchipcard3 libgail-gnome libofx' ;;
+    *) REQ='kdelibs-v3 libchipcard  libgail-gnome libofx' ;;
+esac
+      OPTS='--prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final --with-qt3-includes=/opt/kde3/include --with-qt3-libs=/opt/kde3/lib --with-qt3-moc=/opt/kde3/bin --with-qt3-uic=/opt/kde3/bin --with-kde3-prefix=/opt/kde3 --with-kde3-includes=/opt/kde3/include --with-kde3-libs=/opt/kde3/lib'
+  HOMEPAGE='http://www.aquamaniac.de/aqbanking/index.html'
+  ESTIMATE='5000'
+      DESC='aqbanking provides an interface to online banking libraries.'
+
+# --with-frontends='cbanking g2banking' \
+
+build(){
+ ./configure       \
+ --build=$BUILD    \
+ --sysconfdir=/etc \
+ $OPTS            &&
+ make             &&
+ prepare_install  &&
+ make    install
+}

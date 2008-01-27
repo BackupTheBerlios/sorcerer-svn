@@ -3,13 +3,31 @@
    VERSION=(       2.3.2 2.2.9 2.2.8 2.2.7 2.2.6 2.2.5 2.2.4 2.2.3 2.2.1 2.2.0 )
     IGNORE='beta'
   CATEGORY='utility/finance'
- ATTRIBUTE='library kde3'
+#ATTRIBUTE='library kde3'
+ ATTRIBUTE='library'
     SOURCE="aqbanking/aqbanking-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
-case  $VERSION  in
- 2.3*) REQ='kdelibs-v3 libchipcard3 libgail-gnome libofx'  ;;
-    *) REQ='kdelibs-v3 libchipcard  libgail-gnome libofx'  ;;
-esac
+# case $VERSION in
+#  2.3*) REQ='kdelibs-v3 libchipcard3 libgail-gnome libofx' ;;
+#     *) REQ='kdelibs-v3 libchipcard  libgail-gnome libofx' ;;
+# esac
+ case $VERSION in
+  2.3*) REQ='libchipcard3 libgail-gnome libofx' ;;
+     *) REQ='libchipcard  libgail-gnome libofx' ;;
+ esac
   HOMEPAGE='http://www.aquamaniac.de/aqbanking/index.html'
-  ESTIMATE='3800'
+  ESTIMATE='3300'
       DESC='aqbanking provides an interface to online banking libraries.'
+
+build(){
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --with-frontends='cbanking g2banking' \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
+}
