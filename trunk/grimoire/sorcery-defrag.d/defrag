@@ -1,0 +1,45 @@
+#!/bin/bash
+# Copyright 2007, 2008 by Kyle Sallee,
+# All rights reserved.
+# For use with the distribution Sorcerer only.
+# defrag attempts to reduce fragmentation of files.
+
+. /etc/sorcery/config
+
+enable -n cat
+
+export LC_ALL=C
+trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGTERM
+
+EXT=".defrag$$$RANDOM"
+
+find $INSTALL_LOGS -maxdepth 1 -type f |
+xargs --max-lines=128 cat |
+sed '\,^/etc/,d
+     \,^/boot/,d
+     \,/doc/,d
+     \,/gtk-doc/,d
+     \,/man/,d
+     \,/info/,d
+     s:\x20:\\\x20:g
+     s:\x22:\\\x22:g
+     s:\x27:\\\x27:g' |
+xargs -r --max-lines=128 filefrag 2>/dev/null |
+sed   -n 's/: [0-9]* extents found, perfection.*//p' |
+while read
+do [ -h "$REPLY" ] || echo "$REPLY"
+done |
+sed 's:\x20:\\\x20:g
+     s:\x22:\\\x22:g
+     s:\x27:\\\x27:g' |
+xargs -r --max-lines=128 stat -c '%h %n' |
+sed   -n 's:1 ::p' |
+cat   -n |
+tac |
+while read NUM   NAME; do
+ echo    "$NUM	$NAME"
+ if   cp -f    "$NAME" "$NAME$EXT"
+ then mv -f            "$NAME$EXT" "$NAME"
+ else rm -f            "$NAME$EXT"
+ fi
+done
