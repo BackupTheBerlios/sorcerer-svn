@@ -1,6 +1,5 @@
    VERSION=( 3.3.8b 3.3.8 3.3.7 )
       SAFE=( 3.3.8b 3.3.8 )
-    IGNORE='\.0b'
   CATEGORY='graphic/library'
  ATTRIBUTE='library kde3 solo'
 # Although it is not supposed to the broken library check could
@@ -35,11 +34,12 @@ build(){
  }
 
  fix_qmake_conf(){
-  # This should be used when the qt headers are NOT instaled in 
-  # /usr/include, i.e. if they are installed to /usr/include/qt, 
-  # /usr/share/qt/include or whatever then this is NEEDED because the
-  # qmake.conf sets the QT include directory to $(QTDIR)/include.
-  # Some applications need this to be correct in order for them to compile.
+  # This function is not required when installing in /opt/kde3
+  ## This should be used when the qt headers are NOT instaled in 
+  ## /usr/include, i.e. if they are installed to /usr/include/qt, 
+  ## /usr/share/qt/include or whatever then this is NEEDED because the
+  ## qmake.conf sets the QT include directory to $(QTDIR)/include.
+  ## Some applications need this to be correct in order for them to compile.
   sed -i 's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:' \
          mkspecs/${SPECS}/qmake.conf
   cp  -a mkspecs/${SPECS}  /usr/share/qt/mkspecs/
@@ -101,8 +101,8 @@ build(){
  mkdir -p /opt/kde3 &&
  make   install &&
  cp -R  doc/man /usr &&
- fix_qmake_conf &&
  add_rpath_to_la
+ # fix_qmake_conf &&
 }
 
 current(){
