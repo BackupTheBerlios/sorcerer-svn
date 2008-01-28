@@ -1,7 +1,7 @@
 # intiramfs spell is for the Sorcerer distribution only
-# Copyright 2007 by Kyle Sallee, all rights reserved.
+# Copyright 2007 2008 by Kyle Sallee, all rights reserved.
 
-   VERSION=( 20080108-0 )
+   VERSION=( 20080128 )
   CATEGORY='administration/bootloader'
  ATTRIBUTE='archive_off data solo'
        REQ=( 'coreutils cpio findutils grep gzip module-init-tools sed udev util-linux' )
@@ -11,21 +11,23 @@ An initramfs is essential for booting boxes with a modular kernel
 that does not have the required filesystem and hardware drivers
 required to mount the root filesystem compiled into the kernel.'
 
-build()  {
-  prepare_install  &&
-  install  -vm 0700  $SCRIPT_DIR/init  /init
+build(){
+ prepare_install &&
+ install -vm 0700 $SCRIPT_DIR/init /init &&
+ ln      -sf /etc/init.d/initramfs /sbin/mkinitrd &&
+ ln      -sf /etc/init.d/initramfs /sbin/mkinitrf
 }
 
-post_install()  {
+post_install(){
+ update_etc_lilo_conf
+ default_post_install
+}
+
+pre_remove(){
+ if [ -z "$UPGRADING" ]; then
+  rm  -f /boot/*/initrf.gz /init
+  sed -i       "/initrd/d;/large-memory/d" /etc/lilo.conf{,.head}
   update_etc_lilo_conf
-  default_post_install
-}
-
-pre_remove() {
-  if    [    -z  "$UPGRADING"  ]
-  then  rm   -f  /boot/initrf.gz  /init
-        sed  -i  "/initrd/d;/large-memory/d"  /etc/lilo.conf{,.head}
-        update_etc_lilo_conf
-  fi
-  default_pre_remove
+ fi
+ default_pre_remove
 }

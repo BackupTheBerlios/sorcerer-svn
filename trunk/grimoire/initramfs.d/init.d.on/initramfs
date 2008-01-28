@@ -1,26 +1,23 @@
 #!/bin/bash
-
 ### BEGIN INIT INFO
 # Provides: initramfs
 # Required-Start: 
 # Required-Stop:  $local_fs udev
 # Default-Start: 
 # Default-Stop: 0 6
-# Short-Description: initramfs creates the initramfs when required.
-# Description: initramfs creates the initramfs when required.
+# Short-Description: initramfs creates initramfs boot filesystems
 ### END INIT INFO
 
-# intiramfs script is for the Sorcerer distribution only
 # Copyright 2007 by Kyle Sallee, all rights reserved.
+# intiramfs script is for the Sorcerer distribution only
 
 . /lib/lsb/init-functions
 
 NAME=initramfs
+T='	'
 
-update_lilo() {
- local T="	"
-
- lm() {
+update_lilo(){
+ lm(){
   grep -q    large-memory  $1 ||
   sed  -i '1ilarge-memory' $1
  }
@@ -28,41 +25,34 @@ update_lilo() {
  lm /etc/lilo.conf.head
  lm /etc/lilo.conf
 
- grep  -l /boot/initrf.gz /etc/lilo.conf /etc/lilo.conf.head |
- xargs -r --max-lines=2 sed -i '\,/boot/initrf.gz,d'
-
- find /boot -maxdepth 2 -mindepth 2  \
-            -type f     -name linux  \
-            -printf     '%h/initrf.gz\t%h/linux\n' |
- while read  IRF  IMG; do
-  grep -q  "$IRF"                                    /etc/lilo.conf  ||
-  sed  -i     "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:" /etc/lilo.conf
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h/initrf.gz\t%h/linux\n' |
+ while read IRF IMG; do
+  grep -q "$IRF" /etc/lilo.conf ||
+  sed  -i   "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:" /etc/lilo.conf
  done
 }
 
 
-run_lilo() {
- sync
- /sbin/lilo -P ignore
-}
+run_lilo(){ sync; /sbin/lilo -P ignore; }
+mkinitrf(){
 
+ gcpio(){
+  INC="\,/lib/modules/$1$,p
+       \,/lib/modules/$1/,p"
+  OUT='\,^/lib/modules/,d'
+  OLD="/boot/$1/initrf.gz"
+  NEW="/tmp/initrf.gz.$$$RANDOM.new"
+  OPS='-o -H newc --quiet'
 
-mkinitrf() {
-
- gcpio() {
-  local INC="\,/lib/modules/$1$,p
-             \,/lib/modules/$1/,p"
-  local OUT='\,^/lib/modules/,d'
-  local OLD="/boot/$1/initrf.gz"
-  local NEW="/tmp/initrf.gz.$RANDOM$$$RANDOM.new"
+  fail(){ rm -f $NEW; return 1; }
 
   echo -n  > $NEW
   chmod 0600 $NEW
 
-  sed "$INC;$OUT"  |
-  if  ! cpio -o -H newc --quiet; then rm -f $NEW; return 1; fi |
-  if  ! gzip -1 > $NEW;          then rm -f $NEW; return 1; fi
-  if  ! [    -s   $NEW ];        then rm -f $NEW; return 1; fi
+  sed "$INC;$OUT" |
+  if  ! cpio $OPS;        then fail; fi |
+  if  ! gzip -1 > $NEW;   then fail; fi
+  if  ! [    -s   $NEW ]; then fail; fi
 
   rm -f   $OLD
   mv $NEW $OLD
@@ -71,26 +61,19 @@ mkinitrf() {
  echo "$EVERY" | gcpio "$1"
 }
 
-
-
-every()  {
+every(){
  local KBD KEYMAPS LIB64
 
- exists()  {
-  while read
-  do    [[ -e $REPLY ]] &&
-        echo "$REPLY"
-  done
-}
+ exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
- if   [  -d   /usr/share/kbd/keymaps  ]
+ if   [  -d   /usr/share/kbd/keymaps ]
  then KEYMAPS=/usr/share/kbd/keymaps
        KBD='1i/usr/share/kbd
             1i/usr/share/kbd/keymaps'
  fi
 
- if   [  -d  /lib64  ]
- then  LIB64=/lib64
+ if   [ -d  /lib64 ]
+ then LIB64=/lib64
  fi
 
  find /bin /dev /etc /lib $LIB64 /sbin $KEYMAPS |
@@ -98,11 +81,11 @@ every()  {
 \,^/dev/pts/,d
 \,^/dev/.udev,d
 \,^/dev/shm/,d
+\,^/etc/[^/]*.old,d
 \,^/etc/sorcery/,d
 \,^/etc/asciidoc/,d
 \,^/etc/avahi/,d
-\,^/etc/chipcard/,d
-\,^/etc/chipcard3/,d
+\,^/etc/chipcard,d
 \,^/etc/courier/,d
 \,^/etc/cups/,d
 \,^/etc/elvis.default/stubs/,d
@@ -111,7 +94,7 @@ every()  {
 \,^/etc/gdm/,d
 \,^/etc/gtk/,d
 \,^/etc/httpd/,d
-\,^/etc/kde\.,d
+\,^/etc/kde,d
 \,^/etc/mono/,d
 \,^/etc/mplayer/,d
 \,^/etc/mtab/,d
@@ -123,14 +106,10 @@ every()  {
 \,^/etc/ssh/,d
 \,^/etc/ssl/,d
 \,^/etc/xdg/,d
-\,^/etc/bootblaze.conf,d
-\,^/etc/protocols.old$,d
-\,^/etc/services.old$,d
+\,^/etc/bootblaze,d
 \,^/etc/xml,d
 \,^/lib.*\.la$,d
 \,^/lib.*lib.*\.a$,d
-\,^/sbin/dmsetup\.static$,d
-\,^/sbin/insmod\.static$,d
 \,^/sbin/sln$,d
 1i/init
 1i/media
@@ -145,8 +124,7 @@ $KBD
 1i/usr/share/terminfo/l/linux" | exists
 }
 
-
-initrf_update() {
+initrf_update(){
  if   [  -f /boot/initrf.gz ]
  then rm -f /boot/initrf.gz
  fi
@@ -154,50 +132,40 @@ initrf_update() {
  [     -d       /media/root ] ||
  mkdir -pm 0755 /media/root
 
- local EVERY="$( every )"
+ EVERY="$( every )"
 
  update_lilo
 
- find /boot -maxdepth 2 -mindepth 2 \
-            -type f     -name linux \
-            -printf     '%h\n'      |
- cut -d / -f3                       |
- while  read      VERSION
- do     mkinitrf $VERSION
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+ cut -d / -f3 |
+ while read      VERSION
+ do    mkinitrf $VERSION
  done
 
  run_lilo
 }
 
-
-initrf_present() {
- find /boot -maxdepth 2 -mindepth 2 \
-            -type f     -name linux \
-            -printf     '%h\n'      |
- while read
- do    [ -f "$REPLY/initrf.gz" ] || return 1
- done
+initrf_present(){
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+ while read; do [ -f "$REPLY/initrf.gz" ] || return 1; done
 }
 
-
-initrf_current() {
- local DIRS='/bin /etc/bash.d /etc/init.d /etc/lvm /etc/modules.d'
-       DIRS+=' /etc/udev /lib /sbin'
+initrf_current(){
+ DIRS='/bin /etc/bash.d /etc/init.d /etc/lvm /etc/modules.d'
+ DIRS+=' /etc/udev /lib /sbin'
  
- [ -d          /lib64 ] &&
-       DIRS+=' /lib64'
+ [ -d    /lib64 ] &&
+ DIRS+=' /lib64'
 
- local FILES='/etc/fstab /etc/hostname /etc/inittab'
-       FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
-       FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
+ FILES='/etc/fstab /etc/hostname /etc/inittab'
+ FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
+ FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
 
- local OMIT='\,/etc/init.d/log,d'
+ OMIT='\,/etc/init.d/log,d'
 
- find /boot -mindepth  2 -mindepth 2      \
-            -type f      -name initrf.gz  \
-            -printf '%T@	%p\n'     |
+ find /boot -mindepth 2 -mindepth 2 -type f -name initrf.gz -printf '%T@\t%p\n' |
  LC_ALL=C sort -g |
- while    read  JUNK  REPLY;  do
+ while read JUNK REPLY; do
   find $DIRS $FILES -type f -newer $REPLY |
   sed "$OMIT" | grep -q . &&
   return 1 ||
@@ -205,32 +173,29 @@ initrf_current() {
  done
 }
 
-
-on_cd() {
-   if ! [   -d /boot/isolinux ]; then return 1
- elif ! touch  /tmp/writeable  ; then return
- else rm    -f /tmp/writeable  ;      return 1
+on_cd(){
+   if ! [ -d /boot/isolinux ] ; then return 1
+ elif ! touch  /tmp/writeable ; then return
+ else rm    -f /tmp/writeable ;      return 1
    fi 2>/dev/null
 }
 
-
-begin() {
+begin(){
  if   on_cd
  then return
  elif initrf_present &&
       initrf_current
  then return
- elif log_warning_msg "$NAME updating";  initrf_update
+ elif log_warning_msg "$NAME updating"; initrf_update
  then log_success_msg "$NAME updated"
  else log_failure_msg "$NAME failed"
-      if   [ "$1" == stop ]
-      then sulogin -t 300 &>/dev/console 0</dev/console
-      fi
+  if   [ "$1" == stop ]
+  then sulogin -t 300 &>/dev/console 0</dev/console
+  fi
  fi
 }
 
-
-main() {
+main(){
  log_warning_msg "$NAME checking"; begin "$1"
  log_success_msg "$NAME checked"
 }
