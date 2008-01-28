@@ -6,27 +6,23 @@
 # Required-Stop:  $local_fs
 # Default-Start: 1 2 3 4 5
 # Default-Stop:
-# Short-Description: swap turns on swaps specified in /etc/fstab
-# Description: swap activates and deactivates the swaps specified in /etc/fstab
+# Short-Description: swap starts and stops swaps specified in /etc/fstab
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-start()  {
-  log_warning_msg  "swap starting";  swapon  -a
-  log_success_msg  "swap started"
+start(){
+ if   log_warning_msg "swap starting"; swapon -a
+ then log_success_msg "swap started"
+ else log_failure_msg "swap not started"
+ fi
 }
 
-stop()  {
-  log_warning_msg  "swap stopping";  swapoff -a
-  log_success_msg  "swap stopped"
+stop(){
+ if   log_warning_msg "swap stopping"; swapoff -a
+ then log_success_msg "swap stopped"
+ then log_failure_msg "swap not stopped"
+ fi
 }
 
-help()  {  echo "Usage: $0 {start|stop}" 1>&2;  }
-
-case  $1  in
-        start)  start  ;;
-         stop)  stop   ;;
-  try-restart)  :      ;;
-            *)  help   ;;
-esac
+parse "$@"

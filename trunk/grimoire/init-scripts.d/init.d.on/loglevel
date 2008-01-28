@@ -8,32 +8,20 @@
 # Default-Stop:
 # Short-Description: loglevel sets the level at which the kernel will write to the console.
 # Description: The kernel routine printk() will only print a message on the console,
-# if it has a loglevel less than the value of the variable console_loglevel.
-#define KERN_EMERG    "<0>"  /* system is unusable               */
-#define KERN_ALERT    "<1>"  /* action must be taken immediately */
-#define KERN_CRIT     "<2>"  /* critical conditions              */
-#define KERN_ERR      "<3>"  /* error conditions                 */
-#define KERN_WARNING  "<4>"  /* warning conditions               */
-#define KERN_NOTICE   "<5>"  /* normal but significant condition */
-#define KERN_INFO     "<6>"  /* informational                    */
-#define KERN_DEBUG    "<7>"  /* debug-level messages             */
+#	if the message loglevel value is less than
+#	the value of the variable console_loglevel.
+#	For a description of the values for console_loglevel execute: man syslog
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-# /bin/dmesg -n 3
-
-start() {
-  if   log_warning_msg 'Kernel logging to console level 3 setting'; echo 3 > /proc/sys/kernel/printk
-  then log_success_msg 'Loglevel 3 set'
-  else log_failure_msg 'Loglevel 3 not set'
-  fi
+start(){
+ if   log_warning_msg 'Kernel logging to console level 3 setting'; echo 3 > /proc/sys/kernel/printk
+ then log_success_msg 'Loglevel 3 set'
+ else log_failure_msg 'Loglevel 3 not set'
+ fi
 }
-
-help()  { echo "Usage: $0 {start}" 1>&2; }
-
-case $1 in
-       start) start ;;
- try-restart) :     ;;
-           *) help  ;;
-esac
+       stop(){ :; }
+    restart(){ :; }
+try_restart(){ :; }
+parse "$@"

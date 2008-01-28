@@ -7,32 +7,28 @@
 # Default-Start: 1 2 3 4 5
 # Default-Stop:
 # Short-Description: wtmp creates login record /var/log/wtmp
-# Description:       wtmp creates login record /var/log/wtmp
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-start()  {
-  run()  {
-    if    !  [   -d  /var/log  ]
-    then  mkdir  -p  /var/log
-    fi  &&
-    echo   -n  >     /var/log/wtmp  &&
-    chown  root:tty  /var/log/wtmp  &&
-    chmod  0664      /var/log/wtmp
-  }
+NAME=/var/log/wtmp
 
-  if    log_warning_msg  "/var/log/wtmp creating";  run
-  then  log_success_msg  "/var/log/wtmp created"
-  else  log_failure_msg  "/var/log/wtmp not created"
-  fi
+start(){
+ run(){
+  if   ! [   -d ${NAME%/*} ]
+  then mkdir -p ${NAME%/*}
+  fi &&
+  echo  -n  >    $NAME &&
+  chown root:tty $NAME &&
+  chmod 0664     $NAME
+ }
+
+ if   log_warning_msg "$NAME creating"; run
+ then log_success_msg "$NAME created"
+ else log_failure_msg "$NAME not created"
+ fi
 }
-
-help()  {  echo "Usage: $0 {start}" 1>&2;  }
-
-case  $1  in
-        start)  start  ;;
-         stop)  :      ;;
-  try-restart)  :      ;;
-            *)  help   ;;
-esac
+       stop(){ :; }
+    restart(){ :; }
+try_restart(){ :; }
+parse "$@"
