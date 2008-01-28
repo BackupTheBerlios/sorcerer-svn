@@ -3,31 +3,7 @@
  ATTRIBUTE='console server'
     SOURCE="exim4/exim-$VERSION.tar.bz2"
   HOMEPAGE='http://www.exim.org'
-       URL='ftp://gd.tuwien.ac.at/infosys/mail/exim/exim/
-            ftp://ftp.csx.cam.ac.uk/pub/software/email/exim/
-            ftp://mirror.direct.ca/pub/exim/
-           http://mirrors.sunsite.dk/exim/
-            ftp://sunsite.dk/pub/mail/exim/
-            ftp://ftp.fu-berlin.de/unix/mail/exim/
-            ftp://ftp.tin.org/pub/mail/exim/
-            ftp://ftp.artifact.hu/pub/exim/
-           http://ftp.esat.net/pub/networking/mail/mta/exim/
-            ftp://ftp.esat.net/pub/networking/mail/mta/exim/
-            ftp://nagoya.linux.or.jp/mirror/exim/
-           http://exim.psshee.com/ftp/
-            ftp://ftp.nl.uu.net/pub/unix/mail/exim/
-           http://www.no.exim.org/ftp/
-           http://sunsite.icm.edu.pl/pub/unix/mail/exim/
-            ftp://sunsite.icm.edu.pl/pub/unix/mail/exim/
-           http://exim.smux.net/ftp/
-            ftp://ftp.smux.net/pub/exim/
-            ftp://sunsite.cnlab-switch.ch/mirror/exim/
-           http://www.exim.org/ftp/
-            ftp://ftp.exim.org/pub/exim/
-            ftp://ftp.demon.co.uk/pub/mirrors/exim/
-            ftp://ftp.clockerz.net/pub/exim/
-           http://www.us.exim.org/ftp/
-            ftp://ftp.fsckit.net/pub/exim/'
+       URL="$EXIM_URL"
   EPROVIDE='mail-transport-agent'
        REQ=( 'awk db init-functions'
              'mysql:::for mysql authentication'
@@ -39,80 +15,76 @@ exim is a message transfer agent (MTA) developed at the University
 of Cambridge for use on Unix systems connected to the Internet.'
 
 
-build() {
+build(){
 
-  install_symlinks()  {
-    ln     -sf  ../sbin/exim   /usr/lib/sendmail
-    ln     -sf  exim           /usr/sbin/sendmail
-    ln     -sf  exim           /usr/sbin/mailq
-    ln     -sf  exim           /usr/sbin/rsmtp
-    ln     -sf  exim           /usr/sbin/rmail
-    ln     -sf  exim           /usr/sbin/runq
-    ln     -sf  exim           /usr/sbin/newaliases
-  }
+ install_symlinks(){
+  ln -sf ../sbin/exim /usr/lib/sendmail
+  ln -sf exim         /usr/sbin/sendmail
+  ln -sf exim         /usr/sbin/mailq
+  ln -sf exim         /usr/sbin/rsmtp
+  ln -sf exim         /usr/sbin/rmail
+  ln -sf exim         /usr/sbin/runq
+  ln -sf exim         /usr/sbin/newaliases
+ }
 
-  install_conf()  {
-    if    !  touch  /etc/aliases
-    then  rm  -f    /etc/aliases
-          touch     /etc/aliases
-    fi
+ install_conf(){
+  echo -n > /etc/aliases
+  sed  -i 's:var/mail:var/spool/mail:
+           s:\# group = mail:  group = mail:
+           s:\# mode = 0660:  mode = 0660:' /etc/exim.conf
+  install -m 0644 doc/exim.8 /usr/man/man8
+ }
 
-    sed  -i  "s:var/mail:var/spool/mail:
-              s:\# group = mail:  group = mail:
-              s:\# mode = 0660:  mode = 0660:"    /etc/exim.conf
-    install -m 0644 doc/exim.8  /usr/man/man8
-  }
-
-if  !  [ -d  /var/spool/mail  ];  then
+ if ! [ -d /var/spool/mail ]; then
   mkdir    -p -m 1775 /var/spool/mail
   groupadd -K GID_MIN=256 -K GID_MAX=512    mail                         2>/dev/null
   useradd  -K UID_MIN=256 -K UID_MAX=512 -g mail -d /var/spool/mail mail 2>/dev/null
   chown    mail:mail  /var/spool/mail
 
-  for         ITEM  in  /var/spool/mail/{db,input,log,msglog}
-  do   [ -e  $ITEM ]  &&  chown  -R  mail:mail  $ITEM
+  for        ITEM in /var/spool/mail/{db,input,log,msglog}
+  do   [ -e $ITEM ] && chown -R mail:mail $ITEM
   done
-fi
+ fi
 
-  mkdir  -p  Local
+ mkdir -p Local
 
-  if  spell_installed  xfree86;  then
-    cp  src/EDITME           Local/Makefile
-    cp  exim_monitor/EDITME  Local/eximon.conf
-  else
-    grep  -v  "EXIM_MONITOR="  src/EDITME  >  Local/Makefile
-  fi
+ if   spell_installed  xorg; then
+  cp  src/EDITME           Local/Makefile
+  cp  exim_monitor/EDITME  Local/eximon.conf
+ else
+  grep -v 'EXIM_MONITOR=' src/EDITME > Local/Makefile
+ fi
 
-  if  spell_installed  tcp_wrappers;  then
-    echo  "USE_TCP_WRAPPERS = yes"               >> Local/Makefile
-    echo  "EXTRALIBS = -lwrap"                   >> Local/Makefile
-  fi
+ if spell_installed tcp_wrappers; then
+  echo 'USE_TCP_WRAPPERS = yes' >> Local/Makefile
+  echo 'EXTRALIBS = -lwrap'     >> Local/Makefile
+ fi
 
-  if  spell_installed  Linux-PAM;  then
-    echo  "SUPPORT_PAM = yes"                    >>  Local/Makefile
-    echo  "EXTRALIBS += -lpam -ldl"              >>  Local/Makefile  
-  fi
+ if spell_installed Linux-PAM; then
+  echo 'SUPPORT_PAM = yes'       >> Local/Makefile
+  echo 'EXTRALIBS += -lpam -ldl' >> Local/Makefile  
+ fi
 
-  if  spell_installed  mysql;  then
-    echo  "LOOKUP_MYSQL=yes"                     >>  Local/Makefile
-    echo  "LOOKUP_INCLUDE=-I /usr/include/mysql" >>  Local/Makefile
-    echo  "LOOKUP_LIBS=-lmysqlclient"            >>  Local/Makefile
-  fi
+ if spell_installed mysql; then
+  echo 'LOOKUP_MYSQL=yes'                     >> Local/Makefile
+  echo 'LOOKUP_INCLUDE=-I /usr/include/mysql' >> Local/Makefile
+  echo 'LOOKUP_LIBS=-lmysqlclient'            >> Local/Makefile
+ fi
 
-  echo  "BIN_DIRECTORY=/usr/sbin"                >>  Local/Makefile
-  echo  "CONFIGURE_FILE=/etc/exim.conf"          >>  Local/Makefile
-  echo  "SPOOL_DIRECTORY=/var/spool/mail"        >>  Local/Makefile
-  echo  "CFLAGS=$CFLAGS"                         >>  Local/Makefile
-  echo  "EXIM_UID=`id -u mail`"                  >>  Local/Makefile
-  echo  "EXIM_GID=`id -g mail`"                  >>  Local/Makefile
-  echo  "EXIM_USER=mail"                         >>  Local/Makefile
-  echo  "EXIM_GROUP=mail"                        >>  Local/Makefile
+ echo "BIN_DIRECTORY=/usr/sbin"         >>  Local/Makefile
+ echo "CONFIGURE_FILE=/etc/exim.conf"   >>  Local/Makefile
+ echo "SPOOL_DIRECTORY=/var/spool/mail" >>  Local/Makefile
+ echo "CFLAGS=$CFLAGS"                  >>  Local/Makefile
+ echo "EXIM_UID=`id -u mail`"           >>  Local/Makefile
+ echo "EXIM_GID=`id -g mail`"           >>  Local/Makefile
+ echo "EXIM_USER=mail"                  >>  Local/Makefile
+ echo "EXIM_GROUP=mail"                 >>  Local/Makefile
 
-  sed  -i  "s:tail -1:tail -n 1:"  scripts/Configure-config.h
+ sed -i 's:tail -1:tail -n 1:' scripts/Configure-config.h
 
-  make             &&
-  prepare_install  &&
-  make    install  &&
-          install_symlinks  &&
-          install_conf
+ make            &&
+ prepare_install &&
+ make    install &&
+         install_symlinks &&
+         install_conf
 }

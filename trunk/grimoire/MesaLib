@@ -13,53 +13,48 @@ unset  URL
        REQ='glproto libXdamage libXi libXmu libXxf86vm libdrm makedepend'
 #      REQ='expat glproto libXi libXmu libXxf86vm libdrm'
   ESTIMATE='10000'
-  EPROVIDE="glut"
-      DESC="MesaLib is a 3-D graphics library with an API similar to OpenGL."
+  EPROVIDE='glut'
+      DESC='MesaLib is a 3-D graphics library with an API similar to OpenGL.'
 
-build() {
+build(){
 
-  install_demos()  {
-    install   -v  -m 755  progs/xdemos/{glxgears,glxinfo}  /usr/bin
-  }
+ install_demos(){ install -vm 755 progs/xdemos/{glxgears,glxinfo} /usr/bin; }
+ install_drirc(){ install -vm 644 $SCRIPT_DIR/drirc /etc; }
 
-  install_drirc()  {  install  -m 0644  $SCRIPT_DIR/drirc  /etc;  }
+ case $HOSTTYPE in
+  x86_64) CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64 ;;
+       *) CONFIG_NAME=linux-dri-x86    ; LIB=lib   ;;
+ esac
 
-  case $HOSTTYPE in
-    x86_64)  CONFIG_NAME="linux-dri-x86-64"
-             LIB="lib64"   ;;
-         *)  CONFIG_NAME="linux-dri-x86"
-             LIB="lib"     ;;
-  esac
+#echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/modules/dri" >> configs/${CONFIG_NAME}
+ echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/dri" >> configs/${CONFIG_NAME}
 
-#  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/modules/dri" >> configs/${CONFIG_NAME}
-  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/dri" >> configs/${CONFIG_NAME}
+ sed -ri "s:/usr/local:/usr:g" configs/default*
 
-  sed  -ri  "s:/usr/local:/usr:g"  configs/default*
+ # According to Evert Vorster
+ # MesaLib should be compiled with -fno-strict-aliasing added to CFLAGS
+ # in order for OpenGL to work with xf86-video-intel drivers
+ CFLAGS+=' -fno-strict-aliasing'
 
-  make    "$CONFIG_NAME"           \
-          "PIC_FLAGS=-fPIC"        \
-          "OPT_FLAGS=$CFLAGS"      &&
-  cd      progs/xdemos             &&
-  make    PROGS='glxinfo glxgears' &&
-  cd      ../..                    &&
-  prepare_install        &&  # echo   -e  "\n/usr/${LIB}\n\n"  |
-  make    install        &&
-          install_demos  &&
-          install_drirc
+ make    "$CONFIG_NAME"           \
+         "PIC_FLAGS=-fPIC"        \
+         "OPT_FLAGS=$CFLAGS"      &&
+ cd      progs/xdemos             &&
+ make    PROGS='glxinfo glxgears' &&
+ cd      ../..                    &&
+ prepare_install       &&
+ make    install       &&
+         install_demos &&
+         install_drirc
 }
 
 
-post_install()  {
-  if    spell_installed  "ati-driver-installer"
-  then  echo             "ati-driver-installer"  |
-        pipe_queue  "$CAST_QUEUE"  "com"
+post_install(){
+ recast(){
+  if   spell_installed "$1"
+  then echo            "$1" | pipe_queue "$CAST_QUEUE" com
   fi
-  if    spell_installed  "NVIDIA-Linux-x86"
-  then  echo             "NVIDIA-Linux-x86"  |
-        pipe_queue  "$CAST_QUEUE"  "com"
-  fi
-  if    spell_installed  "NVIDIA-Linux-x86_64"
-  then  echo             "NVIDIA-Linux-x86_64"  |
-        pipe_queue  "$CAST_QUEUE"  "com"
-  fi
+ }
+  recast ati-driver-installer
+  recast NVIDIA-Linux-x86
 }

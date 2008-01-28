@@ -12,18 +12,18 @@
              'sorcery-defrag:::for monthly file defragment'
              'sorcery-immune:::for an immune system'
              'sorcery-md5sum:::for weekly md5sum check of installed files' )
-   EXCLUDE="$SOURCE_DIR
-            /etc/sorcery/local.config
+   EXCLUDE='/etc/sorcery/local.config
             /home
             /proc
             /root
             /tmp
+            /usr/src/sorcery
             /var/cache
             /var/lock
             /var/run
             /var/spool
             /var/state
-            /var/tmp"
+            /var/tmp'
    PROTECT='/dev
             /etc/sorcery/config
             /etc/sorcery/dialogrc
@@ -56,17 +56,17 @@ build(){
 }
 
 
-post_install() {
+post_install(){
 
  linux_headers_check(){
-   if    ! [ -f /usr/include/asm-generic/errno.h  ]; then
-     echo      'Attempting to install some missing linux headers'
-     leech -w  glibc
-     cd        $(  untar  $SOURCE_CACHE/glibc/*/linux-*.tar*  )/linux* &&
-     make      include/linux/version.h &&
-     make      include/asm &&
-     cp    -rL include/{asm,asm-generic,linux}  /usr/include
-   fi
+  if    ! [ -f /usr/include/asm-generic/errno.h  ]; then
+   echo      'Attempting to install some missing linux headers'
+   leech -w  glibc
+   cd        $( untar $SOURCE_CACHE/glibc/*/linux-*.tar* )/linux* &&
+   make      include/linux/version.h &&
+   make      include/asm &&
+   cp    -rL include/{asm,asm-generic,linux}  /usr/include
+  fi
  }
 
  fix_provide_logs(){
@@ -77,28 +77,10 @@ post_install() {
  }
 
  fix_fstab(){
-  if   grep  -q     "/root/.sorcery.*size=32m"         /etc/fstab
-  then sed   -ir "s:(/root/.sorcery.*size=)32m:\164m:" /etc/fstab
-       mount -o remount /root/.sorcery
-       true
-  fi
- }
-
- fix_initramfs(){
-  grep -q    /boot/initramfs     /etc/lilo.conf.head
-  sed  -i '\,/boot/initramfs/,d' /etc/lilo.conf.head &&
-  rm   -f    /boot/initramfs
- }
-
- remove_source_all(){
-  if   [  -d  $SOURCE_CACHE/ALL ]
-  then rm -fr $SOURCE_CACHE/ALL
-  fi
- }
-
- remove_old_spell_index(){
-  if   [  -d  $INDEX_DIR/spell ]
-  then rm -fr $INDEX_DIR/spell
+  if grep  -q "/root/.sorcery.*size=32m"         /etc/fstab; then
+   sed -ir "s:(/root/.sorcery.*size=)32m:\164m:" /etc/fstab
+   mount -o remount /root/.sorcery
+   true
   fi
  }
 
@@ -118,20 +100,11 @@ post_install() {
   pipe_queue $CAST_QUEUE com
  }
 
- remove_stat(){
-  if [    -d  /etc/sorcery/log/stat ]
-  then rm -fr /etc/sorcery/log/stat
-  fi
- }
+ rm -fr /etc/sorcery/log/stat $INDEX_DIR/spell $SOURCE_CACHE/ALL
 
- remove_source_all
  fix_provide_logs
  linux_headers_check
  fix_fstab
- fix_initramfs
- remove_source_all
- remove_stat
- remove_old_spell_index
  missing_init-script
  default_post_install
 }
