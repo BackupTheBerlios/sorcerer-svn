@@ -13,31 +13,33 @@
 
 . /lib/lsb/init-functions
 
-OPTIONS='defaults,size=2g,nr_inodes=1m,mode=1777'
+NAME='/tmp'
+OPTS='defaults,size=2g,nr_inodes=1m,mode=1777'
 
-start()  {
-  go()  {
-    if    !  [   -d           /tmp  ]
-    then  mkdir  -p  -m 1755  /tmp
-    fi    &&
-    mount  -o $OPTIONS  -t tmpfs  tmpfs  /tmp  &&
-    mkdir  -p  -m 0700  /tmp/.sorcery    /usr/src/sorcery  &&
-    mount  --bind       /tmp/.sorcery    /usr/src/sorcery
-  }
+start(){
+ go(){
+  if ! [ -d /tmp ]; then mkdir -pm 1755 /tmp; fi &&
+  mount -o $OPTS -t tmpfs tmpfs /tmp &&
+  mkdir -pm 0700 /tmp/.sorcery /usr/src/sorcery &&
+  mount --bind   /tmp/.sorcery /usr/src/sorcery
+ }
 
-  if    ! sed   's/#.*//'   /etc/fstab  |
-          grep  -qw         /tmp;  then
-    if    log_warning_msg  '/tmp mounting'; go
-    then  log_success_msg  '/tmp mounted'
-    else  log_failure_msg  '/tmp not mounted'
-    fi
-  fi
+mnt(){
+ if [ -f /proc/mounts ]; then
+  while read DEV MNT JNK
+  do [ $NAME == $MNT ] && return
+  done < /proc/mounts
+ fi
+ return 1
 }
 
-help()  {  echo "Usage: $0 {start}" 1>&2;  }
+ if   mnt; then return; fi
+ if   log_warning_msg '/tmp mounting'; go
+ then log_success_msg '/tmp mounted'
+ else log_failure_msg '/tmp not mounted'
+ fi
+}
 
-case  $1  in
-        start)  start  ;;
-  try-restart)  :      ;;
-            *)  help   ;;
-esac
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+parse "$@"
