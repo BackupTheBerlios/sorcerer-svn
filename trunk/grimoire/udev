@@ -2,6 +2,7 @@
 # gentoo rules switched from installing
 # sound device nodes in /dev/snd to /dev
    VERSION=( 118 115 113 105 100 )
+      SAFE=( 118 )
   CATEGORY='utility'
  ATTRIBUTE='console'
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
@@ -60,7 +61,7 @@ adjust_rules(){
  fi
 }
 
- case  $VERSION  in
+ case $VERSION in
   105) EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id" ;;
   075) EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id" ;;
     *) EXTRAS="extras/ata_id extras/cdrom_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/scsi_id extras/usb_id extras/volume_id" ;;
@@ -71,17 +72,17 @@ adjust_rules(){
  #         s:killall:true:" Makefile
  # sed -i "s:@udevdir@:/dev:" etc/udev/udev.conf.in
 
- make    $OPTS    "EXTRAS=$EXTRAS" &&
- prepare_install                   &&
- make    install  "EXTRAS=$EXTRAS" &&
-         install_missing           &&
-    init_install                   &&
- symlink_install                   &&
+ make    $OPTS   "EXTRAS=$EXTRAS" &&
+ prepare_install                  &&
+ make    install "EXTRAS=$EXTRAS" &&
+         install_missing          &&
+    init_install                  &&
+ symlink_install                  &&
   adjust_rules
 }
 
-current() {
- case  $VERSION  in
+current(){
+ case $VERSION in
   118) [    -f                          /etc/init.d/udevd-restart ] &&
        grep -q '# Provides: udevd udev' /etc/init.d/udevd-restart ;;
  esac
