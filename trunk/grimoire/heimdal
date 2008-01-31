@@ -1,5 +1,5 @@
-   VERSION=( 1.0.2 1.0.1 1.0 0.8.1 0.8 )
-      SAFE=( 1.0.2 1.0.1 1.0 0.8.1 0.8 )
+   VERSION=( 1.1 1.0.2 1.0.1 1.0 0.8.1 0.8 )
+      SAFE=( 1.1 1.0.2 1.0.1 1.0 0.8.1 0.8 )
     IGNORE='^200\|snap\|rc'
   CATEGORY='security/authentication security/encryption'
  ATTRIBUTE='console'
@@ -22,16 +22,14 @@
   ESTIMATE='6000'
       DESC='heimdal is a free implementation of Kerberos 5.'
 
-build() {
+build(){
 export CFLAGS+=' -fPIC'
 export CXXFLAGS+=' -fPIC'
 
-sed  -i  's:db, fn, NULL,:db, NULL, fn, NULL,:
-          s:db, db->name, NULL,:db, NULL, db->name, NULL,:'  \
-     lib/hdb/db3.c
+sed -i 's:db, fn, NULL,:db, NULL, fn, NULL,:
+        s:db, db->name, NULL,:db, NULL, db->name, NULL,:' lib/hdb/db3.c
 
-sed  -i  's:db, fn, NULL,:db, NULL, fn, NULL,:'  \
-     lib/roken/ndbm_wrap.c
+sed -i 's:db, fn, NULL,:db, NULL, fn, NULL,:' lib/roken/ndbm_wrap.c
 
 LOG='
 [logging]
@@ -40,48 +38,47 @@ LOG='
  default = SYSLOG:INFO:USER
 '
 
-copy_headers()  {
-  mkdir  -p                   save
-  cp  /usr/include/glob.h     save
-  cp  /usr/include/fnmatch.h  save
-  cp  /usr/include/ss/ss.h    save
-  true
+copy_headers(){
+ mkdir -p                  save
+ cp /usr/include/glob.h    save
+ cp /usr/include/fnmatch.h save
+ cp /usr/include/ss/ss.h   save
+ true
 }
 
-restore_headers()  {
+restore_headers(){
 
-  chk_or_cp()  {
-    cmp  -s  /usr/include/$1  save/$2  ||
-    cp       save/$2  /usr/include/$1
-  }
-
-  chk_or_cp  glob.h     glob.h
-  chk_or_cp  fnmatch.h  fnmatch.h
-  chk_or_cp  ss/ss.h    ss.h
-  true
-
+ chk_or_cp(){
+  cmp -s /usr/include/$1 save/$2 ||
+  cp     save/$2 /usr/include/$1
 }
 
-install_conf()  {
-  echo  "$LOG"  >>   krb5.conf
-  install  -vm 0600  krb5.conf  /etc/
+ chk_or_cp glob.h    glob.h
+ chk_or_cp fnmatch.h fnmatch.h
+ chk_or_cp ss/ss.h   ss.h
+ true
 }
 
-install_dir()  {  mkdir  -p 0700  /var/heimdal;  }
+install_conf(){
+ echo "$LOG" >> krb5.conf
+ install -vm 0600 krb5.conf /etc/
+}
+
+install_dir(){ mkdir -vp 0700 /var/heimdal; }
 
 # export  ac_cv_func_glob_working=yes
 
-./configure            \
---build=$BUILD         \
---prefix=/usr          \
---sysconfdir=/etc      \
---localstatedir=/var   \
-$OPTS                  &&
-make                   &&
-prepare_install        &&
-   copy_headers        &&
-make    install        &&
-restore_headers        &&
-        install_conf   &&
+./configure          \
+--build=$BUILD       \
+--prefix=/usr        \
+--sysconfdir=/etc    \
+--localstatedir=/var \
+$OPTS                &&
+make                 &&
+prepare_install      &&
+   copy_headers      &&
+make    install      &&
+restore_headers      &&
+        install_conf &&
         install_dir
 }

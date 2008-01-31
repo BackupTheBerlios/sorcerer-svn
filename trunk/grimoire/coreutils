@@ -1,7 +1,8 @@
-   VERSION=( 6.9 6.7 6.6 6.4 6.3 )
+# 6.10 available as .tar.gz and .tar.lzma
+   VERSION=( 6.10 6.9 6.7 6.6 6.4 6.3 )
   CATEGORY='utility'
  ATTRIBUTE='console solo'
-    SOURCE="coreutils/coreutils-$VERSION.tar.bz2"
+    SOURCE="coreutils/coreutils-$VERSION.tar.gz"
        URL="$GNU_URL"
 # acl for access control lists and extended attribute support.
        REQ=( 'acl' )
@@ -34,7 +35,7 @@
             /usr/bin/uname
             /usr/bin/uniq
             /usr/bin/wc'
-  ESTIMATE='2670'
+  ESTIMATE='2500'
       DESC='coreutils provides basic file, shell and text manipulation utilities.
 
 coreutils provides:
@@ -125,35 +126,35 @@ uniq		remove duplicate lines from a sorted file
 wc		prints the number of bytes, words, and lines in files'
 
 
-build()  {
-place_files()  {
-  echo  'Placing files'
-  hash	-r
-  mv	-fv  /usr/bin/cat	/bin	# /etc/init.d/mount
-  mv	-fv  /usr/bin/chroot	/bin	# /etc/init.d/mount
-  mv	-fv  /usr/bin/cp	/bin	# /etc/init.d/udev
-  mv	-fv  /usr/bin/echo	/bin	# legacy probably not required
-  mv	-fv  /usr/bin/false	/bin	# legacy probably not required
-  mv	-fv  /usr/bin/ln	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/ls	/bin	# for SA and /etc/init.d/loadkeys
-  mv	-fv  /usr/bin/mkdir	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/mknod	/bin	# for SA
-  mv	-fv  /usr/bin/printf	/bin	# /lib/udev/path_id
-  mv	-fv  /usr/bin/pwd	/bin	# /lib/udev/path_id
-  mv	-fv  /usr/bin/readlink	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/rm	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/rmdir	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/sync	/bin	# /etc/init.d/mount
-  mv	-fv  /usr/bin/sleep	/bin	# /lib/udev/rule_generator.functions
-  mv	-fv  /usr/bin/sort	/bin	# /etc/init.d/{loadkeys,mount}
-  mv	-fv  /usr/bin/tee	/bin	# /etc/{rcS,prc}
-  mv	-fv  /usr/bin/true	/bin	# legacy probably not required
-  mv	-fv  /usr/bin/mv	/bin	# for SA
-  hash	-r
+build(){
+ place_files(){
+  echo 'Placing files'
+  hash-r
+  mv -fv /usr/bin/cat		/bin	# /etc/init.d/mount
+  mv -fv /usr/bin/chroot	/bin	# /etc/init.d/mount
+  mv -fv /usr/bin/cp		/bin	# /etc/init.d/udev
+  mv -fv /usr/bin/echo		/bin	# legacy probably not required
+  mv -fv /usr/bin/false		/bin	# legacy probably not required
+  mv -fv /usr/bin/ln		/bin	# /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/ls		/bin	# for SA and /etc/init.d/loadkeys
+  mv -fv /usr/bin/mkdir		/bin	#  /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/mknod		/bin	# for SA
+  mv -fv /usr/bin/printf	/bin	# /lib/udev/path_id
+  mv -fv /usr/bin/pwd		/bin	# /lib/udev/path_id
+  mv -fv /usr/bin/readlink	/bin	# /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/rm		/bin	# /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/rmdir		/bin	# /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/sync		/bin	# /etc/init.d/mount
+  mv -fv /usr/bin/sleep		/bin	# /lib/udev/rule_generator.functions
+  mv -fv /usr/bin/sort		/bin	# /etc/init.d/{loadkeys,mount}
+  mv -fv /usr/bin/tee		/bin	# /etc/{rcS,prc}
+  mv -fv /usr/bin/true		/bin	# legacy probably not required
+  mv -fv /usr/bin/mv		/bin	# for SA
+  hash -r
 }
 
 
-static_linking()  {
+static_linking(){
 # bash when invoked as /bin/sh or /bin/bash
 # internally handles "[ echo test"
 # Therefore, "[ test" are not statically linked.
@@ -162,24 +163,23 @@ static_linking()  {
 # bash loadables exist for "basename cat cut dirname head tee"
 # but not all scripts explicitly load them.
 
-  if    echo  "$OPTS"  |
-        grep  -q  "\-static"
-  then
-    cd   src
-    rm   basename cat cut dirname  \
-         echo head ls readlink rm  \
-         sort stat tail tr uniq wc
-    sed  -i  "s:$LDFLAGS:$LDFLAGS -static:"  Makefile
-    cd   ..
-    make
-  fi
+ if   echo "$OPTS" | grep -q '\-static'
+ then
+  cd  src
+  rm  basename cat cut dirname \
+      echo head ls readlink rm \
+      sort stat tail tr uniq wc
+  sed -i "s:$LDFLAGS:$LDFLAGS -static:" Makefile
+  cd  ..
+  make
+ fi
 }
 
 export  ac_cv_sys_xsi_stack_overflow_heuristic=no
 
-case  $VERSION  in
-  6.9)   grep  -r -l                          futimens  *  |
-         xargs -r --max-lines=64  sed  -i  "s/futimens/gl_&/"  ;;
+case $VERSION in
+ 6.9) grep  -r -l                          futimens  * |
+      xargs -r --max-lines=64  sed  -i  "s/futimens/gl_&/" ;;
 esac
 
 ./configure     \
@@ -194,16 +194,16 @@ place_files     &&
 hash -r
 }
 
-post_remove()  {
-hash  -r
+post_remove(){
+hash -r
 default_post_remove
 }
 
 
-current()  {
-  case  $VERSION  in
-    6.9)  [  -f      /bin/sort  ]  &&
-          [  -f  /usr/bin/uniq  ]  &&
-          [  -f  /usr/bin/env   ]  ;;
-  esac
+current(){
+ case $VERSION in
+  6.9) [ -f     /bin/sort ] &&
+       [ -f /usr/bin/uniq ] &&
+       [ -f /usr/bin/env  ] ;;
+ esac
 }

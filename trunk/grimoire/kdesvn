@@ -1,24 +1,27 @@
    VERSION=( 0.14.1 0.14.0 0.12.0 0.11.2 0.11.1 0.11.0 )
   CATEGORY='development'
- ATTRIBUTE='gui kde3 broken'
+ ATTRIBUTE='kde3'
     SOURCE="${VERSION:0:4}.x/kdesvn-$VERSION.tar.bz2"
        URL='http://www.alwins-world.de/programs/download/kdesvn/'
   HOMEPAGE='http://www.alwins-world.de/programs/kdesvn/'
        REQ='cmake subversion kdelibs-v3'
-  ESTIMATE='660'
+  ESTIMATE='600'
       OPTS='--disable-debug'
       DESC='kdesvn is a frontend to the subversion vcs'
 
 build(){
  export QTDIR=/opt/kde3
  export KDEDIR=/opt/kde3
- export PATH="/opt/kde3/bin:/opt/kde3/bin:$PATH"
- export LDFLAGS+=' -L/opt/kde3/lib -L/opt/kde3/lib64 -L/opt/kde3/lib -L/opt/kde3/lib64'
+ export PATH+=:/opt/kde3/bin
+ export CXXFLAGS=-DQT_THREAD_SUPPORT
+#export LDFLAGS+=' -L/opt/kde3/lib -L/opt/kde3/lib64 -L/opt/kde3/lib -L/opt/kde3/lib64'
+ export LDFLAGS+=' -Wl,-R/opt/kde3/lib'
+
  mkdir kdesvn-build
  cd    kdesvn-build
- cmake ../ \
-  -DCMAKE_BUILD_TYPE=Release  \
-  -DCMAKE_INSTALL_PREFIX=/usr \
+ cmake .. \
+  -DCMAKE_BUILD_TYPE=Release \
+  -DCMAKE_INSTALL_PREFIX=/opt/kde3 \
   -DSUBVERSION_INSTALL_PATH=/usr &&
  make            &&
  prepare_install &&

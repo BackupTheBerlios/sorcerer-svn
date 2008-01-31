@@ -1,4 +1,4 @@
-   VERSION=( 2.12.5 2.12.4 2.12.3 2.12.2 2.12.1 2.12.0 )
+   VERSION=( 2.12.7 2.12.5 2.12.4 2.12.3 2.12.2 2.12.1 2.12.0 )
     IGNORE='^2\.13\.'
   CATEGORY='graphic/library'
  ATTRIBUTE='library x11'
@@ -17,37 +17,37 @@
  FRESHMEAT='gtk'
       DESC='gtk+ is a toolkit for creating GUIs.'
 
-build()  {
+build(){
 
-build_old() {
-  # using default_build now.
-  # if installed with DESTDIR instead then
-  # use gtk-query-immodules-2.0  to generate /etc/gtk-2.0/gtk.immodules
-  # and gdk-pixbuf-query-loaders to generate /etc/gtk-2.0/gdk-pixbuf.loaders
-  default_build
+build_old(){
+ # using default_build now.
+ # if installed with DESTDIR instead then
+ # use gtk-query-immodules-2.0  to generate /etc/gtk-2.0/gtk.immodules
+ # and gdk-pixbuf-query-loaders to generate /etc/gtk-2.0/gdk-pixbuf.loaders
+ default_build
 }
 
-  uncustomize()  {
-    if    [   -d   /etc.sav/gtk-2.0  ]
-    then  rm  -fr  /etc.sav/gtk-2.0
-    fi
-  }
+ uncustomize(){
+  if   [  -d  /etc.sav/gtk-2.0 ]
+  then rm -fr /etc.sav/gtk-2.0
+  fi
+ }
 
 # The following case statement is because
 # firefox 1.0.0.7 fails compilation with pango 1.17.3
 # Maybe a bug in pango 1.17.[0-3] ?
 # Fortuantely, gtk+ 2.12.0 can compile with pango 1.17.3
-  case  $VERSION  in
-    2.12.0)  sed  -i  "s:1\.17\.3:1.16.5:g"  configure  ;;
-  esac
+ case $VERSION in
+  2.12.0) sed -i 's:1\.17\.3:1.16.5:g' configure ;;
+ esac
 
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --sysconfdir=/etc      \
-  --localstatedir=/var   \
-  $OPTS                  &&
-  make                   &&
-  prepare_install        &&  uncustomize  &&
-  make    install
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      && uncustomize &&
+ make    install
 }

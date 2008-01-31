@@ -1,4 +1,4 @@
-   VERSION=( 2.9.11-20070813 )
+   VERSION=( 2.9.11-20080126 2.9.11-20070813 )
     IGNORE='Mandrake'
   CATEGORY='kernel network/ppp'
 #ATTRIBUTE='console new'
@@ -9,7 +9,7 @@
   EPROVIDE='smartlink-drv'
        REQ='alsa-lib ppp'
       OPTS='SUPPORT_ALSA=1'
-  ESTIMATE='100'
+  ESTIMATE='40'
       DESC='slmodem provides a soft modem driver for Linux.
 It features a 56K voice fax modem.
 This is implemented as a generic application (slmodemd) and
@@ -36,96 +36,99 @@ The README file in the source tarball
 may be useful in understanding
 how to answer slmodem configuration questions.'
 
-configure()  {
+configure(){
 
-dev_menu()  {
-  BACKTITLE=$"slmodem Configuration"
-      TITLE=$"ALSA dev Menu"
-       HELP=$"Please select ALSA device name"
+dev_menu(){
+ BACKTITLE='slmodem Configuration'
+     TITLE='ALSA dev Menu'
+      HELP='Please select ALSA device name'
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --default-item  "hw:1"     \
-          --menu  "$HELP"            \
-          0 0 0                      \
-          "hw:0"  ""  "hw:1"  ""     \
-          "hw:2"  ""  "hw:3"  ""     \
-          "hw:4"  ""  "hw:5"  ""     \
-          "hw:6"  ""  "hw:7"  ""
+ dialog \
+  --backtitle  "$BACKTITLE"  \
+  --title      "$TITLE"      \
+  --stdout                   \
+  --timeout  "$PROMPT_DELAY" \
+  --no-cancel                \
+  --default-item  "hw:1"     \
+  --menu  "$HELP"            \
+  0 0 0                      \
+  'hw:0'  ''  'hw:1'  ''     \
+  'hw:2'  ''  'hw:3'  ''     \
+  'hw:4'  ''  'hw:5'  ''     \
+  'hw:6'  ''  'hw:7'  ''
 }
 
-country_menu()  {
-  BACKTITLE=$"slmodem Configuration"
-      TITLE=$"Country Menu"
-       HELP=$"Please select country for appropriate tones"
+country_menu(){
+ BACKTITLE='slmodem Configuration'
+     TITLE='Country Menu'
+      HELP='Please select country for appropriate tones'
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --default-item  USA        \
-          --menu  "$HELP"            \
-          0 0 0                      \
-          $(  sed  "aCountry"  $SCRIPT_DIR/country  )
+ dialog \
+  --backtitle  "$BACKTITLE"  \
+  --title      "$TITLE"      \
+  --stdout                   \
+  --timeout  "$PROMPT_DELAY" \
+  --no-cancel                \
+  --default-item  USA        \
+  --menu  "$HELP"            \
+  0 0 0                      \
+  $( sed aCountry $SCRIPT_DIR/country )
 }
 
-module_menu()  {
-  BACKTITLE=$"slmodem Configuration"
-      TITLE=$"Module Menu"
-       HELP=$"Please select appropraite module to load"
-     A_HELP="Intel ICH[0-4]; Via 686[A-B] 8231 8233; SiS 630 ALI 1535 SmartPCI56/56[1-3]"
+module_menu(){
+ BACKTITLE='slmodem Configuration'
+     TITLE='Module Menu'
+      HELP='Please select appropraite module to load'
+    A_HELP='Intel ICH[0-4]; Via 686[A-B] 8231 8233; SiS 630 ALI 1535 SmartPCI56/56[1-3]'
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --default-item  USA        \
-          --item-help                \
-          --menu  "$HELP"            \
-          0 0 0                      \
-          "slamr"              "HAMR5600 AMR/CNR/MDC/ACR"  "$A_HELP"  \
-          "slusb"              "SmartUSB56"                ""  \
-          "snd-intel8x0m"      "NVidia NForce, SiS 630"    ""  \
-          "snd-via82xx-modem"  "VIA686"                    ""  \
-          "snd-atiixp-modem"   "ATI IXP"                   ""
+ dialog \
+  --backtitle  "$BACKTITLE"  \
+  --title      "$TITLE"      \
+  --stdout                   \
+  --timeout  "$PROMPT_DELAY" \
+  --no-cancel                \
+  --default-item  USA        \
+  --item-help                \
+  --menu  "$HELP"            \
+  0 0 0                      \
+  "slamr"              "HAMR5600 AMR/CNR/MDC/ACR"  "$A_HELP"  \
+  "slusb"              "SmartUSB56"                ""  \
+  "snd-intel8x0m"      "NVidia NForce, SiS 630"    ""  \
+  "snd-via82xx-modem"  "VIA686"                    ""  \
+  "snd-atiixp-modem"   "ATI IXP"                   ""
 }
 
-  if  !  grep  -q   "MODULE="  $SPELL_CONFIG  2>/dev/null;  then
-    ( export  IFS="$TAB_ENTER_IFS"
-      COUNTRY="$(  country_menu  )"
-       MODULE="$(   module_menu  )"
-      case  $MODULE  in
-        snd*)  DEV="$(  dev_menu  )"  ;;
-      esac
+ if  !  grep  -q   "MODULE="  $SPELL_CONFIG  2>/dev/null;  then
+  ( export  IFS="$TAB_ENTER_IFS"
+    COUNTRY="$( country_menu )"
+     MODULE="$(  module_menu )"
+    case $MODULE in
+     snd*) DEV="$( dev_menu )" ;;
+    esac
 
-      if    [  -n   "$COUNTRY"  ]  &&
-            [  -n   "$MODULE"   ]
-      then  echo     "MODULE=$MODULE"   >>  $SPELL_CONFIG
-            echo    "COUNTRY=$COUNTRY"  >>  $SPELL_CONFIG; [ -n "$DEV" ] &&
-            echo        "DEV=$DEV"      >>  $SPELL_CONFIG
-      fi
+    if   [ -n "$COUNTRY"  ]  &&
+         [ -n "$MODULE"   ]
+    then echo  "MODULE=$MODULE"  >> $SPELL_CONFIG
+         echo "COUNTRY=$COUNTRY" >> $SPELL_CONFIG; [ -n "$DEV" ] &&
+         echo     "DEV=$DEV"     >> $SPELL_CONFIG
+    fi
 
-      export  IFS="$STANDARD_IFS"
-    )
-  fi
+    export IFS="$STANDARD_IFS"
+  )
+ fi
 }
 
-build() {
-  CONF="-c $COUNTRY "
-  case  $MODULE  in
-        slamr)  CONF+='/dev/slamr0'  ;;
-        slusb)  CONF+='/dev/slusb0'  ;;
-         snd*)  CONF+="-a $DEV"      ;;
-      esac
-  sed  -i  "s,MODULE=.*,MODULE=$MODULE,
-            s,CONF=.*,CONF='$CONF',"     $SCRIPT_DIR/init.d.on/slmodemd
+build(){
+ CONF="-c $COUNTRY "
+ case $MODULE in
+  slamr) CONF+='/dev/slamr0' ;;
+  slusb) CONF+='/dev/slusb0' ;;
+   snd*) CONF+="-a $DEV"     ;;
+ esac
+ sed -i "s,MODULE=.*,MODULE=$MODULE,
+         s,CONF=.*,CONF='$CONF'," $SCRIPT_DIR/init.d.on/slmodemd
 
-  make             $OPTS  &&
-  prepare_install         &&
-  make    install  $OPTS
+ make            $OPTS &&
+ prepare_install       &&
+ make    install $OPTS
 }
