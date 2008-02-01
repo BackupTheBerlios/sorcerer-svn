@@ -1,13 +1,28 @@
    VERSION=( 0.4 0.3 )
   CATEGORY='game'
- ATTRIBUTE='gui kde3 new broken'
+ ATTRIBUTE='gui kde3'
 # 0.4 has unusual compile method
 # maybe fix it if 0.5 also has no configure
     SOURCE="ksudoku/ksudoku-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://ksudoku.sourceforge.net/'
-       REQ='kdelibs-v3'
-  ESTIMATE='161'
+       REQ='cmake kdelibs-v3'
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde3
+            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde3/lib:/opt/kde3/lib64
+            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+            -DCMAKE_BUILD_TYPE=Release'
+  ESTIMATE='160'
       DESC='ksudoku is a fully-featured Sudoku puzzle generator and solver for KDE.
 With it you can generate and play 3D and 2D puzzles of different sizes and levels. 
 The main algorithm is fast and extendable to any general graph coloring problem.'
+
+build(){
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}

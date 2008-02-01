@@ -1,24 +1,24 @@
    VERSION=( 0.8.6d 0.8.6c )
       SAFE=( 0.8.6d )
   CATEGORY='video/dvd video/player'
- ATTRIBUTE='kde3'
+ ATTRIBUTE='x11'
     SOURCE="$VERSION/vlc-$VERSION.tar.bz2"
        URL='http://www.videolan.org/pub/videolan/vlc/'
   HOMEPAGE='http://www.videolan.org/'
 #            'arts:--enable-arts::for aRts sound server support'
+#            'aalib:--enable-aa::for aalib output support'
        REQ=( 'a52dec gtk+-v1.2 libXv libavc1394 libdvbpsi libnotify sysfsutils'
              'SDL_image::--disable-sdl:for SDL support'
-             'aalib:--enable-aa::for aalib output support'
              'alsa-lib:--enable-alsa::for alsa sound support'
              'avahi:::for publishing and discovering services on local network'
              'esound:--enable-esd::for Esound library support'
-             'ffmpeg:--enable-ffmpeg:--disable-ffmpeg:for WMA,SVQ 1,H263,H263i,MJPEG A/B and other ffmpeg codecs support'
              'firefox:--enable-mozilla::to build a vlc-based browser plugin'
              'fribidi:--enable-fribidi:--disable-fribidi:for bidirectional unicode'
              'gnome-vfs:--enable-gnomevfs:--disable-gnomevfs:for gnomevfs access module'
              'libcddb:::for accessing data on access data on a CDDB server'
              'libdv:--enable-dv::for DV decoder support'
              'libdvdread::--disable-dvdread:for DVD decryption support'
+             'libdvdnav::--disable-dvdnav:for DVD navigation support'
              'libdvdplay:--enable-dvdplay:--disable-dvdplay:for DVD menu navigation support (experimental)'
              'libid3tag:::for reading id3 tags on audio files'
              'libmatroska:--enable-mkv:--disable-mkv:for Matroska demux support'
@@ -32,6 +32,10 @@
              'svgalib:--enable-svgalib:--disable-svgalib:for SVGAlib support'
              'x264:--enable-x264:--disable-x264:for H264 encoding suport'
              ':--enable-v4l:--disable-v4l:for Video4Linux support' )
+# vlc 0.8.6d does not compile with ffmpeg version 2008-01-13 installed
+#            'ffmpeg:--enable-ffmpeg:--disable-ffmpeg:for WMA,SVQ 1,H263,H263i,MJPEG A/B and other ffmpeg codecs support'
+OPTS+=' --disable-ffmpeg'
+
 # vlc 0.8.6a has problems with wxWidgets 2.8.0
       OPTS+=' --disable-wxwindows'
 #             'wxWidgets:--enable-wxwindows:--disable-wxwindows:for GUI' 
@@ -62,9 +66,9 @@ the Linux framebuffer device, DirectX, BeOS, and
 QNX, audio support for OSS, Esound, ALSA, and
 GNOME, GTK+, Qt and KDE interfaces.'
 
-build() {
-unset  CFLAGS
-unset  CXXFLAGS
-export  LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla'
+build(){
+unset CFLAGS
+unset CXXFLAGS
+export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla'
 default_build
 }
