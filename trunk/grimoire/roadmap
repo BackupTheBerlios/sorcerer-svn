@@ -1,7 +1,8 @@
    VERSION=( 1.1.0-src )
     IGNORE='arm\|doc'
   CATEGORY='utility'
- ATTRIBUTE='kde3'
+ ATTRIBUTE='kde3 broken'
+# Compiles fine, but installs in /usr/local
     SOURCE="roadmap/roadmap-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://roadmap.sourceforge.net/'
@@ -17,14 +18,16 @@ designed to be usable on a desktop, laptop, or PDA computer.'
 build(){
 cd src
 
-export QTDIR=/opt/kde3
-export  PATH="/opt/kde3/bin:$PATH"
+export   QTDIR=/opt/kde3
+export   PATH+=:/opt/kde3/bin
 export CFLAGS+=' -I/usr/include/libshp'
 
 sed -i "s:/appl:/share/appl:
         s:/usr/local:/usr:"  Makefile  */Makefile
-sed -i "s:/include/qt3:/include/kde3:
-        s:-lqt$:-lqt-mt:"  qt/Makefile
+
+# s:/include/qt3:/include/kde3:
+
+sed -i "s:-lqt$:-lqt-mt:"  qt/Makefile
 
 make "MODECFLAGS=$CFLAGS" runtime build icons &&
 prepare_install &&
