@@ -41,8 +41,6 @@ esac
       DESC='module-init-tools provides modules utilities for linux 2.6.x and later kernels'
 
 build(){
-remove_static(){ rm -f /sbin/insmod.static; }
-
 conf_install(){
  touch     /etc/modprobe.conf
  mkdir  -p /etc/modules.d
@@ -50,7 +48,9 @@ conf_install(){
  if ! [ -f /etc/modules.rm ]; then cp -av $SCRIPT_DIR/modules.rm /etc; fi
 }
 
-sed -i 's:share/man/man:man/man:' Makefile.in
+sed -i 's:-Wl,-Bdynamic::
+        s:-Wl,-Bstatic:-L/lib -L/lib64:' configure{.in,}
+sed -i 's:insmod.static$(EXEEXT)::'      Makefile.in
 
 ./configure          \
 --build=$BUILD       \
@@ -61,13 +61,11 @@ $OPTS                &&
 make                 &&
 prepare_install      &&
 make    install      &&
-   conf_install      &&
-remove_static
+   conf_install
 }
 
 current(){
  case $VERSION in
   3.2.2) [ -f /etc/init.d/modprobe-r ] ;;
  esac
-# 3.2.2) grep -q '/sys/bus' /etc/init.d/modprobe ;;
 }
