@@ -73,7 +73,6 @@ expr		evaluates expressions
 factor		prints prime factor 
 false		returns an unsuccessful exit status 
 groups		prints the groups the user belongs to 
-hostname	prints or sets the machine name 
 id		print real/effective/uid/gid
 logname		prints current login name 
 nice		modifies scheduling priority
@@ -86,7 +85,6 @@ pwd		prints the working (current) directory
 seq		prints numeric sequences 
 sleep		suspends execution for a specified time 
 stty		prints/changes terminal settings 
-su		lets you adopt the ID of another user or superuser 
 tee		sends output to multiple files 
 test		evaluates an expression 
 true		returns a successful exit status 
@@ -129,7 +127,7 @@ wc		prints the number of bytes, words, and lines in files'
 build(){
  place_files(){
   echo 'Placing files'
-  hash-r
+  hash -r
   mv -fv /usr/bin/cat		/bin	# /etc/init.d/mount
   mv -fv /usr/bin/chroot	/bin	# /etc/init.d/mount
   mv -fv /usr/bin/cp		/bin	# /etc/init.d/udev
@@ -163,12 +161,11 @@ static_linking(){
 # bash loadables exist for "basename cat cut dirname head tee"
 # but not all scripts explicitly load them.
 
- if   echo "$OPTS" | grep -q '\-static'
- then
-  cd  src
-  rm  basename cat cut dirname \
-      echo head ls readlink rm \
-      sort stat tail tr uniq wc
+ if echo "$OPTS" | grep -q '\-static'; then
+  cd src
+  rm basename cat cut dirname \
+     echo head ls readlink rm \
+     sort stat tail tr uniq wc
   sed -i "s:$LDFLAGS:$LDFLAGS -static:" Makefile
   cd  ..
   make
