@@ -1,4 +1,4 @@
-   VERSION=( 1.5.3.8 1.5.3.7 1.5.3.6 1.5.3.5 1.5.3.4 1.5.3.3 1.5.3.2 1.5.3.1 )
+   VERSION=( 1.5.4 1.5.3.8 1.5.3.7 1.5.3.6 1.5.3.5 1.5.3.4 1.5.3.3 1.5.3.2 1.5.3.1 )
     IGNORE='rc'
   CATEGORY='development'
  ATTRIBUTE='console'
@@ -14,38 +14,29 @@
 with an unusually rich command set that provides both
 high-level operations and full access to internals.'
 
-build() {
+build(){
+ install_gitweb(){
+  install -vm 0755 -d                     /usr/share/gitweb
+  install -vm 0644 $BUILD_DIR/gitweb/git* /usr/share/gitweb
+ }
 
-install_gitweb() {
-  install  -v  -m 0755  -d                      /usr/share/gitweb
-  install  -v  -m 0644  $BUILD_DIR/gitweb/git*  /usr/share/gitweb
-}
-
-install_bc()  {
+ install_bc(){
   cd  contrib/completion
-  install  -v  -m 0755  -d                   /etc/bash_completion.d
-  install  -v  -m 0755  git-completion.bash  /etc/bash_completion.d/git
+  install -vm 0755 -d                  /etc/bash_completion.d
+  install -vm 0755 git-completion.bash /etc/bash_completion.d/git
   cd  ../..
-}
+ }
 
-  grep -q '^sysconfdir'                 config.mak.in  ||
-  sed  -i "10isysconfdir=@sysconfdir@"  config.mak.in
+ grep-q '^sysconfdir'                config.mak.in ||
+ sed -i "10isysconfdir=@sysconfdir@" config.mak.in
 
-  if   echo    $OPTS  |  grep  -q  "gitweb"
-  then  IG="install_gitweb";  unset  OPTS
-  else  IG=":"
-  fi
+ if   echo $OPTS | grep -q gitweb
+ then IG="install_gitweb"; unset OPTS
+ else IG=":"
+ fi
 
-  autoconf       &&
-  default_build  &&
-  install_bc     &&
-  $IG
-
-#  ./configure        \
-#  --build=$BUILD     \
-#  --prefix=/usr      \
-#  --sysconfdir=/etc  &&
-#  make        all    &&
-#  prepare_install    &&
-#  make    install    &&
+ autoconf      &&
+ default_build &&
+ install_bc    &&
+ $IG
 }
