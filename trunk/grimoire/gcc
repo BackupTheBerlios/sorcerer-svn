@@ -7,10 +7,6 @@
        REQ=( 'binutils coreutils'
              'mpfr:::for C and Fortran library for multiple-pression computations' )
   HOMEPAGE='http://gcc.gnu.org'
-case $HOSTTYPE in
- x86_64) RPATH='/opt/gcc/current/lib64' ;;
-      *) RPATH='/opt/gcc/current/lib'   ;;
-esac
   ESTIMATE='13000'
       DESC='gcc is the GNU compiler collection.
 gcc - GNU Compiler Collection.
@@ -60,22 +56,15 @@ fi
 
 build(){
  finish_install(){
-  cp -av $DESTDIR/*                /
-  ln -sf /opt/gcc/$VERSION/bin/cpp /lib/cpp
-  ln -sf gcc                       /opt/gcc/$VERSION/bin/cc
-  rm -f                            /usr/bin/cc
+  cp -av $DESTDIR/*   /
+  ln -sf /usr/bin/cpp /lib/cpp
+  ln -sf gcc          /usr/bin/cc
 
   if   [  -h /usr/info/dir ]
   then rm -f /usr/info/dir
   fi
 
-#  SEDIT="s:-L/usr/src/sorcery[^ ]*::g
-#  s:${VERSION//./\\.}:current:g"
-
-#  find /opt/gcc/$VERSION -type f -name \*.la |
-#  xargs --max-lines=64 sed -i "$SEDIT"
-
-  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+  STRSTREAM=/usr/include/c++/$VERSION/backward/strstream
 
   if   [ -f            ${STRSTREAM}   ] &&
      ! [ -f            ${STRSTREAM}.h ]
@@ -154,9 +143,10 @@ build(){
 # --enable-threads=posix
 
 # --prefix=/opt/gcc/$VERSION
+# --prefix=/opt/gcc/current
  OPTS+="
   --host=$BUILD
-  --prefix=/opt/gcc/current
+  --prefix=/usr
   --enable-__cxa_atexit
   --enable-shared
   --infodir=/usr/info
@@ -188,18 +178,14 @@ build(){
 
 
 post_install(){
+ get_provider libtool | pipe_queue "$CAST_QUEUE" com
+ if   [   -d ${CCACHE_CACHE:=/var/cache/ccache} ]
+ then rm  -f ${CCACHE_CACHE}/*
+ fi
+}
 
- update_gcc_in_ld_so_conf(){
-  sed  -i "\,/opt/gcc/,d"     /etc/ld.so.conf
-  echo       /opt/gcc/*/lib   \
-             /opt/gcc/*/lib64 |
-  tr   ' ' '\n' |
-  sort -g -r    |
-  grep -v "/current/\|*" >> /etc/ld.so.conf
- }
-
- update_gcc_in_ld_so_conf
- echo libtool | pipe_queue "$CAST_QUEUE" com
- rm -f ${CCACHE_CACHE:-/var/cache/ccache}/*
- true
+current(){
+ case $VERSION in
+  4.2.3) grep -qx /usr/bin/gcc $INSTALL_LOGS/gcc ;;
+ esac
 }

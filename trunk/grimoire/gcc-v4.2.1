@@ -67,7 +67,7 @@ fi
 }
 
 
-finish_install()  {
+finish_install(){
   cp     -av   $DESTDIR/*                  /
   ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
   rm     -f                                /usr/bin/cc
@@ -93,7 +93,7 @@ finish_install()  {
   true
 }
 
-x86_64_fix() {
+ x86_64_fix(){
   # This fix has to placed _after_ the first make
   case $HOSTTYPE in
    x86_64) case  $VERSION  in
@@ -103,21 +103,21 @@ x86_64_fix() {
            esac
            ;;
   esac
-}
+ }
 
 
-fix_la()  {
-  grep   -l             "/opt/gcc/${VERSION[1]}"  {,/usr}/lib{64,}/*.la  2>/dev/null  |
-  xargs  -r  sed  -i  "s:/opt/gcc/${VERSION[1]}/:/opt/gcc/current/:g"
-}
+ fix_la(){
+  grep  -l          "/opt/gcc/${VERSION[1]}"  {,/usr}/lib{64,}/*.la 2>/dev/null  |
+  xargs -r sed -i "s:/opt/gcc/${VERSION[1]}/:/opt/gcc/current/:g"
+ }
 
 
 ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
-export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-export  CCACHE_DISABLE=1
-export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+export CCACHE_DISABLE=1
+export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
   LCF="LIBCFLAGS=$CFLAGS"
  LCXF="LIBCXXFLAGS=$CXXFLAGS"
@@ -174,17 +174,18 @@ prepare_install                    &&
 }
 
 
-update_gcc_in_ld_so_conf()  {
-  sed   -i   "\,/opt/gcc/,d"      /etc/ld.so.conf
-  echo          /opt/gcc/*/lib    \
-                /opt/gcc/*/lib64  |
-  tr    ' '  '\n'                 |
-  sort  -g   -r                   |
-  grep  -v   "/current/\|*"  >>   /etc/ld.so.conf
-}
+post_install(){
+
+ update_gcc_in_ld_so_conf(){
+  sed  -i  "\,/opt/gcc/,d"     /etc/ld.so.conf
+  echo        /opt/gcc/*/lib   \
+              /opt/gcc/*/lib64 |
+  tr   ' ' '\n'                |
+  sort -g  -r                  |
+  grep -v  "/current/\|*" >>   /etc/ld.so.conf
+ }
 
 
-post_install() {
-  update_gcc_in_ld_so_conf
-  true
+ update_gcc_in_ld_so_conf
+ true
 }
