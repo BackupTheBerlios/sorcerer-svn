@@ -8,8 +8,8 @@
              'mpfr:::for C and Fortran library for multiple-pression computations' )
   HOMEPAGE='http://gcc.gnu.org'
 case $HOSTTYPE in
- x86_64)  RPATH='/opt/gcc/current/lib64'  ;;
-      *)  RPATH='/opt/gcc/current/lib'    ;;
+ x86_64) RPATH='/opt/gcc/current/lib64' ;;
+      *) RPATH='/opt/gcc/current/lib'   ;;
 esac
   ESTIMATE='13000'
       DESC='gcc is the GNU compiler collection.
@@ -61,8 +61,6 @@ fi
 build(){
  finish_install(){
   cp -av $DESTDIR/*                /
-  rm -f                            /opt/gcc/current
-  ln -s  $VERSION                  /opt/gcc/current
   ln -sf /opt/gcc/$VERSION/bin/cpp /lib/cpp
   ln -sf gcc                       /opt/gcc/$VERSION/bin/cc
   rm -f                            /usr/bin/cc
@@ -71,18 +69,17 @@ build(){
   then rm -f /usr/info/dir
   fi
 
-  SEDIT="s:-L/usr/src/sorcery[^ ]*::g
-  s:${VERSION//./\\.}:current:g"
+#  SEDIT="s:-L/usr/src/sorcery[^ ]*::g
+#  s:${VERSION//./\\.}:current:g"
 
-  #   sed  -i  "$SEDIT"  /opt/gcc/$VERSION/lib/lib*.la  2>/dev/null
-  find /opt/gcc/$VERSION -type f -name \*.la |
-  xargs --max-lines=64 sed -i "$SEDIT"
+#  find /opt/gcc/$VERSION -type f -name \*.la |
+#  xargs --max-lines=64 sed -i "$SEDIT"
 
   STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
-  if      [ -f           ${STRSTREAM}   ] &&
-       !  [ -f           ${STRSTREAM}.h ]
-  then ln   -s strstream ${STRSTREAM}.h
+  if   [ -f            ${STRSTREAM}   ] &&
+     ! [ -f            ${STRSTREAM}.h ]
+  then ln -s strstream ${STRSTREAM}.h
   fi
 
   true
@@ -99,19 +96,12 @@ build(){
   esac
  }
 
-
- fix_la(){
-  grep  -l          "/opt/gcc/${VERSION[1]}" {,/usr}/lib{64,}/*.la 2>/dev/null |
-  xargs -r sed -i "s:/opt/gcc/${VERSION[1]}/:/opt/gcc/current/:g"
- }
-
-
  ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
- export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
- export  CCACHE_DISABLE=1
- export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export CCACHE_DISABLE=1
+ export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
 
 # gcc 4.2.2 still lacks clocale support for uclibc
@@ -163,9 +153,10 @@ build(){
 
 # --enable-threads=posix
 
+# --prefix=/opt/gcc/$VERSION
  OPTS+="
   --host=$BUILD
-  --prefix=/opt/gcc/$VERSION
+  --prefix=/opt/gcc/current
   --enable-__cxa_atexit
   --enable-shared
   --infodir=/usr/info
@@ -192,8 +183,7 @@ build(){
       "$LCF"  "$LCXF"  "$LDF"   \
       "$LJCF" "$LJCXF"          && 
  prepare_install                &&
-  finish_install                &&
-     fix_la
+  finish_install
 }
 
 
