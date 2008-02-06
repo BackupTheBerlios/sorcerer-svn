@@ -1,144 +1,66 @@
    VERSION=( 4.1.2 4.1.1 4.1.0 )
-    IGNORE="ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|200\|^4\.[2-9]"
+    IGNORE='ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|200\|^4\.[2-9]'
   CATEGORY='development/compiler'
  ATTRIBUTE='console library'
     SOURCE="gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2"
        URL="$GNU_URL"
-       REQ=( "binutils coreutils"
-             "mpfr:::for C and Fortran library for multiple-pression computations" )
+       REQ=( 'binutils coreutils'
+             'mpfr:::for C and Fortran library for multiple-pression computations' )
   HOMEPAGE='http://gcc.gnu.org'
-  disable lib64
-case $HOSTTYPE in
- x86_64)  RPATH="/opt/gcc/$VERSION/lib64"  ;;
-      *)  RPATH="/opt/gcc/$VERSION/lib"    ;;
-esac
   ESTIMATE='9400'
-      DESC="gcc is the GNU compiler collection.
+      DESC='gcc is the GNU compiler collection.
 gcc - GNU Compiler Collection.
 The GNU Compiler Collection is a suite of compilers
 that compile C, C++, Objective C, Fortran, Java,
-and Ada for a wide variety of architectures."
+and Ada for a wide variety of architectures.'
 
-configure() {
+build(){
 
-select_compilers()  {
+ finish_install(){
+  cp -av $DESTDIR/* /
+  ln -sf gcc        /opt/gcc/$VERSION/bin/cc
 
-  TITLE="Additional Compiler Selection Menu"
-  HELP="Key:  [X] = build, [ ] = exclude.  You only need what you know."
-
-  GCC_LANGUAGES=$(
-    dialog                        \
-    --backtitle  "$BACKTITLE"     \
-    --title      "$TITLE"         \
-    --timeout    "$PROMPT_DELAY"  \
-    --stdout                      \
-    --separate-output             \
-    --no-cancel                   \
-    --checklist  "$HELP"          \
-    18 55 10                      \
-    "fortran"    ""    "off"      \
-    "java"       ""    "off"      \
-    "objc"       ""    "off"      |
-    tr           '\n'  ','        |
-    sed          's:,$::'         )
-
-#              "ada"       ""  "off"  \
-#              "f77"       ""  "off"  \
-#              awk '{gsub("^[ \t]*",""); gsub("\n",","); printf("%s,",$0);}'
-
-}
-
-save_compilers()  {
-  if    [  -n  "$GCC_LANGUAGES"  ]
-  then           GCC_LANGUAGES="${GCC_LANGUAGES},c++"
-  else           GCC_LANGUAGES="c++"
-  fi
-  echo          "GCC_LANGUAGES=\"$GCC_LANGUAGES\""  >>  $SPELL_CONFIG
-}
-
-
-if    [  -z  "$GCC_LANGUAGES"  ];  then
-  BACKTITLE="Sorcery GCC Compiler Languages Configuration Menu"
-  select_compilers  &&
-  save_compilers
-fi
-}
-
-
-build() {
-
-finish_install()  {
-  cp     -av   $DESTDIR/*                  /
-  ln     -sf   gcc                         /opt/gcc/$VERSION/bin/cc
-
-  if    [   -h  /usr/info/dir  ]
-  then  rm  -f  /usr/info/dir
-  fi
-
-  SEDIT="s:-L/usr/src/sorcery[^ ]*::g
-  s:${VERSION//./\\.}:current:g"
-
-  #   sed  -i  "$SEDIT"  /opt/gcc/$VERSION/lib/lib*.la  2>/dev/null
-  find  /opt/gcc/$VERSION  -type f  -name \*.la  |
-  xargs --max-lines=64  sed  -i  "$SEDIT"
+                    SEDIT="s:-L/usr/src/sorcery[^ ]*::g'
+  case $HOSTTYPE in
+   x86_64) sed -i "$SEDIT" /opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
+        *) sed -i "$SEDIT" /opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
+  esac
 
   STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
-  if        [  -f             ${STRSTREAM}    ]  &&
-        !   [  -f             ${STRSTREAM}.h  ]
-  then  ln     -s  strstream  ${STRSTREAM}.h
+  if   [  -f           ${STRSTREAM}   ] &&
+     ! [  -f           ${STRSTREAM}.h ]
+  then ln -s strstream ${STRSTREAM}.h
   fi
 
   true
-}
-
-x86_64_fix() {
-  # This fix has to placed _after_ the first make
-  case $HOSTTYPE in
-   x86_64) case  $VERSION  in
-            3.4.4) sed -i "s:\.\./include:\.\./\.\./include:"      
-                   x86_64-pc-linux-gnu/libiberty/Makefile
-                   ;;
-           esac
-           ;;
-  esac
-}
+ }
 
 ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
 
-export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-export  CCACHE_DISABLE=1
-export  PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export CCACHE_DISABLE=1
+ export LDFLAGS+=' -Wl,-R/opt/gcc/$VERSION/lib'
+ case $HOSTTYPE in
+  x86_64) LDFLAGS+='64' ;;
+ esac
+ export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
-  LCF="LIBCFLAGS=$CFLAGS"
+ LCF="LIBCFLAGS=$CFLAGS"
  LCXF="LIBCXXFLAGS=$CXXFLAGS"
-   BF="BOOT_CFLAGS=$CFLAGS"
+ BF="BOOT_CFLAGS=$CFLAGS"
  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
-LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-  LDF="LDFLAGS=$LDFLAGS"
+ LDF="LDFLAGS=$LDFLAGS"
 
-case  $VERSION  in
-  3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.patch    ;;
-  3.2.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.2.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.2.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.2.1.patch  ;;
-  3.3.1)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.1.patch  ;;
-  3.3.2)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-  3.3.3)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-  3.4*)  patch  -p1  <  $SCRIPT_DIR/gcc-3.3.2.patch  ;;
-esac
-
-# 3.2.2 now supports the DESTDIR Makefile variable
-# That variable is for packagers.
-
-case  $HOSTTYPE  in
- x86_64)  OPTS="$OPTS  --disable-multilib"  ;;
-esac
+ case $HOSTTYPE in
+  x86_64) OPTS+=' --disable-multilib' ;;
+ esac
 
 
-OPTS="$OPTS
+ OPTS="$OPTS
   --host=$BUILD
   --prefix=/opt/gcc/$VERSION
   --enable-__cxa_atexit
@@ -153,38 +75,19 @@ OPTS="$OPTS
   --with-system-zlib
   $ENABLE_LANGS"             
 
-DESTDIR=$BUILD_DIR/.dest
+ DESTDIR=$BUILD_DIR/.dest
 
-mkdir   BUILD
-cd      BUILD
-../configure  $OPTS                &&
-make    bootstrap-lean             \
-        "$BF"                      \
-        "$LCF"  "$LCXF"  "$LDF"    \
-        "$LJCF" "$LJCXF"           && 
-x86_64_fix                         &&
-make    install  DESTDIR=$DESTDIR  \
-        "$BF"                      \
-        "$LCF"  "$LCXF"  "$LDF"    \
-        "$LJCF" "$LJCXF"           && 
-prepare_install                    &&
- finish_install
-}
-
-
-update_gcc_in_ld_so_conf()  {
-  sed   -i   "\,/opt/gcc/,d"      /etc/ld.so.conf
-  echo          /opt/gcc/*/lib    \
-                /opt/gcc/*/lib64  |
-  tr    ' '  '\n'                 |
-  sort  -g   -r                   |
-  grep  -v   "/current/\|*"  >>   /etc/ld.so.conf
-}
-
-
-post_install() {
-  update_gcc_in_ld_so_conf
-  echo  "libtool"  |  pipe_queue  "$CAST_QUEUE"  "com"
-  rm    -f  ${CCACHE_CACHE:-/var/cache/ccache}/*
-  true
+ mkdir   BUILD
+ cd      BUILD
+ ../configure  $OPTS               &&
+ make    bootstrap-lean            \
+         "$BF"                     \
+         "$LCF"  "$LCXF"  "$LDF"   \
+         "$LJCF" "$LJCXF"          && 
+ make    install  DESTDIR=$DESTDIR \
+         "$BF"                     \
+         "$LCF"  "$LCXF"  "$LDF"   \
+         "$LJCF" "$LJCXF"          && 
+ prepare_install                   &&
+  finish_install
 }
