@@ -6,27 +6,28 @@
  CONFLICTS='kde-symlinks'
       DESC='kde-symlinks-v3 ensures kde configuration files go into /etc'
 
-build(){ echo "kde-symlinks-v3 installed"; }
-
-post_install(){
+build(){
  move(){
-  if ! [     -d $2 ]
-  then mkdir -p $2
-  fi
-  if [ -h $1 ]; then return; fi
-  if [ -d $1 ]; then
-   mkdir -p       $2
-   cp    -a  $1/* $2
+  if ! [ -d $2 ]; then mkdir -p $2; fi
+  if   [ -h $1 ]; then return; fi
+  if   [ -d $1 ]; then
+   mkdir -vp      $2
+   cp    -av $1/* $2
    rm    -fr $1
   fi
-  ln -s $2 $1
  }
+
+ link(){ rm -f $1; ln -sv $2 $1; }
 
  move /opt/kde3/share/config      /etc/kde3.config
  move /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
  move /opt/kde3/etc               /etc
  move /opt/kde3/lib/pkgconfig     /usr/lib/pkgconfig
- default_post_install
+ prepare_install
+ link /opt/kde3/share/config      /etc/kde3.config
+ link /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
+ link /opt/kde3/etc               /etc
+ link /opt/kde3/lib/pkgconfig     /usr/lib/pkgconfig
 }
 
 current(){
