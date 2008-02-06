@@ -106,6 +106,12 @@ post_install(){
   fi
  }
 
+ fix_ld_so_conf(){
+  if   grep -q    /opt/gcc/    /etc/ld.so.conf
+  then sed  -i '\,/opt/gcc/,d' /etc/ld.so.conf
+  fi
+ }
+
  rm -fr /etc/sorcery/log/stat $INDEX_DIR/spell $SOURCE_CACHE/ALL
  rm -f  $PROVIDE_LOGS/poppler
  chmod 0700 ${LOG_DIR:-/etc/sorcery/log} /etc/init.d
@@ -113,6 +119,7 @@ post_install(){
  fix_provide_logs
  linux_headers_check
  fix_fstab
+ fix_ld_so_conf
  missing_init-script
  default_post_install
 }
