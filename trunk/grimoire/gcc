@@ -56,9 +56,9 @@ fi
 
 build(){
  finish_install(){
-  cp -av $DESTDIR/*   /
-  ln -sf /usr/bin/cpp /lib/cpp
-  ln -sf gcc          /usr/bin/cc
+  cp -av  $DESTDIR/*   /
+  ln -sfv /usr/bin/cpp /lib/cpp
+  ln -sfv gcc          /usr/bin/cc
 
   if   [  -h /usr/info/dir ]
   then rm -f /usr/info/dir
@@ -185,7 +185,12 @@ post_install(){
 }
 
 current(){
+ if   ! [ -h     /usr/bin/cc ]
+ then ln  -s gcc /usr/bin/cc
+ fi
+
  case $VERSION in
-  4.2.3) grep -qx /usr/bin/gcc $INSTALL_LOGS/gcc ;;
+  4.2.3) grep -qx /usr/bin/gcc $INSTALL_LOGS/gcc && 
+         [ -h /usr/bin/cc ] ;;
  esac
 }
