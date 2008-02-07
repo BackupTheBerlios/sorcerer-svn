@@ -1,13 +1,11 @@
-   VERSION=( 8.5.0 8.4.16 8.4.15 8.4.14 8.4.13 8.4.12 8.4.11 )
+   VERSION=( 8.5.1 8.5.0 8.4.16 8.4.15 8.4.14 8.4.13 8.4.12 8.4.11 )
     IGNORE='[ab]\|codeweavers\|2001\|kit\|sql\|VM\|httpd\|\+\+\|linux\|irix\|hpux\|pro\|Blend\|^-\|beta\|[0-9][0-9][0-9]\|[7-8][0-9]\|p\|rc\|html'
   CATEGORY='development/interpreter'
  ATTRIBUTE='console'
-#   SOURCE="tcl/tcl${VERSION}.tar.gz"
     SOURCE="tcl/tcl${VERSION}-src.tar.gz"
   HOMEPAGE='http://www.tcl.tk/'
-# HOMEPAGE='http://www.scriptics.com'
        URL="$SOURCEFORGE_URL"
-  ESTIMATE='240'
+  ESTIMATE='340'
  FRESHMEAT='tcltk'
       DESC='tcl provides a multi-platform scripting environment.
 tcl provides a portable scripting environment for
@@ -19,30 +17,20 @@ Tcl has traditional programming constructs like
 variables, loops, procedures, namespaces, error
 handling, script packages, and dynamic loading of DLLs.'
 
-disable libtool_fix
+build(){
+make_shared_lib(){ ld --whole-archive -share -o $1.so $1.a; }
 
-build() {
-make_shared_lib()  {
-  ld  --whole-archive  -share  -o  $1.so  $1.a
-}
-
-cd  unix              &&
-./configure           \
---build=$BUILD        \
---prefix=/usr         \
---sysconfdir=/etc     \
---localstatedir=/var  \
---enable-shared       \
---enable-threads      \
-$OPTS                 &&
-make                  &&
-prepare_install       &&
-make    install       &&
-ln  -sf  /usr/bin/tclsh${VERSION:0:3}  \
-         /usr/bin/tclsh
-#    &&
-# make_shared_lib  /usr/lib/libtclstub${VERSION:0:3}
-
-# Why are static libraries required for tcl and tk?
-# static library generation currently disabled.
+cd  unix             &&
+./configure          \
+--build=$BUILD       \
+--prefix=/usr        \
+--sysconfdir=/etc    \
+--localstatedir=/var \
+--enable-shared      \
+--enable-threads     \
+$OPTS                &&
+make                 &&
+prepare_install      &&
+make    install      &&
+ln  -sf  /usr/bin/tclsh${VERSION:0:3} /usr/bin/tclsh
 }
