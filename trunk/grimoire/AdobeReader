@@ -1,54 +1,53 @@
 # Thu Sep 27 19:00:00 UTC 2007
 # No x86_64 version for AdobeReader
 
-   VERSION=( 8.1.1-1.i486 7.0.9-1.i386 7.0.8-1.i386 )
-      SAFE=( "8.1.1-1.i486" "7.0.9-1.i386" )
+   VERSION=( 8.1.2-1.i486 8.1.1-1.i486 7.0.9-1.i386 7.0.8-1.i386 )
+      SAFE=( 8.1.2-1.i486 )
   CATEGORY='documentation'
  ATTRIBUTE='archive_off i386 x11 seamonkey-plugin'
     SOURCE="AdobeReader_enu-$VERSION.tar.bz2"
-       URL='http://ardownload.adobe.com/pub/adobe/reader/unix/8.x/8.1.1/enu/'
-#      URL='http://ardownload.adobe.com/pub/adobe/reader/unix/7x/${VERSION:0:5}/enu/'
+       URL="http://ardownload.adobe.com/pub/adobe/reader/unix/8.x/${VERSION:0:5}/enu/"
   HOMEPAGE='http://www.adobe.com'
        REQ='gtk+'
      RPATH="/usr/lib/acrobat/Adobe/Reader8/Reader/intellinux/lib/"
- FRESHMEAT="acrobatreader"
+ FRESHMEAT='acrobatreader'
   ESTIMATE='870'
-      DESC="acroread provides a precompiled portable document file viewer.
+      DESC='AdobeReader provides a precompiled portable document file viewer.
 acorread provides an acrobat reader for viewing,
 navigating and printing Portable Document Format (PDF) files.
 If this spell does not work, you may need to install older gcc.
 Adobe has a history of releasing dynamically linked executables
-that require a different version of libstdc++ than current."
+that require a different version of libstdc++ than current.'
 
-build() {
-install_files()  {
-  local  BASE="/usr/lib/acrobat/Adobe/Reader8"
+build(){
+ install_files(){
+  local BASE=/usr/lib/acrobat/Adobe/Reader8
 
-  mkdir    -p   -m 0755   /usr/lib/acrobat
-  cp       -Rv  *         /usr/lib/acrobat/
+  mkdir -vpm 0755 /usr/lib/acrobat
+  cp    -Rv *     /usr/lib/acrobat/
 
-      PLUG="Browser/intellinux/nppdf.so"
-  PLUG_DIR="/usr/lib/mozilla/plugins"
+      PLUG=Browser/intellinux/nppdf.so
+  PLUG_DIR=/usr/lib/mozilla/plugins
 
-  if    [    -d                        $PLUG_DIR  ];  then
-    ln       -f    $BASE/$PLUG         $PLUG_DIR
-    chmod    0755  $BASE/bin/acroread
-    ln       -fs   $BASE/bin/acroread  /usr/bin/
+  if [    -d                    $PLUG_DIR ]; then
+   ln     -f $BASE/$PLUG        $PLUG_DIR
+   chmod 755 $BASE/bin/acroread
+   ln    -fs $BASE/bin/acroread /usr/bin/
   fi
-}
+ }
 
-unpack_tars()  {
-  tar     -xf  COMMON.TAR
-  tar     -xf  ILINXR.TAR  
-  rm      -f   COMMON.TAR ILINXR.TAR
-  chown   -R   root:root  *
-  find    *  -type  f  |  escape_qs  |  xargs  -r --max-lines=256  chmod og-w
-  find    *  -type  d  |  escape_qs  |  xargs  -r --max-lines=256  chmod 0755
-}
+unpack_tars(){
+  tar   -xf COMMON.TAR
+  tar   -xf ILINXR.TAR  
+  rm    -f  COMMON.TAR ILINXR.TAR
+  chown -R  root:root  *
+  find  * -type f | escape_qs | xargs -r --max-lines=256 chmod og-w
+  find  * -type d | escape_qs | xargs -r --max-lines=256 chmod 755
+ }
 
-  [  -f  COMMON.TAR    ]  &&
-  [  -f  ILINXR.TAR    ]  &&
-  unpack_tars             &&
-  prepare_install         &&
+  [ -f COMMON.TAR ] &&
+  [ -f ILINXR.TAR ] &&
+  unpack_tars       &&
+  prepare_install   &&
   install_files
 }
