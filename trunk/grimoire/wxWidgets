@@ -1,4 +1,5 @@
   VERSION=( 2.8.7 2.8.6 2.8.5 2.8.4 2.8.3 2.8.2 2.8.0 )
+# 2.8.7 compiles with gcc 4.2.2 but not 4.2.3
     IGNORE='ubuntu\|Win\|PDF\|HTB\|rc\|-1\|snapshot\|HTML\|HLP\|CHM'
   CATEGORY='graphic/library graphic/toolkit'
  ATTRIBUTE='library'
@@ -8,10 +9,11 @@
  FRESHMEAT='wxwidgets'
        REQ=( 'gtk+'
              'esound:::for audio output through esound' )
-      OPTS='--enable-compat24'
-## was unable to get a good compile with MesaLib and SDL
-## Just going with above opts, because it takes too long to compile this.
-##             'MesaLib:--with-opengl::for opengl accelerated graphics'
+      OPTS='--enable-compat24 --with-opengl --with-gtk=2 --enable-zipstream --enable-unicode'
+case $VERSION in
+ 2.8.7) USE_GCC=gcc-v4.2.1 ;;
+esac
+
 ##             'SDL:--with-sdl::for audio output through SDL'
 
 #            ':--enable-accessibility::for accessibility support'
@@ -31,49 +33,45 @@
 #            'zlib:--with-zlib:--without-zlib:for LZW compression support'
 # expat probably installed, SA probably wants XML classes supported.
 #            'expat::--without-expat:for XML classes support'
-  EPROVIDE='wxGTK wxGTK-v2.4'
   ESTIMATE='2000'
       DESC='wxWidgets is a cross-platform c++ framework writing GUI applications
 wxWidgets gives you a single, easy-to-use API for
 writing GUI applications on multiple platforms.'
 
-build() {
+build(){
 
-install_contrib_headers() {
-  cd  contrib/include
-  find  |
+ install_contrib_headers(){
+  cd contrib/include
+  find |
   while read
-  do    install  -D -v  $REPLY  /usr/include/wx-${VERSION:0:3}/$REPLY
+  do    install -Dv $REPLY /usr/include/wx-${VERSION:0:3}/$REPLY
   done  
 }
 
-case $VERSION in
-  2.8.0)  if    spell_installed  wxPython
-          then  dispel --unsafe  wxPython
-                echo             wxPython | pipe_queue "$CAST_QUEUE" "com"
-          fi  ;;
-  2.7.1)  sed  -i  "s:animate:#animate:"  contrib/src/Makefile.in  ;;
-esac 
+ case $VERSION in
+  2.8.0) if   spell_installed wxPython
+         then dispel --unsafe wxPython
+              echo            wxPython | pipe_queue "$CAST_QUEUE" com
+         fi ;;
+  2.7.1) sed -i "s:animate:#animate:" contrib/src/Makefile.in ;;
+ esac
 
-sed  -i  "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":"  configure
+ sed -i "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":" configure
 
-./configure           \
---build=$BUILD        \
---prefix=/usr         \
---sysconfdir=/etc     \
---localstatedir=/var  \
---with-gtk=2          \
---enable-zipstream    \
---enable-unicode      \
-$OPTS                 &&
-make                  &&
-cd      contrib       &&
-make                  &&
-cd      ..            &&
-prepare_install       &&
-make    install	      &&
-cd      contrib       &&
-make    install       &&
-cd      ..            &&
-install_contrib_headers
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS           &&
+ make            &&
+ cd      contrib &&
+ make            &&
+ cd      ..      &&
+ prepare_install &&
+ make    install &&
+ cd      contrib &&
+ make    install &&
+ cd      ..      &&
+ install_contrib_headers
 }

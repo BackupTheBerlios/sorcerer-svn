@@ -1,4 +1,9 @@
    VERSION=( 4.2.3 4.2.2 4.2.1 4.2.0 4.1.2 4.1.1 4.1.0 )
+      SAFE=( 4.2.3 )
+# 4.2.3 is not a security update
+# However, the transition of gcc to /usr is of extreme importance
+# and therefore the update to 4.2.3 is considered mandatory
+
     IGNORE='ada\|core\|g++\|g77\|java\|objc\|testsuite\|fortran\|200'
   CATEGORY='development/compiler'
  ATTRIBUTE='console library solo'
@@ -179,7 +184,20 @@ build(){
 
 
 post_install(){
- get_provider libtool | pipe_queue "$CAST_QUEUE" com
+
+ fix_la(){ 
+  case $HOSTTYPE in
+   x86_64) grep -l /opt/gcc /usr/lib{,64}/*.la ;;
+        *) grep -l /opt/gcc /usr/lib/*.la ;;
+  esac |
+  xargs -r --max-lines=64 sed -i 's:/opt/gcc/[^/]*/:/usr/:g'
+ }
+
+ case $VERSION in
+  4.2.3) fix_la ;;
+ esac
+
+ get_provider libtool | pipe_queue $CAST_QUEUE com
  if   [   -d ${CCACHE_CACHE:=/var/cache/ccache} ]
  then rm  -f ${CCACHE_CACHE}/*
  fi
