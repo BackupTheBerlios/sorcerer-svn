@@ -5,32 +5,25 @@
     SOURCE="p7zip/p7zip_${VERSION}.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://p7zip.sourceforge.net'
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
    PROTECT='/bin/7za'
   ESTIMATE='310'
       DESC='p7zip is a command line high compression ratio archiver.
 p7zip provides aproximately 15% better compression than bzip2.
-Decompression speed is aproximately, the same as bzip2.
-However, compression speed is about 500% slower.'
+Decompression speed is better than bzip2.
+However, compression speed is about 400% slower.'
 
-build()  {
-rm  -f  /usr/bin/7za
+build(){
+ export LDFLAGS+=' -static'
+ make OPTFLAGS="$CXXFLAGS" all &&
+ prepare_install &&
+       ./install.sh /bin /usr/lib/p7zip /usr/man /usr/share/p7zip &&
 
-## g++ fix no longer required with current versions of p7zip
-# sed   -i  "s:\$(CXX):g++:"  makefile.glb
-## typo fix no longer requried with current versions of p7zip
-# sed   -i  "s:\[-x:[ -x:"    install.sh
+ if   [ -f /usr/lib/p7zip/7za ]
+ then mv   /usr/lib/p7zip/7za       /bin
+      mv   /usr/lib/p7zip/7zCon.sfx /bin
+ fi
 
-# avoid the inconvenient libstdc++ ELF requirement by static linking
-# export  LDFLAGS+=" -Wl,-Bstatic"
-export  LDFLAGS+=" -static"
-
-make  OPTFLAGS="$CXXFLAGS"  all  &&
-prepare_install  &&
-./install.sh  /bin /usr/lib/p7zip /usr/man /usr/share/p7zip  &&
-# ./install.sh  /bin /usr/lib/p7zip /usr/man /usr/share/p7zip $DESTDIR  &&
-
-if    [  -f  /usr/lib/p7zip/7za  ]
-then  mv     /usr/lib/p7zip/7za        /bin
-      mv     /usr/lib/p7zip/7zCon.sfx  /bin
-fi
+ rm -f /usr/bin/7za
 }

@@ -6,46 +6,44 @@
        URL='http://www.bzip.org/'
       VURL='http://www.bzip.org/downloads.html'
   HOMEPAGE='http://www.bzip.org'
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
    PROTECT='/bin/bzip2'
   ESTIMATE='120'
       DESC='bzip2 is a free, patent free, high-quality data compressor.
-It typically compresses files to within 10% to 15% of the best
-available techniques (the PPM family of statistical compressors)
-while being around twice as fast at compression and six times
-faster at decompression.'
+bzip2 has average compression ratio
+average compression speed
+and average decompression speed.'
 
+build(){
+ make_install(){
+  cp -va          libbz2.so.$VERSION     $LIBDIR
+  ln -vsf         libbz2.so.$VERSION     $LIBDIR/libbz2.so.1.0
+  ln -vsf         libbz2.so.$VERSION     $LIBDIR/libbz2.so
+  ln -vsf $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so.$VERSION
+  ln -vsf $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so.1.0
+  ln -vsf $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so
+  mv -v /usr/bin/bzip2 /bin/
+ }
 
-build() {
+ if   [ $HOSTTYPE == x86_64 ]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
 
-if    [ "$HOSTTYPE" == "x86_64" ]
-then  LIBDIR=/lib64
-else  LIBDIR=/lib
-fi
+ export  CFLAGS="$CFLAGS -fPIC"
 
-export  CFLAGS="$CFLAGS -fPIC"
+ sed -i "s:ln \$(PREFIX):ln -f \$(PREFIX):" Makefile
 
-sed  -i  "s:ln \$(PREFIX):ln -f \$(PREFIX):"     Makefile
-
-make             "CFLAGS=$CFLAGS"    \
-                 "LDFLAGS=$LDFLAGS"  \
-                 "PREFIX=/usr"       &&
-prepare_install                      &&
-make    install  "PREFIX=/usr"       &&
-make   -f        Makefile-libbz2_so  \
-                 "CFLAGS=$CFLAGS"    \
-                 "LDFLAGS=$LDFLAGS"  &&
-cp  -a           libbz2.so.$VERSION      $LIBDIR                     &&
-ln  -sf          libbz2.so.$VERSION      $LIBDIR/libbz2.so.1.0       &&
-ln  -sf          libbz2.so.$VERSION      $LIBDIR/libbz2.so           &&
-ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so.$VERSION  &&
-ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so.1.0       &&
-ln  -sf  $LIBDIR/libbz2.so.$VERSION  /usr$LIBDIR/libbz2.so           &&
-mv   /usr/bin/bzip2  /bin/
-}
-
-current()  {
-  case  $VERSION  in
-    1.0.3)  [  -f    /lib/libbz2.so  ]  ||
-            [  -f  /lib64/libbz2.so  ]  ;;
-  esac
+ make                \
+  "CFLAGS=$CFLAGS"   \
+  "LDFLAGS=$LDFLAGS" \
+  "PREFIX=/usr"      &&
+ prepare_install     &&
+ make    install     \
+  "PREFIX=/usr"      &&
+ make -f Makefile-libbz2_so \
+  "CFLAGS=$CFLAGS"   \
+  "LDFLAGS=$LDFLAGS" &&
+ make_install
 }
