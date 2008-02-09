@@ -184,13 +184,14 @@ build(){
 
 
 post_install(){
-
  fix_la(){ 
-  case $HOSTTYPE in
-   x86_64) grep -l /opt/gcc /usr/lib{,64}/*.la ;;
-        *) grep -l /opt/gcc /usr/lib/*.la ;;
-  esac |
-  xargs -r --max-lines=64 sed -i 's:/opt/gcc/[^/]*/:/usr/:g'
+  ( case $HOSTTYPE in
+     x86_64) grep -l /opt/gcc /usr/lib{,64}/*.la ;;
+          *) grep -l /opt/gcc /usr/lib/*.la ;;
+    esac
+    [    -d          /opt/kde3/lib ] &&
+    grep -l /opt/gcc /opt/kde3/lib/*.la
+  ) | xargs -r --max-lines=64 sed -i 's:/opt/gcc/[^/]*/:/usr/:g'
  }
 
  case $VERSION in
