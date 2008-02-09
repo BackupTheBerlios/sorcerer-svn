@@ -5,8 +5,10 @@
     SOURCE="coreutils/coreutils-$VERSION.tar.gz"
        URL="$GNU_URL"
 # acl for access control lists and extended attribute support.
-       REQ=( 'acl' )
-#            ':-static::make some programs static linked for faster script execution' )
+       REQ=( 'acl'
+             ':-static::make some programs static linked for faster script execution' )
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
   HOMEPAGE='http://www.gnu.org/software/coreutils'
    PROTECT='/bin/cat
             /bin/cp
@@ -163,9 +165,7 @@ static_linking(){
 
  if echo "$OPTS" | grep -q '\-static'; then
   cd src
-  rm basename cat cut dirname \
-     echo head ls readlink rm \
-     sort stat tail tr uniq wc
+  rm sort uniq
   sed -i "s:$LDFLAGS:$LDFLAGS -static:" Makefile
   cd  ..
   make
