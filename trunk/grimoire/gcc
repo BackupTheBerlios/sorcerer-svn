@@ -205,11 +205,25 @@ post_install(){
 }
 
 current(){
+ fix_la(){ 
+  ( case $HOSTTYPE in
+     x86_64) grep -l /opt/gcc /usr/lib{,64}/*.la ;;
+          *) grep -l /opt/gcc /usr/lib/*.la ;;
+    esac
+    [    -d          /opt/kde3/lib ] &&
+    grep -l /opt/gcc /opt/kde3/lib/*.la
+  ) | xargs -r --max-lines=64 sed -i 's:/opt/gcc/[^/]*/:/usr/:g'
+ }
+
+ case $VERSION in
+  4.2.3) fix_la ;;
+ esac
+
  if   ! [ -h     /usr/bin/cc ]
  then ln  -s gcc /usr/bin/cc
  fi
 
  case $VERSION in
-  4.2.3) grep -qx /usr/bin/gcc $INSTALL_LOGS/gcc ;;
+  4.2.3) [ -f /usr/bin/gcc ] ;;
  esac
 }

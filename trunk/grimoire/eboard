@@ -1,5 +1,5 @@
-   VERSION=( 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
-    IGNORE="extras"
+   VERSION=( 1.1.0 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
+    IGNORE='extras'
   CATEGORY='game/board/chess'
  ATTRIBUTE='x11'
     SOURCE=( "eboard/eboard-$VERSION.tar.bz2"
@@ -9,34 +9,37 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://eboard.sourceforge.net'
        REQ='gtk+'
+case $VERSION in
+ 1.1.0) USE_GCC='gcc-v4.0' ;;
+esac
   ESTIMATE='200'
-      DESC="eboard is a chess interface for chess engines, FICS, etc.
+      DESC='eboard is a chess interface for chess engines, FICS, etc.
 
 eboard is a graphic based chess interface.
 It provides a chess board interface to ICS
 (Internet Chess Servers) like FICS and to
-chess engines like GNU Chess, Sjeng and Crafty."
+chess engines like GNU Chess, Sjeng and Crafty.'
 
 
-build()  {
-  install_extras()  {
-    cd  $1
-    ./configure  --prefix=/usr
-    prepare_install  &&
-    make    install
-    cd  -
-  }
+build(){
+ install_extras(){
+  cd $1
+  ./configure --prefix=/usr
+  prepare_install &&
+  make    install
+  cd -
+ }
 
-  sed_makefile()  {  sed  -i  "s:-O6:$CXXFLAGS:"  Makefile;  }
+ sed_makefile(){ sed -i "s:-O6:$CXXFLAGS:" Makefile; }
 
-  ./configure      \
-  --prefix=/usr    \
-  $OPTS            &&
-  sed_makefile     &&
-  make             &&
-  prepare_install  &&
-  make    install  &&
-  for     DIR  in  eboard-extras*
-  do      install_extras  $DIR
-  done
+ ./configure      \
+ --prefix=/usr    \
+ $OPTS            &&
+ sed_makefile     &&
+ make             &&
+ prepare_install  &&
+ make    install  &&
+ for DIR in eboard-extras*
+ do  install_extras $DIR
+ done
 }
