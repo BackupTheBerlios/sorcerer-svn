@@ -28,21 +28,9 @@
 build(){
 
  add_rpath_to_la(){
-  sed -i  's:-L/opt/kde3/lib:-L/opt/kde3/lib -R/opt/kde3/lib:
-           s:-L/opt/kde3/lib64:-L/opt/kde3/lib64 -R/opt/kde3/lib64:' \
+  sed -i 's:-L/opt/kde3/lib:-L/opt/kde3/lib -R/opt/kde3/lib:
+          s:-L/opt/kde3/lib64:-L/opt/kde3/lib64 -R/opt/kde3/lib64:' \
       $( find /opt/kde3/ -name libqt\*.la )
- }
-
- fix_qmake_conf(){
-  # This function is not required when installing in /opt/kde3
-  ## This should be used when the qt headers are NOT instaled in 
-  ## /usr/include, i.e. if they are installed to /usr/include/qt, 
-  ## /usr/share/qt/include or whatever then this is NEEDED because the
-  ## qmake.conf sets the QT include directory to $(QTDIR)/include.
-  ## Some applications need this to be correct in order for them to compile.
-  sed -i 's:\$(QTDIR)/include$:\$(QTDIR)/include/qt:' \
-         mkspecs/${SPECS}/qmake.conf
-  cp  -a mkspecs/${SPECS}  /usr/share/qt/mkspecs/
  }
 
  unset   LD_LIBRARY_PATH
@@ -52,13 +40,12 @@ build(){
  rm  -rf examples tutorial
 
  SPECS=linux-g++
-  LIBS=lib
+  LIBS=/opt/kde3/lib
 
  case  $HOSTTYPE  in
   x86_64) OPTS+=" -platform linux-g++-64 -L/lib64 -L/usr/lib64"
           SPECS+=-64; LIBS+=64 ;;
  esac
-
 
  if [ -n "${SOURCE[1]}" ]; then
   decompress $SOURCE_CACHE/qt-x11-free/$VERSION/${SOURCE[1]} | patch -p1 
@@ -75,13 +62,13 @@ build(){
 #prepare_install # doesn't make right if installed.
 
  PREFIX=/opt/kde3
-
  export LD_LIBRARY_PATH=$PWD/lib
 
  echo yes |
  ./configure  -v  \
- -R/opt/kde3/lib  \
- -L/opt/kde3/lib  \
+ -R$LIBS          \
+ -L$LIBS          \
+ -libdir $LIBS    \
  -release         \
  -shared          \
  -thread          \
@@ -99,12 +86,8 @@ build(){
  -R      $PREFIX/lib64 \
  $OPTS &&
  make  &&
- prepare_install &&
- mkdir -p /opt/kde3 &&
- make   install &&
- cp -R  doc/man /usr &&
- add_rpath_to_la
- # fix_qmake_conf &&
+ prepare_install && mkdir -p /opt/kde3 &&
+ make    install && cp    -R doc/man /usr && add_rpath_to_la
 }
 
 current(){

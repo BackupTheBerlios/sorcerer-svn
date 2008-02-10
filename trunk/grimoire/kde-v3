@@ -11,7 +11,7 @@
              'kdesdk-v3:::for applications and tools used by KDE developers'
              'kdewebdev-v3:::for web page/site development tools'
              'scim-bridge-qt3:::to input in Japanese, Chineese, Korean' )
-     OPTS+=' --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final'
+     OPTS+=' --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final --enable-pch --with-xinerama'
   ESTIMATE='5'
       DESC='kde-v3 provides the KDE version 3.x desktop environment.'
 
@@ -23,32 +23,16 @@ kde_build(){
  done
 
  # ppanula: tested with kde 3.5.1, OK
- sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
-         s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
+# sed -i "s:CFLAGS=\"-O2 \$CFLAGS\":CFLAGS=\"${CFLAGS}\":
+#         s:CXXFLAGS=\"-O2 \$CXXFLAGS\":CXXFLAGS=\"${CXXFLAGS}\":" configure
 
-#--prefix=/opt/kde3   \
 
-# case $HOSTTYPE in
-#  x86_64) OPTS+=' --with-qt-libraries=/opt/kde3/lib64'; LDFLAGS+=' -L/opt/kde3/lib64';;
-#       *) OPTS+=' --with-qt-libraries=/opt/kde3/lib';   LDFLAGS+=' -L/opt/kde3/lib' ;;
-# esac
-# qt-x11-free installs libraries in /opt/kde3/lib
-# on both x86_64 and ia32 architectures.
+# LDFLAGS -L/opt/kde3/lib may be required?
+# export LDFLAGS+=' -L/opt/kde3/lib'
 
-# --with-qt-includes=/opt/kde3/include \
-# --with-qt-libraries=/opt/kde3/lib \
-
-# LDFLAGS -L/opt/kde3/lib is required
- export LDFLAGS+=' -L/opt/kde3/lib'
- ./configure     \
- --enable-pch    \
- --with-xinerama \
- --disable-debug \
- --enable-final  \
- $OPTS           &&
- make            &&
- prepare_install && mkdir -p /opt/kde3 &&
- make    install
+ [     -d /opt/kde3 ] ||
+ mkdir -p /opt/kde3
+ default_build
 }
 
 bindings_build(){
