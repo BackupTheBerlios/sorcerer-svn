@@ -1,5 +1,5 @@
-   VERSION=( 2.0.1 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
-      SAFE=( 2.0.1 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 )
+   VERSION=( 2.0.2 2.0.1 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 )
+      SAFE=( 2.0.2 2.0.1 2.0.0 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 )
     IGNORE='^3\.10\.\|pre'
 # 3.10.0 is developmental
   CATEGORY='administration/log'
@@ -23,35 +23,7 @@ Reliable in the previous sentence refers to support for reliable
 transmission modes like TCP or RFC 3195 (syslog-reliable).'
 
 
-build()  {
-build_old()  {
-install_init()  {
-cd  ..
-TRAD="\$template TraditionalFormat,\"%timegenerated% %HOSTNAME% %syslogtag%%msg:::drop-last-lf%\n\"
-*.*  /var/log/syslog;TraditionalFormat"
-if  !  [   -f            /etc/rsyslog.conf  ]
-then   echo  "$TRAD"  >  /etc/rsyslog.conf
-       chmod  0600       /etc/rsyslog.conf
-fi
-install  -m 0600 sample.conf  /etc/rsyslog.conf.sample
+build(){
+ default_build &&
+ install -vm 600 redhat/rsyslog.conf /etc
 }
-
-cd  linux
-make             &&
-prepare_install  &&
-make    install  &&
-install_init
-}
-
-  default_build  &&
-  install  -m  0600  redhat/rsyslog.conf  /etc
-}
-
-
-current()  {
-  case  $VERSION  in
-    2.0.0)  [     -f  /etc/init.d/rsyslogd  ]  ;;
-    1.0.5)  grep  -q  'Default-Start: 1 2 3 4 5'  /etc/init.d/rsyslog  ;;
-  esac
-}
-
