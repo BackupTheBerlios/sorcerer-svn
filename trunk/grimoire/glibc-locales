@@ -1,127 +1,127 @@
 inherit glibc
-unset  SOURCE  URL  REQ
+unset SOURCE URL REQ
   CATEGORY='documentation/i18n'
  ATTRIBUTE='data'
        REQ='glibc'
 # Requirement on glibc added so that
 # glibc-locales always casts after glibc
-  ESTIMATE='5'
-      DESC="glibc-locales provides locale databases for translating messages."
+  ESTIMATE='10'
+      DESC='glibc-locales provides locale databases for translating messages.'
 
-configure() {
+configure(){
 
-locales_checklist()  { 
-  sed  -n  's: .*::;/\//p'  /usr/share/i18n/SUPPORTED  |
-  while  read;  do
-       NAME="${REPLY%/*}"
-     SOURCE="${NAME%.*}"
+ locales_checklist(){
+  sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED |
+  while read; do
+     NAME="${REPLY%/*}"
+   SOURCE="${NAME%.*}"
 
-    echo  "$REPLY"
-    sed   -nr 's:^title[^"]*"([^"]*)".*:\1:p'  /usr/share/i18n/locales/$SOURCE
-    echo  "off"
+   echo "$REPLY"
+   sed  -nr 's:^title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
+   echo "off"
   done
-}
+ }
 
 
-locales_menulist()  { 
-  if    [    -n  "$LOCALES"  ]
-  then  echo     "$LOCALES"  |
-        sed  -n  's: .*::;/\//p'
-  else  sed  -n  's: .*::;/\//p'  /usr/share/i18n/SUPPORTED
-  fi  |
-  while  read;  do
-       NAME="${REPLY%/*}"
-     SOURCE="${NAME%.*}"
+ locales_menulist(){ 
+  if   [   -n "$LOCALES" ]
+  then echo   "$LOCALES" |
+       sed -n 's: .*::;/\//p'
+  else sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED
+  fi |
+  while read; do
+     NAME="${REPLY%/*}"
+   SOURCE="${NAME%.*}"
 
-    echo  "$NAME"
-    sed   -nr 's:^title[^"]*"([^"]*)".*:\1:p'  /usr/share/i18n/locales/$SOURCE
+   echo "$NAME"
+   sed -nr 's:^title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
   done
-}
+ }
 
 
-select_locales()  {
+ select_locales(){
   BACKTITLE=$"Glibc Locale Configuration Menu"
       TITLE=$"Locale Selection"
        HELP=$"Please select available language locales."
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --separate-output          \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --checklist  "$HELP"       \
-          0 0 0                      \
-          $(  locales_checklist  )
-}
+  dialog --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --separate-output          \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --checklist  "$HELP"       \
+         0 0 0                      \
+         $( locales_checklist )
+ }
 
 
-locale_menu()  {
+ locale_menu(){
   BACKTITLE=$"Glibc Locale Configuration Menu"
       TITLE=$"Locale Selection"
        HELP=$"Please select the default locale"
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --menu  "$HELP"            \
-          0 0 0                      \
-          $(  locales_menulist  )
-}
+  dialog --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --menu  "$HELP"            \
+         0 0 0                      \
+         $( locales_menulist )
+ }
 
-  if  !  grep  -q  "LOCALES="  $SPELL_CONFIG  2>/dev/null  ||
-      !  grep  -q  "DLOCALE="  $SPELL_CONFIG  2>/dev/null
-  then
-    ( export  IFS=$'	\n'
-      if    query  "Select individual locales?"  n
-      then         LOCALES="$(  select_locales  )"
-      else  unset  LOCALES
-      fi
-      echo    "LOCALES=\"$LOCALES\""  >>  $SPELL_CONFIG
-      if    query  "Select default locale for LANG environment variable?"  n
-      then         DLOCALE="$(  locale_menu  )"
-      else  unset  DLOCALE
-      fi
-      echo    "DLOCALE=\"$DLOCALE\""  >>  $SPELL_CONFIG
-    )
+ if ! grep -q "LOCALES=" $SPELL_CONFIG 2>/dev/null ||
+    ! grep -q "DLOCALE=" $SPELL_CONFIG 2>/dev/null
+ then (
+  export IFS=$'	\n'
+  if   query "Select individual locales?" n
+  then       LOCALES="$( select_locales )"
+  else unset LOCALES
   fi
-}
-
-build() {
-  tmp_locale_archive()  {
-    local  TMP=/tmp/locale.$RANDOM$RANDOM
-    local  DIR=$TMP/usr/lib/locale
-    local  SUPPORTED="/usr/share/i18n/SUPPORTED"
-
-    mkdir  -p  $DIR
-
-      if  [  -n  "$LOCALES"             ];  then  echo  "$LOCALES"
-    elif  [  -f             $SUPPORTED  ];  then  cat              $SUPPORTED
-    elif  [  -f  $SCRIPT_DIR/SUPPORTED  ];  then  cat   $SCRIPT_DIR/SUPPORTED
-    fi  |  grep  "/"  |  cut  -d ' '  -f1  |
-    while  read;  do
-      CHARMAP="${REPLY##*/}"
-         NAME="${REPLY%/*}"
-       SOURCE="${NAME%.*}"
-      echo       -n  "$NAME..."
-      localedef  -i $SOURCE  -c  -f $CHARMAP  --prefix=$TMP  $NAME
-      echo           " done"
-    done
-    mv  $DIR/locale-archive  /usr/lib/locale
-    rm  -rf  $TMP
-  }
-
-  prepare_install
-  rm     -rf  /usr/lib/locale
-  mkdir  -p   /usr/lib/locale
-  tmp_locale_archive
-}
-
-post_install()  {
-  default_post_install
-  if    [  -n  "$DLOCALE"  ]
-  then  echo  "export LANG=$DLOCALE"  >  /etc/bash.d/noninteractive/LANG
+  echo "LOCALES=\"$LOCALES\"" >> $SPELL_CONFIG
+  if   query "Select default locale for LANG environment variable?" n
+  then       DLOCALE="$( locale_menu )"
+  else unset DLOCALE
   fi
+  echo "DLOCALE=\"$DLOCALE\"" >> $SPELL_CONFIG
+  ) fi
+}
+
+build(){
+ tmp_locale_archive(){
+  local TMP=/tmp/locale.$RANDOM$RANDOM
+  local DIR=$TMP/usr/lib/locale
+  local SUPPORTED="/usr/share/i18n/SUPPORTED"
+
+  mkdir -p $DIR
+
+    if [ -n "$LOCALES"            ]; then echo "$LOCALES"
+  elif [ -f            $SUPPORTED ]; then cat             $SUPPORTED
+  elif [ -f $SCRIPT_DIR/SUPPORTED ]; then cat  $SCRIPT_DIR/SUPPORTED
+  fi | grep / | cut -d ' ' -f1 |
+  while read; do
+   CHARMAP="${REPLY##*/}"
+      NAME="${REPLY%/*}"
+    SOURCE="${NAME%.*}"
+   echo -n "$NAME..."
+   localedef -i $SOURCE -c -f $CHARMAP --prefix=$TMP $NAME
+   echo " done"
+  done
+  mv $DIR/locale-archive /usr/lib/locale
+  rm -rf $TMP
+ }
+
+ prepare_install
+ rm    -rf /usr/lib/locale
+ mkdir -p  /usr/lib/locale
+ tmp_locale_archive
+}
+
+post_install(){
+ default_post_install
+ if [ -n           "$DLOCALE" ]; then
+  echo "export LANG=$DLOCALE" > /etc/bash.d/noninteractive/LANG
+  chmod 755                     /etc/bash.d/noninteractive/LANG
+ fi
 }
