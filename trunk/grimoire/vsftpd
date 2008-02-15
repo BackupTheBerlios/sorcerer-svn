@@ -6,21 +6,22 @@
 #
 # warning there is an install hack!
 
-   VERSION=( 2.0.5 )
-    IGNORE="snap"
+   VERSION=( 2.0.6 2.0.5 )
+    IGNORE='snap'
   CATEGORY='network/ftp'
  ATTRIBUTE='server'
     SOURCE="vsftpd-$VERSION.tar.gz"
        URL='ftp://vsftpd.beasts.org/users/cevans/'
   HOMEPAGE='http://vsftpd.beasts.org/'
-  EPROVIDE="ftpd"
-       REQ=( ""
-             "Linux-PAM:PAM::for pluggable authnetication"
-             "openssl:SSL::for encryption support"
-             "tcp_wrappers:TCPWRAPPER::for controlling access to ftpd daemon through tcp_wrappers"
-             "xinetd:::for running server" )
-  ESTIMATE='92'
-      DESC="vsftpd is a FTP server.
+  EPROVIDE='ftpd'
+       REQ=( ''
+             'Linux-PAM:PAM::for pluggable authnetication'
+             'openssl:SSL::for encryption support'
+             'libcap:::for linux capabilities support'
+             'tcp_wrappers:TCPWRAPPER::for controlling access to ftpd daemon through tcp_wrappers'
+             'xinetd:::for running server' )
+  ESTIMATE='60'
+      DESC='vsftpd is a FTP server.
 It is secure, stable and extremely fast.
 Despite being small for purposes of speed and security,
 many more complicated FTP setups are achievable with vsftpd!
@@ -35,28 +36,28 @@ By no means an exclusive list, vsftpd will handle:
     * Per-source-IP limits
     * IPv6
     * Encryption support through SSL integration
-    * etc..."
+    * etc...'
 
 
 build() {
 
 configure() {
-echo "#ifndef VSF_BUILDDEFS_H"
-echo "#define VSF_BUILDDEFS_H"
+echo '#ifndef VSF_BUILDDEFS_H'
+echo '#define VSF_BUILDDEFS_H'
 
-if grep -qx "Linux-PAM" $OPT_ON_LOGS/vsftpd; then
+if grep -qx Linux-PAM $OPT_ON_LOGS/vsftpd; then
 echo "#define VSF_BUILD_PAM"
 else
 echo "#undef VSF_BUILD_PAM"
 fi
 
-if grep -qx "openssl" $OPT_ON_LOGS/vsftpd; then
+if grep -qx openssl $OPT_ON_LOGS/vsftpd; then
 echo "#define VSF_BUILD_SSL"
 else
 echo "#undef VSF_BUILD_SSL"
 fi
 
-if grep -qx "tcp_wrappers" $OPT_ON_LOGS/vsftpd; then
+if grep -qx tcp_wrappers $OPT_ON_LOGS/vsftpd; then
 echo "#define VSF_BUILD_TCPWRAPPERS"
 else
 echo "#undef VSF_BUILD_TCPWRAPPERS" 
@@ -65,14 +66,14 @@ fi
 echo "#endif /* VSF_BUILDDEFS_H */"
 }
 
-rm builddefs.h
-  configure >> builddefs.h
-cat builddefs.h
-  make             &&
-  prepare_install  &&
-  #warning hack
-  mkdir -p /usr/local/man/man5/ &&
-  make    install            &&
-  mkdir -p /usr/share/empty/ &&
-cp vsftpd.conf /etc          
+ rm           builddefs.h
+ configure >> builddefs.h
+ cat          builddefs.h
+ make             &&
+ prepare_install  &&
+ #warning hack
+ mkdir -p /usr/local/man/man5/ &&
+ make    install            &&
+ mkdir -p /usr/share/empty/ &&
+ cp vsftpd.conf /etc
 }

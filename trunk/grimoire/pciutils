@@ -1,4 +1,4 @@
-   VERSION=( 2.2.9 2.2.8 2.2.7 2.2.6 2.2.5 2.2.4 2.2.3 2.2.1 2.2.0 )
+   VERSION=( 2.2.10 2.2.9 2.2.8 2.2.7 2.2.6 2.2.5 2.2.4 2.2.3 2.2.1 2.2.0 )
   CATEGORY='utility'
  ATTRIBUTE='console'
     SOURCE="pub/software/utils/pciutils/pciutils-$VERSION.tar.bz2"
@@ -6,7 +6,7 @@
        URL="$KERNEL_URL"
        REQ='zlib'
   ESTIMATE='60'
-      DESC="pciutils provides setpci and lspci utils.
+      DESC='pciutils provides setpci and lspci utils.
 
 pciutils include:
 
@@ -17,30 +17,30 @@ lspci		displays detailed information about all PCI busses and
 setpci		allows to read from and write to
 		PCI device configuration registers.
 		For example, you can adjust
-		the latency timers with it."
+		the latency timers with it.'
 
-build() {
+build(){
 
-  install_lib()  {
-    mkdir     -p  -v  -m 0755         /usr/include/pci
-    for                         file  in  lib/*.h
-    do   install  -v  -m 0644  $file  /usr/include/pci/
-    done
-    case  $HOSTTYPE  in
-      x86_64)  install  -v  -m 0755  lib/libpci.a  /usr/lib64  ;;
-           *)  install  -v  -m 0755  lib/libpci.a  /usr/lib    ;;
-    esac
-  }
+ install_lib(){
+  mkdir       -vpm 755        /usr/include/pci
+  for                    file in lib/*.h
+  do  install -vm  644  $file /usr/include/pci/
+  done
+  case $HOSTTYPE in
+   x86_64) install -vm 755 lib/libpci.a /usr/lib64 ;;
+        *) install -vm 755 lib/libpci.a /usr/lib   ;;
+  esac
+ }
 
-make             PREFIX=/usr  &&
-prepare_install               &&
-make    install  PREFIX=/usr  &&
-        install_lib
-# libpci.a is 30K, small enough that there is no shared library for it.
+ make            PREFIX=/usr &&
+ prepare_install             &&
+ make    install PREFIX=/usr &&
+         install_lib
+ # libpci.a is 30K, small enough that there is no shared library for it.
 }
 
-current()  {
-  case  $VERSION  in
-    2.2.9)  [  -f  /usr/sbin/lspci  ]  ;;
-  esac
+current(){
+ case $VERSION in
+  2.2.9) [ -f /usr/sbin/lspci ] ;;
+ esac
 }

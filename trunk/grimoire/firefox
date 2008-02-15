@@ -1,5 +1,5 @@
-    VERSION=( 2.0.0.11 2.0.0.10 2.0.0.9 2.0.0.8 2.0.0.7 )
-       SAFE=( 2.0.0.11 )
+    VERSION=( 2.0.0.12 2.0.0.11 2.0.0.10 2.0.0.9 2.0.0.8 2.0.0.7 )
+       SAFE=( 2.0.0.12 2.0.0.11 )
   CATEGORY='network/web'
  ATTRIBUTE='client solo x11'
     SOURCE="firefox-${VERSION}-source.tar.bz2"
@@ -12,78 +12,78 @@
   ESTIMATE='39000'
       DESC='firefox is a new UI to gecko the mozilla HTML rendering engine.'
 
-build() {
-check_space()  {
+build(){
+ check_space(){
   KILOBYTES=$(
-    df    -Pkm  $SOURCE_DIR  |
-    tr    -s ' '             |
-    tail  -n 1               |
-    cut   -d ' '  -f4
+    df   -Pkm  $SOURCE_DIR |
+    tr   -s ' '            |
+    tail -n 1              |
+    cut  -d ' '  -f4
   )
-  if    ((  KILOBYTES < 768  ));  then
-    echo  'Insufficient disk space available for compiling mozilla.'
-    false
+  if    (( KILOBYTES < 768 )); then
+   echo 'Insufficient disk space available for compiling mozilla.'
+   false
   fi
-}
+ }
 
 
-install_symlinks()  {
-  rm  -fr                    /usr/include/firefox
-  ln  -fs  firefox-$VERSION  /usr/include/firefox
-  rm  -fr                    /usr/include/mozilla
-  ln  -fs  firefox-$VERSION  /usr/include/mozilla
+ install_symlinks(){
+  rm -fr                   /usr/include/firefox
+  ln -fs  firefox-$VERSION /usr/include/firefox
+  rm -fr                   /usr/include/mozilla
+  ln -fs  firefox-$VERSION /usr/include/mozilla
 
-  rm  -fr                    /usr/lib/firefox
-  ln  -fs  firefox-$VERSION  /usr/lib/firefox
-  rm  -fr                    /usr/lib/mozilla
-  ln  -fs  firefox-$VERSION  /usr/lib/mozilla
+  rm -fr                   /usr/lib/firefox
+  ln -fs  firefox-$VERSION /usr/lib/firefox
+  rm -fr                   /usr/lib/mozilla
+  ln -fs  firefox-$VERSION /usr/lib/mozilla
 
-  rm  -fr                    /usr/share/idl/firefox
-  ln  -fs  firefox-$VERSION  /usr/share/idl/firefox
-  rm  -fr                    /usr/share/idl/mozilla
-  ln  -fs  firefox-$VERSION  /usr/share/idl/mozilla
+  rm -fr                   /usr/share/idl/firefox
+  ln -fs  firefox-$VERSION /usr/share/idl/firefox
+  rm -fr                   /usr/share/idl/mozilla
+  ln -fs  firefox-$VERSION /usr/share/idl/mozilla
 
-  rm  -fr                    /usr/bin/mozilla-config
-  ln  -fs  firefox-config    /usr/bin/mozilla-config
-  rm  -fr                    /usr/bin/mozilla
-  ln  -fs  firefox           /usr/bin/mozilla
-}
+  rm -fr                   /usr/bin/mozilla-config
+  ln -fs  firefox-config   /usr/bin/mozilla-config
+  rm -fr                   /usr/bin/mozilla
+  ln -fs  firefox          /usr/bin/mozilla
+ }
 
 
-fix_config()  {
-  sed  -i  "s:/usr/lib/firefox-[^ ]*:/usr/lib/firefox:g"  /usr/bin/firefox-config
-}
+ fix_config(){
+  sed -i "s:/usr/lib/firefox-[^ ]*:/usr/lib/firefox:g" /usr/bin/firefox-config
+ }
 
 
 # Modify install_security function if using firefox
 # as dropin replacement for mozilla.
 
-install_security()  {
- local       NSS_DIR=/usr/include/mozilla/nss
- mkdir  -p  $NSS_DIR
- cp     -f  $BUILD_DIR/dist/{private,public}/nss/*.h  \
-            $NSS_DIR
-}
+ install_security(){
+  local     NSS_DIR=/usr/include/mozilla/nss
+  mkdir -p $NSS_DIR
+  cp    -f $BUILD_DIR/dist/{private,public}/nss/*.h  \
+           $NSS_DIR
+ }
 
 
-export    CFLAGS="${CFLAGS/-ffast-math/}"
-export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
-export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export   CFLAGS="${CFLAGS/-ffast-math/}"
+ export CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
-export  MOZILLA_OFFICIAL=1
-export  BUILD_OFFICIAL=1
-export  MOZ_PHOENIX=1
+ export MOZILLA_OFFICIAL=1
+ export BUILD_OFFICIAL=1
+ export MOZ_PHOENIX=1
 
-case $HOSTTYPE in
-  x86_64)  ELF_DYNSTR_GC="--disable-elf-dynstr-gc"      ;;
-       *)  ELF_DYNSTR_GC="--enable-elf-dynstr-gc"       ;;
-esac
+ case $HOSTTYPE in
+  x86_64) ELF_DYNSTR_GC='--disable-elf-dynstr-gc' ;;
+       *) ELF_DYNSTR_GC='--enable-elf-dynstr-gc'  ;;
+ esac
 
 # ac_add_options --prefix=/opt/firefox
 # ac_add_options --with-default-mozilla-five-home=/opt/firefox
 
-cat  <<  EOF  >  .mozconfig
+ cat << EOF > .mozconfig
 mk_add_options MOZ_CO_PROJECT=browser
 ac_add_options --enable-application=browser
 export         MOZ_PHOENIX=1
@@ -137,20 +137,20 @@ EOF
 # firefox versions 2.0.0.6 and 2.0.0.7 are not compatible with
 # pango versions 1.18.2 1.18.1 1.18.0
 # bug in pango?
-case  $VERSION  in
-  2.0.0.1[01]) mkdir  -p  include/pango-1.0/pango
-            cp    /usr/include/pango-1.0/pango/pangocairo.h  \
-                       include/pango-1.0/pango/
-            sed  -i   "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
-            export    CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-            export  CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0"  ;;
-  2.0.0.[789])  mkdir  -p  include/pango-1.0/pango
-            cp    /usr/include/pango-1.0/pango/pangocairo.h  \
-                       include/pango-1.0/pango/
-            sed  -i   "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
-            export    CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-            export  CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0"  ;;
-esac
+ case $VERSION in
+  2.0.0.1[02]) mkdir -p include/pango-1.0/pango
+               cp  /usr/include/pango-1.0/pango/pangocairo.h \
+                        include/pango-1.0/pango/
+               sed -i "/cairo_font_type_t/d" include/pango-1.0/pango/pangocairo.h
+               export CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+               export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
+  2.0.0.[789]) mkdir -p include/pango-1.0/pango
+               cp  /usr/include/pango-1.0/pango/pangocairo.h \
+                        include/pango-1.0/pango/
+               sed -i  "/cairo_font_type_t/d" include/pango-1.0/pango/pangocairo.h
+               export CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+               export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
+ esac
 
 
 ## Causes a compile error.
@@ -162,25 +162,25 @@ esac
 # fi
 
 
-  export  LDFLAGS="-Wl,-rpath,/usr/lib/firefox-$VERSION  $LDFLAGS"
-  grep   -rl             "\-Wl,-soname" * |
-  xargs  --max-lines=64  sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
+ export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+ grep  -rl            "\-Wl,-soname" * |
+ xargs --max-lines=64 sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
 
-  check_space                    &&
-  # ./configure  $OPTS           &&
-  make   -f  client.mk  build    &&
-  prepare_install                &&
-  make   -f  client.mk  install  &&
-  install_symlinks               &&
-  fix_config                     &&
-  install_security
+ check_space                  &&
+ # ./configure  $OPTS         &&
+ make   -f  client.mk build   &&
+ prepare_install              &&
+ make   -f  client.mk install &&
+ install_symlinks             &&
+ fix_config                   &&
+ install_security
 }
 
-post_install() {
-  default_post_install
-  RECAST="$(  show_installed  seamonkey-plugin  )"
-  if    [  -n  "$RECAST"  ]
-  then  echo   "$RECAST"  |  pipe_queue  "$CAST_QUEUE"  "com"
-  fi
-  true
+post_install(){
+ default_post_install
+ RECAST="$( show_installed seamonkey-plugin )"
+ if   [ -n "$RECAST" ]
+ then echo "$RECAST" | pipe_queue "$CAST_QUEUE" com
+ fi
+ true
 }
