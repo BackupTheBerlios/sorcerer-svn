@@ -1,4 +1,4 @@
-   VERSION=( 1.3.5 1.3.4 1.3.1 1.3.0 1.2.8 1.2.7 1.2.6 v1.2.5 v1.2.3 )
+   VERSION=( 1.3.7 1.3.5 1.3.4 1.3.1 1.3.0 )
   CATEGORY='security'
  ATTRIBUTE='console'
     SOURCE=( "rsbac-admin-$VERSION.tar.bz2"
@@ -7,7 +7,7 @@
   HOMEPAGE='http://www.rsbac.org/'
        REQ='Linux-PAM dialog'
   ESTIMATE='460'
-      DESC="rsbac-admin provides administrations tools for RSBAC.
+      DESC='rsbac-admin provides administrations tools for RSBAC.
 Rule Set Based Access Control (RSBAC) provides
 security extension for current Linux kernels.
 It is based on the Generalized Framework for
@@ -18,18 +18,18 @@ extended by security enforcement code.
 This code calls the central decision component,
 which in turn calls all active decision modules
 and generates a combined decision.
-This decision is then enforced by the system call extensions."
+This decision is then enforced by the system call extensions.'
 
-build() {
-  LIB="/usr/lib"
-  case  $MACHTYPE  in
-    x86_64*)  LIB+="64"  ;;
-  esac
+build(){
+ LIB=/usr/lib
+ case $HOSTTYPE in
+  x86_64) LIB+=64 ;;
+ esac
 
-  grep   -rl                       "\-O2"  *  |
-  xargs  --max-lines=64  sed  -i  "s:-O2:$CFLAGS:"
-  make    build    LDFLAGS="-L/lib -L/lib64 $LDFLAGS" VERBOSE=1  \
-                   PREFIX=/usr  &&
-  prepare_install               &&
-  make    install  PREFIX=/usr  DIR_PAM=$LIB/security
+ grep   -rl                    "\-O2" * |
+ xargs  --max-lines=64 sed -i "s:-O2:$CFLAGS:"
+ make    build    LDFLAGS="-L/lib -L/lib64 $LDFLAGS" VERBOSE=1 \
+                  PREFIX=/usr &&
+ prepare_install              &&
+ make    install  PREFIX=/usr  DIR_PAM=$LIB/security
 }

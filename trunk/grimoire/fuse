@@ -1,4 +1,4 @@
-   VERSION=( 2.7.2 2.7.1 2.7.0 2.6.5 2.6.4 2.6.3 2.6.2 2.6.1 2.6.0 )
+   VERSION=( 2.7.3 2.7.2 2.7.1 2.7.0 2.6.5 2.6.4 2.6.3 2.6.2 2.6.1 2.6.0 )
     IGNORE="pre\|box\|rc"
   CATEGORY='utility'
  ATTRIBUTE='library'
@@ -12,52 +12,51 @@
       OPTS="--disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig"
 # --disable-static causes compilation error with fuse 2.7.0
   ESTIMATE='300'
-      DESC="fuse is a file system in userspace program and kernel module.
+      DESC='fuse is a file system in userspace program and kernel module.
 fuse is a simple interface for userspace programs
 to export a virtual filesystem to the Linux kernel.
 It also aims to provide a secure method for non privileged users
 to create and mount their own filesystem implementations.
 This spell installs the library only.
-Install the fuse kernel module using linux."
+Install the fuse kernel module using linux.'
 
-build()  {
-  mv_libs()  {
-    if    [   -f      /lib/libfuse.a ]
-    then  mv  -v      /lib/lib{fuse,ulockmgr}.{a,la}   /usr/lib/
-          ln  -v  -s  /lib/lib{fuse,ulockmgr}.so*      /usr/lib/
-
-    elif  [   -f      /lib64/libfuse.a  ]
-    then  mv  -v      /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
-          ln  -v  -s  /lib64/lib{fuse,ulockmgr}.so*    /usr/lib64/
-    fi
-
-    if    [      -f   /lib/pkgconfig/fuse.pc ]
-    then  mkdir  -v  -p  -m 0755              /usr/lib/pkgconfig
-          mv     -v   /lib/pkgconfig/fuse.pc  /usr/lib/pkgconfig/
-          rm   -frv   /lib/pkgconfig
-    fi
-  }
-
-  if    [ "$HOSTTYPE" == "x86_64" ]
-  then  LIBDIR=/lib64
-  else  LIBDIR=/lib
+build(){
+ mv_libs(){
+  if   [  -f  /lib/libfuse.a ]
+  then mv -v  /lib/lib{fuse,ulockmgr}.{a,la}   /usr/lib/
+       ln -vs /lib/lib{fuse,ulockmgr}.so*      /usr/lib/
+  elif [  -f  /lib64/libfuse.a  ]
+  then mv -v  /lib64/lib{fuse,ulockmgr}.{a,la} /usr/lib64/
+       ln -vs /lib64/lib{fuse,ulockmgr}.so*    /usr/lib64/
   fi
 
-  case  $VERSION  in
-    2.6*)  sed  -i  "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
-                     s:which \${FSTYPE}:hash \${FSTYPE}:"  util/mount.fuse  ;;
-  esac
+  if   [      -f /lib/pkgconfig/fuse.pc ]
+  then mkdir  -vpm 0755                 /usr/lib/pkgconfig
+       mv     -v /lib/pkgconfig/fuse.pc /usr/lib/pkgconfig/
+       rm   -frv /lib/pkgconfig
+  fi
+ }
 
-  ./configure           \
-  --build=$BUILD        \
-  --prefix=/usr         \
-  --bindir=/bin         \
-  --libdir=$LIBDIR      \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-  $OPTS                 &&
-  make                  &&
-  prepare_install       &&
-  make    install       &&
-  mv_libs
+ if   [ "$HOSTTYPE" == x86_64 ]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
+
+ case  $VERSION  in
+  2.6*) sed -i "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
+                s:which \${FSTYPE}:hash \${FSTYPE}:" util/mount.fuse ;;
+ esac
+
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --bindir=/bin        \
+ --libdir=$LIBDIR     \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ make    install      &&
+ mv_libs
 }
