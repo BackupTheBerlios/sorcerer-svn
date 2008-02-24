@@ -1,4 +1,4 @@
-   VERSION=( 2.5.0 2.4.6 2.4.5 2.4.4 2.4.3 2.4.1 2.4.0 )
+   VERSION=( 2.5.1 2.5.0 2.4.6 2.4.5 2.4.4 2.4.3 2.4.1 2.4.0 )
     IGNORE='RC\|^1999\|^200[0-9]'
   CATEGORY='network/email'
  ATTRIBUTE='console server'
@@ -15,7 +15,7 @@
   ESTIMATE='1200'
       DESC='postfix is a MTA, mail transport agent.'
    
-build() {
+build(){
                 VSM='mail_spool_directory = /var/spool/mail'
   sed  -i  "s:#$VSM:$VSM:"  conf/main.cf
 
@@ -29,44 +29,44 @@ useradd  -K UID_MIN=256 -K UID_MAX=512 -g postdrop -d /var/spool/mail postdrop 2
 groupadd -K GID_MIN=256 -K GID_MAX=512    postfix 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g postfix -d /var/spool/mail postfix 2>/dev/null
 
-  if    grep  -q  -x    "openldap"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  openldap
-  then  AUXLIBS="-lldap -llber"
-        CCARGS="-DHAS_LDAP"
-  fi
+ if   grep  -qx       openldap $OPT_ON_LOGS/postfix &&
+      spell_installed openldap
+ then AUXLIBS="-lldap -llber"
+      CCARGS="-DHAS_LDAP"
+ fi
 
-  if    grep  -q  -x    "Linux-PAM"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  Linux-PAM
-  then  AUXLIBS="$AUXLIBS -lpam -lpam_misc"
-        CCARGS="$CCARGS  -DHAS_PAM"
-  fi
+ if   grep  -qx       Linux-PAM $OPT_ON_LOGS/postfix &&
+      spell_installed Linux-PAM
+ then AUXLIBS+=' -lpam -lpam_misc'
+      CCARGS+=' -DHAS_PAM'
+ fi
 
-  if    grep  -q  -x    "mysql"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  mysql
-  then  AUXLIBS="$AUXLIBS -L/usr/lib -lmysqlclient -lz -lm"
-        CCARGS="$CCARGS -DHAS_MYSQL -I/usr/include/mysql"
-  fi
+ if   grep  -qx       mysql $OPT_ON_LOGS/postfix &&
+      spell_installed mysql
+ then AUXLIBS+=' -L/usr/lib -lmysqlclient -lz -lm'
+      CCARGS+=' -DHAS_MYSQL -I/usr/include/mysql'
+ fi
 
-  if    grep  -q  -x    "openssl"  $OPT_ON_LOGS/postfix  &&
-        spell_installed  openssl
-  then  AUXLIBS="$AUXLIBS -lssl -lcrypto"
-        CCARGS="$CCARGS -DUSE_TLS"
-  fi
-       
- # fix to get man pages to install in /usr/man
+ if   grep  -qx       openssl $OPT_ON_LOGS/postfix &&
+      spell_installed openssl
+ then AUXLIBS+=' -lssl -lcrypto'
+      CCARGS+=' -DUSE_TLS'
+ fi
 
-  sed   -i  "s:/usr/local:/usr:"  src/global/mail_params.h
-  grep  -lr  "tail +"  *  |  xargs  --max-lines=32  sed  -i  "s:tail +:tail -n +:g"
+ # fix for get man pages to install in /usr/man
 
-  make  -f Makefile.init makefiles  \
-  "CC=gcc"                          \
-  "AUXLIBS=$AUXLIBS"                \
-  "CCARGS=$CCARGS"                  \
-  "OPT=$CFLAGS"                     &&
-  make                              &&
-  prepare_install                   &&
+ sed  -i  "s:/usr/local:/usr:" src/global/mail_params.h
+ grep -lr "tail +" * | xargs --max-lines=32 sed -i "s:tail +:tail -n +:g"
 
-  sh  ./postfix-install      -non-interactive    &&
-  ln  -fs  ../sbin/sendmail  /usr/lib/sendmail   &&
-  ln  -fs  postfix/aliases   /etc/aliases
+ make  -f Makefile.init makefiles \
+ "CC=gcc"                         \
+ "AUXLIBS=$AUXLIBS"               \
+ "CCARGS=$CCARGS"                 \
+ "OPT=$CFLAGS"                    &&
+ make                             &&
+ prepare_install                  &&
+
+ sh ./postfix-install    -non-interactive  &&
+ ln -fs ../sbin/sendmail /usr/lib/sendmail &&
+ ln -fs postfix/aliases  /etc/aliases
 }

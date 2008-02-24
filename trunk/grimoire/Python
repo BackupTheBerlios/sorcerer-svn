@@ -1,19 +1,19 @@
-   VERSION=( 2.5.1 2.5 2.4.3 2.4.2 2.4.1 )
-      SAFE=( 2.5.1 2.5 )
+   VERSION=( 2.5.2 2.5.1 )
+      SAFE=( 2.5.2 2.5.1 )
   CATEGORY='development/interpreter'
  ATTRIBUTE='console x11'
     SOURCE="Python-$VERSION.tar.bz2"
   HOMEPAGE='http://www.python.org'
        URL="http://www.python.org/ftp/python/$VERSION/
              ftp://ftp.python.org/pub/python/$VERSION/"
-       REQ=( "bzip2 db gdbm expat gmp ncurses readline zlib"
-             "openssl:::for secure socket connections"
-             "sqlite:::for sqlite support"
-             "tk:::to use tk for GUI and graphics" )
+       REQ=( 'bzip2 db gdbm expat gmp ncurses readline zlib'
+             'openssl:::for secure socket connections'
+             'sqlite:::for sqlite support'
+             'tk:::to use tk for GUI and graphics' )
 
 # db and gdbm can not be both absolute and optional requirements!
-#             "db:::for bsddb extentions"
-#             "gdbm:::for gdbm extention"
+#             'db:::for bsddb extentions'
+#             'gdbm:::for gdbm extention'
 
 # tsort: -: input contains a loop:
 # tsort: tk
@@ -21,12 +21,12 @@
 # tsort: libxslt
 # tsort: libxcb
 # tsort: libX11
-#            "tk:::for tk windowing system" )
- FRESHMEAT="python"
+#            'tk:::for tk windowing system' )
+ FRESHMEAT='python'
   ESTIMATE='4450'
-      DESC="Python is an interpreted, interactive, object-oriented programming language.
+      DESC='Python is an interpreted, interactive, object-oriented programming language.
 It combines remarkable power with very
-clear syntax, and isn't difficult to learn.
+clear syntax, and is not difficult to learn.
 It has modules, classes, exceptions, very
 high level data types, and dynamic typing.
 There are interfaces to many system calls
@@ -35,67 +35,28 @@ windowing systems
 (Tk, Mac, MFC, GTK+, Qt, wxWindows).
 Newbuilt-in modules are easily written in C or C++.
 Python is also usable as an extension language for
-applications that need a programmable interface."
+applications that need a programmable interface.'
 
-build()  {
-ast_patch() {
-cat << EOF  |  patch  Python/ast.c
-533c533,534
-<     /* testlist: test (',' test)* [','] */
----
->     /* testlist:  test (',' test)* [',']
->        testlist1: test (',' test)* */
-537a539
->            || TYPE(n) == testlist1
-EOF
+build(){
+ ./configure         \
+ --prefix=/usr       \
+ --enable-shared     \
+ --enable-ipv6       \
+ $OPTS               &&
+ make  "OPT=$CFLAGS" &&
+ prepare_install     &&
+ make    install     &&
+ if   ! [ -x /usr/lib/libpython${VERSION:0:3}.so ]
+ then ln  -s          libpython${VERSION:0:3}.so.1.0 \
+             /usr/lib/libpython${VERSION:0:3}.so
+ fi
 }
 
-  case  $VERSION  in
-    2.5)  gcc  --version  |  head  -n 1  |  grep  -q  "4\.[1-2]"  &&
-          export  CFLAGS="$CFLAGS -fwrapv"  ;;
-  esac
-
-  case  $VERSION  in
-    2.5)  export  LDFLAGS="$LDFLAGS -L$PWD"  ;;
-  esac
-
-  case  $VERSION  in
-    2.5)  ast_patch ;;
-  esac
-
-  ./configure          \
-  --prefix=/usr        \
-  --enable-shared      \
-  --enable-ipv6        \
-  $OPTS                &&
-  make  "OPT=$CFLAGS"  &&
-  prepare_install      &&
-  make    install      &&
-  if    !  [  -x  /usr/lib/libpython${VERSION:0:3}.so  ]
-  then  ln    -s           libpython${VERSION:0:3}.so.1.0  \
-                  /usr/lib/libpython${VERSION:0:3}.so
-  fi
-}
-
-post_install()  {
-  # unlock_cast
-  # cast -c  $(  show_installed  python-module  )
-#   local          PMODS="$(  show_installed  python-module  )"
-#   if    [  -n  "$PMODS"  ]
-#   then  echo   "$PMODS"  |  pipe_queue  "$CAST_QUEUE"  "com"
-#   fi
-#   true
-
-  grep  -r   "/usr/lib/python.../"  $INSTALL_LOGS  |
-  grep  -v  ":/usr/lib/python${VERSION:0:3}/"      |
-  cut   -d   : -f1         |
-  sort  -u   |  basenames  |
-  grep  -v    "Python-v"   |
-  pipe_queue  "$CAST_QUEUE"  "com"
-}
-
-current()  {
-  case  $VERSION  in
-    2.5)  grep  -qx  "patching file Python/ast.c"  $COMPILE_LOGS/Python  ;;
-  esac
+post_install(){
+ grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
+ grep -v ":/usr/lib/python${VERSION:0:3}/"    |
+ cut  -d  : -f1       |
+ sort -u  | basenames |
+ grep -v   "Python-v" |
+ pipe_queue "$CAST_QUEUE" com
 }
