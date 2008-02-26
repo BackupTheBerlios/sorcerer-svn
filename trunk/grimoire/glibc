@@ -1,9 +1,10 @@
-  LVERSION=( 2.6.22.9 2.6.22.1 )
+  LVERSION=( 2.6.24.2 2.6.22.9 2.6.22.1 )
+# LVERSION=( 2.6.22.9 2.6.22.1 )
    VERSION=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
       SAFE=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
 
-case  $HOSTTYPE  in
-   i586)  VERSION=( 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 2.3.3 2.3.2 2.3.1 2.3 )   ;;
+case $HOSTTYPE in
+ i586) VERSION=( 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 ) ;;
 esac
 
 # Compilation of glibc 2.7 with gcc 4.2.2 fails on i586 architecture.
@@ -13,7 +14,8 @@ esac
     IGNORE='ref\|2001\|^2\.[4-5]\|libidn\|linuxthreads\|ports'
   CATEGORY='development'
  ATTRIBUTE='library solo'
-case  $VERSION  in
+
+case $VERSION in
   2.7*)
  BVERSION=( 1.0.2 )
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
@@ -44,7 +46,7 @@ case  $VERSION  in
             "pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2" )
        URL="$GNU_URL"
     URL[3]="$KERNEL_URL"
-    USE_GCC="gcc-v3.4"  ;;
+    USE_GCC="gcc-v3.4" ;;
   2.5)
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
@@ -57,6 +59,11 @@ esac
        REQ=( 'perl'
              'libselinux:--with-selinux:--without-selinux:for selinux support' )
 #            ':--enable-add-ons=nptl::for linux 2.6.x only NP thread library' )
+
+#case $VERSION in
+# 2.7) USE_GCC=gcc-v4.2.2 ;;
+#esac
+
    EXCLUDE='/etc/ld.so.cache
             /etc/ld.so.conf
             /etc/localtime'
@@ -77,10 +84,10 @@ esac
             /sbin/ldconfig'
 #           /usr/include/bits/syscall.h
 #           /usr/include/gnu/stubs.h'
-  disable  lib64
+disable lib64
 case $HOSTTYPE in
- x86_64)  RPATH='/usr/lib64/gconv'  ;;
-      *)  RPATH='/usr/lib/gconv'    ;;
+ x86_64) RPATH='/usr/lib64/gconv' ;;
+      *) RPATH='/usr/lib/gconv'   ;;
 esac
   ESTIMATE='19500'
       DESC='glibc is a C library for use with GNU/Hurd and GNU/Linux.
@@ -95,105 +102,95 @@ building memusagestat, a program to generate graphic
 from memory profiling data.'
 
 
-build() {
+build(){
 
-  del_library_cache()  {
-    ldconfig
-    rm  -fr  ${LIBRARY_CACHE:-/usr/lib.old}  \
-             ${LIBRARY_CACHE_64:-/usr/lib64.old}
-    ldconfig
-    true
-  }
-
-
-  fix_libc_so() {
-    case  $VERSION  in
-      2.4)  sed  -i  "s: AS_NEEDED[^)]*) ::"  $IR/usr/lib/libc.so  ;;
-    esac
-  }
+ del_library_cache(){
+  ldconfig
+  rm -fr ${LIBRARY_CACHE:-/usr/lib.old} \
+         ${LIBRARY_CACHE_64:-/usr/lib64.old}
+  ldconfig
+  true
+ }
 
 
-  install_glibc()  {
-    install  -vm 0600  ../nscd/nscd.conf  $IR/etc/
-    mkdir    -vp                          $IR/var/db
-    mkdir    -vm 0700                     $IR/var/db/nscd
-
-    cd      $IR
-    rm  -f  $IR/etc/{localtime,ld.so.*}
-
-    fix_libc_so
-
-    prepare_install
-
-    if    [  -f                                      $LD_SO  ]
-    then  LD_PRELOAD="$LPO"  \
-          LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"      $LD_SO  /bin/cp  -a  *  /
-    elif  [  -f                                      $LD_64  ]
-    then  LD_PRELOAD="$LPO"  \
-          LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64"  $LD_64  /bin/cp  -a  *  /
-    else  false
-    fi
-
-    del_library_cache
-    /sbin/init u
-    true
-  }
+ fix_libc_so(){
+  case $VERSION in
+   2.4) sed -i "s: AS_NEEDED[^)]*) ::" $IR/usr/lib/libc.so ;;
+  esac
+ }
 
 
-  quick_test()  {
-    echo  "Performing a quick test to see if the new glibc works."
-    if
-      if    [  -f                                      $LD_SO  ]
-      then  LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"      $LD_SO  /bin/true
-      elif  [  -f                                      $LD_64  ]
-      then  LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64"  $LD_64  /bin/true
-      else  false
-      fi
-    then  echo  "glibc is ready to install."
-    else  echo  "glibc is not working as expected."
-          echo  "Compilation aborted before installing new glibc."
-          false
-    fi
-  }
+ install_glibc(){
+  install -vm 0600 ../nscd/nscd.conf $IR/etc/
+  mkdir   -vp                        $IR/var/db
+  mkdir   -vm 0700                   $IR/var/db/nscd
+
+  cd    $IR
+  rm -f $IR/etc/{localtime,ld.so.*}
+
+  fix_libc_so
+
+  prepare_install
+
+  if   [ -f                                      $LD_SO ]
+  then LD_PRELOAD="$LPO" \
+       LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"     $LD_SO /bin/cp -a * /
+  elif [ -f                                      $LD_64 ]
+  then LD_PRELOAD="$LPO" \
+       LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64" $LD_64 /bin/cp -a * /
+  else false
+  fi
+
+  del_library_cache
+  /sbin/init u
+  true
+ }
 
 
-  supported_locales()  {
-    mkdir  -p                       $IR/usr/share/i18n
-    cp     ../localedata/SUPPORTED  $IR/usr/share/i18n
-  }
+ quick_test(){
+  echo "Performing a quick test to see if the new glibc works."
+  if
+   if   [ -f                                      $LD_SO ]
+   then LD_LIBRARY_PATH="$IR/lib:$IR/usr/lib"     $LD_SO /bin/true
+   elif [ -f                                      $LD_64 ]
+   then LD_LIBRARY_PATH="$IR/lib64:$IR/usr/lib64" $LD_64 /bin/true
+   else false
+   fi
+  then echo "glibc is ready to install."
+  else echo "glibc is not working as expected."
+       echo "Compilation aborted before installing new glibc."
+       false
+  fi
+ }
 
 
-  blowfish_patch()  {
-    patch  -p1  <  $SCRIPT_DIR/glibc-$VERSION-crypt_blowfish-$BVERSION.patch
-    mv  crypt/sysdeps/unix/crypt.h          crypt/sysdeps/unix/gnu-crypt.h
-    cp  crypt_blowfish-$BVERSION/*.{h,c,S}  crypt/sysdeps/unix/
-  }
+ supported_locales(){
+  mkdir -p                      $IR/usr/share/i18n
+  cp    ../localedata/SUPPORTED $IR/usr/share/i18n
+ }
 
 
-   LPO="$LD_PRELOAD"
-  unset  LD_PRELOAD LTDL_LIBRARY_PATH  LD_LIBRARY_PATH  LD_RUN_PATH
-# unset  LDFLAGS  LTDL_LIBRARY_PATH  LD_LIBRARY_PATH  LD_RUN_PATH
-
-export    CFLAGS="${CFLAGS/-O?/-O2}"
-export  CXXFLAGS="${CXXFLAGS/-O?/-O2}"
-
-export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-
-export    CFLAGS="${CFLAGS/-ffast-math/}"
-export  CXXFLAGS="${CXXFLAGS/-ffast-math/}"
+ blowfish_patch(){
+  patch -p1 < $SCRIPT_DIR/glibc-$VERSION-crypt_blowfish-$BVERSION.patch
+  mv crypt/sysdeps/unix/crypt.h          crypt/sysdeps/unix/gnu-crypt.h
+  cp crypt_blowfish-$BVERSION/*.{h,c,S}  crypt/sysdeps/unix/
+ }
 
 
-echo  "$CFLAGS"  |
-grep  -q  "\-O"  ||
-export  CFLAGS="$CFLAGS -O2"
+  LPO="$LD_PRELOAD"
+ unset  LD_PRELOAD LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
-echo  "$CXXFLAGS"  |
-grep  -q  "\-O"    ||
-export  CXXFLAGS="$CXXFLAGS -O2"
+  CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
+   CFLAGS="${CFLAGS/-ffast-math/}"
+ CXXFLAGS="${CXXFLAGS/-ffast-math/}"
 
-export    LC_ALL=C
+export   CFLAGS+=' -O2'
+export CXXFLAGS+=' -O2'
+export LC_ALL=C
+
+echo "Linux header version $LVERSION"
 
             IR=$PWD/install
 mkdir  -p  $IR/etc
@@ -202,70 +199,71 @@ touch      $IR/etc/ld.so.conf
     LD_64="$IR/lib64/ld-linux-x86-64.so.2"
 
 
-mkdir  -p                                            $IR/usr/include
-cd          linux-$LVERSION
-make                include/linux/version.h
-make                include/asm
-cp     -rL          include/{asm,asm-generic,linux}  $IR/usr/include
-cd     ..
-rm     -fr  linux-$LVERSION  \
-               /usr/include/{asm,asm-generic,linux}
-cp     -a   $IR/usr/include/*                           /usr/include
+mkdir -p                                  $IR/usr/include
+cd        linux-$LVERSION
+make      include/linux/version.h
+make      include/asm
+cp    -rL include/{asm,asm-generic,linux} $IR/usr/include
+cd    ..
+rm    -fr linux-$LVERSION   /usr/include/{asm,asm-generic,linux}
+cp    -a  $IR/usr/include/* /usr/include
 
 # ^^ linux headers installed before glibc begins compilation.
 
-case  $VERSION  in
-  2.7*) # blowfish_patch
-        mv  glibc-libidn-*    libidn
-        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-        (( KVER >= 2619 ))  &&
-        OPTS="$OPTS --enable-kernel=2.6.19"  ;;
-  2.6*) mv  glibc-libidn-*    libidn
-        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-        (( KVER >= 2615 ))  &&
-        OPTS="$OPTS --enable-kernel=2.6.15"  ;;
-  2.4)  mv  glibc-libidn-2.4  libidn  ;;
-  2.5)  mv  glibc-libidn-*    libidn
-        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-        (( KVER >= 2615 ))  &&
-        OPTS="$OPTS --enable-kernel=2.6.15"  ;;
+case $VERSION in
+ 2.7*) # blowfish_patch
+       mv  glibc-libidn-* libidn
+       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
+       (( KVER >= 2619 )) &&
+       OPTS+=' --enable-kernel=2.6.19' ;;
+ 2.6*) mv  glibc-libidn-* libidn
+       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
+       (( KVER >= 2615 )) &&
+       OPTS+=' --enable-kernel=2.6.15' ;;
+ 2.4)  mv  glibc-libidn-2.4 libidn  ;;
+ 2.5)  mv  glibc-libidn-*   libidn
+       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
+       (( KVER >= 2615 )) &&
+       OPTS+=' --enable-kernel=2.6.15' ;;
 esac
 
 HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
 
-mkdir  build
-cd     build
-../configure       \
---host=$BUILD      \
---build=$BUILD     \
---prefix=/usr      \
---disable-profile  \
---with-tls         \
---with-elf         \
---without-gd       \
---without-cvs      \
---enable-shared    \
---enable-add-ons   \
-$HEADERS           \
-$OPTS              &&
-# make               &&
-# # make    tests    &&
-# make  all  tests  install  install_root=$IR  &&
-make  all  install  install_root=$IR  &&
-supported_locales  &&
-quick_test         &&
+mkdir build
+cd    build
+../configure      \
+--host=$BUILD     \
+--build=$BUILD    \
+--prefix=/usr     \
+--disable-profile \
+--with-tls        \
+--with-elf        \
+--without-gd      \
+--without-cvs     \
+--enable-shared   \
+--enable-add-ons  \
+$HEADERS          \
+$OPTS             && # make all tests install install_root=$IR &&
+make all install install_root=$IR &&
+supported_locales &&
+quick_test        &&
 install_glibc
 }
 
 
-post_install() {
-  default_post_install
-            get_provider  nss_ldap |
-  pipe      show_installed         |
-  LC_ALL=C  sort                   |
-            uniq  -d               |
-            pipe_queue  $CAST_QUEUE  com
+post_install(){
+ default_post_install
+          get_provider  nss_ldap |
+ pipe     show_installed         |
+ LC_ALL=C sort                   |
+          uniq -d                |
+          pipe_queue $CAST_QUEUE com
 }
 
 
-current()  { grep  -q  "/usr/include/linux/version.h"  $INSTALL_LOGS/glibc; }
+current(){
+ case $VERSION in
+  2.7)   grep -qx 'Linux header version 2.6.24.2' $COMPILE_LOGS/glibc ;;
+  2.6.1) grep -qx 'Linux header version 2.6.24.2' $COMPILE_LOGS/glibc ;;
+ esac
+}
