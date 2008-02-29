@@ -8,23 +8,6 @@ MODULE=				# Optional
 IPV6=				# Optional
 IPV6_GATEWAY=			# Optional
 
-verify_connection()  {
-  carrier()  {
-    local  REPLY
-    read < /sys/class/net/$INTERFACE/carrier 2>/dev/null
-    (( REPLY == 1 ))
-  }
-
-  local     TIMEOUT=$SECONDS
-         (( TIMEOUT += 10 ))
-  while  (( TIMEOUT > SECONDS ))  &&
-         !  carrier
-  do     sleep 0.1
-  done
-
-  carrier  
-}
-
 start()  {
 
   [  -n  "$MODULE"     ] && modprobe  "$MODULE"
@@ -39,10 +22,9 @@ start()  {
 
   ip link set $INTERFACE  up
 
-  [ -n      "$GATEWAY" ] && ip    route add to default via      $GATEWAY
-  [ -n "$IPV6_GATEWAY" ] && ip -6 route add to default via $IPV6_GATEWAY
+  [ -n      "$GATEWAY" ] && ip    route add to default via      $GATEWAY || :
+  [ -n "$IPV6_GATEWAY" ] && ip -6 route add to default via $IPV6_GATEWAY || :
   
-  verify_connection
 }
 
 stop()  {  
