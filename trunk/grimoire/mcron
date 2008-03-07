@@ -1,4 +1,4 @@
-   VERSION=( 1.0.3 1.0.1 1.0.0 )
+   VERSION=( 1.0.4 1.0.3 1.0.1 1.0.0 )
   CATEGORY='utility/time'
  ATTRIBUTE='console'
     SOURCE="mcron/mcron-$VERSION.tar.gz"
@@ -11,24 +11,24 @@
 mcron is a 100% compatible Vixie cron replacement implemented using guile.
 It accepts traditional crontabs and configuration files written in Scheme.'
 
-build() {
-  local  TERM
-  local  GLIB=/opt/guile/1.8/lib
-  install_init()  {
-    mv         /usr/bin/cron  /usr/sbin/cron
-    mkdir  -p  /var/cron/tabs
-  }
+build(){
+ local TERM
+ local GLIB=/opt/guile/1.8/lib
+ install_init(){
+   mv       /usr/bin/cron /usr/sbin/cron
+   mkdir -p /var/cron/tabs
+ }
 
-  export  PATH="/opt/guile/1.8/bin:$PATH"
-  export  LDFLAGS="-Wl,-rpath-link,$GLIB -Wl,-rpath,$GLIB $LDFLAGS"
+ export PATH="/opt/guile/1.8/bin:$PATH"
+ export LDFLAGS+=" -Wl,-rpath-link,$GLIB -Wl,-rpath,$GLIB"
 
-  sed  -i  "s:\$HEAD -1:\$HEAD -n 1:"  configure
-  export  TERM="dumb"
-  default_build  &&
-  install_init
+ sed -i "s:\$HEAD -1:\$HEAD -n 1:" configure
+ export  TERM=dumb
+ default_build  &&
+ install_init
 }
 
-current() {
+current(){
  case $VERSION in
   1.0.3) ! grep -q start_daemon-p /etc/init.d/mcron ;;
  esac

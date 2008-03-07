@@ -1,4 +1,4 @@
-   VERSION=( 3.2.0 3.1.0 3.0.1 )
+   VERSION=( 3.3.1 3.2.0 3.1.0 3.0.1 )
     IGNORE='theme\|iconset\|w32\|doc\|gtk2\|i18n\|rc\|TS\|beta'
   CATEGORY='network/email network/news'
  ATTRIBUTE='client x11'
@@ -41,24 +41,22 @@ synce		to keep addressbook of windows CE device in sync with claws
 vcalendar	for vCalendar message handling similar to Evolution or Outlook'
 
 
-# Who wrote this very strange build? -Kyle
-
-build()  {
-      [  -f  README  ]  &&
-  prepare_install       &&
-  if  [  -f  README  ];  then
-    mkdir  -p  $DESTDIR
-    for  OPT  in  $OPTS;  do
-      cd  $BUILD_DIR
-      cd  $OPT*
-      [  -f  configure  ]   &&
-      ./configure           \
-      --build=$BUILD        \
-      --prefix=/usr         \
-      --sysconfdir=/etc     \
-      --localstatedir=/var  &&
-      make  all  install  DESTDIR=$DESTDIR    
-    done
-    true
-  fi
+build(){
+if [ -f README ]; then
+ prepare_install
+ mkdir -p $DESTDIR
+ for OPT in $OPTS; do
+  cd $BUILD_DIR
+  cd $OPT*
+  [ -f configure ]     &&
+  ./configure          \
+  --build=$BUILD       \
+  --prefix=/usr        \
+  --sysconfdir=/etc    \
+  --localstatedir=/var &&
+  make all install DESTDIR=$DESTDIR    
+ done
+ true
+ else false
+ fi
 }

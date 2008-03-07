@@ -1,18 +1,25 @@
 # According to: http://www.freedesktop.org/wiki/Software/dbus
+# The latest release is D-Bus 1.1.20 "Coniston Water". (2008-02-27)
+# This begins a new series of stable releases. 
 # The latest development release is D-Bus 1.1.2. (2007-07-27)
 # The latest release is D-Bus 1.0.2. (2006-12-12)
-  VERSION=( 1.0.2 1.1.2 1.1.1 1.1.0 )
+
+# dbus version 1.1.20 began requiring expat
+  VERSION=( 1.1.20 1.0.2 1.1.2 1.1.1 1.1.0 )
+     SAFE=( 1.1.20 )
+# 1.1.20 is not a security release, however for consistency
+# I want all boxes to use the new stable branch.
     IGNORE='glib\|python'
   CATEGORY='system'
  ATTRIBUTE='console x11'
     SOURCE="dbus-$VERSION.tar.gz"
   HOMEPAGE='http://www.freedesktop.org/Software/dbus'
        URL='http://dbus.freedesktop.org/releases/dbus/'
-       REQ=( 'init-functions'
+       REQ=( 'expat init-functions'
              'libSM:::for x11 session managment support'
              'libX11:::for x11 support'
              'libselinux:--enable-selinux:--disable-selinux:for SELinux support' )
-  ESTIMATE='860'
+  ESTIMATE='900'
       DESC='dbus is a message bus system,
 a simple way for applications to talk to one another.
 It supplies both a system daemon
@@ -23,15 +30,9 @@ Also, the message bus is built on top of a general one-to-one message
 passing framework, which can be used by any two apps to communicate
 directly (without going through the message bus daemon).'
 
-build() {
+build(){
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    messagebus                          2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g messagebus -d /var/empty messagebus 2>/dev/null
 default_build
-}
-
-current()  {
-  case  $VERSION  in
-    1.1.2)  grep  -q   'local_fs run'  /etc/init.d/dbus  ;;
-  esac
 }

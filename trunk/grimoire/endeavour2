@@ -1,23 +1,17 @@
-   VERSION=( 2.8.4 2.8.1 2.7.5 2.7.4 2.7.3 2.7.1 )
-    IGNORE="^2\.8\.2\|^2\.8\.5"
-# 2.8.5 has compile errors
-# 2.8.1 probably still compiles
-# 2.8.2 has compile error
+# 2.9.1 has compile error
 # 2.8.4 has compile error
+#  VERSION=( 2.9.1 2.8.4 2.8.1 2.7.5 2.7.4 2.7.3 2.7.1 )
+   VERSION=(       2.8.4 2.8.1 2.7.5 2.7.4 2.7.3 2.7.1 )
+    IGNORE='^2\.8\.2\|^2\.8\.5'
   CATEGORY='utility/file-manager'
- ATTRIBUTE='x11'
-#ATTRIBUTE='x11 broken'
-#    SOURCE=( "users/wolfpack/endeavour-$VERSION.tar.bz2"
-#             "Endeavour2/contrib/files/taras_mimetypes.ini.bz2" )
-#       URL='http://wolfpack.twu.net/'
-#  HOMEPAGE='http://wolfpack.twu.net/Endeavour2/'
+ ATTRIBUTE='broken x11'
      SOURCE=( "endeavour-$VERSION.tar.bz2" )
         URL='http://www.battlefieldlinux.com/wolfpack/packages/'
    HOMEPAGE='http://www.battlefieldlinux.com/wolfpack/Endeavour2/'
-       REQ=( "giflib imlib"
-             "ziptool:::for controlling IOMega JAZ/ZIP drives" )
+       REQ=( 'giflib imlib'
+             'ziptool:::for controlling IOMega JAZ/ZIP drives' )
   ESTIMATE='600'
-      DESC="endeavour2 is a gtk+-v1.2 file manager.
+      DESC='endeavour2 is a gtk+-v1.2 file manager.
 endeavour2 is a file browser/file manager with an image browser,
 a recycled objects system, and an archiver front end.
 It features all the common UNIX file operations for
@@ -25,33 +19,27 @@ all types of disk objects found the UNIX realm.
 It also supports disk drive mounting, a fully customizable
 window appearance, a MIME Types system, and inter-application
 drag & drop support for KDE and GNOME compatability
-(although KDE and GNOME are not required)."
+(although KDE and GNOME are not required).'
 
 
-build()  {
+build(){
 
-install_mimetypes() {
-  mkdir     -p     /usr/share/endeavour2
-  bunzip2  -cd  $SOURCE_CACHE/endeavour2/$VERSION/${SOURCE[1]##*/}  >  \
-                   /usr/share/endeavour2/mimetypes.ini
-}
+ install_mimetypes(){
+  mkdir    -p    /usr/share/endeavour2
+  bunzip2 -cd $SOURCE_CACHE/endeavour2/$VERSION/${SOURCE[1]##*/} > \
+                 /usr/share/endeavour2/mimetypes.ini
+ }
 
-sed  -i  "s:glib-config:gtk-config:g"  endeavour2/utils/Makefile
-echo "// empty header" > include/xsw_ctype.h
+# sed  -i  's:glib-config:gtk-config:g'  endeavour2/utils/Makefile
+# echo '// empty header' > include/xsw_ctype.h
 
-sed  -i  "s:MAKE = gmake:MAKE = make:"  Makefile
+# sed -i 's:MAKE = gmake:MAKE = make:' Makefile
 
-case  $VERSION  in
-  2.5.6)  sed  -i  "s:-lgif:-lungif:g"  endeavour2/platforms.ini  ;;
-esac
-
-./configure         \
-Linux               \
---prefix=/usr       \
---CFLAGS="$CFLAGS"  &&
-make                &&
-prepare_install     &&
-make    install
-#     &&
-#        install_mimetypes
+ ./configure        \
+ Linux              \
+ --prefix=/usr      \
+ --CFLAGS="$CFLAGS" &&
+ make               &&
+ prepare_install    &&
+ make    install
 }

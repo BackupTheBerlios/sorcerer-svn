@@ -1,5 +1,5 @@
-   [  -z  "$VERSION"  ]  &&
-   VERSION=( 0.9.18 0.9.17 0.9.16 0.9.15b 0.9.15 0.9.14 0.9.13 0.9.12 0.9.11 )
+   [ -z "$VERSION" ] &&
+   VERSION=( 0.9.19 0.9.18 0.9.17 0.9.16 0.9.15b 0.9.15 0.9.14 0.9.13 0.9.12 0.9.11 )
 # 0.9.16 appears to have a linking error involving png
     IGNORE='2002\|link\|stamps\|ttf\|libs\|beos\|win\|cvs'
   CATEGORY='game'
@@ -10,32 +10,32 @@
   ESTIMATE='240'
       DESC='tuxpaint is a simple fun drag and drop painting program.'
 
-case  $SPELL  in
-  tuxpaint)
-       REQ=( 'SDL_image SDL_mixer SDL_Pango SDL_ttf libpaper librsvg'
-             'tuxpaint-stamps:::for press on images' )
-  EPROVIDE='tuxpaint-ttf-chinese tuxpaint-ttf-greek tuxpaint-ttf-hebrew tuxpaint-ttf-hindi tuxpaint-ttf-japanese tuxpaint-ttf-korean tuxpaint-ttf-tamil tuxpaint-ttf-vietnamese'  ;;
+case $SPELL in
+ tuxpaint)
+      REQ=( 'SDL_image SDL_mixer SDL_Pango SDL_ttf libpaper librsvg'
+            'tuxpaint-stamps:::for press on images' )
+ EPROVIDE='tuxpaint-ttf-chinese tuxpaint-ttf-greek tuxpaint-ttf-hebrew tuxpaint-ttf-hindi tuxpaint-ttf-japanese tuxpaint-ttf-korean tuxpaint-ttf-tamil tuxpaint-ttf-vietnamese'  ;;
 esac
 
 
-build()  {
-  case  $VERSION  in
-    0.9.16)  if    [  "$SPELL"  ==  "tuxpaint"  ]
-             then  export  LDFLAGS="$LDFLAGS -lpng"
-             fi  ;;
-    0.9.14)  if    [  "$SPELL"  ==  "tuxpaint"  ]
-             then  sed  -i  "s:#ifndef _IMG_h:#ifndef _SDL_IMAGE_H:
-                             s:#ifndef _SDLttf_h:#ifndef _SDL_TTF_H:"  src/tuxpaint.c
-             fi  ;;
-  esac
+build(){
+ case $VERSION in
+  0.9.16) if   [ "$SPELL" == "tuxpaint" ]
+          then export LDFLAGS+=' -lpng'
+          fi ;;
+  0.9.14) if   [ "$SPELL" == "tuxpaint" ]
+          then sed -i "s:#ifndef _IMG_h:#ifndef _SDL_IMAGE_H:
+                       s:#ifndef _SDLttf_h:#ifndef _SDL_TTF_H:" src/tuxpaint.c
+          fi ;;
+ esac
 
-  make             PREFIX=/usr  &&
-  prepare_install               &&
-  mkdir  -p        /usr/share/icons/hicolor/16x16/apps  &&
-  make    install  PREFIX=/usr
+ make            PREFIX=/usr &&
+ prepare_install             &&
+ mkdir  -p       /usr/share/icons/hicolor/16x16/apps &&
+ make    install PREFIX=/usr
 }
 
 
-case  ${SPELL:9}  in
-  ttf*|stamps)  unset  REQ  IGNORE;  ATTRIBUTE='data';  ESTIMATE='15'  ;;
+case  ${SPELL:9} in
+ ttf*|stamps) unset REQ IGNORE; ATTRIBUTE='data'; ESTIMATE='15' ;;
 esac

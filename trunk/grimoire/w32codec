@@ -6,21 +6,22 @@ case $HOSTTYPE in
  x86_64) SOURCE="essential-amd64-$VERSION.tar.bz2" ;;
       *) SOURCE="essential-${VERSION}.tar.bz2" ;;
 esac
-       URL='ftp://ftp2.mplayerhq.hu/MPlayer/releases/codecs/'
+       URL='ftp://ftp1.mplayerhq.hu/MPlayer/releases/codecs/
+            ftp://ftp2.mplayerhq.hu/MPlayer/releases/codecs/'
   HOMEPAGE='http://www.mplayerhq.hu/'
        REQ=( ''
              'gcc-v3.3:::for cook.so and drvc.so that require libstdc++.so.5' )
   ESTIMATE='70'
       DESC='w32codec contains codecs for decoding video & audio streams.'
 
-build() {
-if     !  [  -f  $VERSION_LOGS/gcc-v3.3  ]
-then   rm    -f  {cook,drvc}.so
-fi
+build(){
+ if   !  [ -f $VERSION_LOGS/gcc-v3.3 ]
+ then rm   -f {cook,drvc}.so
+ fi
 
-prepare_install  &&
-mkdir     -v  -m 0755  -p  /usr/lib/win32  &&
-find   *  -type f            |
-xargs     --max-lines=1  --replace={}  \
-install   -v  -m 0644  -o root  -g root {}  /usr/lib/win32/
+ prepare_install &&
+ mkdir   -v -m 0755 -p /usr/lib/win32 &&
+ find *  -type f |
+ xargs   --max-lines=1 --replace={} \
+ install -v  -m 0644 -o root -g root {} /usr/lib/win32/
 }
