@@ -18,6 +18,9 @@
              'openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support'
              'postgresql:--with-pgsql:--without-pgsql:for postgresql database support'
              'sqlite:--with-sqlite3:--without-sqlite3:for sqlite database support' )
+case $VERSION in
+ 2.2.8) REQ+=' libtool-v1.5' ;;
+esac
    PROTECT='/etc/httpd
             /usr/share/httpd/htdocs
             /usr/share/httpd/error'
@@ -26,169 +29,175 @@
   ESTIMATE='2000'
       DESC='httpd is a popular HTTP server.'
 
-configure() {
-  [  -f                                     $SPELL_CONFIG  ]  ||
-  touch                                     $SPELL_CONFIG
-  if  !   grep  -q  "APACHE_SSL"            $SPELL_CONFIG; then
-    if    query     "do you want to perform semi-auto httpd ssl configuration?" n
-    then  echo      "APACHE_SSL=true"   >>  $SPELL_CONFIG
-    else  echo      "APACHE_SSL=false"  >>  $SPELL_CONFIG
-    fi
+configure(){
+ [ -f                                $SPELL_CONFIG ] ||
+ touch                               $SPELL_CONFIG
+ if !  grep -q "APACHE_SSL"          $SPELL_CONFIG; then
+  if   query   "do you want to perform semi-auto httpd ssl configuration?" n
+  then echo    "APACHE_SSL=true"  >> $SPELL_CONFIG
+  else echo    "APACHE_SSL=false" >> $SPELL_CONFIG
   fi
+ fi
 }
 
-build() {
-  finish_install()  {
-    mkdir  -p  /usr/share/httpd/cgi-bin.ssl
-    mkdir  -p  /usr/share/httpd/htdocs.ssl
-    mkdir  -p  /usr/share/httpd/logs
-    mkdir  -p  /var/lib/httpd/run
-  }
+build(){
+ finish_install(){
+  mkdir -p /usr/share/httpd/cgi-bin.ssl
+  mkdir -p /usr/share/httpd/htdocs.ssl
+  mkdir -p /usr/share/httpd/logs
+  mkdir -p /var/lib/httpd/run
+ }
 
-  fix_ssl_conf()  {
+ fix_ssl_conf(){
 
-  cd  docs/conf
+  cd docs/conf
 
   SR="@@ServerRoot@@"
   CONF="/etc/httpd"
   CGI="/usr/share/httpd/cgi-bin.ssl"
   HTDOCS="/usr/share/httpd/htdocs.ssl"
-  cp  ssl-std.conf  ssl-std.conf.b4
+  cp ssl-std.conf ssl-std.conf.b4
   sed  "s:$SR/conf:/etc/httpd:
   s:$SR/cgi-bin:/$CGI:
   s:$SR/htdocs:$HTDOCS:
-  s:logs/:/var/log/httpd:"  \
+  s:logs/:/var/log/httpd:" \
   ssl-std.conf.b4  >  ssl-std.conf
-  cd  ../..
+  cd ../..
  }
 
-  fix_openssl_PEM_F_DEF_CALLBACK()  {
-    grep   -rl  "PEM_F_DEF_CALLBACK"  *  |
-    xargs  --max-lines=32                \
-    sed    -i   "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
-  }
+ fix_openssl_PEM_F_DEF_CALLBACK(){
+  grep  -rl "PEM_F_DEF_CALLBACK" * |
+  xargs --max-lines=32             \
+  sed   -i  "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
+ }
 
-  if    [  -n  "${SOURCE[1]}"  ]
-  then      APR_DBD_MYSQL=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}
-        cp  $APR_DBD_MYSQL  srclib/apr-util/dbd/
-  fi
+ if   [ -n "${SOURCE[1]}" ]
+ then     APR_DBD_MYSQL=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}
+      cp $APR_DBD_MYSQL srclib/apr-util/dbd/
+ fi
 
-  cat  $SCRIPT_DIR/layout      >>                  config.layout
-  cat  $SCRIPT_DIR/layout.apr  >>       srclib/apr/config.layout
-  cat  $SCRIPT_DIR/layout.apr  >>  srclib/apr-util/config.layout
+ cat $SCRIPT_DIR/layout     >>                 config.layout
+ cat $SCRIPT_DIR/layout.apr >>      srclib/apr/config.layout
+ cat $SCRIPT_DIR/layout.apr >> srclib/apr-util/config.layout
 
-  fix_ssl_conf
-  # fix_openssl_PEM_F_DEF_CALLBACK
+ fix_ssl_conf
+ # fix_openssl_PEM_F_DEF_CALLBACK
 
-  AC="
-  --enable-layout=Sorcerer  \
-  --enable-so               \
-  --enable-modules=all      \
-  --enable-cache            \
-  --enable-cgi              \
-  --enable-deflate          \
-  --enable-mime-magic       \
-  --enable-proxy            \
-  --enable-mods-shared=all  \
-  --build=$BUILD            \
-  --with-mpm=worker         \
-  $OPTS"
+ AC="
+ --enable-layout=Sorcerer \
+ --enable-so              \
+ --enable-modules=all     \
+ --enable-cache           \
+ --enable-cgi             \
+ --enable-deflate         \
+ --enable-mime-magic      \
+ --enable-proxy           \
+ --enable-mods-shared=all \
+ --build=$BUILD           \
+ --with-mpm=worker        \
+ $OPTS"
 
-case  $VERSION  in
-  2.2.0)  sed  -i  's:found="yes":found="no":'  configure  ;;
-  2.2.2)  for file in srclib/apr-util/configure         \
-                      srclib/apr-util/build/dbd.m4; do
-            sed  -i  's:-I\$withval/include/myql:-I/usr/include/mysql:' $file
-          done
-          ;;
-  2.2.3)  sed  -i "48,51d
-                      54d"  srclib/apr-util/dbd/${APR_DBD_MYSQL##*/}
-          ;;
-esac
+ case $VERSION in
+  2.2.0) sed -i 's:found="yes":found="no":' configure ;;
+  2.2.2) for file in srclib/apr-util/configure \
+                     srclib/apr-util/build/dbd.m4; do
+           sed -i 's:-I\$withval/include/myql:-I/usr/include/mysql:' $file
+         done ;;
+  2.2.3) sed -i "48,51d
+                    54d"  srclib/apr-util/dbd/${APR_DBD_MYSQL##*/} ;;
+ esac
 
-  save_apr()     {
-    [  -f  /usr/bin/apr-1-config  ]  &&  mv  /usr/bin/apr-1-config  /usr/bin/apr-1-config.old
-    [  -f  /usr/bin/apu-1-config  ]  &&  mv  /usr/bin/apu-1-config  /usr/bin/apu-1-config.old
-    true
-  }
+ save_apr(){
+  [ -f /usr/bin/apr-1-config ] && mv /usr/bin/apr-1-config /usr/bin/apr-1-config.old
+  [ -f /usr/bin/apu-1-config ] && mv /usr/bin/apu-1-config /usr/bin/apu-1-config.old
+  true
+ }
 
-  restore_apr()  {
-    [  -f  /usr/bin/apr-1-config.old  ]  &&  mv  /usr/bin/apr-1-config.old  /usr/bin/apr-1-config
-    [  -f  /usr/bin/apu-1-config.old  ]  &&  mv  /usr/bin/apu-1-config.old  /usr/bin/apu-1-config
-    true
-  }
+ restore_apr(){
+  [ -f /usr/bin/apr-1-config.old ] && mv /usr/bin/apr-1-config.old /usr/bin/apr-1-config
+  [ -f /usr/bin/apu-1-config.old ] && mv /usr/bin/apu-1-config.old /usr/bin/apu-1-config
+  true
+ }
 
-  remove_apr()   {
-    rm  -f  /usr/bin/apr-1-config.old  /usr/bin/apu-1-config.old
-  }
+ remove_apr(){
+  rm -f /usr/bin/apr-1-config.old /usr/bin/apu-1-config.old
+ }
 
-  export  LAYOUT="Sorcerer"
+ export  LAYOUT="Sorcerer"
 
-        save_apr
-  if    ./buildconf       &&
-        ./configure  $AC  &&
-        make
+ case $VERSION in
+  2.2.8)
+   export   CFLAGS+=' -I/opt/libtool/include'
+   export CXXFLAGS+=' -I/opt/libtool/include'
+   export  LDFLAGS+=' -L/opt/libtool/lib'  
+   export      PATH="/opt/libtool/bin:$PATH" ;;
+ esac
+
+       save_apr
+ if    ./buildconf     &&
+       ./configure $AC &&
+       make
   then
-        restore_apr       &&
-        prepare_install   &&
-        save_apr          &&
-        make    install   &&
-         finish_install   &&
-         remove_apr
-  else   restore_apr;  false
-  fi
+       restore_apr     &&
+       prepare_install &&
+       save_apr        &&
+       make    install &&
+        finish_install &&
+        remove_apr
+ else   restore_apr; false
+ fi
 }
 
-post_install() {
-  self_signed_cert()  {
-    local  SSL="SSLCertificate"
-    local  KEY="server.key"
-    local  CSR="server.csr"
-    local  PEM="server.pem"
-    local  CRT="server.crt"
-    local  PAS="file:server.pas"
-    local  CON="/etc/httpd"
-    local    O="openssl"
+post_install(){
+ self_signed_cert(){
+  local SSL=SSLCertificate
+  local KEY=server.key
+  local CSR=server.csr
+  local PEM=server.pem
+  local CRT=server.crt
+  local PAS=file:server.pas
+  local CON=/etc/httpd
+  local   O=openssl
 
-    $O genrsa -des3              -out $KEY -passout $PAS 1024 2>&1  &&
-    $O req    -new     -key $KEY -out $CSR -passin  $PAS      2>&1  &&
-    $O rsa             -in  $KEY -out $PEM -passin  $PAS      2>&1  &&
-    $O x509   -req     -in  $CSR -out $CRT -passin  $PAS \
-              -days    1461      -signkey  $KEY               2>&1  &&
-    install  -D  -m 0600  server.crt  $CON/ssl.crt/server.crt       &&
-    install  -D  -m 0600  server.pem  $CON/ssl.key/server.pem       &&
-    sed      -i  "s:^#$SSL:$SSL:"     $CON/ssl.conf
-  }
+  $O genrsa -des3           -out $KEY -passout $PAS 1024 2>&1 &&
+  $O req    -new  -key $KEY -out $CSR -passin  $PAS      2>&1 &&
+  $O rsa          -in  $KEY -out $PEM -passin  $PAS      2>&1 &&
+  $O x509   -req  -in  $CSR -out $CRT -passin  $PAS \
+            -days    1461      -signkey  $KEY            2>&1 &&
+  install -D -m 0600 server.crt $CON/ssl.crt/server.crt       &&
+  install -D -m 0600 server.pem $CON/ssl.key/server.pem       &&
+  sed     -i "s:^#$SSL:$SSL:"   $CON/ssl.conf
+ }
 
-  generate_certificates()  {
-    if  !  grep  -q  "configured"        $SPELL_CONFIG;  then
-      if   grep  -q  "APACHE_SSL=true"   $SPELL_CONFIG;  then
-        echo            $"Password must be between 4 and 8191 characters"
-        read  -t 600 -p $"Please enter a password for the server key: "
-        if    ((  ${#REPLY} > 3 ));  then
-          touch                      server.pas
-          chmod  0600                server.pas
-          echo   "$REPLY"         >  server.pas
-          echo   "configured=1"  >>  $SPELL_CONFIG
-          self_signed_cert
-        fi
-      fi
+ generate_certificates(){
+  if ! grep -q "configured"       $SPELL_CONFIG; then
+   if  grep -q "APACHE_SSL=true"  $SPELL_CONFIG; then
+    echo           $"Password must be between 4 and 8191 characters"
+    read -t 600 -p $"Please enter a password for the server key: "
+    if (( ${#REPLY} > 3 )); then
+     touch                   server.pas
+     chmod 0600              server.pas
+     echo  "$REPLY"        > server.pas
+     echo  "configured=1" >> $SPELL_CONFIG
+     self_signed_cert
     fi
-  }
+   fi
+  fi
+ }
 
-  recast()  {
-    PRO="$(  get_provider    "$1"    )"
-    if    [  -n              "$PRO"  ]  &&
-           spell_installed   "$PRO"     &&
-         ! spell_held        "$PRO"
-    then
-      [  -f           "$CAST_QUEUE/$PRO"  ]  ||
-      echo  "com"  >  "$CAST_QUEUE/$PRO"
-    fi
-  }
+ recast(){
+  PRO="$(  get_provider  "$1"   )"
+  if    [ -n             "$PRO" ] &&
+         spell_installed "$PRO"   &&
+       ! spell_held      "$PRO"
+  then
+    [ -f       "$CAST_QUEUE/$PRO" ] ||
+    echo com > "$CAST_QUEUE/$PRO"
+  fi
+ }
 
-  default_post_install
-  generate_certificates
-  recast  php
-  recast  mod_perl
+ default_post_install
+ generate_certificates
+ recast php
+ recast mod_perl
 }
