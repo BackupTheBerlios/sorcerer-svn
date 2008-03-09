@@ -4,9 +4,9 @@
     SOURCE="wpa_supplicant-$VERSION.tar.gz"
        URL='http://hostap.epitest.fi/releases/'
   HOMEPAGE='http://hostap.epitest.fi/wpa_supplicant'
-       REQ=( 'openssl readline ncurses'
+       REQ=( 'openssl readline ncurses dbus'
              'qt-x11-opensource:::for GUI' )
-  ESTIMATE='100'
+  ESTIMATE='133'
       DESC='wpa_supplicant is a WPA/WPA2 supplicant
 wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
 It is suitable for both desktop/laptop
@@ -23,9 +23,38 @@ It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
 build(){
+ create_config() {
+  cat > .config << EOF
+CONFIG_DRIVER_HOSTAP=y
+CONFIG_DRIVER_ATMEL=y
+CONFIG_DRIVER_IPW=y
+CONFIG_DRIVER_RALINK=y
+CONFIG_DRIVER_WEXT=y
+CONFIG_DRIVER_WIRED=y
+CONFIG_IEEE8021X_EAPOL=y
+CONFIG_EAP_MD5=y
+CONFIG_EAP_MSCHAPV2=y
+CONFIG_EAP_TLS=y
+CONFIG_EAP_PEAP=y
+CONFIG_EAP_TTLS=y
+CONFIG_EAP_GTC=y
+CONFIG_EAP_OTP=y
+CONFIG_EAP_LEAP=y
+CONFIG_PKCS12=y
+CONFIG_SMARTCARD=y
+CONFIG_CTRL_IFACE=y
+CONFIG_READLINE=y
+CONFIG_BACKEND=file
+CONFIG_PEERKEY=y
+CONFIG_IEEE80211W=y
+CONFIG_TLS=openssl
+CONFIG_CTRL_IFACE_DBUS=y
+EOF
+ }
+
  install_examples(){
-  mv *.conf examples
-  mv        examples doc
+  mv *.service *.conf examples
+  mv                  examples doc
  }
 
  install_man(){
@@ -35,25 +64,30 @@ build(){
  }
 
  install_wpa_gui(){
-  if                 [ -f wpa_gui/wpa_gui ]
-  then install -v -m 0755 wpa_gui/wpa_gui /usr/bin
+  if                 [ -f wpa_gui-qt4/wpa_gui ]
+  then install -v -m 0755 wpa_gui-qt4/wpa_gui /usr/bin
   fi
  }
 
  install_wpa_files(){
   install -v -d /etc/wpa_supplicant
+  install -v -m 0644 dbus-wpa_supplicant.conf 	\
+     /etc/dbus-1/system.d/wpa_supplicant.conf  
   install_wpa_gui
   install_examples
   install_man	
  }
 
- make_gui(){ make wpa_gui; true; }
+ make_gui(){ 
+	export PATH=$PATH:/opt/kde4/bin
+	make wpa_gui-qt4
+ }
 
- export QTDIR=/usr/share/qt4
+ export QTDIR=/opt/kde4
  sed -i 's:/usr/local:/usr:' wpa_supplicant/Makefile
  export  LDFLAGS+=' -L/lib -L/lib64'
  cd  wpa_supplicant     &&
- cp  defconfig  .config &&
+ create_config		&&
  make                   &&
  make_gui               &&
  prepare_install        &&
