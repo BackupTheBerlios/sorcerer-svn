@@ -1,17 +1,26 @@
+# cutecom 0.14.1 no longer compiles after qt-x11-free was moved to /opt/kde3
    VERSION=( 0.14.2 0.14.1 0.14.0 0.13.2 0.13.1 0.13.0 0.12.0 )
   CATEGORY='network'
  ATTRIBUTE='kde3'
     SOURCE="cutecom-$VERSION.tar.gz"
        URL='http://cutecom.sourceforge.net/'
   HOMEPAGE='http://cutecom.sourceforge.net/'
-       REQ='qt-x11-free'
-  ESTIMATE='20'
+       REQ='cmake qt-x11-free'
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde3
+            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde3/lib:/opt/kde3/lib64
+            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+            -DCMAKE_BUILD_TYPE=Release'
+  ESTIMATE='50'
       DESC='cutecom is a graphical serial terminal.'
 
 build(){
-export PATH="/opt/kde3/bin:$PATH"
-qmake
-make QTDIR=/opt/kde3 &&
-prepare_install &&
-        install -m 0755 cutecom /usr/bin/
+ export PATH="/usr/kde3/bin:$PATH"
+ mkdir build
+ cd    build
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
 }
