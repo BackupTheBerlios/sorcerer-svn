@@ -1,5 +1,5 @@
-   VERSION=( 3.0.STABLE1 2.6.STABLE17 2.6.STABLE16 2.6.STABLE15 )
-      SAFE=( 3.0.STABLE1 2.6.STABLE17 )
+   VERSION=( 3.0.STABLE2 3.0.STABLE1 2.6.STABLE17 2.6.STABLE16 2.6.STABLE15 )
+      SAFE=( 3.0.STABLE2 3.0.STABLE1 2.6.STABLE17 )
     IGNORE='200[3-9]\|RC'
   CATEGORY='network/web network/ftp'
  ATTRIBUTE='server'
@@ -26,27 +26,26 @@ Squid supports...
   * SNMP
   * caching of DNS lookups'
 
-build() {
-  SCX=1
-  while  [  -n  "${SOURCE[$SCX]}"  ]
-  do     patch  -p1  <  $SOURCE_CACHE/squid/$VERSION/${SOURCE[$SCX]}
-        ((SCX++))
-  done
+build(){
+ SCX=1
+ while [ -n "${SOURCE[$SCX]}" ]
+ do    patch -p1 < $SOURCE_CACHE/squid/$VERSION/${SOURCE[$SCX]}
+       ((SCX++))
+ done
 
-  sed  -i  "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:"  \
-       src/Makefile.in
+ sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
 
-  ./configure                       \
-  --prefix=/usr                     \
-  --sysconfdir=/etc/squid           \
-  --localstatedir=/var/cache/squid  \
-  --enable-async-io                 \
-  --enable-snmp                     \
-  --enable-linux-netfilter          \
-  $OPTS                             &&
-  make                              &&
-  prepare_install                   &&
-  make    install                              &&
-  mkdir  -p                  /var/cache/squid  &&
-  chown  -R  nobody.nogroup  /var/cache/squid
+ ./configure                      \
+ --prefix=/usr                    \
+ --sysconfdir=/etc/squid          \
+ --localstatedir=/var/cache/squid \
+ --enable-async-io                \
+ --enable-snmp                    \
+ --enable-linux-netfilter         \
+ $OPTS                            &&
+ make                             &&
+ prepare_install                  &&
+ make    install                  &&
+ mkdir  -p                /var/cache/squid &&
+ chown  -R nobody.nogroup /var/cache/squid
 }
