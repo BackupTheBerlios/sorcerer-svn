@@ -1,4 +1,4 @@
-   VERSION=( 2.20.3 2.20.2 2.20.1 2.20.0 )
+   VERSION=( 2.20.4 2.20.3 2.20.2 2.20.1 2.20.0 )
     IGNORE='^2\.21\.'
   CATEGORY='window-manager'
  ATTRIBUTE='gnome'
@@ -18,13 +18,13 @@
 gdm the Gnome Display Manager is a re-implementation
 of the well known xdm program.'
 
-build() {
-  if    spell_installed  Linux-PAM;  then  SCHEME=pam
-  elif  spell_installed  shadow;     then  SCHEME=shadow
-  else  SCHEME=auto
-  fi
+build(){
+ if   spell_installed Linux-PAM; then SCHEME=pam
+ elif spell_installed shadow;    then SCHEME=shadow
+ else SCHEME=auto
+ fi
 
-  AUTH_SCHEME="--enable-authentication-scheme=$SCHEME"
+ AUTH_SCHEME="--enable-authentication-scheme=$SCHEME"
 
 mkdir    -p -m 0750 /var/gdm
 groupadd -K GID_MIN=256 -K GID_MAX=512    gdm                 2>/dev/null
@@ -36,16 +36,13 @@ chown    -R gdm:gdm /var/gdm
 # When will the lines below become obsolete?
 # -Kyle
 
-  grep   -q  dbus-launch  config/Xsession.in  ||
-  patch  -p1  <  $SCRIPT_DIR/gdm-2.16.1-dbus.patch
-
-  ./configure           \
-  --prefix=/usr         \
-  --localstatedir=/var  \
-  --sysconfdir=/etc     \
-  $OPTS                 \
-  $AUTH_SCHEME          &&
-  make                  &&
-  prepare_install       &&
-  make    install
+ ./configure          \
+ --prefix=/usr        \
+ --localstatedir=/var \
+ --sysconfdir=/etc    \
+ $OPTS                \
+ $AUTH_SCHEME         &&
+ make                 &&
+ prepare_install      &&
+ make    install
 }
