@@ -8,7 +8,6 @@
 
 case $VERSION in
   2.7*)
-  USE_GCC='gcc-v4.2' # 2.7 does not compile with gcc 4.3.0
  BVERSION=( 1.0.2 )
    SOURCE=( "glibc/glibc-$VERSION.tar.bz2"
             "glibc/glibc-libidn-$VERSION.tar.bz2"
@@ -196,7 +195,8 @@ cp    -a  $IR/usr/include/* /usr/include
 # ^^ linux headers installed before glibc begins compilation.
 
 case $VERSION in
- 2.7*) # blowfish_patch
+ 2.7*) patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
+       # blowfish_patch
        mv  glibc-libidn-* libidn
        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
        (( KVER >= 2619 )) &&

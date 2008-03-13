@@ -6,9 +6,10 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://www.boost.org'
        REQ='Python boost-jam bzip2 zlib'
-case $VERSION in
- 1_34_1) USE_GCC='gcc-v4.2.1' ;;
-esac
+      OPTS='--with-icu'
+# case $VERSION in
+#  1_34_1) USE_GCC='gcc-v4.2' ;;
+# esac
   ESTIMATE='7000'
       DESC='boost provides additional C++ libraries.
 boost was begun by members of the C++ standards
@@ -28,24 +29,25 @@ programming style of the Standard Template Library (STL).'
 
 build(){
 build_old(){
-export  PYTHON_ROOT=/usr
-bjam                                                 &&
-prepare_install                                      &&
-cp  -r  boost                          /usr/include  &&
-cp  -r  libs/python/build/bin-stage/*  /usr/lib      &&
-cp      $(  find . -type f     -a  \
-                   -name \*.a  -o  \
-                   -name \*.so     |
-            grep release           )   /usr/lib
+ symlink_includes(){
+  ln -fsv /usr/include/boost-${VERSION}/boost /usr/include/boost
+ }
+
+ export PYTHON_ROOT=/usr
+ bjam   --prefix=/usr stage   &&
+ prepare_install              &&
+ bjam   --prefix=/usr install &&
+ symlink_includes
 }
 
-symlink_includes(){
-  ln  -svf  /usr/include/boost-${VERSION}/boost  /usr/include/boost
-}
-
-export  PYTHON_ROOT=/usr
-bjam    --prefix=/usr  stage    &&
-prepare_install                 &&
-bjam    --prefix=/usr  install  &&
-symlink_includes
+ symlink_includes(){
+  ln -fsv /usr/include/boost-${VERSION}/boost /usr/include/boost
+ }
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
+ symlink_includes
 }
