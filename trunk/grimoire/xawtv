@@ -1,21 +1,26 @@
-# xawtv 3.95 has a mandatory requirement on obsolete openquicktime
    VERSION=( 3.95 3.94 3.93 3.92 3.91 3.90 )
   CATEGORY='video/television'
- ATTRIBUTE='x11 broken'
+ ATTRIBUTE='x11'
     SOURCE="xawtv-$VERSION.tar.gz"
        URL='http://dl.bytesex.org/releases/xawtv/'
   HOMEPAGE='http://bytesex.org/xawtv/'
-       REQ=( 'jpeg libFS libpng libdv ncurses recode tv-fonts'
+# recode does not compile on x86_64
+#      REQ=( 'jpeg libFS libpng libdv ncurses recode tv-fonts'
+       REQ=( 'jpeg libFS libpng libdv ncurses tv-fonts'
              'aalib:--enable-aa:--disable-aa:for ascii output'
              'lesstif:--enable-motif:--disable-motif:for lesstif graphic widgets'
              'zvbi:::a video caputer library' )
 # lirc support disable while lirc is broken
 #             'lirc:--enable-lirc::to enable lirc (remote control) support'
-case  $VERSION  in
-  3.95)  case  $HOSTTYPE  in
-           x86_64)  OPTS='--x-libraries=/usr/lib64'  ;;
-                *)  OPTS='--x-libraries=/usr/lib'    ;;
-         esac  ;;
+      OPTS='--disable-quicktime'
+ CONFLICTS='libquicktime'
+# xawtv wil not compile with libquicktime installed.
+# xawtv requires an obsolete libquicktime
+case $VERSION in
+ 3.95) case $HOSTTYPE in
+        x86_64) OPTS='--x-libraries=/usr/lib64' ;;
+             *) OPTS='--x-libraries=/usr/lib'   ;;
+       esac ;;
 esac
   ESTIMATE='128'
       DESC='xawtv is a tv program for use with bttv drivers or video4linux.
@@ -24,8 +29,10 @@ utilities for grabbing images and AVI movies,
 tuning in TV stations, etc.'
 
 
-build()  {
-  grep  -q  '^flags.*mmx'  /proc/cpuinfo  &&
-  OPTS+=' --enable-mmx'
-  default_build
+build(){
+ case $HOSTTYPE in
+  i?86) grep -q '^flags.*mmx' /proc/cpuinfo &&
+        OPTS+=' --enable-mmx' ;;
+ esac
+ default_build
 }
