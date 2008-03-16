@@ -1,55 +1,39 @@
-   VERSION=( 0.8.0 0.7.8-1 0.6.5-1 0.6.3-1 0.6.2-1 0.6.1-2 0.4.1 )
-    IGNORE="docs\|examples\|^0\.8\.0"
-# 0.8.0 has compile error
+   VERSION=( 0.8.1 0.8.0 )
+    IGNORE='docs\|examples'
   CATEGORY='graphic'
  ATTRIBUTE='library x11'
-#    SOURCE="clanlib/ClanLib-$VERSION.tar.bz2"
-#       URL="$SOURCEFORGE_URL"
     SOURCE="ClanLib-$VERSION.tgz"
        URL="http://clanlib.org/download/releases-${VERSION:0:3}/"
   HOMEPAGE='http://clanlib.org'
 case  $VERSION  in
-  0.8.0)  USE_GCC="gcc-v4.0"  ;;
-  0.7.8-1)  USE_GCC="gcc-v3.4"  ;;
-#           USE_LINUX="linux-headers-v2.6.15.6"  ;;
+  0.8.[0-1])  USE_GCC='gcc-v4.0' ;;
 esac
-#      REQ='Hermes SDL_gfx autoconf automake freetype jpeg libpng'
-# ClanLib 0.6.5-1 is not compatibile with DirectFB 0.9.20
-       REQ=( "automake freetype jpeg libpng"
-             "DirectFB:::for DirectFB support"
-             "MesaLib:::for openGL support"
-             "SDL_gfx:::for SDL support"
-             "libmikmod:::to play amiga mod audio files"
-             "libvorbis:::to play ogg/vorbis audio files" )
+       REQ=( 'automake freetype jpeg libpng'
+             'DirectFB:::for DirectFB support'
+             'MesaLib:::for openGL support'
+             'SDL_gfx:::for SDL support'
+             'libmikmod:::to play amiga mod audio files'
+             'libvorbis:::to play ogg/vorbis audio files'
+             'ClanLib:::for network audio server support' )
   ESTIMATE='4800'
- FRESHMEAT="clanlib"
-      DESC="ClanLib is a multi-platform game development library
+ FRESHMEAT='clanlib'
+      DESC='ClanLib is a multi-platform game development library
 Clanlib is a medium level development kit.
 At its lowest level it provides a platform 
 independent way of dealing with display, sound,
-input, networking, files, threadding and such."
+input, networking, files, threadding and such.'
 
 
-build()  {
-  export    CFLAGS="${CFLAGS/-O3/-O2}"
-  export  CXXFLAGS="${CXXFLAGS/-O3/-O2}"
-  export   LDFLAGS="-lz $LDFLAGS"
+build(){
+ export   CFLAGS="${CFLAGS/-O3/-O2}"
+ export CXXFLAGS="${CXXFLAGS/-O3/-O2}"
+ export  LDFLAGS="-lz $LDFLAGS"
 
-  case  $VERSION  in
-    0.6.*)  #  fix for DirectFb 0.9.16 or later
-            sed  -i  "s:DSPF_RGB15:DSPF_ARGB1555:g"  Sources/Display/Display/DirectFB/target_directfb.cpp
-            #  fix for XFree86 4.3.0
-            sed  -i  "1i#define GLX_GLXEXT_LEGACY"   Sources/GL/GLX/displaycard_glx.h  ;;
-  esac
-
-  # fix for gcc 3.3.2
-  sed  -i  '26i#include "assert.h"'        Sources/Core/IOData/Unix/directory_scanner_unix.h
-
-  ./autogen.sh
-  ./configure      \
-  --prefix=/usr    \
-  $OPTS            &&
-  make             &&
-  prepare_install  &&
-  make    install
+ ./autogen.sh
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
 }

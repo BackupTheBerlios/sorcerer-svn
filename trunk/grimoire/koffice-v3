@@ -3,8 +3,9 @@
   CATEGORY='utility/editor utility/spreadsheet graphic/editor'
  ATTRIBUTE='kde3'
     SOURCE="stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2"
-case  $VERSION  in
-  1.6.3)  SOURCE[1]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'  ;;
+case $VERSION in
+ 1.6.3) SOURCE[1]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'
+        USE_GCC=gcc-v4.2 ;;
 esac
   HOMEPAGE='http://www.koffice.org'
        URL="$KDE_URL"
@@ -53,6 +54,10 @@ case ${SPELL:8} in
 esac
 
 build(){
+ case $VERSION in
+  1.6.3) grep -rl "\<iostream.h\>" * | xargs -r --max-lines=64 \
+         sed  -i "s:<iostream.h>:<iostream>\nusing namespace std;:" ;;
+ esac
  case $VERSION in
   1.6.3) patch -p0 < $SOURCE_CACHE/koffice/1.6.3/${SOURCE[1]##*/} ;;
  esac
