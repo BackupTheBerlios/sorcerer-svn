@@ -1,30 +1,24 @@
-   VERSION=( 0.6.5 0.6.4 )
-    IGNORE="^0\.7\."
+# NetworkManager-NetworkManagerSystem.o: In function `new_nl_handle':
+# NetworkManagerSystem.c:(.text+0x10): undefined reference to `nl_handle_alloc_nondefault'
+# NetworkManagerSystem.c:(.text+0x31): undefined reference to `nl_handle_set_pid'
+# collect2: ld returned 1 exit status
+# make[3]: *** [NetworkManager] Error 1
+
+   VERSION=( 0.6.5 0.6.4 0.6.3 )
   CATEGORY='development'
-# ATTRIBUTE='gnome broken new'
- ATTRIBUTE='gnome new'
+ ATTRIBUTE='gnome new broken'
     SOURCE="sources/NetworkManager/${VERSION:0:3}/NetworkManager-$VERSION.tar.bz2"
   HOMEPAGE='http://www.gnome.org'
        URL="$GNOME_URL"
-# Requirement list incomplete until compilation success
-       REQ='dhcpcd libnl wireless_tools wpa_supplicant'
-# dhcdbd website missing... so how does this compile anymore?
-      OPTS="--with-distro=gentoo"
+# dhcdbd requirement departs with NetworkManager 0.7.x
+       REQ='dhcdbd dhcpcd libnl wireless_tools wpa_supplicant'
+      OPTS='--with-distro=gentoo'
   ESTIMATE='156'
-      DESC="NetworkManager provides a GUI for wireless networking network selection."
+      DESC='NetworkManager provides a GUI for wireless networking network selection.'
 
-# Looks like it requires a specific version of linux kernel headers
-
-# In file included from /usr/include/linux/mii.h:12,
-#                  from nm-device-802-3-ethernet.c:379:
-# /usr/include/linux/if.h:95: error: redefinition of 'struct ifmap'
-# /usr/include/linux/if.h:131: error: redefinition of 'struct ifreq'
-# /usr/include/linux/if.h:181: error: redefinition of 'struct ifconf'
-# make[3]: *** [NetworkManager-nm-device-802-3-ethernet.o] Error 1
-# make[3]: Leaving directory `/usr/src/sorcery/NetworkManager/NetworkManager-0.6.4/src'
-# make[2]: *** [all-recursive] Error 1
-# make[2]: Leaving directory `/usr/src/sorcery/NetworkManager/NetworkManager-0.6.4/src'
-# make[1]: *** [all-recursive] Error 1
-# make[1]: Leaving directory `/usr/src/sorcery/NetworkManager/NetworkManager-0.6.4'
-# make: *** [all] Error 2
-
+build(){
+ case $VERSION in
+  0.6.4) patch -p1 < $SCRIPT_DIR/NetworkManager-0.6.4.patch ;;
+ esac
+ default_build
+}
