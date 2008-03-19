@@ -17,36 +17,35 @@
       DESC='gpm is a mouse server for the console'
 
 configure(){
-
 mouse_menu(){
  BACKTITLE='gpm Configuration Menu'
      TITLE='Mouse Selection'
       HELP='Please select the mouse protocol'
 
- dialog  --backtitle  "$BACKTITLE"  \
-         --title      "$TITLE"      \
-         --stdout                   \
-         --timeout  "$PROMPT_DELAY" \
-         --no-cancel                \
-         --menu  "$HELP"            \
-         0 0 0                      \
-         $(< $SCRIPT_DIR/mice )
+ dialog --backtitle  "$BACKTITLE"  \
+        --title      "$TITLE"      \
+        --stdout                   \
+        --timeout  "$PROMPT_DELAY" \
+        --no-cancel                \
+        --menu  "$HELP"            \
+        0 0 0                      \
+        $(< $SCRIPT_DIR/mice )
 }
 
-dev_menu() {
+dev_menu(){
  BACKTITLE=$"gpm Configuration Menu"
      TITLE=$"Device node Selection"
       HELP=$"Please select the mouse device node"
 
- dialog  --backtitle  "$BACKTITLE"  \
-         --title      "$TITLE"      \
-         --stdout                   \
-         --timeout  "$PROMPT_DELAY" \
-         --no-cancel                \
-         --default-item /dev/psaux  \
-         --menu  "$HELP"            \
-         0 0 0                      \
-         $( find /dev -type c | sed "adev" )
+ dialog --backtitle  "$BACKTITLE"  \
+        --title      "$TITLE"      \
+        --stdout                   \
+        --timeout  "$PROMPT_DELAY" \
+        --no-cancel                \
+        --default-item /dev/psaux  \
+        --menu  "$HELP"            \
+        0 0 0                      \
+        $( find /dev -type c | sed "adev" )
 }
 
  if   ! grep -qs MOUSE= $SPELL_CONFIG ||
@@ -77,5 +76,13 @@ build(){
  if ! [ -f configure ]
  then autoheader && autoconf
  fi
+# The following case probably only required for
+# versions 1.99.2.2 1.99.2.1
+ case $HOSTTYPE in
+  x86_64)
+    echo "#ifndef OPEN_MAX
+ #define OPEN_MAX 20
+ #endif" >> src/headers/gpm.h ;;
+ esac
  default_build
 }
