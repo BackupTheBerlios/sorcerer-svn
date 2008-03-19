@@ -169,40 +169,40 @@ build() {
 }
 
 
-post_install() {
-  update_etc_lilo_conf
+post_install(){
+ update_etc_lilo_conf
 
-  show_installed  initramfs       |
-  sed  -n      '/^initramfs/p'    |  pipe_queue  "$CAST_QUEUE"  com
+ show_installed initramfs    |
+ sed -n      '/^initramfs/p' | pipe_queue "$CAST_QUEUE" com
 
-  if    [  -x  /usr/bin/mail   ];  then  MAILER=/usr/bin/mail
-  elif  [  -x  /usr/bin/mailx  ];  then  MAILER=/usr/bin/mailx
-  fi
+ if   [ -x /usr/bin/mail  ]; then MAILER=/usr/bin/mail
+ elif [ -x /usr/bin/mailx ]; then MAILER=/usr/bin/mailx
+ fi
 
-  if    [  -n  "$MAILER"    ]  &&
-        [  -n  "$SORCERER"  ]
-  then
-    echo     -e  "New linux kernel installed.\nReboot the box, please."  |
-    $MAILER  -s  "Reboot reminder from sorcery."  $SORCERER
-  fi
+ if   [ -n "$MAILER"   ] &&
+      [ -n "$SORCERER" ]
+ then
+  echo    -e "New linux kernel installed.\nReboot the box, please." |
+  $MAILER -s "Reboot reminder from sorcery." $SORCERER
+ fi
 
-  grep  -lr   '^/lib/modules/'  $INSTALL_LOGS  |
-  sed         "s:.*[/]::;/^$/d;/^$SPELL$/d"    |
-  pipe_queue  "$CAST_QUEUE"  "com"
+ grep -lr   '^/lib/modules/' $INSTALL_LOGS |
+ sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
+ pipe_queue "$CAST_QUEUE" com
 
-#                 MODULES="$( show_installed linux-26-module )"
-#  if    [  -n  "$MODULES"  ];  then
-#    echo       "$MODULES"  |  pipe_queue  "$CAST_QUEUE"  "com"
-#  fi
+#              MODULES="$( show_installed linux-26-module )"
+# if    [ -n "$MODULES" ]; then
+#  echo      "$MODULES" | pipe_queue "$CAST_QUEUE" com
+# fi
 
-  true
+ true
 }
 
 
-current()  {
-  if    !  [  -f      /usr/include/linux/autoconf.h  ]
-  then  cp  /usr/src/linux/include/linux/autoconf.h  \
-                      /usr/include/linux/autoconf.h
-        true
-  fi
+current(){
+ if   ! [ -f       /usr/include/linux/autoconf.h ]
+ then cp /usr/src/linux/include/linux/autoconf.h \
+                   /usr/include/linux/autoconf.h
+      true
+ fi
 }
