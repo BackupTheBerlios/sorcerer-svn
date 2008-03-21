@@ -1,0 +1,76 @@
+# Copyright Kyle Sallee 2008.
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+
+# For potential future inclusion:
+# shishi:/etc/shishi/shisa.conf
+# shishi:/etc/shishi/shishi.conf
+# shishi:/etc/shishi/shishi.skel
+# heimdal:/etc/krb5.conf
+
+
+   VERSION=( 20080320 )
+  CATEGORY='administration'
+ ATTRIBUTE='archive_off profile'
+      DESC='etc provides menu driven modification of files in /etc'
+
+configure(){
+ DIALOG="dialog
+--backtitle
+/etc Configuration
+--stdout"
+
+ default_check(){ :; }
+         check(){ default_check; }
+ default_method(){ ${EDITOR:-nano} $LOC; }
+         method(){ default_method; }
+     run_method(){ (
+
+  local USE
+  USE="$( grep -r "LOC=" $SCRIPT_DIR |
+          tr   -d "\"'" |
+          grep    "$1$" |
+          cut  -d ':' -f1 )"
+
+  . $USE
+
+  if   $DIALOG --msgbox "$LOC $DES" 0 0
+       [ -n "$MAN" ] &&
+       $DIALOG --nocancel --yesno "Display the manual page?" 0 0
+  then man $MAN | less -irs
+  fi
+
+  if   $DIALOG --nocancel --yesno "Edit it?" 0 0
+  then method; check
+  fi
+ ) }
+
+ top_menu(){
+  while
+   local     OK=Select
+   local CANCEL=Done
+   local  TITLE=/etc
+
+   GO=$( $DIALOG                  \
+         --title        "$TITLE"  \
+         --item-help              \
+         --ok-label     "$OK"     \
+         --cancel-label "$CANCEL" \
+         --menu         ""        \
+         19 60 11                 \
+         $( /usr/bin/head -qn 3 $SCRIPT_DIR/* |
+            cut -d '=' -f2 |
+            cut -d '"' -f2 ) )
+  do
+   run_method $GO
+  done
+ }
+
+ if ! grep -qs 'etc=' $SPELL_CONFIG; then
+  ( export IFS="$TAB_ENTER_IFS"
+    top_menu
+    echo 'etc=true' > $SPELL_CONFIG
+  )
+ fi
+}

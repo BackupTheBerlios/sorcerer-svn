@@ -1,0 +1,43 @@
+LOC=/etc/localtime
+WHY=Date
+DES="provides the location for converting UTC time into localtime
+Boxes store time internally in UTC, universal coordinated time.
+Everywhere on Earth UTC time is the same.
+Therefore, boxes in different geographic locations
+agree about the time.
+However, for the convenience of humans accustomed to localtime
+UTC time can be automatically converted to localtime
+when the symbolic link /etc/localtime
+points to the correct conversion file."
+
+method(){
+
+ tz_menulist(){
+  find /usr/share/zoneinfo -type f -printf '%P	Zone\n' |
+  LC_ALL=C sort
+ }
+
+ tz_menu(){
+  BACKTITLE=$"glibc-localetime Timezone Configuration Menu"
+      TITLE=$"Timezone Selection"
+       HELP=$"Please an appropriate location"
+
+  dialog --backtitle "$BACKTITLE"  \
+         --title     "$TITLE"      \
+         --stdout                  \
+         --timeout "$PROMPT_DELAY" \
+         --no-cancel               \
+         --menu  "$HELP"           \
+         0 0 0                     \
+         $( tz_menulist )
+ }
+
+ local  IFS
+ export IFS="$TAB_ENTER_IFS"
+ LOCALTIME="$( tz_menu )"
+ if [ -n "$LOCALTIME" ]; then
+  echo    "LOCALTIME=\"$LOCALTIME\"" > $CONFIG_LOGS/glibc-localetime
+  rm -f  /etc/localtime
+  ln -sv /usr/share/zoneinfo/$LOCALTIME /etc/localtime
+ fi
+}

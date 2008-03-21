@@ -1,0 +1,44 @@
+LOC=/etc/hostname
+WHY=Network
+DES="provides the name for this box
+
+A hostname is combination of:
+a personal name;
+a domain name;
+and a top level domain name.
+Each name is separated by periods and not spaces.
+
+Example:
+Personal name: bubbles
+Domain Name: soap
+Top level domain name: net
+The hostname for that box would be:
+
+bubbles.soap.net"
+
+check(){
+ add_hostname_to_hosts(){
+  grep  -q             "$(< /etc/hostname )" /etc/hosts ||
+  echo  "127.0.0.1	$(< /etc/hostname )" /etc/hosts
+  true
+ }
+
+ valid_hostname(){
+  [    -f      /etc/hostname ] &&
+  wc   -l      /etc/hostname | grep -qx "1 /etc/hostname" &&
+  wc   -w      /etc/hostname | grep -qx "1 /etc/hostname" &&
+  grep -q "\." /etc/hostname
+ }
+
+ PROB="There is a mistake in /etc/hostname such as:
+file does not exist,
+file has more than one line,
+hostname has no '.' in it,
+or hostname is more than one word
+Please try again."
+
+ if   valid_hostname
+ then   add_hostname_to_hosts
+ else $DIALOG --msgbox "$PROB" 18 60
+ fi
+}
