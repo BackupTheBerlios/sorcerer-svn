@@ -7,16 +7,22 @@
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://id3lib.sorceforge.net'
        REQ='zlib'
-case $VERSION in
-3.8.3) USE_GCC=gcc-v4.2 ;;
-esac
+# case $VERSION in
+#  3.8.3) USE_GCC=gcc-v4.2 ;;
+# esac
   ESTIMATE='900'
-      DESC='MP3 ID3v1 & ID3v2 libs
+      DESC='id3lib provides MP3 ID3v1 & ID3v2 libs
 id3lib is a lib that is used my many mp3 programs
 to change the contence of the mp3 tags.
 It suports all mp3 tags.'
 
 build(){
+ case $VERSION in
+  3.8.3) patch -p1 < $SCRIPT_DIR/id3lib-$VERSION.patch ;;
+#  3.8.3) sed -i "/iomanip\.h/d " configure
+#         sed -i "1i#include <string.h>" include/id3/id3lib_strings.h \
+#                                        include/id3/writers.h ;;
+ esac
  export LDFLAGS+=' -lstdc++ -lz'
  default_build
 }
