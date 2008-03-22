@@ -10,45 +10,34 @@ case  $VERSION  in
 esac
   HOMEPAGE='http://fontconfig.org/'
        REQ='expat freetype'
+      OPTS='--enable-static=no'
   ESTIMATE='900'
       DESC='fontconfig is a library for configuring and customizing font access.
 It contains two essential modules, the configuration module which
 builds an internal configuration from XML files and the matching module
 which accepts font patterns and returns the nearest matching font.'
 
-build()  {
-remove_x11_fc()  {
-  rm   -rf  /usr/X11R6/include/fontconfig
-  rm   -f   /usr/X11R6/bin/fc-list         \
-            /usr/X11R6/bin/fc-cache        \
-            /usr/X11R6/lib/libfontconfig*  \
-            /usr/X11R6/lib/pkgconfig/fontconfig.pc
+build(){
+ remove_x11_fc(){
+  rm -rf /usr/X11R6/include/fontconfig
+  rm -f  /usr/X11R6/bin/fc-list        \
+         /usr/X11R6/bin/fc-cache       \
+         /usr/X11R6/lib/libfontconfig* \
+         /usr/X11R6/lib/pkgconfig/fontconfig.pc
   true
+ }
+
+ case $VERSION in
+  2.3.2) patch -p1 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/} ;;
+ esac
+
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      && remove_x11_fc &&
+ make    install
 }
-
-
-  case  $VERSION  in
-    2.3.2)  patch  -p1  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}  ;;
-  esac
-
-
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --sysconfdir=/etc      \
-  --localstatedir=/var   \
-  $OPTS                  &&
-  make                   &&
-  prepare_install        &&
-  remove_x11_fc          &&
-  make    install
-}
-
-# post_install()  {
-#   sed  -i   "\,/include/fontconfig,d
-#              \,/lib/libfontconfig,d
-#              \,/lib/pkgconfig/fontconfig.pc,d
-#              \,/bin/fc-cache,d
-#              \,/bin/fc-list,d"  $INSTALL_LOGS/{XFree86,X.org}*
-#   true
-# }

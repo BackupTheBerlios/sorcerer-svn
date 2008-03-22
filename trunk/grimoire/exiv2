@@ -15,8 +15,20 @@
       VURL='http://www.exiv2.org/download.html'
   HOMEPAGE='http://www.exiv2.org/'
        REQ='expat zlib'
+      OPTS='--enable-static=no'
   ESTIMATE='400'
       DESC='exiv2 provides lib and util to manipulate image formats.
 exiv2 is a C++ library and a utility to access image metadata
 exiv2 handles EXIF and IPTC metadata of
 JPEG, TIFF and several RAW image formats.'
+
+build(){
+ case $VERSION in
+  0.16) sed -i "1i#include <string.h>
+                1i#include <string>" xmpsdk/src/{XMPCore_Impl.hpp,XMPMeta.cpp}
+        grep -lr "std::strlen" *  | xargs sed -i "s/std::strlen/strlen/g"
+        grep -lr "std::strcmp" *  | xargs sed -i "s/std::strcmp/strcmp/g"
+        grep -lr "std::strncmp" * | xargs sed -i "s/std::strncmp/strncmp/g" ;;
+ esac
+ default_build
+}

@@ -1,5 +1,5 @@
-   VERSION=( 1.2.8 1.2.7 1.2.5 1.2.6 1.2.4 1.2.1 )
-    IGNORE="devel"
+   VERSION=( 1.2.8 1.2.7 )
+    IGNORE='devel'
 # 1.2.6 has runtime bugs.
   CATEGORY='audio/library audio/mixer audio/player'
  ATTRIBUTE='library x11'
@@ -7,32 +7,32 @@
              "timidity/timidity.tar.gz" )
        URL='http://www.libsdl.org/projects/SDL_mixer/'
   HOMEPAGE='http://www.libsdl.org/projects/SDL_mixer'
-       REQ=( "audiofile SDL"
-             "libmikmod:::to play amiga mod files"
-             "libvorbis:::to play ogg/vorbis files"
-             "smpeg:::to play mpeg movies and mp3 audio" )
+       REQ=( 'audiofile SDL'
+             'libmikmod:::to play amiga mod files'
+             'libvorbis:::to play ogg/vorbis files'
+             'smpeg:::to play mpeg movies and mp3 audio' )
+      OPTS='--disable-sdltest --enable-static=no'
 # SDL_mixer 1.2.8 acquired indirect optional on nas from SDL 1.2.12
- FRESHMEAT="sdl_mixer"
+ FRESHMEAT='sdl_mixer'
   ESTIMATE='560'
-      DESC="SDL_mixer is a simple multi-channel audio mixer.
+      DESC='SDL_mixer is a simple multi-channel audio mixer.
 It supports 8 channels of 16 bit stereo audio,
 plus a single channel of music, mixed by the
 popular MikMod MOD, Timidity MIDI, Ogg Vorbis,
-and SMPEG MP3 libraries."
+and SMPEG MP3 libraries.'
 
 
-build()  {
-sed  -i  "s:local/::
-          s:timidity.cfg:/usr/lib/timidity/timidity.cfg:"  timidity/config.h
+build(){
+ sed -i "s:local/::
+         s:timidity.cfg:/usr/lib/timidity/timidity.cfg:" timidity/config.h
 
-./configure        \
---prefix=/usr      \
---disable-sdltest  \
-$OPTS              &&
-make               &&
-prepare_install    &&
-make    install    &&
-mkdir    -p                                             /usr/lib/timidity  &&
-cp       -Rv       timidity/{instruments,timidity.cfg}  /usr/lib/timidity  &&
-install  -m 755    build/.libs/play{mus,wave}           /usr/bin/
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
+ mkdir   -vp                                         /usr/lib/timidity &&
+ cp      -vR    timidity/{instruments,timidity.cfg} /usr/lib/timidity &&
+ install -vm 755 build/.libs/play{mus,wave}          /usr/bin/
 }
