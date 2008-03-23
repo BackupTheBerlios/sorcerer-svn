@@ -1,6 +1,5 @@
-# 2.22.0 has a compile error maybe caused by newer libtool
-#  VERSION=( 2.22.0 2.20.2 2.20.1 2.20.0 2.18.3 2.18.2 2.18.1 2.18.0 )
-   VERSION=(        2.20.2 2.20.1 2.20.0 2.18.3 2.18.2 2.18.1 2.18.0 )
+# Both 2.22.0 and 2.20.2 have compile error maybe caused by newer libtool
+   VERSION=( 2.22.0 2.20.2 2.20.1 2.20.0 2.18.3 2.18.2 2.18.1 2.18.0 )
     IGNORE='2\.23\.'
   CATEGORY='utility'
  ATTRIBUTE='daemon gnome'
@@ -8,6 +7,14 @@
        URL="$GNOME_URL"
   HOMEPAGE='http://www.gnome.org/projects/gnome-power-manager/'
        REQ='gnome-panel gstreamer libnotify'
+case $VERSION in
+ 2.22.0) REQ+=' libtool-v1.5' ;;
+esac
   ESTIMATE='5500'
       DESC='gnome-power-manager responds to HAL events with user-configurable reactions.
 Currently it supports UPSs, notebook batteries and AC adapters.'
+
+build(){
+ export PATH="/opt/libtool/bin:$PATH"
+ default_build
+}
