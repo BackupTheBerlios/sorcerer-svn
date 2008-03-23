@@ -1,65 +1,30 @@
-if [  -z  "$VERSION"  ];  then
-   VERSION=( 1.0rc2 1.0rc1 1.0pre8 )
-      SAFE=( 1.0rc2 1.0rc1 )
+if [ -z "$VERSION" ]; then
+   VERSION=( 1.0rc2 1.0rc1 )
+      SAFE=( 1.0rc2 )
 fi
   CATEGORY='video/dvd video/player'
  ATTRIBUTE='x11'
-    SOURCE=( "releases/MPlayer-$VERSION.tar.bz2" )
-#            "patches/ad_pcm_fix_20050826.diff" )
-# Patch already added with 1.0pre7try2?
-       URL='http://www1.mplayerhq.hu/MPlayer/
-            http://www2.mplayerhq.hu/MPlayer/
-            http://ftp3.mplayerhq.hu/MPlayer/
-            http://ftp5.mplayerhq.hu/MPlayer/
-             ftp://ftp1.mplayerhq.hu/MPlayer/
-             ftp://ftp2.mplayerhq.hu/MPlayer/
-             ftp://ftp3.mplayerhq.hu/MPlayer/
-             ftp://ftp5.mplayerhq.hu/MPlayer/'
+    SOURCE=( "releases/MPlayer-$VERSION.tar.bz2"
+             "demux_audio_fix_20080129.diff"
+             "demux_mov_fix_20080129.diff"
+             "url_fix_20080120.diff"
+             "stream_cddb_fix_20080120.diff" )
+
+       URL=( 'http://www1.mplayerhq.hu/MPlayer/
+              http://www2.mplayerhq.hu/MPlayer/
+              http://ftp3.mplayerhq.hu/MPlayer/
+              http://ftp5.mplayerhq.hu/MPlayer/
+               ftp://ftp1.mplayerhq.hu/MPlayer/
+               ftp://ftp2.mplayerhq.hu/MPlayer/
+               ftp://ftp3.mplayerhq.hu/MPlayer/
+               ftp://ftp5.mplayerhq.hu/MPlayer/'
+             'http://www.mplayerhq.hu/MPlayer/patches/' )
   HOMEPAGE='http://www.mplayerhq.hu'
-case  $VERSION  in
-  1.0pre8)      USE_GCC='gcc-v3.4'  ;;
-  1.0pre7try2)  USE_GCC='gcc-v3.4'  ;;
+case $VERSION in
+ 1.0rc2)  USE_GCC=gcc-v4.2 ;;
 esac
-#      REQ=( 'gtk+-v1.2 libdvdread popt unzip w32codec'
 
 case  $VERSION  in
-  1.0pre*)
-#            'arts::--disable-arts:for sound output through arts'
-#      REQ=( 'gtk+ a52dec libdvdread libungif lzo popt unzip w32codec'
-       REQ=( 'gtk+ a52dec libdvdread giflib lzo popt unzip w32codec'
-             'MPlayer-Skin:::to install skins for GUI'
-             'MPlayer-font:::to install fonts'
-             'SDL:--enable-sdl:--disable-sdl:to use SDL audio/video output'
-             'XviD::--disable-xvid:for encoding movies to XviD format'
-             'aalib:--enable-aa:--disable-aa:for ascii art video output rendering'
-             'alsa-lib::--disable-alsa:for alsa sound support'
-             'cdparanoia::--disable-cdparanoia:for playing/reading audio CDs'
-             'esound::--disable-esd:for sound output through esound'
-             'faac::--disable-faac:for faac codec support'
-             'faad2:--enable-external-faad::for aac decoding support'
-             'freetype::--disable-freetype:for anti-aliased osd/subs support'
-             'fribidi::--disable-fribidi:for bidirectional unicode text'
-             'jackit::--disable-jack:for jackit audio mixer output support'
-             'ladspa_sdk::--disable-ladspa:for audio processor plugin'
-             'libcdio::--disable-libcdio:for controlling the CD/DVD device'
-             'libdv::--disable-libdv:a software codec for digital video camcorders'
-             'libfame::--disable-libfame:for fast mpeg encoding'
-             'libmad::--disable-mad:for playing mpeg audio formats'
-             'libtheora::--disable-theora:for theora codec support'
-             'libvorbis::--disable-vorbis:for ogg vorbis audio codec support'
-             'mppenc::--disable-musepack:for musepack audio encoder'
-             'nas::--disable-nas:for nas audio mixer support'
-             'openal::--disable-openal:for audio output through openal libraries'
-             'samba:--enable-smb:--disable-smb:for samba SMB input support'
-             'speex::--disable-speex:for speex audio codec support'
-             'svgalib::--disable-svga:for output through svgalib'
-             'x264::--disable-x264:for H.264 codec support'
-             'xmms:--enable-xmms::to build with XMMS input plugin support'
-             ':--enable-joystick::for joystick support' )
-#            'toolame::--disable-toolame:for the toolame mp3 encoder'
-# lirc support disable while lirc is broken
-#             'lirc:--enable-lirc:--disable-lirc:to enable LIRC (remote control) support'
-      OPTS='--disable-gcc-checking'  ;;
 1.0rc*)
 #            'arts::--disable-arts:for sound output through arts'
 #      REQ=( 'gtk+ a52dec libXv libXxf86dga libdvdread libungif lzo popt unzip w32codec'
@@ -92,8 +57,8 @@ case  $VERSION  in
              'x264::--disable-x264:for H.264 codec support'
              'xmms:--enable-xmms::to build with XMMS input plugin support'
              ':--enable-joystick::for joystick support' )
-#            'toolame::--disable-toolame:for the toolame mp3 encoder'  ;;
-      OPTS='--disable-ivtv'  ;;
+#            'toolame::--disable-toolame:for the toolame mp3 encoder' 
+      OPTS='--disable-ivtv' ;;
 esac
 # lirc support disable while lirc is broken
 #             'lirc:--enable-lirc:--disable-lirc:to enable LIRC (remote control) support'
@@ -112,106 +77,96 @@ For video output, nearly every existing interface is supported.
 It is also able to convert any supported files to raw/divx/mpeg4
 AVI (pcm/mp3 audio), and even video grabbing from V4L devices.'
 
-
-install_skin()  {
-  BASE=$(  basename  $BUILD_DIR  )
-  SKIN="/usr/share/mplayer/skins/$BASE"
-  chmod  a+r  *         &&
-  prepare_install       &&
-  mkdir  -p      $SKIN  &&
-  cp     -Rv  *  $SKIN  &&
-  if  !  [   -h         /usr/share/mplayer/skins/default  ]
-  then   ln  -s  $BASE  /usr/share/mplayer/skins/default
-  fi
-}
-
-install_font()  {
-  FONT="/usr/share/mplayer/fonts"
-  chmod  a+r  *           &&
-  prepare_install         &&
-  mkdir  -p      $FONT    &&
-  cp     -Rv  *  $FONT
-}
-
-install_mplayer()  {
-
-  install_conf()  {
-
-    mkdir  -p   doc
-    mv     etc  doc
-    cd          doc/etc
-
-    sed    -i  "s:include =:# include =:
-                s:# vo=:vo=:
-                s:# ao=:ao=:"  example.conf
-
-    mkdir  -p  /etc/mplayer
-
-    for  FILE  in  *.conf
-    do   install  -m 0644 -o root -g root  $FILE  /etc/mplayer
-    done
-
-  }
-
-
-  case  $VERSION  in
-   1.0pre7try2)  
-     # rename getline to vobsub_getline
-     patch -p0 < $SCRIPT_DIR/vobsub.c.diff ;;
-  esac
-
-
-  unset  CFLAGS  CXXFLAGS
-
-  echo                               |
-  ./configure                        \
-  --prefix=/usr                      \
-  --enable-gui                       \
-  --confdir=/etc/mplayer             \
-  --enable-menu                      \
-  --enable-largefiles                \
-  --win32codecsdir=/usr/lib/win32    \
-  --realcodecsdir=/usr/lib/win32     \
-  --xanimcodecsdir=/usr/lib/win32    \
-  --codecsdir=/usr/lib/win32         \
-  $OPTS                              &&
-  make                               &&
-  prepare_install                    &&
-  make    install  prefix=/usr       &&
-  install_conf
-
-}
-
-set_data()  {
-  unset  SAFE  ATTRIBUTE  REQ
-  ATTRIBUTE='data'
-   ESTIMATE='5'
-}
-
-skin_me()  {
-  set_data
+case ${SPELL:8} in
+ Skin-*) 
     SOURCE="skins/${SPELL:13}-$VERSION.tar.bz2"
    PROVIDE="MPlayer-Skin"
       DESC="$SPELL provides a Skin for MPlayer's GUI."
-}
-
-font_me()  {
-  set_data
-VERSION=( 1.0 )
+  unset SAFE ATTRIBUTE REQ
+  ATTRIBUTE='data'
+   ESTIMATE='5' ;;
+ font-*)
+   VERSION=( 1.0 )
     SOURCE="releases/fonts/${SPELL:8}.tar.bz2"
   EPROVIDE="MPlayer-font"
       DESC="$SPELL provides a default font for MPlayer's GUI."
-}
-
-build()  {
-  case  ${SPELL:8}  in
-    Skin-*)  install_skin     ;;
-    font-*)  install_font     ;;
-         *)  install_mplayer  ;;
-  esac
-}
-
-case  ${SPELL:8}  in
-  Skin-*)  skin_me  ;;
-  font-*)  font_me  ;;
+  unset SAFE ATTRIBUTE REQ
+  ATTRIBUTE='data'
+   ESTIMATE='5' ;;
 esac
+
+
+build(){
+ install_mplayer(){
+  install_conf(){
+   mkdir -p doc
+   mv   etc doc
+   cd       doc/etc
+
+   sed -i "s:include =:# include =:; s:# vo=:vo=:; s:# ao=:ao=:" example.conf
+   mkdir -p /etc/mplayer
+
+   for FILE in *.conf
+   do  install -m 0644 -o root -g root $FILE /etc/mplayer
+   done
+  }
+
+  patch -p0 < $SOURCE_CACHE/MPlayer/$VERSION/${SOURCE[1]}
+  patch -p0 < $SOURCE_CACHE/MPlayer/$VERSION/${SOURCE[2]}
+  patch -p0 < $SOURCE_CACHE/MPlayer/$VERSION/${SOURCE[3]}
+  patch -p0 < $SOURCE_CACHE/MPlayer/$VERSION/${SOURCE[4]}
+
+  unset CFLAGS CXXFLAGS
+
+  echo                            |
+  ./configure                     \
+  --prefix=/usr                   \
+  --enable-gui                    \
+  --confdir=/etc/mplayer          \
+  --enable-menu                   \
+  --enable-largefiles             \
+  --win32codecsdir=/usr/lib/win32 \
+  --realcodecsdir=/usr/lib/win32  \
+  --xanimcodecsdir=/usr/lib/win32 \
+  --codecsdir=/usr/lib/win32      \
+  $OPTS                           &&
+  make                            &&
+  prepare_install                 &&
+  make    install prefix=/usr     &&
+  install_conf
+}
+
+ install_skin(){
+  BASE=$( basename $BUILD_DIR )
+  SKIN="/usr/share/mplayer/skins/$BASE"
+  chmod a+r *       &&
+  prepare_install   &&
+  mkdir -p    $SKIN &&
+  cp    -Rv * $SKIN &&
+  if ! [ -h        /usr/share/mplayer/skins/default ]
+  then ln -s $BASE /usr/share/mplayer/skins/default
+  fi
+ }
+
+ install_font(){
+  FONT="/usr/share/mplayer/fonts"
+  chmod a+r *       &&
+  prepare_install   &&
+  mkdir -p    $FONT &&
+  cp    -Rv * $FONT
+ }
+
+
+ case ${SPELL:8} in
+  Skin-*) install_skin    ;;
+  font-*) install_font    ;;
+       *) install_mplayer ;;
+ esac
+}
+
+
+current(){
+ case $VERSION in
+  1.0rc2) grep -qx 'patching file stream/stream_cddb.c' $COMPILE_LOGS/MPlayer ;;
+ esac
+}
