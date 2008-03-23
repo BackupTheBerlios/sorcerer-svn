@@ -4,23 +4,24 @@
     SOURCE="gdbm/gdbm-$VERSION.tar.gz"
   HOMEPAGE='http://www.gnu.org/software/gdbm/gdbm.html'
        URL="$GNU_URL"
+      OPTS='--enable-static=no'
   ESTIMATE='349'
-      DESC="gdbm is a database library.
+      DESC='gdbm is a database library.
 gdbm is database library.
-It works like the UNIX dbm."
+It works like the UNIX dbm.'
 
-build() {
-  sed  -i  "s:-O:$CFLAGS:"  Makefile.in
+build(){
+ sed -i "s:-O:$CFLAGS:" Makefile.in
 
-  ./configure  --prefix=/usr           &&
-  make                                 &&
-  prepare_install                      &&
-  make    install         prefix=/usr  &&
-  make    install-compat  prefix=/usr  &&
-  ln     -sf  libgdbm.so.2.0.0   /usr/lib/libndbm.so
+ ./configure --prefix=/usr          &&
+ make                               &&
+ prepare_install                    &&
+ make    install        prefix=/usr &&
+ make    install-compat prefix=/usr &&
+ ln -sf libgdbm.so.2.0.0 /usr/lib/libndbm.so
 }
 
-post_remove() {
-  default_post_remove
-  install-info  --delete gdbm  --info-dir /usr/info  >/dev/null 2>&1
+post_remove(){
+ default_post_remove
+ install-info --delete gdbm --info-dir /usr/info >/dev/null 2>&1
 }

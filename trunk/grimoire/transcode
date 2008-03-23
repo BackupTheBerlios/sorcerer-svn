@@ -1,8 +1,10 @@
-   VERSION=( 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
+# transcode 1.0.5 does not compile with gcc version 4.3.0
+   VERSION=( 1.0.6rc1 1.0.5 1.0.4 1.0.3 1.0.2 1.0.1 1.0.0 )
     IGNORE='alpha\|beta\|cvs\|rc'
   CATEGORY='video'
  ATTRIBUTE='x11'
     SOURCE="transcode-$VERSION.tar.bz2"
+      VURL='http://fromani.exit1.org/'
        URL='http://fromani.exit1.org/'
 #       URL='http://www.jakemsr.com/transcode/
 #            http://apt.oldconomy.com/
@@ -21,6 +23,7 @@
 
 # libpostproc? --enable-libpostproc 
        REQ=( 'ffmpeg libmpeg2 libpng tiff'
+             'ImageMagick:--enable-imagemagick:--disable-imagemagick:for ImageMagick dependent module'
              'a52dec:--enable-a52:--disable-a52:for decoding and encoding ATSC A/52 streams'
              'avifile:--enable-avifile:--disable-avifile:for reading and writing compressed AVI files'
              'freetype:--enable-freetype2:--disable-freetype2:for nice looking fonts'
@@ -34,9 +37,7 @@
              'libxml2:--enable-libxml2:--disable-libxml2:for libxml2 dependent modules'
              'mjpegtools:--enable-mjpegtools:--disable-mjpegtools:for dependent modules'
              'SDL:--enable-sdl:--disable-sdl:GUI via SDL'
-             'ImageMagick:--enable-imagemagick:--disable-imagemagick:for ImageMagick dependent module'
              'jpeg:--enable-libjpeg:--disable-libjpeg:for jpeg dependent modules' )
-
 
 # libfame 0.9.1 not usable with transcode 1.0.0 because
 # /usr/lib/libfame.so: undefined reference to `_mmx_one'
@@ -58,6 +59,11 @@
 
 #  libmpeg3 1.5.1 doesn't compile
 #  'libmpeg3:::for libmpeg3 dependent modules'
+
+case $VERSION in
+ 1.0.5) USE_GCC=gcc-v4.2 ;;
+esac
+
   ESTIMATE='6000'
       DESC='transcode is a tool for translating audio/video input formats.
 transcode is a text console video-stream processing tool.
@@ -71,10 +77,13 @@ A set of tools is available to extract and decode
 the sources into raw video/audio streams for import
 and to enable post-processing of AVI files.'
 
-build() {
+build(){
  case $VERSION in
-  1.0.5)  sed -i 's:-lMagick:-lMagick++:g' configure ;;
+  1.0.6rc1) sed -i 's:-lMagick:-lMagick++:g' configure ;;
+  1.0.5) sed -i 's:-lMagick:-lMagick++:g' configure
+#         sed -i '/typedef signed long __s32;/d
+#                 /typedef unsigned long __u32;/d' import/nuv/RTjpegN.h 
+  ;;
  esac
- default_build                                                                
-}                                                                             
-
+ default_build
+}

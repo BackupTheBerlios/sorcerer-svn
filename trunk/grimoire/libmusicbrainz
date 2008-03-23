@@ -1,12 +1,20 @@
    VERSION=( 2.1.5 2.1.4 )
-    IGNORE="test\|pre\|^3"
+    IGNORE='test\|pre\|^3'
   CATEGORY='audio/library'
  ATTRIBUTE='library'
     SOURCE="libmusicbrainz-$VERSION.tar.gz"
        URL='ftp://ftp.musicbrainz.org/pub/musicbrainz/'
   HOMEPAGE='http://www.musicbrainz.org/'
        REQ='expat'
+      OPTS='--enable-static=no'
   ESTIMATE='400'
-      DESC="libmusicbrainz is the second generation incarnation of the CD Index.
+      DESC='libmusicbrainz is the second generation incarnation of the CD Index.
 This server is designed to enable Audio CD and MP3/Vorbis players 
-to download metadata about the music they are playing."
+to download metadata about the music they are playing.'
+
+build(){
+ case $VERSION in
+  2.1.5) sed -i "1i#include <string.h>" lib/{c_wrapper.cpp,comhttpsocket.cpp,comsocket.cpp,http.cpp,sigclient.cpp} ;;
+ esac
+ default_build
+}

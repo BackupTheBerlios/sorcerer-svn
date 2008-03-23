@@ -1,5 +1,5 @@
-   VERSION=( 1.2.0 1.1.2 1.0.1 1.0 1.0rc3 )
-      SAFE=( "1.2.0" )
+   VERSION=( 1.2.0 )
+      SAFE=( 1.2.0 )
   CATEGORY='audio/codec audio/library'
  ATTRIBUTE='library'
     SOURCE=( "libvorbis-$VERSION.tar.gz" )
@@ -8,20 +8,19 @@
 #            "http://www.geocities.jp/aoyoume/aotuv/source_code/" )
 #      URL="http://www.vorbis.com/files/$VERSION/unix/"
   HOMEPAGE='http://www.xiph.org/ogg/vorbis'
-       REQ=( "libogg" )
-#            ":ENABLE_AOTUV::enable aoTuV patch?" )
+       REQ=( 'libogg' )
+#            ':ENABLE_AOTUV::enable aoTuV patch?' )
 # Patch obsolete?
+      OPTS='--enable-static=no'
   ESTIMATE='660'
-      DESC="libvorbis is a free high-quality lossy audio codec library."
-      OPT="enable aoTuv patch?:"
+      DESC='libvorbis is a free high-quality lossy audio codec library.'
 
-build()  {
-  if echo $OPTS | grep -q ENABLE_AOTUV; then
-    OPTS=${OPTS/ENABLE_AOTUV/}
-    patch -p1 <   aotuvb5-libvorbis1.1.2.diff
-    echo "patch applied"
-  fi
-  sed  -i  "s:-O20 -ffast-math::"  configure.in
-  sed  -i  "s:-O20 -ffast-math::"  configure
-  default_build
+build(){
+ if echo $OPTS | grep -q ENABLE_AOTUV; then
+  OPTS=${OPTS/ENABLE_AOTUV/}
+  patch -p1 < aotuvb5-libvorbis1.1.2.diff
+  echo 'patch applied'
+ fi
+ sed -i 's:-O20 -ffast-math::' configure{,.in}
+ default_build
 }

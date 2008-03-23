@@ -9,27 +9,27 @@
   HOMEPAGE='http://kbs.cs.tu-berlin.de/~jutta/toast.html'
        REQ=''
   ESTIMATE='100'
-      DESC="gsm is an audio codec library."
+      DESC='gsm is an audio codec library.'
 
-build() {
+build(){
 
-sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:" Makefile
-
-install_libs()  {
+ install_libs(){
   ld      --whole-archive -shared -o /usr/lib/libgsm.so.1 /usr/lib/libgsm.a
   ln      -s                                  libgsm.so.1 /usr/lib/libgsm.so
-}
+ }
 
-install_headers()  {
-  chmod  0755  inc
-  chmod  0644  inc/*
-  cp  -av      inc        /usr/include/gsm
-  ln  -s       gsm/gsm.h  /usr/include/gsm.h
-}
+ install_headers(){
+  chmod 755 inc
+  chmod 644 inc/*
+  cp    -av inc       /usr/include/gsm
+  ln    -sv gsm/gsm.h /usr/include/gsm.h
+ }
 
-make             &&
-prepare_install  &&
-make    install  INSTALL_ROOT=/usr  &&
-        install_headers             &&
-        install_libs
+ sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:" Makefile
+
+ make            &&
+ prepare_install &&
+ make    install  INSTALL_ROOT=/usr &&
+         install_headers            &&
+         install_libs
 }

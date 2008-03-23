@@ -1,36 +1,36 @@
    VERSION=( 0.9.8 0.9.7 0.9.6 0.9.5 0.9.4 0.9.3 0.9.2 0.9.1 )
-    IGNORE="\.pgp"
+    IGNORE='\.pgp'
   CATEGORY='network'
  ATTRIBUTE='library'
     SOURCE="libpcap-$VERSION.tar.gz"
        URL='http://www.tcpdump.org/release/'
   HOMEPAGE='http://www.tcpdump.org/'
        REQ='flex'
-      OPTS="--enable-yydebug"
+      OPTS='--enable-yydebug --enable-static=no'
   ESTIMATE='100'
-      DESC="libpcap is a capturing library. used by tcpdump
+      DESC='libpcap is a capturing library. used by tcpdump
 libpcap is a library which provides a packet
 filtering mechanism based on the BSD packet filter (BPF).
 Most notably, tcpdump needs this to work,
 and there is also a perl module which can use this as well.
 In plain english, if you want to write your own
-network traffic analyzer, this is the place to start."
+network traffic analyzer, this is the place to start.'
 
-build_old() {
-export CFLAGS="$CFLAGS -fPIC"
-export CXXFLAGS="$CXXFLAGS -fPIC"
+build_old(){
+export CFLAGS+=' -fPIC'
+export CXXFLAGS+=' -fPIC'
 
-make_shared_lib()  {
-  ld  --whole-archive  -share  -o  $1.so.1  $1.a
-  ln  -sf  $1.so.1  $1.so
+ make_shared_lib(){
+  ld --whole-archive -share -o $1.so.1 $1.a
+  ln -sf $1.so.1 $1.so
+ }
+
+ default_build &&
+ make_shared_lib /usr/lib/libpcap
 }
 
-default_build  &&
-make_shared_lib  /usr/lib/libpcap
-}
-
-current()  {
-  case  $VERSION  in
-    0.9.8)  !  [  -f  /usr/lib/libpcap.so.1  ]  ;;
-  esac
+current(){
+ case $VERSION in
+  0.9.8) ! [ -f /usr/lib/libpcap.so.1 ] ;;
+ esac
 }
