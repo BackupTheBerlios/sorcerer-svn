@@ -8,21 +8,26 @@
             http://osdn.dl.sourceforge.jp/"
   HOMEPAGE='http://scim-imengine.sourceforge.jp/'
        REQ='libtomoe-gtk scim'
+      OPTS='--enable-static=no'
   ESTIMATE='530'
-      DESC="scim-tomoe provides tomoe handwriting identification input module for scim"
+      DESC='scim-tomoe provides tomoe handwriting identification input module for scim'
 
-build()  {
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --sysconfdir=/etc      \
-  --localstatedir=/var   \
-  $OPTS                  &&
-  make                   &&
-  prepare_install        &&
-  case  $VERSION  in
-    0.5.0)  rm  -fr     /usr/lib/scim-1.0/1.4.0/1.4.0
-            ln  -s   .  /usr/lib/scim-1.0/1.4.0/1.4.0  ;;
-  esac  &&
-  make    install
+build(){
+ case $VERSION in
+  0.5.0) sed -i "1i#include <cstring>" $( find . -name \*.cpp ) ;;
+ esac
+
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ case $VERSION in
+  0.5.0) rm -fr   /usr/lib/scim-1.0/1.4.0/1.4.0
+         ln -s  . /usr/lib/scim-1.0/1.4.0/1.4.0 ;;
+ esac &&
+ make    install
 }

@@ -1,20 +1,20 @@
 # 3.0 may be unsafe?
-   VERSION=( 3.0 2.0.2 2.0.1 2.0 )
-      SAFE=( "3.0" "2.0.2" )
+   VERSION=( 3.0 )
+      SAFE=( 3.0 )
   CATEGORY='documentation'
  ATTRIBUTE='console unsafe'
     SOURCE="systems/unix/teTeX/current/distrib/tetex-src-$VERSION.tar.gz"
-       REQ=( "bison dialog ed ghostscript libpng teTeX-texmf texinfo w3c-libwww"
-             "pgf:::for the latest pgf and tikz graphics generating classes"
-             "lesstif:::for MOTIF/lesstif support"
-             "libXmu::--without-x:to build xdvi"
-             "libXpm::--without-x11:to build xdvi" )
-
+       REQ=( 'bison dialog ed ghostscript libpng teTeX-texmf texinfo w3c-libwww'
+             'pgf:::for the latest pgf and tikz graphics generating classes'
+             'lesstif:::for MOTIF/lesstif support'
+             'libXmu::--without-x:to build xdvi'
+             'libXpm::--without-x11:to build xdvi' )
+      OPTS='--enable-static=no'
 # XFree86 -> Linux-PAM -> teTeX -> teTex,src -> x11
 # recursive requirement loop.
 # Altered Linux-PAM to no longer optionally require teTeX
   HOMEPAGE='http://tug.org/teTeX/'
-       URL="ftp://cam.ctan.org/tex-archive/
+       URL='ftp://cam.ctan.org/tex-archive/
             ftp://dante.ctan.org/tex-archive/
             ftp://tug.ctan.org/tex-archive/
             ftp://ctan.unsw.edu.au/tex-archive/
@@ -82,38 +82,30 @@
             ftp://ibiblio.org/pub/packages/TeX/
             ftp://indian.cse.msu.edu/pub/mirrors/CTAN/
             ftp://jhcloos.com/pub/mirror/tex-archive/
-            ftp://uiarchive.uiuc.edu/mirrors/ftp/tug.ctan.org/pub/tex-archive/"
-  EPROVIDE="texi2html"
-   PROTECT="/usr/share/texmf/ls-R"
+            ftp://uiarchive.uiuc.edu/mirrors/ftp/tug.ctan.org/pub/tex-archive/'
+  EPROVIDE='texi2html'
+   PROTECT='/usr/share/texmf/ls-R'
   ESTIMATE='1625'
- FRESHMEAT="tetex"
-      DESC="teTeX is a TeX distribution that includes web2c, pdfTeX, e-Tex and more...
+ FRESHMEAT='tetex'
+      DESC='teTeX is a TeX distribution that includes web2c, pdfTeX, e-Tex and more...
 TeTex is by far, the best TeX distribution available for Linux,
 includes latest versions of web2c, pdfTeX, e-TeX, Omega, xdvi,
-ps2pk, makeinfo, texinfo, texconfig and lots of fonts and macros."
+ps2pk, makeinfo, texinfo, texconfig and lots of fonts and macros.'
 
 
-build()  {
-  case  $VERSION  in
-    2.0*)
-      sed  -i  "s:readlink:readlink-teTeX:"                 Makefile.in  \
-                                              texk/kpathsea/Makefile.in
-      mv       texk/kpathsea/readlink.c       texk/kpathsea/readlink-teTeX.c
-      mv       texk/kpathsea/readlink.man     texk/kpathsea/readlink-teTeX.man  ;;
-  esac
-
-  ./configure              \
-  --prefix=/usr            \
-  --with-system-zlib       \
-  --with-system-pnglib     \
-  --with-system-ncurses    \
-  --with-system-libwww     \
-  --with-system-ncurses    \
-  --without-texinfo        \
-  --without-dialog         \
-  --disable-multiplatform  \
-  $OPTS                    &&
-  make        all          &&
-  prepare_install          &&
-  make    install
+build(){
+ ./configure             \
+ --prefix=/usr           \
+ --with-system-zlib      \
+ --with-system-pnglib    \
+ --with-system-ncurses   \
+ --with-system-libwww    \
+ --with-system-ncurses   \
+ --without-texinfo       \
+ --without-dialog        \
+ --disable-multiplatform \
+ $OPTS                   &&
+ make        all         &&
+ prepare_install         &&
+ make    install
 }

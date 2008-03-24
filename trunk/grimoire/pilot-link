@@ -1,29 +1,33 @@
    VERSION=( 0.12.3 0.12.2 0.12.1 0.11.8 0.11.7 0.11.6 0.11.5 0.11.4 )
   CATEGORY='utility/hand-held'
- ATTRIBUTE='console x11'
+ ATTRIBUTE='console x11 broken'
     SOURCE="pilot-link-$VERSION.tar.bz2"
-       URL="http://downloads.pilot-link.org/
-            http://www.pilot-link.org/source/"
+       URL='http://downloads.pilot-link.org/
+            http://www.pilot-link.org/source/'
   HOMEPAGE='http://www.pilot-link.org/'
-       REQ=( "bluez-libs libpng ncurses readline"
-             "Python:--with-python::for Python interface" )
+       REQ=( 'bluez-libs libpng ncurses readline'
+             'Python:--with-python::for Python interface' )
 # None of the below supports are working.
-#   "tk:--with-tcl --with-tk::for tk interface"
-#   "j2sdk:--with-java::for java interface"
-#   "perl:--with-perl::for perl interface"
-      OPTS="--includedir=/usr/include"
+#   'tk:--with-tcl --with-tk::for tk interface'
+#   'j2sdk:--with-java::for java interface'
+#   'perl:--with-perl::for perl interface'
+      OPTS='--includedir=/usr/include --enable-static=no'
+case $VERSION in
+ 0.12.3) USE_GCC=gcc-v4.1 ;;
+esac
+# 0.12.3) USE_GCC=gcc-v4.2 ;;  did not work
   ESTIMATE='1000'
-      DESC="pilot-link contains the tools needed to connect your Palm and box."
+      DESC='pilot-link contains the tools needed to connect your Palm and box.'
 
-build()  {
-sed  -i  "s:UID = 0:UID = -1:"  configure
-default_build
+build(){
+ sed -i 's:UID = 0:UID = -1:' configure
+ default_build
 }
 
-current()  {
-  # libmal required for kdepim for pilot-link integration
-  # if pilot-link is installed so will libmal be installed.
-  if    !  spell_installed libmal
-  then  echo  "libmal"  |  pipe_queue  "$CAST_QUEUE" ""
-  fi
+current(){
+ # libmal required for kdepim for pilot-link integration
+ # if pilot-link is installed so will libmal be installed.
+ if   ! spell_installed libmal
+ then echo libmal | pipe_queue "$CAST_QUEUE" com
+ fi
 }

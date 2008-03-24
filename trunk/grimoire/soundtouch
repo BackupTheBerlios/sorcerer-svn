@@ -5,6 +5,7 @@
        URL='http://www.surina.net/soundtouch/'
   HOMEPAGE='http://www.surina.net/soundtouch/'
        REQ='automake'
+      OPTS='--enable-static=no'
   ESTIMATE='410'
       DESC='soundtouch is a library for modifying audio.
 The soundtouch library can change pitch and tempo of digitized audio.
@@ -21,7 +22,10 @@ The soundtouch library includes also an example utility soundstretch.
 soundstretch processes .wav audio files with command-line interface.'
 
 build(){
-autoreconf -i
-automake   -afc
-default_build
+ autoreconf -i
+ automake -afc
+ case $VERSION in
+  1.3.1) sed -i '1i#include <cstring>' source/example/SoundStretch/WavFile.cpp ;;
+ esac
+ default_build
 }
