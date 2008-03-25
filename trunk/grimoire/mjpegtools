@@ -1,6 +1,14 @@
-   VERSION=( 1.8.0 1.6.2 1.6.1 )
+# With version 1.8.0
+# /bin/sh ../libtool --tag=CXX --mode=link g++  -march=pentium3 -mno-sse2 -mtune=pentium3  -march=native -O -pthread   -Wl,-s -o mplex  main.o ../mplex/libmplex2.la -lm   -lm
+# g++ -march=pentium3 -mno-sse2 -mtune=pentium3 -march=native -O -pthread -Wl,-s -o .libs/mplex main.o  ../mplex/.libs/libmplex2.so /usr/src/sorcery/mjpegtools/mjpegtools-1.8.0/utils/.libs/libmjpegutils.so /usr/lib/libstdc++.so -lm
+# ../mplex/.libs/libmplex2.so: undefined reference to `PS_Stream::PS_Stream(unsigned int, unsigned int, OutputStream&, long)'
+# collect2: ld returned 1 exit status
+# make[2]: *** [mplex] Error 1
+# make[2]: Leaving directory `/usr/src/sorcery/mjpegtools/mjpegtools-1.8.0/mplex'
+
+   VERSION=( 1.9.0rc3 1.8.0 1.6.2 1.6.1 )
 # where is the 2.12.0 version comming from?
-    IGNORE='debsrc\|rc'
+    IGNORE='debsrc\|rc\|^2\.12\.'
   CATEGORY='video'
  ATTRIBUTE='library x11'
     SOURCE=( "mjpeg/mjpegtools-$VERSION.tar.gz" )
@@ -35,6 +43,15 @@ like VCD (Video CD) and SVCD for hardware playback.'
 build(){
  case $VERSION in
   1.8.0) patch -p1 < $SCRIPT_DIR/mjpegtools-1.8.0.patch 
+         sed -i '1i#include <climits>' mpeg2enc/macroblock.cc 
+         sed -i '1i#include <stdlib.h>' mpeg2enc/encodertypes.h
+         sed -i '1i#include <climits>' mpeg2enc/picturereader.cc
+         sed -i '1i#include <climits>' mplex/inputstrm.cpp
+         sed -i '1i#include <cstring>' mplex/multiplexor.cpp
+         sed -i '1i#include <cstring>' mplex/padstrm.cpp
+         sed -i '1i#include <cstring>' mplex/main.cpp
+         ;;
+ 1.9.0rc3)
          sed -i '1i#include <climits>' mpeg2enc/macroblock.cc 
          sed -i '1i#include <stdlib.h>' mpeg2enc/encodertypes.h
          sed -i '1i#include <climits>' mpeg2enc/picturereader.cc
