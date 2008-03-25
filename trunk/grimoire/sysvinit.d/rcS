@@ -4,12 +4,11 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 box(){
- if   [ -f  "/media/root/$1"  ]
+ if   [ -f  "/media/root/$1" ]
  then chroot /media/root $1 start
  else                    $1 start
  fi
 }
-
 
 run(){
  for SCRIPT in /etc/rc.d/rcS.d/S*; do
@@ -20,8 +19,18 @@ run(){
  echo End sysinit
 }
 
+md(){ [ -d $1 ] || mkdir -p $1; }
+mn(){ [ -c $1 ] || mknod $1 c 5 1; }
 
-if ! [ -f /proc/version ]; then
- mount -o size=1m,nr_inodes=1k,mode=0700 -t tmpfs tmpfs /etc/init.d/log.d
- run 2>&1 | tee /etc/init.d/log.d/sysinit.log > /etc/init.d/dev.d/si
-fi
+[ -f /proc/version ] || exit
+
+I=/etc/init.d
+L=$I/log.d
+D=$I/dev.d
+
+md $L
+md $D
+mn $D/si
+mn $D/rl
+mount -o size=1m,nr_inodes=8 -t tmpfs tmpfs $L
+run 2>&1 | tee $L/sysinit > $D/si
