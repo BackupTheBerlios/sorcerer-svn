@@ -5,10 +5,37 @@
        URL='ftp://oss.sgi.com/projects/xfs/cmd_tars/'
   HOMEPAGE='http://oss.sgi.com/projects/xfs/'
        REQ='e2fsprogs'
-  ESTIMATE='650'
+case $VERSION in
+ 2.9.7-1) REQ+=' libtool-v1.5' ;;
+esac
+  ESTIMATE='700'
       DESC='xfsprogs contains the required utilities for the XFS file system.'
 
 build(){
+ case $VERSION in
+  2.9.7-1) export ac_cv_path_LIBTOOL=/opt/libtool/bin/libtool ;;
+ esac
+
+ export DEBUG=-DNDEBUG
+
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ make    install      &&
+ make    install-dev
+
+ case $VERSION in
+  2.9.7-1) unset ac_cv_path_LIBTOOL ;;
+ esac
+}
+
+
+build_old(){
  export OPTIMIZER="$CFLAGS"
  unset              CFLAGS
  export DEBUG=-DNDEBUG
