@@ -163,10 +163,15 @@ make_links(){
  make_link $INIT_SRL $INIT_SO $INIT_RUN S
  make_link $INIT_KRL $INIT_KO $INIT_DIE K
 
- rm -fr                 $INIT_OLD
- mv           $INIT_DIR $INIT_OLD
- mv $INIT_NEW $INIT_DIR
- rm -fr                 $INIT_IDX
+ rm -fr            $INIT_OLD
+ mv      $INIT_DIR $INIT_OLD
+ mv      $INIT_NEW $INIT_DIR
+ rm -fr  $INIT_IDX
+
+ ( find -L $INIT_DIR -mindepth 2 -xtype l
+   find -L $INIT_DIR -mindepth 2 -xtype l -perm /100
+ ) | LC_ALL=C sort | uniq -u | xargs -r --max-lines=64 rm -f
+
 }
 
  remove_initd(){ echo "$@ will not be started during boot" 1>&2; chmod 0600 "$@"; }

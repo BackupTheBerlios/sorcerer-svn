@@ -2,14 +2,13 @@
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
+shopt -s nullglob
 
 parallel(){
- for ((SEQ=0;SEQ<10;SEQ++)); do
+ for ((SEQ=0;SEQ<100;SEQ++)); do
   if (( 10 > SEQ )); then NOW="0$SEQ"; else NOW="$SEQ"; fi
-  for SCRIPT in /etc/rc.d/rc${RL}.d/$1${NOW}*; do
-   if   [ -x "$SCRIPT" ]
-   then       $SCRIPT $2 &
-   fi
+  for SCRIPT in /etc/rc.d/rc${RL}.d/$1${NOW}*
+  do $SCRIPT $2 &
   done
   wait
  done

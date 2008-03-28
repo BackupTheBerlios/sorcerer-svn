@@ -3,18 +3,12 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
-box(){
- if   [ -f  "/media/root/$1" ]
- then chroot /media/root $1 start
- else                    $1 start
- fi
-}
-
 run(){
- for SCRIPT in /etc/rc.d/rcS.d/S*; do
-  if   [ -x "$SCRIPT" ]
-  then box  "$SCRIPT"
-  fi
+ for S in /etc/rc.d/rcS.d/*; do
+ if   [ -f  "/media/root/$S" ]
+ then chroot /media/root $S start
+ else                    $S start
+ fi
  done
  echo End sysinit
 }
