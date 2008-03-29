@@ -1,18 +1,23 @@
-   VERSION=( 1.4.4 1.4.3 1.4.2 1.4.1 1.4.0 )
-# glom 1.6.0 has requirements on some very new gnome spells
+   VERSION=( 1.6.10 1.4.4 1.4.3 1.4.2 1.4.1 1.4.0 )
 # No package 'pygda-3.0' found
-# No package 'iso-codes' found
-# No package 'libgdamm-3.0' found
-# No package 'libgda-3.0' found
 # No package 'libgda-postgres-3.0' found
+# No package 'libgtksourceviewmm-1.0' found
 # No package 'goocanvas' found
-    IGNORE="^1\.7\."
+    IGNORE='^1\.7\.'
   CATEGORY='development'
- ATTRIBUTE='gnome'
+ ATTRIBUTE='gnome broken'
     SOURCE="sources/glom/${VERSION:0:3}/glom-$VERSION.tar.bz2"
   HOMEPAGE='http://www.glom.org'
        URL="$GNOME_URL"
        REQ='bakery gnome-python-extras libgdamm libgnomecanvasmm libgtksourceviewmm postgresql'
-      OPTS="--with-postgres-utils=/usr/bin"
+      OPTS='--with-postgres-utils=/usr/bin'
   ESTIMATE='1470'
-      DESC="glom is an easy-to-use database designer and user interface."
+      DESC='glom is an easy-to-use database designer and user interface.'
+
+build(){
+ # Even with the sed below it does not compile
+ case $VERSION in
+  1.6.10) sed -i 's:libgtksourceviewmm-1.0:libgtksourceviewmm-2.0:' configure ;;
+ esac
+ default_build
+}
