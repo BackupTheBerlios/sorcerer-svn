@@ -1,49 +1,39 @@
-   [  -z  $VERSION  ]  &&
-   VERSION=( 0.60.5 0.60.4 0.60.3 0.60.2 0.60.1.1 0.60 )
-    IGNORE="^[a-z][a-z]\|2004\|w32\|^[5-6][a-z][a-z]\|^[5-6]-[a-z][a-z]"
+   [ -z "$VERSION" ] &&
+   VERSION=( 0.60.5 )
+    IGNORE='^[a-z][a-z]\|2004\|w32\|^[5-6][a-z][a-z]\|^[5-6]-[a-z][a-z]'
   CATEGORY='utility/editor'
  ATTRIBUTE='console'
     SOURCE="aspell/aspell-$VERSION.tar.gz"
        URL="$GNU_URL"
   HOMEPAGE='http://aspell.net'
        REQ='libtool ncurses'
-   USE_GCC="gcc-v4.2"
+case $VERSION in
+ 0.60.5) USE_GCC=gcc-v4.2 ;;
+esac
   ESTIMATE='900'
-      DESC="aspell is a spell checker designed to eventually replace ispell.
+      DESC='aspell is a spell checker designed to eventually replace ispell.
 aspell is a spell checker designed to eventually replace ispell.
 Its main feature is that it does a much better job of
 coming up with possible suggestions than ispell does.
 It also has support for checking (La)TeX and HTML files,
-and run-time support for other non-English languages."
+and run-time support for other non-English languages.'
 
-define_dict()  {
-      DESC="$SPELL provides a dictionary for use with aspell."
-    SOURCE="aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2"
-  ESTIMATE='7'
-}
-
-case  ${SPELL:7}  in
-  dict-*)  define_dict  ;;
+case ${SPELL:7} in
+ dict-*) 
+     DESC="$SPELL provides a dictionary for use with aspell."
+   SOURCE="aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2"
+ ESTIMATE='7' ;;
 esac
 
-build()  {
-
-build_aspell()  { 
-  case $VERSION in  # Problem compiling with gcc-4.1.0
-    0.60.4)  sed -i '/;/ s,NroffFilter::,,' modules/filter/nroff.cpp  ;;
-  esac
-
-  default_build; 
-}
-
-build_dict()  {
-  ./configure      &&
-  prepare_install  &&
+build(){
+ build_dict(){
+  ./configure     &&
+  prepare_install &&
   make    install
-}
+ }
 
-  case  ${SPELL:7}  in
-    dict-*)  build_dict    ;;
-         *)  build_aspell  ;;
-  esac
+ case ${SPELL:7} in
+  dict-*) build_dict   ;;
+       *) default_build ;;
+ esac
 }
