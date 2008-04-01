@@ -17,16 +17,25 @@ It can report exact memory configuration, firmware version,
 mainboard configuration, CPU version and speed, cache
 configuration, bus speed, etc.'
 
-build() {
-if    echo  "$OPTS"  |  grep  -q  "enable-gui";  then
-  make                 &&
-  make            gui  &&
-  prepare_install      &&
-  make    install-gui  &&
+build(){
+ case $VERSION in
+  B.02.12.01) sed -i '1i#include <cstring>
+                      1i#include <cstdlib>
+                      1i#include <limits.h>' src/core/*.cc src/lshw.cc
+# src/core/{hw.cc,print.cc,device-tree.cc,cpuinfo.cc,osutils.cc,pci.cc}
+#             sed -i '1i#include <cstdlib>'  src/core/print.cc
+ ;;
+ esac
+
+ if echo "$OPTS" | grep -q enable-gui; then
+  make                &&
+  make            gui &&
+  prepare_install     &&
+  make    install-gui &&
   make    install
-else
-  make                 &&
-  prepare_install      &&
+ else
+  make            &&
+  prepare_install &&
   make    install
-fi
+ fi
 }
