@@ -6,14 +6,16 @@
     IGNORE='\.NC\|cd\|^4\.1\.24'
   CATEGORY='db'
  ATTRIBUTE='library'
-    SOURCE=( "db-$VERSION.tar.gz" )
-#              "patch.$VERSION.1"
+    SOURCE=( "db-$VERSION.tar.gz"
+             "patch.$VERSION.1" )
 #              "patch.$VERSION.2" )
 #             "patch.$VERSION.3"
 #             "patch.$VERSION.4" )
 #      URL=(  "ftp://sleepycat1.inetu.net/releases/"
        URL=( "http://download.oracle.com/berkeley-db/"
-             "http://www.oracle.com/technology/products/berkeley-db/db/update/$VERSION/" )
+             "http://www.oracle.com/technology/products/berkeley-db/xml/update/$VERSION/" )
+
+#            "http://www.oracle.com/technology/products/berkeley-db/db/update/$VERSION/" )
 #            "http://www.sleepycat.com/update/$VERSION/" )
 #            "http://www.sleepycat.com/update/snapshot"
 # j2sdk is not gcc 3.4.1 compatibile.
@@ -34,53 +36,46 @@ fast, reliable, scalable, and mission-critical database support in
 software ranging from applications running on hand-held appliances 
 to enterprise-scale servers.'
 
-build()  {
+build(){
 PCX=1
-while  [  -n  "${SOURCE[$PCX]}"  ];  do
-  patch  -p0  <  $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$PCX]}
-  ((  PCX++  ))
+while [ -n "${SOURCE[$PCX]}" ]; do
+ patch -p0 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$PCX]}
+ (( PCX++ ))
 done
 
-if    spell_installed  $(  get_provider  j2sdk  )
-then  OPTS="${OPTS}  --enable-java"
+if   spell_installed $( get_provider j2sdk )
+then OPTS="${OPTS} --enable-java"
 fi
 
-
-case  $VERSION  in
-  4.3.29)   export   LDFLAGS="-lpthread  $LDFLAGS"  ;;
-  4.3.28)   export   LDFLAGS="-lpthread  $LDFLAGS"  ;;
-  4.3.27)   export   LDFLAGS="-lpthread  $LDFLAGS"  ;;
-esac
-
-
-cd  build_unix &&
-../dist/configure   \
---prefix=/usr       \
---build=$BUILD      \
---enable-dynamic    \
---enable-compat185  \
---enable-cxx        \
-$OPTS               &&
-make                &&
-prepare_install     &&
-make    install     &&
-rm     -rf  /usr/docs
+cd build_unix &&
+../dist/configure  \
+--prefix=/usr      \
+--build=$BUILD     \
+--enable-dynamic   \
+--enable-compat185 \
+--enable-cxx       \
+$OPTS              &&
+make               &&
+prepare_install    &&
+make    install    &&
+rm -rf /usr/docs
 }
 
 
-post_install()  {
-  default_post_install
-            get_provider  openldap |
-  pipe      show_installed         |
-  LC_ALL=C  sort                   |
-            uniq  -d               |
-            pipe_queue  $CAST_QUEUE  com
+post_install(){
+ default_post_install
+           get_provider openldap |
+ pipe      show_installed        |
+ LC_ALL=C  sort                  |
+           uniq -d               |
+           pipe_queue $CAST_QUEUE com
 }
 
 
-current()  {
-case  $VERSION  in
-  4.5.20)  grep  -qx  "patching file rep/rep_record.c"  $COMPILE_LOGS/db  ;;
-  4.4.20)  grep  -qx  "patching file mp/mp_fget.c"      $COMPILE_LOGS/db  ;;
+current(){
+case $VERSION in
+ 4.6.21) grep -qx 'patching file mp/mp_sync.c'     $COMPILE_LOGS/db ;;
+ 4.5.20) grep -qx 'patching file rep/rep_record.c' $COMPILE_LOGS/db ;;
+ 4.4.20) grep -qx 'patching file mp/mp_fget.c'     $COMPILE_LOGS/db ;;
 esac
 }
