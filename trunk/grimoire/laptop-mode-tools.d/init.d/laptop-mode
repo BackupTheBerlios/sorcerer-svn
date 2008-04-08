@@ -17,13 +17,15 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/laptop-mode-enabled
+# Note: Location of PIDF is hardcoded in /usr/bin/laptop_mode!
+PDIR=/var/run/laptop-mode-tools
+PIDF=$PDIR/enabled
 SERV=/usr/sbin/laptop_mode
 NAME=laptop-mode
 
 
-start()    {  touch   $PIDF;  $SERV  auto  init;  }
-stop()     {  rm  -f  $PIDF;  $SERV  stop  init;  }
+start()    {  mkdir -p $PDIR; touch   $PIDF;  $SERV  auto  init;  }
+stop()     {                  rm  -f  $PIDF;  $SERV  stop  init;  }
 restart()  {  $SERV  stop;    $SERV  start;       }
 status()   {  $SERV  status;  }    
 help()     {  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2;  }
