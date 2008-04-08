@@ -1,4 +1,4 @@
-   VERSION=( 8.443.1-x86.x86_64 7-11-x86.x86_64 8.42.3-x86.x86_64 8.40.4-x86.x86_64 )
+   VERSION=( 8-3-x86.x86_64 8.443.1-x86.x86_64 7-11-x86.x86_64 8.42.3-x86.x86_64 8.40.4-x86.x86_64 )
 # Mon-Thu, eastern times
 # 1 877 284 1566
 # Phone number for ATI support
@@ -26,21 +26,21 @@ the ATI GPU in order to prevent lockups, fan meltdown, and chip meltdown.
 The display driver requires linux versions 2.6.x and POSIX shared memory.'
 
 
-pre_build()  {
-  default_pre_build
-  cd  $BUILD_DIR
-  sh  $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE  --extract  $BUILD_DIR
-  chown  -R  root:root  $BUILD_DIR
+pre_build(){
+ default_pre_build
+ cd $BUILD_DIR
+ sh $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE --extract $BUILD_DIR
+ chown -R root:root $BUILD_DIR
 }
 
 
-build()  {
-  make_install()  {
-    cd          $BUILD_DIR/common
-    mkdir  -p                            usr/share/applications/kde
-    mv          opt/kde3/share/applnk/*  usr/share/applications/kde/
-    rm     -rf  opt
-    cd          ..
+build(){
+ make_install(){
+  cd        $BUILD_DIR/common
+  mkdir -p                          usr/share/applications/kde
+  mv        opt/kde3/share/applnk/* usr/share/applications/kde/
+  rm    -rf opt
+  cd        ..
 
 # If the dri module install location is changed
 # then prior to running programs the environment variable
@@ -55,45 +55,45 @@ build()  {
 #     mv         arch/x86_64/usr/X11R6/lib64/modules/dri/fglrx_dri.so  \
 #                arch/x86_64/usr/lib64/dri
 
-    /sbin/ldconfig  -n             arch/$AVER/usr/X11R6/lib
-    rm  -rf  common/{lib,usr/src}  arch/$AVER/lib
+  /sbin/ldconfig -n           arch/$AVER/usr/X11R6/lib
+  rm -rf common/{lib,usr/src} arch/$AVER/lib
 
-    find  common  $XVER  arch/$AVER  -type f  -printf  "%p %P\n"  |
-    while  read           FROM    TO
-    do     install  -vD  $FROM  /$TO
-    done
-    find  common  $XVER  arch/$AVER  -type l  -printf  "%p %P\n"  |
-    while  read           FROM    TO
-    do     mv      -v    $FROM  /$TO
-    done
+  find common $XVER arch/$AVER -type f -printf "%p %P\n" |
+  while read         FROM   TO
+  do    install -vD $FROM /$TO
+  done
+  find common $XVER arch/$AVER -type l -printf "%p %P\n" |
+  while read         FROM   TO
+  do    mv     -v   $FROM /$TO
+  done
 
-    #   cp  -rv  common/*  $XVER/*     arch/$AVER/usr  /
-  }
+  # cp  -rv  common/*  $XVER/*     arch/$AVER/usr  /
+ }
 
 
-  case  $HOSTTYPE  in
-    x86_64)  XVER+="x710_64a"  ;  AVER="x86_64"  ;;
-         *)  XVER+="x710"      ;  AVER="x86"     ;;
-  esac
+ case $HOSTTYPE in
+  x86_64) XVER+=x710_64a ; AVER=x86_64 ;;
+       *) XVER+=x710     ; AVER=x86    ;;
+ esac
 
-  LVER=$(  installed_version  $(  get_provider  linux-kernel  )  )
-  LVER="${LVER:-$( uname -r )}"
+ LVER=$( installed_version $( get_provider linux-kernel ) )
+ LVER="${LVER:-$( uname -r )}"
 
-  cd  common/lib/modules/fglrx/build_mod
+ cd common/lib/modules/fglrx/build_mod
 
-  sed  -i  "s:modprobe \$module:true:
-            s:rmmod \$module:true:"        ../make_install.sh
-  sed  -i  "s:\`uname -r\`:\"$LVER\":"     ../make_install.sh  make.sh
-  sed  -i  "s:hit=0:hit=1:"                                    make.sh
-  sed  -i  "s:^KVER *=.*:KVER = $LVER:"    2.6.x/Makefile
+ sed -i "s:modprobe \$module:true:
+         s:rmmod \$module:true:"     ../make_install.sh
+ sed -i "s:\`uname -r\`:\"$LVER\":"  ../make_install.sh make.sh
+ sed -i "s:hit=0:hit=1:"                                make.sh
+ sed -i "s:^KVER *=.*:KVER = $LVER:" 2.6.x/Makefile
 
-  LIBIP_PREFIX=../../../../../arch/$AVER/lib/modules/fglrx/build_mod  \
-  sh  ./make.sh          &&
-  prepare_install        &&
-  cd ..                  &&
-  sh  ./make_install.sh  &&
-        make_install
+ LIBIP_PREFIX=../../../../../arch/$AVER/lib/modules/fglrx/build_mod  \
+ sh ./make.sh         &&
+ prepare_install      &&
+ cd ..                &&
+ sh ./make_install.sh &&
+      make_install
 }
 
 
-post_install() { depmod  -a  -q  -F  /boot/System.map; }
+post_install(){ depmod -a -q -F /boot/System.map; }

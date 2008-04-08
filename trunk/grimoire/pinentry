@@ -5,10 +5,15 @@
        URL='ftp://ftp.gnupg.org/gcrypt/pinentry/'
   HOMEPAGE='http://www.gnupg.org/'
        REQ=( 'ncurses'
-             'gtk+:--enable-pinentry-gtk2:--disable-pinentry-gtk2:to build GUI using GTK v2'
              'qt-x11-free:--enable-pinentry-qt:--disable-pinentry-qt:to build GUI using QT'
              'libcap::--without-libcap:for POSIX capabilities' )
-      OPTS='--disable-pinentry-gtk'
+# pinentry 0.7.5 requires older glib to compile?
+#            'gtk+:--enable-pinentry-gtk2:--disable-pinentry-gtk2:to build GUI using GTK v2'
+      OPTS='--disable-pinentry-gtk --disable-pinentry-gtk2'
+#     OPTS='--disable-pinentry-gtk'
+#case $VERSION in
+# 0.7.5) USE_GCC=gcc-v4.2 ;;
+#esac
   ESTIMATE='292'
       DESC='pinentry is a collection of simple PIN or passphrase entry dialogs
 which utilize the Assuan protocol as described by the
@@ -16,11 +21,11 @@ aegypten project; see http://www.gnupg.org/aegypten/ for details.
 There are programs for different toolkits available,
 the default is to build a curses GUI dialog.'
 
-build() {
+build(){
  export QTDIR=/opt/kde3
  case $HOSTTYPE in
-  x86_64) export QTLIB='/opt/kde3/lib64' ;;
-       *) export QTLIB='/opt/kde3/lib'   ;;
+  x86_64) export QTLIB=/opt/kde3/lib64 ;;
+       *) export QTLIB=/opt/kde3/lib ;;
  esac
  default_build
 }

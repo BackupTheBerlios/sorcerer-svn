@@ -1,0 +1,1047 @@
+diff -r -U2 gdal-1.5.1/alg/gdalwarpkernel.cpp gdal-1.5.1/alg/gdalwarpkernel.cpp
+--- gdal-1.5.1/alg/gdalwarpkernel.cpp	2007-10-27 14:02:57.000000000 -0700
++++ gdal-1.5.1/alg/gdalwarpkernel.cpp	2008-03-30 06:11:25.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: gdalwarpkernel.cpp 12561 2007-10-27 21:02:57Z warmerdam $
++ * $Id: gdalwarpkernel.cpp 14127 2008-03-30 13:11:25Z rouault $
+  *
+  * Project:  High Performance Image Reprojector
+@@ -33,5 +33,5 @@
+ #include "cpl_string.h"
+ 
+-CPL_CVSID("$Id: gdalwarpkernel.cpp 12561 2007-10-27 21:02:57Z warmerdam $");
++CPL_CVSID("$Id: gdalwarpkernel.cpp 14127 2008-03-30 13:11:25Z rouault $");
+ 
+ static double   adfGWKFilterRadius[] = {
+@@ -1800,5 +1800,5 @@
+     }
+ 
+-    if( dfAccumulatorWeight < 0.999 )
++    if( dfAccumulatorWeight < 0.999 || dfAccumulatorWeight > 1.001 )
+     {
+         *pdfReal = dfAccumulatorReal / dfAccumulatorWeight;
+@@ -1997,5 +1997,5 @@
+     }
+ 
+-    if( dfAccumulatorWeight < 0.999 )
++    if( dfAccumulatorWeight < 0.999 || dfAccumulatorWeight > 1.001 )
+     {
+         *pdfReal = dfAccumulatorReal / dfAccumulatorWeight;
+diff -r -U2 gdal-1.5.1/alg/thinplatespline.cpp gdal-1.5.1/alg/thinplatespline.cpp
+--- gdal-1.5.1/alg/thinplatespline.cpp	2007-01-17 19:22:39.000000000 -0700
++++ gdal-1.5.1/alg/thinplatespline.cpp	2008-03-30 03:34:02.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: thinplatespline.cpp 10645 2007-01-18 02:22:39Z warmerdam $
++ * $Id: thinplatespline.cpp 14123 2008-03-30 10:34:02Z rouault $
+  *
+  * Project:  GDAL Warp API
+@@ -74,6 +74,6 @@
+         for( i = 0; i < VIZGEOREF_MAX_VARS; i++ )
+         {
+-            rhs[i] = (double *) VSIMalloc( sizeof(double) * new_max );
+-            coef[i] = (double *) VSIMalloc( sizeof(double) * new_max );
++            rhs[i] = (double *) VSICalloc( sizeof(double), new_max );
++            coef[i] = (double *) VSICalloc( sizeof(double), new_max );
+         }
+     }
+@@ -277,12 +277,12 @@
+     // Make the necessary memory allocations
+     if ( _AA )
+-        delete _AA;
++        CPLFree(_AA);
+     if ( _Ainv )
+-        delete _Ainv;
++        CPLFree(_Ainv);
+ 	
+     _nof_eqs = _nof_points + 3;
+ 	
+-    _AA = ( double * )calloc( _nof_eqs * _nof_eqs, sizeof( double ) );
+-    _Ainv = ( double * )calloc( _nof_eqs * _nof_eqs, sizeof( double ) );
++    _AA = ( double * )CPLCalloc( _nof_eqs * _nof_eqs, sizeof( double ) );
++    _Ainv = ( double * )CPLCalloc( _nof_eqs * _nof_eqs, sizeof( double ) );
+ 	
+     // Calc the values of the matrix A
+diff -r -U2 gdal-1.5.1/alg/thinplatespline.h gdal-1.5.1/alg/thinplatespline.h
+--- gdal-1.5.1/alg/thinplatespline.h	2007-01-17 19:22:39.000000000 -0700
++++ gdal-1.5.1/alg/thinplatespline.h	2008-03-30 03:34:02.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: thinplatespline.h 10645 2007-01-18 02:22:39Z warmerdam $
++ * $Id: thinplatespline.h 14123 2008-03-30 10:34:02Z rouault $
+  *
+  * Project:  GDAL Warp API
+@@ -79,7 +79,7 @@
+     ~VizGeorefSpline2D(){
+         if ( _AA )
+-            delete _AA;
++            CPLFree(_AA);
+         if ( _Ainv )
+-            delete _Ainv;
++            CPLFree(_Ainv);
+ 
+         CPLFree( x );
+@@ -129,10 +129,10 @@
+             if ( _AA )
+             {
+-                delete _AA;
++                CPLFree(_AA);
+                 _AA = NULL;
+             }
+             if ( _Ainv )
+             {
+-                delete _Ainv;
++                CPLFree(_Ainv);
+                 _Ainv = NULL;
+             }
+diff -r -U2 gdal-1.5.1/frmts/rmf/rmfdataset.cpp gdal-1.5.1/frmts/rmf/rmfdataset.cpp
+--- gdal-1.5.1/frmts/rmf/rmfdataset.cpp	2007-09-13 03:13:48.000000000 -0700
++++ gdal-1.5.1/frmts/rmf/rmfdataset.cpp	2008-03-15 02:10:55.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: rmfdataset.cpp 12138 2007-09-13 10:13:48Z dron $
++ * $Id: rmfdataset.cpp 14014 2008-03-15 09:10:55Z rouault $
+  *
+  * Project:  Raster Matrix Format
+@@ -33,5 +33,5 @@
+ #include "rmfdataset.h"
+ 
+-CPL_CVSID("$Id: rmfdataset.cpp 12138 2007-09-13 10:13:48Z dron $");
++CPL_CVSID("$Id: rmfdataset.cpp 14014 2008-03-15 09:10:55Z rouault $");
+ 
+ CPL_C_START
+@@ -1131,5 +1131,5 @@
+         GInt32  nProj =
+             (poDS->sHeader.iProjection) ? poDS->sHeader.iProjection : 1L;
+-        double  padfPrjParams[6];
++        double  padfPrjParams[7];
+ 
+         padfPrjParams[0] = poDS->sHeader.dfStdP1;
+diff -r -U2 gdal-1.5.1/gcore/gdaldrivermanager.cpp gdal-1.5.1/gcore/gdaldrivermanager.cpp
+--- gdal-1.5.1/gcore/gdaldrivermanager.cpp	2007-08-13 08:02:33.000000000 -0700
++++ gdal-1.5.1/gcore/gdaldrivermanager.cpp	2008-03-25 15:13:05.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: gdaldrivermanager.cpp 11880 2007-08-13 15:02:33Z mloskot $
++ * $Id: gdaldrivermanager.cpp 14081 2008-03-25 22:13:05Z tamas $
+  *
+  * Project:  GDAL Core
+@@ -34,5 +34,5 @@
+ #include "cpl_multiproc.h"
+ 
+-CPL_CVSID("$Id: gdaldrivermanager.cpp 11880 2007-08-13 15:02:33Z mloskot $");
++CPL_CVSID("$Id: gdaldrivermanager.cpp 14081 2008-03-25 22:13:05Z tamas $");
+ 
+ static const char *pszUpdatableINST_DATA = 
+@@ -560,5 +560,5 @@
+             char szPluginDir[sizeof(szExecPath)+50];
+             strcpy( szPluginDir, CPLGetDirname( szExecPath ) );
+-            strcat( szPluginDir, "\\gdalplugins\\" );
++            strcat( szPluginDir, "\\gdalplugins" );
+             papszSearchPath = CSLAddString( papszSearchPath, szPluginDir );
+         }
+Only in gdal-1.5.1: man
+diff -r -U2 gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp
+--- gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp	2007-10-28 01:51:54.000000000 -0700
++++ gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgdatasource.cpp	2008-03-30 09:13:06.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: ogrpgdatasource.cpp 12569 2007-10-28 08:51:54Z mloskot $
++ * $Id: ogrpgdatasource.cpp 14132 2008-03-30 16:13:06Z rouault $
+  *
+  * Project:  OpenGIS Simple Features Reference Implementation
+@@ -33,5 +33,5 @@
+ #include "cpl_string.h"
+ 
+-CPL_CVSID("$Id: ogrpgdatasource.cpp 12569 2007-10-28 08:51:54Z mloskot $");
++CPL_CVSID("$Id: ogrpgdatasource.cpp 14132 2008-03-30 16:13:06Z rouault $");
+ 
+ static void OGRPGNoticeProcessor( void *arg, const char * pszMessage );
+@@ -516,5 +516,5 @@
+     {
+       int length = pszTableName - pszLayerName;
+-      pszSchemaName = (char*)CPLMalloc(length);
++      pszSchemaName = (char*)CPLMalloc(length+1);
+       strncpy(pszSchemaName, pszLayerName, length);
+       pszSchemaName[length] = '\0';
+@@ -532,4 +532,5 @@
+     if( CSLFetchNameValue( papszOptions, "SCHEMA" ) != NULL )
+     {
++        CPLFree(pszSchemaName);
+         pszSchemaName = CPLStrdup(CSLFetchNameValue( papszOptions, "SCHEMA" ));
+     }
+diff -r -U2 gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp
+--- gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp	2007-12-11 17:53:36.000000000 -0700
++++ gdal-1.5.1/ogr/ogrsf_frmts/pg/ogrpgtablelayer.cpp	2008-03-30 09:13:06.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: ogrpgtablelayer.cpp 13330 2007-12-12 00:53:36Z mloskot $
++ * $Id: ogrpgtablelayer.cpp 14132 2008-03-30 16:13:06Z rouault $
+  *
+  * Project:  OpenGIS Simple Features Reference Implementation
+@@ -34,5 +34,5 @@
+ #include "cpl_error.h"
+ 
+-CPL_CVSID("$Id: ogrpgtablelayer.cpp 13330 2007-12-12 00:53:36Z mloskot $");
++CPL_CVSID("$Id: ogrpgtablelayer.cpp 14132 2008-03-30 16:13:06Z rouault $");
+ 
+ #define USE_COPY_UNSET  -10
+@@ -190,4 +190,5 @@
+         }
+ 
++        OGRPGClearResult( hResult );
+         /* Zero tuples means no PK is defined, perfectly valid case. */
+     }
+diff -r -U2 gdal-1.5.1/ogr/ogrsf_frmts/shape/shape2ogr.cpp gdal-1.5.1/ogr/ogrsf_frmts/shape/shape2ogr.cpp
+--- gdal-1.5.1/ogr/ogrsf_frmts/shape/shape2ogr.cpp	2008-02-10 03:59:48.000000000 -0700
++++ gdal-1.5.1/ogr/ogrsf_frmts/shape/shape2ogr.cpp	2008-04-02 13:58:51.000000000 -0700
+@@ -1,4 +1,4 @@
+ /******************************************************************************
+- * $Id: shape2ogr.cpp 13749 2008-02-10 10:59:48Z rouault $
++ * $Id: shape2ogr.cpp 14178 2008-04-02 20:58:51Z rouault $
+  *
+  * Project:  OpenGIS Simple Features Reference Implementation
+@@ -32,5 +32,5 @@
+ #include "cpl_conv.h"
+ 
+-CPL_CVSID("$Id: shape2ogr.cpp 13749 2008-02-10 10:59:48Z rouault $");
++CPL_CVSID("$Id: shape2ogr.cpp 14178 2008-04-02 20:58:51Z rouault $");
+ 
+ static const double EPSILON = 1E-5;
+@@ -1258,5 +1258,8 @@
+ 
+           default:
+-            CPLAssert( FALSE );
++          {
++              /* Ignore fields of other types */
++              break;
++          }
+         }
+     }
+diff -r -U2 gdal-1.5.1/port/cpl_path.cpp gdal-1.5.1/port/cpl_path.cpp
+--- gdal-1.5.1/port/cpl_path.cpp	2007-08-23 13:29:14.000000000 -0700
++++ gdal-1.5.1/port/cpl_path.cpp	2008-03-26 09:49:41.000000000 -0700
+@@ -1,4 +1,4 @@
+ /**********************************************************************
+- * $Id: cpl_path.cpp 11943 2007-08-23 20:29:14Z warmerdam $
++ * $Id: cpl_path.cpp 14088 2008-03-26 16:49:41Z tamas $
+  *
+  * Project:  CPL - Common Portability Library
+@@ -32,5 +32,5 @@
+ #include "cpl_multiproc.h"
+ 
+-CPL_CVSID("$Id: cpl_path.cpp 11943 2007-08-23 20:29:14Z warmerdam $");
++CPL_CVSID("$Id: cpl_path.cpp 14088 2008-03-26 16:49:41Z tamas $");
+ 
+ 
+@@ -370,15 +370,18 @@
+     strncpy( pszStaticResult, pszPath, CPL_PATH_BUF_SIZE );
+     pszStaticResult[CPL_PATH_BUF_SIZE - 1] = '\0';
+-    for( i = strlen(pszStaticResult) - 1; i > 0; i-- )
++    if (*pszStaticResult)
+     {
+-        if( pszStaticResult[i] == '.' )
++        for( i = strlen(pszStaticResult) - 1; i > 0; i-- )
+         {
+-            pszStaticResult[i] = '\0';
+-            break;
+-        }
++            if( pszStaticResult[i] == '.' )
++            {
++                pszStaticResult[i] = '\0';
++                break;
++            }
+ 
+-        if( pszStaticResult[i] == '/' || pszStaticResult[i] == '\\' 
+-            || pszStaticResult[i] == ':' )
+-            break;
++            if( pszStaticResult[i] == '/' || pszStaticResult[i] == '\\' 
++                || pszStaticResult[i] == ':' )
++                break;
++        }
+     }
+ 
+diff -r -U2 gdal-1.5.1/port/cpl_string.cpp gdal-1.5.1/port/cpl_string.cpp
+--- gdal-1.5.1/port/cpl_string.cpp	2007-12-02 11:31:11.000000000 -0700
++++ gdal-1.5.1/port/cpl_string.cpp	2008-04-05 12:48:52.000000000 -0700
+@@ -1,4 +1,4 @@
+ /**********************************************************************
+- * $Id: cpl_string.cpp 13197 2007-12-02 18:31:11Z warmerdam $
++ * $Id: cpl_string.cpp 14208 2008-04-05 19:48:52Z warmerdam $
+  *
+  * Name:     cpl_string.cpp
+@@ -55,5 +55,5 @@
+ #endif
+ 
+-CPL_CVSID("$Id: cpl_string.cpp 13197 2007-12-02 18:31:11Z warmerdam $");
++CPL_CVSID("$Id: cpl_string.cpp 14208 2008-04-05 19:48:52Z warmerdam $");
+ 
+ /*=====================================================================
+@@ -1412,5 +1412,5 @@
+             else
+             {
+-                sprintf( pszOutput, "%%%02X", pszInput[iIn] );
++                sprintf( pszOutput+iOut, "%%%02X", pszInput[iIn] );
+                 iOut += 3;
+             }
+Only in gdal-1.5.1/swig/csharp/const: GdalConst.cs
+Only in gdal-1.5.1/swig/csharp/const: GdalConstPINVOKE.cs
+Only in gdal-1.5.1/swig/csharp/const: gdalconst_wrap.c
+Only in gdal-1.5.1/swig/csharp/gdal: Access.cs
+Only in gdal-1.5.1/swig/csharp/gdal: Band.cs
+Only in gdal-1.5.1/swig/csharp/gdal: ColorEntry.cs
+Only in gdal-1.5.1/swig/csharp/gdal: ColorInterp.cs
+Only in gdal-1.5.1/swig/csharp/gdal: ColorTable.cs
+Only in gdal-1.5.1/swig/csharp/gdal: CPLErr.cs
+Only in gdal-1.5.1/swig/csharp/gdal: Dataset.cs
+Only in gdal-1.5.1/swig/csharp/gdal: DataType.cs
+Only in gdal-1.5.1/swig/csharp/gdal: Driver.cs
+Only in gdal-1.5.1/swig/csharp/gdal: GCP.cs
+Only in gdal-1.5.1/swig/csharp/gdal: Gdal.cs
+Only in gdal-1.5.1/swig/csharp/gdal: GdalPINVOKE.cs
+Only in gdal-1.5.1/swig/csharp/gdal: gdal_wrap.cpp
+Only in gdal-1.5.1/swig/csharp/gdal: MajorObject.cs
+Only in gdal-1.5.1/swig/csharp/gdal: PaletteInterp.cs
+Only in gdal-1.5.1/swig/csharp/gdal: RasterAttributeTable.cs
+Only in gdal-1.5.1/swig/csharp/gdal: RATFieldType.cs
+Only in gdal-1.5.1/swig/csharp/gdal: RATFieldUsage.cs
+Only in gdal-1.5.1/swig/csharp/gdal: ResampleAlg.cs
+Only in gdal-1.5.1/swig/csharp/gdal: RWFlag.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_CPLErrorHandler.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_FALSE_IS_ERR.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_f_double_p_q_const__char_p_void__int.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_GByte.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_int.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_p_char.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_p_GDAL_GCP.cs
+Only in gdal-1.5.1/swig/csharp/gdal: SWIGTYPE_p_void.cs
+Only in gdal-1.5.1/swig/csharp/gdal: XMLNode.cs
+Only in gdal-1.5.1/swig/csharp/gdal: XMLNodeType.cs
+Only in gdal-1.5.1/swig/csharp/ogr: CoordinateTransformation.cs
+Only in gdal-1.5.1/swig/csharp/ogr: DataSource.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Driver.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Envelope.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Feature.cs
+Only in gdal-1.5.1/swig/csharp/ogr: FeatureDefn.cs
+Only in gdal-1.5.1/swig/csharp/ogr: FieldDefn.cs
+Only in gdal-1.5.1/swig/csharp/ogr: FieldType.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Geometry.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Justification.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Layer.cs
+Only in gdal-1.5.1/swig/csharp/ogr: Ogr.cs
+Only in gdal-1.5.1/swig/csharp/ogr: OgrPINVOKE.cs
+Only in gdal-1.5.1/swig/csharp/ogr: ogr_wrap.cpp
+Only in gdal-1.5.1/swig/csharp/ogr: Osr.cs
+Only in gdal-1.5.1/swig/csharp/ogr: OsrPINVOKE.cs
+Only in gdal-1.5.1/swig/csharp/ogr: osr_wrap.cpp
+Only in gdal-1.5.1/swig/csharp/ogr: SpatialReference.cs
+Only in gdal-1.5.1/swig/csharp/ogr: SWIGTYPE_p_p_char.cs
+Only in gdal-1.5.1/swig/csharp/ogr: wkbByteOrder.cs
+Only in gdal-1.5.1/swig/csharp/ogr: wkbGeometryType.cs
+Only in gdal-1.5.1/swig/csharp/osr: CoordinateTransformation.cs
+Only in gdal-1.5.1/swig/csharp/osr: Osr.cs
+Only in gdal-1.5.1/swig/csharp/osr: OsrPINVOKE.cs
+Only in gdal-1.5.1/swig/csharp/osr: osr_wrap.cpp
+Only in gdal-1.5.1/swig/csharp/osr: SpatialReference.cs
+Only in gdal-1.5.1/swig/csharp/osr: SWIGTYPE_p_p_char.cs
+Only in gdal-1.5.1/swig/perl: gdalconst_wrap.c
+Only in gdal-1.5.1/swig/perl: gdal_wrap.cpp
+diff -r -U2 gdal-1.5.1/swig/perl/lib/Geo/GDAL.pm gdal-1.5.1/swig/perl/lib/Geo/GDAL.pm
+--- gdal-1.5.1/swig/perl/lib/Geo/GDAL.pm	2008-03-14 15:59:50.000000000 -0700
++++ gdal-1.5.1/swig/perl/lib/Geo/GDAL.pm	2007-11-20 15:53:23.000000000 -0700
+@@ -8,6 +8,4 @@
+ require DynaLoader;
+ @ISA = qw(Exporter DynaLoader);
+-require Geo::OGR;
+-require Geo::OSR;
+ package Geo::GDALc;
+ bootstrap Geo::GDAL;
+@@ -52,5 +50,4 @@
+ package Geo::GDAL;
+ 
+-*callback_d_cp_vp = *Geo::GDALc::callback_d_cp_vp;
+ *UseExceptions = *Geo::GDALc::UseExceptions;
+ *DontUseExceptions = *Geo::GDALc::DontUseExceptions;
+@@ -101,9 +98,4 @@
+ *GDAL_GCP_set_Id = *Geo::GDALc::GDAL_GCP_set_Id;
+ *GCPsToGeoTransform = *Geo::GDALc::GCPsToGeoTransform;
+-*TermProgress_nocb = *Geo::GDALc::TermProgress_nocb;
+-*_ComputeMedianCutPCT = *Geo::GDALc::_ComputeMedianCutPCT;
+-*_DitherRGB2PCT = *Geo::GDALc::_DitherRGB2PCT;
+-*_ReprojectImage = *Geo::GDALc::_ReprojectImage;
+-*_AutoCreateWarpedVRT = *Geo::GDALc::_AutoCreateWarpedVRT;
+ *VersionInfo = *Geo::GDALc::VersionInfo;
+ *AllRegister = *Geo::GDALc::AllRegister;
+@@ -128,47 +120,8 @@
+ *_OpenShared = *Geo::GDALc::_OpenShared;
+ *IdentifyDriver = *Geo::GDALc::IdentifyDriver;
++*_ReprojectImage = *Geo::GDALc::_ReprojectImage;
++*_AutoCreateWarpedVRT = *Geo::GDALc::_AutoCreateWarpedVRT;
+ *GeneralCmdLineProcessor = *Geo::GDALc::GeneralCmdLineProcessor;
+ 
+-############# Class : Geo::GDAL::SavedEnv ##############
+-
+-package Geo::GDAL::SavedEnv;
+-use vars qw(@ISA %OWNER %ITERATORS %BLESSEDMEMBERS);
+-@ISA = qw( Geo::GDAL );
+-%OWNER = ();
+-%ITERATORS = ();
+-*swig_fct_get = *Geo::GDALc::SavedEnv_fct_get;
+-*swig_fct_set = *Geo::GDALc::SavedEnv_fct_set;
+-*swig_data_get = *Geo::GDALc::SavedEnv_data_get;
+-*swig_data_set = *Geo::GDALc::SavedEnv_data_set;
+-sub new {
+-    my $pkg = shift;
+-    my $self = Geo::GDALc::new_SavedEnv(@_);
+-    bless $self, $pkg if defined($self);
+-}
+-
+-sub DESTROY {
+-    return unless $_[0]->isa('HASH');
+-    my $self = tied(%{$_[0]});
+-    return unless defined $self;
+-    delete $ITERATORS{$self};
+-    if (exists $OWNER{$self}) {
+-        Geo::GDALc::delete_SavedEnv($self);
+-        delete $OWNER{$self};
+-    }
+-}
+-
+-sub DISOWN {
+-    my $self = shift;
+-    my $ptr = tied(%$self);
+-    delete $OWNER{$ptr};
+-}
+-
+-sub ACQUIRE {
+-    my $self = shift;
+-    my $ptr = tied(%$self);
+-    $OWNER{$ptr} = 1;
+-}
+-
+-
+ ############# Class : Geo::GDAL::MajorObject ##############
+ 
+@@ -385,5 +338,4 @@
+ *GetMaskFlags = *Geo::GDALc::Band_GetMaskFlags;
+ *CreateMaskBand = *Geo::GDALc::Band_CreateMaskBand;
+-*ContourGenerate = *Geo::GDALc::Band_ContourGenerate;
+ sub DISOWN {
+     my $self = shift;
+@@ -480,7 +432,7 @@
+ *GetColumnCount = *Geo::GDALc::RasterAttributeTable_GetColumnCount;
+ *GetNameOfCol = *Geo::GDALc::RasterAttributeTable_GetNameOfCol;
+-*_GetUsageOfCol = *Geo::GDALc::RasterAttributeTable__GetUsageOfCol;
+-*_GetTypeOfCol = *Geo::GDALc::RasterAttributeTable__GetTypeOfCol;
+-*_GetColOfUsage = *Geo::GDALc::RasterAttributeTable__GetColOfUsage;
++*GetUsageOfCol = *Geo::GDALc::RasterAttributeTable_GetUsageOfCol;
++*GetTypeOfCol = *Geo::GDALc::RasterAttributeTable_GetTypeOfCol;
++*GetColOfUsage = *Geo::GDALc::RasterAttributeTable_GetColOfUsage;
+ *GetRowCount = *Geo::GDALc::RasterAttributeTable_GetRowCount;
+ *GetValueAsString = *Geo::GDALc::RasterAttributeTable_GetValueAsString;
+@@ -491,5 +443,5 @@
+ *SetValueAsDouble = *Geo::GDALc::RasterAttributeTable_SetValueAsDouble;
+ *SetRowCount = *Geo::GDALc::RasterAttributeTable_SetRowCount;
+-*_CreateColumn = *Geo::GDALc::RasterAttributeTable__CreateColumn;
++*CreateColumn = *Geo::GDALc::RasterAttributeTable_CreateColumn;
+ *GetRowOfValue = *Geo::GDALc::RasterAttributeTable_GetRowOfValue;
+ sub DISOWN {
+@@ -510,7 +462,5 @@
+ package Geo::GDAL;
+ 
+-*TermProgress = *Geo::GDALc::TermProgress;
+ 
+-    use strict;
+     use Carp;
+     use Geo::GDAL::Const;
+@@ -554,16 +504,4 @@
+ 	return $NODE_TYPE_STRING2INT{$type};
+     }
+-    sub NodeData {
+-	my $node = shift;
+-	return (Geo::GDAL::NodeType($node->[0]), $node->[1]);
+-    }
+-    sub Children {
+-	my $node = shift;
+-	return @$node[2..$#$node];
+-    }
+-    sub Child {
+-	my($node, $child) = @_;
+-	return $node->[2+$child];
+-    }
+     sub GetDataTypeSize {
+ 	my $t = shift;
+@@ -589,11 +527,4 @@
+ 	croak "unsupported data type: $t";
+     }
+-    sub Drivers {
+-	my @drivers;
+-	for my $i (0..GetDriverCount()-1) {
+-	    push @drivers, _GetDriver($i);
+-	}
+-	return @drivers;
+-    }
+     sub GetDriver {
+ 	my $driver = shift;
+@@ -601,5 +532,4 @@
+ 	return GetDriverByName($driver);
+     }
+-    *Driver = *GetDriver;
+     sub Open {
+ 	my @p = @_;
+@@ -612,12 +542,4 @@
+ 	return _OpenShared(@p);
+     }
+-    sub ComputeMedianCutPCT {
+-	my($red, $green, $blue, $num_colors, $colors, $callback, $callback_data) = @_;
+-	_ComputeMedianCutPCT($red, $green, $blue, $num_colors, $colors, $callback, $callback_data);
+-    }
+-    sub DitherRGB2PCT {
+-	my($red, $green, $blue, $target, $colors, $callback, $callback_data) = @_;
+-	_DitherRGB2PCT($red, $green, $blue, $target, $colors, $callback, $callback_data);
+-    }
+     sub ReprojectImage {
+ 	my @p = @_;
+@@ -630,11 +552,6 @@
+ 	return _AutoCreateWarpedVRT(@p);
+     }
+-
+     package Geo::GDAL::MajorObject;
+-    use vars qw/@DOMAINS/;
+     use strict;
+-    sub Domains {
+-	return @DOMAINS;
+-    }
+     sub Description {
+ 	my($self, $desc) = @_;
+@@ -650,87 +567,14 @@
+ 	GetMetadata($self, $domain) if defined wantarray;
+     }
+-
+     package Geo::GDAL::Driver;
+-    use vars qw/@CAPABILITIES @DOMAINS/;
+     use strict;
+-    @CAPABILITIES = ('Create', 'CreateCopy');
+-    sub Domains {
+-	return @DOMAINS;
+-    }
+-    sub Name {
+-	my $self = shift;
+-	return $self->{ShortName};
+-    }
+-    sub Capabilities {
+-	my $self = shift;
+-	return @CAPABILITIES unless shift;
+-	my $h = $self->GetMetadata;
+-	my @cap;
+-	for my $cap (@CAPABILITIES) {
+-	    push @cap, $cap if $h->{'DCAP_'.uc($cap)} eq 'YES';
+-	}
+-	return @cap;
+-    }
+-    sub TestCapability {
+-	my($self, $cap) = @_;
+-	my $h = $self->GetMetadata;
+-	return $h->{'DCAP_'.uc($cap)} eq 'YES' ? 1 : undef;
+-    }
+-    sub Extension {
+-	my $self = shift;
+-	my $h = $self->GetMetadata;
+-	return $h->{DMD_EXTENSION};
+-    }
+-    sub MIMEType {
+-	my $self = shift;
+-	my $h = $self->GetMetadata;
+-	return $h->{DMD_MIMETYPE};
+-    }
+-    sub CreationOptionList {
+-	my $self = shift;
+-	my @options;
+-	my $h = $self->GetMetadata->{DMD_CREATIONOPTIONLIST};
+-	if ($h) {
+-	    $h = Geo::GDAL::ParseXMLString($h);
+-	    my($type, $value) = Geo::GDAL::NodeData($h);
+-	    if ($value eq 'CreationOptionList') {
+-		for my $o (Geo::GDAL::Children($h)) {
+-		    my %option;
+-		    for my $a (Geo::GDAL::Children($o)) {
+-			my(undef, $key) = Geo::GDAL::NodeData($a);
+-			my(undef, $value) = Geo::GDAL::NodeData(Geo::GDAL::Child($a, 0));
+-			if ($key eq 'Value') {
+-			    push @{$option{$key}}, $value;
+-			} else {
+-			    $option{$key} = $value;
+-			}
+-		    }
+-		    push @options, \%option;
+-		}
+-	    }
+-	}
+-	return @options;
+-    }
+-    sub CreationDataTypes {
+-	my $self = shift;
+-	my $h = $self->GetMetadata;
+-	return split /\s+/, $h->{DMD_CREATIONDATATYPES};
+-    }
+-    sub CreateDataset {
++    sub Create {
+ 	my @p = @_;
+ 	$p[5] = $Geo::GDAL::TYPE_STRING2INT{$p[5]} if $p[5] and exists $Geo::GDAL::TYPE_STRING2INT{$p[5]};
+ 	return _Create(@p);
+     }
+-    *Create = *CreateDataset;
+-    *Copy = *CreateCopy;
+-
+     package Geo::GDAL::Dataset;
+     use strict;
+-    use vars qw/%BANDS @DOMAINS/;
+-    @DOMAINS = ("IMAGE_STRUCTURE", "SUBDATASETS", "GEOLOCATION");
+-    sub Domains {
+-	return @DOMAINS;
+-    }
+-    *GetDriver = *_GetDriver;
++    use vars qw/%BANDS/;
+     sub Open {
+ 	return Geo::GDAL::Open(@_);
+@@ -743,12 +587,4 @@
+ 	return ($self->{RasterXSize}, $self->{RasterYSize});
+     }
+-    sub Bands {
+-	my $self = shift;
+-	my @bands;
+-	for my $i (1..$self->{RasterCount}) {
+-	    push @bands, GetRasterBand($self, $i);
+-	}
+-	return @bands;
+-    }
+     sub GetRasterBand {
+ 	my($self, $index) = @_;
+@@ -757,5 +593,4 @@
+ 	return $band;
+     }
+-    *Band = *GetRasterBand;
+     sub AddBand {
+ 	my @p = @_;
+@@ -786,11 +621,8 @@
+ 	return (@$GCPs, $proj);
+     }
+-
+     package Geo::GDAL::Band;
+-    use Carp;
+-    use UNIVERSAL qw(isa);
+     use strict;
+     use vars qw/
+-	%COLOR_INTERPRETATION_STRING2INT %COLOR_INTERPRETATION_INT2STRING @DOMAINS
++	%COLOR_INTERPRETATION_STRING2INT %COLOR_INTERPRETATION_INT2STRING
+ 	/;
+     for my $string (qw/Undefined GrayIndex PaletteIndex RedBand GreenBand BlueBand AlphaBand 
+@@ -800,8 +632,4 @@
+ 	$COLOR_INTERPRETATION_INT2STRING{$int} = $string;
+     }
+-    @DOMAINS = ("IMAGE_STRUCTURE", "RESAMPLING");
+-    sub Domains {
+-	return @DOMAINS;
+-    }
+     sub DESTROY {
+ 	my $self;
+@@ -882,64 +710,7 @@
+     sub ColorTable {
+ 	my $self = shift;
+-	SetRasterColorTable($self, $_[0]) if @_;
+-	return unless defined wantarray;
++	SetRasterColorTable($self, $_[0]) if @_ > 0;
+ 	GetRasterColorTable($self);
+     }
+-    sub CategoryNames {
+-	my $self = shift;
+-	SetRasterCategoryNames($self, \@_) if @_;
+-	return unless defined wantarray;
+-	my $n = GetRasterCategoryNames($self);
+-	return @$n;
+-    }
+-    sub AttributeTable {
+-	my $self = shift;
+-	SetDefaultRAT($self, $_[0]) if @_;
+-	return unless defined wantarray;
+-	my $r = GetDefaultRAT($self);
+-	$Geo::GDAL::RasterAttributeTable::BANDS{$r} = $self;
+-	return $r;
+-    }
+-    sub Contours {
+-	my $self = shift;
+-	my %defaults = (DataSource => undef,
+-			LayerConstructor => {Name => 'contours'},
+-			ContourInterval => 100, 
+-			ContourBase => 0,
+-			FixedLevels => [], 
+-			NoDataValue => undef, 
+-			IDField => -1, 
+-			ElevField => -1,
+-			callback => undef,
+-			callback_data => undef);
+-	my %params;
+-	if (!defined($_[0]) or isa($_[0], 'Geo::OGR::DataSource')) {
+-	    ($params{DataSource}, $params{LayerConstructor},
+-	     $params{ContourInterval}, $params{ContourBase},
+-	     $params{FixedLevels}, $params{NoDataValue}, 
+-	     $params{IDField}, $params{ElevField},
+-	     $params{callback}, $params{callback_data}) = @_;
+-	} else {
+-	    %params = @_;
+-	}
+-	for (keys %params) {
+-	    croak "unknown parameter: $_" unless exists $defaults{$_};
+-	}
+-	for (keys %defaults) {
+-	    $params{$_} = $defaults{$_} unless defined $params{$_};
+-	}
+-	$params{DataSource} = Geo::OGR::GetDriver('Memory')->CreateDataSource('ds') 
+-	    unless defined $params{DataSource};
+-	my $layer = $params{DataSource}->CreateLayer($params{LayerConstructor});
+-	my $schema = $layer->GetLayerDefn;
+-	for ('IDField', 'ElevField') {
+-	    $params{$_} = $schema->GetFieldIndex($params{ElevField}) unless $params{ElevField} =~ /^[+-]?\d+$/;
+-	}
+-	ContourGenerate($self, $params{ContourInterval}, $params{ContourBase}, $params{FixedLevels},
+-			$params{NoDataValue}, $layer, $params{IDField}, $params{ElevField},
+-			$params{callback}, $params{callback_data});
+-	return $layer;
+-    }
+-
+     package Geo::GDAL::ColorTable;
+     use strict;
+@@ -987,56 +758,3 @@
+ 	return @table;
+     }
+-
+-    package Geo::GDAL::RasterAttributeTable;
+-    use strict;
+-    use vars qw/ %BANDS
+-	%FIELD_TYPE_STRING2INT %FIELD_TYPE_INT2STRING
+-	%FIELD_USAGE_STRING2INT %FIELD_USAGE_INT2STRING
+-	/;
+-    for my $string (qw/Integer Real String/) {
+-	my $int = eval "\$Geo::GDAL::Constc::GFT_$string";
+-	$FIELD_TYPE_STRING2INT{$string} = $int;
+-	$FIELD_TYPE_INT2STRING{$int} = $string;
+-    }
+-    for my $string (qw/Generic PixelCount Name Min Max MinMax 
+-		    Red Green Blue Alpha RedMin 
+-		    GreenMin BlueMin AlphaMin RedMax GreenMax BlueMax AlphaMax 
+-		    MaxCount/) {
+-	my $int = eval "\$Geo::GDAL::Constc::GFU_$string";
+-	$FIELD_USAGE_STRING2INT{$string} = $int;
+-	$FIELD_USAGE_INT2STRING{$int} = $string;
+-    }
+-    sub FieldTypes {
+-	return keys %FIELD_TYPE_STRING2INT;
+-    }
+-    sub FieldUsages {
+-	return keys %FIELD_USAGE_STRING2INT;
+-    }
+-    sub RELEASE_PARENTS {
+-	my $self = shift;
+-	delete $BANDS{$self};
+-    }
+-    sub GetUsageOfCol {
+-	my($self, $col) = @_;
+-	$FIELD_USAGE_INT2STRING{_GetUsageOfCol($self, $col)};
+-    }
+-    sub GetColOfUsage {
+-	my($self, $usage) = @_;
+-	_GetColOfUsage($self, $FIELD_USAGE_STRING2INT{$usage});
+-    }
+-    sub GetTypeOfCol {
+-	my($self, $col) = @_;
+-	$FIELD_TYPE_INT2STRING{_GetTypeOfCol($self, $col)};
+-    }
+-    sub CreateColumn {
+-	my($self, $name, $type, $usage) = @_;
+-	_CreateColumn($self, $name, $FIELD_TYPE_STRING2INT{$type}, $FIELD_USAGE_STRING2INT{$usage});
+-    }
+-    sub Value {
+-	my($self, $row, $column) = @_;
+-	SetValueAsString($self, $row, $column, $_[3]) if defined $_[3];
+-	return unless defined wantarray;
+-	GetValueAsString($self, $row, $column);
+-    }
+-
+  1;
+diff -r -U2 gdal-1.5.1/swig/perl/lib/Geo/OGR.pm gdal-1.5.1/swig/perl/lib/Geo/OGR.pm
+--- gdal-1.5.1/swig/perl/lib/Geo/OGR.pm	2008-03-14 15:59:51.000000000 -0700
++++ gdal-1.5.1/swig/perl/lib/Geo/OGR.pm	2007-11-21 01:39:18.000000000 -0700
+@@ -56,5 +56,4 @@
+ *CreateGeometryFromWkt = *Geo::OGRc::CreateGeometryFromWkt;
+ *CreateGeometryFromGML = *Geo::OGRc::CreateGeometryFromGML;
+-*CreateGeometryFromJson = *Geo::OGRc::CreateGeometryFromJson;
+ *GetDriverCount = *Geo::OGRc::GetDriverCount;
+ *GetOpenDSCount = *Geo::OGRc::GetOpenDSCount;
+@@ -126,5 +125,5 @@
+ *_GetDriver = *Geo::OGRc::DataSource__GetDriver;
+ *GetName = *Geo::OGRc::DataSource_GetName;
+-*_DeleteLayer = *Geo::OGRc::DataSource__DeleteLayer;
++*DeleteLayer = *Geo::OGRc::DataSource_DeleteLayer;
+ *_CreateLayer = *Geo::OGRc::DataSource__CreateLayer;
+ *CopyLayer = *Geo::OGRc::DataSource_CopyLayer;
+@@ -160,6 +159,4 @@
+ *ResetReading = *Geo::OGRc::Layer_ResetReading;
+ *GetName = *Geo::OGRc::Layer_GetName;
+-*GetGeometryColumn = *Geo::OGRc::Layer_GetGeometryColumn;
+-*GetFIDColumn = *Geo::OGRc::Layer_GetFIDColumn;
+ *GetFeature = *Geo::OGRc::Layer_GetFeature;
+ *GetNextFeature = *Geo::OGRc::Layer_GetNextFeature;
+@@ -394,5 +391,4 @@
+ *ExportToGML = *Geo::OGRc::Geometry_ExportToGML;
+ *ExportToKML = *Geo::OGRc::Geometry_ExportToKML;
+-*ExportToJson = *Geo::OGRc::Geometry_ExportToJson;
+ *AddPoint_3D = *Geo::OGRc::Geometry_AddPoint_3D;
+ *AddPoint_2D = *Geo::OGRc::Geometry_AddPoint_2D;
+@@ -407,6 +403,4 @@
+ *GetY = *Geo::OGRc::Geometry_GetY;
+ *GetZ = *Geo::OGRc::Geometry_GetZ;
+-*GetPoint_3D = *Geo::OGRc::Geometry_GetPoint_3D;
+-*GetPoint_2D = *Geo::OGRc::Geometry_GetPoint_2D;
+ *GetGeometryCount = *Geo::OGRc::Geometry_GetGeometryCount;
+ *SetPoint_3D = *Geo::OGRc::Geometry_SetPoint_3D;
+@@ -533,11 +527,5 @@
+ 	    return @cap;
+ 	}
+-	*Create = *CreateDataSource;
+-	*Copy = *CopyDataSource;
+-	*OpenDataSource = *Open;
+-	*Delete = *DeleteDataSource;
+-
+ 	package Geo::OGR::DataSource;
+-	use Carp;
+ 	use strict;
+ 	use vars qw /@CAPABILITIES %LAYERS/;
+@@ -565,26 +553,8 @@
+ 	    return Geo::OGR::OpenShared(@_);
+ 	}
+-	sub Layer {
+-	    my($self, $name) = @_;
+-	    my $layer = _GetLayerByName($self, $name) if defined $name;
+-	    $layer = _GetLayerByIndex($self, $name) if !$layer and $name =~ /^\d+$/;
+-	    return unless $layer;
+-	    $LAYERS{tied(%$layer)} = $self;
+-	    return $layer;
+-	}
+-	sub Layers {
+-	    my $self = shift;
+-	    my @names;
+-	    for my $i (0..$self->GetLayerCount-1) {
+-		my $layer = _GetLayerByIndex($self, $i);
+-		push @names, $layer->GetName;
+-	    }
+-	    return @names;
+-	}
+ 	sub GetLayerByIndex {
+ 	    my($self, $index) = @_;
+ 	    $index = 0 unless defined $index;
+-	    my $layer = _GetLayerByIndex($self, $index+0);
+-	    return unless $layer;
++	    my $layer = _GetLayerByIndex($self, $index);
+ 	    $LAYERS{tied(%$layer)} = $self;
+ 	    return $layer;
+@@ -593,53 +563,15 @@
+ 	    my($self, $name) = @_;
+ 	    my $layer = _GetLayerByName($self, $name);
+-	    return unless $layer;
+ 	    $LAYERS{tied(%$layer)} = $self;
+ 	    return $layer;
+ 	}
+ 	sub CreateLayer {
+-	    my $self = shift;
+-	    my %defaults = (Name => 'unnamed',
+-			    SRS => undef, 
+-			    GeometryType => 'Unknown', 
+-			    Options => [], 
+-			    Schema => undef);
+-	    my %params;
+-	    if (ref($_[0]) eq 'HASH') {
+-		%params = %{$_[0]};
+-	    } else {
+-		($params{Name}, $params{SRS}, $params{GeometryType}, $params{Options}, $params{Schema}) = @_;
+-	    }
+-	    for (keys %params) {
+-		croak "unknown parameter: $_" unless exists $defaults{$_};
+-	    }
+-	    for (keys %defaults) {
+-		$params{$_} = $defaults{$_} unless defined $params{$_};
+-	    }
+-	    $params{GeometryType} = $Geo::OGR::Geometry::TYPE_STRING2INT{$params{GeometryType}} if 
+-		exists $Geo::OGR::Geometry::TYPE_STRING2INT{$params{GeometryType}};
+-	    my $layer = _CreateLayer($self, $params{Name}, $params{SRS}, $params{GeometryType}, $params{Options});
+-	    $LAYERS{tied(%$layer)} = $self;
+-	    $layer->Schema(%{$params{Schema}}) if $params{Schema};
++	    my @p = @_;
++	    $p[3] = $Geo::OGR::Geometry::TYPE_STRING2INT{$p[3]} if 
++		$p[3] and exists $Geo::OGR::Geometry::TYPE_STRING2INT{$p[3]};
++	    my $layer = _CreateLayer(@p);
++	    $LAYERS{tied(%$layer)} = $p[0];
+ 	    return $layer;
+ 	}
+-	sub DeleteLayer {
+-	    my $self = shift;
+-	    my $name;
+-	    if (@_ == 2) {
+-		my %param = @_;
+-		_DeleteLayer($self, $param{index}), return if exists $param{index};
+-		$name = $param{name};
+-	    } else {
+-		$name = shift;
+-	    }
+-	    my $index;
+-	    for my $i (0..$self->GetLayerCount-1) {
+-		my $layer = _GetLayerByIndex($self, $i);
+-		$index = $i, last if $layer->GetName eq $name;
+-	    }
+-	    $index = $name unless defined $index;
+-	    _DeleteLayer($self, $index) if defined $index;
+-	}
+-
+ 	package Geo::OGR::Layer;
+ 	use strict;
+@@ -770,11 +702,4 @@
+ 	    return @ret;
+ 	}
+-	sub SpatialFilter {
+-	    my $self = shift;
+-	    $self->SetSpatialFilter($_[0]) if @_ == 1;
+-	    $self->SetSpatialFilterRect(@_) if @_ == 4;
+-	    return unless defined wantarray;
+-	    $self->GetSpatialFilter;
+-	}
+ 	sub InsertFeature {
+ 	    my $self = shift;
+@@ -791,7 +716,5 @@
+ 	    $self->CreateFeature($f);
+ 	}
+-
+ 	package Geo::OGR::FeatureDefn;
+-	use strict;
+ 	sub Schema {
+ 	    my $self = shift;
+@@ -802,7 +725,4 @@
+ 		$self->GeomType($schema{GeometryType}) if exists $schema{GeometryType};
+ 		for my $fd (@{$schema{Fields}}) {
+-		    if (ref($fd) eq 'HASH') {
+-			$fd = Geo::OGR::FieldDefn->create(%$fd);
+-		    }
+ 		    AddFieldDefn($self, $fd);
+ 		}
+@@ -827,20 +747,7 @@
+ 	}
+ 	*GeometryType = *GeomType;
+-
+ 	package Geo::OGR::Feature;
+ 	use strict;
+ 	use vars qw /%GEOMETRIES/;
+-	sub FID {
+-	    my $self = shift;
+-	    $self->SetFID($_[0]) if @_;
+-	    return unless defined wantarray;
+-	    $self->GetFID;
+-	}
+-	sub StyleString {
+-	    my $self = shift;
+-	    $self->SetStyleString($_[0]) if @_;
+-	    return unless defined wantarray;
+-	    $self->GetStyleString;
+-	}
+ 	sub Row {
+ 	    my $self = shift;
+@@ -925,5 +832,4 @@
+ 	    return $geom;
+ 	}
+-
+ 	package Geo::OGR::FieldDefn;
+ 	use strict;
+@@ -1019,7 +925,5 @@
+ 		     Precision => $self->Precision };
+ 	}
+-
+ 	package Geo::OGR::Geometry;
+-	use strict;
+ 	use Carp;
+ 	use vars qw /
+@@ -1080,27 +984,17 @@
+ 	    return $TYPE_INT2STRING{$self->GetGeometryType};
+ 	}
+-	sub CoordinateDimension {
+-	    my $self = shift;
+-	    SetCoordinateDimension($self, $_[0]) if @_;
+-	    GetCoordinateDimension($self) if defined wantarray;
+-	}
+ 	sub AddPoint {
+ 	    @_ == 4 ? AddPoint_3D(@_) : AddPoint_2D(@_);
+ 	}
+ 	sub SetPoint {
+-	    @_ == 5 ? SetPoint_3D(@_) : SetPoint_2D(@_);
++	    @_ == 4 ? SetPoint_3D(@_) : SetPoint_2D(@_);
+ 	}
+-	sub GetPoint {
++	sub GetPoint { # todo: implement with a typemap
+ 	    my($self, $i) = @_;
+ 	    $i = 0 unless defined $i;
+-	    my $point = ($self->GetGeometryType & 0x80000000) == 0 ? GetPoint_2D($self, $i) : GetPoint_3D($self, $i);
+-	    return @$point;
+-	}
+-	sub Point {
+-	    my $self = shift;
+-	    my $i = shift;
+-	    SetPoint($self, $i, @_) if @_;
+-	    return GetPoint($self, $i) if defined wantarray;
+-	}
++	    return ($self->GetGeometryType & 0x80000000) == 0 ?
++		($self->GetX($i), $self->GetY($i)) :
++		($self->GetX($i), $self->GetY($i), $self->GetZ($i));
++	}	
+ 	sub Points {
+ 	    my $self = shift;
+@@ -1166,14 +1060,14 @@
+ 		$n = $self->GetPointCount;
+ 		if ($n == 1) {
+-		    push @points, $flat ? GetPoint_2D($self) : GetPoint_3D($self);
++		    push @points, $flat ? [$self->GetX, $self->GetY] : [$self->GetX, $self->GetY, $self->GetZ];
+ 		} else {
+ 		    my $i;
+ 		    if ($flat) {
+ 			for my $i (0..$n-1) {
+-			    push @points, GetPoint_2D($self, $i);
++			    push @points, [$self->GetX($i), $self->GetY($i)];
+ 			}
+ 		    } else {
+ 			for my $i (0..$n-1) {
+-			    push @points, GetPoint_3D($self, $i);
++			    push @points, [$self->GetX($i), $self->GetY($i), $self->GetZ($i)];
+ 			}
+ 		    }
+@@ -1205,16 +1099,8 @@
+ 	return keys %Geo::OGR::Geometry::TYPE_STRING2INT;
+     }
+-    sub Drivers {
+-	my @drivers;
+-	for my $i (0..GetDriverCount()-1) {
+-	    push @drivers, _GetDriver($i);
+-	}
+-	return @drivers;
+-    }
+     sub GetDriver {
+ 	my($name_or_number) = @_;
+ 	return _GetDriver($name_or_number) if $name_or_number =~ /^\d/;
+-	return GetDriverByName("$name_or_number");
++	return GetDriverByName($name_or_number);
+     }
+-    *Driver = *GetDriver;
+ 1;
+Only in gdal-1.5.1/swig/perl: ogr_wrap.cpp
+Only in gdal-1.5.1/swig/perl: osr_wrap.cpp
+diff -r -U2 gdal-1.5.1/VERSION gdal-1.5.1/VERSION
+--- gdal-1.5.1/VERSION	2008-03-14 15:59:52.000000000 -0700
++++ gdal-1.5.1/VERSION	2008-04-07 03:20:23.000000000 -0700
+@@ -1 +1 @@
+-1.5.1
++svn-stable-2008.04.07

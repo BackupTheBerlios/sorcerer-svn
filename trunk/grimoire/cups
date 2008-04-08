@@ -41,6 +41,21 @@ build(){
   fi
  }
 
+ fix_lib64(){
+  move(){
+   if   [  /usr/lib64/$1 ]
+   then mv /usr/lib64/$1 /usr/lib/
+   fi
+  }
+
+  if [ $HOSTTYPE == x86_64 ]; then return; fi
+  move libcupsimage.so
+  move libcupsimage.so.2
+  move libcups.so
+  move libcups.so.2
+ }
+
+
  if spell_installed Linux-PAM; then OPTS+=' --enable-pam'; fi
  if spell_installed openssl;   then OPTS+=' --enable-ssl'; fi
 
@@ -50,5 +65,6 @@ build(){
  cd       var/cups/conf &&
  mkdir -p /etc/cups     &&
  cp    *  /etc/cups     &&
- check_for_smb_backend
+ check_for_smb_backend  &&
+ fix_lib64
 }

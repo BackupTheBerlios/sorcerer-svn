@@ -9,12 +9,24 @@
       VURL='http://www.ekiga.org/index.php?rub=5&path=sources/sources'
   HOMEPAGE='http://www.ekiga.org/'
        REQ='openldap pwlib speex'
- FRESHMEAT="none"
+case $VERSION in
+ 2.2.11) REQ+=' libtool-v1.5' ;;
+esac
+ FRESHMEAT='none'
   ESTIMATE='300'
-      DESC="opal is undescribed library used by ekiga"
+      DESC='opal is undescribed library used by ekiga'
 # oddly enough 2.2.2 must be compiled with default_build
 # because it does not work correctly with DESTDIR
 ## sorcery no longer builds using DESTDIR, turned out bad.
 # build()  {
 #   default_build
 # }
+
+build(){
+ case $VERSION in 
+  2.2.11) export CFLAGS+=' -I/opt/libtool/include'
+          export CXXFLAGS+=' -I/opt/libtool/include'
+          export LDFLAGS+=' -L/opt/libtool/lib -R/opt/libtool/lib' ;;
+ esac
+ default_build
+}

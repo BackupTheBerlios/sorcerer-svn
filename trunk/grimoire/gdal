@@ -12,9 +12,8 @@
        REQ=( 'curl geos giflib jasper libpng proj tiff unixODBC'
              'libgeotiff:::for external GeoTiff library'
              'postgresql:::for postgresql support'
+             'xerces-c:--with-xerces::to include Xerces C++ XML Parser support (for GML)'
              ':--with-threads::to support multi thread operation' )
-#            'xerces-c:--with-xerces::to include Xerces C++ XML Parser support (for GML)'
-# xerces-c unavailabe while it is broken.
       OPTS='--enable-static=no'
 case $VERSION in
  1.5.1) USE_GCC=gcc-v4.2 ;;
@@ -35,3 +34,10 @@ for data translation and processing:
     * gdal_merge.py - Build a quick mosaic from a set of images.
     * gdal_rasterize - Rasterize vectors into raster file.
     * gdal-config - Get options required to build software using GDAL.'
+
+build(){
+ case $VERSION in
+  1.5.1) patch -p1 < $SCRIPT_DIR/gdal-1.5.1-svn-stable-2008.04.07.patch ;;
+ esac
+ default_build
+}
