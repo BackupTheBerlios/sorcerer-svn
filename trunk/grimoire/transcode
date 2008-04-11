@@ -81,13 +81,9 @@ and to enable post-processing of AVI files.'
 
 build(){
  case $VERSION in
-  1.0.6rc1) 
-         sed -i 's:ffmpeg/avcodec.h:libavcodec/avcodec.h:g' configure      \
-                                                            export/*.[ch]  \
-                                                            filter/*.[ch]  \
-                                                            import/*.[ch]  \
-                                                            src/*.[ch]
-         sed -i 's:-lMagick:-lMagick++:g' configure ;;
+  1.0.6rc1) grep -rl   ffmpeg/avcodec.h * | xargs -r --max-lines=64 \
+            sed  -i 's:ffmpeg/avcodec.h:libavcodec/avcodec.h:'
+            sed -i 's:-lMagick:-lMagick++:g' configure ;;
   1.0.5) sed -i 's:-lMagick:-lMagick++:g' configure
 #         sed -i '/typedef signed long __s32;/d
 #                 /typedef unsigned long __u32;/d' import/nuv/RTjpegN.h 
