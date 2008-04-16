@@ -1,6 +1,5 @@
 # 0.22.0 has compile error
-   VERSION=( 0.22.1 0.22.0 0.21.5.2 0.21.4 0.21.3 0.21.2 0.21.1 0.14 0.13 0.12 )
-#  VERSION=(        0.21.5.2 0.21.4 0.21.3 0.21.2 0.21.1 0.14 0.13 0.12 )
+   VERSION=( 0.22.1 0.22.0 0.21.5.2 0.21.4 0.21.3 0.21.2 0.21.1 )
     IGNORE='^0\.23\.'
   CATEGORY='network/chat'
  ATTRIBUTE='gnome'
@@ -10,5 +9,12 @@
        REQ=( 'gnome-panel telepathy-mission-control'
              'aspell:::for spell checking' )
       OPTS='--enable-static=no'
-  ESTIMATE='1700'
+  ESTIMATE='2400'
       DESC='empathy is a chat client.'
+build(){
+ case $VERSION in
+  0.22.1) grep -rl '\-Werror' * |
+          xargs -r --max-lines=64 sed -i 's:-Werror::' ;;
+ esac
+ default_build
+}
