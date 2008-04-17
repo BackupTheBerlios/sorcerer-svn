@@ -18,7 +18,10 @@ INST="$( show_installed )"
  WHY="${TAB}Failed md5sum check"
  LOG='Cast Reason'
 
-sums(){ find $MD5SUM_LOGS -type f | xargs --max-lines=256 cat; }
+tsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/d'; }
+gsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/p;d'; }
+sums(){ tsum | xargs --max-lines=256 cat
+        gsum | xargs --max-lines=256 gzip -cd; }
  old(){ sums | sed p; }
 name(){ sed 's:^[0-9a-f]*  ::'; }
  use(){ sed "$SKIP"; }
