@@ -7,31 +7,29 @@
   HOMEPAGE='http://www.hotpotatoonline.com'
        URL="$SOURCEFORGE_URL"
        REQ='SDL gltext'
-      OPTS="--bindir=/usr/games"
   ESTIMATE='48'
-      DESC="HotPotatoOnline is a fast paced areana sport game.
+      DESC='HotPotatoOnline is a fast paced areana sport game.
 Players try to explode the opposition using a short-fused potato bomb.
 The generated environment can be used to bounce, corner, and surprise foes.
 Up to 4 players can confront each other in detailed customized matches.
-It's similar to dodgeball with a grenade."
+It is similar to dodgeball with a grenade.'
 
-build()  {
+build(){
   install_potato()  {
-    mkdir    -p                  /usr/games
-    install  -m 0755  HotPotato  /usr/games
-    mkdir    -p                  /usr/share/games/potato
-    find  .  -type f  |  escape_qs  |  xargs  --max-lines=64  chmod 0644
-    find  .  -type d  |  escape_qs  |  xargs  --max-lines=64  chmod 0755
-    rm       -f  *.cpp  *.d  *.h  *.o  Makefile  HotPotato
-    cp       -r  *               /usr/share/games/potato
-    echo     -e "#!/bin/bash\ncd /usr/share/games/potato\n/usr/games/HotPotato"  \
-             >      /usr/games/run-potato
-    chmod    0755   /usr/games/run-potato
+    install  -vm 755 HotPotato /usr/bin
+    mkdir   -pvm 755 /usr/share/games/potato
+    find  .  -type f | escape_qs | xargs --max-lines=64 chmod 0644
+    find  .  -type d | escape_qs | xargs --max-lines=64 chmod 0755
+    rm       -f *.cpp *.d *.h *.o Makefile HotPotato
+    cp       -av *               /usr/share/games/potato
+    echo     -e "#!/bin/bash\ncd /usr/share/games/potato\n/usr/bin/HotPotato" \
+             >   /usr/bin/run-potato
+    chmod    755 /usr/bin/run-potato
   }
 
-  sed  -i  "s:-O2:$CXXFLAGS:
-            s:-lGL :-L/usr/X11R6/lib -lGL :"  Makefile
-  make             &&
-  prepare_install  &&
-  install_potato
+ sed -i "s:-O2:$CXXFLAGS:
+         s:-lGL :-L/usr/X11R6/lib -lGL :" Makefile
+ make            &&
+ prepare_install &&
+ install_potato
 }

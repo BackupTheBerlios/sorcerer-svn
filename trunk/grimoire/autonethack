@@ -1,6 +1,6 @@
    VERSION=( 3.4.3.01 )
   CATEGORY='game'
- ATTRIBUTE='noheal x11 new'
+ ATTRIBUTE='noheal x11'
     SOURCE="auto-nethack/autonethack-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://auto-nethack.sourceforge.net'
@@ -8,17 +8,20 @@
              'XFree86:--enable-x11-graphics --enable-default-graphics=x11::Enable X11 graphic interface' )
 # gtk+ programs may not run guid games.
 #   'gtk+:--enable-gtk2hack-graphics --enable-default-graphics=gtk2::Enable gtk2hack graphic interface'
-      OPTS='--bindir=/usr/games'
   ESTIMATE='328'
       DESC='autonethack is an easier to install nethack.'
 
-build()  {
- default_build
- chown root:games /usr/games/lib/nethackdir
- chmod 0775       /usr/games/lib/nethackdir
- chown root:games /usr/games/lib/nethackdir/nethack
- chmod 2755       /usr/games/lib/nethackdir/nethack
- chown root:games /usr/games/lib/nethackdir/{save,perm,record,logfile}
- chmod 0775       /usr/games/lib/nethackdir/save
- chmod 0664       /usr/games/lib/nethackdir/{perm,record,logfile}
+build(){
+ chown_installed(){
+  chown root:games /usr/games/lib/nethackdir
+  chmod 0775       /usr/games/lib/nethackdir
+  chown root:games /usr/games/lib/nethackdir/nethack
+  chmod 2755       /usr/games/lib/nethackdir/nethack
+  chown root:games /usr/games/lib/nethackdir/{save,perm,record,logfile}
+  chmod 0775       /usr/games/lib/nethackdir/save
+  chmod 0664       /usr/games/lib/nethackdir/{perm,record,logfile}
+ }
+
+ default_build &&
+ chown_installed
 }
