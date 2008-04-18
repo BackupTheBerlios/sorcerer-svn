@@ -1,4 +1,4 @@
-   VERSION=( implosion-20080417-4 implosion-20080415-0 implosion-20080410-0 implosion-20080407-0 implosion-20080328-0 implosion-20080322-0 implosion-20080321-0 implosion-20080320-0 implosion-20080319-0 implosion-20080317-0 implosion-20080314-0 implosion-20080313-0 implosion-20080311-1 implosion-20080310-1 implosion-20080305-0 )
+   VERSION=( implosion-20080417-4 implosion-20080415-0 implosion-20080410-0 implosion-20080407-0 implosion-20080328-0 implosion-20080322-0 implosion-20080321-0 implosion-20080320-0 implosion-20080319-0 implosion-20080317-0 )
   CATEGORY='utility'
  ATTRIBUTE='archive_off solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -59,32 +59,6 @@ build(){
 
 post_install(){
 
- linux_headers_check(){
-  if    ! [ -f /usr/include/asm-generic/errno.h  ]; then
-   echo      'Attempting to install some missing linux headers'
-   leech -w  glibc
-   cd        $( untar $SOURCE_CACHE/glibc/*/linux-*.tar* )/linux* &&
-   make      include/linux/version.h &&
-   make      include/asm &&
-   cp    -rL include/{asm,asm-generic,linux}  /usr/include
-  fi
- }
-
- fix_provide_logs(){
-  ( find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f -empty
-    find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f -size 1c
-    find $PROVIDE_LOGS -maxdepth 1 -mindepth 1 -type f | grep ','
-  ) | xargs --max-lines=64 rm -f
- }
-
- fix_fstab(){
-  if grep  -q "/root/.sorcery.*size=32m"         /etc/fstab; then
-   sed -ir "s:(/root/.sorcery.*size=)32m:\164m:" /etc/fstab
-   mount -o remount /root/.sorcery
-   true
-  fi
- }
-
  missing_init-script(){
   find  $VERSION_LOGS -type f -printf '%f\n' |
   while read
@@ -101,26 +75,8 @@ post_install(){
   pipe_queue $CAST_QUEUE com
  }
 
- fix_pam_d(){
-  if   [ -d       /etc/pam.d ]
-  then chmod 0644 /etc/pam.d/*
-  fi
- }
-
- fix_ld_so_conf(){
-  if   grep -q    /opt/gcc/    /etc/ld.so.conf
-  then sed  -i '\,/opt/gcc/,d' /etc/ld.so.conf
-  fi
- }
-
- rm -fr /etc/sorcery/log/stat $INDEX_DIR/spell $SOURCE_CACHE/ALL
  rm -f  $PROVIDE_LOGS/poppler
- chmod 0700 ${LOG_DIR:-/etc/sorcery/log} /etc/init.d
- fix_pam_d
- fix_provide_logs
- linux_headers_check
- fix_fstab
- fix_ld_so_conf
+ chmod 700 ${LOG_DIR:-/etc/sorcery/log} /etc/init.d
  missing_init-script
  default_post_install
 }
