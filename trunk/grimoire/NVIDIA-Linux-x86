@@ -1,4 +1,3 @@
-# NVIDIA-Linux-x86 version 169.12 will not compile with linux version 2.6.25-rc9
    VERSION=( 169.12 169.09 169.07 169.04 )
     IGNORE='unified'
   CATEGORY='kernel'
@@ -31,12 +30,12 @@ of /etc/X11/xorg.conf and add:
 Included is a sample config file that works with 2 monitors.
 /root/.sorcery/grimoire/NVIDIA-Linux-x86.d/xorg.conf'
 
-pre_build() {
-  default_pre_build
-  cd  ..
-  rmdir  $BUILD_DIR
-  sh $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE##*/} -x --target $BUILD_DIR
-  chown  -R  root:root  $BUILD_DIR
+pre_build(){
+ default_pre_build
+ cd  ..
+ rmdir $BUILD_DIR
+ sh $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE##*/} -x --target $BUILD_DIR
+ chown -R root:root  $BUILD_DIR
 }
 
 build(){
@@ -80,36 +79,40 @@ build(){
 
   find usr -type f | while read; do install -vD $REPLY /$REPLY; done
   find usr -type l | while read; do mv      -v  $REPLY /$REPLY; done
-  }
+ }
 
-  LVER=$( installed_version $( get_provider linux-kernel ) )
+ LVER=$( installed_version $( get_provider linux-kernel ) )
 
-  if [ -z "$LVER" ]; then LVER=$( uname -r ); fi
+ if [ -z "$LVER" ]; then LVER=$( uname -r ); fi
 
-  cd $BUILD_DIR
-  cd usr/src/nv
+ cd $BUILD_DIR
+ cd usr/src/nv
 
-  rm -f makefile Makefile
+ case $VERSION in
+  169.12) patch -p3 < $SCRIPT_DIR/NVIDIA_kernel-169.12-2286310.diff.txt ;;
+ esac
 
-  case $LVER in
-   2.4*) cp Makefile.nvidia Makefile ;;
-      *) cp Makefile.kbuild Makefile ;;
-  esac
+ rm -f makefile Makefile
 
-   SM=/usr/src/linux/System.map
-  SSC=suser-sanity-check
-  RSC=rmmod-sanity-check
+ case $LVER in
+  2.4*) cp Makefile.nvidia Makefile ;;
+     *) cp Makefile.kbuild Makefile ;;
+ esac
 
-  sed -i "s/\$(shell uname -r)/$LVER/" Makefile
-  sed -i "s:depmod:true:"              Makefile
-  sed -i "s:modprobe:true:"            Makefile
-  sed -i "s:$SSC $RSC:$SSC:"           Makefile
-  sed -i "s:install $RSC:install:"     Makefile
-  sed -i "s:rivafb-sanity-check nvidiafb-sanity-check::" Makefile
+  SM=/usr/src/linux/System.map
+ SSC=suser-sanity-check
+ RSC=rmmod-sanity-check
 
-  prepare_install &&
-  make    install CC=gcc \
-                  IGNORE_CC_MISMATCH=1 \
-                  IGNORE_XEN_PRESENCE=1 &&
-     make_install
+ sed -i "s/\$(shell uname -r)/$LVER/" Makefile
+ sed -i "s:depmod:true:"              Makefile
+ sed -i "s:modprobe:true:"            Makefile
+ sed -i "s:$SSC $RSC:$SSC:"           Makefile
+ sed -i "s:install $RSC:install:"     Makefile
+ sed -i "s:rivafb-sanity-check nvidiafb-sanity-check::" Makefile
+
+ prepare_install &&
+ make    install CC=gcc \
+                 IGNORE_CC_MISMATCH=1 \
+                 IGNORE_XEN_PRESENCE=1 &&
+    make_install
 }
