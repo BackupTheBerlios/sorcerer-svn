@@ -1,4 +1,6 @@
-   VERSION=( 2.6.23 2.6.22-070710 )
+# force 2.6.25 just to eliminate current function for 2.6.23
+  VERSION=( 2.6.25 2.6.23 2.6.22-070710 )
+     SAFE=( 2.6.25 )
    IGNORE='ss\|^05\|^2\.6\.20\|rc'
   CATEGORY='network'
  ATTRIBUTE='console'
@@ -13,17 +15,10 @@ the networking behavior in kernels 2.6.x and later.
 It can be used tp configure adapters, and provides userland
 programs to control QoS settings in the kernel.'
 
-build() {
-sed  -i  "s:-O2:$CFLAGS:
-          s:SBINDIR=/usr/sbin:SBINDIR=/sbin:"  Makefile
-make             &&
-prepare_install  &&
+build(){
+sed -i "s:-O2:$CFLAGS:
+         s:SBINDIR=/usr/sbin:SBINDIR=/sbin:" Makefile
+make            &&
+prepare_install &&
 make    install
-}
-
-current() {
-case $VERSION in
-2.6.23) [     -f                          /etc/init.d/hostname  ]  &&
-        grep  -q  "Required-Start: proc"  /etc/init.d/hostname  ;;
-esac
 }

@@ -1,29 +1,19 @@
-# both version 0.8.2 and cvs versions fail to compile
-# - Kyle Sat Dec  1 04:00:00 UTC 2007
    VERSION=( 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0 0.6.6 )
-#version_year_week  10
     IGNORE='xmms-plugin\|services\|alpha'
-  CATEGORY='kernel'
-#ATTRIBUTE='archive_off library'
- ATTRIBUTE='archive_off library broken'
-    SOURCE="lirc/lirc-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-#REPOSITORY=( "cvs     -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc login"
-#             "cvs -z3 -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc co -P lirc"
-#             "cvs -z3 -d:pserver:anonymous:@lirc.cvs.sourceforge.net:/cvsroot/lirc up -P lirc" )
+  CATEGORY='utility'
+ ATTRIBUTE='library'
+    SOURCE=( "lirc/lirc-$VERSION.tar.bz2"
+             "remotes.tar.bz2" )
+       URL=( "$SOURCEFORGE_URL"
+             'http://www.lirc.org/' )
        REQ=( 'libtool libusb'
              'alsa-lib:::for alsa support'
              'libSM:::for x11 utilities'
              'libX11:::for x11 utilities'
              'portaudio:::for portaudio support' )
-      OPTS='--with-driver=all'
-#     OPTS='--with-driver=all --enable-sandboxed'
-#  USE_GCC='gcc-v4.0'
-case $VERSION in
- 0.8.2) USE_GCC='gcc-v4.0' ;;
-esac
+      OPTS='--with-driver=userspace'
   HOMEPAGE='http://www.lirc.org'
-  ESTIMATE='1280'
+  ESTIMATE='600'
       DESC='lirc (Linux Infrared Remote Control).
 lirc is a package that allows you to decode
 and send infra-red signals of many,
@@ -31,7 +21,14 @@ but not all, commonly used remote controls.
 If you want to run the daemon add a command
 to /etc/init.d/bootmisc to invoke it.'
 
-build() {
+build(){
+ install_remotes(){
+  find remotes -type d | xargs --max-lines=256 chmod 755
+  find remotes -type f | xargs --max-lines=256 chmod 644
+  mkdir -vpm 755 /usr/share/lirc
+  cp -av remotes /usr/share/lirc
+ }
+
 mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
@@ -41,38 +38,6 @@ OPTS+=" --with-kerneldir=/usr/src/linux --with-moduledir=/lib/modules/$KVER/misc
 if   [ -x autogen.sh ]
 then    ./autogen.sh
 fi &&
-default_build
-}
-
-
-build_old() {
-
-conf()  {
-  if    [  -f  $CONFIG_LOGS/$SPELL/configure.sh  ]
-  then  cp     $CONFIG_LOGS/$SPELL/configure.sh  .
-  else
-    patch  -p0  <  $SCRIPT_DIR/lirc-setup.patch
-    ./setup.sh  &&
-    cp  configure.sh  $CONFIG_LOGS/$SPELL/
-  fi
-}
-
-sed_source()  {
-  sed -i 's:"$@":--prefix=/usr --sysconfdir=/etc:' configure.sh
-  sed -i "s:-O2 -g:$CFLAGS:" configure
-  sed -i "s:-O2 -g:$CFLAGS:" configure.in
-}
-
-mkdir    -p -m 0755 /var/empty
-groupadd -K GID_MIN=256 -K GID_MAX=512    lirc                    2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=512 -g lirc -d /var/empty lirc 2>/dev/null
-
-  # conf               &&
-  # sed_source         &&
-
-  libtoolize  --force
-  sh  configure.sh     &&
-  make                 &&
-  prepare_install      &&
-  make    install
+default_build &&
+install_remotes
 }

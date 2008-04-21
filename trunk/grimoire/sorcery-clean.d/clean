@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# Copyright 2008 by Kyle Sallee for use with Sorcerer only.
+
+. /etc/sorcery/config
+
+prune_etc_logs(){
+ ( find  ${FIND_FOLLOW_SYMBOLIC_LINKS} $ETC_LOGS \
+    -maxdepth 1 -mindepth 1 \
+    -type d -mtime +7 \
+    -printf "%P\n"
+   show_installed
+   show_installed ) | LC_ALL=C sort | uniq -u |
+ sed "s:^:$ETC_LOGS/:" | xargs -r --max-lines=16 rm -fr
+}
+
+
+expire_logs(){
+ if   [ -f "$EVENT_LOGS/Expire/Logs" ] &&
+      find "$EVENT_LOGS/Expire/Logs" -mtime -1 | found
+ then return
+ else increase_event_log "Logs" "Expire" ""
+ fi
+
+ local CE=${COMPILE_EXPIRE:-$EXPIRE}
+ local EE=${EVENT_EXPIRE:-$EXPIRE}
+ local LE=${LEECH_EXPIRE:-$EXPIRE}
+
+ ( find "${COMPILE_LOGS:-/etc/sorcery/log/compile}" -type f -mtime +$CE | sed -n "/\.bz2/p;/\.gz/p"
+   find "${EVENT_LOGS:-/etc/sorcery/log/event}"     -type f -mtime +$EE
+   find "${LEECH_LOGS:-/etc/sorcery/log/leech}"     -type f -mtime +$LE
+ ) 2>/dev/null | escape_qs | xargs -r --max-lines=64 rm -f
+}
+
+
+prune_common_cache(){
+ declare -i R=0  S=0 LIM=0    SIZE=0
+ declare -i SAV_CX=0 OLD_CX=0
+ local      SAV      OLD      FILE
+
+ ext() { sed -r 's:(.*\.)(tar)$:\1\2\n\1tgz\n\1\2.gz\n\1\2.bz2\n\1\2.7z\n\1\2.lzma:'; }
+ size(){ files   | while read F; do echo -n "$F$TAB"; finfo -s "$F"; done; }
+ age() { files   | while read F; do echo -n "$F$TAB"; finfo -m "$F"; done; }
+ sum() { cut -f2 | while read R; do (( S+=R )); echo "$S"; done | tail -n1; }
+
+ SAV="$( ( echo "$1" | ext
+           echo "$2"
+         )           |
+   LC_ALL=C sort     | uniq -d | size
+ )"
+
+ OLD="$( ( echo  "$1" | ext | sed p
+           echo  "$2"
+         )            |
+   LC_ALL=C sort      | uniq -u | age |
+   LC_ALL=C sort -g -t "$TAB" -k2 | cut -f1 | size
+ )"
+
+ SAV_CX="$( echo "$SAV" | sum )"
+ OLD_CX="$( echo "$OLD" | sum )"
+
+ (( LIM = SAV_CX * $3 / 100 ))
+
+ if     (( OLD_CX > LIM  )); then echo "$OLD" |
+  while (( OLD_CX > LIM  ))  &&   read  FILE SIZE
+  do    (( OLD_CX-= SIZE )); echo     "$FILE"
+  done
+ fi | escape_qs | xargs -r --max-lines=64 rm -f
+}
+
+
+prune_ccache_cache(){
+ mkdir_p $CCACHE_CACHE
+ prune_common_cache \
+  "$( show_installed | sed "s:^:$CCACHE_CACHE/:; s:$:.ccache.tar:" )" \
+  "$( find ${FIND_FOLLOW_SYMBOLIC_LINKS} $CCACHE_CACHE -type f     )" \
+  "$CCACHE_KEEP"
+}
+
+
+prune_archive_cache(){
+ local           SCX="$( view_index all | wc -l )"
+ if    (( 2560 > SCX )); then return; fi
+
+ mkdir_p $ARCHIVE_CACHE
+ prune_common_cache \
+  "$( snapshot | pipe view_index av | LC_ALL=C sort -u | 
+      sed "s:^:$ARCHIVE_CACHE/:
+           s:$TAB:-$HOSTTYPE-:
+           s:$:.tar:" )" \
+  "$( find ${FIND_FOLLOW_SYMBOLIC_LINKS} $ARCHIVE_CACHE -type f )" \
+  "$ARCHIVE_KEEP"
+}
+
+
+prune_source_cache(){
+ local           SCX="$( view_index src | wc -l )"
+ if    (( 3000 > SCX )); then return; fi
+
+ mkdir_p $SOURCE_CACHE
+ prune_common_cache \
+  "$( view_index src | sed   "s:.*$TAB:$SOURCE_CACHE/:" | tarball_name )" \
+  "$( find $FIND_FOLLOW_SYMBOLIC_LINKS $SOURCE_CACHE -type f |
+      filter "$LOCAL_EXCLUDE" )"      "$SOURCE_KEEP"
+ find ${FIND_FOLLOW_SYMBOLIC_LINKS}    $SOURCE_CACHE -type d -empty |
+ xargs -r --max-lines=256 rmdir
+}
+
+prune_failed_cache(){
+ find ${FIND_FOLLOW_SYMBOLIC_LINKS} "${FAILED_CACHE:-/var/tmp/failed}" \
+  -maxdepth 1 -mindepth 1 -type d  -mtime +7 | xargs --max-lines=16 rm -fr
+}
+
+
+sqz_gz_logs(){
+ sqz(){ if [ -f $1 ] && gzip -cd $1 | gzip -9 > $1.new; then mv $1.new $1; fi }
+
+ sqz ${HISTORY_LOGS:=/etc/sorcery/log/history.gz}
+ sqz ${SNAPY_LOGS:=/etc/sorcery/log/snap.gz}
+}
+
+sqz_gz_logs &
+prune_archive_cache
+prune_ccache_cache
+prune_source_cache
+prune_etc_logs
+prune_failed_cache
+expire_logs
+wait

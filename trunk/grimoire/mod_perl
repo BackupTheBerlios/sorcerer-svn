@@ -1,51 +1,53 @@
-   VERSION=( 2.0.3 2.0.2 2.0.1 2.0.0 )
+   VERSION=( 2.0.4 2.0.3 2.0.2 2.0.1 2.0.0 )
     IGNORE='current\|1\.27\|1\.28\|1\.29'
   CATEGORY='development/interpreter/perl network/web'
  ATTRIBUTE='library'
     SOURCE="mod_perl-$VERSION.tar.gz"
        URL='http://perl.apache.org/dist/'
   HOMEPAGE='http://perl.apache.org/'
-       REQ='httpd perl'
+       REQ=( 'httpd perl'
+             'sqlite-v2.8:::for old sqlite support' )
   EPROVIDE='cpan--mod_perl'
-  ESTIMATE='2361'
+  ESTIMATE='1600'
       DESC='mod_perl provides a perl module for httpd.'
    
-build() {
+build(){
  MPXS="MP_APXS=/usr/sbin/apxs"
  OMIZ="OPTIMIZE=$CFLAGS"
 
- patch -p1 < $SCRIPT_DIR/perl5.10-fixes.patch
+ case $VERSION in
+  2.0.3)  patch -p1 < $SCRIPT_DIR/perl5.10-fixes.patch ;;
+ esac
 
- perl    Makefile.PL  \
- "$MPXS"      &&
- make    "$OMIZ"      &&
- prepare_install      &&
+ perl Makefile.PL "$MPXS" &&
+ make    "$OMIZ" &&
+ prepare_install &&
  make    install
 }
 
-post_install() {
-  default_post_install
-  if    [  -f  /etc/init.d/httpd   ]
-  then  bash   /etc/init.d/httpd try-restart
-  fi
-  true
+post_install(){
+ default_post_install
+ if   [ -f /etc/init.d/httpd ]
+ then bash /etc/init.d/httpd try-restart
+ fi
+ true
 }
 
-pre_remove() {
-  remove_perl_module()  {
-    LPM="modules/mod_perl.so"
-    HTTPD_CONF="/etc/httpd/httpd.conf"
-    HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
+pre_remove(){
+ remove_perl_module(){
+  LPM="modules/mod_perl.so"
+  HTTPD_CONF="/etc/httpd/httpd.conf"
+  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
 
-    if    grep      "mod_perl.so"  $HTTPD_CONF
-    then  grep  -v  "mod_perl.so"  $HTTPD_CONF  >  $HTTPD_CONF_TMP
-          cp      $HTTPD_CONF_TMP  $HTTPD_CONF
-    fi
-  }
-
-  default_pre_remove
-  remove_perl_module
-  if    [  -f  /etc/init.d/httpd   ]
-  then  bash   /etc/init.d/httpd try-restart
+  if   grep    "mod_perl.so"  $HTTPD_CONF
+  then grep -v "mod_perl.so"  $HTTPD_CONF > $HTTPD_CONF_TMP
+       cp     $HTTPD_CONF_TMP $HTTPD_CONF
   fi
+ }
+
+ default_pre_remove
+ remove_perl_module
+ if   [ -f /etc/init.d/httpd  ]
+ then bash /etc/init.d/httpd try-restart
+ fi
 }
