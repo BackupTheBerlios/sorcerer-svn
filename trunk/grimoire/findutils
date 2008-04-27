@@ -1,12 +1,15 @@
+# 4.4.0 gained solo attribute so that
+# find and xargs can be installed in /bin rather than /usr/bin
+# so that /etc/init.d/fstab provided by init-scripts can execute properly
    VERSION=( 4.4.0 4.2.33 4.2.32 4.2.31 )
       SAFE=( 4.4.0 4.2.33 4.2.32 4.2.31 )
   CATEGORY='utility'
- ATTRIBUTE='console'
+ ATTRIBUTE='console solo'
     SOURCE="findutils/findutils-$VERSION.tar.gz"
        URL="$GNU_URL"
   HOMEPAGE='http://www.gnu.org/software/findutils'
-   PROTECT='/usr/bin/find
-            /usr/bin/xargs'
+   PROTECT='/bin/find
+            /bin/xargs'
   ESTIMATE='1000'
       DESC='findutils contains utilities for locating files.
 find	finds files that match certain criteria performs
@@ -14,3 +17,14 @@ find	finds files that match certain criteria performs
 	in shell scripts
 locate	scans a database for file names that match a pattern
 xargs	applies a command to a list of files'
+
+build(){
+ default_build &&
+ mv /usr/bin/{find,xargs} /bin/
+}
+
+current(){
+ case $VERSION in
+  4.4.0) [ -f /bin/find ] ;;
+ esac
+}
