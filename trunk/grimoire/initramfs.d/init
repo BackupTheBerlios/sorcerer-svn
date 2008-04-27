@@ -1,8 +1,8 @@
 #!/bin/bash
 
-destruct() {
+destruct(){
  sleep 600
- rm  -rf /bin /dev /etc /init /lib /lib64 /proc /sbin /sys /usr
+ rm -rf /bin /dev /etc /init /lib /lib64 /proc /sbin /sys /usr
 }
 
 [ $$ == 1 ] || exit 1
@@ -11,11 +11,17 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+for ROOT in $( dmesg | sed 's/ /\n/g' | sed 's:root=/dev::p;d' ); do
+ sed -i 's:\t: :g; \, / ,d' /etc/fstab
+ echo "/dev$ROOT / auto defaults 0 0" >> /etc/fstab
+ echo "Using /dev$ROOT for /"
+done
+
 /etc/init.d/rcS
 
-if    [ -f     /media/root/sbin/init ]; then destruct &
- cd            /media/root
- mount  --move /media/root /
+if    [ -f    /media/root/sbin/init ]; then destruct &
+ cd           /media/root
+ mount --move /media/root /
  exec chroot . /sbin/init "$@"
 else  exec     /sbin/init "$@"
 fi
