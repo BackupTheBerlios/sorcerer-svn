@@ -13,6 +13,8 @@
 . /lib/lsb/init-functions
 
 start(){
+ on_ir(){ dmesg | grep -q boot=IR; }
+
  welcome(){
   echo
   echo $"Welcome to Sorcerer."
@@ -22,8 +24,10 @@ start(){
   echo $"to begin a menu driven installation."
  }
 
- log_warning_msg "welcome starting"; welcome > /dev/console
- log_success_msg "welcome completed"
+ if   on_ir &&
+      log_warning_msg "welcome starting"; welcome > /dev/console
+ then log_success_msg "welcome completed"
+ fi
 }
 
 

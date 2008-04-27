@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Provides: $local_fs
 # Required-Start: fsck proc sys
-# Should-Start: cryptmount-early devices dmsetup udev vgchange
+# Should-Start: cryptmount-early devices dmsetup fstab udev vgchange
 # Required-Stop: halt reboot
 # Default-Start: S
 # Default-Stop: 0 6
@@ -13,8 +13,8 @@
 . /lib/lsb/init-functions
 
 mount_local_fs(){
- if   [ -d  /opt  ]; then
-  mount -n  -o remount /
+ if   [ -d /opt ]; then
+  mount -n -o remount /
   rm    -fr            /etc/mtab
   cat   /proc/mounts > /etc/mtab
   mount -a
@@ -45,9 +45,9 @@ start(){
  log_success_msg 'Local file systems mounted'
 }
 
-umount_local_fs() {
+umount_local_fs(){
  sync
- [  -f /proc/mounts ] || mount -nrt proc proc /proc
+ [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
  cut   -d ' ' -f2 /proc/mounts |
  sort  -ur |
@@ -56,14 +56,14 @@ umount_local_fs() {
  done
 
  if ! mount -no remount,ro /; then
-  log_failure_msg "/ failed to remount read only"
+  log_failure_msg '/ failed to remount read only'
   sulogin -t 300
  fi
 }
 
 stop(){
- log_warning_msg "umounting local file systems"; umount_local_fs
- log_success_msg "umounted"
+ log_warning_msg 'umounting local file systems'; umount_local_fs
+ log_success_msg 'umounted'
 }
 
     restart(){ :; }
