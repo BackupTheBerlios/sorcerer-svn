@@ -10,368 +10,273 @@
 # installing the Sorcerer Install/Rescue ISO               #
 ############################################################
 
-partition_layout() {
-  REC="	Recommended Partitioning for Sorcerer
 
-Part	Size	ID		FS	MNT
-1	256M	83 Linux	ext2	/boot
-2	2G	83 Linux	ext3	/tmp
-3	8G+	83 Linux	ext3	/
+inputbox(){ $DIALOG --nocancel --inputbox "$1" 0 0 "$2"; }
 
-Optional Performance Enhancing Partitions:
-Part	Size	ID		FS	MNT
-4		5  Extended
-5	6G+	83 Linux	ext3	/var
-6	1G+	83 Linux	ext3	/home
-7	2G	83 Linux	ext3	/usr/src/sorcery
-8	1G	82 Linux swap	swap	none
 
-Precisely sized dedicated filesystems for:
-/, /var, /home, /srv
-provide optimal filesystem performance.
-If uncertain of space requirements
-then /boot and one large / partition can be used."
+chroot_run(){
+ echo    $"Chrooting to $TARGET"
 
-  $DIALOG  --cr-wrap  --no-collapse  --msgbox  "$REC"  20 70
+ mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
+ mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
+ mkdir  -p                       $TARGET/tmp/.sorcery
+ mount  --bind  /dev             $TARGET/dev
+ mount  --bind  /dev/pts         $TARGET/dev/pts
+ mount  --bind  /proc            $TARGET/proc
+ mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
+ mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
+ mount  --bind  /var/lock        $TARGET/var/lock
+ chroot $TARGET swapon  -a
+ chroot $TARGET "$@"
+ chroot $TARGET swapoff -a
+ umount                          $TARGET/var/lock
+ umount                          $TARGET/usr/src/sorcery
+ umount                          $TARGET/root/.sorcery
+ umount                          $TARGET/proc
+ umount                          $TARGET/dev/pts
+ umount                          $TARGET/dev
+ umount                          $TARGET/$TARGET/dev # avoids bug in linux?
 }
 
 
-inputbox()  {  $DIALOG  --nocancel  --inputbox  "$1"  0 0  "$2";  }
-
-
-chroot_run()  {
-  echo    $"Chrooting to $TARGET"
-
-  mkdir   -p                $TARGET/$TARGET/dev # avoids bug in linux?
-  mount   --bind   /dev     $TARGET/$TARGET/dev # avoids bug in linux?
-  mkdir   -p                $TARGET/tmp/.sorcery
-  mount   --bind   /dev     $TARGET/dev
-  mount   --bind   /dev/pts $TARGET/dev/pts
-  mount   --bind   /proc    $TARGET/proc
-  chroot  $TARGET  swapon   -a
-  chroot  $TARGET  mount    /root/.sorcery
-  chroot  $TARGET  mount    /usr/src/sorcery
-  chroot  $TARGET  mount    /var/lock
-  chroot  $TARGET  "$@"
-  chroot  $TARGET  umount   /var/lock
-  chroot  $TARGET  umount   /usr/src/sorcery
-  chroot  $TARGET  umount   /root/.sorcery
-  chroot  $TARGET  swapoff  -a
-  umount                    $TARGET/proc
-  umount                    $TARGET/dev/pts
-  umount                    $TARGET/dev
-  umount                    $TARGET/$TARGET/dev # avoids bug in linux?
-}
-
-
-chroot_build()  {
-  scry_finish()  {
-    while  ls      $TARGET/root/.sorcery/queue/cast  |  grep  -q  "."
-    do     chroot  $TARGET  augur  scry
-    done
-  }
-
-  echo    $"Chrooting to $TARGET"
-
-  mkdir   -p                $TARGET/$TARGET/dev # avoids bug in linux?
-  mount   --bind   /dev     $TARGET/$TARGET/dev # avoids bug in linux?
-  mkdir   -p                $TARGET/tmp/.sorcery
-  mount   --bind   /dev     $TARGET/dev
-  mount   --bind   /dev/pts $TARGET/dev/pts
-  mount   --bind   /proc    $TARGET/proc
-  chroot  $TARGET  swapon   -a
-  chroot  $TARGET  mount    /root/.sorcery
-  chroot  $TARGET  mount    /usr/src/sorcery
-  chroot  $TARGET  mount    /var/lock
-  chroot  $TARGET  dispel   install
-  chroot  $TARGET  cast     -r  "$@"
-  scry_finish
-  chroot  $TARGET  umount   /var/lock
-  chroot  $TARGET  umount   /usr/src/sorcery
-  chroot  $TARGET  umount   /root/.sorcery
-  chroot  $TARGET  swapoff  -a
-  umount                    $TARGET/proc
-  umount                    $TARGET/dev/pts
-  umount                    $TARGET/dev
-  umount                    $TARGET/$TARGET/dev # avoids bug in linux?
-}
-
-
-# confirm()  {  $DIALOG  $2  --nocancel  --yesno  "$1"  8 50;  }
-confirm()  {  $DIALOG  $2  --yesno  "$1"  8 50;  }
-
-
-goodbye() {
-  if    [  "$PMOUNTED"  ==  "true"  ]
-  then  filesystem_unmount
-  fi
-
-  if    confirm  "Reboot now?"  "--defaultno"
-  then  shutdown  -r  now
-  fi
-  exit  0
-}
-
-
-check_transfer_arch()  {
-
-  if  !  [  -e  $TARGET/etc/sorcerer.version  ];  then
-    $DIALOG  --msgbox  "Transfer the Install/Rescue first."  8  50
-    return  1
-  fi
-
-  $DIALOG  --infobox "Checking previously transfered files.
-                      Please wait...."  8  50
-
-  BAD="$(  unset       LANG
-           cd          $TARGET
-           md5sum  -c  /IR.md5sums     |
-           tee         /dev/stderr     |
-           grep        ": FAILED"      |
-           sed       "s/: FAILED.*//"  |
-           grep    -v  "^etc/fstab"    )"
-
-  if    [  -z  "$BAD"  ];  then
-    $DIALOG  --msgbox  "Transfer verified correct."  8  50
-    return  0
-  else
-    $DIALOG  --msgbox  "Some checksums did not match.
-However the installer may have modified some files.
-This check is best done immediately after transfering the I/R"  12  60
-    echo  "$BAD"  |
-    while  read;  do
-      if    confirm  "Attempt to re-transfer $REPLY?"  ""
-      then  tar  --no-recursion  -C /media/cd  -c  "$REPLY"  |
-            tar                  -C $TARGET       -xvpf -
-      fi
-    done
-  fi
-}
-
-
-list_disks()  {
-  find  /dev  -mindepth 1  -group disk   \
-              -printf  "%p	disk\n"  |
-  sed       "/[0-9]/d"                   |
-  LC_ALL=C  sort
-}
-
-
-list_partitions_part()  {
-  find  /dev  -mindepth 1  -group disk        \
-              -printf  "%p	partition\n"  |
-  sed  -n  "/[0-9]/p"                         |
-  LC_ALL=C  sort
-}
-
-
-list_part_type()  {
-  sfdisk  -l  2>/dev/null  |
-  sed      '/Empty$/d
-            /Extended$/d'  |
-  grep        "^/dev/"     |
-  tr      -d '*'           |
-  tr      -s ' '           |
-  cut     -d ' '  -f1,7-
-}
-
-
-list_partitions()  {  list_part_type  |  cut  -d ' '  -f1;  }
-
-
-get_partition()  {
-
-  TITLE="Partition Selection Menu"
-   HELP="Please select a partition"
-
-  $DIALOG  --title     "$TITLE"  \
-           --menu      "$HELP"   \
-           0 0 0                 \
-           $(  list_partitions_part   )
-
-}
-
-
-list_bb()  {
-  list_disks            |  sed  "s:disk:Master Boot Record:"
-  list_partitions_part  |  sed  "s:partition:Boot Block:"
-}
-
-
-get_bb()  {
-  TITLE="Boot Block Selection Menu"
-   HELP="Please select MBR or boot block"
-
-  $DIALOG  --title     "$TITLE"  \
-           --menu      "$HELP"   \
-           0 0 0                 \
-           $(  list_bb           )
-}
-
-
-get_disc()  {
-  TITLE="Disk Selection Menu"
-   HELP="Please select a disk"
-
-  $DIALOG  --title     "$TITLE"  \
-           --menu      "$HELP"   \
-           0 0 0                 \
-           $(  list_discs  )
-}
-
-
-get_disk()  {
-  TITLE="Disk Selection Menu"
-   HELP="Please select a disk"
-
-  $DIALOG  --title     "$TITLE"  \
-           --menu      "$HELP"   \
-           0 0 0                 \
-           $(  list_disks  )
-}
-
-
-get_filesystem()  {
-
-  local  TITLE  HELP  EXT2  EXT3  JFS  XFS  REISER  SWAP  DEFAULT
-
-   TITLE="Filesystem Selection Menu"
-    HELP="Please select a filesystem"
-    EXT2="Second Extended             file system"
-    EXT3="Second Extended  journaling file system"
-     JFS="JFS              journaling file system"
-     XFS="XFS              journaling file system"
-  REISER="Reiserfs         journaling file system"
-    SWAP="Swap"
-
-  case  "${PMOUNT[$1]}"  in
-    /boot)  DEFAULT="ext2"  ;;
-     /tmp)  DEFAULT="ext3"  ;;
-     none)  DEFAULT="swap"  ;;
-        *)  DEFAULT="ext3"  ;;
-  esac
-
-  $DIALOG  --title         "$TITLE"    \
-           --default-item  "$DEFAULT"  \
-           --menu          "$HELP"     \
-           0 0 0                       \
-           "ext2"          "$EXT2"     \
-           "ext3"          "$EXT3"     \
-           "jfs"           "$JFS"      \
-           "reiserfs"      "$REISER"   \
-           "xfs"           "$XFS"      \
-           "swap"          "$SWAP"
-}
-
-
-
-fdisc()  {
-  TITLE="Partitioning Menu"
-   HELP="Select a partitioning program"
-
-  $DIALOG               \
-    --title   "$TITLE"  \
-    --no-cancel         \
-    --menu    "$HELP"   \
-    0 0 0               \
-   "cfdisk"  ""  \
-   "fdisk"   ""  \
-   "parted"  ""
-}
-
-
-partition_disks()  {
-  $(  fdisc  )  $(  get_disk  );
-  # /sbin/udevtrigger
-  filesystem_table_load
-}
-
-
-write_mbr()  {  ms-sys  -s  $(  get_disk  );  }
-
-
-get_mount()  {
-  local       PLEASE="Please enter a mount point"
-  inputbox  "$PLEASE"  "${PMOUNT[$1]}"
-}
-
-
-list_swaps()  {
-  for  ((  CX=0;  CX<MP;  CX++  ));  do
-    if    [    "${PFILESYSTEM[$CX]}"  ==  "swap"  ]
-    then  echo     "${PDEVICE[$CX]} none swap defaults 0 0"
-    fi
+chroot_build(){
+ scry_finish(){
+  while ls     $TARGET/root/.sorcery/queue/cast | grep -q "."
+  do    chroot $TARGET augur scry
   done
+ }
+
+ echo    $"Chrooting to $TARGET"
+
+ mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
+ mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
+ mkdir  -p                       $TARGET/tmp/.sorcery
+ mount  --bind  /dev             $TARGET/dev
+ mount  --bind  /dev/pts         $TARGET/dev/pts
+ mount  --bind  /proc            $TARGET/proc
+ mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
+ mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
+ mount  --bind  /var/lock        $TARGET/var/lock
+ chroot $TARGET swapon -a
+ chroot $TARGET dispel install
+ chroot $TARGET cast -r "$@"
+ scry_finish
+ chroot $TARGET swapoff -a
+ umount                          $TARGET/var/lock
+ umount                          $TARGET/usr/src/sorcery
+ umount                          $TARGET/root/.sorcery
+ umount                          $TARGET/proc
+ umount                          $TARGET/dev/pts
+ umount                          $TARGET/dev
+ umount                          $TARGET/$TARGET/dev # avoids bug in linux?
 }
 
 
-fstab_line()  {
-  echo   -n  "${PDEVICE[$1]}${TAB}"
-  echo   -n  "${PMOUNT[$1]:-none} "
-  echo   -n  "${PFILESYSTEM[$1]:-unknown} "
-  echo   -n  "${POPTIONS[$1]} "
-  echo   -n  "${PDUMP[$1]} "
-  echo       "${PORDER[$1]}"
+confirm(){ $DIALOG $2 --yesno "$1" 8 50; }
+
+
+goodbye(){
+ if   [ "$PMOUNTED" == true ]
+ then filesystem_unmount
+ fi
+
+ if   confirm "Reboot now?" "--defaultno"
+ then shutdown -r now
+ fi
+ exit  0
 }
 
 
-make_fstab()  {  
-  echo  "# Real file systems"
-  list_mounts  |  sort  |  cut  -f2  |
-  while  read          CX
-  do     fstab_line  "$CX"
-  done  |  tr  ' '  '\t'
-  echo;  echo
-  echo  "# Swap"
-  list_swaps
-  echo;  echo
-  cat  /etc/fstab.empty
+list_disks(){           find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d" | LC_ALL=C sort; }
+list_partitions_part(){ find /dev -group disk -printf "%p	partition\n" | sed "/[0-9]/p;d" | LC_ALL=C sort; }
+
+
+list_part_type(){
+ sfdisk -l 2>/dev/null  |
+ sed    '/Empty$/d
+         /Extended$/d'  |
+ grep   "^/dev/"        |
+ tr     -d '*'          |
+ tr     -s ' '          |
+ cut    -d ' ' -f1,7-
 }
 
 
-option_menu()  {  chroot_run  sorcery  options;  }
+list_partitions(){ list_part_type | cut -d ' ' -f1; }
 
 
-make_bootloader_conf()  {
+get_partition(){
 
-  cp  $BL_CONF.new  $BL_CONF
+ TITLE="Partition Selection Menu"
+  HELP="Please select a partition"
 
-  MESSAGE="Select the location to install ${BOOTLOADER}"
-  $DIALOG  --msgbox  "$MESSAGE" 8 50
-
-  local  BB=$( get_boot_block )
-  local  RD=$( root_device    )
-
-  echo  "boot${TAB}${TAB}${TAB}=${TAB}$BB"  >>  $BL_CONF
-  echo  "root${TAB}${TAB}${TAB}=${TAB}$RD"  >>  $BL_CONF
-
-  MESSAGE="${BOOTLOADER} will be installed to boot block: ${BB}"
-  $DIALOG  --msgbox  "$MESSAGE" 8 50
+ $DIALOG --title "$TITLE" --menu  "$HELP" 0 0 0  $( list_partitions_part )
 }
 
 
-transfer_arch()  {
-  find  /  |
-  sed  "\,^/boot/isolinux,d
-        \,^/dev/.udev,d
-        \,^/dev/hpet,d
-        \,^/etc/init.d/log/,d
-        \,^/isolinux,d
-        \,^/media/root/,d
-        \,^/proc/,d
-        \,^/rr_moved,d
-        \,^/sys/,d
-        \,^/tmp/,d
-        \,^/var/lock/,d
-        \,^/var/run/,d"          |
-  tar    --no-recursion   -cT -  |
-  tar    -C    $TARGET    -xvpf -
-  chmod  1777  $TARGET/tmp
+list_bb(){
+ list_disks           | sed "s:disk:Master Boot Record:"
+ list_partitions_part | sed "s:partition:Boot Block:"
+}
 
-  make_fstab  >  $TARGET/etc/fstab
-  read  -n 1  -t 900  -p "Press space to continue."
-  $DIALOG  --msgbox  $"Files transferred."  8 50
-  ARCH_DONE="true"
+
+get_bb(){
+ TITLE="Boot Block Selection Menu"
+  HELP="Please select MBR or boot block"
+
+ $DIALOG --title "$TITLE" --menu  "$HELP" 0 0 0  $( list_bb )
+}
+
+
+get_disc(){
+ TITLE="Disk Selection Menu"
+  HELP="Please select a disk"
+
+ $DIALOG --title "$TITLE" --menu "$HELP" 0 0 0  $( list_discs )
+}
+
+
+get_disk(){
+ TITLE="Disk Selection Menu"
+  HELP="Please select a disk"
+
+ $DIALOG --title "$TITLE" --menu "$HELP" 0 0 0 $( list_disks )
+}
+
+
+get_filesystem(){
+
+ local TITLE HELP EXT2 EXT3 JFS XFS REISER SWAP DEFAULT
+
+  TITLE="Filesystem Selection Menu"
+   HELP="Please select a filesystem"
+   EXT2="Second Extended             file system"
+   EXT3="Second Extended  journaling file system"
+    JFS="JFS              journaling file system"
+    XFS="XFS              journaling file system"
+ REISER="Reiserfs         journaling file system"
+   SWAP="Swap"
+
+ case "${PMOUNT[$1]}" in
+  /boot) DEFAULT="ext2" ;;
+   /tmp) DEFAULT="ext3" ;;
+   none) DEFAULT="swap" ;;
+      *) DEFAULT="ext3" ;;
+ esac
+
+ $DIALOG --title        "$TITLE"   \
+         --default-item "$DEFAULT" \
+         --menu         "$HELP"    \
+         0 0 0                     \
+         ext2     "$EXT2"   \
+         ext3     "$EXT3"   \
+         jfs      "$JFS"    \
+         reiserfs "$REISER" \
+         xfs      "$XFS"    \
+         swap     "$SWAP"
+}
+
+
+
+fdisc(){
+ TITLE="Partitioning Menu"
+  HELP="Select a partitioning program"
+
+ $DIALOG --title "$TITLE" --no-cancel --menu "$HELP" 0 0 0 cfdisk "" fdisk "" parted ""
+}
+
+
+partition_disks(){
+ $( fdisc ) $( get_disk );
+ filesystem_table_load
+}
+
+
+write_mbr(){ ms-sys -s $( get_disk ); }
+
+
+get_mount(){
+ local      PLEASE="Please enter a mount point"
+ inputbox "$PLEASE" "${PMOUNT[$1]}"
+}
+
+
+list_swaps(){
+ for (( CX=0; CX<MP; CX++ )); do
+  if   [ "${PFILESYSTEM[$CX]}" == swap ]
+  then echo  "${PDEVICE[$CX]} none swap defaults 0 0"
+  fi
+ done
+}
+
+
+fstab_line(){
+ echo -n "${PDEVICE[$1]}${TAB}"
+ echo -n "${PMOUNT[$1]:-none} "
+ echo -n "${PFILESYSTEM[$1]:-unknown} "
+ echo -n "${POPTIONS[$1]} "
+ echo -n "${PDUMP[$1]} "
+ echo    "${PORDER[$1]}"
+}
+
+
+make_fstab(){
+ echo "# Real file systems"
+ list_mounts | LC_ALL=C sort | cut -f2 |
+ while read          CX
+ do    fstab_line  "$CX"
+ done | tr ' ' '\t'
+ echo; echo
+ echo "# Swap"
+ list_swaps
+ echo; echo
+ cat /etc/fstab.empty
+}
+
+
+option_menu(){ chroot_run sorcery options; }
+
+
+make_bootloader_conf(){
+
+ cp $BL_CONF.new $BL_CONF
+
+ MESSAGE="Select the location to install ${BOOTLOADER}"
+ $DIALOG --msgbox "$MESSAGE" 8 50
+
+ local BB=$( get_boot_block )
+ local RD=$( root_device    )
+
+ echo "boot${TAB}${TAB}${TAB}=${TAB}$BB" >> $BL_CONF
+ echo "root${TAB}${TAB}${TAB}=${TAB}$RD" >> $BL_CONF
+
+ MESSAGE="${BOOTLOADER} will be installed to boot block: ${BB}"
+ $DIALOG --msgbox "$MESSAGE" 8 50
+}
+
+
+transfer_arch(){
+ find / |
+ sed "\,^/boot/isolinux,d
+      \,^/dev/.udev,d
+      \,^/dev/hpet,d
+      \,^/etc/init.d/log/,d
+      \,^/isolinux,d
+      \,^/media/root/,d
+      \,^/proc/,d
+      \,^/rr_moved,d
+      \,^/sys/,d
+      \,^/tmp/,d
+      \,^/var/lock/,d
+      \,^/var/run/,d"       |
+ tar   --no-recursion -cT - |
+ tar   -C   $TARGET   -xvpf -
+ chmod 1777 $TARGET/tmp
+
+ make_fstab > $TARGET/etc/fstab
+ read -n 1 -t 900 -p "Press space to continue."
+ $DIALOG --msgbox $"Files transferred." 8 50
+ ARCH_DONE="true"
 }
 
 
@@ -1069,8 +974,6 @@ then the currently mounted filesystems must be unmounted first."
 
 disk_menu()  {
 
-  partition_layout
-
   if    [  -z  "${PDEVICE[*]}"  ]
   then  filesystem_table_load
   fi
@@ -1135,7 +1038,6 @@ disk_menu()  {
      Initialize)	filesystem_initialize	;;
           Mount)	filesystem_mount	;;
         Unmount)	confirm_unmount		;;
-#       install)	check_transfer_arch	;;
            Edit)	edit_fstab		;;
            Done)	return			;;
     esac
@@ -1330,9 +1232,9 @@ TAB="	"
 LF="
 "
 
-export  IFS="	$LF"
-export  DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
+export IFS="	$LF"
+export DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
 
-trap  ":"  INT QUIT
+trap ":" INT QUIT
 
 main_menu
