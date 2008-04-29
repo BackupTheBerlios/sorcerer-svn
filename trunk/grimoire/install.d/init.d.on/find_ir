@@ -47,26 +47,20 @@ start(){
  }
 
  manual(){
-  echo   "Install/Rescue Image not found."
-  echo   "Discover the block device for"
-  echo   "the Install/Rescue Image and"
-  echo   "make that the root device"
-  echo   "by editing /etc/fstab"
-  echo   "Sorry for the inconvenience."
-  echo   "Press enter when prompted for password."
-  echo   "When complete type exit to resume"
+  echo "Install/Rescue Image not found."
+  echo "Discover the block device for"
+  echo "the Install/Rescue Image and"
+  echo "make that the root device"
+  echo "by editing /etc/fstab"
+  echo "Sorry for the inconvenience."
+  echo "Press enter when prompted for password."
+  echo "When complete type exit to resume"
   sulogin -t 300 /dev/console  &>/dev/console  0</dev/console
  }
 
  set_root(){
   sed  -i 's:\t: :g; \, / ,d'            /etc/fstab
   echo    "$1 / auto defaults,ro 0 0" >> /etc/fstab
- }
-
- extra_tmpfs(){
-  mkdir -p /var/log /tmp
-  mount -o nr_inodes=64,size=64m,mode=0755  -t tmpfs tmpfs /var/log
-  mount -o nr_inodes=256k,size=1g,mode=1777 -t tmpfs tmpfs /tmp
  }
 
  on_ir(){ dmesg | grep -q boot=IR; }
@@ -76,14 +70,13 @@ start(){
  log_warning_msg "Sorcerer Install/Rescue Image finding"
 
  if              IRDEV=$( search )
- then set_root "$IRDEV";     log_success_msg "Install/Rescue CD found"; extra_tmpfs
+ then set_root "$IRDEV";     log_success_msg "Install/Rescue CD found"
  else manual &>/dev/console; log_failure_msg "Install/Rescue CD not found"
  fi
 }
 
 
 help(){ echo "Usage: $0 {start}" 1>&2; }
-
 
 case $1 in
  start) start ;;
