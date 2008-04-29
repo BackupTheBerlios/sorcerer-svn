@@ -271,17 +271,21 @@ transfer_arch(){
       \,^/sys/,d
       \,^/tmp/,d
       \,^/var/lock/,d
-      \,^/var/run/,d" > $WHAT; TOTAL=$( wc -l $WHAT | cut -d ' ' -f1 )
+      \,^/var/run/,d" | tee $WHAT | cat -n
+
+ TOTAL=$( wc -l $WHAT | cut -d ' ' -f1 )
+
  tar --no-recursion -cT $WHAT |
  tar -C $TARGET     -xvpf -   |
  cat -n |
  while read NUM REPLY; do
-  (( PERCENT = NUM * 100 / TOTAL ))
+  (( PERCENT = NUM * 10000 / TOTAL ))
   (( NOW = SECONDS - START ))
   if (( PERCENT > 0 )); then
-   (( REM = NOW * 100 / PERCENT - NOW ))
+   (( REM = NOW * 10000 / PERCENT - NOW ))
    REM+='s'
   fi
+  (( PERCENT /= 100 ))
   echo "$PERCENT%	$REM	$REPLY"
  done
 
