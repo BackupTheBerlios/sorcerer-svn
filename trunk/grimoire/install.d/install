@@ -257,6 +257,7 @@ make_bootloader_conf(){
 
 transfer_arch(){
  local TOTAL WHAT=/tmp/transfer.txt
+ local START=$SECONDS
 
  find / |
  sed "\,^/boot/isolinux,d
@@ -276,7 +277,12 @@ transfer_arch(){
  cat -n |
  while read NUM REPLY; do
   (( PERCENT = NUM * 100 / TOTAL ))
-  echo "$PERCENT%	$REPLY"
+  (( NOW = SECONDS - START ))
+  if (( PERCENT > 0 )); then
+   (( REM = NOW * 100 / PERCENT - NOW ))
+   REM+='s'
+  fi
+  echo "$PERCENT%	$REM	$REPLY"
  done
 
  chmod 1777 $TARGET/tmp
