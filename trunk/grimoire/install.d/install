@@ -256,6 +256,8 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
+ local TOTAL WHAT=/tmp/transfer.txt
+
  find / |
  sed "\,^/boot/isolinux,d
       \,^/dev/.udev,d
@@ -268,9 +270,15 @@ transfer_arch(){
       \,^/sys/,d
       \,^/tmp/,d
       \,^/var/lock/,d
-      \,^/var/run/,d"       |
- tar   --no-recursion -cT - |
- tar   -C   $TARGET   -xvpf -
+      \,^/var/run/,d" > $WHAT; TOTAL=$( wc -l $WHAT | cut -d ' ' -f1 )
+ tar --no-recursion -cT $WHAT |
+ tar -C $TARGET     -xvpf -   |
+ cat -n |
+ while read NUM REPLY; do
+  (( PERCENT = NUM * 100 / TOTAL ))
+  echo "$PERCENT%	$REPLY"
+ done
+
  chmod 1777 $TARGET/tmp
 
  make_fstab > $TARGET/etc/fstab
