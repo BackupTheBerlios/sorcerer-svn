@@ -71,26 +71,27 @@ EOF
 
  install_wpa_files(){
   install -v -d /etc/wpa_supplicant
-  install -v -m 0644 dbus-wpa_supplicant.conf 	\
+  install -v -m 0644 dbus-wpa_supplicant.conf \
      /etc/dbus-1/system.d/wpa_supplicant.conf  
   install_wpa_gui
   install_examples
   install_man	
  }
 
- make_gui(){ 
-	export PATH=$PATH:/opt/kde4/bin
-	make wpa_gui-qt4
+ make_gui(){
+  export PATH+=:/opt/kde4/bin
+  make wpa_gui-qt4
+  true
  }
 
  export QTDIR=/opt/kde4
  sed -i 's:/usr/local:/usr:' wpa_supplicant/Makefile
  export  LDFLAGS+=' -L/lib -L/lib64'
- cd  wpa_supplicant     &&
- create_config		&&
- make                   &&
- make_gui               &&
- prepare_install        &&
- make    install        &&
+ cd  wpa_supplicant &&
+ create_config &&
+ make &&
+ make_gui &&
+ prepare_install &&
+ make    install &&
  install_wpa_files
 }
