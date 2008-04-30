@@ -1,10 +1,15 @@
-  VERSION=( 2.9.8-1 2.9.7-1 2.9.6-1 2.9.5-1 2.9.4-1 2.9.3-1 )
+# 2.9.8-1 has compile error
+# VERSION=( 2.9.8-1 2.9.7-1 2.9.6-1 2.9.5-1 2.9.4-1 2.9.3-1 )
+  VERSION=(         2.9.7-1 2.9.6-1 2.9.5-1 2.9.4-1 2.9.3-1 )
   CATEGORY='disk/file-system'
  ATTRIBUTE='console'
     SOURCE="xfsprogs_$VERSION.tar.gz"
        URL='ftp://oss.sgi.com/projects/xfs/cmd_tars/'
   HOMEPAGE='http://oss.sgi.com/projects/xfs/'
        REQ='e2fsprogs'
+case $VERSION in
+ 2.9.7-1) REQ+=' libtool-v1.5' ;;
+esac
 case $HOSTTYPE in
  x86_64) OPTS+=' --enable-lib64=yes' ;;
 esac
@@ -12,6 +17,10 @@ esac
       DESC='xfsprogs contains the required utilities for the XFS file system.'
 
 build(){
+ case $VERSION in
+  2.9.7-1) export ac_cv_path_LIBTOOL=/opt/libtool/bin/libtool ;;
+ esac
+
  export DEBUG=-DNDEBUG
 
  ./configure          \
@@ -22,9 +31,12 @@ build(){
  $OPTS                &&
  make                 &&
  prepare_install      &&
- make    install
-#      &&
-# make    install-dev
+ make    install      &&
+ make    install-dev
+
+# case $VERSION in
+#  2.9.7-1) unset ac_cv_path_LIBTOOL ;;
+# esac
 }
 
 
