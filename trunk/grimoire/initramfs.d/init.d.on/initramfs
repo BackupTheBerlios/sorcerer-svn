@@ -8,8 +8,10 @@
 # Short-Description: initramfs creates initramfs boot filesystems
 ### END INIT INFO
 
-# Copyright 2007 by Kyle Sallee, all rights reserved.
+# Copyright 2007 2008 by Kyle Sallee, all rights reserved.
 # intiramfs script is for the Sorcerer distribution only
+
+GZIP=cat
 
 . /lib/lsb/init-functions
 
@@ -25,7 +27,7 @@ update_lilo(){
  lm /etc/lilo.conf.head
  lm /etc/lilo.conf
 
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h/initrf.gz\t%h/linux\n' |
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h/initrf\t%h/linux\n' |
  while read IRF IMG; do
   grep -q "$IRF" /etc/lilo.conf ||
   sed  -i "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:" /etc/lilo.conf
@@ -40,19 +42,19 @@ mkinitrf(){
   INC="\,/lib/modules/$1$,p
        \,/lib/modules/$1/,p"
   OUT='\,^/lib/modules/,d'
-  OLD="/boot/$1/initrf.gz"
-  NEW="/tmp/initrf.gz.$$$RANDOM.new"
+  OLD="/boot/$1/initrf"
+  NEW="/tmp/initrf.$$$RANDOM.new"
   OPS='-o -H newc --quiet'
 
   fail(){ rm -f $NEW; return 1; }
 
-  echo -n  > $NEW
-  chmod 0600 $NEW
+  echo -n > $NEW
+  chmod 600 $NEW
 
   sed "$INC;$OUT" |
-  if  ! cpio $OPS;        then fail; fi |
-  if  ! gzip -1 > $NEW;   then fail; fi
-  if  ! [    -s   $NEW ]; then fail; fi
+  if  ! cpio $OPS;      then fail; fi |
+  if  ! $GZIP > $NEW;   then fail; fi
+  if  ! [ -s    $NEW ]; then fail; fi
 
   rm -f   $OLD
   mv $NEW $OLD
@@ -125,12 +127,12 @@ $KBD
 }
 
 initrf_update(){
- if   [  -f /boot/initrf.gz ]
- then rm -f /boot/initrf.gz
- fi
+ rm -f /boot/initrf.gz /boot/*/initrf.gz
+ grep    'initrf\.gz'   /etc/lilo.conf &&
+ sed -i '/initrf\.gz/d' /etc/lilo.conf
 
- [     -d       /media/root ] ||
- mkdir -pm 0755 /media/root
+ [     -d      /media/root ] ||
+ mkdir -pm 755 /media/root
 
  EVERY="$( every )"
 
@@ -147,7 +149,7 @@ initrf_update(){
 
 initrf_present(){
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- while read; do [ -f "$REPLY/initrf.gz" ] || return 1; done
+ while read; do [ -f "$REPLY/initrf" ] || return 1; done
 }
 
 initrf_current(){
@@ -163,7 +165,7 @@ initrf_current(){
 
  OMIT='\,/etc/init.d/log,d'
 
- IRF=$( find /boot -type f -name initrf.gz -printf '%T@\t%p\n' | sort -g | head -n1 | cut -f2 )
+ IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | sort -g | head -n1 | cut -f2 )
  if [ -z "$IRF" ]; then return 1; fi
  OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
  if [ -n "$OLD" ]; then
