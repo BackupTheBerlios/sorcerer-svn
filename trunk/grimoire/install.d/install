@@ -257,16 +257,19 @@ make_bootloader_conf(){
 
 transfer_arch(){
 
- [ -f   /tmp/catalog.txt ] ||
- pgrep       catalog       ||
- /etc/init.d/catalog
+ local CAT=/tmp/catalog.txt
 
- while ! [ -f /tmp/catalog.txt ]
- do    read -n 1
- done
+ if     ! [ -f $CAT ]; then
+  echo 'Waiting for catalog to complete'
+  pgrep             catalog ||
+        /etc/init.d/catalog
+  while ! [ -f $CAT ]
+  do    read -p . -n 1 -t 1
+  done
+  echo
+ fi
 
- local TOT CAT=/tmp/catalog.txt.txt
- local START=$SECONDS
+ local TOT START=$SECONDS
 
  TOT=$( wc -l $CAT | cut -d ' ' -f1 )
 
@@ -280,9 +283,13 @@ transfer_arch(){
   echo "$PER%	${REM}s	$REPLY"
  done
 
- chmod 1777 $TARGET/tmp
-
+ chmod 1777   $TARGET/tmp
  make_fstab > $TARGET/etc/fstab
+
+ if   [ -s /tmp/catalog.log ]
+ then cat  /tmp/catalog.log
+ fi
+
  read -n 1 -t 900 -p "Press space to continue."
  $DIALOG --msgbox $"Files transferred." 8 50
  ARCH_DONE=true
