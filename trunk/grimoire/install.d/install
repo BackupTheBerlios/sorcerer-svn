@@ -256,27 +256,22 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
- local TOT WHAT=/tmp/transfer.txt
+
+ [ -f   /tmp/catalog.txt ] ||
+ pgrep       catalog       ||
+ /etc/init.d/catalog
+
+ while ! [ -f /tmp/catalog.txt ]
+ do    read -n 1
+ done
+
+ local TOT CAT=/tmp/catalog.txt.txt
  local START=$SECONDS
 
- find / |
- sed "\,^/boot/isolinux,d
-      \,^/dev/.udev,d
-      \,^/dev/hpet,d
-      \,^/etc/init.d/log/,d
-      \,^/isolinux,d
-      \,^/media/root/,d
-      \,^/proc/,d
-      \,^/rr_moved,d
-      \,^/sys/,d
-      \,^/tmp/,d
-      \,^/var/lock/,d
-      \,^/var/run/,d" | tee $WHAT | cat -n
+ TOT=$( wc -l $CAT | cut -d ' ' -f1 )
 
- TOT=$( wc -l $WHAT | cut -d ' ' -f1 )
-
- tar --no-recursion -cT $WHAT |
- tar -C $TARGET     -xvpf -   |
+ tar --no-recursion -cT $CAT |
+ tar -C $TARGET     -xvpf -  |
  cat -n |
  while read NUM REPLY; do
   (( NOW = SECONDS - START ))
