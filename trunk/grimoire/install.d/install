@@ -256,7 +256,7 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
- local TOTAL WHAT=/tmp/transfer.txt
+ local TOT WHAT=/tmp/transfer.txt
  local START=$SECONDS
 
  find / |
@@ -273,20 +273,16 @@ transfer_arch(){
       \,^/var/lock/,d
       \,^/var/run/,d" | tee $WHAT | cat -n
 
- TOTAL=$( wc -l $WHAT | cut -d ' ' -f1 )
+ TOT=$( wc -l $WHAT | cut -d ' ' -f1 )
 
  tar --no-recursion -cT $WHAT |
  tar -C $TARGET     -xvpf -   |
  cat -n |
  while read NUM REPLY; do
-  (( PERCENT = NUM * 10000 / TOTAL ))
   (( NOW = SECONDS - START ))
-  if (( PERCENT > 0 )); then
-   (( REM = NOW * 10000 / PERCENT - NOW ))
-   REM+='s'
-  fi
-  (( PERCENT /= 100 ))
-  echo "$PERCENT%	$REM	$REPLY"
+  (( REM = TOT * NOW / NUM ))
+  (( PER = 100 * NUM / TOT ))
+  echo "$PER%	${REM}s	$REPLY"
  done
 
  chmod 1777 $TARGET/tmp
@@ -294,11 +290,11 @@ transfer_arch(){
  make_fstab > $TARGET/etc/fstab
  read -n 1 -t 900 -p "Press space to continue."
  $DIALOG --msgbox $"Files transferred." 8 50
- ARCH_DONE="true"
+ ARCH_DONE=true
 }
 
 
-select_extra_spells()  {
+select_extra_spells(){
     HELP="
 The sources CD contains sources for software
 that may be useful or required for networking.
@@ -306,114 +302,110 @@ Please select software that will also be compiled and installed.
 Any of this software can also be installed after the first boot
 should you decide later that they will be required."
 
-  show_extra()  {
-    (  find  $TARGET/var/cache/sources  -maxdepth 1  -type d  -printf "%P\n"
-       echo  "$REQUIRED_SPELLS"
-       echo  "$REQUIRED_SPELLS"
-    )  |  sort  |  uniq  -u  |  grep  -vx  ""  |
-    while  read;  do
-      echo  "$REPLY"
-      echo  "Optional"
-      echo  "off"
-    done
-  }
-
-
-  $DIALOG  --title     "Additional Software Selection"  \
-           --nocancel            \
-           --ok-label  "Commit"  \
-           --separate-output     \
-           --checklist           \
-           "$HELP"               \
-           0 0 0                 \
-           $( show_extra )
-}
-
-
-editor_menu()  {
-  local       TITLE="Text Editor Selection Menu"
-  local   NANO_HELP="nano is a very easy to use text editor."
-  local  ELVIS_HELP="elvis is a clone vi/en editor."
-  local   ZILE_HELP="zile is a small, fast and powerful emacs clone."
-
-  EDITOR=$(  $DIALOG                       \
-               --title         "$TITLE"    \
-               --item-help                 \
-               --default-item  "nano"      \
-               --menu   ""                 \
-               0 0 0                       \
-               "elvis"  ""  "$ELVIS_HELP"  \
-               "nano"   ""   "$NANO_HELP"  \
-               "zile"   ""   "$ZILE_HELP"  )
-  export  EDTIOR
-}
-
-
-edit()  {
-  if    [  -z  "$EDITOR"  ]
-  then  editor_menu
-  fi
-  $EDITOR  "$1"
-}
-
-
-get_boot_block()  {
-  local  BB
-  while  [  -z  "$BB"  ]
-  do      BB="$(  get_bb  )"
+ show_extra(){
+  ( find $TARGET/var/cache/sources -maxdepth 1 -type d -printf "%P\n"
+    echo "$REQUIRED_SPELLS"
+    echo "$REQUIRED_SPELLS"
+  ) | LC_ALL=C sort | uniq -u | grep -vx "" |
+  while read; do
+   echo "$REPLY"
+   echo "Optional"
+   echo "off"
   done
-  echo  "$BB"
+ }
+
+
+ $DIALOG \
+  --title "Additional Software Selection" \
+  --nocancel --ok-label "Commit" --separate-output \
+  --checklist "$HELP" 0 0 0 $( show_extra )
 }
 
 
-edit_fstab()  {
-  if    [  -f  $TARGET/etc/fstab  ]
-  then  edit   $TARGET/etc/fstab
-  else  $DIALOG  --msgbox  $"Transfer first."  8 50
-  fi
+editor_menu(){
+ local      TITLE="Text Editor Selection Menu"
+ local  NANO_HELP="nano is a very easy to use text editor."
+ local ELVIS_HELP="elvis is a clone vi/en editor."
+ local  ZILE_HELP="zile is a small, fast and powerful emacs clone."
+
+ EDITOR=$( $DIALOG                 \
+            --title "$TITLE"       \
+            --item-help            \
+            --default-item nano    \
+            --menu   ""            \
+            0 0 0                  \
+            elvis "" "$ELVIS_HELP" \
+            nano  ""  "$NANO_HELP" \
+            zile  ""  "$ZILE_HELP" )
+ export EDTIOR
 }
 
 
-get_options()  {
-  local  DEFAULT_OPTIONS
+edit(){
+ if   [ -z "$EDITOR" ]
+ then editor_menu
+ fi
+ $EDITOR "$1"
+}
 
-  case  ${PFILESYSTEM[$1]}  in
-        swap)  DEFAULT_OPTIONS="defaults"                      ;;
-    reiserfs)  DEFAULT_OPTIONS="defaults,notail,noatime"       ;;
-         jfs)  DEFAULT_OPTIONS="defaults,noatime"              ;;
-        ext3)  DEFAULT_OPTIONS="defaults,noatime,commit=3600"  ;;
-         xfs)  DEFAULT_OPTIONS="defaults,noatime"              ;;
-        ext2)  DEFAULT_OPTIONS="defaults,noatime"              ;;
+
+get_boot_block(){
+ local BB
+ while [ -z "$BB" ]
+ do    BB="$( get_bb )"
+ done
+ echo "$BB"
+}
+
+
+edit_fstab(){
+ if   [ -f $TARGET/etc/fstab ]
+ then edit $TARGET/etc/fstab
+ else $DIALOG --msgbox $"Transfer first." 8 50
+ fi
+}
+
+
+get_options(){
+ local DEFAULT_OPTIONS
+
+ case ${PFILESYSTEM[$1]} in
+      swap) DEFAULT_OPTIONS="defaults"                     ;;
+  reiserfs) DEFAULT_OPTIONS="defaults,notail,noatime"      ;;
+       jfs) DEFAULT_OPTIONS="defaults,noatime"             ;;
+      ext3) DEFAULT_OPTIONS="defaults,noatime,commit=3600" ;;
+       xfs) DEFAULT_OPTIONS="defaults,noatime"             ;;
+      ext2) DEFAULT_OPTIONS="defaults,noatime"             ;;
+ esac
+
+ case ${PMOUNT[$1]} in
+  /tmp) [ "${PFILESYSTEM[$1]}" == ext3 ] &&
+        DEFAULT_OPTIONS="defaults,noatime,commit=864000" ;;
+ esac
+
+ if   [ -n "$DEFAULT_OPTIONS" ]
+ then inputbox "Please enter mount options" "$DEFAULT_OPTIONS"
+ fi
+}
+
+
+get_size(){
+ inputbox "Please enter size in megabytes" "${PSIZE[$1]:-256}"
+}
+
+
+get_feature(){
+ local FEATURE
+
+ if [ -z "${PFEATURE[$1]}" ]; then
+  case "${PFILESYSTEM[$1]}" in
+   ext*) FEATURE="dir_index,filetype,sparse_super" ;;
   esac
-
-  case  ${PMOUNT[$1]}  in
-        /tmp)  [  "${PFILESYSTEM[$1]}" == "ext3"  ]  &&
-               DEFAULT_OPTIONS="defaults,noatime,commit=864000"  ;;
-  esac
-
-  if    [  -n  "$DEFAULT_OPTIONS"  ]
-  then  inputbox  "Please enter mount options"  "$DEFAULT_OPTIONS"
-  fi
-}
-
-
-get_size()  {
-  inputbox  "Please enter size in megabytes"  "${PSIZE[$1]:-256}"
-}
-
-
-get_feature()  {
-  local  FEATURE
-
-  if  [  -z  "${PFEATURE[$1]}"  ];  then
-    case  "${PFILESYSTEM[$1]}"  in
-      ext*)  FEATURE="dir_index,filetype,sparse_super"  ;;
-    esac
-  fi
-  FEATURE="$(  inputbox  "Please enter optional features"  "$FEATURE"  )"
-  if    [  -n  "$FEATURE"  ]
-  then  echo   "-O	$FEATURE"
-  fi
+ fi
+ FEATURE="$( inputbox "Please enter optional features" "$FEATURE" )"
+ if   [ -n "$FEATURE" ]
+ then echo "-O	$FEATURE"
+ fi
 }
 
 
