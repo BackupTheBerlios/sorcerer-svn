@@ -1,0 +1,50 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: catalog
+# Required-Start: tmp udevd-restart
+# Should-Start: bootblaze
+# Required-Stop:
+# Default-Start: 3
+# Default-Stop:
+# Short-Description: catalog makes the list of what to transfer from IR to fixed disk
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start(){
+ on_ir(){ dmesg | grep -q boot=IR; }
+
+ list(){
+  pkill bootblaze
+  find / |
+  sed "\,^/boot/isolinux,d
+       \,^/dev/.udev,d
+       \,^/dev/hpet,d
+       \,^/etc/init.d/log/,d
+       \,^/isolinux,d
+       \,^/media/root/,d
+       \,^/proc/,d
+       \,^/rr_moved,d
+       \,^/sys/,d
+       \,^/tmp/,d
+       \,^/var/lock/,d
+       \,^/var/run/,d" > /tmp/catalog.new
+  mv   /tmp/catalog.new  /tmp/catalog.txt
+ }
+
+ if   on_ir &&
+      log_warning_msg 'catalog starting'; list &>/tmp/catalog.log &
+ then log_success_msg 'catalog completed'
+ fi
+}
+
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+
+case $1 in
+       start) start ;;
+ try-restart) :     ;;
+           *) help  ;;
+esac
