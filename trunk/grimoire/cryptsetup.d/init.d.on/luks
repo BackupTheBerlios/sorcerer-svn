@@ -17,8 +17,8 @@ NAME=luks
 start(){
  run(){
   local DEV
-  for   DEV in $( sed -i 's/#.*//;/noauto/d;;s/\t/\n/g;s/ /\n/g' /etc/fstab
-                  sed -n '\,/dev/mapper/,p' ); do
+  for   DEV in $( sed 's/#.*//;/noauto/d;;s/\t/\n/g;s/ /\n/g' /etc/fstab |
+                  sed 's,/dev/mapper/,/dev/,p;d' ); do
    cryptsetup isLuks   /dev/$DEV &&
    cryptsetup luksOpen /dev/$DEV $DEV
   done
