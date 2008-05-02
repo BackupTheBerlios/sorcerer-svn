@@ -35,11 +35,11 @@ start(){
 
  run(){
   local 
-  for DEV in $( map not_swap < /etc/fstab ); do
+  for DEV in $( sed '/noauto/d' /etc/fstab | map not_swap ); do
    cryptsetup isLuks   /dev/$DEV && password |
    cryptsetup luksOpen /dev/$DEV $DEV
   done
-  for DEV in $( map     swap < /etc/fstab ); do
+  for DEV in $( sed '/noauto/d' /etc/fstab | map swap ); do
    if cryptsetup isLuks /dev/$DEV; then
     KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     echo "$KEY" | cryptsetup luksFormat /dev/$DEV
