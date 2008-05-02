@@ -1,0 +1,43 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: luks
+# Required-Start: dmsetup
+# Should-Start: udev
+# Required-Stop: halt reboot
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: luks finds luks encrypted devices and maps them to /dev/mapper/
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=luks
+
+start(){
+ run(){
+  local DEV
+  for   DEV in $( sed -i 's/#.*//;/noauto/d;;s/\t/\n/g;s/ /\n/g' /etc/fstab
+                  sed -n '\,/dev/mapper/,p' ); do
+   cryptsetup isLuks   /dev/$DEV &&
+   cryptsetup luksOpen /dev/$DEV $DEV
+  done
+ }
+
+ log_warning_msg "$NAME checking for luks devices"; run <> /dev/console
+ log_success_msg "$NAME luks mappings created"
+}
+
+
+stop(){
+ log_warning_msg "$NAME closing luks devices"
+ find /dev/mapper -type b |
+ while read
+ do cryptsetup luksClose ${REPLY##*/}
+ done
+ log_success_msg "$NAME luks devices closed."
+}
+
+try_restart(){ :; }
+
+parse "$@"
