@@ -6,6 +6,12 @@
        URL="$SOURCEFORGE_URL"
        REQ=( 'device-mapper e2fsprogs ncurses readline'
              'gtk+-v1.2:::for GUI' )
+      OPTS='--sbindir=/sbin'
+case $HOSTTYPE in
+ x86_64) OPTS+=' libdir=/lib64' ;;
+      *) OPTS+=' libdir=/lib' ;;
+esac
+
 #     OPTS='--with-static-glib'
 # --disable-gui disables both the ncurses and gtk+-v1.2 interfaces
   ESTIMATE='496'
@@ -17,10 +23,16 @@ expansion and customization of various levels of volume management.'
 build(){
  default_build &&
  case $VERSION in
-  2.5.5) if   [  -f   /usr/lib/libevms-2.5.so.0.5 ] && ! [ -h   /usr/lib/libevms-2.5.so.0 ]
-         then ln -s            libevms-2.5.so.0.5               /usr/lib/libevms-2.5.so.0
-         elif [  -f /usr/lib64/libevms-2.5.so.0.5 ] && ! [ -h /usr/lib64/libevms-2.5.so.0 ]
-         then ln -s            libevms-2.5.so.0.5             /usr/lib64/libevms-2.5.so.0
+  2.5.5) if   [  -f   /lib/libevms-2.5.so.0.5 ] && ! [ -h   /lib/libevms-2.5.so.0 ]
+         then ln -s            libevms-2.5.so.0.5           /lib/libevms-2.5.so.0
+         elif [  -f /lib64/libevms-2.5.so.0.5 ] && ! [ -h /lib64/libevms-2.5.so.0 ]
+         then ln -s            libevms-2.5.so.0.5         /lib64/libevms-2.5.so.0
          fi ;;
+ esac
+}
+
+current(){
+ case $VERSION in
+  2.5.5) [ -f /sbin/evms_activate ] ;;
  esac
 }

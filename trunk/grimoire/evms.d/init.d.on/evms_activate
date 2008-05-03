@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: evms_activate
+# Required-Start: dmsetup proc sys
+# Should-Start: udev
+# Required-Stop: 
+# Default-Start: S
+# Default-Stop:
+# Short-Description: evms_activate activates evms  volumes
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=evms_activate
+OPTS='-l /etc/init.d/log.d/evms-engine'
+SERV=/sbin/evms_activate
+
+start(){
+ if   log_warning_msg "$NAME $OPTS"; $SERV $OPTS
+ then log_success_msg "$NAME success"
+ else log_failure_msg "$NAME failure"
+ fi
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $1 in
+       start) start ;;
+     restart) : ;;
+ try-restart) : ;;
+           *) help  ;;
+esac
