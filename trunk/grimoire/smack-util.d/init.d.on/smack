@@ -1,0 +1,31 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: smack
+# Required-execute: proc
+# Required-Stop:
+# Default-execute: S
+# Default-Stop:
+# Short-Description: smack initializes access rules and CIPSO bindings
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=smackcipso
+SERV=/sbin/smackcipso
+CONF=/etc/smack/cipso
+
+execute(){
+ run(){
+  [ -f /etc/smack/accesses ] && /sbin/smackload        < /etc/smack/accesses
+  [ -f /etc/smack/cipso    ] && /sbin/smackcipso       < /etc/smack/cipso
+  [ -f /etc/smack/ambient  ] && cat /etc/smack/ambient > /smack/ambient
+  [ -f /etc/smack/nltype   ] && cat /etc/smack/nltype  > /smack/nltype
+ }
+ log_warning_msg "$NAME starting"; run
+ log_success_msg "$NAME started"
+}
+       stop(){ :; }
+    restart(){ :; }
+try_restart(){ :; }
+parse "$@"
