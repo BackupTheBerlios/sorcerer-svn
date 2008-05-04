@@ -187,7 +187,7 @@ touch      $IR/etc/ld.so.conf
     LD_64="$IR/lib64/ld-linux-x86-64.so.2"
 
 
-mkdir -p                                  $IR/usr/include
+mkdir -p                                  $IR/usr/include/sys
 cd        linux-$LVERSION
 make      include/linux/version.h
 make      include/asm
@@ -197,6 +197,10 @@ rm    -fr linux-$LVERSION   /usr/include/{asm,asm-generic,linux}
 cp    -a  $IR/usr/include/* /usr/include
 
 # ^^ linux headers installed before glibc begins compilation.
+
+if   [ -f /usr/include/sys/capability.h ]
+then cp   /usr/include/sys/capability.h   $IR/usr/include/sys 
+fi
 
 case $VERSION in
  2.7*) patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
