@@ -109,10 +109,18 @@ build(){
 
  sed   -i "s:-O2 -fomit-frame-pointer:${CFLAGS}:" src/Makefile
 
- make  -C src          &&
- prepare_install       &&
- make  -C src  install &&
-               install_init
+ case $VERSION in
+  2.86) patch -p1 < $SCRIPT_DIR/sysvinit-2.86-selinux.patch ;;
+ esac
+
+ if   spell_installed libselinux
+ then export CFLAGS+=' -DWITH_SELINUX' SEL='-DWITH_SELINUX'
+ fi
+
+ make -C src $SEL &&
+ prepare_install  &&
+ make -C src $SEL install &&
+ install_init
 }
 
 post_install(){
