@@ -8,7 +8,8 @@
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
 #      REQ=( '' 'libselinux:USE_SELINUX::for selinux support' )
 # Temporarily mandate that sysvinit casts before udev
-       REQ=( 'sysvinit' 'libselinux:USE_SELINUX::for selinux support' )
+       REQ='sysvinit libselinux'
+# 'libselinux:USE_SELINUX::for selinux support' )
       OPTS='USE_LOG=true'
        URL="$KERNEL_URL"
   HOMEPAGE='http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html'
@@ -60,6 +61,10 @@ adjust_rules(){
  then sed  -i 's:GROUP="kmem":GROUP="mem":' $REPLY
  fi
 }
+
+ if   spell_installed libselinux
+ then OPTS+=' USE_SELINUX'
+ fi
 
  case $VERSION in
   105) EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id" ;;

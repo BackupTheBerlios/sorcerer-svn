@@ -1,17 +1,18 @@
    VERSION=( 3.0.4 3.0.3 3.0.2 3.0.1 3.0.0 )
-    IGNORE="rc"
+    IGNORE='rc'
   CATEGORY='utility/time'
  ATTRIBUTE='console'
     SOURCE="fcron-$VERSION.src.tar.gz"
-       URL="ftp://ftp.seul.org/pub/fcron/
-            http://fcron.free.fr/archives/"
+       URL='ftp://ftp.seul.org/pub/fcron/
+            http://fcron.free.fr/archives/'
   HOMEPAGE='http://fcron.free.fr/'
-  EPROVIDE="cron"
-       REQ=( "libelf mail-transport-agent"
-             "Linux-PAM:--with-pam=yes:--with-pam=no:for pluggable authentication"
-             "libselinux:--with-selinux=yes:--with-selinux=no:for selinux support" )
+  EPROVIDE='cron'
+       REQ=( 'libelf libselinux mail-transport-agent'
+             'Linux-PAM:--with-pam=yes:--with-pam=no:for pluggable authentication' )
+#            'libselinux:--with-selinux=yes:--with-selinux=no:for selinux support' )
+      OPTS='--with-answer-all=no'
   ESTIMATE='400'
-      DESC="fcron is a superior periodic scheduler.
+      DESC='fcron is a superior periodic scheduler.
 On two boxes fcron has failed to execute crons at specified times.
 You may want to consider using mcron instead of fcron.
 fcron is a periodical command scheduler which aims at replacing
@@ -22,46 +23,31 @@ You can, for instance, tell fcron to execute
 tasks every x hours y minutes of system uptime,
 or to do a job only once in a specified interval of time.
 You can also set a nice value to a job, run it
-depending on the system load average, and much more."
+depending on the system load average, and much more.'
 
-build() {
-  case  $VERSION  in
-    2.0.2)  # This version got a bug that exhibits on some
-	    # computers: fcron sometimes sleeps "forever"
-            sed  -i "629i   if (stime > 1)"  fcron.c
-            ;;
-  esac
-
-  install_init()  {
-    install -m 0644  files/fcron.allow  /etc
-    install -m 0644  files/fcron.deny   /etc
-  }
+build(){
+ install_etc(){
+  install -m 644 files/fcron.allow /etc
+  install -m 644 files/fcron.deny  /etc
+ }
 
 mkdir    -p -m 0755 /var/spool/fcron
 groupadd -K GID_MIN=256 -K GID_MAX=512    fcron                           2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g fcron -d /var/spool/fcron fcron 2>/dev/null
 
- if    spell_installed  Linux-PAM
- then  WITH_PAM="--with-pam=yes"
- else  WITH_PAM="--with-pam=no"
- fi
+# if    spell_installed  Linux-PAM
+# then  OPTS+=' --with-pam=yes'
+# else  OPTS+=' --with-pam=no'
+# fi
 
- EDITOR=`which $EDITOR  2>/dev/null`  ||
+ EDITOR=`which $EDITOR 2>/dev/null`  ||
  EDITOR=`which nano`
+  OPTS+=" --with-editor=$EDITOR"
 
- sed  -i  "s:-O2:$CFLAGS:"                 configure
+ sed  -i  "s:-O2:$CFLAGS:" configure
  sed  -i  "s,next_file:,next_file:\
  ;,"  conf.c
 
-  ./configure            \
-  --prefix=/usr          \
-  --sysconfdir=/etc	 \
-  --localstatedir=/var	 \
-  --with-answer-all=no   \
-  $WITH_PAM              \
-  --with-editor=$EDITOR  &&
-  make                   &&
-  prepare_install        &&
-  make    install        &&
-          install_init
+ default_build &&
+ install_etc
 }
