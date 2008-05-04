@@ -82,8 +82,7 @@
 ### because tcp_wrappers is an ancient hack
 ### for operating systems that lack proper firewalling support
 
-       REQ=( 'init-functions openssl zlib'
-             'Linux-PAM:--with-pam::for pluggable authentication' 
+       REQ=( 'Linux-PAM init-functions libselinux openssl zlib'
              'tcp_wrappers:--with-tcp-wrappers::for an optional method of controlling ssh access' )
    PROTECT='/etc/ssh'
    EXCLUDE='/var/empty'
@@ -94,29 +93,29 @@ openssh is a full implementation of the SSH1 protocol
 and a 99% implementation of the SSH 2 protocol,
 including sftp client and server support.'
 
-build() {
+build(){
 
-mkdir    -p -m 0755 /var/empty
+mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=512    sshd                    2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=512 -g sshd -d /var/empty sshd 2>/dev/null
 
-./configure            \
---prefix=/usr          \
---sysconfdir=/etc/ssh  \
---with-md5-passwords   \
-$OPTS                  &&
-make                   &&
-prepare_install        &&
+if   spell_installed libselinux
+then OPTS+=' --with-selinux'
+fi
+
+if   spell_installed Linux-PAM
+then OPTS+=' --with-pam'
+fi
+
+
+./configure           \
+--prefix=/usr         \
+--sysconfdir=/etc/ssh \
+--with-md5-passwords  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
 make    install
-}
-
-
-post_install_old()  {
-  default_post_install
-  sleep 1
-  if    [  -x  /etc/init.d/sshd  ]
-  then         /etc/init.d/sshd  start
-  fi
 }
 
 current(){
