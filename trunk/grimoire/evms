@@ -10,13 +10,12 @@
        URL="$SOURCEFORGE_URL"
        REQ=( 'device-mapper e2fsprogs ncurses readline'
              'gtk+-v1.2:::for GUI' )
-      OPTS='--sbindir=/sbin'
+      OPTS='--sbindir=/sbin --with-static-glib'
 case $HOSTTYPE in
  x86_64) OPTS+=' libdir=/lib64' ;;
       *) OPTS+=' libdir=/lib' ;;
 esac
 
-#     OPTS='--with-static-glib'
 # --disable-gui disables both the ncurses and gtk+-v1.2 interfaces
   ESTIMATE='496'
       DESC='evms is enterprise volume management system.
@@ -26,7 +25,8 @@ expansion and customization of various levels of volume management.'
 
 build(){
  default_build &&
- install -vm 600 $SCRIPT_DIR/evms.conf /etc
+ install -vm 600 $SCRIPT_DIR/evms.conf /etc &&
+ mv /sbin/evmsgui /usr/sbin/ &&
  case $VERSION in
   2.5.5) if   [  -f   /lib/libevms-2.5.so.0.5 ] && ! [ -h   /lib/libevms-2.5.so.0 ]
          then ln -s        libevms-2.5.so.0.5               /lib/libevms-2.5.so.0

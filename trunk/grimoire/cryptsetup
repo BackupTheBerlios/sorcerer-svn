@@ -1,20 +1,21 @@
    VERSION=( 1.0.6 0.1 )
+  PVERSION=( 1.14 )
   CATEGORY='security/encryption'
  ATTRIBUTE='console'
-    SOURCE="cryptsetup-$VERSION.tar.bz2"
-#       URL='http://www.saout.de/misc/dm-crypt/'
-#  HOMEPAGE='http://www.saout.de/misc/dm-crypt/'
-       URL='http://luks.endorphin.org/source/'
+    SOURCE=( "cryptsetup-$VERSION.tar.bz2"
+             "popt-$PVERSION.tar.gz" )
+       URL=( 'http://luks.endorphin.org/source/'
+             'http://rpm5.org/files/popt/' )
   HOMEPAGE='http://luks.endorphin.org/dm-crypt'
 # added dialog as requirement due to potential password acquisition
-       REQ='device-mapper dialog e2fsprogs libgcrypt popt'
+       REQ='device-mapper dialog e2fsprogs gettext libgcrypt'
       OPTS='--sbindir=/sbin'
 case $HOSTTYPE in
  x86_64) OPTS+=' --libdir=/lib64' ;;
       *) OPTS+=' --libdir=/lib' ;;
 esac
   ESTIMATE='300'
-      DESC='cryptsetup was replaced with cryptmount
+      DESC='cryptsetup provides easily configured device level encryption.
 
 To set up an encrypted block device see:
 http://www.saout.de/tikiwiki/tiki-index.php?page=EncryptedDeviceUsingLUKS
@@ -30,3 +31,17 @@ The user can specify one of the symmetric ciphers,
 a key (of any allowed size), an iv generation mode and then
 he can create a new block device in /dev.
 Writes to this device will be encrypted and reads decrypted.'
+
+build(){
+ cd popt-$PVERSION
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --enable-shared=no &&
+ make
+ export LDFLAGS+=' -L$PWD/.libs/libpopt.a'
+ cd..
+ default_build
+}
