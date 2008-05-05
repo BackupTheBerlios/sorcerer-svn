@@ -9,7 +9,7 @@
 ### END INIT INFO
 
 # Copyright 2007 2008 by Kyle Sallee, all rights reserved.
-# intiramfs script is for the Sorcerer distribution only
+# for use with Sorcerer only
 
 GZIP=cat
 
@@ -34,49 +34,45 @@ update_lilo(){
  done
 }
 
+gcpio(){
+ INC="\,/lib/modules/$1$,p
+      \,/lib/modules/$1/,p"
+ OUT='\,^/lib/modules/,d'
+ OLD="/boot/$1/initrf"
+ NEW="/tmp/initrf.$$$RANDOM.new"
+ OPS='-o -H newc --quiet'
 
-run_lilo(){ sync; /sbin/lilo -P ignore; }
-mkinitrf(){
+ fail(){ rm -f $NEW; return 1; }
 
- gcpio(){
-  INC="\,/lib/modules/$1$,p
-       \,/lib/modules/$1/,p"
-  OUT='\,^/lib/modules/,d'
-  OLD="/boot/$1/initrf"
-  NEW="/tmp/initrf.$$$RANDOM.new"
-  OPS='-o -H newc --quiet'
+ echo -n > $NEW
+ chmod 600 $NEW
 
-  fail(){ rm -f $NEW; return 1; }
+ sed "$INC;$OUT" |
+ if ! cpio $OPS;      then fail; fi |
+ if ! $GZIP > $NEW;   then fail; fi
+ if ! [ -s    $NEW ]; then fail; fi
 
-  echo -n > $NEW
-  chmod 600 $NEW
-
-  sed "$INC;$OUT" |
-  if  ! cpio $OPS;      then fail; fi |
-  if  ! $GZIP > $NEW;   then fail; fi
-  if  ! [ -s    $NEW ]; then fail; fi
-
-  rm -f   $OLD
-  mv $NEW $OLD
- }
-
- echo "$EVERY" | gcpio "$1"
+ rm -f   $OLD
+ mv $NEW $OLD
 }
 
+
+run_lilo(){ sync; /sbin/lilo -P ignore; }
+mkinitrf(){ echo "$EVERY" | gcpio "$1"; }
+
 every(){
- local KBD KEYMAPS LIB64
+ local KBD KM L64
 
  exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
- if [ -d  /usr/share/kbd/keymaps ]; then
-  KEYMAPS=/usr/share/kbd/keymaps
-      KBD='1i/usr/share/kbd
-           1i/usr/share/kbd/keymaps'
+ if [ -d /usr/share/kbd/keymaps ]; then
+  KM=/usr/share/kbd/keymaps
+  KBD='1i/usr/share/kbd;1i/usr/share/kbd/keymaps'
  fi
 
- if [ -d /lib64 ]; then LIB64=/lib64; fi
+ if [ -d /lib64 ]; then L64=/lib64; fi
 
- find /bin /dev /etc /lib $LIB64 /sbin $KEYMAPS |
+ find /bin /dev /etc /lib $L64 /sbin $KM |
  sed "\
 \,^/dev/pts/,d
 \,^/dev/.udev,d
@@ -112,6 +108,10 @@ every(){
 \,^/lib.*\.la$,d
 \,^/lib.*lib.*\.a$,d
 \,^/sbin/sln$,d
+\,^/sbin/init$,d
+\,^/bin/bashbug$,d
+\,^/bin/login$,d
+\,^/bin/7zCon.sfx$,d
 1i/init
 1i/media
 1i/media/root
