@@ -5,7 +5,7 @@
 # Required-Stop: $local_fs udev
 # Default-Start:
 # Default-Stop: 0 6
-# Short-Description: initramfs creates initramfs boot filesystems
+# Short-Description: initramfs creates boot filesystems
 ### END INIT INFO
 
 # Copyright 2007 2008 by Kyle Sallee, all rights reserved.
@@ -91,6 +91,7 @@ every(){
 \,^/etc/gdm/,d
 \,^/etc/gtk/,d
 \,^/etc/httpd/,d
+\,^/etc/init.d/log.d/,d
 \,^/etc/kde,d
 \,^/etc/mono/,d
 \,^/etc/mplayer/,d
@@ -139,10 +140,7 @@ initrf_update(){
  update_lilo
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- cut -d / -f3 |
- while read      VERSION
- do    mkinitrf $VERSION
- done
+ cut -d / -f3 | while read; do mkinitrf $REPLY; done
 
  run_lilo
 }
