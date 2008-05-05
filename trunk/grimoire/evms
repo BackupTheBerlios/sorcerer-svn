@@ -1,3 +1,7 @@
+# Supplying own /etc/evms.conf that deactivates *
+# lilo still seems to be unable to install boot blocks to mapped devices.
+# lilo is also unable to install MBR when evms is in use.
+
    VERSION=( 2.5.5 2.5.4 2.5.3 2.5.2 2.5.1 2.5.0 )
   CATEGORY='disk'
  ATTRIBUTE='console'
@@ -22,11 +26,12 @@ expansion and customization of various levels of volume management.'
 
 build(){
  default_build &&
+ install -vm 600 $SCRIPT_DIR/evms.conf /etc
  case $VERSION in
   2.5.5) if   [  -f   /lib/libevms-2.5.so.0.5 ] && ! [ -h   /lib/libevms-2.5.so.0 ]
-         then ln -s            libevms-2.5.so.0.5           /lib/libevms-2.5.so.0
+         then ln -s        libevms-2.5.so.0.5               /lib/libevms-2.5.so.0
          elif [  -f /lib64/libevms-2.5.so.0.5 ] && ! [ -h /lib64/libevms-2.5.so.0 ]
-         then ln -s            libevms-2.5.so.0.5         /lib64/libevms-2.5.so.0
+         then ln -s        libevms-2.5.so.0.5             /lib64/libevms-2.5.so.0
          fi ;;
  esac
 }

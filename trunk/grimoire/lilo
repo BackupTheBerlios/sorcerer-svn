@@ -1,20 +1,32 @@
-   VERSION=( 22.8 22.7.3 22.7.2 22.7.1 22.7 22.6.1 22.6 22.5.9 22.5.8 )
-    IGNORE="gt"
+# Downgrading to 22.6.1 for devmapper patch
+# However that did not solve lilo being unable to install
+# to any disk or partition when evms is installed.
+# Therefore, returning to version 22.8
+   VERSION=( 22.8 22.6.1 22.7.3 22.7.2 22.7.1 22.7 )
+    IGNORE='gt'
   CATEGORY='administration/bootloader'
  ATTRIBUTE='console x86'
     SOURCE="lilo-$VERSION.src.tar.gz"
-       URL="http://home.san.rr.com/johninsd/pub/linux/lilo/
-            http://www.ibiblio.org/pub/Linux/system/boot/lilo/"
+       URL='http://home.san.rr.com/johninsd/pub/linux/lilo/
+            http://www.ibiblio.org/pub/Linux/system/boot/lilo/'
+case $VERSION in
+ 22.6.1) SOURCE=( "obsolete/lilo-$VERSION.src.tar.gz"
+                  "lilo-$VERSION-devmapper.patch" )
+         URL[1]='http://www.saout.de/misc/' ;;
+esac
   HOMEPAGE='http://home.san.rr.com/johninsd/pub/linux/lilo/'
        REQ='bin86 device-mapper nasm'
-   EXCLUDE="/etc/lilo.conf
+   EXCLUDE='/etc/lilo.conf
             /etc/lilo.conf.head
-            /etc/lilo.conf.tail"
+            /etc/lilo.conf.tail'
   ESTIMATE='180'
-      DESC="lilo is a boot loader for x86 computers."
+      DESC='lilo is a boot loader for x86 computers.'
 
-build() {
-  make        all  ROOT=  OPT="$CFLAGS"  LDFLAGS="$LDFLAGS"  &&
-  prepare_install  &&
-  make    install  ROOT=  MAN_DIR=/usr/man
+build(){
+ case $VERSION in
+  22.6.1) patch -p1 < $SOURCE_CACHE/lilo/$VERSION/${SOURCE[1]} ;;
+ esac
+ make        all ROOT= OPT="$CFLAGS" LDFLAGS="$LDFLAGS" &&
+ prepare_install &&
+ make    install ROOT= MAN_DIR=/usr/man
 }
