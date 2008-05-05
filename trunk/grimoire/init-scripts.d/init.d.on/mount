@@ -2,8 +2,8 @@
 
 ### BEGIN INIT INFO
 # Provides: $local_fs
-# Required-Start: fsck luks proc sys
-# Should-Start: cryptmount-early devices dmsetup fstab udev vgchange
+# Required-Start: fsck fstab luks proc sys
+# Should-Start: cryptmount-early dmsetup fstab udev vgchange
 # Required-Stop: halt luks reboot
 # Default-Start: S
 # Default-Stop: 0 6
@@ -22,8 +22,8 @@ mount_local_fs(){
                         ROOT=/media/root
    [     -d            $ROOT ] ||
    mkdir -p            $ROOT
-   sed   -i "s:\t: :g
-                s: / : $ROOT :" /etc/fstab
+   #sed   -i "s:\t: :g
+   #            s: / : $ROOT :" /etc/fstab
    mount -n            $ROOT || return 1
    sed   "\,rootfs,d;\,$ROOT,d; \,^/dev/,d" /proc/mounts |
    while read DEV MNT JNK; do

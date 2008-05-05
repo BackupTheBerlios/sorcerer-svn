@@ -3,11 +3,12 @@
 ### BEGIN INIT INFO
 # Provides: $local_fs
 # Required-Start: evms_activate luks proc sys
-# Should-Start: cryptmount-early devices dmsetup udev vgchange
+# Should-Start: cryptmount-early dmsetup find_ir udev vgchange
 # Required-Stop: halt reboot
 # Default-Start: S
 # Default-Stop:
 # Short-Description: fstab avoids rdinit=/bin/bash if / not in fstab
+# Description: fstab checks for / in /etc/fstab and rewrites it to /media/root
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -32,9 +33,11 @@ start(){
  }
 
  check(){ [ -n "$( sed 's/#.*//;s:\t: :g;\: / :p;d' /etc/fstab )" ]; }
+ modify(){ sed -i 's:\t: :g;  s: / : /media/root :' /etc/fstab; }
 
+ [ -d /opt ] ||
  if   log_warning_msg 'Checking /etc/fstab for /'; check
- then log_success_msg 'Found /'
+ then log_success_msg 'Found /'; modify
  else log_failure_msg '/ not in /etc/fstab'; interact
  fi
 }
