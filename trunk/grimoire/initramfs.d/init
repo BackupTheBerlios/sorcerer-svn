@@ -1,5 +1,10 @@
 #!/bin/bash
 
+# /init
+# Copyright 2008 Kyle Sallee All rights reserved
+# /init executes only from the initramfs as PID 1.
+# For use with Sorcerer only
+
 destruct(){
  sleep 600
  rm -rf /bin /dev /etc /init /lib /lib64 /proc /sbin /sys /usr
@@ -11,18 +16,26 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
-# keep this code here because /init only runs when booted from initramfs
-for ROOT in $( dmesg | sed 's/ /\n/g' | sed 's:root=/dev::p;d' ); do
- sed -i 's:\t: :g; \, / ,d' /etc/fstab
- echo "/dev$ROOT / auto defaults 0 0" >> /etc/fstab
- echo "Using /dev$ROOT for /"
+mount -nt proc proc /proc
+read l < /proc/cmdline
+for c in $l; do
+ if [ "${c:0:10}" == 'root=/dev/' ]; then
+  r="${c/root=/}"
+  sed -i 's:\t: :g; \, / ,d' /etc/fstab
+  echo "$r / auto defaults 0 0" >> /etc/fstab
+  echo "Using $r for /"
+ fi
 done
 
 /etc/init.d/rcS
 
-if    [ -f    /media/root/sbin/init ]; then destruct &
- cd           /media/root
+if [ -f /media/root/sbin/init ]; then
+ destruct &
+ cd /media/root
  mount --move /media/root /
  exec chroot . /sbin/init "$@"
-else  exec     /sbin/init "$@"
+else
+ echo 'Unable to mount a root filesystem as /media/root'
+ echo 'Unable to continue booting'
+ sulogin
 fi
