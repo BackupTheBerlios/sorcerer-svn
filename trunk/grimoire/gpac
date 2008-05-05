@@ -1,6 +1,4 @@
-    VERSION=( 0.4.4 0.4.2 0.4.0-rc2 )
-#   VERSION=( 0.4.2 0.4.0-rc2 )
-# 0.4.2 has compile errors
+   VERSION=( 0.4.4 )
     IGNORE='full\|xvidcore\|rc'
   CATEGORY='video'
  ATTRIBUTE='library'
@@ -10,9 +8,9 @@
        REQ=( 'gsm faac faad2 lame libtheora libxml2' 
              'mozilla:--mozdir=/usr/lib/mozilla::to install GPAC plugin for Mozilla-based browsers'
              'wxWidgets::--disable-wx:for Osmo4 player' )
-case  $VERSION  in
-  0.4.4)  [  "$HOSTTYPE" == "x86_64" ]  && ATTRIBUTE+=' broken'
-          USE_GCC='gcc-v4.1'  ;;
+case $VERSION in
+ 0.4.4) [ "$HOSTTYPE" == "x86_64" ] && ATTRIBUTE+=' broken'
+        USE_GCC='gcc-v4.2' ;;
 esac
 # circular requirement: ffmpeg - x264 - gpac - ffmpeg, removed ffmpeg req
 # Does it prefer wxPython over wxWidgets?
@@ -24,28 +22,23 @@ It currently supports local playback, http download and
 play and RTP/RTSP streaming over UDP (unicast or multicast) or TCP.
 GPAC also features MP4Box, a multimedia swiss-army knife for the prompt.'
 
-build()  {
+build(){
 
-install_headers()  {
-  cp  -av  include/gpac  /usr/include/gpac
-}
+ install_headers(){
+  cp -av include/gpac /usr/include/gpac
+ }
 
-case  $VERSION  in
-  0.4.2)  sed  -i  "s:wx-config:wxx-config:"  configure  ;;
-# disabling wxWidget support in gpac 0.4.2
-esac
+ export CFLAGS+=' -fPIC'
 
-export  CFLAGS="$CFLAGS -fPIC"
+ sed -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:
+         s:-O3 \$CFLAGS:$CFLAGS \$CFLAGS:" configure
+ chmod 755 configure
 
-sed    -i "s:-lGL -lGLU:-lGL -GLU -L /usr/X11R6/lib:
-           s:-O3 \$CFLAGS:$CFLAGS \$CFLAGS:"  configure
-chmod  +x                                     configure
-
-./configure      \
---prefix=/usr    \
-$OPTS            &&
-make             &&
-prepare_install  &&
-make    install  &&
-        install_headers 
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
+         install_headers 
 }
