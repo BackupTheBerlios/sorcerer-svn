@@ -16,6 +16,8 @@ NAME=evms_activate
 OPTS='-l /etc/init.d/log.d/evms-engine -d warning'
 SERV=/sbin/evms_activate
 
+# A properly installed box already has /dev/evms/device_names in /etc/fstab
+
 evms_fstab(){
  sed -i 's:\t: :g; \, / ,d' /etc/fstab
  find /dev/evms -maxdepth 1 -type b -printf '%P\n' |
@@ -26,7 +28,7 @@ evms_fstab(){
 }
 
 start(){
- if   log_warning_msg "$NAME $OPTS"; $SERV $OPTS && evms_fstab
+ if   log_warning_msg "$NAME $OPTS"; $SERV $OPTS # && evms_fstab
  then log_success_msg "$NAME success"
  else log_failure_msg "$NAME failure"
  fi
