@@ -1,4 +1,7 @@
-   VERSION=( 1.01.05 1.01.04 1.01.03 1.01.02 1.01.01 1.01.00 )
+# Even with device mapper version 1.02.25
+# lilo 22.8 can not write boot sectors to a mapped device name.
+
+   VERSION=( 1.02.25 1.01.05 1.01.04 1.01.03 1.01.02 1.01.01 1.01.00 )
     IGNORE='^1\.02\.00'
 # 1.02.00 is developmental
 # Must check download directory to discover what is stable
@@ -16,7 +19,8 @@
     SOURCE="device-mapper.$VERSION.tgz"
   HOMEPAGE='http://sources.redhat.com/dm/'
        URL='ftp://sources.redhat.com/pub/dm/'
-      OPTS='--sbindir=/sbin'
+       REQ='libselinux'
+      OPTS='--sbindir=/sbin --libdir=/lib'
   ESTIMATE='220'
       DESC='device-mapper provides tools and library for using the kernel device-mapper.
 The Device-mapper is a new component of the linux
@@ -26,23 +30,15 @@ The original LVM (included in stock 2.4 kernels) does not use it.'
 
 
 build(){
-#move_ar_libs(){ mv $LIBDIR/libdevmapper.a* /usr$LIBDIR; }
-#remove_static(){ rm -f /sbin/dmsetup.static; }
-
  case $VERSION in
   1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure* ;;
  esac
 
- if   [ "$HOSTTYPE" == "x86_64" ]
- then LIBDIR=/lib64
- else LIBDIR=/lib
+ if   [ $HOSTTYPE == x86_64 ]
+ then OPTS+=64
  fi
 
- OPTS+=" --libdir=$LIBDIR"
  default_build
-# &&
-#move_ar_libs  &&
-#remove_static
 }
 
 current(){
