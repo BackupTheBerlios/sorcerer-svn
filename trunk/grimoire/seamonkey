@@ -13,6 +13,86 @@
 
 
 configure(){
+
+query_dialog(){
+ qd_help(){
+  if [ -n "$4" ]; then
+   dialog --backtitle "$BACKT"      \
+          --stdout                  \
+          --timeout "$PROMPT_DELAY" \
+          --msgbox                  \
+          "$( long_desc "$4" )"     \
+          0 0
+  fi
+  query_dialog "$@"
+ }
+              
+ local ASK BACKT RESPONSE DEFAULT FTS FAS
+
+ if   [ -n "$SPELL" ]
+ then BACKT="Spell:  $SPELL"
+ fi
+
+ ASK="$( echo "$1" |
+         sed "s:\\\e\[.m::g
+              s:\\\e\[..m::g"
+       )"
+
+ case "$2" in
+  y|Y) DEFAULT="Yes" ;;
+  n|N) DEFAULT="No"  ;;
+ esac
+
+ if [ -n "$3" ]; then
+
+   FTS="as optional requirement for this spell"
+   FAS="as optional requirement for all spells"
+
+   RESPONSE=$( dialog --backtitle "$BACKT"        \
+                      --stdout                    \
+                      --timeout   "$PROMPT_DELAY" \
+                      --default-item   "$DEFAULT" \
+                      --help-button               \
+                      --no-cancel                 \
+                      --item-help                 \
+                      --menu      "$ASK"          \
+                      0 0 0                       \
+                      "Yes"       ""  "Yes $FTS"  \
+                      "No"        ""  "No  $FTS"  \
+                      "Always"    ""  "Yes $FAS"  \
+                      "Never"     ""  "No  $FAS"
+             )
+   case $RESPONSE in
+    Always|Never) STRONG="true"  ;;
+               *) STRONG="false" ;;
+   esac
+  else
+
+   RESPONSE=$( dialog --stdout                     \
+                      --timeout   "$PROMPT_DELAY"  \
+                      --default-item   "$DEFAULT"  \
+                      --item-help                  \
+                      --no-cancel                  \
+                      --menu      "$ASK"           \
+                      0 0 0                        \
+                      "Yes"       ""  "Yes Please" \
+                      "No"        ""  "No  Thanks"
+             )
+ fi
+ clear
+ case ${RESPONSE:=$2} in
+  No|Never|n|N|f|F|m|M) false        ;;
+    Yes|Always|y|Y|j|J) true         ;;
+                *HELP*) qd_help "$@" ;;
+                     *) true         ;;
+ esac
+}
+
+
+query(){ query_dialog "$@"; }
+
+
+
  if  !  grep  -q  'FULL_INSTALL'  $SPELL_CONFIG
  then
 

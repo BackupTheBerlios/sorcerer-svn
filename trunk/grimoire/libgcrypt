@@ -3,7 +3,10 @@
 # sysinit may run on an initramfs image
 # Therefore, libgcrypt must have libraries installed in /lib or /lib64
 
-   VERSION=( 1.4.0 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0 )
+   VERSION=( 1.4.1 1.4.0 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0 )
+      SAFE=( 1.4.1 )
+# 1.4.1 not really security update, just want distro to use it
+# to get correct position of libraries.
   CATEGORY='security/encryption'
  ATTRIBUTE='library'
     SOURCE="libgcrypt-$VERSION.tar.bz2"
@@ -17,22 +20,9 @@ libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
 
 build(){
- add_compat_symlinks(){
-  for        file in /usr/{lib64,lib}/libgcrypt.so*; do
-   if  [ -f $file ]; then
-    mv      $file ${file#/usr}
-    ln -sf        ${file#/usr} $file
-   fi
-  done
- }
-
- default_build &&
- add_compat_symlinks
-}
-
-current(){
- case $VERSION in
-  1.4.0) [ -f   /lib/libgcrypt.so ] ||
-         [ -f /lib64/libgcrypt.so ] ;;
+ OPTS+='--libdir=/lib'
+ case $HOSTTYPE in
+  x86_64) OPTS+='64' ;;
  esac
+ default_build
 }
