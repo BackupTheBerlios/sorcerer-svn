@@ -20,44 +20,36 @@ The software seamlessly integrates email,
 calendaring, meeting scheduling, contact management
 and online task lists in a single application.'
 
-build()  {
+build(){
 
-case  $VERSION  in
-  1.4.6)  sed  -i  "s:libgtkhtml-3.0:libgtkhtml-3.1:
-                    s:gal-2.0:gal-2.2:"  configure
-#                   s:soup-2.0:libsoup-2.2:"  configure
-          sed  -i  "\,default :,abreak;"  e-util/e-component-listener.c  ;;
-esac
+ OPTS+=" --with-db3=$BUILD_DIR/evolution-db3"
 
-mkdir  evolution-db3               &&
-cd  db-$DBVERSION/build_unix       &&
-../dist/configure                  \
---prefix=$BUILD_DIR/evolution-db3  \
---disable-dynamic                  &&
-make                               &&
-make  install                      &&
+ mkdir evolution-db3               &&
+ cd db-$DBVERSION/build_unix       &&
+ ../dist/configure                 \
+ --prefix=$BUILD_DIR/evolution-db3 \
+ --disable-dynamic &&
+ make              &&
+ make  install     &&
 
-cd  $BUILD_DIR                     &&
+ cd  $BUILD_DIR    &&
 
-# export LDFLAGS="-Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla $LDFLAGS"
-export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
-./configure                          \
---prefix=/usr                        \
---sysconfdir=/etc                    \
---localstatedir=/var                 \
---with-db3=$BUILD_DIR/evolution-db3  \
---disable-gtk-doc                    \
-$OPTS                                &&
-make                                 &&
-prepare_install                      &&
-make    install
+ export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
+ ./configure          \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --disable-gtk-doc    \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ make    install
 }
 
 
-post_install()  {
-if    is_installed       hicolor-icon-theme
-then  touch  $CAST_QUEUE/hicolor-icon-theme
-  # unlock_cast
-  # cast  -c      hicolor-icon-theme
-fi
+# why is hicolor-icon-theme reinstalled after evolution?
+post_install(){
+ if   is_installed       hicolor-icon-theme
+ then echo hicolor-icon-theme | pipe_queue $CAST_QUEUE com
+ fi
 }
