@@ -4,25 +4,26 @@
 # Therefore, libgcrypt must have libraries installed in /lib or /lib64
 
    VERSION=( 1.4.1 1.4.0 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0 )
-      SAFE=( 1.4.1 )
-# 1.4.1 not really security update, just want distro to use it
-# to get correct position of libraries.
   CATEGORY='security/encryption'
  ATTRIBUTE='library'
     SOURCE="libgcrypt-$VERSION.tar.bz2"
        URL='ftp://ftp.gnupg.org/gcrypt/libgcrypt/'
   HOMEPAGE='http://directory.fsf.org/security/libgcrypt.html'
        REQ='libgpg-error'
-      OPTS='--enable-static=no'
+      OPTS='--enable-static=no --libdir=/lib'
   ESTIMATE='600'
       DESC='libgcrypt is a general purpose crypto library.
 libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
 
 build(){
- OPTS+='--libdir=/lib'
  case $HOSTTYPE in
   x86_64) OPTS+='64' ;;
  esac
  default_build
 }
+
+case $VERSION in
+ 1.4.1) [ -f   /lib/libgcrypt.so.11.4.4 ] ||
+        [ -f /lib64/libgcrypt.so.11.4.4 ] ;;
+esac
