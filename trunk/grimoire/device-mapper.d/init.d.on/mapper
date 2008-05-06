@@ -1,0 +1,34 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: mapper
+# Required-Start: dmsetup
+# Should-Start: udev
+# Required-Stop: 
+# Default-Start: S
+# Default-Stop:
+# Short-Description: loads map files from /etc/mapper into device-mapper
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=mapper
+SERV=/sbin/dmsetup
+
+start(){
+run(){
+ for MAP in /etc/mapper/*; do
+  [ -f $MAP ] || continue
+  log_warning_msg "mapper executing dmsetup create ${MAP##*/} $MAP"
+  dmsetup create ${MAP##*/} $MAP
+ done
+}
+
+ [ -d /etc/mapper ]
+ if   log_warning_msg 'mapper starting'; run
+ then log_success_msg 'mapper started'
+ else log_failure_msg 'mapper not started'
+ fi
+}
+
+parse "$@"
