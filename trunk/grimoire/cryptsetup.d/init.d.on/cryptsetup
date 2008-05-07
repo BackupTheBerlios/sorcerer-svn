@@ -1,0 +1,77 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: cryptsetup
+# Required-Start: dmsetup
+# Should-Start: udev vgchange
+# Required-Stop: halt reboot
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: cryptsetup finds luks encrypted devices and maps them to /dev/mapper/
+#
+# luks devices must have names in /etc/fstab such as
+# /dev/mapper/luks-sda3       where /dev/sda3              is a LUKS encrypted partition or
+# /dev/mapper/luks-total-root where /dev/mapper/total-root is a LUKS encrypted LVM2 logical volume
+#
+# Not supported:
+# lukes encrypted filesystems in files attached to loop devices
+# Use a custom script if using luks on a loop device.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=cryptsetup
+
+start(){
+ ldev(){
+  sed 's, #.*,,
+       \,noauto,d
+       \,/dev/mapper/luks-,p; d' /etc/fstab |
+  while read DEV MNT TYP JNK; do
+   DEV="${DEV#*-}"
+   REV="/dev/$DEV"
+   MEV="/dev/mapper/$DEV"
+     if [ -b /dev/$REV ] && cryptsetup isLuks $REV; then echo "$REV $DEV $TYP"
+   elif [ -b /dev/$MEV ] && cryptsetup isLuks $MEV; then echo "$MEV $DEV $TYP"
+   fi
+  done
+ }
+
+ open(){
+  while read REV DEV TYP; do
+   if   [ "$TYP" == swap ]; then
+    KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+    echo "$KEY" | cryptsetup luksFormat $REV 2>/dev/null
+    echo "$KEY" | cryptsetup luksOpen   $REV $DEV 2>/dev/null
+    mkswap $DEV
+   else
+    dialog \
+     --backtitle cryptsetup --stdout --no-cancel --timeout 60 \
+     --title "Device Password Menu" \
+     --passwordbox "Password for $DEV?" 0 0 |
+    cryptsetup luksOpen $REV $DEV
+   fi
+  done
+ }
+
+ run(){ ldev | open; }
+
+ log_warning_msg "$NAME checking for luks devices"; run <> /dev/console
+ log_success_msg "$NAME luks mappings created"
+}
+
+
+stop(){
+ run(){
+  find     /dev/mapper -type b     |
+  sed   's:/dev/mapper/luks-::p;d' |
+  xargs -r cryptsetup luksClose
+ }
+
+ log_warning_msg "$NAME closing luks devices"; run
+ log_success_msg "$NAME luks devices closed."
+}
+
+try_restart(){ :; }
+
+parse "$@"

@@ -122,7 +122,8 @@ fdisc(){
  $DIALOG \
  --title $"Partitioning Menu" --no-cancel \
  --menu  $"Select a partitioning program" 0 0 0 \
- cfdisk "" evsm "" evsmn "" "fdisk	-u" "" parted ""
+ cfdisk "" "fdisk	-u" "" parted ""
+#cfdisk "" evms "" evmsn "" "fdisk	-u" "" parted ""
 }
 
 
@@ -326,6 +327,30 @@ get_size(){
  inputbox "Please enter size in megabytes" "${PSIZE[$1]:-256}"
 }
 
+get_password(){
+ local KEY
+
+ if   [ -z "${PDEVICE[$1]}"     ]; then $DIALOG --msgbox "Please set device first." 8 50; return 1; fi
+ if   [ -z "${PFILESYSTEM[$1]}" ]; then $DIALOG --msgbox "Please set filesystem type first." 8 50; return 1; fi
+ if   [    "${PFILESYSTEM[$1]}" == swap ]
+ then confirm $"Encrypted swap?" --defaultno && KEY=$RANDOM
+ else KEY="$( inputbox "Please enter a password for key 0" )"
+ fi
+
+ if   [ -z "$KEY" ]; then
+  if  [    "${PDEVICE[$1]:0:17}" == /dev/mapper/luks- ]; then
+   cryptsetup luksClose    ${PDEVICE[$1]##*/}
+              PDEVICE[$1]="${PDEVICE[$1]#*-}"
+  fi
+ else echo "$KEY"
+  if  ! [  "${PDEVICE[$1]:0:17}" == /dev/mapper/luks- ]
+  then        PDEVICE[$1]="/dev/mapper/luks-${PDEVICE[$1]}"
+  fi
+  echo "$KEY" | cryptsetup luksFormat ${PDEVICE[$1]}
+  echo "$KEY" | cryptsetup luksOpen   ${PDEVICE[$1]} ${PDEVICE[$1]##*/}
+ fi
+}
+
 
 get_feature(){
  local FEATURE
@@ -481,6 +506,7 @@ empty_entry(){
       PORDER[$1]=
     PFEATURE[$1]=
       PCHECK[$1]=
+   PPASSWORD[$1]=
 }
 
 
@@ -524,35 +550,34 @@ filesystem_table(){
     HELP=$"Please visit every menu item except the Empty All Fields"
 
    while
-    if    [ "${PFILESYSTEM[$1]}" == swap  ] &&
-        ! [ "${PDEVICE[$1]:0:5}" == /dev/ ]
-    then
+    if  [ "${PDEVICE[$1]:0:5}" == /dev/ ]; then
      COMMAND=$(
       $DIALOG --ok-label Select --cancel-label Done --default-item "$WHAT" \
        --title "$TITLE" \
        --menu  "$HELP" 15 60 9 \
-       Device     "${PDEVICE[$1]}"     \
+       Device         "${PDEVICE[$1]}" \
        Filesystem "${PFILESYSTEM[$1]}" \
-       Mount      "${PMOUNT[$1]}"      \
-       Options    "${POPTIONS[$1]}"    \
-       Dump       "${PDUMP[$1]}"       \
-       Order      "${PORDER[$1]}"      \
-       Size       "${PSIZE[$1]}"       \
-       Check      "${PCHECK[$1]}"      \
+       Mount           "${PMOUNT[$1]}" \
+       Options       "${POPTIONS[$1]}" \
+       Dump             "${PDUMP[$1]}" \
+       Order           "${PORDER[$1]}" \
+       Feature       "${PFEATURE[$1]}" \
+       Check           "${PCHECK[$1]}" \
+       Encryption   "${PPASSWORD[$1]:+yes}" \
        Empty      "All fields removing entry" )
     else
      COMMAND=$(
       $DIALOG --ok-label Select --cancel-label Done --default-item "$WHAT" \
        --title "$TITLE" \
        --menu  "$HELP" 15 60 9 \
-       Device     "${PDEVICE[$1]}"     \
+       Device         "${PDEVICE[$1]}" \
        Filesystem "${PFILESYSTEM[$1]}" \
-       Mount      "${PMOUNT[$1]}"      \
-       Options    "${POPTIONS[$1]}"    \
-       Dump       "${PDUMP[$1]}"       \
-       Order      "${PORDER[$1]}"      \
-       Feature    "${PFEATURE[$1]}"    \
-       Check      "${PCHECK[$1]}"      \
+       Mount           "${PMOUNT[$1]}" \
+       Options       "${POPTIONS[$1]}" \
+       Dump             "${PDUMP[$1]}" \
+       Order           "${PORDER[$1]}" \
+       Size             "${PSIZE[$1]}" \
+       Check           "${PCHECK[$1]}" \
        Empty      "All fields removing entry" )
     fi
    do
@@ -567,6 +592,7 @@ filesystem_table(){
      Size)             PSIZE[$1]=$( get_size        "$1" )	;;
      Feature)       PFEATURE[$1]=$( get_feature     "$1" )	;;
      Check)           PCHECK[$1]=$( get_check       "$1" )	;;
+     Encryption)   PPASSWORD[$1]=$( get_password    "$1" )	;;
     esac
 
     case "${PFILESYSTEM[$1]}" in

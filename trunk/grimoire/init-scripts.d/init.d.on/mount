@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Provides: $local_fs
 # Required-Start: fsck fstab luks proc sys
-# Should-Start: cryptmount-early dmsetup fstab luks mapper udev vgchange
+# Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper udev vgchange
 # Required-Stop: halt luks reboot
 # Default-Start: S
 # Default-Stop: 0 6
@@ -49,16 +49,8 @@ umount_local_fs(){
  sync
  [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
- cut   -d ' ' -f2 /proc/mounts |
- sort  -ur |
- while read
- do    mount -no remount,ro $REPLY
- done
-
- if ! mount -no remount,ro /; then
-  log_failure_msg '/ failed to remount read only'
-  sulogin -t 300
- fi
+ cut -d ' ' -f2 /proc/mounts |
+ LC_ALL=C sort -ur | xargs -r --maxlines=256 umount -lr
 }
 
 stop(){
