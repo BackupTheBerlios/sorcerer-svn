@@ -8,9 +8,10 @@
 # Default-Start: S
 # Default-Stop: 0 6
 # Short-Description: mdadm activates the software RAID
-# Partitions with type 0XFD have their RAID activated automatically
-# by the linux kernel during boot unless linux receives parameter
-# raid=noautodetect
+# Raid partitions should be type 0xFD
+# Then, the linux kernel can automatically detect and activate RAIDS
+# when told to do during sysinit execution on the initramfs by
+# mdadm --auto-detect
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -19,7 +20,7 @@ NAME=mdadm
 SERV=/sbin/mdadm
 
 start(){
- if   log_warning_msg "$NAME $OPTS"; $SERV --assemble --scan
+ if   log_warning_msg "$NAME $OPTS"; $SERV --auto-detect
  then log_success_msg "$NAME success"
  else log_failure_msg "$NAME failure"
  fi
