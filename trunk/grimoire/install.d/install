@@ -92,6 +92,18 @@ get_bb()   { $DIALOG --menu "" 0 0 0 $( list_bb   ); }
 get_disk() { $DIALOG --menu "" 0 0 0 $( list_disk ); }
 
 
+boot_dev_check(){
+ if   [     "${PDEVICE[$1]:0:12}" == /dev/mapper/ ] &&
+      [      "${PMOUNT[$1]}"      == /boot        ] &&
+    ! [ "${PFILESYSTEM[$1]}"      == ext2         ]
+ then
+  $DIALOG --msgbox "/boot must be ext2 and can not be a mapped device" 8 50
+       PMOUNT[$1]=
+  PFILESYSTEM[$1]=
+ fi
+}
+
+
 get_filesystem(){
 
  local EXT2 EXT3 JFS XFS REISER SWAP DEFAULT
@@ -104,7 +116,7 @@ get_filesystem(){
    SWAP="Swap"
 
  case "${PMOUNT[$1]}" in
-  /boot) DEFAULT=ext2 ;;
+  /boot) DEFAULT=ext2 ; echo ext2; return ;;
    none) DEFAULT=swap ;;
       *) DEFAULT=ext3 ;;
  esac
@@ -139,8 +151,13 @@ write_mbr(){ ms-sys -s $( get_disk ); }
 get_mount(){
  local      PLEASE="Please enter a mount point"
  inputbox "$PLEASE" "${PMOUNT[$1]}"
+ boot_dev_check "$1"
 }
 
+get_device(){
+ get_part       "$1"
+ boot_dev_check "$1"
+}
 
 list_swaps(){
  for (( CX=0; CX<MP; CX++ )); do
@@ -583,7 +600,7 @@ filesystem_table(){
    do
     case $COMMAND in
      Empty)      pempty "$1"					;;
-     Device)         PDEVICE[$1]=$( get_part        "$1" )	;;
+     Device)         PDEVICE[$1]=$( get_device      "$1" )	;;
      Filesystem) PFILESYSTEM[$1]=$( get_filesystem  "$1" )	;;
      Mount)           PMOUNT[$1]=$( get_mount       "$1" )	;;
      Options)       POPTIONS[$1]=$( get_options     "$1" )	;;
@@ -671,6 +688,26 @@ installed_fs(){
   *stdin:\ data*)  	check_jfs "$1"	;;
  esac
 }
+
+pipe(){ cat -; "$@"; }
+uniqs(){  LC_ALL=C sort | uniq -u; }
+dups(){   LC_ALL=C sort | uniq -d; }
+
+lv(){       lvs --noheadings -o lv_name       $1 | sed 's:^ *::'; }
+pv_in_vg(){ vgs --noheadings -o pv_name       $1 | sed 's:^ *::'; }
+pv(){       pvs --noheadings -o pv_name          | sed 's:^ *::'; }
+vg(){       vgs --noheadings -o vg_name          | sed 's:^ *::'; }
+vg_free(){  vgs --noheadings -o vg_free_count $1 | sed 's:^ *::'; }
+
+apvs(){     pv_in_vg | sed p | pipe pv | uniqs; }
+
+ppv(){
+ pv | sed p | pipe \
+ find /dev -type b |
+ sed '\,/loop,d;\,/mapper/,d;/[0-9]/p;d' | uniqs
+}
+
+ppv_to_pv(){ ppv | xargs -r --max=lines=16 pvcreate; }
 
 
 filesystem_table_load(){
@@ -854,7 +891,20 @@ then the currently mounted filesystems must be unmounted first."
  fi
 }
 
-list_part(){ find /dev -type b | sed '\,/loop,d;\,/mapper/,p;\,/mapper/,d;/[0-9]/p;d'; }
+
+mapped(){
+ find /dev/mapper -type b |
+ sed 's:/dev/mapper/luks-:/dev/:
+      s:/dev/mapper/:/dev/:'
+}
+
+
+list_part(){
+ ( mapped | pipe pv_in_vg | sed p
+   find /dev -type b |
+   sed '\,/loop,d;\,/mapper/,p;\,/mapper/,d;/[0-9]/p;d'
+ ) | uniqs
+}
 
 get_part(){
  $DIALOG \
@@ -873,6 +923,7 @@ get_pass(){
  fi
 }
 
+# Creating LUKS devices from filesystem table instead
 luks(){
  luks_format_open(){
   [ -n "$1" ] && [ -n "$2" ] || return
@@ -890,8 +941,133 @@ After each shutdown content of encrypted swaps become unencryptable."
  luks_format_open "$( get_pass )" "$( get_part )"
 }
 
+boot_partition_warning(){
+
+ $DIALOG --msgbox \
+'A dedicated ext2 /boot partition of 256M to 1G is required only on:
+
+1. Old i586 Hardware with broken BIOS
+2. When / is a LVM2 logical volume
+3. When / is a LUKS encrypted volume
+4. When / is a LVM2 logical volume that is also LUKS encrypted.' 20 50
+}
+
+
+lvm2_explain(){
+ $DIALOG --msgbox \
+'Disks are physical hardware for storing data.
+Partitions are divisions of disks.
+Filesystems can be created on partitions.
+Partitions are also Physical Volumes.
+
+A Volume Group is a collection of Physical Volumes.
+Any number of Physical Volumes can be added to a Volume Group.
+
+Logical Volumes are divisions of Volume Groups.
+The relationship between a Logical Volume and Volume Group
+is very similar to the 
+the relationship between a Partition and a Disk.
+
+In order to more more easily remember these terms:
+A Volume Group is a virtual Disk.
+A Logical Volume is a virtual Partition.
+
+By using LVM2 a single filesystem can be created
+that spans several partitions and disks.' 23 75
+}
+
+
+launch(){ if confirm "Execute $*" --defaultno; then shift; eval "$@"; fi; }
+
+name_vg(){ $DIALOG --nocancel --inputbox "Name for VG? No / in name" 0 0; }
+name_lv(){ $DIALOG --nocancel --inputbox "Name for LV? No / in name" 0 0; }
+
+get_pv(){
+ $DIALOG --separate-output --item-help --nocancel \
+         --title "Select PVs for VG" --checklist "" 20 70 10 \
+         $( apvs | sed 's:$:	Physical Volume:' ) | tr '\n' '\t'
+ echo
+}
+
+
+get_vg(){
+ $DIALOG --no-cancel --ok-label Select --menu "Select VG" 0 60 8 \
+         $( vg | sed 's:$:	Volume Group:' )
+}
+
+
+get_lv(){
+ $DIALOG --no-cancel --ok-label Select --menu "Select LV" 0 60 8 \
+         $( lv | sed 's:$:	Logical Volume:' )
+}
+
+get_lvsize(){
+ local SIZE
+ local HELP=\
+'Enter Size where suffix can be:
+ %VG   Percentage of total space in Volume Group
+ %FREE Percentage of free  space in Volume Group
+ M for megabytes,
+ G for Gigabytes
+ T for Terabytes
+ P for Petabytes
+ E for Exabytes'
+
+
+ SIZE=$( $DIALOG --no-cancel --inputbox "$HELP" 0 0 )
+
+ case $SIZE in
+  *VG) echo "-l	$SIZE" ;;
+  *EE) echo "-l	$SIZE" ;;
+    *) echo "-L	$SIZE" ;;
+ esac
+}
+
+
+clv(){ launch lvcreate -name $( name_lv ) $( get_vg ) $( get_lv_size ); }
+cvg(){ launch vgcreate       $( name_vg ) $( get_pv ); }
+rvg(){ launch vgremove       $( get_vg ); }
+rlv(){ launch lvremove       $( get_lv ); }
+
+pause(){ read -n 1 -t 900 -p "Press space to continue."; }
+
+lvm2_menu(){
+
+ ppv_to_pv
+ lvm2_explain
+
+ while
+  CVG_HELP=$"Create a Volume Group and add Physical Volumes to it"
+  RVG_HELP=$"Remove Volume Group and freeing Physical Volumes"
+  CLV_HELP=$"Create Logical Volume within Volume Group"
+  RLV_HELP=$"Remove Logical Volume within Volume Group"
+
+  WHAT=$(
+   $DIALOG --title $"LVM2 Menu" --no-cancel --item-help --menu "" 0 60 8 \
+   CVG "Create Volume Group"   "$CVG_HELP" \
+   RVG "Remove Volume Group"   "$RVG_HELP" \
+   CLV "Create Logical Volume" "$CLV_HELP" \
+   RLV "Remove Logical Volume" "$RLV_HELP" \
+   Done "" "" )
+ do
+  case $WHAT in
+    CVG) cvg	;;
+    RVG) rvg	;;
+    CLV) clv	;;
+    RLV) rlv	;;
+   Done) return	;;
+  esac
+  pause
+ done
+ vgchange -ay
+ filesystem_table_load
+}
+
+
 
 disk_menu(){
+
+ boot_partition_warning
 
  if   [ -z "${PDEVICE[*]}" ]
  then filesystem_table_load
@@ -911,13 +1087,13 @@ disk_menu(){
   O_HELP=$"Install initramfs image, lilo, and networking programs to finish install"
   P_HELP=$"Create partitions on physical disks"
   U_HELP=$"Unmount defined filesystems, do this only to correct mistakes"
-  Z_HELP=$"Encrypt block devices using AES cipher and Linux Unified Key Setup"
+  V_HELP=$"LVM2 Logical Volume Managment 2 Menu"
 
   if [ "$PMOUNTED" == true ]; then
 
    WHAT=$(
     $DIALOG \
-    --title "$TITLE" --ok-label "Select" --no-cancel \
+    --title "$TITLE" --ok-label Select --no-cancel \
     --default-item "$WHAT" --item-help --menu "" 0 60 8 \
     MBR     "Master Boot Record" "$B_HELP" \
     Install "Transfer Files"     "$A_HELP" \
@@ -928,11 +1104,11 @@ disk_menu(){
   else
    WHAT=$(
     $DIALOG \
-    --title "$TITLE" --ok-label "Select" --no-cancel \
+    --title "$TITLE" --ok-label Select --no-cancel \
     --default-item "$WHAT" --item-help --menu "" 0 60 8 \
     MBR        "Master Boot Record" "$B_HELP" \
     Partition  "Disks"              "$P_HELP" \
-    LUKS       "Encryption"         "$Z_HELP" \
+    LVM2       "LVM2 Menu"          "$V_HELP" \
     Reload     "Filesystem Table"   "$L_HELP" \
     Modify     "Filesystem Table"   "$C_HELP" \
     Initialize "Filesystems"        "$I_HELP" \
@@ -942,8 +1118,8 @@ disk_menu(){
  do
   case $WHAT in
           MBR)	write_mbr		;;
+         LVM2)  lvm2_menu		;;
       Install)	transfer_arch		;;
-         LUKS)	luks			;;
     Partition)	partition_disks		;;
        Reload)	filesystem_table_load	;;
        Modify)	filesystem_table	;;
@@ -1095,4 +1271,4 @@ export DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
 
 trap : INT QUIT
 
-main_menu
+# main_menu
