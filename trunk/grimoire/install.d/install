@@ -88,8 +88,8 @@ goodbye(){
 
 list_disk(){ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"; }
 list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '/loop/d'; }
-get_bb()   { $DIALOG --menu "" 0 0 0 $( list_bb   ); }
-get_disk() { $DIALOG --menu "" 0 0 0 $( list_disk ); }
+get_bb()   { $DIALOG --title $"Please select boot block" --menu "" 0 0 0 $( list_bb   ); }
+get_disk() { $DIALOG --title $"Please select disk"       --menu "" 0 0 0 $( list_disk ); }
 
 
 boot_dev_check(){
@@ -134,13 +134,12 @@ fdisc(){
  $DIALOG \
  --title $"Partitioning Menu" --no-cancel \
  --menu  $"Select a partitioning program" 0 0 0 \
- cfdisk "" "fdisk	-u" "" parted ""
-#cfdisk "" evms "" evmsn "" "fdisk	-u" "" parted ""
+ cfdisk "" "fdisk -u" "" parted ""
 }
 
 
 partition_disks(){
- $( fdisc ) $( get_disk );
+ launch $( fdisc ) $( get_disk );
  filesystem_table_load
 }
 
