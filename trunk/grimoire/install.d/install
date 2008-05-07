@@ -921,7 +921,11 @@ mapped(){
 list_part(){
  ( mapped | pipe pv_in_vg | sed p
    find /dev -type b |
-   sed '\,/loop,d;\,/mapper/,p;\,/mapper/,d;/[0-9]/p;d'
+   sed '\,^/dev/loop,d
+        \,^/dev/mapper/,p
+        \,^/dev/mapper/,d
+        \,^/dev/sr[0-9]$,d
+        \,[0-9],p;d'
  ) | uniqs
 }
 
