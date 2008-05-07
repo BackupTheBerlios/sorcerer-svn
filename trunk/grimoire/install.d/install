@@ -716,6 +716,9 @@ pv_in_vg(){ vgs --noheadings -o pv_name       $1 | tr -d ' '; }
 pv(){       pvs --noheadings -o pv_name          | tr -d ' '; }
 vg(){       vgs --noheadings -o vg_name          | tr -d ' '; }
 vg_free(){  vgs --noheadings -o vg_free_count $1 | tr -d ' '; }
+vg_lv(){    vgs --noheadings -o vg_name,lv_name  |
+            sed 's:^ *::;s: :/:'                 | tr -d ' '; }
+            
 
 apvs(){     pv_in_vg | sed p | pipe pv | uniqs; }
 
@@ -1021,6 +1024,11 @@ get_lv(){
          $( lv | sed 's:$:	Logical Volume:' )
 }
 
+get_vg_lv(){
+ $DIALOG --no-cancel --ok-label Select --menu "Select LV" 0 60 8 \
+         $( vg_lv | sed 's:$:	Volume Group/Logical Volume:' )
+}
+
 get_lv_size(){
  local SIZE
  local HELP=\
@@ -1044,10 +1052,10 @@ get_lv_size(){
 }
 
 
-clv(){ launch lvcreate -name $( name_lv ) $( get_vg ) $( get_lv_size ); }
-cvg(){ launch vgcreate       $( name_vg ) $( get_pv ); }
-rvg(){ launch vgremove       $( get_vg ); }
-rlv(){ launch lvremove       $( get_lv ); }
+clv(){ launch lvcreate -n $( name_lv ) $( get_vg ) $( get_lv_size ); }
+cvg(){ launch vgcreate    $( name_vg ) $( get_pv ); }
+rvg(){ launch vgremove    $( get_vg ); }
+rlv(){ launch lvremove -f $( get_vg_lv ); }
 
 pause(){ read -n 1 -t 900 -p "Press space to continue."; }
 
