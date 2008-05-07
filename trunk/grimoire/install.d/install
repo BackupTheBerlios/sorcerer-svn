@@ -355,16 +355,21 @@ get_password(){
  fi
 
  if   [ -z "$KEY" ]; then
-  if  [    "${PDEVICE[$1]:0:17}" == /dev/mapper/luks- ]; then
-   cryptsetup luksClose    ${PDEVICE[$1]##*/}
-              PDEVICE[$1]="${PDEVICE[$1]#*-}"
+  if  [ /dev/mapper/luks- == "${PDEVICE[$1]:0:17}" ]; then
+   cryptsetup luksClose       ${PDEVICE[$1]##*/}
   fi
  else echo "$KEY"
-  if  ! [  "${PDEVICE[$1]:0:17}" == /dev/mapper/luks- ]
-  then        PDEVICE[$1]="/dev/mapper/luks-${PDEVICE[$1]}"
+  if  [ /dev/mapper/luks- ==   "${PDEVICE[$1]:0:17}" ]; then
+      [ -b          /dev/mapper/${PDEVICE[$1]#*-} ] &&
+       PDEVICE[$1]="/dev/mapper/${PDEVICE[$1]#*-}"  ||
+              PDEVICE[$1]="/dev/${PDEVICE[$1]#*-}"
   fi
+
+  echo          cryptsetup luksFormat ${PDEVICE[$1]} 1>&2
   echo "$KEY" | cryptsetup luksFormat ${PDEVICE[$1]}
-  echo "$KEY" | cryptsetup luksOpen   ${PDEVICE[$1]} ${PDEVICE[$1]##*/}
+  echo          cryptsetup luksOpen   ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/} 1>&2
+  echo "$KEY" | cryptsetup luksOpen   ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/}
+  pause
  fi
 }
 
@@ -514,10 +519,10 @@ root_device(){
 }
 
 empty_entry(){
-     PDEVICE[$1]=
+#    PDEVICE[$1]=
       PMOUNT[$1]=
      PRMOUNT[$1]=
- PFILESYSTEM[$1]=
+#PFILESYSTEM[$1]=
     POPTIONS[$1]=
        PDUMP[$1]=
       PORDER[$1]=
@@ -571,7 +576,7 @@ filesystem_table(){
      COMMAND=$(
       $DIALOG --ok-label Select --cancel-label Done --default-item "$WHAT" \
        --title "$TITLE" \
-       --menu  "$HELP" 15 60 9 \
+       --menu  "$HELP" 20 60 15 \
        Device         "${PDEVICE[$1]}" \
        Filesystem "${PFILESYSTEM[$1]}" \
        Mount           "${PMOUNT[$1]}" \
@@ -586,7 +591,7 @@ filesystem_table(){
      COMMAND=$(
       $DIALOG --ok-label Select --cancel-label Done --default-item "$WHAT" \
        --title "$TITLE" \
-       --menu  "$HELP" 15 60 9 \
+       --menu  "$HELP" 20 60 15 \
        Device         "${PDEVICE[$1]}" \
        Filesystem "${PFILESYSTEM[$1]}" \
        Mount           "${PMOUNT[$1]}" \
@@ -611,6 +616,19 @@ filesystem_table(){
      Check)           PCHECK[$1]=$( get_check       "$1" )	;;
      Encryption)   PPASSWORD[$1]=$( get_password    "$1" )	;;
     esac
+
+    DV=/dev
+    DM=/dev/mapper
+    DML=/dev/mapper/luks-
+
+    if   [ -n       "${PPASSWORD[$1]}" ]; then
+         [ $DML ==   "${PDEVICE[$1]:0:17}" ] ||
+     PDEVICE[$1]="$DML${PDEVICE[$1]##*/}"
+    elif [ $DML ==   "${PDEVICE[$1]:0:17}" ]; then
+     [ -b         $DM/${PDEVICE[$1]#*-} ] &&
+     PDEVICE[$1]="$DM/${PDEVICE[$1]#*-}"  ||
+     PDEVICE[$1]="$DV/${PDEVICE[$1]#*-}"
+    fi
 
     case "${PFILESYSTEM[$1]}" in
      swap)    PDUMP[$1]=0
@@ -693,21 +711,21 @@ pipe(){ cat -; "$@"; }
 uniqs(){  LC_ALL=C sort | uniq -u; }
 dups(){   LC_ALL=C sort | uniq -d; }
 
-lv(){       lvs --noheadings -o lv_name       $1 | sed 's:^ *::'; }
-pv_in_vg(){ vgs --noheadings -o pv_name       $1 | sed 's:^ *::'; }
-pv(){       pvs --noheadings -o pv_name          | sed 's:^ *::'; }
-vg(){       vgs --noheadings -o vg_name          | sed 's:^ *::'; }
-vg_free(){  vgs --noheadings -o vg_free_count $1 | sed 's:^ *::'; }
+lv(){       lvs --noheadings -o lv_name       $1 | tr -d ' '; }
+pv_in_vg(){ vgs --noheadings -o pv_name       $1 | tr -d ' '; }
+pv(){       pvs --noheadings -o pv_name          | tr -d ' '; }
+vg(){       vgs --noheadings -o vg_name          | tr -d ' '; }
+vg_free(){  vgs --noheadings -o vg_free_count $1 | tr -d ' '; }
 
 apvs(){     pv_in_vg | sed p | pipe pv | uniqs; }
 
 ppv(){
  pv | sed p | pipe \
  find /dev -type b |
- sed '\,/loop,d;\,/mapper/,d;/[0-9]/p;d' | uniqs
+ sed '\,^/dev/loop,d;\,^/dev/mapper/,d;\,[0-9],p;d' | uniqs
 }
 
-ppv_to_pv(){ ppv | xargs -r --max=lines=16 pvcreate; }
+ppv_to_pv(){ ppv | xargs -r --max-lines=16 pvcreate; }
 
 
 filesystem_table_load(){
@@ -950,7 +968,7 @@ boot_partition_warning(){
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
 4. When / is a LVM2 logical volume that is also LUKS encrypted.
-5. When / is a software RAID.' 20 50
+5. When / is a software RAID.' 20 75
 }
 
 
@@ -974,11 +992,12 @@ A Volume Group is a virtual Disk.
 A Logical Volume is a virtual Partition.
 
 By using LVM2 a single filesystem can be created
-that spans several partitions and disks.' 23 75
+that spans several partitions and disks.
+Or a LVM2 can be used to partition a software RAID' 24 75
 }
 
 
-launch(){ if confirm "Execute $*" --defaultno; then shift; eval "$@"; fi; }
+launch(){ if confirm "Execute $*" --defaultno; then eval "$@"; fi; }
 
 name_vg(){ $DIALOG --nocancel --inputbox "Name for VG? No / in name" 0 0; }
 name_lv(){ $DIALOG --nocancel --inputbox "Name for LV? No / in name" 0 0; }
@@ -1066,14 +1085,15 @@ lvm2_menu(){
 
 name_raid(){
  local CX
- for ((CX=0;CX<64;CX++))
- do  [ -b /dev/md$CX ] && continue
-     echo /dev/md$CX
+ for ((CX=0;CX<64;CX++)); do
+  if ! [ -b /dev/md$CX ]
+  then echo /dev/md$CX; break
+  fi
  done
 }
 
 raid_level(){
- $DIALOG --title $"RAID Level?" --no-cancel --menu "" 0 60 8 \
+ $DIALOG --title $"RAID Level?" --no-cancel --menu "" 20 20 15 \
  linear "" raid0 "" 0 "" stripe "" raid1 "" 1 "" mirror "" \
  raid4 "" 4 "" raid5 "" 5 "" raid6 "" 6 "" \
  raid10 "" 10 "" multipath "" mp "" faulty ""
@@ -1084,7 +1104,7 @@ raid_part(){
 
  DEVS=$( $DIALOG --separate-output --nocancel \
          --title "Select Devices for RAID" --checklist "" 20 70 10 \
-         $( list_part | sed '\,^/dev/mapper,off
+         $( list_part | sed '\,^/dev/mapper,d
                              s:$:	Partition Volume	off:' ) )
  [ -n "$DEVS" ] || return
 
@@ -1110,8 +1130,8 @@ mdadm_menu(){
    Done "" "" )
  do
   case $WHAT in
-   Create)	launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part ); pause	;;
-   Stop)	mdadm --stop --scan; pause	;;
+   Create)	launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part )	;;
+   Stop)	mdadm --stop --scan	;;
    Done)	return	;;
   esac
   pause
@@ -1149,7 +1169,7 @@ disk_menu(){
    WHAT=$(
     $DIALOG \
     --title "$TITLE" --ok-label Select --no-cancel \
-    --default-item "$WHAT" --item-help --menu "" 0 60 8 \
+    --default-item "$WHAT" --item-help --menu "" 0 40 15 \
     MBR     "Master Boot Record" "$B_HELP" \
     Install "Transfer Files"     "$A_HELP" \
     Compile "Menu $CVIS"         "$C_HELP" \
@@ -1160,11 +1180,11 @@ disk_menu(){
    WHAT=$(
     $DIALOG \
     --title "$TITLE" --ok-label Select --no-cancel \
-    --default-item "$WHAT" --item-help --menu "" 0 60 8 \
+    --default-item "$WHAT" --item-help --menu "" 0 40 15 \
     MBR        "Master Boot Record" "$B_HELP" \
     Partition  "Disks"              "$P_HELP" \
-    LVM2       "LVM2 Menu"          "$V_HELP" \
     mdadm      "Software Raid"      "$R_HELP" \
+    LVM2       "LVM2 Menu"          "$V_HELP" \
     Reload     "Filesystem Table"   "$L_HELP" \
     Modify     "Filesystem Table"   "$C_HELP" \
     Initialize "Filesystems"        "$I_HELP" \
