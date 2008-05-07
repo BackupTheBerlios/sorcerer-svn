@@ -80,7 +80,7 @@ goodbye(){
  then filesystem_unmount
  fi
 
- if   confirm "Reboot now?" "--defaultno"
+ if   confirm "Reboot now?" --defaultno
  then shutdown -r now
  fi
  exit  0
@@ -531,7 +531,7 @@ filesystem_table(){
 
  pselect(){
   $DIALOG --ok-label Select --cancel-label Done --default-item 0 \
-   --title $"Filesystem Table Menu" 
+   --title $"Filesystem Table Menu" \
    --menu  $"Filesystems with mount point of none are ignored unless swap." 0 70 12 $( show_pinfo )
  }
 
@@ -937,7 +937,7 @@ because lilo can not load files from encrypted partitions.
 Passwords for encrypted swaps are not asked at boot.
 After each shutdown content of encrypted swaps become unencryptable."
 
- $DIALOG --msgbox "$MESSAGE" 8 50
+ $DIALOG --msgbox "$MESSAGE" 20 70
  luks_format_open "$( get_pass )" "$( get_part )"
 }
 
@@ -949,7 +949,8 @@ boot_partition_warning(){
 1. Old i586 Hardware with broken BIOS
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
-4. When / is a LVM2 logical volume that is also LUKS encrypted.' 20 50
+4. When / is a LVM2 logical volume that is also LUKS encrypted.
+5. When / is a software RAID.' 20 50
 }
 
 
@@ -983,9 +984,9 @@ name_vg(){ $DIALOG --nocancel --inputbox "Name for VG? No / in name" 0 0; }
 name_lv(){ $DIALOG --nocancel --inputbox "Name for LV? No / in name" 0 0; }
 
 get_pv(){
- $DIALOG --separate-output --item-help --nocancel \
+ $DIALOG --separate-output --nocancel \
          --title "Select PVs for VG" --checklist "" 20 70 10 \
-         $( apvs | sed 's:$:	Physical Volume:' ) | tr '\n' '\t'
+         $( apvs | sed 's:$:	Physical Volume	off:' ) | tr '\n' '\t'
  echo
 }
 
@@ -1063,7 +1064,60 @@ lvm2_menu(){
  filesystem_table_load
 }
 
+name_raid(){
+ local CX
+ for ((CX=0;CX<64;CX++))
+ do  [ -b /dev/md$CX ] && continue
+     echo /dev/md$CX
+ done
+}
 
+raid_level(){
+ $DIALOG --title $"RAID Level?" --no-cancel --menu "" 0 60 8 \
+ linear "" raid0 "" 0 "" stripe "" raid1 "" 1 "" mirror "" \
+ raid4 "" 4 "" raid5 "" 5 "" raid6 "" 6 "" \
+ raid10 "" 10 "" multipath "" mp "" faulty ""
+}
+
+raid_part(){
+ local CX=0
+
+ DEVS=$( $DIALOG --separate-output --nocancel \
+         --title "Select Devices for RAID" --checklist "" 20 70 10 \
+         $( list_part | sed '\,^/dev/mapper,off
+                             s:$:	Partition Volume	off:' ) )
+ [ -n "$DEVS" ] || return
+
+ for DEV in $DEVS; do
+  (( CX++ ))
+  sfdisk -c ${DEV:0:8} ${DEV:8:2} fd
+ done
+
+ echo "-n $CX $DEVS"
+}
+
+
+mdadm_menu(){
+
+ while
+  C_HELP=$"Create a Volume Group and add Physical Volumes to it"
+  S_HELP=$"Stop all RAIDs, only if you want to redefine the RAIDs"
+
+  WHAT=$(
+   $DIALOG --title $"mdadm Software RAID Menu" --no-cancel --item-help --menu "" 0 60 8 \
+   Create "Create a software RAID"  "$C_HELP" \
+   Stop   "Stop all software RAIDs" "$S_HELP" \
+   Done "" "" )
+ do
+  case $WHAT in
+   Create)	launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part ); pause	;;
+   Stop)	mdadm --stop --scan; pause	;;
+   Done)	return	;;
+  esac
+  pause
+ done
+ filesystem_table_load
+}
 
 disk_menu(){
 
@@ -1086,6 +1140,7 @@ disk_menu(){
   M_HELP=$"Mount defined filesystems"
   O_HELP=$"Install initramfs image, lilo, and networking programs to finish install"
   P_HELP=$"Create partitions on physical disks"
+  R_HELP=$"Create a software RAID"
   U_HELP=$"Unmount defined filesystems, do this only to correct mistakes"
   V_HELP=$"LVM2 Logical Volume Managment 2 Menu"
 
@@ -1109,6 +1164,7 @@ disk_menu(){
     MBR        "Master Boot Record" "$B_HELP" \
     Partition  "Disks"              "$P_HELP" \
     LVM2       "LVM2 Menu"          "$V_HELP" \
+    mdadm      "Software Raid"      "$R_HELP" \
     Reload     "Filesystem Table"   "$L_HELP" \
     Modify     "Filesystem Table"   "$C_HELP" \
     Initialize "Filesystems"        "$I_HELP" \
@@ -1119,6 +1175,7 @@ disk_menu(){
   case $WHAT in
           MBR)	write_mbr		;;
          LVM2)  lvm2_menu		;;
+        mdadm)  mdadm_menu              ;;
       Install)	transfer_arch		;;
     Partition)	partition_disks		;;
        Reload)	filesystem_table_load	;;
@@ -1271,4 +1328,4 @@ export DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
 
 trap : INT QUIT
 
-# main_menu
+main_menu
