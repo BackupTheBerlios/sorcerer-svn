@@ -87,7 +87,7 @@ goodbye(){
 }
 
 list_disk(){ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"; }
-list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '/loop/d'; }
+list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '\,^/dev/loop,d;\,^/dev/mapper/,d'; }
 get_bb()   { $DIALOG --title $"Please select boot block" --menu "" 0 0 0 $( list_bb   ); }
 get_disk() { $DIALOG --title $"Please select disk"       --menu "" 0 0 0 $( list_disk ); }
 
@@ -134,7 +134,7 @@ fdisc(){
  $DIALOG \
  --title $"Partitioning Menu" --no-cancel \
  --menu  $"Select a partitioning program" 0 0 0 \
- cfdisk "" "fdisk -u" "" parted ""
+ cfdisk "" fdisk "" parted ""
 }
 
 
