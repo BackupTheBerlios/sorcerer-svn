@@ -347,9 +347,10 @@ get_size(){
 get_password(){
  local KEY
 
- if   [ -z "${PDEVICE[$1]}"     ]; then $DIALOG --msgbox "Please set device first." 8 50; return 1; fi
- if   [ -z "${PFILESYSTEM[$1]}" ]; then $DIALOG --msgbox "Please set filesystem type first." 8 50; return 1; fi
- if   [    "${PFILESYSTEM[$1]}" == swap ]
+ if   [ -z      "${PDEVICE[$1]}" ]; then $DIALOG --msgbox "Please set device first." 8 50; return 1; fi
+ if   [ -z  "${PFILESYSTEM[$1]}" ]; then $DIALOG --msgbox "Please set filesystem type first." 8 50; return 1; fi
+ if   [ /boot == "${PMOUNT[$1]}" ]; then $DIALOG --msgbox "/boot can not be encrypted." 8 50; return 1; fi
+ if   [     "${PFILESYSTEM[$1]}" == swap ]
  then confirm $"Encrypted swap?" --defaultno && KEY=$RANDOM
  else KEY="$( inputbox "Please enter a password for key 0" )"
  fi
@@ -454,16 +455,14 @@ should be checked first, and all other partitions second."
 
 
 show_pinfo(){
- (
-  echo "device"
-  echo "mount filesys options d o"
-  for (( CX=0; CX<MP; CX++ )); do
-   if    [ -n "${PDEVICE[$CX]}" ]; then
-    echo   -n  "${PMOUNT[$CX]:-none}	"
-    fstab_line          "$CX"
-   fi
-  done | LC_ALL=C sort | cut -f2- | tr '\t' '\n'
- ) |  column  -t
+ echo "device"
+ echo "mount filesys options d o"
+ for (( CX=0; CX<MP; CX++ )); do
+  if    [ -n "${PDEVICE[$CX]}" ]; then
+   echo   -n  "${PMOUNT[$CX]:-none}	"
+   fstab_line          "$CX"
+  fi
+ done | LC_ALL=C sort | cut -f2- | tr '\t' '\n'
 }
 
 
@@ -535,7 +534,7 @@ empty_entry(){
 filesystem_table(){
 
  pselect(){
-  $DIALOG --ok-label Select --cancel-label Done --default-item 0 \
+  $DIALOG --ok-label Select --cancel-label Done \
    --title $"Filesystem Table Menu" \
    --menu  $"Filesystems with mount point of none are ignored unless swap." 0 70 12 $( show_pinfo )
  }
