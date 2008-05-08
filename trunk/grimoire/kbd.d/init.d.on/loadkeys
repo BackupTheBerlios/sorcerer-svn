@@ -8,60 +8,53 @@
 # Default-Start: S
 # Default-Stop:
 # Short-Description: loadkeys loads the keyboard map
-# Description:       loadkeys loads the keyboard map
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-start()  {
-  keymap_menu()  {
-    keymaps()  {
-#     find      /usr/share/kbd/keymaps  -type f    |
-      ls    -R  /usr/share/kbd/keymaps             |
-      sed   -n  's:.*/::;s:\.map\.gz:	keymap:p'  |
-      LC_ALL=C  sort  -u
-    }
+start(){
+ keymap_menu(){
+  keymaps(){
+   # find /usr/share/kbd/keymaps -type f  |
+   ls  -R /usr/share/kbd/keymaps          |
+   sed -n 's:.*/::;s:\.map\.gz:	keymap:p' |
+   LC_ALL=C  sort  -u
+  }
 
-  TITLE=$"Keymap Selection Menu"
    HELP=$"Please select desired keyboard mapping within 60 seconds."
 
-  /bin/dialog          \
-    --stdout           \
-    --no-cancel        \
-    --timeout  60      \
-    --default-item us  \
-    --title  "$TITLE"  \
-    --menu   "$HELP"   \
-    19 60 10           \
-    $( keymaps )
+  dialog --stdout --no-cancel --timeout 60 --default-item us  \
+         --title  $"Keymap Selection Menu" 
+         --menu   $"Please select keyboard mapping within 60 seconds." \
+         19 60 10 $( keymaps )
+ }
+
+
+ log_warning_msg "keymap loading"
+
+ local       KEYMAP=ask
+
+ if   [ -f            /etc/keymap.conf ]
+ then read   KEYMAP < /etc/keymap.conf
+ fi
+
+ if   [ -z "$KEYMAP"        ] ||
+      [    "$KEYMAP" == ask ]
+ then        KEYMAP=$( keymap_menu )
+ fi
+
+ if   [ -n "$KEYMAP" ] && /bin/loadkeys $KEYMAP
+ then log_success_msg "$NAME $KEYMAP keymap loaded"
+ else log_failure_msg "$NAME keymap not loaded"; return 1
+ fi
 }
 
 
-  log_warning_msg "keymap loading"
-
-  local          KEYMAP=ask
-
-  if    [  -f               /etc/keymap.conf  ]
-  then  read     KEYMAP  <  /etc/keymap.conf
-  fi
-
-  if    [  -z  "$KEYMAP"           ]  ||
-        [      "$KEYMAP"  ==  ask  ]
-  then           KEYMAP=$( keymap_menu | tee /dev/console )
-  fi
-
-  if    [  -n  "$KEYMAP"  ]  &&  /bin/loadkeys  $KEYMAP
-  then  log_success_msg "keymap loaded"
-  else  log_failure_msg "keymap not loaded";  return 1
-  fi
-}
+help(){ echo "Usage: $0 {start}" 1>&2; }
 
 
-help()  {  echo "Usage: $0 {start}" 1>&2;  }
-
-
-case  $1  in
-        start)  start ;;
-  try-restart)  :     ;;
-            *)  help  ;;
+case $1 in
+ start) start ;;
+ try-restart) : ;;
+ *) help ;;
 esac
