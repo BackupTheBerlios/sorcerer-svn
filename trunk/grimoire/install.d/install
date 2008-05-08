@@ -144,7 +144,7 @@ partition_disks(){
 }
 
 
-write_mbr(){ ms-sys -s $( get_disk ); }
+write_mbr(){ ms-sys -s $( get_disk ); MBR=true; }
 
 
 get_mount(){
@@ -202,6 +202,9 @@ make_bootloader_conf(){
 
  local BB=$( get_boot_block )
  local RD=$( root_device    )
+
+ sfdisk ${BB:0:8} -A ${BB:8:2}
+ mbr_check
 
  echo "boot${TAB}${TAB}${TAB}=${TAB}$BB" >> $BL_CONF
  echo "root${TAB}${TAB}${TAB}=${TAB}$RD" >> $BL_CONF
@@ -866,7 +869,14 @@ filesystem_mount(){
  fi
 }
 
-trans(){ [ $TARGET/etc/fstab ]; }
+trans(){ [ -f $TARGET/etc/fstab ]; }
+
+mbr_check(){
+ if [ -n "$MBR" ]; then return; fi
+ if [ -n "$BB"  ] && echo "$BB" | grep -q '[a-z]$'; then return; fi
+ if confirm "Install a bootable MBR?"; then write_mbr; fi
+}
+
 
 filesystem_unmount(){
 
