@@ -396,14 +396,16 @@ get_check(){
   echo "Do not check device for bad blocks"
 
   case  "${PFILESYSTEM[$1]}"  in
-   ext*|jfs) echo "RO"
-             echo "Check for bad blocks before creating the file system" ;;
-   swap)     if [ "${PDEVICE[$1]:0:5}" == /dev/ ]; then
-              echo "RO"
-              echo "Check for bad blocks before creating the file system"
-             fi ;;
-   ext*)     echo "RW"
-             echo "Use the slower read-write test." ;;
+   jfs)  echo RO
+         echo "Check for bad blocks before creating the file system" ;;
+   swap) if [ "${PDEVICE[$1]:0:5}" == /dev/ ]; then
+          echo RO
+          echo "Check for bad blocks before creating the swap space"
+         fi ;;
+   ext*) echo RO
+         echo "Adequate read only checking for new drives"
+         echo RW
+         echo "Appropritate read write checking for older drives." ;;
   esac
  }
 
@@ -414,7 +416,7 @@ get_check(){
 
  CHECK=$(
   $DIALOG \
-   --title $"Filesystem Check Menu" --item-help --default-item Skip \
+   --title $"Filesystem Check Menu" --default-item Skip \
    --menu "Please select desired checking" 0 0 0 $( check_type "$1" ) )
 
  case $CHECK in
