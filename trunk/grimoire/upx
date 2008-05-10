@@ -1,7 +1,7 @@
-   VERSION=( 3.02 3.01 3.00 2.03 2.02 2.01 2.00 1.25 )
+   VERSION=( 3.03 3.02 3.01 3.00 )
     IGNORE='a\|w\|d\|mipsel'
   CATEGORY='archive'
- ATTRIBUTE='library new'
+ ATTRIBUTE='library'
     SOURCE="upx-$VERSION-src.tar.bz2"
 #   SOURCE="upx-$VERSION-src.tar.gz"
        URL='http://upx.sourceforge.net/download/'
@@ -10,19 +10,19 @@
   ESTIMATE='50'
       DESC='upx is an executable compressor.'
 
-build()  {
-  cd      src
-  sed     -i  "s:-march=i386 -mcpu=i686:$CXXFLAGS:
-               s:-O2::"  Makefile*
-  make    target=linux  \
-          UCLDIR=/usr   &&
-  cd      ../doc        &&
-  make                  &&
-  prepare_install       &&
-  cd  ../src            &&
-  if    [  -f  upx  ]
-  then  install  -m 0755  -o root  -g root  upx      /usr/bin/
-  else  install  -m 0755  -o root  -g root  upx.out  /usr/bin/upx
-  fi  &&
-  install  -m 0644  -o root  -g root  ../doc/upx.1  /usr/man/man1
+build(){
+ cd src
+ sed -i "s:-march=i386 -mcpu=i686:$CXXFLAGS:
+         s:-O2::" Makefile*
+
+ make target=linux UCLDIR=/usr &&
+ cd ../doc       &&
+ make            &&
+ prepare_install &&
+ cd ../src       &&
+ if   [ -f upx ]
+ then install -m 755 -o root -g root upx     /usr/bin/
+ else install -m 755 -o root -g root upx.out /usr/bin/upx
+ fi &&
+ install -m 644 -o root -g root ../doc/upx.1 /usr/man/man1
 }
