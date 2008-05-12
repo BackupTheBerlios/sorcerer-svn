@@ -60,7 +60,7 @@ run_lilo(){ sync; /sbin/lilo -P ignore; }
 mkinitrf(){ echo "$EVERY" | gcpio "$1"; }
 
 every(){
- local KBD L64
+ local KBD L64 MED=1i/media
 
  exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
@@ -68,13 +68,9 @@ every(){
      KBD=/usr/share/kbd
  fi
 
-# LGS was only required for EVMS which Sorcerer will not support.
-# if   [ -f   /usr/lib/libgcc_s.so.1 ]
-# then LGS='1i/usr/lib/libgcc_s.so.1; 1i/usr/lib/libgcc_s.so'
-# elif [ -f   /usr/lib64/libgcc_s.so.1 ]
-# then LGS='1i/usr/lib64/libgcc_s.so.1; 1i/usr/lib64/libgcc_s.so'
-# fi
-# $LGS
+ for      DIR in /media/*
+ do [ -d $DIR ] && MED+="$LF1i$DIR"
+ done
 
  if [ -d /lib64 ]; then L64=/lib64; fi
 
@@ -124,8 +120,6 @@ every(){
 \,^/sbin/mount.smbfs$,d
 \,^/sbin/sln$,d
 1i/init
-1i/media
-1i/media/root
 1i/proc
 1i/selinux
 1i/sys
@@ -136,7 +130,8 @@ every(){
 1i/usr/share/kbd
 1i/usr/share/terminfo
 1i/usr/share/terminfo/l
-1i/usr/share/terminfo/l/linux" | exists
+1i/usr/share/terminfo/l/linux
+$MED" | exists
 }
 
 initrf_update(){
