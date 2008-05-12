@@ -5,7 +5,11 @@
     SOURCE="nfs/nfs-utils-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://sourceforge.net/projects/nfs'
-       REQ=( 'libevent libnfsidmap'
+# /etc/init.d/rpc.mountd start
+# Cannot register service: RPC: Unable to receive; errno = Connection refused
+# Even with static port configuration via -p rpc.mountd
+# still requires portmapper installed and running.
+       REQ=( 'libevent libnfsidmap portmap'
              'portmap:::[*]=dynamic or [ ]=static port assignments' )
       OPTS='--disable-gss'
   ESTIMATE='900'
@@ -53,14 +57,9 @@ configure(){
       TITLE=$"Port Selection"
        HELP=$"Please select the base port number for statd"
 
-  dialog  --backtitle  "$BACKTITLE"  \
-          --title      "$TITLE"      \
-          --stdout                   \
-          --timeout  "$PROMPT_DELAY" \
-          --no-cancel                \
-          --menu       "$HELP"       \
-          0 0 0                      \
-          $( avail_ports | sed "aport" )
+  dialog --stdout --no-cancel --timeout "$PROMPT_DELAY" \
+         --backtitle "$BACKTITLE" --title "$TITLE" --menu "$HELP" 0 0 0 \
+         $( avail_ports | sed aport )
  }
 
  ask_port(){
@@ -104,6 +103,10 @@ build(){
   MP=/etc/modprobe.conf
   echo "options lockd nlm_udpport=$LOCKD nlm_tcpport=$LOCKD" > $MP
  }
+
+ if   ! spell_installed tcp_wrappers
+ then OPTS+=' --without-tcp-wrappers'
+ fi
 
  export   CFLAGS+=' -I /usr/include/et'
  export CXXFLAGS+=' -I /usr/include/et'
