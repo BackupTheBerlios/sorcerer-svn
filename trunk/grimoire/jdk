@@ -1,5 +1,6 @@
 case $HOSTTYPE in
   x86_64)  VERSION=( 
+                     7-ea-bin-b26-linux-amd64-24_apr_2008
                      7-ea-bin-b24-linux-amd64-04_dec_2007
                      7-ea-bin-b23-linux-amd64-30_oct_2007
                      7-ea-bin-b22-linux-amd64-12_oct_2007
@@ -8,6 +9,7 @@ case $HOSTTYPE in
            RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
            ;;
        *)  VERSION=( 
+                     7-ea-bin-b26-linux-i586-24_apr_2008
                      7-ea-bin-b24-linux-i586-04_dec_2007
                      7-ea-bin-b23-linux-i586-30_oct_2007
                      7-ea-bin-b22-linux-i586-12_oct_2007
@@ -30,62 +32,61 @@ esac
   EPROVIDE='java'
       DESC='jdk is the open-source JDK (Java Platform SE)'
 
-build()  {
+build(){
 
-install_jdk()  {
-  set    -x
-
+ install_jdk(){
+  set -x
   case $VERSION in
-	  7*) DIR='jdk1.7.0' ;;
-           6) DIR='jdk1.6.0' ;;
-        1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
+     7*) DIR='jdk1.7.0' ;;
+      6) DIR='jdk1.6.0' ;;
+   1_5*) DIR="jdk${VERSION/_5_/.5.}" ;;
   esac
 
-# /opt/jdk should be a symbolic link to the current version and NOT a directory
-  cd                /opt
-  if    unzip       $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE
-        [  -f  ${DIR}/man/ja_JP.eucJP/man1/xjc.1  ]
-  then
-    rm    -rf       /opt/jdk
-    ln    -sf       /opt/$DIR  /opt/jdk	
+ # /opt/jdk should be a symbolic link to the current version and NOT a directory
+ cd   /opt
+ if   unzip $SOURCE_CACHE/$SPELL/$VERSION/$SOURCE
+      [ -f ${DIR}/man/ja_JP.eucJP/man1/xjc.1 ]
+ then
+  rm -rf /opt/jdk
+  ln -sf /opt/$DIR /opt/jdk	
  
-    for             FILE  in  /opt/jdk/bin/*
-    do    ln  -sf  $FILE  /usr/bin/${FILE##*/}
-    done
+  for         FILE in /opt/jdk/bin/*
+  do  ln -sf $FILE /usr/bin/${FILE##*/}
+  done
 
-    if    [   -x   /opt/jdk/jre/bin/java_vm  ]
-    then  ln  -sf  /opt/jdk/jre/bin/java_vm  /usr/bin/java_vm
-    fi 
+  if   [  -x  /opt/jdk/jre/bin/java_vm ]
+  then ln -sf /opt/jdk/jre/bin/java_vm /usr/bin/java_vm
+  fi 
 
-    if    [  -d   /opt/jdk/jre/plugin  ]  &&  [  -d  /usr/lib/mozilla/plugins  ]
-    then  ln  -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so  \
-                      /usr/lib/mozilla/plugins/libjavaplugin_oji.so
-    fi
-
-    mkdir  -p   /etc/.java/.systemPrefs
-    touch       /etc/.java/.systemPrefs/.system.lock
-    touch       /etc/.java/.systemPrefs/.systemRootModFile
-    chmod  644  /etc/.java/.systemPrefs/.system*
-
-    find  .  -name \*.pack  |
-    while  read;  do
-      unpack200  $REPLY  ${REPLY/.pack/.jar}
-      rm  -f     $REPLY
-    done
-
-    if    uname  -m  |
-          grep   -q  "[[:digit:]]86"
-    then  java   -client  -Xshare:dump
-    fi
-    set  +x
-  else
-    rm   -fr  /opt/$DIR
-    set  +x
-    false
+  if    [ -d   /opt/jdk/jre/plugin ] && [ -d /usr/lib/mozilla/plugins ]
+  then  ln -sf /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so \
+                   /usr/lib/mozilla/plugins/libjavaplugin_oji.so
   fi
+
+  mkdir -p  /etc/.java/.systemPrefs
+  touch     /etc/.java/.systemPrefs/.system.lock
+  touch     /etc/.java/.systemPrefs/.systemRootModFile
+  chmod 644 /etc/.java/.systemPrefs/.system*
+
+  find . -name \*.pack |
+  while read; do
+   unpack200 $REPLY ${REPLY/.pack/.jar}
+   rm -f     $REPLY
+  done
+
+  if   uname -m |
+       grep  -q "[[:digit:]]86"
+  then java  -client -Xshare:dump
+  fi
+  set +x
+ else
+  rm -fr /opt/$DIR
+  set +x
+  false
+ fi
 }
 
-xcb_error_fix() {
+ xcb_error_fix(){
 # http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6532373
 #  xcb_xlib.c:52: xcb_xlib_unlock: Assertion `c->xlib.lock' failed.
 # Many jdk binary versions exhibit this bug. Furthermore it is
@@ -97,9 +98,10 @@ xcb_error_fix() {
 
 # This fix should be eventually dropped (once JDK is fixed)
   find /opt/jdk/ -name libmawt.so -exec sed -i 's/XINERAMA/FAKEEXTN/g' '{}' \; 
-}
+ }
 
-  prepare_install      &&
-          install_jdk  &&
-  xcb_error_fix
+ prepare_install &&
+         install_jdk
+# &&
+ xcb_error_fix
 }
