@@ -8,9 +8,6 @@
 # Default-Start: S
 # Default-Stop:
 # Short-Description: iptables-restore loads previously saved rules
-# Description:       iptables-restore loads previously saved rules
-#	configuration file is /etc/iptables.conf 
-#	when /etc/iptables.$RUNLEVEL.conf is not present
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -18,16 +15,8 @@
 NAME='iptables firewall rules'
 
 start(){
- run(){      IPTR=/usr/sbin/iptables-restore
-  if   [ -s         /etc/iptables.$RUNLEVEL.conf ]
-  then      $IPTR < /etc/iptables.$RUNLEVEL.conf
-  elif [ -s         /etc/iptables.conf ]
-  then      $IPTR < /etc/iptables.conf
-  else return 1
-  fi
- }
-
- if   log_warning_msg "$NAME loading"; run
+ [ -s /etc/iptables.conf ] &&
+ if   log_warning_msg "$NAME loading"; iptables-restore < /etc/iptables.conf
  then log_success_msg "$NAME loading"
  else log_failure_msg "$NAME not loaded"
  fi
