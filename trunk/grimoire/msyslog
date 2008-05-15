@@ -1,15 +1,17 @@
    VERSION=( 1.08g )
-    IGNORE="^\.\|^1\.09[a-d]"
+    IGNORE='^\.\|^1\.09[a-d]'
 # 1.08g is newer than 1.09d
   CATEGORY='administration/log'
  ATTRIBUTE='server'
     SOURCE="msyslog/msyslog-v$VERSION-src.tar.gz"
        URL="$SOURCEFORGE_URL"
        REQ='init-functions'
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
   HOMEPAGE='http://sourceforge.net/projects/msyslog'
   EPROVIDE="system-logger"
   ESTIMATE='30'
-      DESC="msyslog allows for an easy implementation of input and output modules.
+      DESC='msyslog allows for an easy implementation of input and output modules.
 The modules that mantain compatibility with its precursor are
 included in the standard distribution along with four modules:
 om_peo (an implementation of PEO-1 and L-PEO, two algorithmic
@@ -17,32 +19,32 @@ protocols for integrity checking), om_mysql and om_pgsql
 (modules that sends output to a mysql and postgresql database,
 respectively) and om_regex (a module that allows output
 redirection using regular expressions).
-It is a near drop in replacement for sysklog, sysklogd or syslog."
+It is a near drop in replacement for sysklog, sysklogd or syslog.'
 
-build() {
-install_etc()  {
-  install -m 0644  $SCRIPT_DIR/syslog.conf  /etc
-  mkdir   -p             /etc/syslog.conf.examples
-  for  FILE  in  src/examples/syslog.conf.*
-  do   install  -m 0444  -o root  -g root  \
-                $FILE  /etc/syslog.conf.examples
+build(){
+ install_etc(){
+  install -m 644 $SCRIPT_DIR/syslog.conf /etc
+  mkdir   -p            /etc/syslog.conf.examples
+  for FILE in   src/examples/syslog.conf.*
+  do install -m 444 -o root -g root \
+                  $FILE /etc/syslog.conf.examples
   done
 
 }
 
-  export   CFLAGS="$CFLAGS -fPIC"
-  export CXXFLAGS="$CXXFLAGS -fPIC"
+ export   CFLAGS+=' -fPIC'
+ export CXXFLAGS+=' -fPIC'
 
-  case  $(  uname  -r  )  in
-    2.6*)  sed  -i  "s:ksyms:kallsyms:"  src/modules/im_linux.c  ;;
-  esac
+ case $( uname -r ) in
+  2.6*) sed -i "s:ksyms:kallsyms:" src/modules/im_linux.c ;;
+ esac
 
-  default_build  &&
-  install_etc
+ default_build &&
+ install_etc
 }
 
-current()  {
-  case  $VERSION  in
-    1.08g)  grep  -q  'Default-Start: 1 2 3 4 5'  /etc/init.d/msyslog  ;;
-  esac
+current(){
+ case $VERSION in
+  1.08g) grep -q 'Default-Start: 1 2 3 4 5' /etc/init.d/msyslog ;;
+ esac
 }
