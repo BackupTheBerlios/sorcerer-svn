@@ -27,9 +27,11 @@ mount_local_fs(){
    mount -n            $ROOT || return 1
    sed   "\,rootfs,d;\,$ROOT,d; \,^/dev/,d; \,^/sys/,d" /proc/mounts |
    while read DEV MNT JNK; do
-     if    !  [  -d    $ROOT$MNT ]
+    if       [   -d         $MNT ]; then
+     if    ! [   -d    $ROOT$MNT ]
      then  mkdir -p    $ROOT$MNT; fi &&
      mount --move $MNT $ROOT$MNT
+    fi
    done
    rm -fr              $ROOT/etc/mtab
    chroot              $ROOT \
