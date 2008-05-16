@@ -10,79 +10,79 @@ unset  -f  configure  current
 
 configure() { :; }
 
-build() {
-  backup_modules()  {
-    if  [  -d   /lib/modules/$VERSION      ];  then
-    rm     -rf  /lib/modules/$VERSION.old
-    cp     -a   /lib/modules/$VERSION      \
-                /lib/modules/$VERSION.old
-    fi
-  }
+build(){
+ backup_modules(){
+  if [ -d  /lib/modules/$VERSION ]; then
+  rm   -rf /lib/modules/$VERSION.old
+  cp   -a  /lib/modules/$VERSION \
+           /lib/modules/$VERSION.old
+  fi
+ }
 
-  install_kernel()  {
-    SM="System.map"
-    BV="${VERSION}"
-    BZ=$(  find  .  -type f  -name  bzImage  )
+ install_kernel(){
+  SM="System.map"
+  BV="${VERSION}"
+  BZ=$( find . -type f -name bzImage )
 
-    rm     -rf                  /boot/$BV
-    mkdir  -p                   /boot/$BV
-    cp          $BZ             /boot/$BV/linux
-    cp              System.map  /boot/$BV
-    rm     -f                   /boot/System.map
-    ln     -s   $BV/System.map  /boot/System.map
-  }
+  rm    -rf                 /boot/$BV
+  mkdir -p                  /boot/$BV
+  cp         $BZ            /boot/$BV/linux
+  cp             System.map /boot/$BV
+  rm    -f                  /boot/System.map
+  ln    -s   $BV/System.map /boot/System.map
+ }
 
-  install_header()  {
-    mkdir   -m 0755  -p                         /usr/include/asm
-    install -m 0644  include/asm/asm-offsets.h  /usr/include/asm
-    mkdir   -m 0755  -p                         /usr/include/linux
-    install -m 0644  include/linux/autoconf.h   /usr/include/linux
-    install -m 0644  include/linux/compile.h    /usr/include/linux
-    true
-  }
+ install_header(){
+  mkdir   -m 755 -p                        /usr/include/asm
+  install -m 644 include/asm/asm-offsets.h /usr/include/asm
+  mkdir   -m 755 -p                        /usr/include/linux
+  install -m 644 include/linux/autoconf.h  /usr/include/linux
+  install -m 644 include/linux/compile.h   /usr/include/linux
+  true
+ }
 
-  restore_linux_configs()  {
-    if    [  -d  /isolinux  ]
-    then  local  MAC="$HOSTTYPE"
-    else  local  MAC="$( uname -m )"
-    fi
+ restore_linux_configs(){
+  if   [ -d /isolinux ]
+  then local MAC="$HOSTTYPE"
+  else local MAC="$( uname -m )"
+  fi
 
-    if    [  -f  $SCRIPT_DIR/$MAC.config  ]
-    then  cp     $SCRIPT_DIR/$MAC.config   .config
-    else  cp     $SCRIPT_DIR/i586.config   .config
-    fi
-  }
+  if   [ -f $SCRIPT_DIR/$MAC.config ]
+  then cp   $SCRIPT_DIR/$MAC.config .config
+  else cp   $SCRIPT_DIR/i586.config .config
+  fi
+ }
 
-  gzip_modules()  {
-    local  KO="/lib/modules/$VERSION/kernel/"
-    find  $KO  -type f  -size +4096c  |  xargs -r  --max-lines=64  gzip  -v1
-    find  $KO  -type f                |  sed   -n  '/\.gz$/p' |
-    while  read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
-  }
+ gzip_modules()  {
+  local KO="/lib/modules/$VERSION/kernel/"
+  find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+  find $KO -type f              | sed   -n '/\.gz$/p' |
+  while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+ }
 
 
-  compile_and_install()  {
-    # apply_linux_patch
-    restore_linux_configs
-    yes  ""  |  make  oldconfig
-    make   bzImage          &&
-    make   modules          &&  prepare_install  &&
-    make   modules_install  &&  gzip_modules     &&
-    install_kernel          &&
-    install_header
-  }
+ compile_and_install(){
+  # apply_linux_patch
+  restore_linux_configs
+  yes "" | make oldconfig
+  make bzImage         &&
+  make modules         && prepare_install &&
+  make modules_install && gzip_modules    &&
+  install_kernel       &&
+  install_header
+ }
 
-  rm  -fr              /usr/src/linux  &&
-  mv       $BUILD_DIR  /usr/src/linux  &&
-  cd                   /usr/src/linux  &&
-  compile_and_install
+ rm -fr        /usr/src/linux &&
+ mv $BUILD_DIR /usr/src/linux &&
+ cd            /usr/src/linux &&
+ compile_and_install
 }
 
 
-current()  {
-  if    !  [  -f      /usr/include/linux/autoconf.h  ]
-  then  cp  /usr/src/linux/include/linux/autoconf.h  \
-                      /usr/include/linux/autoconf.h
-        true
-  fi
+current(){
+ if   ! [  -f      /usr/include/linux/autoconf.h ]
+ then cp /usr/src/linux/include/linux/autoconf.h \
+                   /usr/include/linux/autoconf.h
+      true
+ fi
 }
