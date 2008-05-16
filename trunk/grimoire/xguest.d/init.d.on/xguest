@@ -1,0 +1,34 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: gui_login
+# Required-Start: $network dbus run ICE-unix
+# Should-Start: $remote_fs udev xfs dbus
+# Required-Stop: kill
+# Should-Stop:  $remote_fs initramfs
+# Default-Start: 4 5
+# Default-Stop: 0 1 2 3 6
+# Short-Description: immune provides a logged in Xsession for user guest
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+PIDF=/var/run/xguest.pid
+SERV=xguest
+NAME=xguest
+
+start(){
+
+ run(){ 
+  while :; do /bin/su - xguest -c startx; done &
+  sleep 0.1
+  echo $! > $PIDF
+ }
+ 
+ if   log_warning_msg  "$NAME starting"; run
+ then log_success_msg  "$NAME started"
+ else log_failure_msg  "$NAME not started"; status
+ fi
+}
+
+parse "$@"
