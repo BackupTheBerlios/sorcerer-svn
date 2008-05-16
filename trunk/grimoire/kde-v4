@@ -1,11 +1,5 @@
 # Notes about problems and solutions.
 
-# if you are unable to login using kdm then execute:
-
-# cast kde
-# augur md5sum
-# cast
-
 # if jackd can not be started by qjackctl
 # re-configure it to begin without real-time priority.
 
@@ -17,17 +11,26 @@
 
 # The missing icon pictures for Home Trash and so forth
 # is because they are leftover from KDE 3.x in ~/Desktop
-# Simply remove them.
+# Removing them is safe.
 
 if [ -z "$VERSION" ]; then
   VERSION=( 4.0.4 4.0.3 4.0.2 4.0.1 4.0.0 )
      SAFE=( 4.0.4 4.0.3 4.0.2 4.0.1 4.0.0 )
 fi
 
-  CATEGORY='profile'
  ATTRIBUTE='kde4'
   HOMEPAGE='http://www.kde.org'
        URL="$KDE_URL"
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
+            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+            -DCMAKE_BUILD_TYPE=Release'
+
+case $SPELL in
+    kde-v4)
+  CATEGORY='profile'
        REQ=( 'kdeartwork-v4 kdebase-v4 kdebase-runtime-v4 kdebase-workspace-v4'
              'kdeaccessibility-v4:::for enhanced usability'
              'kdebindings-v4:::for DCOP and kdejava bindings'
@@ -58,12 +61,6 @@ fi
 #            'extragear-plasma:::for additional plasma apps/themes'
 #            'kpovmodeler:::broken'
 #            'ligature:::broken'
-      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
-            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
-            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
-            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
-            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
-            -DCMAKE_BUILD_TYPE=Release'
   ESTIMATE='5'
       DESC='kde-v4 provides the K version 4.x desktop environment.
 It combines ease of use, contemporary
@@ -75,7 +72,15 @@ panel, control center and many other components
 that one would expect to be part of a contemporary
 desktop environment, the true strength of this
 exceptional environment lies in the
-interoperability of its components.'
+interoperability of its components.' ;;
+ kde-l10n*) unset  REQ
+            CATEGORY='documentation/i18n'
+            SOURCE="stable/${VERSION}/src/kde-l10n/$SPELL-$VERSION.tar.bz2"
+            DESC="$SPELL provides translated KDE messages." ;;
+         *) unset  REQ
+            SOURCE="stable/${VERSION}/src/${SPELL%-v4}-$VERSION.tar.bz2"
+esac
+
 
 kde_build(){
  SCX=1
@@ -98,13 +103,3 @@ build(){
        *) kde_build ;;
  esac
 }
-
-case $SPELL in
-    kde-v4) : ;;
- kde-l10n*) unset  REQ
-            CATEGORY='documentation/i18n'
-            SOURCE="stable/${VERSION}/src/kde-l10n/$SPELL-$VERSION.tar.bz2"
-            DESC="$SPELL provides translated KDE messages." ;;
-         *) unset  REQ
-            SOURCE="stable/${VERSION}/src/${SPELL%-v4}-$VERSION.tar.bz2"
-esac

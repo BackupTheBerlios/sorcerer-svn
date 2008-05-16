@@ -1,9 +1,16 @@
 [ -z "$VERSION" ] &&
    VERSION=( 3.5.9 3.5.8 )
-  CATEGORY='profile'
  ATTRIBUTE='kde3'
   HOMEPAGE='http://www.kde.org'
        URL="$KDE_URL"
+     OPTS+=' --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-pch --with-xinerama'
+# --enable-final removed.
+# With kdepim version 3.5.9 a compile error occurs 
+
+
+case $SPELL in
+    kde-v3) 
+  CATEGORY='profile'
        REQ=( 'kdeaddons-v3'
              'kdebindings-v3:::for DCOP and kdejava bindings'
              'kdevelop-v3:::for creating and development of software projects'
@@ -11,12 +18,15 @@
              'kdesdk-v3:::for applications and tools used by KDE developers'
              'kdewebdev-v3:::for web page/site development tools'
              'scim-bridge-qt3:::to input in Japanese, Chineese, Korean' )
-#    OPTS+=' --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final --enable-pch --with-xinerama'
-     OPTS+=' --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-pch --with-xinerama'
-# --enable-final removed.
-# With kdepim version 3.5.9 a compile error occurs 
   ESTIMATE='5'
-      DESC='kde-v3 provides the KDE version 3.x desktop environment.'
+      DESC='kde-v3 provides the KDE version 3.x desktop environment.' ;;
+ kde-i18n*) CATEGORY='documentation/i18n'
+              SOURCE="stable/${VERSION}/src/kde-i18n/$SPELL-$VERSION.tar.bz2"
+                DESC="$SPELL provides translated KDE messages." ;;
+         *)   SOURCE="stable/${VERSION}/src/${SPELL%-v3}-$VERSION.tar.bz2" ;;
+esac
+
+
 
 kde_build(){
  SCX=1
@@ -32,28 +42,18 @@ kde_build(){
  default_build
 }
 
-bindings_build(){
- cd       dcoppython/lib
- unexpand pydcop.py  >  pydcop.py.new
- mv       pydcop.py.new pydcop.py
- cd -
- kde_build
-}
-
 build(){
+ bindings_build(){
+  cd       dcoppython/lib
+  unexpand pydcop.py  >  pydcop.py.new
+  mv       pydcop.py.new pydcop.py
+  cd -
+  kde_build
+ }
+
  case $SPELL in
   kdebindings) bindings_build ;;
        kde-v3) default_build ;;
             *) kde_build ;;
  esac
 }
-
-case $SPELL in
-    kde-v3) : ;;
- kde-i18n*) unset REQ
-            CATEGORY='documentation/i18n'
-              SOURCE="stable/${VERSION}/src/kde-i18n/$SPELL-$VERSION.tar.bz2"
-                DESC="$SPELL provides translated KDE messages." ;;
-         *) unset  REQ
-            SOURCE="stable/${VERSION}/src/${SPELL%-v3}-$VERSION.tar.bz2" ;;
-esac
