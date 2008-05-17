@@ -12,14 +12,14 @@
 
 . /lib/lsb/init-functions
 
-start() {
- log_warning_msg "hostname setting"
- read        <             /etc/hostname
- echo $REPLY > /proc/sys/kernel/hostname
- log_success_msg "hostname set"
+NAME=hostname
+
+start(){
+ log_warning_msg "$NAME setting"
+ [ -f   /etc/hostname ] &&
+ read < /etc/hostname
+ echo ${REPLY:-noname} > /proc/sys/kernel/hostname
+ log_success_msg "$NAME set"
 }
 
-case $1 in
- try-restart) :     ;;
-       start) start ;;
-esac
+parse "$@"

@@ -6,8 +6,8 @@
 # Should-Start: $remote_fs
 # Required-Stop: kill
 # Should-Stop: $remote_fs
-# Default-Start: 3 4 5
-# Default-Stop: 0 1 2 6
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
 # Short-Description: httpd is a feature packed web server
 # Description: httpd is the most widely used web server.
 ### END INIT INFO
@@ -19,41 +19,38 @@ SERV=/usr/sbin/apachectl
 NAME=httpd
 OPTS=start
 
-start()  {
-  log_warning_msg  "$NAME starting"
-  [      -d  /var/log/httpd  ]  ||
-  mkdir  -p  /var/log/httpd  ]
-  if    start_daemon $SERV $OPTS
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        status
-  fi
+start(){
+ log_warning_msg  "$NAME starting"
+ [     -d /var/log/httpd ] ||
+ mkdir -p /var/log/httpd ]
+ if   start_daemon $SERV $OPTS
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
 }
 
-stop()  {
-  log_warning_msg "$NAME stopping"
-  $SERV stop
-  log_success_msg "$NAME stopped"
+stop(){
+ log_warning_msg "$NAME stopping"; $SERV stop
+ log_success_msg "$NAME stopped"
 }
 
-restart() {
-  log_warning_msg "$NAME restarting"
-  $SERV restart
-  log_success_msg "$NAME restarted"
+restart(){
+ log_warning_msg "$NAME restarting"; $SERV restart
+ log_success_msg "$NAME restarted"
 }
 
 
-help()  {
+help(){
  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
 }
 
-case  $1  in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)  reload       ;;
-  force-reload)  reload       ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
+case $1 in
+      restart)     restart  ;;
+  try-restart) try_restart  ;;
+       reload) reload       ;;
+ force-reload) reload       ;;
+        start) start        ;;
+       status) status       ;;
+         stop) stop         ;;
+            *) help         ;;
 esac
