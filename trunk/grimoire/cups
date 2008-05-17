@@ -30,10 +30,10 @@
 build(){
 
  check_for_smb_backend(){
-  if    spell_installed  samba;  then  
+  if spell_installed samba; then  
    echo "Setting smb backend for cups"
    if   ! [ -e                   /usr/lib/cups/backend/smb ]
-   then  ln -s /usr/bin/smbspool /usr/lib/cups/backend/smb
+   then ln  -s /usr/bin/smbspool /usr/lib/cups/backend/smb
    fi
   fi
  }
@@ -52,16 +52,22 @@ build(){
   move libcups.so.2
  }
 
-
  if spell_installed Linux-PAM; then OPTS+=' --enable-pam'; fi
  if spell_installed openssl;   then OPTS+=' --enable-ssl'; fi
 
- default_build          &&
- cp    -R usr/*  /usr   &&
- cp    -R var/*  /var   &&
- cd       var/cups/conf &&
- mkdir -p /etc/cups     &&
- cp    *  /etc/cups     &&
- check_for_smb_backend  &&
- fix_lib64
+ OPTS+=' --libdir=/usr/lib'
+ case $HOSTTYPE in
+  x86_64) OPTS+=64 ;;
+ esac
+
+ default_build            &&
+ cp    -vR  usr/* /usr    &&
+ cp    -vR  var/* /var    &&
+ cd         var/cups/conf &&
+ mkdir -p   /etc/cups     &&
+ cp    -v * /etc/cups     &&
+ check_for_smb_backend    &&
+ rm    -f   /etc/cups/cupsd.conf
+# &&
+# fix_lib64
 }
