@@ -9,27 +9,19 @@
   ESTIMATE='100'
       DESC='mcron is a 100% compatible Vixie cron replacement.
 mcron is a 100% compatible Vixie cron replacement implemented using guile.
-It accepts traditional crontabs and configuration files written in Scheme.'
+It accepts traditional crontabs and configuration files written in Scheme.
+
+To enable cronjobs execute:
+mkdir -p /var/cron/tabs'
 
 build(){
- local TERM
- local GLIB=/opt/guile/1.8/lib
- install_init(){
-   mv       /usr/bin/cron /usr/sbin/cron
-   mkdir -p /var/cron/tabs
- }
-
- export PATH="/opt/guile/1.8/bin:$PATH"
- export LDFLAGS+=" -Wl,-rpath-link,$GLIB -Wl,-rpath,$GLIB"
+ local  TERM=dumb
+ export TERM
+ local  G=/opt/guile/1.8
+ export PATH="$G/bin:$PATH"
+ export LDFLAGS+=" -Wl,-rpath-link,$G/lib -Wl,-rpath,$G/lib"
 
  sed -i "s:\$HEAD -1:\$HEAD -n 1:" configure
- export  TERM=dumb
- default_build  &&
- install_init
-}
-
-current(){
- case $VERSION in
-  1.0.3) ! grep -q start_daemon-p /etc/init.d/mcron ;;
- esac
+ default_build &&
+ mv /usr/bin/cron /usr/sbin/cron
 }
