@@ -5,15 +5,16 @@
     SOURCE="nfs/nfs-utils-$VERSION.tar.gz"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://sourceforge.net/projects/nfs'
-# /etc/init.d/rpc.mountd start
-# Cannot register service: RPC: Unable to receive; errno = Connection refused
-# Even with static port configuration via -p rpc.mountd
-# still requires portmapper installed and running.
-       REQ=( 'libevent libnfsidmap portmap'
-             'portmap:::[*]=dynamic or [ ]=static port assignments' )
-#     OPTS='--sbindir=/sbin'
+
+# Even with static port configuration
+# rpc.mountd always requires rpcbind
+
+       REQ=( 'libevent libnfsidmap rpcbind'
+             ':static::[*]=dynamic or [ ]=static port assignments' )
+
       OPTS='--disable-gss --sbindir=/sbin'
 # nfs-utils only supports MIT Kerberos 5 at the moment.
+# therefore --disable-gss is mandatory for compilation
 
 case $VERSION in
  1.1.2) SOURCE[1]='nfs-utils-1.1.2-CITI_NFS4_ALL-1.dif'
@@ -76,17 +77,13 @@ configure(){
   fi
  }
 
- if  grep -qsx portmap $OPT_OFF_LOGS/$SPELL; then
-  if   [ -z "$PORT_BASE" ]
-  then ask_port
-  fi
- fi
+ if grep -qsx static $OPT_ON_LOGS/$SPELL; then ask_port; fi
 }
 
 
 build(){
 
- use_portmapper(){
+ use_rpcbind(){
   # grep -q   lockd    /etc/modprobe.conf &&
   # sed  -i '/lockd/d' /etc/modprobe.conf
   grep  -l  '^OPTS=' $SCRIPT_DIR/init.d/rpc.* | xargs -r --max-lines=8 \
@@ -119,13 +116,20 @@ build(){
  then patch -p1 < $SOURCE_CACHE/nfs-utils/$VERSION/${SOURCE[1]}
  fi
 
+ local STATIC
+
+ if echo "$OPTS" | grep static; then
+           OPTS="${OPTS/static/}"
+  STATIC="yes"
+ fi
+
  export   CFLAGS+=' -I /usr/include/et'
  export CXXFLAGS+=' -I /usr/include/et'
  default_build &&
 
- if   grep -qsx portmap $OPT_OFF_LOGS/$SPELL
+ if   [ -n "$STATIC" ]
  then assigned_ports
- else use_portmapper
+ else use_rpcbind
  fi
 }
 
