@@ -4,33 +4,33 @@
     SOURCE="irrd$VERSION.tgz"
   HOMEPAGE='http://www.irrd.net/'
        URL='http://www.irrd.net/'
-       REQ=( "gnupg perl wget"
-             "gdbm:--with-gdbm::to support gnu gdm databse files" )
+       REQ=( 'gnupg perl wget'
+             'gdbm:--with-gdbm::to support gnu gdm databse files' )
   ESTIMATE='360'
-      DESC="irrd provides an Internet Routing Registry database server.
+      DESC='irrd provides an Internet Routing Registry database server.
 irrd is a streamlined, stand-alone Internet Routing Registry
 database server which supports both RIPE-181 and RPSL
 routing registry syntax.
 The IRRd package includes additional utilities, tools, and
-services to securely manage and maintain the database."
+services to securely manage and maintain the database.'
 
-build() {
-  finish_install()  {
-    cd      ..
-    mkdir   -p                                 /usr/share/irrd
-    cp      -r       src/programs/irrdcacher   /usr/share/irrd
-    install -m 0644  src/programs/IRRd/irrd.8  /usr/man/man8
-    install -m 0644  samples/irrd.conf.sample  /etc/irrd.conf
-    mkdir   -p                                 /usr/doc/irrd
-    cp               irrd-user.*               /usr/doc/irrd
-  }
+build(){
+ finish_install(){
+  cd      ..
+  mkdir   -p                               /usr/share/irrd
+  cp      -r      src/programs/irrdcacher  /usr/share/irrd
+  install -m 644  src/programs/IRRd/irrd.8 /usr/man/man8
+  install -m 644  samples/irrd.conf.sample /etc/
+  mkdir   -p                               /usr/doc/irrd
+  cp              irrd-user.*              /usr/doc/irrd
+ }
 
-mkdir    -p -m 0755 /var/spool/irr_database
+mkdir    -p -m 755 /var/spool/irr_database
 groupadd -K GID_MIN=256 -K GID_MAX=511    irrd 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g irrd -d /var/spool/irr_database irrd 2>/dev/null
 chown    -R irrd:irrd /var/spool/irr_database
 
-  cd      src
-  default_build  &&
-  finish_install
+ cd src
+ default_build &&
+ finish_install
 }
