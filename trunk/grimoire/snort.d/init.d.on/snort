@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# incomplete init file.
+# Must get new snort up and running to see what pid file
+# and where it puts it, and if automatic, and complete
+# the functions for restarting, reloading, and stopping snort.
+
+### BEGIN INIT INFO
+# Provides: snort
+# Required-Start: $network
+# Required-Stop:  $network
+# Default-Start: 3 4 5
+# Default-Stop: 0 1 2 6
+# Short-Description: snort provides an intrusion detection and response system.
+# Description: snort provides an intrusion detection and response system.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+#PIDF=/var/run/snort.pid
+CONF=/etc/snort/snort.conf
+SERV=/usr/bin/snort
+NAME=snort
+
+start(){
+ if   log_warning_msg "$NAME starting"; start_demon -p $PIDF $SERV -D --pid-path=/var/run -R .pid
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
+}
+
+stop(){
+ if   log_warning_msg "$NAME stopping"; $SERV -D -F -s -k shutdown
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status; return 0
+ fi
+}
+
+reload(){ $SERV -k reconfigure; }
+
+restart(){ stop && sleep 2; start; }
+
+try_restart(){ status && restart; return 0; }
+
+help(){
+ echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+}
+
+case $1 in
+      restart)     restart ;;
+  try-restart) try_restart ;;
+       reload) reload      ;;
+ force-reload) reload      ;;
+        start) start       ;;
+       status) status      ;;
+         stop) stop        ;;
+            *) help        ;;
+sac
