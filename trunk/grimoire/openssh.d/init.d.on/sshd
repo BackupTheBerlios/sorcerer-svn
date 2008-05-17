@@ -14,27 +14,22 @@
 
 PIDF=/var/run/sshd.pid
 SERV=/usr/sbin/sshd
+CONF=/etc/ssh/sshd_config
 NAME=sshd
 
-reload() {
- if   status &&       PIDS="$( pidofproc -p $PIDF $SERV )"  &&
+reload(){
+ if   status &&       PIDS="$( pidofproc -p $PIDF $SERV )" &&
       [ -n          "$PIDS" ]
  then kill -s SIGHUP $PIDS &&
       log_success_msg "$NAME configuration reloaded"
  fi
 }
 
-help() {
+help(){
  echo"Usage: $0 {start|stop|status|restart|try-restart|reload|force-reload}" 1>&2
 }
 
 case $1 in
-        start)        start ;;
-      restart)      restart ;;
-  try-restart)  try_restart ;;
-         stop)  stop   ;;
-       status)  status ;;
-       reload)  reload ;;
- force-reload)  reload ;;
-            *)  help   ;;
+*reload) reload ;;
+*) parse "$@" ;;
 esac
