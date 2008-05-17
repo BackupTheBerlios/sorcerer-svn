@@ -203,8 +203,12 @@ mnt(){
 }
 
 start(){
+ conf(){ if [ -n "$CONF" ]; then [ -e "$CONF" ]; fi; }
+  
  starts(){
-  if   log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" "$SERV" $OPTS
+  if   conf
+  then log_warning_msg "$NAME not started, because $CONF does not exist"
+  elif log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" "$SERV" $OPTS
   then log_success_msg "$NAME started"
   else log_failure_msg "$NAME not started"; status
   fi
@@ -221,14 +225,18 @@ start(){
   chk(){ case $NAME in /dev|/proc|/sys) return 1;; esac; stb;}
 
   if mnt || chk; then return; fi
-  if   log_warning_msg "$NAME mounting"; run
+  if   conf
+  then log_warning_msg "$NAME not mounted, because $CONF does not exist"
+  elif log_warning_msg "$NAME mounting"; run
   then log_success_msg "$NAME mounted"
   else log_failure_msg "$NAME not mounted"
   fi
  }
 
  startk(){
-  if   log_warning_msg "$NAME module loading"; modprobe $NAME $OPTS
+  if   conf
+  then log_warning_msg "$NAME module not loaded, because $CONF does not exist"
+  elif log_warning_msg "$NAME module loading"; modprobe $NAME $OPTS
   then log_success_msg "$NAME loaded"
   else log_failure_msg "$NAME not loaded"
   fi
