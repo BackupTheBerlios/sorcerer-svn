@@ -11,7 +11,14 @@
 # still requires portmapper installed and running.
        REQ=( 'libevent libnfsidmap portmap'
              'portmap:::[*]=dynamic or [ ]=static port assignments' )
+#     OPTS='--sbindir=/sbin'
       OPTS='--disable-gss --sbindir=/sbin'
+# nfs-utils only supports MIT Kerberos 5 at the moment.
+
+case $VERSION in
+ 1.1.2) SOURCE[1]='nfs-utils-1.1.2-CITI_NFS4_ALL-1.dif'
+           URL[1]='http://www.citi.umich.edu/projects/nfsv4/linux/nfs-utils-patches/1.1.2-1/' ;;
+esac
   ESTIMATE='900'
       DESC='nfs-utils provides utilities for the NFS, Network File System.
 The Network File System (NFS) was developed to allow machines to mount
@@ -108,6 +115,10 @@ build(){
  then OPTS+=' --without-tcp-wrappers'
  fi
 
+ if   [ -n "${SOURCE[1]}" ]
+ then patch -p1 < $SOURCE_CACHE/nfs-utils/$VERSION/${SOURCE[1]}
+ fi
+
  export   CFLAGS+=' -I /usr/include/et'
  export CXXFLAGS+=' -I /usr/include/et'
  default_build &&
@@ -120,6 +131,6 @@ build(){
 
 current(){
  case $VERSION in
-  1.1.2) [ -f /etc/init.d/exportfs ] ;;
+  1.1.2) grep -qs rpcbind /etc/init.d/exportfs ;;
  esac
 }

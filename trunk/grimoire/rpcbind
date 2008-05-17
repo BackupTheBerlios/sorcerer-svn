@@ -1,0 +1,27 @@
+   VERSION=( 0.1.5 0.1.4 )
+  CATEGORY='network'
+ ATTRIBUTE='server'
+  HOMEPAGE='http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php'
+    SOURCE="rpcbind/rpcbind-$VERSION.tar.bz2"
+       URL="$SOURCEFORGE_URL"
+       REQ=( 'init-functions libtirpc'
+             'tcp_wrappers:--enable-libwrap:--disable-libwrap:for additional connection controls' )
+      OPTS='--bindir=/bin'
+ CONFLICTS='portmap'
+  ESTIMATE='300'
+      DESC='rpcbind an RPC portmapper that works on IPv6
+
+If tcp_wrappers is enabled then into /etc/hosts.allow
+must also exist the IP address for the server if
+this box exports any NFS filesystems.
+Otherwise rpc.mountd and rpc.statd will be unable to connect to rpcbind.'
+
+build(){
+# It expects to have in /etc/services a port number defined
+# for rpcbind
+# But rpcbind is not definied in IANA's services.
+# Therefore, it is changed to sunrpc instead.
+
+ sed -i 's:static char servname\[\] = "rpcbind":static char servname[] = "sunrpc":' src/rpcbind.c
+ default_build
+}
