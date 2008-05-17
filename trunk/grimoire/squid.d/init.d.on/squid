@@ -4,51 +4,48 @@
 # Provides: squid
 # Required-Start: $network
 # Required-Stop:  $network
-# Default-Start: 3 4 5
-# Default-Stop: 0 1 2 6
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
 # Short-Description: squid provides a web proxy cache.
-# Description: squid provides a web proxy cache.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-#PIDF="/var/run/squid.pid"
-SERV="/usr/sbin/squid"
-NAME="squid"
+#PIDF=/var/run/squid.pid
+SERV=/usr/sbin/squid
+CONF=/etc/squid/squid.conf
+NAME=squid
 
-start() {
+start(){
+ if ! [ -f $CONF ]; then
+      log_warning_msg "$NAME not starting; $CONF does not exist"; return; fi
  if   log_warning_msg "$NAME starting"; $SERV -z; $SERV -D -F -s
  then log_success_msg "$NAME started"
  else log_failure_msg "$NAME not started"; status
  fi
 }
 
-stop() {
+stop(){
  if   log_warning_msg "$NAME stopping"; $SERV -D -F -s -k shutdown
  then log_success_msg "$NAME stopped"
  else log_failure_msg "$NAME not stopped"; status
  fi
 }
 
-reload() {
- if   log_warning_msg "$NAME configuration reloading"; $SERV  -k reconfigure
+reload(){
+ if   log_warning_msg "$NAME configuration reloading"; $SERV -k reconfigure
  then log_success_msg "$NAME configuration reloaded"
  else log_failure_msg "$NAME configuration not reloaded"
  fi
 }
 
-help() {
-  echo	"Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
+help(){
+ echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
 }
 
 case $1 in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)  reload       ;;
-  force-reload)  reload       ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
+       reload) reload ;;
+ force-reload) reload ;;
+ *) parse "$@" ;;
 esac
 
