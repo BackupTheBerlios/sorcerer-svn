@@ -10,7 +10,7 @@
 # rpc.mountd always requires rpcbind
 
        REQ=( 'libevent libnfsidmap rpcbind'
-             ':static::[*]=dynamic or [ ]=static port assignments' )
+             ':static:dynamic:[ ]=dynamic or [*]=static port assignments' )
 
       OPTS='--disable-gss --sbindir=/sbin'
 # nfs-utils only supports MIT Kerberos 5 at the moment.
@@ -77,7 +77,7 @@ configure(){
   fi
  }
 
- if grep -qsx static $OPT_ON_LOGS/$SPELL; then ask_port; fi
+ if grep -qs static $OPT_ON_LOGS/$SPELL; then ask_port; fi
 }
 
 
@@ -118,10 +118,12 @@ build(){
 
  local STATIC
 
- if echo "$OPTS" | grep static; then
-           OPTS="${OPTS/static/}"
-  STATIC="yes"
+ if   echo "$OPTS" | grep static
+ then STATIC=yes
  fi
+
+ OPTS="${OPTS/dynamic/}"
+ OPTS="${OPTS/static/}"
 
  export   CFLAGS+=' -I /usr/include/et'
  export CXXFLAGS+=' -I /usr/include/et'
