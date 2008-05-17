@@ -19,7 +19,7 @@ NAME=postfix
 PROCNAME=/usr/libexec/postfix/master
 OPTS=start
 
-status() {
+status(){
  PIDS="$( pidofproc $PROCNAME )"
  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
@@ -27,17 +27,16 @@ status() {
  fi
 }
 
-start() {
+start(){
  if   log_warning_msg "$NAME starting"; newaliases && start_daemon $SERV $OPTS
  then log_success_msg "$NAME started"
  else log_failure_msg "$NAME not started"; status
  fi
 }
 
-stop()  {
-  log_warning_msg "$NAME stopping"
-  $SERV stop
-  log_success_msg "$NAME stopped"
+stop(){
+ log_warning_msg "$NAME stopping"; $SERV stop
+ log_success_msg "$NAME stopped"
 }
 
 parse "$@"

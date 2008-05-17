@@ -6,28 +6,17 @@
 # Should-Start: modprobe udev
 # Required-Stop: syslog kill 
 # Should-Stop: 
-# Default-Start:  2 3 4 5
+# Default-Start: 2 3 4 5
 # Default-Stop: 
 # Short-Description: sensors sets hardware limits specified in /etc/sensors.conf
-# Description: sensors sets hardware limits specified in /etc/sensors.conf
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-NAME="sensors"
-
-start()  {
-  if    [  -f  /etc/sensors.conf  ]  &&
-        log_warning_msg  "$NAME setting";  sensors  -s
-  then  log_success_msg  "$NAME set"
-  else  log_failure_msg  "$NAME not set"
-  fi
-}
+NAME=sensors
+CONF=/etc/sensors.conf
+OPTS='-s'
 
 help()  { echo "Usage: $0 {start}" 1>&2; }
 
-case  $1  in
-  try-restart)  :      ;;
-        start)  start  ;;
-            *)  help   ;;
-esac
+parse "$@"
