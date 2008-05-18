@@ -1,82 +1,82 @@
-  case  $SPELL  in
-    uqm)  VERSION=( 0.6.2 0.6.1 0.6.0 0.5.0 0.4.0 0.3 0.2 0.1 )  ;;
-      *)  VERSION=(         0.6.0 0.5.0 0.4.0 0.3 0.2 0.1 )  ;;
-  esac
-    IGNORE="extras\|remix\|music\|voice\|content"
+case $SPELL in
+ uqm) 
+  VERSION=( 0.6.2 0.6.1 0.6.0 0.5.0 0.4.0 0.3 0.2 0.1 )
+      REQ=( 'SDL_image uqm-content libvorbis'
+            'uqm-3domusic:::for excellent but large music files'
+            'uqm-voice:::for excellent but large voice files' )
+   SOURCE="sc2/uqm-$VERSION-source.tgz" ;;
+
+   *)
+  VERSION=(             0.6.0 0.5.0 0.4.0 0.3 0.2 0.1 )
+   SOURCE="sc2/uqm-$VERSION-${SPELL:4}.uqm"
+  pre_build(){ :; } ;;
+esac
+    IGNORE='extras\|remix\|music\|voice\|content'
   CATEGORY='game'
  ATTRIBUTE='x11'
-case  $SPELL  in
-  uqm) REQ=( "SDL_image uqm-content libvorbis"
-             "uqm-3domusic:::for excellent but large music files"
-             "uqm-voice:::for excellent but large voice files" )
-        SOURCE="sc2/uqm-$VERSION-source.tgz"  ;;
-    *)  SOURCE="sc2/uqm-$VERSION-${SPELL:4}.uqm"
-        pre_build()  {  :;  }  ;;
-esac
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://sc2.sourceforge.net'
   ESTIMATE='1220'
-      DESC="uqm is a port of the 3DO version of the game StarControl 2."
+      DESC='uqm is a port of the 3DO version of the game StarControl 2.'
 
-build()  {
+build(){
+ install_source(){
+  patch -p1 < $SCRIPT_DIR/uqm-0.6.2.patch
 
-install_source()  {
-  patch  -p1  <  $SCRIPT_DIR/uqm-0.6.0.patch
+  [ -d sc2 ] &&
+  cd   sc2
 
-  [  -d  sc2  ]  &&
-  cd     sc2
-
-  mkdir  -p  content
-  echo  |  ./build.sh  uqm  depend          &&
-           ./build.sh  uqm                  &&
-  prepare_install                           &&
-           ./build.sh  uqm  install         &&
-  echo  "$VERSION"  >  /usr/share/uqm/content/version
-}
+  mkdir -p content
+  echo | ./build.sh uqm depend  &&
+         ./build.sh uqm         &&
+  prepare_install               &&
+         ./build.sh uqm install &&
+  echo "$VERSION" > /usr/share/uqm/content/version
+ }
 
 
-install_data()  {
+ install_data(){
   CONTENT=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE##*/}
   PACKAGE=/usr/share/uqm/content/packages
-  if    [  -n  "$CONTENT"  ];  then
-    prepare_install            &&
-    set      -x                &&
-    mkdir    -p      $PACKAGE  &&
-    install  -m 0644  -o root  -g  root  $CONTENT   $PACKAGE  &&
-    set      +x
+  if [ -n "$CONTENT" ]; then
+   prepare_install &&
+   set     -x &&
+   mkdir   -p $PACKAGE &&
+   install -m 644 -o root -g root $CONTENT $PACKAGE &&
+   set     +x
   else
-    echo  "$SOURCE not found"
-    false
+   echo "$SOURCE not found"
+   false
   fi
-}
+ }
 
 
-install_remix()  {
+ install_remix(){
   CONTENT1=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[0]##*/}
   CONTENT2=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/}
   CONTENT3=$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[2]##*/}
   PACKAGE=/usr/share/uqm/content/packages/addons/uqmremix
-  if    [  -f  "$CONTENT1"  ]  &&
-        [  -f  "$CONTENT2"  ]  &&
-        [  -f  "$CONTENT3"  ]
+  if   [ -f "$CONTENT1" ] &&
+       [ -f "$CONTENT2" ] &&
+       [ -f "$CONTENT3" ]
   then
-    prepare_install            &&
-    set      -x                &&
-    mkdir    -p      $PACKAGE  &&
-    install  -m 0644  -o root  -g  root  $CONTENT1   $PACKAGE  &&
-    install  -m 0644  -o root  -g  root  $CONTENT2   $PACKAGE  &&
-    install  -m 0644  -o root  -g  root  $CONTENT3   $PACKAGE  &&
-    set      +x
+   prepare_install     &&
+   set     -x          &&
+   mkdir   -p $PACKAGE &&
+   install -m 644 -o root -g root $CONTENT1 $PACKAGE &&
+   install -m 644 -o root -g root $CONTENT2 $PACKAGE &&
+   install -m 644 -o root -g root $CONTENT3 $PACKAGE &&
+   set     +x
   else
-    echo  "Not all remixes tarballs found."
-    false
+   echo "Not all remixes tarballs found."
+   false
   fi
-}
+ }
 
 
-  case  $SPELL  in
-    uqm)        install_source  ;;
-    uqm-remix)  install_remix   ;;
-    *)          install_data    ;;
-  esac
+ case $SPELL in
+  uqm)       install_source ;;
+  uqm-remix) install_remix  ;;
+  *)         install_data   ;;
+ esac
 }
