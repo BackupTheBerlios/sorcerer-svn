@@ -10,36 +10,43 @@
 #remove this dependency when ip version will be available
 #MALET Jean-Luc
        REQ='ppp net-tools'
-      DESC="rp-pppoe is a PPP over Ethernet client/server suite.
+      DESC='rp-pppoe is a PPP over Ethernet client/server suite.
 rp-pppoe, Roaring Penguin, is a PPPoE client and server
 suite for Linux, NetBSD, Solaris, and Mac OS X Beta.
 It is fully RFC-compliant and supports cookies, relay-IDs,
 and multiple simultaneous PPPoE discovery phases.
 It is cleanly coded and fairly efficient,
-and supports kernel-mode PPPoE on Linux 2.4.x."
+and supports kernel-mode PPPoE on Linux 2.4.x.'
 
-build() {
-  install_extra()  {
-    mkdir  -p  /usr/share/applnk/Internet
-    mkdir  -p  /usr/share/gnome/apps/Internet
-    cp  $SCRIPT_DIR/tkpppoe.kdelnk   /usr/share/applnk/Internet
-    cp  $SCRIPT_DIR/tkpppoe.desktop  /usr/share/gnome/apps/Internet
-  }
+build(){
+ install_extra(){
+  mkdir -p /usr/share/applnk/Internet
+  mkdir -p /usr/share/gnome/apps/Internet
+  cp $SCRIPT_DIR/tkpppoe.kdelnk  /usr/share/applnk/Internet
+  cp $SCRIPT_DIR/tkpppoe.desktop /usr/share/gnome/apps/Internet
+ }
 
-  sed  -i  "s/read a/a=0/"  scripts/adsl-setup.in
-  cd  src
-  ./configure           \
-  --build=$BUILD        \
-  --prefix=/usr         \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-  $OPTS                 &&
-  make                  &&
-  cd  ../gui            &&
-  make                  &&
-  prepare_install       &&
-  make  install         &&
-  cd  ../src            &&
-  make  install         &&
-        install_extra
+ sed -i 's/read a/a=0/' scripts/adsl-setup.in
+ cd src
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sbindir=/sbin      \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS           &&
+ make            &&
+ cd  ../gui      &&
+ make            &&
+ prepare_install &&
+ make  install   &&
+ cd  ../src      &&
+ make  install   &&
+       install_extra
+}
+
+current(){
+ case $VERSION in
+  3.8) [ -f /sbin/pppoe ] ;;
+ esac
 }
