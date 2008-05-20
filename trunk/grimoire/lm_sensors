@@ -1,20 +1,13 @@
-   VERSION=(       2.10.6 2.10.5 2.10.4 2.10.3 2.10.2 2.10.1 2.10.0 )
-#  VERSION=( 3.0.0 2.10.6 2.10.5 2.10.4 2.10.3 2.10.2 2.10.1 2.10.0 )
-# 3.0.0 is the new stable branc
-# However kdebase version 3.5.8 does not compile with lm_sensors 3.0.0
-# 3.0.2 is available
-# 3.0.01 does not reqire sysfsutils
+   VERSION=( 3.0.2 2.10.6 2.10.5 2.10.4 2.10.3 2.10.2 2.10.1 2.10.0 )
     IGNORE='rc'
   CATEGORY='utility'
  ATTRIBUTE='console'
-    SOURCE="lm_sensors-$VERSION.tar.gz"
-# bzip2 for 3.0.0 versions
-#   SOURCE="lm_sensors-$VERSION.tar.bz2"
-       URL="http://dl.lm-sensors.org/lm-sensors/releases/
+    SOURCE="lm_sensors-$VERSION.tar.bz2"
+       URL='http://dl.lm-sensors.org/lm-sensors/releases/
             http://secure.netroedge.com/~lm78/archive/
-             ftp://ftp.netroedge.com/pub/lm-sensors/"
+             ftp://ftp.netroedge.com/pub/lm-sensors/'
   HOMEPAGE='http://www.lm-sensors.nu/'
-       REQ=( 'flex init-functions sysfsutils'
+       REQ=( 'flex init-functions'
              'rrdtool:sensord::for sensord HW monitoring daemon' )
       OPTS='--enable-static=no'
   ESTIMATE='100'
@@ -32,6 +25,7 @@ build(){
  make    PREFIX=/usr user         &&
  prepare_install                  &&
  make    PREFIX=/usr user_install &&
+ rm -f /usr/lib{,64}/libsensors.a &&
  if [ -n "$SENSORD" ]; then
   install -o 0 -g 0 -m 755 prog/sensord/sensord   /usr/bin
   install -o 0 -g 0 -m 644 prog/sensord/sensord.8 /usr/man/man8
