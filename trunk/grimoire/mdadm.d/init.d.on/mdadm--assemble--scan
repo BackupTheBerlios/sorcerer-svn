@@ -1,0 +1,44 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: mdadm
+# Required-Start: dmsetup lock sys
+# Should-Start: udev mdadm--auto-detect
+# Required-Stop: halt reboot
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: mdadm activates the software RAID
+# Raid partitions should be type 0xFD
+# This script assembles the raid arrays using configuration from
+# /etc/mdadm.conf
+# Shutting down RAIDS during shutdown is probably not required.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=mdadm
+SERV=/sbin/mdadm
+CONF=/etc/mdadm.conf
+
+start(){
+ if   log_warning_msg "$NAME starting"; $SERV --assemble --scan
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"
+ fi
+}
+
+stop(){
+ if   log_warning_msg "$NAME stopping"; $SERV --stop --scan
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"
+ fi
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $1 in
+ start) start ;;
+ stop) stop ;;
+ try-restart) : ;;
+ *) help ;;
+esac
