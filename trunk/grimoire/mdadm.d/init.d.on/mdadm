@@ -9,9 +9,8 @@
 # Default-Stop: 0 6
 # Short-Description: mdadm activates the software RAID
 # Raid partitions should be type 0xFD
-# Then, the linux kernel can automatically detect and activate RAIDS
-# when told to do during sysinit execution on the initramfs by
-# mdadm --auto-detect
+# This script assembles the raid arrays using configuration from
+# /etc/mdadm.conf
 # Shutting down RAIDS during shutdown is probably not required.
 ### END INIT INFO
 
@@ -21,7 +20,7 @@ NAME=mdadm
 SERV=/sbin/mdadm
 
 start(){
- if   log_warning_msg "$NAME starting"; $SERV --auto-detect
+ if   log_warning_msg "$NAME starting"; $SERV --assemble --scan
  then log_success_msg "$NAME started"
  else log_failure_msg "$NAME not started"
  fi
