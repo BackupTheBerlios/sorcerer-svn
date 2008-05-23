@@ -1,0 +1,43 @@
+   VERSION=( 034 )
+    IGNORE='alpha'
+  CATEGORY='game'
+ ATTRIBUTE='console x11'
+    SOURCE="FAangband$VERSION.tar.gz"
+       URL='http://angband.oook.cz/faangband/'
+      VURL='http://angband.oook.cz/faangband/Downloads.html'
+  HOMEPAGE='http://angband.oook.cz/faangband/'
+       REQ=( 'libglade SDL_image SDL_mixer SDL_ttf' )
+      OPTS='--with-libpath=/usr/share/games/faangband/lib'
+  ESTIMATE='100'
+      DESC='FAangband is first age angband'
+
+build(){
+
+USGT='/usr/share/games/faangband'
+
+mkdir    -p -m 0755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=511    games                     2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games 2>/dev/null
+
+# cd src
+# make    -f makefile.std LIBDIR="$USGT/lib" &&
+
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ install -v -s -g games -m 2775 src/faangband /usr/bin &&
+ cd lib/xtra/font &&
+ for file in *.fon
+ do ln -s $file ${file%x.fon}.fon
+ done &&
+ cd $OLDPWD &&
+ mkdir   -vp            $USGT &&
+ cp      -va lib        $USGT &&
+ chown   -R root:games $USGT &&
+ chmod   -R g+w        $USGT
+}

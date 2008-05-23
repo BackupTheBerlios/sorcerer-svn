@@ -1,0 +1,26 @@
+# 1.1.4 does not compile.
+# No successful compiles for mumble, yet
+   VERSION=( 1.1.4 )
+  CATEGORY='network/chat'
+ ATTRIBUTE='kde4 broken'
+    SOURCE="mumble/mumble-$VERSION.tar.gz"
+       URL="$SOURCEFORGE_URL"
+  HOMEPAGE='http://mumble.sourceforge.net/'
+       REQ=( '' )
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
+            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+            -DCMAKE_BUILD_TYPE=Release'
+  ESTIMATE='1000'
+      DESC='mumble is a chat program similar to roger wilco and team speak'
+
+build(){
+ sed -i 's:/usr/local:/usr:' src/mumble/mumble.pro
+ export PATH+=:/opt/kde4/bin
+ qmake main.pro
+ make &&
+ prepare_install &&
+ make    install
+}

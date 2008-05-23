@@ -1,0 +1,27 @@
+   VERSION=( 1.0.5 )
+  CATEGORY='game'
+ ATTRIBUTE='x11'
+    SOURCE="detritus-$VERSION.tar.bz2"
+       URL='http://www.erif.org/code/detritus/src/'
+  HOMEPAGE='http://www.erif.org/code/detritus/'
+       REQ='MesaLib SDL_ttf SDL_image freealut'
+case $VERSION in
+ 1.0.5) USE_GCC=gcc-v4.2 ;;
+esac
+  ESTIMATE='100'
+      DESC='detritus is a 3D first-person game of blowing up asteroids.'
+
+build(){
+# Standard fix did not work
+# case $VERSION in
+#  1.0.5) sed -i '1i#include <climits>
+#                 1iusing namespace std;' src/geometry.cpp ;;
+# esac
+ sed -i 's:#define DATAPREFIX "":#define DATAPREFIX "/usr/share/detritus/":' src/os.h
+ find data -type d | xargs --max-lines=2048 chmod 755
+ find data -type f | xargs --max-lines=2048 chmod 644
+ make &&
+ prepare_install &&
+ cp -av data /usr/share/detritus/ &&
+ install -m 755 detritus /usr/bin
+}
