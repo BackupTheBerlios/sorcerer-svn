@@ -14,27 +14,47 @@ ionice -c2 -n7 -p $$ &>/dev/null
 
 SKIP='\:^/etc/init.d/:p;\:^/etc/:d'
 WHAT='Unexpected md5sum'
-INST="$( show_installed )"
  WHY="${TAB}Failed md5sum check"
  LOG='Cast Reason'
+ EXT=$RANDOM$RANDOM$RANDOM
+ OLD=/tmp/md5sums.old.$EXT
+ MIS=/tmp/md5sums.mis.$EXT
+ CHK=/tmp/md5sums.chk.$EXT
 
 tsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/d'; }
 gsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/p;d'; }
 sums(){ tsum | xargs -r --max-lines=1024 cat
         gsum | xargs -r --max-lines=1024 gzip -cd; }
- old(){ sums | sed p; }
-name(){ sed 's:^[0-9a-f]*  ::'; }
  use(){ sed "$SKIP"; }
- now(){ sums | name | use | sort -u | escape_qs | md5sums; }
-nfil(){ while read; do [ -f "$REPLY" ] || echo "$REPLY"; done; }
-miss(){ sums | name | nfil; }
- pos(){ while read; do echo  "$INST" | sed "s:$:\:$REPLY:"; done; }
- cur(){ grep -Hrvx "" $INSTALL_LOGS | sort -u; }
-from(){ pos | pipe cur | sed "s:^$INSTALL_LOGS/::" | sort | uniq -d; }
+ old(){ sums | use | tee $OLD; }
+name(){ cut -b 35-; }
+ now(){ name | sort -u | escape_qs | xargs -r --max-lines=1024 md5sum | tee $CHK; }
+from(){ while read; do grep -rx "$REPLY" $INSTALL_LOGS; done | sed "s:$INSTALL_LOGS/::"; }
 peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee  /dev/stderr | cut -f2 | sort -u; }
- why(){ while read R; do inc_event_log "$R" "$LOG" "$WHY"; echo "$R"; done; }
+ why(){ echo; while read R; do inc_event_log "$R" "$LOG" "$WHY"; echo "$R"; done; }
 this(){ pipe_queue "$CAST_QUEUE" com; }
+miss(){ sed 's/^md5sum: //;s/: No such file or directory$//' $MIS; }
+prepare(){ echo -en "\r0%"; }
+percent(){ SOLD=$( finfo -s $OLD ); SCHK=$( finfo -s $CHK );
+           (( PER = SCHK * 100 / $SOLD )); echo -en "\r$PER%"; }
 
-old  | pipe now  | sort    | uniq -u |
-name | pipe miss | sort -u |
-from | peal      | why     | this
+
+check(){
+ old  | now 2>$MIS | cat - $OLD $OLD | sort | uniq -u |
+ name | pipe miss  | sort -u |
+ from | peal       | why     | this
+ rm -f $OLD $MIS $CHK
+}
+
+
+guess(){
+ while [ -f $OLD ] && ! [ -s $CHK ]; do prepare; sleep 5; done
+ while [ -f $OLD ];                  do percent; sleep 5; done
+ echo
+}
+
+touch     $OLD $MIS $CHK
+chmod 600 $OLD $MIS $CHK
+
+check &
+guess 2>/dev/null
