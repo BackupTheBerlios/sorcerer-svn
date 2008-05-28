@@ -1,4 +1,4 @@
-   VERSION=( 3.14.3 3.14.2 3.14.0 3.12.4 3.12.3 3.12.2 3.12.1 )
+   VERSION=( 3.14.4 3.14.3 3.14.2 3.14.0 )
     IGNORE='^3\.15\.\|win\|beta'
   CATEGORY='utility'
  ATTRIBUTE='console'
@@ -25,35 +25,18 @@ determined by power consumption rates.'
 
 build(){
 
- modify_mount() {
-   SS="Should-Stop:"
-   US="UPSdown"
-   MNT_SCRIPT="/etc/init.d/mount"
-
-   if ! ( grep "$SS" $MNT_SCRIPT | grep "$US" ); then
-	if [ grep -q "$SS" ]; then
-	  sed  -i "s/$SS /$SS $US/"  $MNT_SCRIPT
-	else
-	  POS=$( grep -n "Should-Start:" $MNT_SCRIPT | cut -f1 -d":" )
-	  sed  -i "$(( ++POS ))i\# $SS $US"  $MNT_SCRIPT
-	fi
-   fi
- }
-
- modify_mount		&&
-
- ./configure     --build=$BUILD                                  \
-                 --prefix=/usr                                   \
-                 --sysconfdir=/etc/apcupsd                       \
-                 --localstatedir=/var                            \
-                 --enable-usb                                    \
-                 --with-log-dir=/var/log                         \
-                 --with-serial-dev=/dev/usb/hiddev[0-15]         \
-                 $OPTS                                           &&
-
- make                    &&
- prepare_install         &&
- make  install           
+ ./configure                              \
+ --build=$BUILD                           \
+ --prefix=/usr                            \
+ --sysconfdir=/etc/apcupsd                \
+ --localstatedir=/var                     \
+ --enable-usb                             \
+ --with-log-dir=/var/log                  \
+ --with-serial-dev=/dev/usb/hiddev[0-15]  \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install           
 
 }
 
