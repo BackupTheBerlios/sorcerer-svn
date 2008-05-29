@@ -1,13 +1,14 @@
-   VERSION=( 2.2.8 2.2.6 2.2.4 2.2.3 2.2.2 2.2.0 )
+   VERSION=( 2.2.8 2.2.6 2.2.4 )
       SAFE=( 2.2.8 )
     IGNORE='beta\|alpha'
   CATEGORY='network/web'
  ATTRIBUTE='console server'
-# is apr/apr_dbd_mysql.c still required?
-    SOURCE=( "httpd/httpd-$VERSION.tar.gz" 
-             "apr/apr_dbd_mysql.c" )
-       URL=( "$APACHE_URL"
-             "http://apache.webthing.com/svn/apache/" )
+    SOURCE=( "httpd/httpd-$VERSION.tar.gz" )
+# Is it required with 2.2.8 ?
+#             "apr/apr_dbd_mysql.c" )
+       URL=( "$APACHE_URL" )
+# Is it required with 2.2.8 ?
+#            "http://apache.webthing.com/svn/apache/" )
   HOMEPAGE='http://httpd.apache.org'
        REQ=( 'Python'
              'openssl:--enable-ssl:--disable-ssl:for https enabled server'
@@ -33,12 +34,8 @@ configure(){
 query_dialog(){
  qd_help(){
   if [ -n "$4" ]; then
-   dialog --backtitle "$BACKT"      \
-          --stdout                  \
-          --timeout "$PROMPT_DELAY" \
-          --msgbox                  \
-          "$( long_desc "$4" )"     \
-          0 0
+   dialog --backtitle "$BACKT" --stdout --timeout "$PROMPT_DELAY" \
+          --msgbox "$( long_desc "$4" )" 0 0
   fi
   query_dialog "$@"
  }
@@ -51,8 +48,7 @@ query_dialog(){
 
  ASK="$( echo "$1" |
          sed "s:\\\e\[.m::g
-              s:\\\e\[..m::g"
-       )"
+              s:\\\e\[..m::g" )"
 
  case "$2" in
   y|Y) DEFAULT=Yes ;;
@@ -143,15 +139,19 @@ build(){
       cp $APR_DBD_MYSQL srclib/apr-util/dbd/
  fi
 
- cat $SCRIPT_DIR/layout     >>                 config.layout
- cat $SCRIPT_DIR/layout.apr >>      srclib/apr/config.layout
- cat $SCRIPT_DIR/layout.apr >> srclib/apr-util/config.layout
+# Not using Sorcerer layout because subversion then will
+# not compile with httpd installed complaining that it
+# it can not find Sorcerer layout.
+# cat $SCRIPT_DIR/layout     >>                 config.layout
+# cat $SCRIPT_DIR/layout.apr >>      srclib/apr/config.layout
+# cat $SCRIPT_DIR/layout.apr >> srclib/apr-util/config.layout
 
  fix_ssl_conf
  # fix_openssl_PEM_F_DEF_CALLBACK
 
 #--enable-layout=Sorcerer \
  AC="
+ --enable-layout=RedHat   \
  --enable-so              \
  --enable-modules=all     \
  --enable-cache           \
@@ -163,16 +163,6 @@ build(){
  --build=$BUILD           \
  --with-mpm=worker        \
  $OPTS"
-
- case $VERSION in
-  2.2.0) sed -i 's:found="yes":found="no":' configure ;;
-  2.2.2) for file in srclib/apr-util/configure \
-                     srclib/apr-util/build/dbd.m4; do
-           sed -i 's:-I\$withval/include/myql:-I/usr/include/mysql:' $file
-         done ;;
-  2.2.3) sed -i "48,51d
-                    54d"  srclib/apr-util/dbd/${APR_DBD_MYSQL##*/} ;;
- esac
 
  save_apr(){
   [ -f /usr/bin/apr-1-config ] && mv /usr/bin/apr-1-config /usr/bin/apr-1-config.old
@@ -186,10 +176,6 @@ build(){
   true
  }
 
- remove_apr(){
-  rm -f /usr/bin/apr-1-config.old /usr/bin/apu-1-config.old
- }
-
  # export  LAYOUT="Sorcerer"
 
  case $VERSION in
@@ -200,18 +186,18 @@ build(){
    export      PATH="/opt/libtool/bin:$PATH" ;;
  esac
 
-       save_apr
- if    ./buildconf     &&
-       ./configure $AC &&
-       make
+ save_apr
+ if
+  ./buildconf     &&
+  ./configure $AC &&
+  make
   then
-       restore_apr     &&
-       prepare_install &&
-       save_apr        &&
-       make    install &&
-        finish_install &&
-        remove_apr
- else   restore_apr; false
+   restore_apr     &&
+   prepare_install &&
+   save_apr        &&
+   make    install &&
+   finish_install
+ else restore_apr; false
  fi
 }
 
@@ -226,26 +212,26 @@ post_install(){
   local CON=/etc/httpd
   local   O=openssl
 
-  $O genrsa -des3           -out $KEY -passout $PAS 1024 2>&1 &&
-  $O req    -new  -key $KEY -out $CSR -passin  $PAS      2>&1 &&
-  $O rsa          -in  $KEY -out $PEM -passin  $PAS      2>&1 &&
-  $O x509   -req  -in  $CSR -out $CRT -passin  $PAS \
-            -days    1461      -signkey  $KEY            2>&1 &&
-  install -D -m 0600 server.crt $CON/ssl.crt/server.crt       &&
-  install -D -m 0600 server.pem $CON/ssl.key/server.pem       &&
+  $O genrsa -des3         -out $KEY -passout $PAS 1024 2>&1 &&
+  $O req  -new  -key $KEY -out $CSR -passin  $PAS      2>&1 &&
+  $O rsa        -in  $KEY -out $PEM -passin  $PAS      2>&1 &&
+  $O x509 -req  -in  $CSR -out $CRT -passin  $PAS \
+          -days 1461 -signkey $KEY 2>&1 &&
+  install -vDm 600 server.crt $CON/ssl.crt/server.crt &&
+  install -vDm 600 server.pem $CON/ssl.key/server.pem &&
   sed     -i "s:^#$SSL:$SSL:"   $CON/ssl.conf
  }
 
  generate_certificates(){
-  if ! grep -q "configured"       $SPELL_CONFIG; then
-   if  grep -q "APACHE_SSL=true"  $SPELL_CONFIG; then
+  if ! grep -q "configured"      $SPELL_CONFIG; then
+   if  grep -q "APACHE_SSL=true" $SPELL_CONFIG; then
     echo           $"Password must be between 4 and 8191 characters"
     read -t 600 -p $"Please enter a password for the server key: "
     if (( ${#REPLY} > 3 )); then
-     touch                   server.pas
-     chmod 0600              server.pas
-     echo  "$REPLY"        > server.pas
-     echo  "configured=1" >> $SPELL_CONFIG
+     touch                  server.pas
+     chmod 600              server.pas
+     echo "$REPLY"        > server.pas
+     echo "configured=1" >> $SPELL_CONFIG
      self_signed_cert
     fi
    fi
