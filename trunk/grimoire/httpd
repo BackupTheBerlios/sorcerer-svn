@@ -55,8 +55,8 @@ query_dialog(){
        )"
 
  case "$2" in
-  y|Y) DEFAULT="Yes" ;;
-  n|N) DEFAULT="No"  ;;
+  y|Y) DEFAULT=Yes ;;
+  n|N) DEFAULT=No  ;;
  esac
 
  if [ -n "$3" ]; then
@@ -64,36 +64,26 @@ query_dialog(){
    FTS="as optional requirement for this spell"
    FAS="as optional requirement for all spells"
 
-   RESPONSE=$( dialog --backtitle "$BACKT"        \
-                      --stdout                    \
-                      --timeout   "$PROMPT_DELAY" \
-                      --default-item   "$DEFAULT" \
-                      --help-button               \
-                      --no-cancel                 \
-                      --item-help                 \
-                      --menu      "$ASK"          \
-                      0 0 0                       \
-                      "Yes"       ""  "Yes $FTS"  \
-                      "No"        ""  "No  $FTS"  \
-                      "Always"    ""  "Yes $FAS"  \
-                      "Never"     ""  "No  $FAS"
-             )
+   RESPONSE=$(
+    dialog --backtitle "$BACKT" --stdout --timeout "$PROMPT_DELAY" \
+           --default-item "$DEFAULT" --help-button --no-cancel     \
+           --item-help --menu "$ASK" 0 0 0 \
+           Yes    "" "Yes $FTS" \
+           No     "" "No  $FTS" \
+           Always "" "Yes $FAS" \
+           Never  "" "No  $FAS" )
    case $RESPONSE in
     Always|Never) STRONG="true"  ;;
                *) STRONG="false" ;;
    esac
   else
 
-   RESPONSE=$( dialog --stdout                     \
-                      --timeout   "$PROMPT_DELAY"  \
-                      --default-item   "$DEFAULT"  \
-                      --item-help                  \
-                      --no-cancel                  \
-                      --menu      "$ASK"           \
-                      0 0 0                        \
-                      "Yes"       ""  "Yes Please" \
-                      "No"        ""  "No  Thanks"
-             )
+   RESPONSE=$(
+    dialog --stdout --timeout "$PROMPT_DELAY"  \
+           --default-item "$DEFAULT" --item-help \
+           --no-cancel --menu "$ASK" 0 0 0 \
+           Yes "" "Yes Please" \
+           No  "" "No  Thanks" )
  fi
  clear
  case ${RESPONSE:=$2} in
