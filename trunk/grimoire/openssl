@@ -1,5 +1,5 @@
-   VERSION=( 0.9.8g 0.9.8f )
-      SAFE=( 0.9.8g 0.9.8f )
+   VERSION=( 0.9.8h 0.9.8g 0.9.8f )
+      SAFE=( 0.9.8h )
     IGNORE='beta\|fips'
   CATEGORY='security/encryption'
  ATTRIBUTE='library'
@@ -41,36 +41,26 @@ toolkit implementing the Secure Sockets Layer (SSL v2/v3)
 and Transport Layer Security (TLS v1) protocols as well
 as a full-strength general purpose cryptography library.'
 
-build() {
-grep  -rl                          '\-O3 -Wall'  *  |
+build(){
+grep  -rl                          '\-O3 -Wall' * |
 xargs -r --max-lines=64  sed  -i  "s:-O3 -Wall:$CFLAGS:"
 
-./config               \
---prefix=/usr          \
---openssldir=/etc/ssl  \
-shared                 \
-$OPTS                  &&
-make                   &&
-prepare_install        &&
-make    install  MANDIR=/usr/man
+./config              \
+--prefix=/usr         \
+--openssldir=/etc/ssl \
+shared                \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
+make    install MANDIR=/usr/man
 }
 
 
-post_install()  {
-  echo      ntp                    |
-            get_provider  openssh  |
-  pipe      show_installed         |
-  LC_ALL=C  sort                   |
-            uniq  -d               |
-            pipe_queue  $CAST_QUEUE  com
+post_install(){
+ echo     ntp                    |
+          get_provider  openssh  |
+ pipe     show_installed         |
+ LC_ALL=C sort                   |
+          uniq  -d               |
+          pipe_queue $CAST_QUEUE com
 }
-
-
-# post_install()  {
-#                                         SSH_PRO=$(  get_provider  openssh  )
-#   if    spell_installed                $SSH_PRO;  then  
-#     if  !  [      -f       $CAST_QUEUE/$SSH_PRO  ]
-#     then   echo  "com"  >  $CAST_QUEUE/$SSH_PRO
-#     fi
-#   fi
-# }

@@ -1,4 +1,8 @@
-  LVERSION=( 2.6.24.3 2.6.24.2 2.6.22.9 2.6.22.1 )
+# /usr/src/sorcery/glibc/glibc-2.7/install/usr/include/linux/capability.h:73: 
+# error: expected specifier-qualifier-list before '__le32'
+# Looks like we will not be using linux 2.6.25.4
+# LVERSION=( 2.6.25.4 2.6.24.3 2.6.24.2 2.6.22.9 2.6.22.1 )
+  LVERSION=(          2.6.24.3 2.6.24.2 2.6.22.9 2.6.22.1 )
    VERSION=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
       SAFE=( 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4 )
 
@@ -200,8 +204,8 @@ case $VERSION in
        # blowfish_patch
        mv  glibc-libidn-* libidn
        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-       (( KVER >= 2619 )) &&
-       OPTS+=' --enable-kernel=2.6.19' ;;
+       (( KVER >= 2624 )) &&
+       OPTS+=' --enable-kernel=2.6.24' ;;
  2.6*) mv  glibc-libidn-* libidn
        KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
        (( KVER >= 2615 )) &&
@@ -244,11 +248,4 @@ post_install(){
  LC_ALL=C sort                   |
           uniq -d                |
           pipe_queue $CAST_QUEUE com
-}
-
-
-current(){
- case $VERSION in
-  2.7) grep -qsx 'Linux header version 2.6.24.[2-3]' $COMPILE_LOGS/glibc ;;
- esac
 }
