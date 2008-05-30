@@ -72,20 +72,23 @@
             ftp://ftp.tux.org/bsd/openbsd/OpenSSH/portable/
             ftp://mirror.cs.wisc.edu/pub/mirrors/OpenBSD/OpenSSH/portable/'
   HOMEPAGE='http://www.openssh.com/'
-
-## Do _NOT_ remove tcp_wrappers - people can rely on this feature and 
-## it can be a serious security problem if it suddenly stops working !!!
-
-### The person who wrote the above two lines should:
-### Use iptables for proper firwalling
-### instead of using tcp_wrappers
-### because tcp_wrappers is an ancient hack
-### for operating systems that lack proper firewalling support
-
        REQ=( 'Linux-PAM init-functions libselinux openssl zlib'
              'tcp_wrappers:--with-tcp-wrappers::for an optional method of controlling ssh access' )
+# Due to tcp_wrappers not supporting IPv6
+# and requires a patch to compile
+# and is a hack for use on boxes that lack firewalling support
+# and is basically unchanged since 1997 from ftp://ftp.porcupine.org/pub/security/
+# -r--r--r--  1 wietse  wheel   99438 Apr  8  1997 tcp_wrappers_7.6.tar.gz
+# tcp_wrappers optional will be removed from openssh in 2009
    PROTECT='/etc/ssh'
-   EXCLUDE='/var/empty'
+   EXCLUDE='/etc/ssh/ssh_host_dsa_key
+            /etc/ssh/ssh_host_dsa_key.pub
+            /etc/ssh/ssh_host_key
+            /etc/ssh/ssh_host_key.pub
+            /etc/ssh/ssh_host_rsa_key
+            /etc/ssh/ssh_host_rsa_key.pub
+            /etc/ssh/sshd_config
+            /var/empty'
   ESTIMATE='1000'
       DESC='openssh is a client and server for encrypted remote logins and file transfers.
 openssh is a Unix/Linux port of the OpenBSD openssh.
@@ -128,6 +131,7 @@ move_sshd_conf
 
 current(){
  case $VERSION in
+  5.0p1) [ -f /etc/init.d/ssh-keygen ] ;;
   4.7p1) ! grep -q SERV /etc/init.d/empty ;;
  esac
 }
