@@ -214,7 +214,7 @@ make_bootloader_conf(){
 }
 
 
-transfer_arch(){
+transfer_arch_old(){
 
  local CAT=/tmp/catalog.txt
 
@@ -255,8 +255,25 @@ transfer_arch(){
 }
 
 
+transfer_arch(){
+ local FROM=/media/IR
+ utar(){ tar -C              $TARGET -xvpf -; }
+ give(){ find                $TARGET/var/cache/archive -type f |sed "\,\.$1$,p;d"; }
+ mkdir -p                    $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
+ chmod 1777                  $TARGET/tmp
+ cp    -av dev etc init root $TARGET
+ cp    -av $FROM/boot        $TARGET
+ rm    -rf                   $TARGET/boot/isolinux
+ cp    -av $FROM/var/cache   $TARGET/var/
+ give tar.7z  | while read; do 7za -x -bd "$REPLY" | utar; done
+ give tar.bz2 | while read; do bzip2  -cd "$REPLY" | utar; done
+ give tar.gz  | while read; do gzip   -cd "$REPLY" | utar; done
+ give tar     | while read; do cat        "$REPLY" | utar; done
+}
+
+
 select_extra_spells(){
-    HELP="
+ HELP="
 The sources CD contains sources for software
 that may be useful or required for networking.
 Please select software that will also be compiled and installed.

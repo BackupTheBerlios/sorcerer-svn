@@ -1,0 +1,43 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: ssh-keygen
+# Required-Start: $network empty run
+# Required-Stop:  $network
+# Default-Start: 2 3 4 5
+# Default-Stop:
+# Short-Description: ssh-keygen generates missing host keys
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+SERV=/usr/sbin/ssh-keygen
+CONF=/etc/ssh/sshd_config
+NAME=ssh-keygen
+
+start(){
+ check_key(){
+  if   [ -f $1 ] && [ -f $1.pub ]; then return; fi
+  if   log_warning_msg "$NAME generating $1"; ssh-keygen -t $2 -f $1 -N ""
+  then log_success_msg "$NAME generated  $1"
+  else log_failure_msg "$NAME failed     $1"
+  fi
+ }
+
+ if ! [ -f $CONF ]; then
+  log_warning_msg "$NAME requires $CONF"
+  return
+ fi
+
+ check_key /etc/ssh/ssh_host_key     rsa1
+ check_key /etc/ssh/ssh_host_rsa_key rsa
+ check_key /etc/ssh/ssh_host_dsa_key dsa
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $1 in
+ start) start ;;
+ try-restart) : ;;
+ *) help ;;
+esac
