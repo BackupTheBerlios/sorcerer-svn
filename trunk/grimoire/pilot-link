@@ -1,9 +1,9 @@
-   VERSION=( 0.12.3 0.12.2 0.12.1 0.11.8 0.11.7 0.11.6 0.11.5 0.11.4 )
+   VERSION=( 0.12.3 0.12.2 0.12.1 )
   CATEGORY='utility/hand-held'
- ATTRIBUTE='console x11 broken'
+ ATTRIBUTE='console x11'
     SOURCE="pilot-link-$VERSION.tar.bz2"
-       URL='http://downloads.pilot-link.org/
-            http://www.pilot-link.org/source/'
+       URL='http://downloads.pilot-link.org/'
+      VURL='http://www.pilot-link.org/'
   HOMEPAGE='http://www.pilot-link.org/'
        REQ=( 'bluez-libs libpng ncurses readline'
              'Python:--with-python::for Python interface' )
@@ -12,16 +12,20 @@
 #   'j2sdk:--with-java::for java interface'
 #   'perl:--with-perl::for perl interface'
       OPTS='--includedir=/usr/include --enable-static=no'
-case $VERSION in
- 0.12.3) USE_GCC=gcc-v4.1 ;;
-esac
-# 0.12.3) USE_GCC=gcc-v4.2 ;;  did not work
-  ESTIMATE='1000'
+  ESTIMATE='600'
       DESC='pilot-link contains the tools needed to connect your Palm and box.'
 
 build(){
  sed -i 's:UID = 0:UID = -1:' configure
- default_build
+ ./configure           \
+ --build=$BUILD        \
+ --prefix=/usr         \
+ --sysconfdir=/etc     \
+ --localstatedir=/var  \
+ $OPTS                 &&
+ make "CFLAGS=$CFLAGS" &&
+ prepare_install       &&
+ make    install
 }
 
 current(){
