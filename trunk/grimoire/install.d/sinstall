@@ -263,15 +263,16 @@ transfer_arch(){
   sed "\,\.$1$,p;d"
  }
 
- local FROM=/media/IR
  utar(){ tar -C              $TARGET -xvpf -; }
- mkdir -p                    $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
- chmod 1777                  $TARGET/tmp
- cp    -av dev etc init root $TARGET
- cp    -av etc/skel          $TARGET/root
- cp    -av $FROM/boot        $TARGET
- rm    -rf                   $TARGET/boot/isolinux
- cp    -av $FROM/var/cache   $TARGET/var/
+
+ cd /
+ mkdir -p                      $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
+ chmod 1777                    $TARGET/tmp
+ cp    -av dev etc init root   $TARGET
+ cp    -av     etc/skel        $TARGET/root
+ cp    -av /media/IR/boot      $TARGET
+ rm    -rf                     $TARGET/boot/isolinux
+ cp    -av /media/IR/var/cache $TARGET/var/
  give tar.7z  | while read; do 7za -x -bd "$REPLY" | utar; done
 #give tar.bz2 | while read; do bzip2  -cd "$REPLY" | utar; done
 #give tar.gz  | while read; do gzip   -cd "$REPLY" | utar; done
