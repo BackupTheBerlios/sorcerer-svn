@@ -256,9 +256,15 @@ transfer_arch_old(){
 
 
 transfer_arch(){
+ give(){
+  find $TARGET/var/cache/archive -type f -printf "%T@\t%p\n" |
+  LC_ALL=C sort -g |
+  cut -f2 |
+  sed "\,\.$1$,p;d"
+ }
+
  local FROM=/media/IR
  utar(){ tar -C              $TARGET -xvpf -; }
- give(){ find                $TARGET/var/cache/archive -type f |sed "\,\.$1$,p;d"; }
  mkdir -p                    $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
  chmod 1777                  $TARGET/tmp
  cp    -av dev etc init root $TARGET
@@ -267,9 +273,9 @@ transfer_arch(){
  rm    -rf                   $TARGET/boot/isolinux
  cp    -av $FROM/var/cache   $TARGET/var/
  give tar.7z  | while read; do 7za -x -bd "$REPLY" | utar; done
- give tar.bz2 | while read; do bzip2  -cd "$REPLY" | utar; done
- give tar.gz  | while read; do gzip   -cd "$REPLY" | utar; done
- give tar     | while read; do cat        "$REPLY" | utar; done
+#give tar.bz2 | while read; do bzip2  -cd "$REPLY" | utar; done
+#give tar.gz  | while read; do gzip   -cd "$REPLY" | utar; done
+#give tar     | while read; do cat        "$REPLY" | utar; done
 }
 
 
