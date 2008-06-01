@@ -14,63 +14,52 @@
 
 start(){
  block(){ while read; do if [ -b "$REPLY" ]; then echo "$REPLY"; fi; done; }
-   try(){ while read  &&  mtest  "$REPLY" && return; do :; done; false }
+   try(){ while read  &&  mtest  "$REPLY" && return; do :; done; false; }
 
  try_mount(){
   local CX=12
   while (( CX > 0 )); do
    (( CX-- ))
-   if   mount -nr "$1" /media/root
-   then return
-   else umount -n /media/root; sleep 5; false
-   fi
+    mount -r "$1" /media/IR && return
+   umount         /media/IR
+   sleep 5
+   false
   done
  }
 
  mtest(){
-  if    try_mount "$1"; then
-   if   ! [    -d /media/root/boot/isolinux ]
-   then umount -n /media/root; return 1
-   else umount -n /media/root; echo  "$1"
-   fi
-  else return 1
+  if try_mount "$1"; then
+   [ -d   /media/IR/boot/isolinux ] && return
+   umount /media/IR
   fi
+  return 1
  }
 
  search(){
-  mkdir -p   /media/root
-  grep  -l 1 /sys/block/*/removable    |
-  sed        's:/sys/block/:/dev/:
-                       s:/removable::' |
-  block                                |
-  try
+  mkdir -p /media/IR
+  grep -l 1 /sys/block/*/removable |
+  sed    's:/sys/block/:/dev/:
+                      s:/removable::' |
+  block | try
  }
 
  manual(){
   echo "Install/Rescue Image not found."
   echo "Discover the block device for"
   echo "the Install/Rescue Image and"
-  echo "make that device mount point /media/IR"
-  echo "by editing /etc/fstab"
+  echo "mount that device on /media/IR"
   echo "Sorry for the inconvenience."
   echo "Press enter when prompted for password."
   echo "When complete type exit to resume"
   sulogin -t 300 /dev/console &>/dev/console 0</dev/console
  }
 
- set_IR(){
-  echo "$1 /media/IR auto defaults,ro 0 0" >> /etc/fstab
- }
-
  grep -q boot=IR /proc/cmdline || return
 
-                             log_warning_msg "Install/Rescue finding"
- if            IRDEV=$( search )
- then set_IR "$IRDEV";       log_success_msg "Install/Rescue found"
- else manual &>/dev/console; log_failure_msg "Install/Rescue not found"
+ if   log_warning_msg "Install/Rescue finding"; search
+ then log_success_msg "Install/Rescue found"
+ else log_failure_msg "Install/Rescue not found"; manual &>/dev/console
  fi
- mkdir -p /media/IR
- mount    /media/IR
 }
 
 
