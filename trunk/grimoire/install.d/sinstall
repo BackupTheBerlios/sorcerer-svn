@@ -263,7 +263,7 @@ transfer_arch(){
   sed "\,\.$1$,p;d"
  }
 
- utar(){ tar -C              $TARGET -xvpf -; }
+ utar(){ tar -C                $TARGET -xvpf -; }
 
  cd /
  mkdir -p                      $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
@@ -273,10 +273,10 @@ transfer_arch(){
  cp    -av /media/IR/boot      $TARGET
  rm    -rf                     $TARGET/boot/isolinux
  cp    -av /media/IR/var/cache $TARGET/var/
- give tar.7z  | while read; do 7za -x -bd "$REPLY" | utar; done
-#give tar.bz2 | while read; do bzip2  -cd "$REPLY" | utar; done
-#give tar.gz  | while read; do gzip   -cd "$REPLY" | utar; done
-#give tar     | while read; do cat        "$REPLY" | utar; done
+ give tar.7z  | while read; do 7za x -bd "$REPLY" | utar; done
+#give tar.bz2 | while read; do bzip2 -cd "$REPLY" | utar; done
+#give tar.gz  | while read; do gzip  -cd "$REPLY" | utar; done
+#give tar     | while read; do cat       "$REPLY" | utar; done
 }
 
 
@@ -534,7 +534,8 @@ show_sinfo_init(){
    fstab_line          "$CX"
    echo off
   fi
- done | tr '\t' '\n' | column -t
+ done | tr '\t' '\n'
+# | column -t
 }
 
 
@@ -1245,7 +1246,7 @@ disk_menu(){
           MBR)	write_mbr		;;
          LVM2)  lvm2_menu		;;
         mdadm)  mdadm_menu              ;;
-      Install)	transfer_arch		;;
+      Install)	transfer_arch 2>&1 | tee /tmp/transfer.txt ;;
       Compile)	compile_menu		;;
     Partition)	partition_disks		;;
        Reload)	filesystem_table_load	;;
