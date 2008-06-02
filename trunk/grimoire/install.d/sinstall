@@ -216,47 +216,6 @@ make_bootloader_conf(){
 }
 
 
-transfer_arch_old(){
-
- local CAT=/tmp/catalog.txt
-
- if     ! [ -f $CAT ]; then
-  echo 'Waiting for catalog to complete'
-  pgrep             catalog &>/dev/null ||
-        /etc/init.d/catalog
-  while ! [ -f $CAT ]
-  do    read -p . -n 1 -t 1
-  done
-  echo
- fi
-
- local TOT START=$SECONDS
-
- TOT=$( wc -l $CAT | cut -d ' ' -f1 )
-
- tar --no-recursion -cT $CAT |
- tar -C $TARGET     -xvpf -  |
- cat -n |
- while read NUM REPLY; do
-  (( NOW = SECONDS - START ))
-  (( REM = TOT * NOW / NUM - NOW ))
-  (( PER = 100 * NUM / TOT ))
-  echo "$PER%	${REM}s	$REPLY"
- done
-
- chmod 1777   $TARGET/tmp
- make_fstab > $TARGET/etc/fstab
-
- if   [ -s /tmp/catalog.log ]
- then cat  /tmp/catalog.log
- fi
-
- read -n 1 -t 900 -p "Press space to continue."
- $DIALOG --msgbox $"Files transferred." 8 50
- ARCH_DONE=true
-}
-
-
 transfer_arch(){
  give(){
   find $TARGET/var/cache/archive -type f -printf "%T@\t%p\n" |
@@ -280,6 +239,10 @@ transfer_arch(){
 #give tar.bz2 | while read; do bzip2 -cd     "$REPLY" | utar; done
 #give tar.gz  | while read; do gzip  -cd     "$REPLY" | utar; done
 #give tar     | while read; do cat           "$REPLY" | utar; done
+ make_fstab > $TARGET/etc/fstab
+ read -n 1 -t 900 -p "Press space to continue."
+ $DIALOG --msgbox $"Files transferred." 8 50
+ ARCH_DONE=true
 }
 
 
