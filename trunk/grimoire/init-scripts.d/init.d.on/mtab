@@ -1,0 +1,31 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: mtab
+# Required-Start: root
+# Required-Stop: halt cryptmount cryptsetup mdadm reboot
+# Default-Start: S
+# Short-Description: mtab creates /etc/mtab from /proc/mounts
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start(){
+ cpm(){ rm -fr $1; cat /proc/mounts > $1; }
+ run(){
+  [ -f /media/root/sbin/init ] &&
+  cpm  /media/root/etc/mtab
+  cpm             /etc/mtab
+ }
+
+ log_warning_msg '/etc/mtab creating'; run
+ log_success_msg '/etc/mtab created'
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $@ in
+ start) start ;;
+ try-restart) : ;;
+ *) help ;;
+esac

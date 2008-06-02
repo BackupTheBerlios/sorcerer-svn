@@ -2,64 +2,45 @@
 
 ### BEGIN INIT INFO
 # Provides: $local_fs
-# Required-Start: cryptsetup fsck fstab proc sys
-# Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
+# Required-Start: mtab root
 # Required-Stop: halt cryptmount cryptsetup mdadm reboot
 # Default-Start: S
 # Default-Stop: 0 6
-# Short-Description: mount mounts local file systems
+# Short-Description: mount mounts and un-mounts local file systems
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-mount_local_fs(){
- if   [ -d /opt ]; then
-  mount -n -o remount /
-  rm    -fr            /etc/mtab
-  cat   /proc/mounts > /etc/mtab
-  mount -a
- else
-                        ROOT=/media/root
-   [     -d            $ROOT ] ||
-   mkdir -p            $ROOT
-   #sed   -i "s:\t: :g
-   #            s: / : $ROOT :" /etc/fstab
-   mount -n            $ROOT || return 1
-   sed   "\,rootfs,d;\,$ROOT,d; \,^/dev/,d; \,^/sys/,d" /proc/mounts |
-   while read DEV MNT JNK; do
-    if       [   -d         $MNT ]; then
-     if    ! [   -d    $ROOT$MNT ]
-     then  mkdir -p    $ROOT$MNT; fi &&
-     mount --move $MNT $ROOT$MNT
-    fi
-   done
-   rm -fr              $ROOT/etc/mtab
-   chroot              $ROOT \
-   cat /proc/mounts >  $ROOT/etc/mtab
-   chroot              $ROOT \
-   mount -a
- fi
-}
-
-
 start(){
- log_warning_msg 'Local file systems mounting'; mount_local_fs
- log_success_msg 'Local file systems mounted'
-}
+ run(){
+  if   [ -f   /media/root/sbin/init ]
+  then chroot /media/root mount -a
+  else                    mount -a
+  fi
+ }
 
-umount_local_fs(){
- sync
- [ -f /proc/mounts ] || mount -nrt proc proc /proc
-
- cut -d ' ' -f2 /proc/mounts |
- LC_ALL=C sort -ur | xargs -r --max-lines=256 umount -lr
+ log_warning_msg 'Mounting filesystems from /etc/fstab'; run
+ log_success_msg 'Mounted  filesystems'
 }
 
 stop(){
- log_warning_msg 'umounting local file systems'; umount_local_fs
- log_success_msg 'umounted'
+ run(){
+  sync
+  [ -f /proc/mounts ] || mount -nrt proc proc /proc
+
+  cut -d ' ' -f2 /proc/mounts |
+  LC_ALL=C sort -ur | xargs -r --max-lines=256 umount -lr
+ }
+
+ log_warning_msg 'umounting all filesystems'; run
+ log_success_msg 'umounted  all filesystems'
 }
 
-    restart(){ :; }
-try_restart(){ :; }
-parse "$@"
+help(){ echo "Usage: $0 {start|stop}" 1>&2; }
+
+case $@ in
+ start) start ;;
+ stop) stop ;;
+ try-restart) : ;;
+ *) help ;;
+esac
