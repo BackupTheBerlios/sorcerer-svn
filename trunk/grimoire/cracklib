@@ -1,40 +1,37 @@
    VERSION=( 2.8.12 2.8.10 2.8.9 )
-    IGNORE="pre"
-  CATEGORY='security utility'
+    IGNORE='pre'
+  CATEGORY='security/authentication'
  ATTRIBUTE='console library'
     SOURCE="cracklib/cracklib-$VERSION.tar.gz"
   HOMEPAGE='http://sourceforge.net/projects/cracklib'
        URL="$SOURCEFORGE_URL"
-# /lib and /lib64 reserved for ELFs required for booting box
-# not necessarily ELFs required for login and authentication.
-       REQ=( ""
-             "cracklib-words:::the recommended English word list" )
+       REQ=( '' 'cracklib-words:::the recommended English word list' )
   ESTIMATE='430'
-      DESC="cracklib is a password checking library
+      DESC='cracklib is a password checking library
 This is a next generation version of libcrack password checking library.
 Cracklib is a library containing C functions
 which may be used in a passwd-like program.
 The idea is simple: try to prevent users from
 choosing passwords that could be guessed by
-crack by filtering them out, at source."
+crack by filtering them out, at source.'
 
-build() {
-  LIBDIR="/usr/lib"
-  case  $MACHTYPE  in
-    x86_64*)  LIBDIR+="64"  ;;
-  esac
+build(){
+ LIBDIR=/lib
+ case $MACHTYPE in
+  x86_64*) LIBDIR+=64 ;;
+ esac
 
-  LIB_DICT=$LIBDIR/cracklib
-  OPTS+=" --with-default-dict=$LIB_DICT/pw_dict --libdir=$LIBDIR"
+ LIB_DICT=$LIBDIR/cracklib
+ OPTS+=" --with-default-dict=$LIB_DICT/pw_dict --libdir=$LIBDIR"
 
- words_install() {
-   install -v -m 0755 -d $LIB_DICT
-   install -v -m 0644 -D dicts/cracklib-small  \
-                         /usr/share/dict/cracklib-small
-   hostname  >>          /usr/share/dict/cracklib-extra-words
-   create-cracklib-dict  /usr/share/dict/*		
+ words_install(){
+  install -vm 755 -d $LIB_DICT
+  install -vm 644 -D dicts/cracklib-small \
+                     /usr/share/dict/cracklib-small
+   hostname >>       /usr/share/dict/cracklib-extra-words
+   create-cracklib-dict /usr/share/dict/*		
  }
 
-  default_build  &&
-  words_install
+ default_build &&
+ words_install
 }
