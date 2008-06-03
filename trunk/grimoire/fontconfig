@@ -1,13 +1,9 @@
-   VERSION=( 2.5.0 2.4.2 2.4.1 2.4.0 2.3.2 2.3.1 2.3.0 2.2.3 2.2.1 )
+   VERSION=( 2.6.0 2.5.0 2.4.2 2.4.1 2.4.0 )
     IGNORE='^2\.5\.9[0-9]'
   CATEGORY='font/library'
  ATTRIBUTE='library'
     SOURCE="fontconfig-$VERSION.tar.gz"
        URL='http://fontconfig.org/release/'
-case  $VERSION  in
-  2.3.2)  URL[1]="http://freetype.sourceforge.net/freetype2/patches/"
-       SOURCE[1]="fontconfig-2.3.2-noftinternals.patch"  ;;
-esac
   HOMEPAGE='http://fontconfig.org/'
        REQ='expat freetype'
       OPTS='--enable-static=no'
@@ -17,7 +13,7 @@ It contains two essential modules, the configuration module which
 builds an internal configuration from XML files and the matching module
 which accepts font patterns and returns the nearest matching font.'
 
-build(){
+build_old(){
  remove_x11_fc(){
   rm -rf /usr/X11R6/include/fontconfig
   rm -f  /usr/X11R6/bin/fc-list        \
@@ -26,10 +22,6 @@ build(){
          /usr/X11R6/lib/pkgconfig/fontconfig.pc
   true
  }
-
- case $VERSION in
-  2.3.2) patch -p1 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/} ;;
- esac
 
  ./configure          \
  --build=$BUILD       \
