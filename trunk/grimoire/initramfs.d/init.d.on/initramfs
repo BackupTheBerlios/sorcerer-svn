@@ -19,14 +19,6 @@ NAME=initramfs
 T='	'
 
 update_lilo(){
- lm(){
-  grep -q    large-memory  $1 ||
-  sed  -i '1ilarge-memory' $1
- }
-
- lm /etc/lilo.conf.head
- lm /etc/lilo.conf
-
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h/initrf\t%h/linux\n' |
  while read IRF IMG; do
   grep -q "$IRF" /etc/lilo.conf ||
@@ -34,43 +26,24 @@ update_lilo(){
  done
 }
 
-gcpio(){
- INC="\,/lib/modules/$1$,p
-      \,/lib/modules/$1/,p"
- OUT='\,^/lib/modules/,d'
- OLD="/boot/$1/initrf"
- NEW="/tmp/initrf.$$$RANDOM.new"
- OPS='-o -H newc --quiet'
+run_lilo(){ sync; /sbin/lilo -P ignore; }
 
- fail(){ rm -f $NEW; return 1; }
-
- echo -n > $NEW
- chmod 600 $NEW
-
- sed "$INC;$OUT" |
- if ! cpio $OPS;      then fail; fi |
- if ! $GZIP > $NEW;   then fail; fi
- if ! [ -s    $NEW ]; then fail; fi
-
- rm -f   $OLD
- mv $NEW $OLD
+mkinitrf(){
+ cat $COMMON
+ if   [ -d /boot/isolinux ]
+ then find /lib/modules/$1 | cpio -o -H newc --quiet | gzip -1
+ else find /lib/modules/$1 | cpio -o -H newc --quiet
+ fi
 }
 
-run_lilo(){ sync; /sbin/lilo -P ignore; }
-mkinitrf(){ echo "$EVERY" | gcpio "$1"; }
-
 every(){
- local KBD L64 MED=1i/media
+ local KBD L64
 
  exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
  if [ -d /usr/share/kbd ]; then
      KBD=/usr/share/kbd
  fi
-
- for      DIR in /media/*
- do [ -d $DIR ] && MED+="$LF1i$DIR"
- done
 
  if [ -d /lib64 ]; then L64=/lib64; fi
 
@@ -108,43 +81,46 @@ every(){
 \,^/etc/xdg/,d
 \,^/etc/bootblaze,d
 \,^/etc/xml,d
+\,^/lib/modules/,d
 \,^/lib.*\.la$,d
 \,^/lib.*lib.*\.a$,d
 \,^/bin/7zCon.sfx$,d
 \,^/bin/bashbug$,d
-\,^/sbin/evmsgui$,d
 \,^/sbin/mount.ecryptfs$,d
 \,^/sbin/mount.smbfs$,d
 \,^/sbin/sln$,d
 1i/init
 1i/proc
-1i/selinux
 1i/sys
 1i/tmp
 1i/usr
-1i/usr/lib
 1i/usr/share
-1i/usr/share/kbd
 1i/usr/share/terminfo
 1i/usr/share/terminfo/l
-1i/usr/share/terminfo/l/linux
-$MED" | exists
+1i/usr/share/terminfo/l/linux" | exists
 }
 
 initrf_update(){
- rm -f /boot/initrf.gz /boot/*/initrf.gz
- grep    'initrf\.gz'   /etc/lilo.conf &&
- sed -i '/initrf\.gz/d' /etc/lilo.conf
+ local      COMMON="/tmp/initrf.common.$$$RANDOM.new"
+ echo -n > $COMMON
+ chmod 600 $COMMON
 
- [     -d      /media/root ] ||
- mkdir -pm 755 /media/root
-
- EVERY="$( every )"
+ if   [ -d /boot/isolinux ]
+ then every | cpio -o -H newc --quiet | gzip -9 > $COMMON
+ else every | cpio -o -H newc --quiet           > $COMMON
+ fi
 
  update_lilo
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- cut -d / -f3 | while read; do mkinitrf $REPLY; done
+ cut -d / -f3 |
+ while read; do
+  echo -n         > /boot/$REPLY/initrf
+  chmod 600         /boot/$REPLY/initrf
+  mkinitrf $REPLY > /boot/$REPLY/initrf
+ done
+
+ rm -f $COMMON
 
  run_lilo
 }
@@ -165,24 +141,19 @@ initrf_current(){
  FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
  FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
 
- [ -f /etc/evms.conf  ] && FILES+=' /etc/evms.conf'
  [ -f /etc/exports    ] && FILES+=' /etc/exports'
  [ -f /etc/mdadm.conf ] && FILES+=' /etc/mdadm.conf'
-
- OMIT='\,/etc/init.d/log,d'
 
  IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | sort -g | head -n1 | cut -f2 )
  if [ -z "$IRF" ]; then return 1; fi
  OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
  if [ -n "$OLD" ]; then
   echo   "$OLD" > $IRFL
-  touch /boot/writeable 2>/dev/null &&
-  rm -f /boot/writeable             &&
   return 1
-  return 0
  else rm -f $IRFL
  fi
 }
+
 
 begin(){
  if   initrf_present &&
@@ -198,7 +169,10 @@ begin(){
 }
 
 main(){
- [ -d /boot ] || return
+ if ! [ -d /boot ] ||
+      [ -n "$( find /boot -maxdepth 0 -empty )" ]
+ then return
+ fi
  log_warning_msg "$NAME checking"; begin "$1"
  log_success_msg "$NAME checked"
 }

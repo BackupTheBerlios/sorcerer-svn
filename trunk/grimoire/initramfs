@@ -1,25 +1,17 @@
 # intiramfs spell is for the Sorcerer distribution only
 # Copyright 2007 2008 by Kyle Sallee, all rights reserved.
 
-   VERSION=( 20080603 )
+   VERSION=( 20080606 )
   CATEGORY='administration/bootloader'
  ATTRIBUTE='archive_off console solo'
-       REQ=( 'coreutils cpio findutils grep init-scripts module-init-tools sed udev util-linux'
-             'gzip:gzip::gzip compress initramfs images to save disk space' )
+       REQ=( 'coreutils cpio findutils grep init-scripts module-init-tools sed udev util-linux' )
   ESTIMATE='2'
       DESC='initramfs provides an initramfs for use during booting
 An initramfs is essential for booting boxes with a modular kernel
-that does not have the required filesystem and hardware drivers
-required to mount the root filesystem compiled into the kernel.'
+that does not have the filesystem and hardware drivers
+compiled into the kernel that are required to mount the root filesystem.'
 
 build(){
- if   echo $OPTS | grep -q gzip
- then GZIP="s/GZIP=.*/GZIP='gzip -9'/"
- else GZIP="s/GZIP=.*/GZIP=cat/"
- fi
-
- sed -i "$GZIP" $SCRIPT_DIR/init.d.on/initramfs
-
  prepare_install &&
  install -vm 700 $SCRIPT_DIR/init /init &&
  ln      -vsf /etc/init.d/initramfs /sbin/mkinitrd &&
@@ -34,7 +26,7 @@ post_install(){
 pre_remove(){
  if [ -z "$UPGRADING" ]; then
   rm  -f /boot/*/initrf.gz /init
-  sed -i       "/initrd/d;/large-memory/d" /etc/lilo.conf{,.head}
+  sed -i       "/initrd/d" /etc/lilo.conf
   update_etc_lilo_conf
  fi
  default_pre_remove
