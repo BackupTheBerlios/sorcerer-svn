@@ -48,6 +48,11 @@ conf_install(){
  if ! [ -f /etc/modules.rm ]; then cp -av $SCRIPT_DIR/modules.rm /etc; fi
 }
 
+wrap_install(){
+ install -m 700 $SCRIPT_DIR/modprobe /usr/sbin
+ install -m 700 $SCRIPT_DIR/rmmod    /usr/sbin
+}
+
 sed -i 's:-Wl,-Bdynamic::
         s:-Wl,-Bstatic:-L/lib -L/lib64:' configure{.in,}
 sed -i 's:insmod.static$(EXEEXT)::'      Makefile.in
@@ -63,7 +68,8 @@ $OPTS                &&
 make                 &&
 prepare_install      &&
 make    install      &&
-   conf_install
+   conf_install      &&
+   wrap_install
 }
 
 current(){

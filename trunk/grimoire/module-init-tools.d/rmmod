@@ -1,0 +1,12 @@
+#!/bin/bash
+
+if /sbin/rmmod "$@" &&
+   (( $# == 1 )) &&
+   ! grep -qx "$1" /etc/modules.rm
+then
+ read -n 1 -p "Also unload $1 during boot? [y|N]: "
+ case $REPLY in
+  y|Y) echo "$1" >> /etc/modules.rm ;;
+ esac
+fi
+
