@@ -1,0 +1,30 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Provides: config.gz
+# Should-Start: proc
+# Default-Start: 1 2 3 4 5
+# Short-Description: config.gz chmod 600 /proc/config.gz
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=/proc/config.gz
+
+start(){
+ run(){ chmod 600 $NAME; }
+
+ [ -f $NAME ] || return
+ if   log_warning_msg "$NAME changing mode to 600"; run
+ then log_success_msg "$NAME mode changed"; modify
+ else log_failure_msg "$NAME mode not changed"
+ fi
+}
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $1 in
+start) start ;;
+try-restart) ;;
+*) help ;;
+esac
