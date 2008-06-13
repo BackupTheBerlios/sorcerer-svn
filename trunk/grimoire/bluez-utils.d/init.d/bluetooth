@@ -10,103 +10,52 @@
 # Description: load bluetooth drivers
 ### END INIT INFO
 
-#
-#  Create Bluetooth devices in /dev
-#
-
-VHCI_MAJOR=10
-VHCI_MINOR=250
-
-RFCOMM_MAJOR=216
-
-create_devices() {
-#
-# Create device for VHCI
-#
-if [ ! -c /dev/vhci ]; then
-        mknod /dev/vhci c ${VHCI_MAJOR} ${VHCI_MINOR}
-        chmod 664 /dev/vhci
-fi
-
-#
-# Create devices for RFCOMM
-#
-for i in `seq 0 255`
-do
-        if [ ! -c /dev/rfcomm$i ]; then
-                mknod -m 666 /dev/rfcomm$i c ${RFCOMM_MAJOR} $i
-        fi
-done
-}
-
 set -e
 
 PATH=/sbin:/bin:/usr/sbin:/usr/bin
 DESC="Bluetooth subsystem"
 
 HCID_NAME=hcid
-SDPD_NAME=sdpd
-HIDD_NAME=hidd
 HID2HCI_NAME=hid2hci
-RFCOMM_NAME=rfcomm
 PAND_NAME=pand
 DUND_NAME=dund
 
 HCID_EXEC="`which $HCID_NAME || true`"
-SDPD_EXEC="`which $SDPD_NAME || true`"
-HIDD_EXEC="`which $HIDD_NAME || true`"
 HID2HCI_EXEC="`which $HID2HCI_NAME || true`"
-RFCOMM_EXEC="`which $RFCOMM_NAME || true`"
 PAND_EXEC="`which $PAND_NAME || true`"
 DUND_EXEC="`which $DUND_NAME || true`"
 
 HCID_ENABLE=true
-SDPD_ENABLE=true
-HIDD_ENABLE=false
 HID2HCI_ENABLE=true
-RFCOMM_ENABLE=true
 DUND_ENABLE=false
 PAND_ENABLE=false
 
 HCID_CONFIG="/etc/bluetooth/hcid.conf"
-RFCOMM_CONFIG="/etc/bluetooth/rfcomm.conf"
 
-HIDD_OPTIONS=""
-DUND_OPTIONS=""
-PAND_OPTIONS=""
+#DUND_OPTIONS="--search --persist"
+#PAND_OPTIONS="--listen --role NAP"
+#PAND_OPTIONS="--search --cache --persist"
 
 [ -e /etc/default/bluetooth ] && . /etc/default/bluetooth
 
 status(){
  echo "$HCID_NAME status:"  ;  hcitool con
- echo "$SDPD_NAME status:"  ;  sdptool browse local
- echo "$HIDD_NAME status:"  ;  hidd --show
- echo "$RFCOMM_NAME status:";  rfcomm -a
+ echo "SDP status:"         ;  sdptool browse local
+ echo "HID status:"         ;  hidd --show
+ echo "RFCOMM status:"      ;  rfcomm -a
  echo "$DUND_NAME status:"  ;  dund --show
  echo "$PAND_NAME status:"  ;  pand --show
 }
 
 start(){
  echo -n "Starting $DESC:"
- if $HCID_ENABLE && [ -x "$HCID_EXEC" -a -f "$HCID_CONFIG" ] ; then
-	$HCID_EXEC -f $HCID_CONFIG
-	echo -n " $HCID_NAME"
- fi
- if $SDPD_ENABLE && [ -x "$SDPD_EXEC" ] ; then
- 	$SDPD_EXEC
-	echo -n " $SDPD_NAME"
- fi
- if $HIDD_ENABLE && [ -x "$HIDD_EXEC" ] ; then
-	$HIDD_EXEC $HIDD_OPTIONS --server || true
-	echo -n " $HIDD_NAME"
- fi
  if $HID2HCI_ENABLE && [ -x "$HID2HCI_EXEC" ] ; then
-	$HID2HCI_EXEC --tohci > /dev/null 2>&1 || true
+	$HID2HCI_EXEC --tohci > /dev/null 2>&1 || :
 	echo -n " $HID2HCI_NAME"
  fi
- if $RFCOMM_ENABLE && [ -x "$RFCOMM_EXEC" -a -f "$RFCOMM_CONFIG" ] ; then
-	$RFCOMM_EXEC -f $RFCOMM_CONFIG bind all || true
- 	echo -n " $RFCOMM_NAME"
+ if $HCID_ENABLE && [ -x "$HCID_EXEC" -a -f "$HCID_CONFIG" ] ; then
+	$HCID_EXEC -s -f $HCID_CONFIG
+	echo -n " $HCID_NAME"
  fi
  if $DUND_ENABLE && [ -x "$DUND_EXEC" -a -n "$DUND_OPTIONS" ] ; then
 	$DUND_EXEC $DUND_OPTIONS
@@ -122,18 +71,12 @@ start(){
 
 stop(){
  echo -n "Stopping $DESC:"
+ $PAND_EXEC -K
  killall $PAND_NAME > /dev/null 2>&1 || true
  echo -n " $PAND_NAME"
+ $DUND_EXEC -K
  killall $DUND_NAME > /dev/null 2>&1 || true
  echo -n " $DUND_NAME"
- if [ -x "$RFCOMM_EXEC" ] ; then
-	$RFCOMM_EXEC release all > /dev/null 2>&1 || true
- 	echo -n " $RFCOMM_NAME"
- fi
- killall $HIDD_NAME > /dev/null 2>&1 || true
- echo -n " $HIDD_NAME"
- killall $SDPD_NAME > /dev/null 2>&1 || true
- echo -n " $SDPD_NAME"
  killall $HCID_NAME > /dev/null 2>&1 || true
  echo -n " $HCID_NAME"
  echo "."
