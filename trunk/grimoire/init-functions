@@ -1,7 +1,7 @@
 # LSB-compliant init.d scripts for use with the distribution sorcerer only!
 # Copyright Kyle Sallee 2005, 2006, 2007, 2008.  All rights reserved.
 
-   VERSION=( 3.1.0-20080611 )
+   VERSION=( 3.1.0-20080616 )
   CATEGORY='administration/boot'
  ATTRIBUTE='archive_off console solo'
   HOMEPAGE='http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html'
@@ -15,9 +15,16 @@ $HOMEPAGE"
 
 build(){
  prepare_install
- mkdir   -vp                                 /lib/lsb
- install -vm 0644 $SCRIPT_DIR/init-functions /lib/lsb
- install -vm 0755 $SCRIPT_DIR/initd          /lib/lsb/install_initd
- ln      -vf /lib/lsb/install_initd          /lib/lsb/remove_initd
- ln      -vs ../../lib/lsb               /usr/lib/lsb
+ mkdir   -vp                                /lib/lsb
+ install -vm 644 $SCRIPT_DIR/init-functions /lib/lsb
+ install -vm 755 $SCRIPT_DIR/initd          /lib/lsb/install_initd
+ ln      -vf /lib/lsb/install_initd         /lib/lsb/remove_initd
+ ln      -vs ../../lib/lsb              /usr/lib/lsb
+}
+
+post_install(){
+ default_post_install
+# Due to a sorcery bug prior to implosion-20080616-1
+# Must explicitly execute:
+ /etc/init.d/rc.d
 }
