@@ -21,11 +21,13 @@ inherit kde-v4
              'xine-lib:::for phonon audio backend' )
      WMBIN='/opt/kde4/bin/startkde'
   ESTIMATE='36000'
- CONFLICTS='kdebase-workspace'
       DESC='kdebase-workspace-v4 provides plasma and the window manager.'
 
-current(){
-case $VERSION in
- 4.0.0) grep -q 'PIDF=/var/run/kdm.pid' /etc/init.d/kdm-v4 ;;
-esac
+# To generate a default configuration not imported from any others
+# genkdmconf --no-old --no-backup
+
+build(){
+ kde_build &&
+ mv /etc/kde4.config/kdm/kdmrc \
+    /etc/kde4.config/kdm/kdmrc.sample
 }

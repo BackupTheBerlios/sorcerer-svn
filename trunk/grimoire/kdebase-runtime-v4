@@ -8,5 +8,21 @@ inherit kde-v4
              'xine-lib:::to build the multimedia backend' )
  FRESHMEAT='kde'
   ESTIMATE='20000'
- CONFLICTS='kdebase-runtime'
       DESC='kdebase-runtime-v4 contains icons and files required by kde applications.'
+
+build(){
+ kde_build &&
+ case $VERSION in
+  4.0.5) rm -f /opt/kde4/lib/kde4/plugins/styles/oxygen.so ;;
+ esac
+}
+
+# This fix eventually causes sorcery-md5sum to fail kdebase-runtime-v4
+# and re-cast it.
+current(){
+ case $VERSION in
+  4.0.5) if   [  -f /opt/kde4/lib/kde4/plugins/styles/oxygen.so ]
+         then rm -f /opt/kde4/lib/kde4/plugins/styles/oxygen.so
+         fi ;;
+ esac
+}
