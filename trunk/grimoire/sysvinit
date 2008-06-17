@@ -53,15 +53,10 @@ configure(){
   BACKTITLE='sysvinit Configuration'
       TITLE='Character Device Selection Menu'
 
-  dialog --backtitle "$BACKTITLE"   \
-         --title     "$TITLE"       \
-         --stdout                   \
-         --timeout  "$PROMPT_DELAY" \
-         --default-item "$2"        \
-         --no-cancel                \
-         --menu  "$1"               \
-         0 0 0                      \
-         $( char_dev_menu )
+  dialog \
+   --stdout --title "$TITLE" --timeout "$PROMPT_DELAY" \
+   --backtitle "$BACKTITLE" --default-item "$2" \
+   --no-cancel --menu  "$1" 0 0 0 $( char_dev_menu )
  }
 
  if ! grep -qs SI_DEV= $SPELL_CONFIG ||
@@ -80,20 +75,18 @@ configure(){
 
 build(){
  install_init(){
-  mkdir   -vp                              /etc/init.d
-  install -vm 0600 $SCRIPT_DIR/inittab     /etc
-  install -vm 0700 $SCRIPT_DIR/0_No_Modification \
-                                           /etc/init.d
-  install -vm 0700 $SCRIPT_DIR/prc         /etc/init.d
-  install -vm 0700 $SCRIPT_DIR/rcS         /etc/init.d
-  sed     -i       "s:ulimit :# ulimit :" \
-                   src/initscript.sample
-  install -vm 0700 src/initscript.sample   /etc
-  install -vm 0755 -d                      /etc/init.d/log.d
-  install -vm 0755 -d                      /etc/init.d/dev.d
-  rm      -f                               /etc/init.d/dev.d/{si,rl}
-  cp      -afv     ${SI_DEV:-/dev/console} /etc/init.d/dev.d/si
-  cp      -afv     ${RL_DEV:-/dev/console} /etc/init.d/dev.d/rl
+  mkdir   -vp                             /etc/init.d
+  install -vm 600 $SCRIPT_DIR/inittab     /etc
+  install -vm 700 $SCRIPT_DIR/prc         /etc/init.d
+  install -vm 700 $SCRIPT_DIR/rcS         /etc/init.d
+  sed     -i      "s:ulimit :# ulimit :" \
+                  src/initscript.sample
+  install -vm 700 src/initscript.sample   /etc
+  install -vm 755 -d                      /etc/init.d/log.d
+  install -vm 755 -d                      /etc/init.d/dev.d
+  rm      -f                              /etc/init.d/dev.d/{si,rl}
+  cp      -afv    ${SI_DEV:-/dev/console} /etc/init.d/dev.d/si
+  cp      -afv    ${RL_DEV:-/dev/console} /etc/init.d/dev.d/rl
   if   [  -d  /etc/init.d/log ]
   then umount /etc/init.d/log
        rm -rf /etc/init.d/log
