@@ -100,17 +100,19 @@ post_install(){
 
  move_ldd_logs(){
   [ -d /etc/sorcery/log/elf ] && return
-  mv           /etc/sorcery/log/ldd /etc/sorcery/log/elf
-  grep  -lr  '^/etc/sorcery/log/ldd' $INSTALL_LOGS | xargs -r --max-lines=2048 \
-  sed   -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
+  mv          /etc/sorcery/log/ldd /etc/sorcery/log/elf
+  grep -lr  '^/etc/sorcery/log/ldd' $INSTALL_LOGS | xargs -r --max-lines=2048 \
+  sed  -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
  }
 
+ remove_old_logs(){ rm -fr /etc/sorcery/log/{boot,xinetd}.{on,off}; }
 
- [  -f  $PROVIDE_LOGS/poppler ] &&
- rm -f  $PROVIDE_LOGS/poppler
+ [  -f $PROVIDE_LOGS/poppler ] &&
+ rm -f $PROVIDE_LOGS/poppler
  chmod 700 ${LOG_DIR:-/etc/sorcery/log} /etc/init.d
  #missing_init_script
  missing_la_logs
  move_ldd_logs
+ remove_old_logs
  default_post_install
 }
