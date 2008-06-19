@@ -11,7 +11,6 @@ run(){
 }
 
 md(){ [ -d $1 ] || mkdir -p $1; }
-mn(){ [ -c $1 ] || mknod $1 c 5 1; }
 
 I=/etc/init.d
 L=$I/log.d
@@ -21,7 +20,6 @@ D=$I/dev.d
 
 md $L
 md $D
-mn $D/si
-mn $D/rl
 mount -o size=1m,nr_inodes=8 -t tmpfs tmpfs $L
-run 2>&1 | tee $L/sysinit > $D/si
+run 2>&1 |
+if [ -c $D/si ]; then tee $L/sysinit > $D/si; else tee $L/sysinit; fi

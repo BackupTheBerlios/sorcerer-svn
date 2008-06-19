@@ -1,8 +1,8 @@
 #!/bin/bash
 ### BEGIN INIT INFO
 # Provides: rc.d
-# Required-Stop: $local_fs udev
-# Should-Stop: initramfs
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
 # Default-Stop: 0 6
 # Short-Description: rc.d updates symbolic links in /etc/rc.d
 ### END INIT INFO
