@@ -1,18 +1,48 @@
-    VERSION=( 2.0.0.14 2.0.0.13 2.0.0.12 )
-       SAFE=( 2.0.0.14 2.0.0.13 )
+    VERSION=( 3.0 2.0.0.14 2.0.0.13 )
+       SAFE=( 3.0 2.0.0.14 2.0.0.13 )
   CATEGORY='network/web'
  ATTRIBUTE='client solo x11'
     SOURCE="firefox-${VERSION}-source.tar.bz2"
        URL="ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/"
   HOMEPAGE='http://www.mozilla.org/products/firefox/'
-       REQ=( 'gss gtk+ heimdal libIDL libmng zip' )
+       REQ=( 'gss gtk+ heimdal libIDL libmng startup-notification zip'
+             'gnome-vfs::--disable-gnomevfs: for gnomevfs support'
+             'libgnomeui::--disable-gnomeui:for libgnomeui support' )
+      OPTS='--with-system-jpeg
+            --with-system-zlib
+            --with-system-bz2
+            --enable-startup-notification
+            --disable-static
+            --enable-system-cairo
+            --enable-system-lcms
+            --enable-application=browser'
+
+           #--with-system-png
+           #--enable-cpp-rtti
 #            'jdk:::for building the javaXPCOM components' )
 # compilation with javaXPCOM component support is not working
   EPROVIDE='mozilla'
-  ESTIMATE='80000'
+  ESTIMATE='95000'
       DESC='firefox is a new UI to gecko the mozilla HTML rendering engine.'
 
 build(){
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --enable-optimize="$CFLAGS" \
+ $OPTS                &&
+ make                 &&
+ prepare_install      &&
+ make    install      &&
+ rm -fr                   /usr/lib/mozilla &&
+ ln -fs  firefox-$VERSION /usr/lib/mozilla
+}
+
+
+
+build_old(){
  check_space(){
   KILOBYTES=$(
     df   -Pkm  $SOURCE_DIR |
