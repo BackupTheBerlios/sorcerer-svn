@@ -1,0 +1,25 @@
+# Email inquiries about this spell to Evert Vorster evorster@gmail.com
+   VERSION=( 0.0.20080523 )
+  CATEGORY='video/editor'
+ ATTRIBUTE='x11'
+    SOURCE="openmovieeditor/openmovieeditor-$VERSION.tar.gz"
+       URL=$SOURCEFORGE_URL
+  HOMEPAGE='http://openmovieeditor.sourceforge.net'
+#      REQ='ffmpeg fltk gavl libquicktime libsamplerate libsndfile libtheora libvorbis pa_snapshot_v19 zlib'
+# Does it use those other libraries above?
+# If so why not ELF link with them?
+       REQ=( 'fltk gavl libquicktime'
+             'jackit:::for audio output through jack audio mixer' )
+  ESTIMATE='2000'
+      DESC='openvovieeditor is a free and open source video editing program.'
+
+build(){
+ case $VERSION in
+   0.0.20080523)
+    grep -rl   ffmpeg/avcodec.h *  | xargs -r --max-lines=64 \
+    sed  -i 's:ffmpeg/avcodec.h:libavcodec/avcodec.h:'
+    grep -rl   ffmpeg/avformat.h * | xargs -r --max-lines=64 \
+    sed  -i 's:ffmpeg/avformat.h:libavformat/avformat.h:';;
+ esac
+ default_build
+}
