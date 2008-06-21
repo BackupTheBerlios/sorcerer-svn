@@ -14,11 +14,19 @@
 
 . /lib/lsb/init-functions
 
-#PIDF=/var/run/httpd.pid
+PIDF=/var/run/httpd.pid
 SERV=/usr/sbin/apachectl
 CONF=/etc/httpd/conf/httpd.conf
 NAME=httpd
 OPTS=start
+
+status()  {
+ PIDS="$( pidofproc -p $PIDF $NAME )"
+ if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+ elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+                      else log_warning_msg "$NAME is not running"; return 3
+ fi
+}
 
 start(){
  log_warning_msg  "$NAME starting"
