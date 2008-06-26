@@ -1,0 +1,45 @@
+--- dlls/dinput/mouse.c.orig	2008-05-11 18:53:05.000000000 +0300
++++ dlls/dinput/mouse.c	2008-05-11 23:09:16.000000000 +0300
+@@ -24,6 +24,7 @@
+ 
+ #include <stdarg.h>
+ #include <string.h>
++#include <stdlib.h>
+ 
+ #include "windef.h"
+ #include "winbase.h"
+@@ -63,6 +64,7 @@
+      * reach window borders (for e.g. shooters, "surface movement" games) */
+     BOOL                            need_warp;
+     DWORD                           last_warped;
++    BOOL                            force_warp;
+ 
+     /* This is for mouse reporting. */
+     DIMOUSESTATE2                   m_state;
+@@ -186,6 +188,9 @@
+     newDevice->base.dinput = dinput;
+     newDevice->base.event_proc = dinput_mouse_hook;
+ 
++    /* Check if forece warping is needed */
++    newDevice->force_warp = (getenv("WINEFORCEMOUSEWARP") == NULL) ? FALSE : TRUE;
++
+     /* Create copy of default data format */
+     if (!(df = HeapAlloc(GetProcessHeap(), 0, c_dfDIMouse2.dwSize))) goto failed;
+     memcpy(df, &c_dfDIMouse2, c_dfDIMouse2.dwSize);
+@@ -305,8 +310,14 @@
+                 inst_id = DIDFT_MAKEINSTANCE(WINE_MOUSE_Y_AXIS_INSTANCE) | DIDFT_RELAXIS;
+                 wdata = pt1.y;
+             }
+-
+-            This->need_warp = (pt.x || pt.y) && dwCoop & DISCL_EXCLUSIVE;
++            if (!This->force_warp)
++            {
++                This->need_warp = (pt.x || pt.y) && dwCoop & DISCL_EXCLUSIVE;
++            }
++            else
++            {
++                This->need_warp = (hook->pt.x<2 || hook->pt.y<2 || hook->pt.x>((2 * This->win_centerX)-2) || hook->pt.y>((2 * This->win_centerY)-2) );
++            }
+             break;
+         }
+         case WM_MOUSEWHEEL:

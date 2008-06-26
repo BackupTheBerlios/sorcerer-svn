@@ -47,7 +47,7 @@ pidofproc(){
   fi
  fi
 
- if    [  -n  "$PIDF" ]; then
+ if    [  -s  "$PIDF" ]; then
   if   locked "$PIDF" "$BASE"
   then read <  $PIDF; echo $REPLY
   else false
@@ -89,41 +89,39 @@ killproc(){
 }
 
 start_daemon(){
- local FORC NICE PIDF BASE PIDS BACK
+ run(){
+  if   [ -n "$BACK" ]
+  then "$@" & sleep .1; echo $! > $PIDF
+  else "$@"
+  fi
+ }
+
+ local BACK BASE FORC LOGF PIDF
 
  while
   case $1 in
-   -f) FORC=on ;;
-   -n) NICE=$2; shift 1 ;;
-   -p) PIDF=$2; shift 1 ;;
-   -b) BACK=on ;;
+   -p) PIDF=$2; shift ;;
+   -l) LOGF=$2; shift ;;
+   -n) renice $2 $$; shift ;;
+   -b) BACK=1 ;;
+   -f) FORC=1 ;;
     *) break ;;
   esac
- do shift 1
+ do shift
  done
 
  BASE=${1##*/}
- PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
- if   [ -z "$PIDS" ] ||
-      [ -n "$FORC" ]
- then
-   if     [    -z "$PIDF" ] ||
-          [    -z "$BACK" ]; then
-     if   [    -n "$NICE" ]
-     then nice -n "$NICE" "$@"
-     else "$@"
-     fi
-   else (
-     if   [    -n "$NICE" ]
-     then nice -n "$NICE" "$@" &
-     else "$@" &
-     fi
-     sleep 1; echo $! > $PIDF
-     ) &
-   fi
- else false
+ if [ -n "$BACK" ]; then
+  LOGF="${LOGF:-/var/log/$BASE}"
+  PIDF="${PIDF:-/var/run/$BASE.pid}"
  fi
+
+ if   pidofproc -p "$PIDF" "$1" &>/dev/null
+ then [ -n "$FORC" ] || return 1
+ fi
+
+ if [ -n "$LOGF" ]; then run "$@" &> "$LOGF"; else run "$@";  fi
 }
 
 
@@ -215,7 +213,7 @@ start(){
   elif miss
   then log_warning_msg "$NAME not started"
        log_warning_msg "$NAME missing $SERV"
-  elif log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" "$SERV" $OPTS
+  elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
   then log_success_msg "$NAME started"
   else log_failure_msg "$NAME not started"; status
   fi
