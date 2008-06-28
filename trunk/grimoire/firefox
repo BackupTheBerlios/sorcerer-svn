@@ -26,6 +26,8 @@
       DESC='firefox is a new UI to gecko the mozilla HTML rendering engine.'
 
 build(){
+ export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+
  ./configure          \
  --build=$BUILD       \
  --prefix=/usr        \
@@ -192,9 +194,11 @@ EOF
 # fi
 
 
- export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
- grep  -rl            "\-Wl,-soname" * |
- xargs --max-lines=64 sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
+export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+grep  -rl            "\-Wl,-soname" * |
+xargs --max-lines=64 sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
+
+#sed -i "s:-Wl,-s:-Wl,-s,-rpath,/usr/lib/firefox-$VERSION" configure{,.in}
 
  check_space                  &&
  # ./configure  $OPTS         &&
