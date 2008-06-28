@@ -1,4 +1,4 @@
-   VERSION=( 20080121-0 )
+   VERSION=( 20080628 )
   CATEGORY='utility'
  ATTRIBUTE='archive_off library solo'
   HOMEPAGE='http://sorcerer.silverice.org/'
@@ -17,16 +17,7 @@ build(){
  gcc $CFLAGS -D_GNU_SOURCE -DPIC -fPIC -D_REENTRANT \
      $LDFLAGS -lc -ldl -shared -nostartfiles \
      -o sentinel $SCRIPT_DIR/sentinel.c &&
- prepare_install  &&  export    LD_PRELOAD=$PWD/sentinel &&
- mkdir  -pvm 0755          /usr/libexec/sorcery &&
- install -vm 0755 sentinel /usr/libexec/sorcery/sentinel-$HOSTTYPE
-}
-
-post_install(){
- default_post_install &&
- cd /usr/libexec/sorcery &&
- if ! cmp -s sentinel{-$HOSTTYPE,}; then
-  rm      -f sentinel
-  cp      -v sentinel{-$HOSTTYPE,}
- fi
+ prepare_install && export     LD_PRELOAD=$PWD/sentinel &&
+ mkdir  -pvm 755          /usr/libexec/sorcery &&
+ install -vm 755 sentinel /usr/libexec/sorcery/sentinel
 }
