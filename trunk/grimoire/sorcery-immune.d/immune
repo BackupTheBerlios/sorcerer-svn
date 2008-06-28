@@ -42,19 +42,19 @@ restore_lib(){
  local LD_LIBRARY_PATH
 
  if [ -d /lib64 ]; then
-  export  LD_LIBRARY_PATH=/lib64.old
-  /lib64.old/ld-[0-9]*.so /bin/rm -rf                   /lib64.broke
-  /lib64.old/ld-[0-9]*.so /bin/mv                /lib64 /lib64.broke
-  /lib64.old/ld-[0-9]*.so /bin/cp -a  /lib64.old /lib64
+  export  LD_LIBRARY_PATH=/lib64.sav
+  /lib64.sav/ld-[0-9]*.so /bin/rm -rf                   /lib64.bad
+  /lib64.sav/ld-[0-9]*.so /bin/mv                /lib64 /lib64.bad
+  /lib64.sav/ld-[0-9]*.so /bin/cp -a  /lib64.sav /lib64
  else
-  export  LD_LIBRARY_PATH=/lib.old
-  /lib.old/ld-[0-9]*.so /bin/rm -rf              /lib.broke
-  /lib.old/ld-[0-9]*.so /bin/mv             /lib /lib.broke
-  /lib.old/ld-[0-9]*.so /bin/cp -a /lib.old /lib
+  export  LD_LIBRARY_PATH=/lib.sav
+  /lib.sav/ld-[0-9]*.so /bin/rm -rf              /lib.bad
+  /lib.sav/ld-[0-9]*.so /bin/mv             /lib /lib.bad
+  /lib.sav/ld-[0-9]*.so /bin/cp -a /lib.sav /lib
  fi
  logger -p syslog.crit -s -t immune -- $"Critical library failure detected!"
- logger -p syslog.crit -s -t immune -- $"/lib     is now /lib.broke"
- logger -p syslog.crit -s -t immune -- $"/lib.old is now /lib"
+ logger -p syslog.crit -s -t immune -- $"/lib     is now /lib.bad"
+ logger -p syslog.crit -s -t immune -- $"/lib.sav is now /lib"
  mail_immune_report  $"Immune detected and corrected critical library failure."
 }
 

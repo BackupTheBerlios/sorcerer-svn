@@ -4,17 +4,6 @@
 
 . /etc/sorcery/config
 
-prune_etc_logs(){
- ( find  ${FIND_FOLLOW_SYMBOLIC_LINKS} $ETC_LOGS \
-    -maxdepth 1 -mindepth 1 \
-    -type d -mtime +7 \
-    -printf "%P\n"
-   show_installed
-   show_installed ) | LC_ALL=C sort | uniq -u |
- sed "s:^:$ETC_LOGS/:" | xargs -r --max-lines=16 rm -fr
-}
-
-
 expire_logs(){
  if   [ -f "$EVENT_LOGS/Expire/Logs" ] &&
       find "$EVENT_LOGS/Expire/Logs" -mtime -1 | found
@@ -123,7 +112,6 @@ sqz_gz_logs &
 prune_archive_cache
 prune_ccache_cache
 prune_source_cache
-prune_etc_logs
 prune_failed_cache
 expire_logs
 wait

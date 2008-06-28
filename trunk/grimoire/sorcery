@@ -1,4 +1,4 @@
-   VERSION=( implosion-20080627-1 implosion-20080626-0 implosion-20080625-0 implosion-20080619-3 implosion-20080617-1 implosion-20080616-1 implosion-20080603-1 implosion-20080530-0 implosion-20080529-0 implosion-20080526-0 )
+   VERSION=( implosion-20080628-1 implosion-20080627-1 implosion-20080626-0 implosion-20080625-0 implosion-20080619-3 implosion-20080617-1 implosion-20080616-1 implosion-20080603-1 implosion-20080530-0 implosion-20080529-0 )
   CATEGORY='utility'
  ATTRIBUTE='archive_off solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -75,29 +75,6 @@ post_install(){
   pipe_queue $CAST_QUEUE com
  }
 
- missing_la_logs(){
-
-  la_of(){
-   sed 's/: libtool library file$//p;d' $ID_LOGS/$1 |
-   xargs -r --max-lines=2048 sed 's/#.*//' |
-   tr "'" '\n' | tr '=' '\n' | tr ' ' '\n' |
-   sed '\,^/,p;d' |
-   while read; do [ -d "$REPLY" ] || echo "$REPLY"; done |
-   sort -u
-  }
-
-  export LC_ALL=C IFS="$STANDARDS_IFS"
-  [ -d               /etc/sorcery/log/la ] ||
-  mkdir -p           /etc/sorcery/log/la
-  show_installed |
-  while read SPELL; do
-   if ! [ -f         /etc/sorcery/log/la/$SPELL ]; then
-    la_of "$SPELL" > /etc/sorcery/log/la/$SPELL
-    echo            "/etc/sorcery/log/la/$SPELL" >> $INSTALL_LOGS/$SPELL
-   fi
-  done
- }
-
  move_ldd_logs(){
   [ -d /etc/sorcery/log/elf ] && return
   mv          /etc/sorcery/log/ldd /etc/sorcery/log/elf
@@ -105,13 +82,9 @@ post_install(){
   sed  -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
  }
 
- remove_old_logs(){ rm -fr /etc/sorcery/log/{boot,xinetd}.{on,off}; }
+ remove_old_logs(){ rm -fr /etc/sorcery/log/{id,{boot,xinetd}.{on,off}}; }
 
- [  -f $PROVIDE_LOGS/poppler ] &&
- rm -f $PROVIDE_LOGS/poppler
- chmod 700 ${LOG_DIR:-/etc/sorcery/log} /etc/init.d
  #missing_init_script
- missing_la_logs
  move_ldd_logs
  remove_old_logs
  default_post_install
