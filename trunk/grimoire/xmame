@@ -1,4 +1,4 @@
-   VERSION=( 0.106 0.104 0.103 0.102 0.101 0.100 0.99 0.95 0.94 0.92 )
+   VERSION=( 0.106 0.104 0.103 0.102 )
       SAFE=( 0.106 0.104 0.103 )
   CATEGORY='game development/emulator'
  ATTRIBUTE='x11'
@@ -16,27 +16,27 @@ an arcade (coin-op) video game emulator.
 The latest stable release is capable of
 playing over 2000 arcade games.'
 
-build() {
-  case  $HOSTTYPE  in
-    i?86) sed   -i  "s:# X86_MIPS3_DRC:X86_MIPS3_DRC:
-                     s:# X86_PPC_DRC:X86_PPC_DRC:
-                     s:# X86_VOODOO_DRC:X86_VOODOO_DRC:"  Makefile
-          grep  -q  "mmx"  /proc/cpuinfo  &&
-          sed   -i  "s:# EFFECT_MMX_ASM:EFFECT_MMX_ASM:"  Makefile  ;;
-  esac
+build(){
+ case $HOSTTYPE in
+  i?86) sed  -i "s:# X86_MIPS3_DRC:X86_MIPS3_DRC:
+                 s:# X86_PPC_DRC:X86_PPC_DRC:
+                 s:# X86_VOODOO_DRC:X86_VOODOO_DRC:" Makefile
+        grep -q mmx /proc/cpuinfo &&
+        sed  -i "s:# EFFECT_MMX_ASM:EFFECT_MMX_ASM:" Makefile ;;
+ esac
 
-  sed  -i  "s:CFLAGS = -O2:CFLAGS = $CFLAGS:
-            s:PREFIX = /usr/local:PREFIX = /usr:
-            s:# JOY_STANDARD:JOY_STANDARD:
-            s:# SOUND_ALSA:SOUND_ALSA:
-            s:# X11_OPENGL:X11_OPENGL:"  Makefile
+ sed -i "s:CFLAGS = -O2:CFLAGS = $CFLAGS:
+         s:PREFIX = /usr/local:PREFIX = /usr:
+         s:# JOY_STANDARD:JOY_STANDARD:
+         s:# SOUND_ALSA:SOUND_ALSA:
+         s:# X11_OPENGL:X11_OPENGL:" Makefile
 
-  echo  "$OPTS"  |  grep  -q  sdl  &&
-  sed  -i  "s:# SOUND_SDL:SOUND_SDL:
-            s:DISPLAY_METHOD = x11:# DISPLAY_METHOD = x11:
-            s:# DISPLAY_METHOD = SDL:DISPLAY_METHOD = SDL:"  Makefile
+ echo "$OPTS" | grep -q sdl &&
+ sed -i "s:# SOUND_SDL:SOUND_SDL:
+         s:DISPLAY_METHOD = x11:# DISPLAY_METHOD = x11:
+         s:# DISPLAY_METHOD = SDL:DISPLAY_METHOD = SDL:" Makefile
 
-  make             &&
-  prepare_install  &&
-  make    install
+ make            &&
+ prepare_install &&
+ make    install
 }
