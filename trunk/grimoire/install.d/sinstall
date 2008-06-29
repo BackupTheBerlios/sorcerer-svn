@@ -361,10 +361,10 @@ get_password(){
               PDEVICE[$1]="/dev/${PDEVICE[$1]#*-}"
   fi
 
-  echo          cryptsetup luksFormat ${PDEVICE[$1]} 1>&2
-  echo "$KEY" | cryptsetup luksFormat ${PDEVICE[$1]}
-  echo          cryptsetup luksOpen   ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/} 1>&2
-  echo "$KEY" | cryptsetup luksOpen   ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/}
+  echo          cryptsetup -c aes-xts-plain -s 512 luksFormat ${PDEVICE[$1]} 1>&2
+  echo "$KEY" | cryptsetup -c aes-xts-plain -s 512 luksFormat ${PDEVICE[$1]}
+  echo          cryptsetup luksOpen ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/} 1>&2
+  echo "$KEY" | cryptsetup luksOpen ${PDEVICE[$1]} luks-${PDEVICE[$1]##*/}
   pause
  fi
 }
@@ -957,8 +957,8 @@ get_pass(){
 luks(){
  luks_format_open(){
   [ -n "$1" ] && [ -n "$2" ] || return
-  echo "$1" | cryptsetup luksFormat $2
-  echo "$1" | cryptsetup luksOpen   $2
+  echo "$1" | cryptsetup -c aes-xts-plain -s 512 luksFormat $2
+  echo "$1" | cryptsetup luksOpen $2
  }
 
  MESSAGE="\
