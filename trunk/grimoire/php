@@ -1,5 +1,5 @@
-   VERSION=( 5.2.6 5.2.5 5.2.4 )
-      SAFE=( 5.2.6 5.2.5 )
+  stable 5.2.6 5.2.5 5.2.4
+  secure 5.2.6 5.2.5
     IGNORE='Win'
   CATEGORY='development/interpreter'
  ATTRIBUTE='console x11'
@@ -108,96 +108,96 @@ php is a scripting language that is especially suited
 for Web development and can be embedded into HTML.'
 
 build()  {
-  # --with-pcre-regex=/usr        \
-  PHP_CONFIGURE="\
-  --prefix=/usr                 \
-  --sysconfdir=/etc             \
-  --with-config-file-path=/etc  \
-  --disable-static              \
-  --disable-debug               \
-  --disable-rpath               \
-  --enable-inline-optimization  \
-  --enable-pic                  \
-  --enable-bcmath               \
-  --enable-calendar		\
-  --enable-magic-quotes         \
-  --enable-track-vars           \
-  --enable-safe-mode            \
-  --enable-sysvsem              \
-  --enable-sysvshm              \
-  --enable-force-cgi-redirect   \
-  --enable-trans-sid            \
-  --enable-yp                   \
-  --enable-ftp                  \
-  --enable-wddx                 \
-  --enable-filepro              \
-  --enable-dbase                \
-  --with-versioning             \
-  --with-gettext                \
-  --with-mod_charset            \
-  --with-layout=GNU             \
-  --with-zlib                   \
-  --with-bz2                    \
-  --enable-exif                 \
-  --with-regex=system           \
-  --enable-mbstring=all         \
-  --enable-mbregex              \
-  $OPTS"
+ # --with-pcre-regex=/usr      \
+ PHP_CONFIGURE="\
+ --prefix=/usr                 \
+ --sysconfdir=/etc             \
+ --with-config-file-path=/etc  \
+ --disable-static              \
+ --disable-debug               \
+ --disable-rpath               \
+ --enable-inline-optimization  \
+ --enable-pic                  \
+ --enable-bcmath               \
+ --enable-calendar             \
+ --enable-magic-quotes         \
+ --enable-track-vars           \
+ --enable-safe-mode            \
+ --enable-sysvsem              \
+ --enable-sysvshm              \
+ --enable-force-cgi-redirect   \
+ --enable-trans-sid            \
+ --enable-yp                   \
+ --enable-ftp                  \
+ --enable-wddx                 \
+ --enable-filepro              \
+ --enable-dbase                \
+ --with-versioning             \
+ --with-gettext                \
+ --with-mod_charset            \
+ --with-layout=GNU             \
+ --with-zlib                   \
+ --with-bz2                    \
+ --enable-exif                 \
+ --with-regex=system           \
+ --enable-mbstring=all         \
+ --enable-mbregex              \
+ $OPTS"
  #  --with-regex=system           \
  #  --with-pcre-regex=/usr        \
 
 
-  ./configure  $PHP_CONFIGURE  &&
-  make                         &&
-  prepare_install              &&
-  make    install              &&
-  if    !   [  -e         /etc/php.ini  ]
-  then  cp  php.ini-dist  /etc/php.ini
-  fi
+ ./configure $PHP_CONFIGURE &&
+ make                       &&
+ prepare_install            &&
+ make    install            &&
+ if   !  [ -e         /etc/php.ini ]
+ then cp php.ini-dist /etc/php.ini
+ fi
 }
 
-post_install() {
-  default_post_install
-  if    [  -f  /etc/init.d/httpd  ]
-  then         /etc/init.d/httpd try-restart
-  fi
-  true
+post_install(){
+ default_post_install
+ if   [ -f /etc/init.d/httpd ]
+ then      /etc/init.d/httpd try-restart
+ fi
+ true
 }
 
-pre_remove() {
-  remove_php_module()  {
-    LPM="lib/apache/libphp5.so"                                                                                                     
-    HTTPD_CONF="/etc/httpd/conf/httpd.conf"                                                                                           
-    HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
+pre_remove(){
+ remove_php_module(){
+  LPM="lib/apache/libphp5.so"                                                                                                     
+  HTTPD_CONF="/etc/httpd/conf/httpd.conf"                                                                                           
+  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
 
-    if    grep      "$LPM"     $HTTPD_CONF
-    then  grep  -v  "$LPM"     $HTTPD_CONF  >  $HTTPD_CONF_TMP
-          cp  $HTTPD_CONF_TMP  $HTTPD_CONF
-    fi
-  }
-
-  default_pre_remove
-  remove_php_module
-  if    [  -f  /etc/init.d/httpd  ]
-  then         /etc/init.d/httpd try-restart
+  if   grep    "$LPM"     $HTTPD_CONF
+  then grep -v "$LPM"     $HTTPD_CONF > $HTTPD_CONF_TMP
+       cp $HTTPD_CONF_TMP $HTTPD_CONF
   fi
-  true
+ }
+
+ default_pre_remove
+ remove_php_module
+ if   [ -f /etc/init.d/httpd ]
+ then      /etc/init.d/httpd try-restart
+ fi
+ true
 }
 
-post_remove() {
-  modify()  { (
-    TEMP="$(  cat  $1  )"
-    echo  "$TEMP"                       |
-    grep  -v  "LoadModule php4_module"  |
-    grep  -v  "AddModule mod_php4.c"    >  $1
-    if    [  -x  /usr/sbin/apachectl  ]
-    then         /usr/sbin/apachectl  graceful
-    fi
-  ) }
+post_remove(){
+ modify(){ (
+  TEMP="$( cat $1 )"
+  echo "$TEMP"                      |
+  grep -v  "LoadModule php4_module" |
+  grep -v  "AddModule mod_php4.c"   >  $1
+  if   [ -x /usr/sbin/apachectl ]
+  then      /usr/sbin/apachectl graceful
+  fi
+ ) }
 
   default_post_remove
-  if    [  -f  /etc/httpd/conf/httpd.conf   ];  then  modify  /etc/httpd/conf/httpd.conf
-  elif  [  -f  /etc/apache/httpd.conf  ];       then  modify  /etc/apache/httpd.conf
+  if   [ -f /etc/httpd/conf/httpd.conf  ]; then modify /etc/httpd/conf/httpd.conf
+  elif [ -f /etc/apache/httpd.conf ];      then modify /etc/apache/httpd.conf
   fi
   true
 }
