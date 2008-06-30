@@ -1,4 +1,4 @@
-   VERSION=( 1.30 1.25 )
+  stable 1.30 1.25
   CATEGORY='perl security/encryption'
  ATTRIBUTE='perl-module new'
     SOURCE="F/FL/FLORA/Net_SSLeay.pm-$VERSION.tar.gz"

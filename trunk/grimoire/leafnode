@@ -1,5 +1,5 @@
-   VERSION=( 1.11.6 1.11.5 1.11.4 1.11.3.rel )
-      SAFE=( "1.11.6" "1.11.5" "1.11.4" "1.11.3.rel" )
+  stable 1.11.6 1.11.5 1.11.4 1.11.3.rel
+  secure 1.11.6 1.11.5 1.11.4 1.11.3.rel
     IGNORE="^2\.0b\|^1\.9\."
   CATEGORY='network/news'
  ATTRIBUTE='server console'
@@ -8,23 +8,23 @@
   HOMEPAGE='http://www.leafnode.org'
        REQ='pcre'
   ESTIMATE='95'
-      DESC="leafnode is a NNTP sever for small site
+      DESC='leafnode is a NNTP sever for small site
 leafnode is a news server, suitable for small, limited-bandwidth
 sites with only a few users (and useful for offline news reading).
 Leafnode keeps track of which groups are being
 read and downloads only articles in those groups.
 Leafnode has been designed to require
-no maintenance and to be easy to set up."
+no maintenance and to be easy to set up.'
 
-build() {
+build(){
 
-install_conf()  {
-  if    !      [  -f  /etc/leafnode/config  ];  then
-    cp                /etc/leafnode/config.example  \
-                      /etc/leafnode/config
-    chown  news:news  /etc/leafnode/config
-    chmod  -R  664    /etc/leafnode/config
-  fi
+install_conf(){
+ if    !     [ -f  /etc/leafnode/config ]; then
+   cp              /etc/leafnode/config.example \
+                   /etc/leafnode/config
+   chown news:news /etc/leafnode/config
+   chmod -R  664   /etc/leafnode/config
+ fi
 }
 
 mkdir    -p -m 2755 /var/spool/news
@@ -32,14 +32,14 @@ groupadd -K GID_MIN=256 -K GID_MAX=511    news                         2>/dev/nu
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g news -d /var/spool/news news 2>/dev/null
 chown    -R news:news /var/spool/news
 
-./configure                 \
---build=$BUILD              \
---prefix=/usr               \
---sysconfdir=/etc/leafnode  \
---localstatedir=/var        \
-$OPTS                       &&
-make                        &&
-prepare_install             &&
-make    install             &&
+./configure                \
+--build=$BUILD             \
+--prefix=/usr              \
+--sysconfdir=/etc/leafnode \
+--localstatedir=/var       \
+$OPTS                      &&
+make                       &&
+prepare_install            &&
+make    install            &&
         install_conf
 }

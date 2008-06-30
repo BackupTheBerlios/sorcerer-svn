@@ -1,4 +1,6 @@
-   VERSION=( implosion-20080629-2 implosion-20080628-4 implosion-20080627-1 implosion-20080626-0 implosion-20080625-0 implosion-20080619-3 implosion-20080617-1 implosion-20080616-1 implosion-20080603-1 )
+  stable implosion-20080630-1 implosion-20080629-2 implosion-20080628-4 implosion-20080627-1 implosion-20080626-0 implosion-20080625-0 implosion-20080619-3 implosion-20080617-1 implosion-20080616-1 implosion-20080603-1
+[ -n "$VERSION" ] ||
+ VERSION=( implosion-20080630-1 implosion-20080629-2 implosion-20080628-4 implosion-20080627-1 implosion-20080626-0 implosion-20080625-0 implosion-20080619-3 implosion-20080617-1 implosion-20080616-1 implosion-20080603-1 )
   CATEGORY='utility'
  ATTRIBUTE='archive_off solo sorcery'
     SOURCE="sorcery-$VERSION.tar.bz2"
@@ -82,7 +84,24 @@ post_install(){
   sed  -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
  }
 
- remove_old_logs(){ rm -fr /etc/sorcery/log/{id,{boot,xinetd}.{on,off}}; }
+ make_progress(){
+  if [ -d ${PROGRESS_LOGS:=/etc/sorcery/log/progress} ]; then return; fi
+  mkdir -p $PROGRESS_LOGS
+  [ -d /etc/sorcery/log/hold ] &&
+  find /etc/sorcery/log/hold -type f -printf '%f\n' |
+  while read; do installed_version $REPLY > $PROGRESS_LOGS/$REPLY; done
+  [ -d /etc/sorcery/log/sold ] &&
+  find /etc/sorcery/log/sold -type f -printf '%f\n' |
+  while read; do echo secure > $PROGRESS_LOGS/$REPLY; done
+  [ -d /etc/sorcery/log/exile ] &&
+  find /etc/sorcery/log/exile -type f -printf '%f\n' |
+  while read; do echo exile > $PROGRESS_LOGS/$REPLY; done
+ }
+
+ remove_old_logs(){
+  rm -fr /etc/sorcery/log/{id,{boot,xinetd}.{on,off}}
+  rm -fr /etc/sorcery/log/{exile,hold,sold}
+ }
 
  [  -d  /lib.old/modules ] &&
  rm -fr /lib.old
@@ -92,6 +111,7 @@ post_install(){
 
  #missing_init_script
  move_ldd_logs
+ make_progress
  remove_old_logs
  default_post_install
 }
