@@ -111,6 +111,26 @@ post_install(){
   fi
  }
 
+ fix_elf_logs(){
+  mkdir_p ${ELF_LOGS:=/etc/sorcery/log/elf}
+
+  [ -d /etc/sorcery/log/ldd ] &&
+  find /etc/sorcery/log/ldd -type f |
+  while read; do
+   mv $REPLY $ELF_LOGS
+   sed -i "s:/etc/sorcery/log/ldd/:/etc/sorcery/log/elf/:" $INSTALL_LOGS/${REPLY##*/}
+  done &&
+  rm -fr /etc/sorcery/log/ldd
+
+  find $ELF_LOGS -type f |
+  while read; do
+   read ONE TWO < $REPLY
+   if [ -n "$ONE" ]; then
+      [ -n "$TWO" ] || elf_of "${REPLY##*/}" > $REPLY
+   fi
+  done
+ }
+
  [  -d  /lib.old/modules ] &&
  rm -fr /lib.old
 
@@ -122,5 +142,6 @@ post_install(){
  discard_old_index
  make_progress
  remove_old_logs
+ fix_elf_logs
  default_post_install
 }
