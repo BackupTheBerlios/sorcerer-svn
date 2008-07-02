@@ -1,5 +1,5 @@
-  stable 3.0.2 3.0.0 2.6.9
-  secure 3.0.2 3.0.0 2.6.9
+  stable 3.0.3 3.0.2 3.0.0 2.6.9
+  secure       3.0.2
     IGNORE='pre'
   CATEGORY='network/file-share'
  ATTRIBUTE='console'
@@ -7,7 +7,7 @@
        URL='http://rsync.samba.org/ftp/rsync/'
   HOMEPAGE='http://rsync.samba.org/'
        REQ='autoconf popt'
-  ESTIMATE='360'
+  ESTIMATE='300'
       DESC='rsync is a replacement for rcp.
 rsync is a replacement for rcp and 
 scp that has many more features.
@@ -19,19 +19,20 @@ that both sets of files are present at one of
 the ends of the link beforehand.'
 
 
-build()  {
-  patch  -p1  <  patches/acls.diff
+build(){
+# Where is the acl patch file?
+  patch -p1 < patches/acls.diff
   autoconf
   autoheader
-  ./configure            \
-  --build=$BUILD         \
-  --prefix=/usr          \
-  --sysconfdir=/etc      \
-  --localstatedir=/var   \
-  --with-acl-support     \
-  $OPTS                  &&
-  make    proto          &&
-  make                   &&
-  prepare_install        &&
+  ./configure          \
+  --build=$BUILD       \
+  --prefix=/usr        \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --with-acl-support   \
+  $OPTS                &&
+  make    proto        &&
+  make                 &&
+  prepare_install      &&
   make    install
 }

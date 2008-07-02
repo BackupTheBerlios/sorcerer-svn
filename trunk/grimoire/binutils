@@ -1,4 +1,5 @@
-  stable 2.18 2.17
+  stable             2.18
+unstable 2.18.50.0.7 2.18
   CATEGORY='development'
  ATTRIBUTE='console solo'
     SOURCE="binutils/binutils-$VERSION.tar.bz2"
@@ -30,40 +31,22 @@ addr2line	-converts addresses to file and line
 nlmconv		-converts object code into an NLM"
 
 
-build()  {
-  case  $VERSION  in
-    2.17)  grep  -rl  "\-Werror" *    |
-           grep  -v   "\.m4$\|\.am$"  |
-           xargs --max-lines=64 \
-           sed   -i   "s:-Werror::g"  ;;
-  esac
+build(){
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
-  case  $VERSION  in
-    2.17)  echo  "Compiling binutils with sysroot support"  ;;
-  esac
+ TD="tooldir=/usr"
+ LDF="LDFLAGS=$LDFLAGS"
 
-  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-
-  TD="tooldir=/usr"
-  LDF="LDFLAGS=$LDFLAGS"
-
-# --host=$BUILD              \
-  ./configure                \
-  --prefix=/usr              \
-  $OPTS                      &&
-  make          "$LDF"  $TD  &&
-  prepare_install            &&
-  make    install       $TD
+# --host=$BUILD             \
+ ./configure                \
+ --prefix=/usr              \
+ $OPTS                      &&
+ make          "$LDF"  $TD  &&
+ prepare_install            &&
+ make    install       $TD
 # Evert Vorster suggests the following is unnecessary
 # and breaks compilation in some instances.
-#  &&
-#  make    install-info  $TD
-}
-
-
-current()  {
-  case  $VERSION  in
-    2.17)  grep  -qx  "Compiling binutils with sysroot support"  $COMPILE_LOGS/binutils  ;;
-  esac
+# &&
+# make    install-info  $TD
 }

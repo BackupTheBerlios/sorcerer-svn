@@ -1,7 +1,31 @@
-inherit kde-v4
-    SOURCE="stable/${VERSION}/src/extragear/$SPELL-$VERSION.tar.bz2"
+#inherit kde-v4
+
+stable   3.1
+unstable 3.1 3.1rc1
+  CATEGORY='network/file-share'
+ ATTRIBUTE='kde'
+#   SOURCE="stable/${VERSION}/src/extragear/$SPELL-$VERSION.tar.bz2"
   CATEGORY='utility/accessibility'
-  HOMEPAGE='http://plasma.kde.org/'
+# HOMEPAGE='http://plasma.kde.org/'
+    SOURCE="$VERSION/ktorrent-$VERSION.tar.bz2"
+       URL='http://ktorrent.org/downloads/'
+      VURL='http://ktorrent.org/'
+  HOMEPAGE='http://ktorrent.org/'
        REQ=( 'kdelibs-v4 qca' )
-  ESTIMATE='1200'
+      OPTS='-DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+            -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
+            -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+            -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+            -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+            -DCMAKE_BUILD_TYPE=Release'
+  ESTIMATE='2000'
       DESC='ktorrent is a BitTorrent program for KDE.'
+
+build(){
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
