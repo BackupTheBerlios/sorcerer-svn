@@ -69,8 +69,6 @@ esac
             /etc/networks
             /etc/nsswitch.conf
             /etc/resolv.conf
-            /lib/ld-linux.so.2
-            /lib64/ld-linux-x86-64.so.2
             /sbin/ldconfig'
 disable lib64
 case $HOSTTYPE in
@@ -100,13 +98,6 @@ build(){
  }
 
 
- fix_libc_so(){
-  case $VERSION in
-   2.4) sed -i "s: AS_NEEDED[^)]*) ::" $IR/usr/lib/libc.so ;;
-  esac
- }
-
-
  install_glibc(){
   install -vm 600 ../nscd/nscd.conf $IR/etc/
   mkdir   -vp                       $IR/var/db
@@ -115,11 +106,9 @@ build(){
   cd    $IR
   rm -f $IR/etc/{localtime,ld.so.*}
 
-  fix_libc_so
-
   prepare_install
 
-  LD_PRELOAD="$LPO" LD_LIBRARY_PATH="$LLP" $LD_SO /bin/cp -a * /
+  LD_LIBRARY_PATH="$LLP" LD_PRELOAD="$LPO" $LD_SO /bin/cp -a * /
 
   del_library_cache
   /sbin/init u
