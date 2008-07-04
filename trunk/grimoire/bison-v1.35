@@ -1,25 +1,25 @@
-inherit  bison
-  stable 1.35
+inherit bison
+unset VERSION
+ stable 1.35
     IGNORE="^2\.[0-9]\|^1\.875\|^1\.75\|^1\.5"
  ATTRIBUTE='console'
     SOURCE="bison/bison-$VERSION.tar.bz2"
   ESTIMATE='505'
 
 
-build()  {
+build(){
+ DEST="/opt/bison/$VERSION"
+ YACC="$DEST/bin/yacc"
 
-  DEST="/opt/bison/$VERSION"
-  YACC="$DEST/bin/yacc"
+ [ -d bison-$VERSION ] &&
+ cd   bison-$VERSION
 
-  [  -d  bison-$VERSION  ]  &&
-  cd     bison-$VERSION
-
-  ./configure  --build=$BUILD  \
-               --prefix=$DEST  &&
-  make                         &&
-  prepare_install              &&
-  make    install              &&
-  echo  -e  "#!/bin/sh\nexec bison -y  \"\$@\""  >  $YACC  &&
-  chmod  0755  $YACC
-
+ ./configure     \
+ --build=$BUILD  \
+ --prefix=$DEST  &&
+ make            &&
+ prepare_install &&
+ make    install &&
+ echo -e "#!/bin/sh\nexec bison -y  \"\$@\"" > $YACC &&
+ chmod 755 $YACC
 }
