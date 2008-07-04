@@ -1,18 +1,19 @@
-#  CC [M]  /usr/src/sorcery/vhba-module/vhba-module-1.0.0/vhba.o
-# /usr/src/sorcery/vhba-module/vhba-module-1.0.0/vhba.c: In function ‘do_response’:
-# /usr/src/sorcery/vhba-module/vhba-module-1.0.0/vhba.c:523: error: ‘struct scatterlist’ has no member named ‘page’
-
-  stable 1.0.0
+  stable 1.1.0 1.0.0
   CATEGORY='cd'
- ATTRIBUTE='linux-26-module broke'
+ ATTRIBUTE='linux-26-module'
     SOURCE="cdemu/vhba-module-$VERSION.tar.bz2"
        URL="$SOURCEFORGE_URL"
   HOMEPAGE='http://cdemu.sourceforge.net/pkg_vhba.php'
-  ESTIMATE='10'
+  ESTIMATE='20'
       DESC='vhba-module provides a virtual SCSI host bus adapter'
+
 build(){
- sed -i 's:CFLAGS:EXTRA_CFLAGS:' Makefile
- make &&
+# The following sed breaks compilation
+#sed -i 's:CFLAGS:EXTRA_CFLAGS:' Makefile
+
+ LVER=$( installed_version $( get_provider linux-kernel ) )
+
+ make            KERNELRELEASE="$LVER" &&
  prepare_install &&
- make    install
+ make    install KERNELRELEASE="$LVER"
 }
