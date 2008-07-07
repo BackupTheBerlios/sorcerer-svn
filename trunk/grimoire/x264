@@ -6,28 +6,34 @@
     SOURCE="x264-$VERSION.tar.bz2"
        URL='ftp://ftp.videolan.org/pub/videolan/x264/snapshots/'
   HOMEPAGE='http://developers.videolan.org/x264.html'
+case $HOSTTYPE in
+ x86_64)
+       REQ=( 'nasm'
+             'gtk+:--enable-gtk:--disable-gtk:for gtk+ interface'
+             'yasm:--enable-asm:--disable-asm:for MMX/SSE optimized code'
+             ':--enable-visualize::to enable visualization' )
+      OPTS='--enable-shared --enable-pic --disable-mp4-output' ;;
+ *)
        REQ=( 'nasm'
              'gpac:--enable-mp4-output:--disable-mp4-output:for MPEG-4 output'
              'gtk+:--enable-gtk:--disable-gtk:for gtk+ interface'
              'yasm:--enable-asm:--disable-asm:for MMX/SSE optimized code'
              ':--enable-visualize::to enable visualization' )
-      OPTS='--enable-shared --enable-pic'
+      OPTS='--enable-shared --enable-pic' ;;
+esac
     CFLAGS='-O3 -ffast-math'
    LDFLAGS='-Wl,-O1'
-  EPROVIDE='libx264'
   ESTIMATE='300'
       DESC='x264 is a library for encoding H264/AVC video streams.'
 
 build(){
  sed -i "s:-O4 -ffast-math:$CFLAGS:
          s:lgpac_static:lgpac:" configure
-# default_build
  ./configure     \
  --prefix=/usr   \
  $OPTS           &&
  make            &&
  prepare_install &&
  make    install
-
-
+# default_build
 }
