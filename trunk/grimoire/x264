@@ -7,8 +7,10 @@
        URL='ftp://ftp.videolan.org/pub/videolan/x264/snapshots/'
   HOMEPAGE='http://developers.videolan.org/x264.html'
        REQ=( 'nasm'
-             'gpac:--enable-mp4-output::for MPEG-4 output' )
-      OPTS='--enable-shared --enable-static=no'
+             'gpac:--enable-mp4-output::for MPEG-4 output'
+             'yasm::--disable-asm:for MMX/SSE optimized code' )
+      OPTS='--enable-shared'
+#     OPTS='--enable-shared --enable-static=no'
     CFLAGS='-O3 -ffast-math'
    LDFLAGS='-Wl,-O1'
   EPROVIDE='libx264'
@@ -18,5 +20,13 @@
 build(){
  sed -i "s:-O4 -ffast-math:$CFLAGS:
          s:lgpac_static:lgpac:" configure
- default_build
+# default_build
+ ./configure     \
+ --prefix=/usr   \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
+
+
 }
