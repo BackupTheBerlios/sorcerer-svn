@@ -1,23 +1,33 @@
   stable 1.45
   CATEGORY='graphic'
- ATTRIBUTE='library new'
+ ATTRIBUTE='library'
     SOURCE="glpng.zip"
        URL='http://www.wyatt100.freeserve.co.uk/'
-  HOMEPAGE='http://www.wyatt100.freeserve.co.uk/download.htm'
+# HOMEPAGE='http://www.wyatt100.freeserve.co.uk/download.htm'
+  HOMEPAGE='http://www.fifi.org/doc/libglpng-dev/glpng.html'
        REQ='libpng'
-  ESTIMATE='30'
-      DESC="glpng is a library for binding PNG graphics to OpenGL textures."
+  ESTIMATE='40'
+      DESC='glpng is a library for binding PNG graphics to OpenGL textures.'
 
-build()  {
-  begin_install()  {
-    cd  ..
-    mkdir    -p                           /usr/include/GL
-    install  -m 0644  include/GL/glpng.h  /usr/include/GL
-    install  lib/libglpng.a               /usr/lib
-  }
+build(){
+ begin_install(){
+  local ELF=libglpng.so.$VERSION
+  case $HOSTTYPE in
+   x86_64) local LIBDIR=/usr/lib64 ;;
+        *) local LIBDIR=/usr/lib ;;
+  esac
 
-  cd        src               &&
-  make  -f  Makefile.LINUX    &&
-  prepare_install             &&
-    begin_install
+  gcc -L/usr/lib -L/usr/lib64 -lGL -shared -o $ELF {*,*/*}.o
+  cd  ..
+  mkdir   -p                         /usr/include/GL
+  install -vm 644 include/GL/glpng.h /usr/include/GL
+  install -vm 644 lib/libglpng.a $LIBDIR
+  install -vm 755 src/$ELF       $LIBDIR
+  ln      -sv         $ELF       $LIBDIR/${ELF%.*}
+ }
+
+ cd src &&
+ make -f Makefile.LINUX CFLAGS="$CFLAGS" CXXFLAGS="$CXXFLAGS" &&
+ prepare_install &&
+   begin_install
 }
