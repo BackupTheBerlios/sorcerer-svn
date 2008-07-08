@@ -2,17 +2,19 @@
 ### BEGIN INIT INFO
 # Provides: depmod
 # Required-Stop: $local_fs udev
-# Should-Stop: initramfs
+# Should-Stop: initramfs root
 # Default-Stop: 0 6
-# Short-Description: depmod runs depmod as required
+# Short-Description: runs depmod as required
 ### END INIT INFO
 
 # Copyright 2008 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-. /lib/lsb/init-functions
+if [ "$1" == try-restart ] || ! [ -s /sbin/depmod ]
+then exit
+fi
 
-NAME=depmod
+. /lib/lsb/init-functions
 
 check(){
  VER="$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf "%T@	%h\n" |
@@ -21,7 +23,7 @@ check(){
       /lib/modules/$VER/modules.dep | grep -q .
 }
 
-if   log_warning_msg "$NAME checking modules.dep"; check
-then log_warning_msg "$NAME updating"; depmod -aA $VER
-     log_success_msg "$NAME updated"
-fi;  log_success_msg "$NAME checked"
+if   log_warning_msg 'depmod checking modules.dep'; check
+then log_warning_msg 'depmod updating'; depmod -aA $VER
+     log_success_msg 'depmod updated'
+fi;  log_success_msg 'depmod checked'

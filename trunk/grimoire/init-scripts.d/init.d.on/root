@@ -4,9 +4,10 @@
 # Provides: root
 # Required-Start: cryptsetup fsck fstab proc sys
 # Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
-# Required-Stop: halt cryptmount cryptsetup mdadm reboot
+# Required-Stop: $local_fs
 # Default-Start: S
-# Short-Description: root mounts / or /media/root rw
+# Default-Stop: 0 6
+# Short-Description: At boot mounts / or /media/root rw and ro at shutdown
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -17,14 +18,22 @@ start(){
    mount -n -o remount,rw /
   else
    [     -d /media/root ] ||
-   mkdir -p /media/root   &&
+   mkdir -p /media/root
    mount    /media/root
   fi
  }
 
- if   log_warning_msg 'root filesystems mounting'; run
- then log_success_msg 'root filesystems mounted'
- else log_failure_msg 'root filesystem not mounted'
+ if   log_warning_msg 'root mounting'; run
+ then log_success_msg 'root mounted'
+ else log_failure_msg 'root not mounted'
+ fi
+}
+
+
+stop(){
+ if   log_warning_msg '/ remounting  read only'; mount -o remount,ro /
+ then log_success_msg '/ remounted   read only'
+ else log_failure_msg '/ not mounted read only'
  fi
 }
 
@@ -32,6 +41,7 @@ help(){ echo "Usage: $0 {start}" 1>&2; }
 
 case $@ in
  start) start ;;
+  stop) stop  ;;
  try-restart) : ;;
  *) help ;;
 esac

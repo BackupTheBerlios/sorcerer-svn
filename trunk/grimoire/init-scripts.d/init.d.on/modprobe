@@ -2,7 +2,7 @@
 
 ### BEGIN INIT INFO
 # Provides: modprobe
-# Required-Start: proc sys
+# Required-Start: proc sys modprobe-r
 # Should-Start:
 # Required-Stop:  
 # Default-Start: S
@@ -11,23 +11,16 @@
 # Description: modprobe loads modules specified in /etc/modules during boot
 ### END INIT INFO
 
+if [ "$1" == try-restart ] || ! [ -x /sbin/modprobe ] || ! [ -f /etc/modules ]
+then exit
+fi
+
 . /lib/lsb/init-functions
 
 mp(){
- [ -f /etc/modules ] &&
  sed 's:#.*::;/^ *$/d' /etc/modules |
  while read; do modprobe $REPLY; done
 }
 
-start(){
- log_warning_msg 'Modules loading'; mp
- log_success_msg 'Modules loaded'
-}
-
-help(){ echo "Usage: $0 {start}" 1>&2;}
-
-case $1 in
-  start) start ;;
-try-restart) : ;;
-      *) help  ;;
-esac
+log_warning_msg 'Modules loading'; mp
+log_success_msg 'Modules loaded'
