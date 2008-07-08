@@ -1,8 +1,8 @@
 # Apparent in udev version 118 and not udev version 115
 # gentoo rules switched from installing
 # sound device nodes in /dev/snd to /dev
-  stable 120 119 118
-  secure 120 119 118
+  stable 124 120 119 118
+  secure     120 119 118
   CATEGORY='utility'
  ATTRIBUTE='console'
     SOURCE="pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz"
@@ -26,12 +26,12 @@ init_install(){
  cd                                 /etc/udev/rules.d/
  ln      -sf   ../examples/gentoo/* /etc/udev/rules.d/
  mkdir   -p                         /etc/udev/scripts
-#install -m 0755  extras/*.sh       /etc/udev/scripts
+#install -m 755  extras/*.sh        /etc/udev/scripts
 }
 
 
 symlink_install(){
- mkdir -p   -m 0755                  /lib/udev/dev/{pts,shm}
+ mkdir -p   -m 755                   /lib/udev/dev/{pts,shm}
  ln    -fns /proc/self/fd            /lib/udev/dev/fd
  ln    -fns /proc/self/fd/0          /lib/udev/dev/stdin
  ln    -fns /proc/self/fd/1          /lib/udev/dev/stdout
@@ -84,11 +84,4 @@ adjust_rules(){
     init_install                  &&
  symlink_install                  &&
   adjust_rules
-}
-
-current(){
- case $VERSION in
-  118) [    -f                          /etc/init.d/udevd-restart ] &&
-       grep -q '# Provides: udevd udev' /etc/init.d/udevd-restart ;;
- esac
 }
