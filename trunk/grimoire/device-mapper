@@ -26,7 +26,8 @@ for instructions and examples for device maps.'
 
 build(){
  case $VERSION in
-  1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure* ;;
+  1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure*          ;;
+  1.02.27) patch -p1 < $SCRIPT_DIR/device-mapper-dmsetup-export.patch  ;;
  esac
 
  if   [ $HOSTTYPE == x86_64 ]
@@ -39,5 +40,6 @@ build(){
 current(){
  case  $VERSION  in
   1.01.05) grep -qs mdadm /etc/init.d/mapper ;;
+  1.02.27) grep -q 'patching file dmsetup/dmsetup.c' $COMPILE_LOGS/device-mapper ;;
  esac
 }

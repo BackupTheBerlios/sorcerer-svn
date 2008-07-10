@@ -1,0 +1,24 @@
+--- a/kpartx/kpartx.rules	2007-08-02 17:05:37.000000000 -0400
++++ b/kpartx/kpartx.rules	2008-07-10 15:53:53.000000000 -0400
+@@ -7,9 +7,11 @@
+ KERNEL!="dm-*", GOTO="kpartx_end"
+ ACTION=="remove", GOTO="kpartx_end"
+ 
++IMPORT{program}="/sbin/dmsetup export -j%M -m%m"
++
+ ENV{DM_TABLE_STATE}!="LIVE", GOTO="kpartx_end"
+ 
+-ENV{DM_UUID}=="?*", IMPORT{program}=="/lib/udev/kpartx_id %M %m $env{DM_UUID}"
++ENV{DM_UUID}=="?*", IMPORT{program}=="kpartx_id %M %m $env{DM_UUID}"
+ 
+ OPTIONS="link_priority=50"
+ 
+@@ -18,7 +20,7 @@
+ 	SYMLINK+="disk/by-id/$env{DM_TYPE}-$env{DM_NAME}"
+ 
+ # Create persistent links for dmraid tables
+-ENV{DM_UUID}=="mpath-*", \
++ENV{DM_UUID}=="dmraid-*", \
+         SYMLINK+="disk/by-id/$env{DM_TYPE}-$env{DM_NAME}"
+ 
+ # Create persistent links for partitions
