@@ -1,17 +1,17 @@
 # Even with device mapper version 1.02.25
 # lilo 22.8 can not write boot sectors to a mapped device name.
 
-  stable 1.02.27 1.02.26 1.02.25 1.01.05
-    IGNORE='^1\.02\.00'
-  CATEGORY='disk'
- ATTRIBUTE='console'
-    SOURCE="device-mapper.$VERSION.tgz"
-  HOMEPAGE='http://sources.redhat.com/dm/'
-       URL='ftp://sources.redhat.com/pub/dm/'
-       REQ='libselinux'
-      OPTS='--sbindir=/sbin --libdir=/lib'
-  ESTIMATE='300'
-      DESC='device-mapper provides tools and library for using the kernel device-mapper.
+    stable 1.02.27 1.02.26 1.02.25 1.01.05
+   require libselinux
+    ignore '^1\.02\.00'
+  category disk
+ attribute console
+    source device-mapper.$VERSION.tgz
+  homepage http://sources.redhat.com/dm/
+       url ftp://sources.redhat.com/pub/dm/
+      opts --sbindir=/sbin --libdir=/lib
+  estimate 300
+      desc 'device-mapper provides tools and library for using the kernel device-mapper.
 The Device-mapper is a new component of the linux
 kernel that supports logical volume management.
 It is required by LVM2 and EVMS.
@@ -23,11 +23,10 @@ into the device mapper
 See manual page for dmsetup
 for instructions and examples for device maps.'
 
-
 build(){
  case $VERSION in
-  1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure*          ;;
-  1.02.27) patch -p1 < $SCRIPT_DIR/device-mapper-dmsetup-export.patch  ;;
+  1.01.05) sed -i 's:-lselinux:-lselinux -lsepol:' configure* ;;
+  1.02.27) patch -p1 < $SCRIPT_DIR/device-mapper-dmsetup-export.patch ;;
  esac
 
  if   [ $HOSTTYPE == x86_64 ]
@@ -40,6 +39,6 @@ build(){
 current(){
  case  $VERSION  in
   1.01.05) grep -qs mdadm /etc/init.d/mapper ;;
-  1.02.27) grep -q 'patching file dmsetup/dmsetup.c' $COMPILE_LOGS/device-mapper ;;
+  1.02.27) grep -qs 'patching file dmsetup/dmsetup.c' $COMPILE_LOGS/device-mapper ;;
  esac
 }

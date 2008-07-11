@@ -1,25 +1,28 @@
 # Requires libmng, libpng, jpeg, zlib
 # to be compiled with --enable-static=yes
-  stable 0.7.2 0.7.0 0.6.4 0.6.3 0.6.1
+
 # 0.7.1 and newer requires usplash which appears to not have it's own website
 # and is developed either within ubuntu or debian.
 # http://ftp.debian.org/debian/pool/main/u/usplash/usplash_0.4-43.orig.tar.gz
 # if you want a source tarball for it.
 # The usplash module is therefore disabled at this moment.
-  CATEGORY='utility'
- ATTRIBUTE='console'
-    SOURCE="suspend2-userui-$VERSION.tar.gz"
-       URL='http://www.suspend2.net/downloads/all/'
-  HOMEPAGE='http://www.suspend2.net'
-       REQ='freetype lcms libpng libmng'
-  ESTIMATE='80'
-      DESC="suspend2-userui provides userspace user interface to software suspend 2
+
+    stable 0.7.2 0.7.0 0.6.4 0.6.3 0.6.1
+   require freetype lcms libpng libmng
+  category utility
+ attribute console
+    source suspend2-userui-$VERSION.tar.gz
+       url http://www.suspend2.net/downloads/all/
+  homepage http://www.suspend2.net
+  estimate 80
+
+      desc 'suspend2-userui provides userspace user interface to software suspend 2
 Having Suspend2-UserUI allows interaction
 with the suspend process as it happens.
 Pressing escape cancels a suspend.
 Pressing R toggles rebooting at the end of suspending.
 Verbosity level can be adjusted, etc...
-see what's going on, etc.
+see what is going on, etc.
 
 There currently exists two user interfaces for Software Suspend 2:
 * suspend2ui_text - this provides a text-based progress 
@@ -30,19 +33,19 @@ There currently exists two user interfaces for Software Suspend 2:
   fbsplash kernel patch is NOT required), this provides 
   a graphical themeable progress bar. Painting a progress 
   bar whilst suspending to disk actually requires a fair 
-  bit of CPU grunt, and isn't recommended for machines 
+  bit of CPU grunt, and is not recommended for machines 
   slower than about 700-900MHz.
-  Otherwise, the speed of suspending is notably reduced."
+  Otherwise, the speed of suspending is notably reduced.'
 
-build() {
+build(){
 
-  case $VERSION in 
-    0.7.2) sed -i "s:\(MODULES = .*\)usplash:\1:" Makefile 
-           make  clean	;;
-  esac
+case $VERSION in 
+ 0.7.2) sed -i 's:\(MODULES = .*\)usplash:\1:' Makefile 
+        make clean ;;
+esac
 
-  sed  -i  "s:/usr/local:/usr:"  Makefile  &&
-  make  		&&
-  prepare_install 	&&
-  make    install
+sed -i 's:/usr/local:/usr:' Makefile &&
+make &&
+prepare_install &&
+make    install
 }

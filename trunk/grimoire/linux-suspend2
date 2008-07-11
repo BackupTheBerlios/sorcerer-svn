@@ -1,35 +1,31 @@
-  stable 2.6.25.10 2.6.25.9 2.6.24.3
-  secure 2.6.25.10
-
-inherit linux
 # report problems with this spell to Jan Merka
 #
 # Every kernel version has to be tested against the swsusp patch
 # Do not change the version blindly
-  SUSP_VER=( 3.0-rc7 3.0-rc5 )
 # For which kernel version are the suspend patches intended
 # This can slightly lag behind the $VERSION (usually in the minor revision
 # number)
+
+  SUSP_VER=( 3.0-rc7 3.0-rc5 )
    S4K_VER=( 2.6.25 )
-  CATEGORY='kernel'
- ATTRIBUTE='archive_off console'
-    SOURCE=( "/pub/linux/kernel/v${VERSION:0:3}/linux-${VERSION}.tar.bz2"
-             "downloads/all/tuxonice-${SUSP_VER}-for-${S4K_VER}.patch.bz2" )
-	URL=( "$KERNEL_URL"
-             "http://www.tuxonice.net/" )
-   HOMEPAGE='http://www.tuxonice.net'
-#  HOMEPAGE="http://www.kernel.org   
-#            http://www.tuxonice.net" 
-#            http://dev.gentoo.org/~spock/projects/vesafb-tng/
-#            "
-       REQ=( 'lilo'
-             'laptop-mode-tools:::for conserving battery power on laptops'
-             'module-init-tools:::for tools for modular kernel' 
-             'suspend2-userui:::for interactive suspend interface and progress bar'
-             'hibernate-script:::for a set of scripts controlling suspend' )
-  EPROVIDE='linux-kernel'
-  ESTIMATE='4273'
-      DESC='linux-suspend2 provides 2.6.x stable kernels with suspend capability.
+
+    stable 2.6.25.10 2.6.25.9 2.6.24.3
+    secure 2.6.25.10
+   require lilo
+  optional laptop-mode-tools '' '' for conserving battery power on laptops
+  optional module-init-tools '' '' for tools for modular kernel  optional suspend2-userui   '' '' for interactive suspend interface and progress bar
+  optional hibernate-script  '' '' for a set of scripts controlling suspend
+   inherit linux
+  category kernel
+ attribute archive_off console
+    source /pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
+    source downloads/all/tuxonice-$SUSP_VER-for-$S4K_VER.patch.bz2
+       url "$KERNEL_URL"
+       url http://www.tuxonice.net/
+   homepage http://www.tuxonice.net
+  eprovide linux-kernel
+  estimate 4200
+      desc 'linux-suspend2 provides 2.6.x stable kernels with suspend capability.
 This version is patched to provide software suspend,
 aka suspend2 or tuxonice.'
 
@@ -37,4 +33,3 @@ apply_linux_patch(){
  #tuxonice
  bzcat $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]##*/} | patch -p1
 }
-
