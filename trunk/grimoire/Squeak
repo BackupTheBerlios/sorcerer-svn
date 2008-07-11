@@ -2,50 +2,51 @@
 # Squeak 3.9-8 appears useless and/or buggy.
 # Perhaps I installed it wrong
 
-  stable 3.9-8 3.7-7
-    IGNORE="powerpc"
-  CATEGORY='development/interpreter'
- ATTRIBUTE='x11'
-    SOURCE=( "unix-linux/Squeak-$VERSION.src.tar.gz"
-             "Squeak${IVERSION}.zip" )
-       URL="http://ftp.squeak.org/${VERSION:0:3}/"
-       REQ='MesaLib'
-  EPROVIDE="Squeak-full Squeak-basic"
-  HOMEPAGE='http://squeak.org'
-  ESTIMATE='960'
-      DESC="Squeak is a SmallTalk Development system.
+    stable 3.9-8 3.7-7
+   require MesaLib
+
+    ignore 'powerpc'
+  category development/interpreter
+ attribute x11
+    source unix-linux/Squeak-$VERSION.src.tar.gz
+    source Squeak${VERSION}.zip
+       url http://ftp.squeak.org/${VERSION:0:3}/
+  eprovide Squeak-full Squeak-basic
+  homepage http://squeak.org
+  estimate 1000
+      desc 'Squeak is a SmallTalk Development system.
 Squeak is an OpenSource and super-portable implementation of a 
 multi-media capable Smalltalk-80 
 based object-oriented programming environment.
 It is written entirely in Smalltalk and has a 
 high-performance VM, created by compiling the 
 Smalltalk VM code into efficient and portable C code.
-It now uses the Self language's Morphic User Interface 
+It now uses the Self language Morphic User Interface 
 but still provides the original MVC GUI as well.
 To run squeak first copy the Image file from /usr/share/squeak 
-to your home directory and call the file squeak.image"
+to your home directory and call the file squeak.image'
 
-build()  {
-  image_install()  {
-    cd  ../Squeak${IVERSION}
-    install  -v  -m 0644  *   /usr/lib/squeak/$VERSION/
-  }
+build(){
+ image_install(){
+  cd ../Squeak${VERSION}
+  install -vm 644 * /usr/lib/squeak/$VERSION/
+ }
 
-  ini_install()  {
-    mv       -v  /usr/bin/squeak  /usr/libexec/squeak
-    install  -v  -m  0755  $SCRIPT_DIR/inisqueak  /usr/bin
-    install  -v  -m  0755  $SCRIPT_DIR/inisqueak  /usr/bin/squeak
-  }
+ ini_install(){
+  mv      -v /usr/bin/squeak /usr/libexec/squeak
+  install -vm 755 $SCRIPT_DIR/inisqueak /usr/bin
+  install -vm 755 $SCRIPT_DIR/inisqueak /usr/bin/squeak
+ }
 
-[  -d  Squeak${IVERSION}  ]  &&
-[  -d  platforms          ]  &&
-mkdir  bld  &&
-cd     bld  &&
-../platforms/unix/config/configure  \
---prefix=/usr    &&
-make             &&
-prepare_install  &&
-make    install  &&
-  image_install  &&
+[ -d Squeak${VERSION} ] &&
+[ -d platforms         ] &&
+mkdir bld &&
+cd    bld &&
+../platforms/unix/config/configure \
+--prefix=/usr   &&
+make            &&
+prepare_install &&
+make    install &&
+  image_install &&
     ini_install
 }

@@ -1,33 +1,30 @@
-  stable 1.0.1 0.99.10.0 0.99.9.0 0.99.8.1 0.99.7.1 0.99.7.0
-    IGNORE='s'
-  CATEGORY='security/authentication'
- ATTRIBUTE='library solo'
-    SOURCE=( "pub/linux/libs/pam/library/Linux-PAM-$VERSION.tar.bz2" )
+    stable 1.0.1 0.99.10.0
+   require libselinux
+  optional cracklib   ''             --disable-cracklib for password checking library
+  optional db         --enable-db=db --enable-db=no     for db support
+  optional libprelude ''             --disable-prelude  for prelude support
 
-#    SOURCE=( "pub/linux/libs/pam/pre/library/Linux-PAM-$VERSION.tar.bz2" )
-#             "pub/linux/libs/pam/pre/doc/Linux-PAM-$VERSION-docs.tar.bz2" )
-  HOMEPAGE='http://www.kernel.org/pub/linux/libs/pam'
-       URL="$KERNEL_URL"
-       REQ=( 'libselinux'
-             'cracklib::--disable-cracklib:for password checking library'
-             'db:--enable-db=db:--enable-db=no:for db support'
-             'libprelude::--disable-prelude:for prelude support' )
-#            'libselinux::--disable-selinux:for selinux support' )
+    ignore 's'
+  category security/authentication
+ attribute library solo
+    source pub/linux/libs/pam/library/Linux-PAM-$VERSION.tar.bz2
+  homepage http://www.kernel.org/pub/linux/libs/pam
+       url "$KERNEL_URL"
 
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
-      OPTS='--enable-read-both-confs'
+      opts --enable-read-both-confs
 
 # If the root filesystem can not be mounted
 # login must be possible from the initramfs
-  case  $HOSTTYPE  in
-    x86_64)  OPTS+=' --libdir=/lib64 --enable-securedir=/lib64/security'  ;;
-         *)  OPTS+=' --libdir=/lib   --enable-securedir=/lib/security'    ;;
+  case $HOSTTYPE in
+    x86_64) OPTS+=' --libdir=/lib64 --enable-securedir=/lib64/security' ;;
+         *) OPTS+=' --libdir=/lib   --enable-securedir=/lib/security'   ;;
   esac
-   PROTECT='/etc/security'
- FRESHMEAT='linux-pam'
-  ESTIMATE='2800'
-      DESC='Linux-PAM provides a flexibile authentication mechanism.
+   protect /etc/security
+ freshmeat linux-pam
+  estimate 2800
+      desc 'Linux-PAM provides a flexibile authentication mechanism.
 
 For additional Linux-PAM modules
 that are not provided with Linux-PAM

@@ -1,64 +1,58 @@
-  stable 1.0
-  CATEGORY='profile'
- ATTRIBUTE='new'
-  HOMEPAGE='http://sorcerer.silverice.org/'
-                   [  -d  ${FAVOR_LOGS:=/var/log/sorcery/favor}  ]  &&
-       REQ="$(  find      ${FAVOR_LOGS}  -maxdepth 1  -mindepth 1  -type f  -printf '%P\n'  |  sed '/^core$/d;/^wanted$/d'  )"
-      DESC='favor is a profile spell for keeping other spells installed
+    stable 1.0
+  category profile
+ attribute new
+  homepage http://sorcerer.silverice.org/
+            [ -d ${FAVOR_LOGS:=/var/log/sorcery/favor} ] &&
+   require $( find ${FAVOR_LOGS} -maxdepth 1 -mindepth 1 -type f -printf '%P\n' )
+      desc 'favor is a profile spell for keeping other spells installed
 favor acts as a blanket profile spell 
 that keeps SA specified important spells installed.'
 
-configure()  {
+configure(){
 
-checklist()  {
-  show()  {
-    if    is_installed  "$1"
-    then  echo          "$1	Installed	$2"
-    else  echo          "$1	Uninstalled	$2"
-    fi
+ checklist(){
+  show(){
+   if   is_installed "$1"
+   then echo         "$1	Installed	$2"
+   else echo         "$1	Uninstalled	$2"
+   fi
   }
 
   FAVR=$(  find  $FAVOR_LOGS  -maxdepth 1  -mindepth 1     \
                               -type f      -printf "%P\n"  |  sort  )
-  REST=$(  (  echo  "$FAVR";  echo  "$FAVR";  lone
-           )  |  sort  |  uniq  -u  |  grep  -vx  "core\|favor"  )
+  REST=$( ( echo "$FAVR"; echo "$FAVR"; lone
+          ) | LC_ALL=C sort | uniq -u | LC_ALL=C sed '/^core$/d;/^favor$/d' )
 
-  for  ITEM  in  $FAVR;  do  show  "$ITEM"  "ON";   done
-  for  ITEM  in  $REST;  do  show  "$ITEM"  "OFF";  done
-}
+  for ITEM in $FAVR; do show "$ITEM" "ON";  done
+  for ITEM in $REST; do show "$ITEM" "OFF"; done
+ }
 
 
-select_favorites()  {
+ select_favorites(){
 
   TITLE=$"Favorites Selection"
+  BACKTITLE=$"Favorite Installed Spells"
   HELP=$"From this menu installed spells that are not required by any other installed spell may be granted favor.
 Press space to toggle favor.
 Key:  [X] = on, [ ] = off"
 
-  if  [  -n  "$FAVOR_LOGS"  ]  &&
-    FAV=$(  dialog                       \
-              --backtitle  "$BACKTITLE"  \
-              --title      "$TITLE"      \
-              --stdout                   \
-              --timeout  "$PROMPT_DELAY" \
-              --no-cancel                \
-              --separate-output          \
-              --checklist  "$HELP"       \
-              19 60 10                   \
-              $( checklist )             )
+  if [ -n "$FAVOR_LOGS" ] &&
+    FAV=$( dialog \
+            --stdout --no-cancel --separate-output \
+            --backtitle "$BACKTITLE" --title "$TITLE" \
+            --timeout  "$PROMPT_DELAY" --checklist "$HELP" \
+            19 60 10 $( checklist ) )
   then
-    mkdir  -p   $FAVOR_LOGS
-    rm     -f   $FAVOR_LOGS/*
-    cd          $FAVOR_LOGS
-    [      -n  "$FAV"  ]  &&
-    touch       $FAV
-    rm_arof
+   mkdir -p  $FAVOR_LOGS
+   rm    -f  $FAVOR_LOGS/*
+   cd        $FAVOR_LOGS
+   [     -n "$FAV" ] &&
+   touch     $FAV
+   rm_arof
   fi
-  touch  $GRIMOIRE/favor
+  touch $GRIMOIRE/favor
   generate_index
 }
 
-
-  BACKTITLE=$"Favorite Installed Spells"
-  select_favorites
+ select_favorites
 }

@@ -1,24 +1,26 @@
-  stable 1.5.0 1.4.6 1.4.5 1.4.4 1.4.3 1.4.2 1.4.0
-    IGNORE='deps'
-  CATEGORY='development'
- ATTRIBUTE='console perl-module python-module'
-    SOURCE=( "subversion-$VERSION.tar.bz2"
-             "subversion-deps-$VERSION.tar.bz2" )
-       URL='http://subversion.tigris.org/downloads/'
-      VURL='http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=260&expandFolder=74'
-  HOMEPAGE='http://subversion.tigris.org/'
-       REQ=( 'autoconf db e2fsprogs expat libtool zlib Python swig'
-             'heimdal:::for kerberos support'
-             'httpd:--with-apr=/usr --with-apr-util=/usr  --with-apxs --disable-mod-activation::for SVN server to use installed httpd APR libraries'
-             'openssl:--with-ssl::for open SSL support'
-             'neon:--with-neon=/usr:--without-neon:to allow http/https access of client' )
-      OPTS='--disable-mod-activation --enable-static=no'
- CONFLICTS='subversion'
+    stable 1.5.0 1.4.6 1.4.5 1.4.4 1.4.3 1.4.2 1.4.0
+   require autoconf db e2fsprogs expat libtool zlib Python swig
+  optional heimdal ''               ''             for kerberos support
+  optional openssl --with-ssl       ''             for open SSL support
+  optional neon    --with-neon=/usr --without-neon to allow http/https access of client
+
+  optional httpd   '--with-apr=/usr --with-apr-util=/usr --with-apxs --disable-mod-activation' '' for SVN server to use installed httpd APR libraries
+
+    ignore 'deps'
+  category development
+ attribute console perl-module python-module
+    source subversion-$VERSION.tar.bz2
+    source subversion-deps-$VERSION.tar.bz2
+       url http://subversion.tigris.org/downloads/
+      vurl http://subversion.tigris.org/servlets/ProjectDocumentList?folderID=260&expandFolder=74
+  homepage http://subversion.tigris.org/
+      opts --disable-mod-activation --enable-static=no
+ conflicts subversion
 # Can not compile, dispel, install.
 # Must be uninstalled during compilation.
 # Too much apache in subversion
-  ESTIMATE='2800'
-      DESC='subversion is a version control system like cvs.'
+  estimate 2800
+      desc 'subversion is a version control system like cvs.'
 
 
 build() {
@@ -33,8 +35,8 @@ build() {
    1.2.*)
      NEON_VERSION=$(installed_version neon)
      case ${NEON_VERSION} in
-       0.24*) OPTS="$OPTS --disable-debug --with-neon=/usr" ;;
-       0.25*) OPTS="$OPTS --with-zlib --without-neon";;
+       0.24*) opts $OPTS --disable-debug --with-neon=/usr ;;
+       0.25*) opts $OPTS --with-zlib --without-neon;;
      esac
    ;;
   esac

@@ -1,33 +1,33 @@
 # Supplying own /etc/evms.conf that deactivates *
 # lilo still seems to be unable to install boot blocks to mapped devices.
 # lilo is also unable to install MBR when evms is in use.
-
-  stable 2.5.5 2.5.4 2.5.3 2.5.2 2.5.1 2.5.0
 # glib also used for ncurses GUI
+
+    stable 2.5.5 2.5.4 2.5.3 2.5.2 2.5.1 2.5.0
+   require device-mapper e2fsprogs ncurses pkgconfig readline
+  optional gtk+-v1.2 '' '' for GUI
   GVERSION=1.2.10
-  CATEGORY='disk'
- ATTRIBUTE='console broke'
+  category disk
+ attribute console broke
 # When it maps devices it disables original names such as /dev/sda1
 # no known versions of lilo are compatible with evms.
 # dmsetup manual page is much easier to understand.
 # However, evms 2.5.5 does compile with 4.3.0
 
-    SOURCE=( "evms/evms-$VERSION.tar.gz"
-             "glib-$GVERSION.tar.gz" )
-  HOMEPAGE='http://evms.sourceforge.net'
-       URL=( "$SOURCEFORGE_URL"
-             "ftp://ftp.gtk.org/pub/gtk/v1.2/" )
-       REQ=( 'device-mapper e2fsprogs ncurses pkgconfig readline'
-             'gtk+-v1.2:::for GUI' )
-      OPTS='--sbindir=/sbin --with-static-glib'
+    source evms/evms-$VERSION.tar.gz
+    source glib-$GVERSION.tar.gz
+  homepage http://evms.sourceforge.net
+       url "$SOURCEFORGE_URL"
+       url ftp://ftp.gtk.org/pub/gtk/v1.2/
+      opts --sbindir=/sbin --with-static-glib
 case $HOSTTYPE in
  x86_64) OPTS+=' libdir=/lib64' ;;
       *) OPTS+=' libdir=/lib' ;;
 esac
 
 # --disable-gui disables both the ncurses and gtk+-v1.2 interfaces
-  ESTIMATE='496'
-      DESC='evms is enterprise volume management system.
+  estimate 496
+      desc 'evms is enterprise volume management system.
 It represents a new approach to logical volume management for Linux.
 The architecture introduces a plug-in model that allows for easy
 expansion and customization of various levels of volume management.'

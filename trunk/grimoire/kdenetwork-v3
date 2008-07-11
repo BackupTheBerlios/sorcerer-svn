@@ -1,10 +1,17 @@
+# qca-tls does not compile on x86_64
+
 inherit kde-v3
-  CATEGORY='network/email network/news'
-       REQ=( 'gnupg kdelibs-v3 libXScrnSaver libXtst procps openslp ortp qca-tls speex'
-             'openssl:--with-ssl:--without-ssl:for SSL support'
-             'samba:::for nmblookup if you want lisa to discover windoze boxes'
-             'wireless_tools:--with-wifi:--without-wifi:for wireless networking support'
-             'xmms:--with-xmms:--without-xmms:for kopete chat client to display what you are listening to with xmms' )
+case $HOSTTYPE in
+ x86_64) require gnupg kdelibs-v3 libXScrnSaver libXtst procps openslp ortp speex ;;
+      *) require gnupg kdelibs-v3 libXScrnSaver libXtst procps openslp ortp qca-tls speex ;;
+esac
+
+  optional openssl        --with-ssl  --without-ssl  for SSL support
+  optional samba          ''          ''             for nmblookup if you want lisa to discover windoze boxes
+  optional wireless_tools --with-wifi --without-wifi for wireless networking support
+  optional xmms           --with-xmms --without-xmms for kopete chat client to display what you are listening to with xmms
+
+  category network/email network/news
 
 #            'ortp:--enable-jingle:--disable-jingle:for Jabber Jingle voice support'
 # Compiling with jingle enabled causes compile error during kopete
@@ -16,12 +23,8 @@ inherit kde-v3
 # kopete jabber jingle may have optional requirement on ilbc
 # something in kdenetwork may have optional requirement on gsm
 
-# qca-tls does not compile on x86_64
-case $HOSTTYPE in
- x86_64) REQ="${REQ/qca-tls/}" ;;
-esac
-  ESTIMATE='10800'
-      DESC='kdenetwork-v3 contains an email and news client, and other programs.
+  estimate 10800
+      desc 'kdenetwork-v3 contains an email and news client, and other programs.
 kdenetwork contains network applications.
 Currently contains the mail program, 
 the news reader, and several other 
@@ -29,5 +32,5 @@ network-related programs like kopete.'
 
 build(){
  kde_build &&
- install -m 0600 $SCRIPT_DIR/lisarc /etc
+ install -vm 600 $SCRIPT_DIR/lisarc /etc
 }

@@ -1,21 +1,22 @@
-  stable 2.15 2.16.1 2.16 2.14
-    IGNORE="2\.1[6-9]"
+    stable 2.15 2.16.1 2.16 2.14
+    ignore '2\.1[6-9]'
 # Required for any program that errors during compilation:
 # /lib/libc.so.6: could not read symbols: Bad value
-  CATEGORY='development'
- ATTRIBUTE='console solo'
-    SOURCE="binutils/binutils-$VERSION.tar.bz2"
-case  $VERSION  in
-  2.15)  USE_GCC="gcc-v3.4"  ;;
+  category development
+ attribute console solo
+    source binutils/binutils-$VERSION.tar.bz2
+case $VERSION in
+ 2.15) use_gcc gcc-v3.4 ;;
 esac
-       URL="$GNU_URL"
-  HOMEPAGE='http://sources.redhat.com/binutils'
-   PROTECT="/usr/bin/as
-            /usr/bin/ld
-            /usr/bin/ranlib"
-  EPROVIDE="binutils"
-  ESTIMATE='586'
-      DESC="binutils is an essential collection of binary utilities.
+       url "$GNU_URL"
+  homepage http://sources.redhat.com/binutils
+   protect /usr/bin/as
+   protect /usr/bin/ld
+   protect /usr/bin/ranlib
+
+  eprovide binutils
+  estimate 600
+      desc 'binutils is an essential collection of binary utilities.
 
 binutils - Collection of binary utilities
 ld		-the GNU linker
@@ -30,21 +31,21 @@ strings		-lists printable strings from files
 strip		-discards symbols
 c++filt		-filter to demangle encoded C++ symbols
 addr2line	-converts addresses to file and line
-nlmconv		-converts object code into an NLM"
+nlmconv		-converts object code into an NLM'
 
 
-build()  {
-  export    CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
-  export  CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+build(){
+export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
-  TD="tooldir=/usr"
-  LDF="LDFLAGS=$LDFLAGS"
+TD=tooldir=/usr
+LDF="LDFLAGS=$LDFLAGS"
 
-  ./configure                \
-  --host=$BUILD              \
-  --prefix=/usr              &&
-  make          "$LDF"  $TD  &&
-  prepare_install            &&
-  make    install       $TD  &&
-  make    install-info  $TD
+./configure              \
+--host=$BUILD            \
+--prefix=/usr            &&
+make          "$LDF" $TD &&
+prepare_install          &&
+make    install      $TD &&
+make    install-info $TD
 }

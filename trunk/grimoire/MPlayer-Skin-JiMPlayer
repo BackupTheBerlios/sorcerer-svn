@@ -1,2 +1,21 @@
-stable 1.4
-inherit MPlayer
+    stable 1.4
+  category video/dvd video/player
+ attribute data
+    source skins/${SPELL:13}-$VERSION.tar.bz2
+       url "$MPLAYER_URL"
+  homepage http://www.mplayerhq.hu
+   provide MPlayer-Skin
+  estimate 20
+      desc "$SPELL provides an alternate look for MPlayer"
+
+build(){
+ BASE=$( basename $BUILD_DIR )
+ SKIN="/usr/share/mplayer/skins/$BASE"
+ chmod a+r *       &&
+ prepare_install   &&
+ mkdir -p    $SKIN &&
+ cp    -Rv * $SKIN &&
+ if ! [ -h        /usr/share/mplayer/skins/default ]
+ then ln -s $BASE /usr/share/mplayer/skins/default
+ fi
+}

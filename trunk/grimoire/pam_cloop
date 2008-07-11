@@ -1,12 +1,13 @@
-  stable 0.2.0-1 0.1.0-1
-  CATEGORY='security/authentication security/encryption'
- ATTRIBUTE='client new'
-    SOURCE="pam_cloop-$VERSION.tar.bz2"
-       URL="http://readme.gzipped.org/download/pam_cloop/v${VERSION:0:3}/"
-  HOMEPAGE='http://readme.gzipped.org/projects/pam_cloop/'
-       REQ='Linux-PAM'
-  ESTIMATE='15'
-      DESC="pam_cloop is a PAM module for mounting encrypted partitions.
+    stable 0.2.0-1 0.1.0-1
+   require Linux-PAM
+
+  category security/authentication security/encryption
+ attribute client new
+    source pam_cloop-$VERSION.tar.bz2
+       url http://readme.gzipped.org/download/pam_cloop/v${VERSION:0:3}/
+  homepage http://readme.gzipped.org/projects/pam_cloop/
+  estimate 20
+      desc 'pam_cloop is a PAM module for mounting encrypted partitions.
 
 pam_cloop is a Pluggable Authentication Module (PAM) which mounts
 encrypted partitions in the authentication phase using a passphrase
@@ -22,19 +23,19 @@ This line should be before pam_unix.so
 pam_cloop.so should never be the only authentication module,
 because it always returns success after the first successful
 login (everything already mounted) or when there is no
-configuration for the requested user."
+configuration for the requested user.'
 
 
-build()  {
-  LIB="/usr/lib"
-  case  $MACHTYPE  in
-    x86_64*)  LIB+="64"  ;;
-  esac
+build(){
+ LIB=/usr/lib
+ case $MACHTYPE in
+  x86_64*) LIB+=64 ;;
+ esac
 
-  sed  -i  "s:-O2:$CFLAGS:"  src/Makefile
-  make             &&
-  prepare_install  &&
-  mkdir    -v  -m 0755  -p                                  /etc/security  &&
-  install  -v  -m 0644  -o root  -g root  cloop.conf        /etc/security  &&
-  install  -v  -m 0755  -o root  -g root  src/pam_cloop.so  $LIB/security
+ sed -i "s:-O2:$CFLAGS:" src/Makefile
+ make &&
+ prepare_install &&
+ mkdir   -vm 755 -p                               /etc/security &&
+ install -vm 644 -o root -g root cloop.conf       /etc/security &&
+ install -vm 755 -o root -g root src/pam_cloop.so $LIB/security
 }

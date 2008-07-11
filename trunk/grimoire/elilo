@@ -1,29 +1,29 @@
-  stable 3.8 3.7
-  CATEGORY='administration/bootloader'
- ATTRIBUTE='console ia32 ia64'
-    SOURCE="elilo/elilo-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://elilo.sourceforge.net/'
-       REQ='gnu-efi'
-  ESTIMATE='130'
-      DESC='elilo is an EFI linux boot loader.
+    stable 3.8 3.7
+   require gnu-efi
+  category administration/bootloader
+ attribute console ia32 ia64
+    source elilo/elilo-$VERSION.tar.gz
+       url "$SOURCEFORGE_URL"
+  homepage http://elilo.sourceforge.net/
+  estimate 130
+      desc 'elilo is an EFI linux boot loader.
 elilo is not yet supported by Sorcerer.
 elilo is not compatible with lilo.'
 
-build()  {
-  make_install()  {
-    mkdir   -pvm 0755                  /boot/efi
-    install  -vm 0700  elilo.efi       /boot/efi
-    install  -vm 0755  elilo.so        /lib;      [ -f ia32/bin_to_h ] &&
-    install  -vm 0755  ia32/bin_to_h   /usr/bin
-    install  -vm 0755  tools/eliloalt  /usr/bin
-    mkdir   -pvm 0755                  /usr/doc/elilo
-    install  -vm 0644  README*         /usr/doc/elilo
-    install  -vm 0644  docs/*          /usr/doc/elilo
-  }
+build(){
+ make_install(){
+  mkdir  -pvm 755                /boot/efi
+  install -vm 700 elilo.efi      /boot/efi
+  install -vm 755 elilo.so       /lib; [ -f ia32/bin_to_h ] &&
+  install -vm 755 ia32/bin_to_h  /usr/bin
+  install -vm 755 tools/eliloalt /usr/bin
+  mkdir  -pvm 755                /usr/doc/elilo
+  install -vm 644 README*        /usr/doc/elilo
+  install -vm 644 docs/*         /usr/doc/elilo
+ }
 
-  sed  -i  's:$(prefix)::'  Make.defaults
-  make             &&
-  prepare_install  &&
-     make_install
+ sed -i 's:$(prefix)::' Make.defaults
+ make &&
+ prepare_install &&
+    make_install
 }

@@ -1,38 +1,36 @@
 version_year_month 12
-  CATEGORY='network'
- ATTRIBUTE='client server stale'
-    SOURCE="services-$VERSION.tar.bz2"
-       URL='http://sorcerer.silverice.org/download/iana/'
-  HOMEPAGE='http://www.iana.org/'
-       REQ=''
-   EXCLUDE="/etc/services
-            /etc/services.old"
-  ESTIMATE='5'
-      DESC="services translates tarball of port numbers by IANA into to /etc/services"
+  category network
+ attribute client server stale
+    source services-$VERSION.tar.bz2
+       url http://sorcerer.silverice.org/download/iana/
+  homepage http://www.iana.org/
+   protect /etc/services
+   exclude /etc/services.old
+  estimate 5
+      desc 'services translates tarball of port numbers by IANA into to /etc/services'
 
+build(){
+ lo(){
+  [ -f $LO ]          &&
+  cat  $LO            |
+  tr      '\t' ' '    |
+  tr  -s  ' '         |
+  tr  -d  '\177-\377' |
+  sed -n  "\,/tcp,p
+           \,/upd,p"  |
+  sed -r  "s:([^ ]*) ([^ ]*):\1|\2|#:
+           s:\|#$::"  |
+  tr      '|' '\t'
+ }
 
-build() {
-  lo()  {
-    [        -f  $LO  ]        &&
-    cat          $LO           |
-    tr           '\t'  ' '     |
-    tr       -s  ' '           |
-    tr       -d  '\177-\377'   |
-    sed      -n  "\,/tcp,p
-                  \,/upd,p"    |
-    sed      -r  "s:([^ ]*) ([^ ]*):\1|\2|#:
-                 s:\|#$::"     |
-    tr           '|'  '\t'
-  }
-
-  LO=/etc/services.local
-  [  -s   services  ]     &&
-  mv      services  iana  &&
-  prepare_install         &&
-  ( cat   iana;  echo;  lo  )  |
-  column  -s '	'  -t      >  services  &&
-  install -m 0644 -b -S .old  services  /etc
+ LO=/etc/services.local
+ [ -s services ]    &&
+ mv   services iana &&
+ prepare_install    &&
+ ( cat iana; echo; lo ) |
+ column  -s '	' -t > services &&
+ install -vm 644 -b -S .old services /etc
 }
 
 
-current()  {  [  /etc/services  -nt  /etc/services.local  ];  }
+current(){ [ /etc/services -nt /etc/services.local ]; }

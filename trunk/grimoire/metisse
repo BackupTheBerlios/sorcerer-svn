@@ -1,34 +1,36 @@
-  stable 0.4.0-rc4 0.4.0-rc1 0.3.5 0.3.4 0.3.3 0.3.2 0.3.1
-  CATEGORY='window-manager'
- ATTRIBUTE='x11 new broke'
 # nucleo version 0.6 requires software from apple
 # and we all do not have apple open source usernames passwords.
-    SOURCE="metisse-$VERSION.tar.gz"
-       URL='http://insitu.lri.fr/metisse/download/latest/'
-#      URL='http://insitu.lri.fr/~chapuis/software/metisse/'
-  HOMEPAGE='http://insitu.lri.fr/~chapuis/metisse/index.html'
- CONFLICTS="fvwm"
-       REQ=( "gtk+ imlib nucleo readline"
-             ":--enable-glx::enable GLX extentnion for OpenGL apps"
-             "fribidi::--disable-bidi:for bi-directional text support"
-             "rplay::--disable-rplay:for internal sound events" )
-     WMBIN="/usr/bin/fvwmi"
-  ESTIMATE='1089'
-      DESC="metisse is an experimental X desktop with some OpenGL capacity.
+
+    stable 0.4.0-rc4 0.4.0-rc1 0.3.5
+   require gtk+ imlib nucleo readline
+  optional fribidi '' --disable-bidi  for bi-directional text support
+  optional rplay   '' --disable-rplay for internal sound events
+
+  switch --enable-glx '' enable GLX extentnion for OpenGL apps
+
+  category window-manager
+ attribute x11 new broke
+    source metisse-$VERSION.tar.gz
+       url http://insitu.lri.fr/metisse/download/latest/
+  homepage http://insitu.lri.fr/~chapuis/metisse/index.html
+ conflicts fvwm
+     WMBIN='/usr/bin/fvwmi'
+  estimate 1000
+      desc 'metisse is an experimental X desktop with some OpenGL capacity.
 It consists of a virtual X server called Xwnc,
 a special version of FVWM,
 and a FVWM module FvwmAmetista.
 Xwnc is a mix of Xvnc and XDarwin.
 It draws nothing on your screen; everything is drawn into pixmaps.
 Similarly to Xvnc, but with a different protocol,
-Xwnc can send these pixmaps (and other information) to a \"viewer\".
+Xwnc can send these pixmaps (and other information) to a viewer.
 FvwmAmetista is such a viewer; it uses OpenGL for rendering the X
-desktop into a window of a \"regular\" 3D accelerated X server."
+desktop into a window of a regular 3D accelerated X server.'
 
 
-build()  {
-  case  $HOSTTYPE  in
-    *86)  OPTS="${OPTS/--enable-glx/--enable-glx-x8}"  ;;
-  esac
-  default_build
+build(){
+ case $HOSTTYPE in
+  *86) opts ${OPTS/--enable-glx/--enable-glx-x8} ;;
+ esac
+ default_build
 }

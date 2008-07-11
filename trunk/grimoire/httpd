@@ -1,34 +1,35 @@
-  stable 2.2.9 2.2.8 2.2.6
-  secure 2.2.9 2.2.8
-    IGNORE='beta\|alpha'
-  CATEGORY='network/web'
- ATTRIBUTE='console server'
-    SOURCE=( "httpd/httpd-$VERSION.tar.gz" )
+    stable 2.2.9 2.2.8 2.2.6
+    secure 2.2.9 2.2.8
+   require Python
+  optional openssl    --enable-ssl       --disable-ssl     for https enabled server
+  optional expat      ''                 ''                for fast non-validating stream-oriented XML parsing 
+  optional db         --with-berkeley-db --without-berkeley-db for berkeley database support
+  optional gdbm       --with-gdbm        --without-gdbm    for gdbm database support
+  optional mysql      --with-mysql       --without-mysql   for mysql database support
+  optional openldap   '--with-ldap --enable-ldap -enable-auth-ldap' '' to enable LDAP support
+  optional postgresql --with-pgsql       --without-pgsql   for postgresql database support
+  optional sqlite     --with-sqlite3     --without-sqlite3 for sqlite database support
+
+    ignore 'beta\|alpha'
+  category network/web
+ attribute console server
+    source httpd/httpd-$VERSION.tar.gz
 # Is it required with 2.2.8 ?
 #             "apr/apr_dbd_mysql.c" )
-       URL=( "$APACHE_URL" )
+       url "$APACHE_URL"
 # Is it required with 2.2.8 ?
 #            "http://apache.webthing.com/svn/apache/" )
-  HOMEPAGE='http://httpd.apache.org'
-       REQ=( 'Python'
-             'openssl:--enable-ssl:--disable-ssl:for https enabled server'
-             'expat:::for fast non-validating stream-oriented XML parsing' 
-             'db:--with-berkeley-db:--without-berkeley-db:for berkeley database support'
-             'gdbm:--with-gdbm:--without-gdbm:for gdbm database support'
-             'mysql:--with-mysql:--without-mysql:for mysql database support'
-             'openldap:--with-ldap --enable-ldap -enable-auth-ldap::to enable LDAP support'
-             'postgresql:--with-pgsql:--without-pgsql:for postgresql database support'
-             'sqlite:--with-sqlite3:--without-sqlite3:for sqlite database support' )
+  homepage http://httpd.apache.org
 case $VERSION in
- 2.2.8) REQ+=' libtool-v1.5' ;;
+ 2.2.8) require libtool-v1.5 ;;
 esac
-   PROTECT='/etc/httpd
-            /usr/share/httpd/htdocs
-            /usr/share/httpd/error'
-  EPROVIDE='web-server'
- FRESHMEAT='apache'
-  ESTIMATE='2000'
-      DESC='httpd is a popular HTTP server.'
+   protect /etc/httpd
+   protect /usr/share/httpd/htdocs
+   protect /usr/share/httpd/error
+  eprovide web-server
+ freshmeat apache
+  estimate 2000
+      desc 'httpd is a popular HTTP server.'
 
 configure(){
 query_dialog(){

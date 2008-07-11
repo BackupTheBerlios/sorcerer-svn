@@ -1,33 +1,32 @@
-  stable 0
-    IGNORE='Licen.TXT'
-  CATEGORY='font'
- ATTRIBUTE='archive_off data noheal'
-    SOURCE="webfonts.tar.gz"
+    stable 0
+   require cabextract fontconfig
+
+    ignore 'Licen.TXT'
+  category font
+ attribute archive_off data noheal
+    source webfonts.tar.gz
    disable  scavenge
-       URL='http://fontconfig.org/webfonts/'
-       REQ='cabextract fontconfig'
-  ESTIMATE='92'
-      DESC='webfonts provides Microsoft TrueType core fonts for the Web.'
+       url http://fontconfig.org/webfonts/
+  estimate 100
+      desc 'webfonts provides Microsoft TrueType core fonts for the Web.'
 
 build(){
- DEST=/usr/X11R6/lib/X11/fonts/TrueType
+DEST=/usr/X11R6/lib/X11/fonts/TrueType
 
- if [ -f Licen.TXT ]; then
-  prepare_install
-  mkdir -p $DEST
-  for  FONT in *.exe
-  do   cabextract -L $FONT -d $DEST
-  done
-  rm     -rf  $DEST/{*.dll,*.inf,*.exe,*.txt}
-  mkfontscale $DEST
-  cp          $DEST/fonts.scale \
-              $DEST/fonts.dir
-  mkdir           doc
-  mv    Licen.TXT doc
- else   false
- fi
+if [ -f Licen.TXT ]; then
+ prepare_install
+ mkdir -p $DEST
+ for  FONT in *.exe
+ do   cabextract -L $FONT -d $DEST
+ done
+ rm     -rf  $DEST/{*.dll,*.inf,*.exe,*.txt}
+ mkfontscale $DEST
+ cp          $DEST/fonts.scale \
+             $DEST/fonts.dir
+ mkdir           doc
+ mv    Licen.TXT doc
+else false
+fi
 }
 
-post_install(){
- /usr/bin/fc-cache -fv
-}
+post_install(){ /usr/bin/fc-cache -fv; }

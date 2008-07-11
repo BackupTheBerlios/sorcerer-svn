@@ -1,43 +1,31 @@
-  stable 1.3.1 1.3.1rc2 1.3.1rc1
-  secure 1.3.1 1.3.1rc2 1.3.1rc1
 # Using 1.3.1rc1 only for security fix.
-    IGNORE="\.bz2\|rc"
-  CATEGORY='network/ftp'
- ATTRIBUTE='server console'
-    SOURCE="proftpd-$VERSION.tar.bz2"
-       URL='ftp://ftp.proftpd.org/distrib/source/'
-  HOMEPAGE='http://www.proftpd.org/'
-  EPROVIDE="ftpd"
-       REQ=( "ncurses"
-             "Linux-PAM:::for pluggable authentication"
-             "xinetd:::for running server" )
-  ESTIMATE='600'
-      DESC="proftpd is a ftp server.
+
+    stable 1.3.1 1.3.1rc2 1.3.1rc1
+    secure 1.3.1 1.3.1rc2 1.3.1rc1
+  optional Linux-PAM --enable-pam '' for pluggable authentication
+  optional xinetd    ''           '' for running server
+
+    ignore '\.bz2\|rc'
+  category network/ftp
+ attribute server console
+    source proftpd-$VERSION.tar.bz2
+       url ftp://ftp.proftpd.org/distrib/source/
+  homepage http://www.proftpd.org/
+  eprovide ftpd
+      opts --enable-shadow
+  estimate 600
+      desc 'proftpd is a ftp server.
 proftpd is a proven, high-performance, scalable
 FTP server written from scratch, with a focus
 toward simplicity, security, and ease of configuration.
 It features a very Apache-like configuration syntax,
 modules, and a highly customizable server infrastructure,
-including support for multiple 'virtual' FTP servers,
-anonymous FTP, and permission-based directory visibility."
+including support for multiple virtual FTP servers,
+anonymous FTP, and permission-based directory visibility.'
 
 
-build() {
-if    spell_installed  Linux-PAM
-then  ENABLE_PAM="--enable-pam"
-fi
-
-sed  -i  "s/\tstandalone/\tinetd/"  \
-sample-configurations/basic.conf    &&
-./configure           \
---prefix=/usr         \
---sysconfdir=/etc     \
---localstatedir=/var  \
---enable-shadow       \
-$ENABLE_PAM           \
-$OPTS                 &&
-make                  &&
-prepare_install       &&
-make    install       &&
-cp  -R  sample-configurations  doc
+build(){
+sed -i "s/\tstandalone/\tinetd/" sample-configurations/basic.conf &&
+default_build &&
+cp -R sample-configurations  doc
 }

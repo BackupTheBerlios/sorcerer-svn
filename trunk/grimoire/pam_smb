@@ -1,9 +1,10 @@
-  stable 1.1.7
-  secure 1.1.7
-  CATEGORY='network'
- ATTRIBUTE='client console'
-    SOURCE="pam_smb/pam_smb-$VERSION.tar.gz"
-       URL="ftp://ca.samba.org/
+    stable 1.1.7
+    secure 1.1.7
+   require Linux-PAM
+  category network
+ attribute client console
+    source pam_smb/pam_smb-$VERSION.tar.gz
+       url 'ftp://ca.samba.org/
             ftp://de.samba.org/samba.org/
             ftp://fi.samba.org/pub/samba/
             ftp://ftp.azc.uam.mx/mirrors/samba/
@@ -20,34 +21,33 @@
             ftp://tr.samba.org/samba/
            http://us1.samba.org/samba/ftp/
            http://us2.samba.org/samba/ftp/
-           http://us3.samba.org/samba/ftp/"
-  HOMEPAGE='http://www.csn.ul.ie/~airlied/pam_smb/'
-       REQ='Linux-PAM'
-  ESTIMATE='60'
-      DESC="pam_smb is a Linux-PAM module for authenticating users from Samba, NT, 95/8
+           http://us3.samba.org/samba/ftp/'
+  homepage http://www.csn.ul.ie/~airlied/pam_smb/
+  estimate 60
+      desc 'pam_smb is a Linux-PAM module for authenticating users from Samba, NT, 95/8
 pam_smb is a module which allows Linux users to be
-authenticated from Samba, NT or Windows 95/8 machines."
+authenticated from Samba, NT or Windows 95/8 machines.'
 
-build() {
-  LIB="/usr/lib"
-  case  $MACHTYPE  in
-    x86_64*)  LIB+="64"  ;;
+build(){
+  LIB=/usr/lib
+  case $MACHTYPE in
+    x86_64*) LIB+=64 ;;
   esac
 
-  make_install()  {
-    install  -v  -m 0755  pam_smb_auth.so       $LIB/security
-    install  -v  -m 0644  pam_smb.conf.example  /etc
-    mkdir    -v  -p                             /usr/doc/pam_smb
-    cp                    README  CHANGES       /usr/doc/pam_smb
-  }
+ make_install(){
+  install -vm 755 pam_smb_auth.so      $LIB/security
+  install -vm 644 pam_smb.conf.example /etc
+  mkdir   -vp                          /usr/doc/pam_smb
+  cp              README  CHANGES      /usr/doc/pam_smb
+ }
 
-  ./configure           \
-  --build=$BUILD        \
-  --prefix=/usr         \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-   $OPTS                &&
-  make                  &&
-  prepare_install       &&
-     make_install
+ ./configure          \
+ --build=$BUILD       \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+  $OPTS               &&
+ make                 &&
+ prepare_install      &&
+    make_install
 }

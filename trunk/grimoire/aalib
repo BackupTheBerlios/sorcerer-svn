@@ -2,32 +2,31 @@
 # because it fails compilation
 # 1.4rc5 used instead
 # However project ceased updating in Apr 25 2001
-  stable 1.4rc5 1.2
-  CATEGORY='graphic/library'
- ATTRIBUTE='console library'
-case  $HOSTTYPE  in
-  x86_64)  ATTRIBUTE+=" broke"  ;;
+    stable 1.4rc5 1.2
+  optional ncurses --with-curses-driver=yes --with-curses-driver=no use ncurses for output
+  optional slang   --with-slang-driver=yes  --with-slang-driver=no  use slang for output
+  optional gpm     ''                        ''                     for general purpose mouse driver support
+  optional libX11  --with-x                 --without-x             for x11 mouse input and graphic output support
+
+  category graphic/library
+ attribute console library
+case $HOSTTYPE in
+  x86_64) attribute broke ;;
 esac
-    SOURCE="aa-project/aalib-$VERSION.tar.gz"
-  HOMEPAGE='http://aa-project.sourceforge.net/aalib'
-       URL="$SOURCEFORGE_URL"
-       REQ=( ""
-             "ncurses:--with-curses-driver=yes:--with-curses-driver=no:use ncurses for output"
-             "slang:--with-slang-driver=yes:--with-slang-driver=no:use slang for output"
-             "gpm:::for general purpose mouse driver support"
-             "libX11:--with-x:--without-x:for x11 mouse input and graphic output support" )
-  ESTIMATE='500'
- FRESHMEAT="aalib"
-      DESC="aalib is a portable ASCII art GFX library."
+    source aa-project/aalib-$VERSION.tar.gz
+  homepage http://aa-project.sourceforge.net/aalib
+       url "$SOURCEFORGE_URL"
+  estimate 500
+      desc 'aalib is a portable ASCII art GFX library.'
 
-build() {
-  if [ $HOSTTYPE == "x86_64" ]; then
-    sed -i '155i   | x86_64-* \\'                   config.sub
-    sed -i 's:i\[34567\]86):i\[34567\]86|x86_64):'  config.sub
-  fi
+build(){
+ if [ $HOSTTYPE == "x86_64" ]; then
+  sed -i '155i   | x86_64-* \\'                  config.sub
+  sed -i 's:i\[34567\]86):i\[34567\]86|x86_64):' config.sub
+ fi
 
-  export  CFLAGS="$CFLAGS -fPIC"
-  export  CXXFLAGS="$CXXFLAGS -fPIC"
+ export   CFLAGS+=' -fPIC'
+ export CXXFLAGS+=' -fPIC'
 
-  default_build
+ default_build
 }

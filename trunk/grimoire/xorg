@@ -1,39 +1,38 @@
-  HOMEPAGE="${HOMEPAGE:-http://www.x.org}"
-  XVERSION=( X11R7.3 X11R7.2-20070215 X11R7.1-20061101 )
-    IGNORE='^X11R'
+# gnome-settings-daemon from control-center requires xrdb
+
+  homepage http://www.x.org
+  XVERSION=( X11R7.3 X11R7.2-20070215 )
+    ignore '^X11R'
 
 if  [ $SPELL == xorg ]; then
-  stable ${XVERSION[@]}
-  CATEGORY='xserver profile'
- ATTRIBUTE='x11 X11R7'
-# gnome-settings-daemon from control-center requires xrdb
-      REQ=( 'gccmakedep imake libXScrnSaver libXaw libXcomposite libXcursor libXdamage libXevie libXft libXinerama libXrandr libXtst libXv libXxf86dga libdmx lndir makedepend util-macros xf86-app xf86-font xf86-input xf86-video xorg-cf-files xrdb' )
-  EPROVIDE='xf86'
-  ESTIMATE='5'
-      DESC='xorg is a fork of XFree86 4.4.0.'
+    stable ${XVERSION[@]}
+  category xserver profile
+ attribute x11 X11R7
+require gccmakedep imake libXScrnSaver libXaw libXcomposite libXcursor libXdamage libXevie libXft libXinerama libXrandr libXtst libXv libXxf86dga libdmx lndir makedepend util-macros xf86-app xf86-font xf86-input xf86-video xorg-cf-files xrdb
+  eprovide xf86
+  estimate 5
+      desc 'xorg is a fork of XFree86 4.4.0.'
 else
 
- stable ${XVERSION[@]}
+    stable ${XVERSION[@]}
 #  VERSION="${VERSION:-$XVERSION}"
   CATEGORY="xorg/${SOURCE%/*}"
- ATTRIBUTE='x11 X11R7'
+ attribute x11 X11R7
      OPTS+=' --disable-static'
   case ${SOURCE%/*} in
-   driver) ATTRIBUTE='x11 X11R7 library' ;;
-   lib)	   ATTRIBUTE='x11 X11R7 library' ;;
-   proto)  ATTRIBUTE='x11 X11R7 library'
-           ESTIMATE="${ESTIMATE:-10}"
-           DESC="${DESC:-$SPELL provides header files for X11R7}" ;;
+   driver) attribute x11 X11R7 library ;;
+   font)   attribute data X11R7; desc "$SPELL provides font" ;;
+   lib)	   attribute x11 X11R7 library ;;
+   proto)  attribute x11 X11R7 library
+           desc "${DESC:-$SPELL provides header files for X11R7}" ;;
   esac
 
-  if    [  -z  "${REQ[*]}"  ]
-  then  REQ='X11R6-symlinks'
-  fi
+  require X11R6-symlinks
 
-  URL=( "http://xorg.freedesktop.org/archive/${XVERSION:0:7}/src/
-          ftp://ftp.x.org/pub/${XVERSION:0:7}/src/
-         http://xorg.freedesktop.org/archive/individual/
-          ftp://ftp.x.org/pub/individual/"
-        "http://xorg.freedesktop.org/archive/${XVERSION:0:7}/patches/
-          ftp://ftp.x.org/pub/${XVERSION:0:7}/patches/" )
+  url "http://xorg.freedesktop.org/archive/${XVERSION:0:7}/src/
+        ftp://ftp.x.org/pub/${XVERSION:0:7}/src/
+       http://xorg.freedesktop.org/archive/individual/
+        ftp://ftp.x.org/pub/individual/"
+  url "http://xorg.freedesktop.org/archive/${XVERSION:0:7}/patches/
+        ftp://ftp.x.org/pub/${XVERSION:0:7}/patches/"
 fi

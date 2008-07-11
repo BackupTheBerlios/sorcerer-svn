@@ -1,29 +1,30 @@
-  stable 1.2.4 1.2.3
-    IGNORE="[0-9][0-9][0-9]\|1\.02\|RC"
-  CATEGORY='utility/gis'
- ATTRIBUTE='console new'
-    SOURCE="pub/geotiff/libgeotiff/libgeotiff-$VERSION.tar.gz"
-       URL='ftp://ftp.remotesensing.org/'
-  HOMEPAGE='http://www.remotesensing.org/geotiff/geotiff.html'
-       REQ='proj tiff'
-      OPTS='--enable-static=no'
-  ESTIMATE='110'
-      DESC='libgeotiff is a library for reading and writing GeoTIFF info tags'
+    stable 1.2.4 1.2.3
+   require proj tiff
 
-build() {
+    ignore '[0-9][0-9][0-9]\|1\.02\|RC'
+  category utility/gis
+ attribute console new
+    source pub/geotiff/libgeotiff/libgeotiff-$VERSION.tar.gz
+       url ftp://ftp.remotesensing.org/
+  homepage http://www.remotesensing.org/geotiff/geotiff.html
+      opts --enable-static=no
+  estimate 100
+      desc 'libgeotiff is a library for reading and writing GeoTIFF info tags'
+
+build(){
 # Unset LDFLAGS because
 # the compilation fails if LDFLAGS='-Wl,-s' with message
 #  ld: unknown option '-Wl,-s'
 
-export  LDFLAGS="${LDFLAGS//-Wl,-s/}"
+export LDFLAGS="${LDFLAGS//-Wl,-s/}"
 
 sed -i "s:/usr/local:@prefix@:" bin/Makefile.in
 
-autoconf  &&
-./configure               \
---prefix=/usr             \
---datarootdir=/usr/share  &&
-make             &&
-prepare_install  &&
+autoconf &&
+./configure              \
+--prefix=/usr            \
+--datarootdir=/usr/share &&
+make            &&
+prepare_install &&
 make    install
 }

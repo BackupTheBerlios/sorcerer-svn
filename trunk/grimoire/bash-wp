@@ -1,39 +1,40 @@
-  stable 1.44 1.43 1.42 1.41 1.40
-        BV=( 3.0 )
-    IGNORE='rc\|x\.y'
-  CATEGORY='development/interpreter utility/shell'
- ATTRIBUTE='console'
-       DIR='none'
-    SOURCE=( "bashdiff-$VERSION.tar.gz"
-             "bash-$BV.tar.gz" )
-       URL=( 'http://home.eol.ca/~parkw/bashdiff/'
-             'ftp://ftp.cwru.edu/pub/bash/' )
-  HOMEPAGE='http://home.eol.ca/~parkw'
-       REQ=( 'autoconf expat ncurses readline'
-             ':--debugger::Enable debugging and extdebug shell option'
-             'gtk+:--enable-gtk2:--disable-gtk2:for simple GUI dialog system' )
-      OPTS='--bindir=/usr/bin --with-installed-readline --with-curses'
-     SHBIN='/usr/bin/bash'
-  ESTIMATE='1160'
-      DESC='bash-wp provides an extended modified bash by William Park.'
+    stable 1.44 1.43 1.42 1.41 1.40
+   require autoconf expat ncurses readline
+  optional gtk+ --enable-gtk2 --disable-gtk2 for simple GUI dialog system
+  switch      --debugger    ''             to enable debugging and extdebug shell option
 
-build()  {
-  install_loadables()  {
-    install  -d       -m 0755              /usr/libexec/bash-wp
-    cd   examples/loadables
-    for  FILE  in  *.c
-    do   make                  ${FILE%.c}
-         install  -s  -m 0755  ${FILE%.c}  /usr/libexec/bash-wp
-  done
-  cd    william
-  make
-  make  install
-  true
+        BV=( 3.0 )
+    ignore 'rc\|x\.y'
+  category development/interpreter utility/shell
+ attribute console
+       DIR='none'
+    source bashdiff-$VERSION.tar.gz
+    source bash-$BV.tar.gz
+       url http://home.eol.ca/~parkw/bashdiff/
+       url ftp://ftp.cwru.edu/pub/bash/
+  homepage http://home.eol.ca/~parkw
+      opts --bindir=/usr/bin --with-installed-readline --with-curses
+     SHBIN='/usr/bin/bash'
+  estimate 1100
+      desc 'bash-wp provides an extended modified bash by William Park.'
+
+build(){
+ install_loadables(){
+  install -d -m 755 /usr/libexec/bash-wp
+  cd  examples/loadables
+  for FILE  in  *.c
+  do  make              ${FILE%.c}
+      install -s -m 755 ${FILE%.c} /usr/libexec/bash-wp
+ done
+ cd   william
+ make
+ make install
+ true
 }
 
-cd  bash-$BV
-patch  -p2  <  ../bashdiff-$VERSION.diff
+cd bash-$BV
+patch -p2 < ../bashdiff-$VERSION.diff
 autoconf
-default_build  &&
+default_build &&
 install_loadables
 }

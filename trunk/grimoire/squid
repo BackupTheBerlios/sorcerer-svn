@@ -1,16 +1,17 @@
-  stable 3.0.STABLE7 3.0.STABLE6 3.0.STABLE5 3.0.STABLE4 3.0.STABLE2 3.0.STABLE1
-  secure 3.0.STABLE7 3.0.STABLE6 3.0.STABLE5 3.0.STABLE4 3.0.STABLE2 3.0.STABLE1
-    IGNORE='200[3-9]\|RC'
-  CATEGORY='network/web network/ftp'
- ATTRIBUTE='server'
-    SOURCE="squid-$VERSION.tar.bz2"
-       URL=( "http://www.squid-cache.org/Versions/v${VERSION:0:1}/${VERSION:0:3}/"
-             "http://www.squid-cache.org/Versions/v2/2.6/bugs/" )
-  HOMEPAGE='http://www.squid-cache.org/'
-       REQ=( 'init-functions w3c-libwww'
-             'openssl:--enable-ssl::support SSL proxying' )
-  ESTIMATE='2600'
-      DESC='squid is a full-featured Web proxy cache
+    stable 3.0.STABLE7 3.0.STABLE6 3.0.STABLE5 3.0.STABLE4 3.0.STABLE2 3.0.STABLE1
+    secure 3.0.STABLE7 3.0.STABLE6 3.0.STABLE5 3.0.STABLE4 3.0.STABLE2 3.0.STABLE1
+   require w3c-libwww
+  optional openssl --enable-ssl '' support SSL proxying
+
+    ignore '200[3-9]\|RC'
+  category network/web network/ftp
+ attribute server
+    source squid-$VERSION.tar.bz2
+       url http://www.squid-cache.org/Versions/v${VERSION:0:1}/${VERSION:0:3}/
+#      url http://www.squid-cache.org/Versions/v2/2.6/bugs/
+  homepage http://www.squid-cache.org/
+  estimate 2600
+      desc 'squid is a full-featured Web proxy cache
 
 squid is a full-featured Web proxy cache.
 
@@ -27,25 +28,25 @@ Squid supports...
   * caching of DNS lookups'
 
 build(){
- SCX=1
- while [ -n "${SOURCE[$SCX]}" ]
- do    patch -p1 < $SOURCE_CACHE/squid/$VERSION/${SOURCE[$SCX]}
-       ((SCX++))
- done
+SCX=1
+while [ -n "${SOURCE[$SCX]}" ]
+do    patch -p1 < $SOURCE_CACHE/squid/$VERSION/${SOURCE[$SCX]}
+      ((SCX++))
+done
 
- sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
+sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
 
- ./configure                      \
- --prefix=/usr                    \
- --sysconfdir=/etc/squid          \
- --localstatedir=/var/cache/squid \
- --enable-async-io                \
- --enable-snmp                    \
- --enable-linux-netfilter         \
- $OPTS                            &&
- make                             &&
- prepare_install                  &&
- make    install                  &&
- mkdir  -p                /var/cache/squid &&
- chown  -R nobody.nogroup /var/cache/squid
+./configure                      \
+--prefix=/usr                    \
+--sysconfdir=/etc/squid          \
+--localstatedir=/var/cache/squid \
+--enable-async-io                \
+--enable-snmp                    \
+--enable-linux-netfilter         \
+$OPTS                            &&
+make                             &&
+prepare_install                  &&
+make    install                  &&
+mkdir  -p                /var/cache/squid &&
+chown  -R nobody.nogroup /var/cache/squid
 }

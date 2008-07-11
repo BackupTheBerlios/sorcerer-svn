@@ -1,26 +1,27 @@
-  stable 0.8.3 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0
-  secure 0.8.3
 # 0.8.0 and 0.7.2 have a compatibility problem with current PAM?
 # 0.8.3 has a perl module which does not install properly.
-    IGNORE="^200\|rc\|w32\|binaries"
-  CATEGORY='network/ftp'
-#ATTRIBUTE='server console new'
- ATTRIBUTE='server console new broke'
+
+    stable 0.8.3 0.8.2 0.8.1 0.8.0 0.7.2 0.7.1 0.7.0
+    secure 0.8.3
+  optional mysql      ''               --without-mysql   for mysql authentication
+  optional postgresql ''               --without-pgsql   for postgresql authentication
+  optional gnutls     --enable-gnutls  --disable-gnutls  for gnutls ssl
+  optional openssl    --enable-openssl --disable-openssl for openssl ssl
+  optional perl       --enable-perl    --disable-perl    for perl module support
+  optional tcl        ''               --without-tcl     for tcl scripting support
+  switch            --enable-ipv6    ''                for experimental IPv6 support
+  switch            --enable-utf8    ''                for experimental UTF8 support
+
+    ignore '^200\|rc\|w32\|binaries'
+  category network/ftp
+#attribute server console new
+ attribute server console new broke
 # 0.8.2 has install errors
-    SOURCE="wzdftpd/wzdftpd-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://wzdftpd.sourceforge.net'
-  EPROVIDE="ftpd"
-       REQ=( "init-functions"
-             "mysql::--without-mysql:for mysql authentication"
-             "postgresql::--without-pgsql:for postgresql authentication"
-             "gnutls:--enable-gnutls:--disable-gnutls:for gnutls ssl"
-             "openssl:--enable-openssl:--disable-openssl:for openssl ssl"
-             "perl:--enable-perl:--disable-perl:for perl module support"
-             "tcl::--without-tcl:for tcl scripting support"
-             ":--enable-ipv6::for experimental IPv6 support"
-             ":--enable-utf8::for experimental UTF8 support" )
-        OPTS="--without-pam"
+    source wzdftpd/wzdftpd-$VERSION.tar.gz
+       url "$SOURCEFORGE_URL"
+  homepage http://wzdftpd.sourceforge.net
+  eprovide ftpd
+        opts --without-pam
 #
 # Installing wzdftpd.pm
 # make[3]: Entering directory `/usr/src/sorcery/wzdftpd/wzdftpd-0.8.3/libwzd-perl/ext'
@@ -29,16 +30,16 @@
 # make[3]: *** [pure_vendor_install] Error 2
 #
 case  $VERSION  in
-  0.8.3)  OPTS+=" --disable-perl"  ;;
+  0.8.3)  OPTS+=' --disable-perl'  ;;
 esac
 #  Well the above case statement still does not avoid the problem.
 # wzdftpd is junk?  Does it ever compile and work as expected?
 
 #            "Linux-PAM:--with-pam:--without-pam:for PAM authentication"
 # Linux-PAM support is broke with wzdftpd
-  ESTIMATE='511'
-      DESC="wzdftpd is modular ftp server.
-It supports IPv6, multi-threading, and external scripts."
+  estimate 511
+      desc 'wzdftpd is modular ftp server.
+It supports IPv6, multi-threading, and external scripts.'
 
 build() {
 finish_install() {

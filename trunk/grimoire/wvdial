@@ -1,16 +1,16 @@
-  stable 1.56 1.54.0 1.53
-# wvdial 1.56 is not compatible with gcc 4.1.0
-  CATEGORY='network/ppp'
- ATTRIBUTE='client console'
-    SOURCE="wvdial-$VERSION.tar.gz"
-  HOMEPAGE='http://open.nit.ca/wvdial/'
-       URL='http://open.nit.ca/download/'
-       REQ='ppp wvstreams'
-case  $VERSION  in
-  1.56)  USE_GCC="gcc-v4.0"  ;;
+    stable 1.56 1.54.0 1.53
+   require ppp wvstreams
+
+  category network/ppp
+ attribute client console
+    source wvdial-$VERSION.tar.gz
+  homepage http://open.nit.ca/wvdial/
+       url http://open.nit.ca/download/
+case $VERSION in
+ 1.56) use_gcc gcc-v4.0 ;;
 esac
- ESTIMATE='30'
-      DESC="wvdial is a PPP connection/configuration tool
+ estimate 30
+      desc 'wvdial is a PPP connection/configuration tool
 WvDial, pronounced Weave Dial, is an
 easier way to connect to the internet.
 It completely avoids the need for chat
@@ -18,18 +18,18 @@ scripts, edits pap-secrets and chap-secrets
 for you, detects your modem automatically,
 and chooses a valid init string.
 It can even read and respond to
-command prompts at almost any ISP."
+command prompts at almost any ISP.'
 
-build() {
-make             prefix=/usr  &&
-prepare_install               &&
-make    install  prefix=/usr
+build(){
+make            prefix=/usr &&
+prepare_install &&
+make    install prefix=/usr
 }
 
-post_install()  {
-if  !  [  -f  /etc/wvdial.conf  ];  then
-  echo  "Edit /etc/wvdial.conf to add: phone number, username, and password."
-  /usr/bin/wvdialconf  /etc/wvdial.conf
-  true
+post_install(){
+if ! [ -f /etc/wvdial.conf ]; then
+ echo "Edit /etc/wvdial.conf to add: phone number, username, and password."
+ /usr/bin/wvdialconf /etc/wvdial.conf
+ true
 fi
 }

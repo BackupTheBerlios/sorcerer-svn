@@ -1,51 +1,52 @@
-  stable 2.2.3
-  secure 2.2.3
-  CATEGORY='development/interpreter'
- ATTRIBUTE='console x11'
-    SOURCE=( "Python-$VERSION.tgz"
-             "PSF-2005-001/patch-2.2.txt"
-             "PSF-2006-001/patch-2.3.txt" )
-       URL=( "http://www.python.org/ftp/python/$VERSION/"
-             "http://www.python.org/files/news/security/" )
-  HOMEPAGE='http://www.python.org'
-       REQ=( "expat gmp ncurses readline"
-             "openssl:::for secure socket connections"
-             "tk:::for tk windowing system" )
-  ESTIMATE='2950'
-      DESC="Python-v2.2 is an interpreted, interactive, object-oriented programming language."
+    stable 2.2.3
+    secure 2.2.3
+   require expat gmp ncurses readline
+  optional openssl '' '' for secure socket connections
+  optional tk      '' '' for tk windowing system
+
+  category development/interpreter
+ attribute console x11
+    source Python-$VERSION.tgz
+    source PSF-2005-001/patch-2.2.txt
+    source PSF-2006-001/patch-2.3.txt
+       url http://www.python.org/ftp/python/$VERSION/
+       url http://www.python.org/files/news/security/
+  homepage http://www.python.org
+  estimate 2950
+      desc 'Python-v2.2 is an interpreted, interactive, object-oriented programming language.'
 
 
-build()  {
+build(){
 
-  make_shared_lib()  {
-    mkdir  .extract
-    cd     .extract
-    ar     xv  ../libpython2.2.a  1>/dev/null 2>&1
-    cd     ..
-    gcc    -lpthread -ldl -lutil -lm  \
-           -shared -o libpython2.2.so .extract/*.o
-    cp     libpython2.2.so  /usr/lib
-    ln     -sf  /usr/lib/libpython2.2.so  \
-                /usr/lib/python2.2/config/libpython2.2.so
-  }
+ make_shared_lib(){
+  mkdir .extract
+  cd    .extract
+  ar  xv ../libpython2.2.a 1>/dev/null 2>&1
+  cd  ..
+  gcc -lpthread -ldl -lutil -lm \
+      -shared -o libpython2.2.so .extract/*.o
+  cp  libpython2.2.so  /usr/lib
+  ln  -sf /usr/lib/libpython2.2.so \
+          /usr/lib/python2.2/config/libpython2.2.so
+ }
 
-  case  $VERSION  in
-    2.2.3) patch -p0 < $SOURCE_CACHE/Python-v2.2/$VERSION/${SOURCE[1]##*/}
-           patch -p0 < $SOURCE_CACHE/Python-v2.2/$VERSION/${SOURCE[2]##*/} ;;
-  esac
+ case $VERSION in
+  2.2.3) patch -p0 < $SOURCE_CACHE/Python-v2.2/$VERSION/${SOURCE[1]##*/}
+         patch -p0 < $SOURCE_CACHE/Python-v2.2/$VERSION/${SOURCE[2]##*/} ;;
+ esac
 
-  ./configure          \
-  --prefix=/usr        \
-  --enable-ipv6        \
-  $OPTS                &&
-  make  "OPT=$CFLAGS"  &&
-  prepare_install      &&
-  make altinstall      &&
-  make_shared_lib
+ ./configure         \
+ --prefix=/usr       \
+ --enable-ipv6       \
+ $OPTS               &&
+ make  "OPT=$CFLAGS" &&
+ prepare_install     &&
+ make altinstall     &&
+ make_shared_lib
 }
 
-current()  {
-  case  $VERSION  in
-    2.2.3)  grep  -qx  "patching file Objects/unicodeobject.c"  $COMPILE_LOGS/Python-v2.2  ;;
-  esac
+current(){
+ case $VERSION in
+  2.2.3) grep -qx 'patching file Objects/unicodeobject.c' $COMPILE_LOGS/Python-v2.2 ;;
+ esac
 }

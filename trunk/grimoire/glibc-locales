@@ -1,12 +1,11 @@
 inherit glibc
-unset SOURCE URL REQ
-  CATEGORY='documentation/i18n'
- ATTRIBUTE='data'
-       REQ='glibc'
+   require glibc
+  category documentation/i18n
+ attribute data
 # Requirement on glibc added so that
 # glibc-locales always casts after glibc
-  ESTIMATE='10'
-      DESC='glibc-locales provides locale databases for translating messages.'
+  estimate 10
+      desc 'glibc-locales provides locale databases for translating messages.'
 
 configure(){
 query_dialog(){
@@ -93,7 +92,7 @@ query(){ query_dialog "$@"; }
   sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED |
   while read; do
      NAME="${REPLY%/*}"
-   SOURCE="${NAME%.*}"
+   source ${NAME%.*}
 
    echo "$REPLY"
    sed  -nr 's:^title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
@@ -110,7 +109,7 @@ query(){ query_dialog "$@"; }
   fi |
   while read; do
      NAME="${REPLY%/*}"
-   SOURCE="${NAME%.*}"
+   source ${NAME%.*}
 
    echo "$NAME"
    sed -nr 's:^title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
@@ -182,7 +181,7 @@ build(){
   while read; do
    CHARMAP="${REPLY##*/}"
       NAME="${REPLY%/*}"
-    SOURCE="${NAME%.*}"
+    source ${NAME%.*}
    echo -n "$NAME..."
    localedef -i $SOURCE -c -f $CHARMAP --prefix=$TMP $NAME
    echo " done"

@@ -1,30 +1,31 @@
-  stable 0.52.2 0.52.1 0.51.6-31 0.51.6-24 0.51.6 0.51.4 0.50.17
-  CATEGORY='utility'
- ATTRIBUTE='console library'
-    SOURCE=( "newt_${VERSION%-*}.orig.tar.gz" )
-#            "newt_$VERSION.diff.gz" )
-  HOMEPAGE=''
-       URL='http://ftp.us.debian.org/debian/pool/main/n/newt/'
-       REQ='Python popt slang tcl'
-  ESTIMATE='250'
-      DESC="Newt is a perl library for text screen widgets.
+    stable 0.52.2 0.52.1 0.51.6-31 0.51.6-24 0.51.6 0.51.4 0.50.17
+   require Python popt slang tcl
+
+  category utility
+ attribute console library
+    source newt_${VERSION%-*}.orig.tar.gz
+#   source newt_$VERSION.diff.gz
+  homepage 
+       url http://ftp.us.debian.org/debian/pool/main/n/newt/
+  estimate 250
+      desc 'Newt is a perl library for text screen widgets.
 Newt is a perl library built on top of
-Red Hat's newt C library for text screen widgets.
+Red Hat newt C library for text screen widgets.
 It allows a perl programer to build simple but
 effective text-mode user interfaces with little effort.
 
 It is very usable because it has complete support
 for all widgets found in newt 0.30, and provides
-a nice abstraction over the C interface."
+a nice abstraction over the C interface.'
 
 
-build() {
-if    [      -f  newt-${VERSION:0:6}.tar.gz  ]
-then  tar  -zxf  newt-${VERSION:0:6}.tar.gz
-      cd         newt-${VERSION:0:6}
+build(){
+if   [     -f newt-${VERSION:0:6}.tar.gz ]
+then tar -zxf newt-${VERSION:0:6}.tar.gz
+     cd       newt-${VERSION:0:6}
 fi
 
-rm  -f  .depend
+rm -f .depend
 
 # PYVER="$(  installed_version  $(  get_provider  Python  )  )"
 # PYVER="${PYVER:0:3}"
@@ -32,22 +33,20 @@ rm  -f  .depend
 # TCLVER="$(  installed_version  $(  get_provider  tcl  )  )"
 # TCLVER="${TCLVER:0:3}"
 
-[  -n  "${SOURCE[1]}"  ]  &&
-decompress  "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}"  |
-patch  -p1
-cat  debian/patches/*  |  patch  -p1
+[ -n "${SOURCE[1]}" ] &&
+decompress "$SOURCE_CACHE/Newt/$VERSION/${SOURCE[1]}" |
+patch -p1
+cat debian/patches/* | patch -p1
 
-sed  -i  "s:-static::"                Makefile.in
-# sed  -i  "s:-ltcl:-ltcl$TCLVER:"      Makefile.in
-# sed  -i  "s:python1.5:python$PYVER:"  Makefile.in
-default_build  &&
-case  $VERSION  in
-  0.52.2)  ln  -s  libnewt.so.0.52.1 /usr/lib/libnewt.so.0.52  ;;
+sed -i 's:-static::' Makefile.in
+default_build &&
+case $VERSION in
+ 0.52.2) ln -s libnewt.so.0.52.1 /usr/lib/libnewt.so.0.52 ;;
 esac
 }
 
-current()  {
-case  $VERSION  in
-  0.52.2)  [  -h /usr/lib/libnewt.so.0.52  ]  ;;
+current(){
+case $VERSION  in
+ 0.52.2) [ -h /usr/lib/libnewt.so.0.52 ] ;;
 esac
 }

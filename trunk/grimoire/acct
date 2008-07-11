@@ -1,14 +1,14 @@
-  stable 6.3.5-39 6.3.5 6.3.2
-  CATEGORY='utility'
- ATTRIBUTE='console'
-    SOURCE=( "acct_${VERSION:0:5}.orig.tar.gz"
-             "acct_${VERSION}.diff.gz" )
-       URL='http://ftp.us.debian.org/debian/pool/main/a/acct/'
-#      URL='$GNU_URL'
-       REQ='init-functions'
-  HOMEPAGE='http://directory.fsf.org/acct.html'
-  ESTIMATE='35'
-      DESC="acct reports data about users' connect times and process executation.
+    stable 6.3.5-39 6.3.5 6.3.2
+   require init-functions
+  category utility
+ attribute console
+    source acct_${VERSION:0:5}.orig.tar.gz
+    source acct_${VERSION}.diff.gz
+       url http://ftp.us.debian.org/debian/pool/main/a/acct/
+#      url "$GNU_URL"
+  homepage http://directory.fsf.org/acct.html
+  estimate 35
+      desc "acct reports data about users' connect times and process executation.
 
 GNU Accounting Utilities is a set of utilities 
 which reports and summarizes data about user 
@@ -24,20 +24,16 @@ sa:           summarizes process accounting
 dump-utmp:    print a utmp file in a human-readble format
 dump-acct:    same as above for acct/pacct files"
 
-build()  {
-  if    [  -n  "${SOURCE[1]}"  ]
-  then  decompress $SOURCE_CACHE/acct/$VERSION/${SOURCE[1]}  |
-        patch  -p 1
-  fi
-  default_build
+build(){
+ if   [ -n "${SOURCE[1]}" ]
+ then decompress $SOURCE_CACHE/acct/$VERSION/${SOURCE[1]} | patch -p 1
+ fi
+ default_build
 }
 
-post_install() {
-  if [ ! -d      /var/account ]
-  then 
-      mkdir -p   /var/account
-      chmod 0640 /var/account
-  else
-      true
-  fi
+post_install(){
+ if [ ! -d  /var/account ]; then 
+  mkdir -p  /var/account
+  chmod 640 /var/account
+ else true; fi
 }

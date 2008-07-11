@@ -1,27 +1,28 @@
-  stable 5.0.2 5.0.1 5.0.0
 # 5.1.0 is a development release.
 # Check the post_install on each update to see if that
 # cups-genppdupdate.5.0 changes name.
-    IGNORE='^200\|^5\.1\.\|gimp-print\|beta\|alpha\|pre\|rc\|99'
-  CATEGORY='printer'
- ATTRIBUTE='console x11 library'
-    SOURCE="gimp-print/gutenprint-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://gimp-print.sourceforge.net'
+
+    stable 5.0.2 5.0.1 5.0.0
+   require gtk+
+  optional cups      '--with-cups --disable-translated-cups-ppds' '' for cups support
+  optional gimp      --with-gimp2 --without-gimp2 for gimp plugin
+  optional gtk+-v1.2 --enable-libgutenprintui --disable-libgutenprintui for gtk+-v1.2 interface library
+
 # Recursive requirement with ghostscript
-#      REQ=( 'gtk+ jpeg ncurses readline tiff'
-       REQ=( 'gtk+'
-             'cups:--with-cups --disable-translated-cups-ppds::for cups support' 
-             'gimp:--with-gimp2:--without-gimp2:for gimp plugin'
-             'gtk+-v1.2:--enable-libgutenprintui:--disable-libgutenprintui:for gtk+-v1.2 interface library' )
-#            'foomatic-db-engine:--with-foomatic::for Foomatic support'
 # foomatic-db-engine optional creates a recursive requirement loop
 # gutenprint -> foomatic-db-engine -> foomatic-db-hpijs ->
 # espgs -> gutenprint
-      OPTS='--disable-static --disable-static-genppd'
-  EPROVIDE='gimp-print'
-  ESTIMATE='1500'
-      DESC='gutenprint is a collection of very high quality printer drivers.
+
+    ignore '^200\|^5\.1\.\|gimp-print\|beta\|alpha\|pre\|rc\|99'
+  category printer
+ attribute console x11 library
+    source gimp-print/gutenprint-$VERSION.tar.bz2
+       url "$SOURCEFORGE_URL"
+  homepage http://gimp-print.sourceforge.net
+      opts --disable-static --disable-static-genppd
+  eprovide gimp-print
+  estimate 1500
+      desc 'gutenprint is a collection of very high quality printer drivers.
 gutenprint was formerly known as gimp-print.
 The goal of this project is uncompromising 
 print quality and robustness.

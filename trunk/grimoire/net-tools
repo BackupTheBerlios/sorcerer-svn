@@ -1,23 +1,24 @@
-  stable 1.60
-  CATEGORY='network'
- ATTRIBUTE='console'
-    SOURCE="net-tools-$VERSION.tar.bz2"
-       URL='http://www.tazenda.demon.co.uk/phil/net-tools/'
-  HOMEPAGE='http://www.tazenda.demon.co.uk/phil/net-tools/'
-   PROTECT="/etc/init.d/network"
-       REQ='init-functions'
-  ESTIMATE='149'
-      DESC="net-tools contains essential tools for networking.
+    stable 1.60
+   require init-functions
+
+  category network
+ attribute console
+    source net-tools-$VERSION.tar.bz2
+       url http://www.tazenda.demon.co.uk/phil/net-tools/
+  homepage http://www.tazenda.demon.co.uk/phil/net-tools/
+   protect /etc/init.d/network
+  estimate 100
+      desc 'net-tools contains essential tools for networking.
 
 net-tools contains the arp, hostname, ifconfig,
 netstat, plipconfig rarp, route, and slattach programs.
 
-arp is used to manipulate the kernel's ARP cache, usually
+arp is used to manipulate the kernel ARP cache, usually
 to add or delete an entry, or to dump the ARP cache.
 
 hostname, with its symlinks domainname, dnsdomainname,
 nisdomainname, ypdomainname, and nodename, is used to
-set or show the system's hostname.
+set or show the system hostname.
 
 The ifconfig command is the general command used to
 configure network interfaces.
@@ -29,32 +30,26 @@ masquerade connections, and multicast memberships.
 plipconfig is used to fine-tune the PLIP device parameters,
 hopefully making it faster.
 
-rarp, akin to the arp program, manipulates the system's RARP table.
+rarp, akin to the arp program, manipulates the system RARP table.
 
 route is the general utility which is used to manipulate the IP routing table.
 
 slattach attaches a network interface to a serial line,
 i.e.. puts a normal terminal line into one of several
-network modes."
+network modes.'
 
 
-build() {
-  case  $VERSION  in
-   1.60)  sed  -i  "\,default:,abreak;"  hostname.c  lib/inet_sr.c  ;;
-  esac
+build(){
+ case $VERSION in
+  1.60) sed -i '\,default:,abreak;' hostname.c lib/inet_sr.c ;;
+ esac
 
-  sed  -i  "s:-O2:$CFLAGS:
-            s:LOPTS =:LOPTS = $LDFLAGS:"  Makefile
+ sed -i "s:-O2:$CFLAGS:
+         s:LOPTS =:LOPTS = $LDFLAGS:" Makefile
 
-  cp  $SCRIPT_DIR/config.h  .
+ cp $SCRIPT_DIR/config.h  .
 
-  make             &&
-  prepare_install  &&
-  make    install  BASEDIR=/
-}
-
-current()  {
-  case  $VERSION  in
-    1.60)  [  -x  /etc/init.d/loopback  ]  ;;
-  esac
+ make &&
+ prepare_install &&
+ make    install BASEDIR=/
 }

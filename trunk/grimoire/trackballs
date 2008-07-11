@@ -1,19 +1,21 @@
-  stable 1.1.4 1.1.2 1.1.1
-    IGNORE='music\|noarch\|x86'
-  CATEGORY='game'
- ATTRIBUTE='x11'
-    SOURCE="trackballs/trackballs-$VERSION.tar.gz"
-       REQ=( 'SDL_image SDL_mixer SDL_ttf guile'
-             'trackballs-music:::for additional music' )
+    stable 1.1.4 1.1.2 1.1.1
+if [ $SPELL == trackballs ]; then
+   require SDL_image SDL_mixer SDL_ttf guile
+  optional trackballs-music '' '' for additional music
+    source trackballs/trackballs-$VERSION.tar.gz
+fi
+    ignore 'music\|noarch\|x86'
+  category game
+ attribute x11
 # Extra levels already included in 1.1.1
 #            'trackballs-extra-levels:::for more fun' )
-case  $VERSION  in
-  1.1.4)  REQ+=' guile-v1.8'  ;;
+case $VERSION in
+ 1.1.4) require guile-v1.8 ;;
 esac
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://trackballs.sourceforge.net'
-  ESTIMATE='780'
-      DESC='trackballs is a game similar to marble madness.
+       url "$SOURCEFORGE_URL"
+  homepage http://trackballs.sourceforge.net
+  estimate 780
+      desc 'trackballs is a game similar to marble madness.
 trackballs is a simple game similar
 to the classic game Marble Madness.
 By steering a marble through a track
@@ -24,16 +26,15 @@ When the ball reaches the destination,
 the player continue to the next more
 difficult track - unless time runs out first. '
 
-build()  {
-  export  LDFLAGS+=' -L/usr/X11R6/lib'
-  sed  -i   's:g++-3/set.h:set.h:'  src/general.h
+build(){
+export LDFLAGS+=' -L/usr/X11R6/lib'
+sed -i 's:g++-3/set.h:set.h:' src/general.h
 
-  case  $VERSION  in
-    1.1.4)  export  CFLAGS+=' -I/opt/guile/1.8/include'
-            export  CXXFLAGS+=' -I/opt/guile/1.8/include'
-            export  LDFLAGS+=' -L/opt/guile/1.8/lib -Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib'
-            export   PATH="/opt/guile/1.8/bin:$PATH"  ;;
-  esac
-
-  default_build
+case $VERSION in
+ 1.1.4) export CFLAGS+=' -I/opt/guile/1.8/include'
+        export CXXFLAGS+=' -I/opt/guile/1.8/include'
+        export LDFLAGS+=' -L/opt/guile/1.8/lib -Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib'
+        export  PATH="/opt/guile/1.8/bin:$PATH" ;;
+esac
+default_build
 }

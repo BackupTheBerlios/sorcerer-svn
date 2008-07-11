@@ -2,22 +2,22 @@
 
 # 0.17.6 did not compile
 
-  stable        0.17.5 0.17.4 0.17.3 0.17.2 0.17.1
-unstable 0.17.6 0.17.5
-  CATEGORY='graphic'
- ATTRIBUTE='library solo'
-    SOURCE="openvrml/openvrml-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://openvrml.sourceforge.net'
-       REQ=( 'SDL boost glut gtkglext'
-             'doxygen::--without-doxygen --disable-api-docs:for documentation generation'
-             'mozilla::--disable-mozilla-plugin:for mozilla openvrml plugin' )
-##           'j2sdk:--with-jdk=/opt/j2sdk/1.4.1-01-linux-i586-gcc3.2 --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node' )
+    stable        0.17.5 0.17.4 0.17.3 0.17.2 0.17.1
+  unstable 0.17.6 0.17.5
+   require SDL boost glut gtkglext
+  optional doxygen '' '--without-doxygen --disable-api-docs' for documentation generation
+  optional mozilla '' --disable-mozilla-plugin for mozilla openvrml plugin
+
+  category graphic
+ attribute library solo
+    source openvrml/openvrml-$VERSION.tar.gz
+       url "$SOURCEFORGE_URL"
+  homepage http://openvrml.sourceforge.net
 #            'jdk:--with-jdk=/opt/jdk/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node'
 # java support broken?
-      OPTS='--disable-script-node-javascript --disable-script-node-java'
-  ESTIMATE='574'
-      DESC='openvrml is a library for reading and displaying VRML97.
+      opts --disable-script-node-javascript --disable-script-node-java
+  estimate 600
+      desc 'openvrml is a library for reading and displaying VRML97.
 openvrml is a C++ class library that allows applications
 to read VRML97 .wrl files and view their geometries.
 It is also working toward full ISO VRML97 Specification compliance.
@@ -25,7 +25,7 @@ While still in development, the codebase is quite stable and featureful.
 lookat, a basic Glut VRML viewer is included.'
 
 
-build() {
+build(){
 
 MOZ_INC='-I/usr/include/mozilla -I/usr/include/mozilla/nspr'
 MOZ_LIB='-L/usr/lib/mozilla'
@@ -36,17 +36,17 @@ JDK_LIB='-L/opt/jdk/jre/lib/i386/server'
 # BST_INC='-I/usr/include/boost-1_33_1'
 BST_INC='-I/usr/include/boost'
 
-export    CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
-export  CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
-export   LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
+export   CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+export CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+export  LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
 
 #            --without-jdk           \
 #            --without-spidermonkey  \
 
 sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
 
-grep  -rl  boost_thread  *  |
-xargs -r  --max-lines=64  sed  -i  "s:boost_thread:boost_thread-gcc42-mt:g"
+LC_ALL=C grep -rl boost_thread * |
+xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc42-mt:g"
 
 default_build
 }

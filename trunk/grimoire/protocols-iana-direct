@@ -1,34 +1,35 @@
-  stable  "$(  date  -u  +%Y-%m  )" 
-  CATEGORY='network'
- ATTRIBUTE='client server'
-    SOURCE="protocol-numbers"
-       URL='http://www.iana.org/assignments/'
-  HOMEPAGE='http://www.iana.org/'
+    stable  "$( date -u +%Y-%m )" 
+  category network
+ attribute client server
+    source protocol-numbers
+       url http://www.iana.org/assignments/
+  homepage http://www.iana.org/
 disable scavenge
-       REQ=''
-  ESTIMATE='5'
-   EXCLUDE="/etc/protocols"
-  EPROVIDE="protocols-iana-direct"
-      DESC="protocols-iana-direct translates the protocol numbers assigned by IANA to /etc/protocols"
+  estimate 5
+   protect /etc/protocols
+  eprovide protocols
+      desc 'protocols-iana-direct translates the protocol numbers assigned by IANA to /etc/protocols'
 
-build()  {
+build(){
+local  LC_ALL=C
+export LC_ALL
 PN=$SOURCE_CACHE/$SPELL/$VERSION/protocol-numbers
 
-[  -f  $PN  ]    &&
-prepare_install  &&
-cat    $PN                |
-tr       -d  '\r'         |
-tr           '\t'  ' '    |
-tr       -s  ' '          |
-tr       -d  '\177-\377'  |
-sed          "s:^ *::"    |
-grep         "^[0-9]"     |
-grep     -v  "^ \|Unassigned\|experimentation\|Reserved\|1981"  |
-while  read  NUMBER  NAME  DESCRIPTION;  do
-  echo  -n     "$NAME"   |  tr  "[:upper:]" "[:lower:]"
-  echo "|$NUMBER|$NAME"
-done                  | 
-tr       -d '\r'      |
-column   -s '|'   -t  >        protocols  &&
-install  -m 0644  -b  -S .old  protocols  /etc
+[ -f $PN ] &&
+prepare_install &&
+cat  $PN       |
+tr -d '\r'     |
+tr    '\t' ' ' |
+tr -s  ' '     |
+tr -d  '\177-\377' |
+sed  "s:^ *::"     |
+grep "^[0-9]"      |
+grep -v "^ \|Unassigned\|experimentation\|Reserved\|1981" |
+while read NUMBER NAME DESCRIPTION; do
+ echo -n       "$NAME"  | tr "[:upper:]" "[:lower:]"
+ echo "|$NUMBER|$NAME"
+done             | 
+tr     -d '\r'   |
+column -s '|' -t >         protocols &&
+install -vm 644 -b -S .old protocols /etc
 }

@@ -1,34 +1,37 @@
-  stable 1.7.2 1.7.1 1.7.0.2 1.7.0.1 1.7 1.6
-    IGNORE="d\|patch\|w\|1\.6\.\|vms"
-  CATEGORY='security/encryption'
- ATTRIBUTE='console'
-    SOURCE="john-$VERSION.tar.bz2"
-       URL='http://www.openwall.com/john/f/'
-  HOMEPAGE='http://www.openwall.com/john'
-  ESTIMATE='175'
-      DESC="john the Ripper is a fast password cracker.
+    stable       1.7.2 1.7.1 1.7.0.2 1.7.0.1 1.7
+  unstable 1.7.3 1.7.2
+    ignore 'd\|patch\|w\|1\.6\.\|vms'
+  category security/encryption
+ attribute console
+    source john-$VERSION.tar.bz2
+       url 'http://www.openwall.com/john/f/
+            http://www.openwall.com/john/g/'
+      vurl http://www.openwall.com/john/
+  homepage http://www.openwall.com/john/
+  estimate 175
+      desc 'john the Ripper is a fast password cracker.
 john the Ripper is a fast password cracker, currently available
 for many flavors of Unix (11 are officially supported, not
 counting different architectures), DOS, Win32, and BeOS.
 Its primary purpose is to detect weak Unix passwords,
-but a number of other hash types are supported as well."
+but a number of other hash types are supported as well.'
 
-build() {
+build(){
 
-  make_install()  {
-    cd  ..
-    chmod  0755  {doc,run}
-    chmod  a+r   {doc,run}/*
-    mkdir  -p                 /opt/john
-    cp     -rv   {doc,run}    /opt/john
-  }
+ make_install(){
+  cd  ..
+  chmod 755 {doc,run}
+  chmod a+r {doc,run}/*
+  mkdir -p            /opt/john
+  cp    -rv {doc,run} /opt/john
+ }
 
-  cd   src
+cd src
 
-  sed  -i  "s/-c -Wall -O2 -fomit-frame-pointer/-c -Wall $CFLAGS/"  Makefile
-  sed  -i  "s/ -m486//"  Makefile
+sed -i "s/-c -Wall -O2 -fomit-frame-pointer/-c -Wall $CFLAGS/" Makefile
+sed -i "s/ -m486//" Makefile
 
-  make  generic    &&
-  prepare_install  &&
-     make_install
+make generic &&
+prepare_install &&
+   make_install
 }

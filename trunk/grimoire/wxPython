@@ -1,54 +1,55 @@
 # 2.8.8.0 failed because 2.8.8 wxWidgets failed compilation
 
-  stable         2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
-unstable 2.8.8.0 2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
-    IGNORE='^2\.9\.'
-# 2.9.x.x is developmental branch
-  CATEGORY='graphic'
- ATTRIBUTE='library python-module x11'
-    SOURCE="wxpython/wxPython-src-$VERSION.tar.bz2"
-  HOMEPAGE='http://wxpython.org'
-       URL="$SOURCEFORGE_URL"
-case  $VERSION  in
-  2.8.3.0)  USE_GCC='gcc-v4.1'  ;;
-  2.6.3.0)  USE_GCC='gcc-v3.4'  ;;
-  2.6.2.*)  USE_GCC='gcc-v3.4'  ;;
-esac
-       REQ=( 'Python wxWidgets'
-             'PyOpenGL:::for wxGLCanvas'
-             'SDL_mixer:--enable-sound --with-sdl:--disable-sound --without-sdl:to use SDL for audio'
-             'libgnomeprint:--with-gnomeprint:--without-gnomeprint:for gnome print support' )
-      OPTS='--enable-unicode --enable-optimise'
-  ESTIMATE='8300'
-      DESC='wxPython is Python extention module that wraps wxGTK library.'
+    stable         2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
+  unstable 2.8.8.0 2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
+   require Python wxWidgets
+  optional PyOpenGL      ''                          '' for wxGLCanvas
+  optional SDL_mixer     '--enable-sound --with-sdl' '--disable-sound --without-sdl' to use SDL for audio
+  optional libgnomeprint --with-gnomeprint           --without-gnomeprint for gnome print support
 
-build() {
+    ignore '^2\.9\.'
+# 2.9.x.x is developmental branch
+  category graphic
+ attribute library python-module x11
+    source wxpython/wxPython-src-$VERSION.tar.bz2
+  homepage http://wxpython.org
+       url "$SOURCEFORGE_URL"
+case $VERSION in
+ 2.8.3.0) use_gcc gcc-v4.1 ;;
+ 2.6.3.0) use_gcc gcc-v3.4 ;;
+ 2.6.2.*) use_gcc gcc-v3.4 ;;
+esac
+      opts --enable-unicode --enable-optimise
+  estimate 8300
+      desc 'wxPython is Python extention module that wraps wxGTK library.'
+
+build(){
 # Who wrote build_new()  ?
-build_new()  {
-mkdir  bld
-cd     bld
-../configure               \
---prefix=/usr              \
---with-gtk                 \
---with-opengl              \
---disable-debug            \
---enable-geometry          \
---enable-graphics_ctx      \
---enable-sound --with-sdl  \
---enable-mediactrl         \
---enable-display           \
---disable-debugreport      \
-$OPTS                      &&
-make                       &&
-prepare_install            &&
-make    install            &&
-cd      ../wxPython        &&
+build_new(){
+mkdir bld
+cd    bld
+../configure              \
+--prefix=/usr             \
+--with-gtk                \
+--with-opengl             \
+--disable-debug           \
+--enable-geometry         \
+--enable-graphics_ctx     \
+--enable-sound --with-sdl \
+--enable-mediactrl        \
+--enable-display          \
+--disable-debugreport     \
+$OPTS                     &&
+make                      &&
+prepare_install           &&
+make    install           &&
+cd      ../wxPython       &&
 python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
 }
 
-  grep  -rl  '\-O3' * |
-  xargs --max-lines=64 sed -i 's:-O3:-Os:'
-  default_build &&
-  cd wxPython &&
-  python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
+ grep -rl '\-O3' * |
+ xargs --max-lines=64 sed -i 's:-O3:-Os:'
+ default_build &&
+ cd wxPython &&
+ python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
 }

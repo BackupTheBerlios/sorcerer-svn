@@ -1,12 +1,27 @@
-  stable 4.x
-  CATEGORY='documentation profile'
- ATTRIBUTE='data'
-       URL='http://www.docbook.org/'
-  HOMEPAGE='http://www.docbook.org/'
-       REQ='libxslt unzip'
-   PROTECT="/etc/xml"
-  ESTIMATE='5'
-      DESC="$SPELL docbook standards."
+    stable 4.x
+   require libxslt unzip
+  category documentation profile
+ attribute data
+       url http://www.docbook.org/
+  homepage http://www.docbook.org/
+   protect /etc/xml
+  estimate 5
+      desc "$SPELL docbook standards."
+
+if [ $SPELL == docbook ]; then
+ attribute data profile
+   require libxslt unzip
+  optional docbook-xml-5.0  '' '' for XML DTD
+  optional docbook-xml-4.5  '' '' for XML DTD
+  optional docbook-sgml-4.5 '' '' for SGML DTD
+  optional docbook-xml-4.4  '' '' for XML DTD
+  optional docbook-sgml-4.4 '' '' for SGML DTD
+  optional docbook-xml-4.3  '' '' for XML DTD
+  optional docbook-sgml-4.3 '' '' for SGML DTD
+  optional docbook-xml-4.2  '' '' for XML DTD
+  optional docbook-sgml-4.2 '' '' for SGML DTD
+  optional docbook-xsl      '' '' for XSL stylesheets
+else
 
 case ${SPELL:8:3} in
  sgm) VERSION="${SPELL:13:5}" ;;
@@ -14,28 +29,15 @@ case ${SPELL:8:3} in
 esac
 
 case ${SPELL:8:9} in
- sgml-4.1)   SOURCE="sgml/$VERSION/docbk41.zip" ;;
- sgml-*)     SOURCE="sgml/$VERSION/docbook-$VERSION.zip" ;;
-  xml-4.1.2) SOURCE="xml/$VERSION/docbkx412.zip" ;;
-  xml-4.*)   SOURCE="xml/$VERSION/docbook-xml-$VERSION.zip" ;;
-  xml-*)     SOURCE="xml/$VERSION/docbook-$VERSION.zip" ;;
+ sgml-4.1)   source sgml/$VERSION/docbk41.zip ;;
+ sgml-*)     source sgml/$VERSION/docbook-$VERSION.zip ;;
+  xml-4.1.2) source xml/$VERSION/docbkx412.zip ;;
+  xml-4.*)   source xml/$VERSION/docbook-xml-$VERSION.zip ;;
+  xml-*)     source xml/$VERSION/docbook-$VERSION.zip ;;
   xsl*) ;;
-      *) ATTRIBUTE='data profile'
-               REQ=( 'libxslt unzip'
-                     'docbook-xml-5.0:::for XML DTD'
-                     'docbook-xml-4.5:::for XML DTD'
-                     'docbook-sgml-4.5:::for SGML DTD'
-                     'docbook-xml-4.4:::for XML DTD'
-                     'docbook-sgml-4.4:::for SGML DTD'
-                     'docbook-xml-4.3:::for XML DTD'
-                     'docbook-sgml-4.3:::for SGML DTD'
-                     'docbook-xml-4.2:::for XML DTD'
-                     'docbook-sgml-4.2:::for SGML DTD' 
-                     'docbook-xsl:::for XSL stylesheets' ) ;;
-#                    'docbook-xml-4.1.2:::for XML DTD'
-#                    'docbook-sgml-4.1:::for SGML DTD' ) ;;
 esac
 
+fi
 
 build(){
  local  WHAT="$( echo "$SPELL" | cut -d '-' -f2  )"

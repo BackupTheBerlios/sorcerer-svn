@@ -1,14 +1,12 @@
-  stable 1.2.95-beta 1.2.2-release
-  CATEGORY='audio/speech'
- ATTRIBUTE='console broke'
-    SOURCE="speech_tools-$VERSION.tar.gz"
-  HOMEPAGE='http://www.cstr.ed.ac.uk/projects/festival/'
-       URL='http://www.cstr.ed.ac.uk/downloads/festival/1.95/'
-       REQ='ncurses'
-      DESC="speech_tools provides tools and libraries for festival."
+    stable 1.2.95-beta 1.2.2-release
+  category audio/speech
+ attribute console broke
+    source speech_tools-$VERSION.tar.gz
+  homepage http://www.cstr.ed.ac.uk/projects/festival/
+       url http://www.cstr.ed.ac.uk/downloads/festival/1.95/
+      desc 'speech_tools provides tools and libraries for festival.'
 
-
-build() {
+build(){
 ST_INST_DIR=/opt/speech_tools/$VERSION
 
 prepare_install
@@ -16,16 +14,16 @@ mkdir  -p     $ST_INST_DIR
 cp     -a  *  $ST_INST_DIR/
 cd            $ST_INST_DIR
 
-sed  -i  "s:-ltermcap:-lncurses:"  config/modules/editline.mak
-sed  -i  "s:-ltermcap:-lncurses:"  lib/est_program_makefile
+sed  -i  's:-ltermcap:-lncurses:'  config/modules/editline.mak
+sed  -i  's:-ltermcap:-lncurses:'  lib/est_program_makefile
 
 if    ./configure  --build=$BUILD        \
                    --prefix=/usr         \
                    --sysconfdir=/etc     \
                    --localstatedir=/var  \
                    $OPTS                 &&
-#      sed  -i  "s:OPTIMISE=3:OPTIMISE=4:
-#               s:# SHARED=1:SHARED=1:"  config/config  &&
+#      sed  -i  's:OPTIMISE=3:OPTIMISE=4:
+#               s:# SHARED=1:SHARED=1:'  config/config  &&
       make                               &&
       rm  -f  $(  find . -name \*.o  )   &&
       rm  -fr  doc

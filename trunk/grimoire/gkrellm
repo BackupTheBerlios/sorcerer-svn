@@ -1,13 +1,18 @@
-  stable 2.3.1 2.3.0 2.2.10 2.2.9 2.2.8 2.2.7 2.2.6
-  CATEGORY='utility/time utility/monitor'
- ATTRIBUTE='x11'
-    SOURCE="gkrellm-$VERSION.tar.bz2"
-  HOMEPAGE='http://www.gkrellm.net/'
-       URL='http://members.dslextreme.com/users/billw/gkrellm/'
-       REQ=( 'gettext gnutls gtk+'
-             'lm_sensors:::for hardware monitoring and reporting' )
-  ESTIMATE='100'
-      DESC='gkrellm is a stacked monitor program.
+    stable 2.3.1 2.3.0
+
+case $SPELL in
+ gkrellm-*) require gkrellm ;;
+ gkrellm)   require gettext gnutls gtk+
+            optional lm_sensors '' '' for hardware monitoring and reporting ;;
+esac
+
+  category utility/time utility/monitor
+ attribute x11
+    source gkrellm-$VERSION.tar.bz2
+  homepage http://www.gkrellm.net/
+       url http://members.dslextreme.com/users/billw/gkrellm/
+  estimate 100
+      desc 'gkrellm is a stacked monitor program.
 gkrellm is a gtk+ based stacked monitor program
 that charts SMP CPUs, disks, load,
 active net interfaces, and internet connections.
@@ -21,37 +26,32 @@ There is a GUI popup for configuration, plugin extensions
 can be installed, and many themes are available.
 It also features a client/server monitoring capability.'
 
-case  $SPELL  in
-  gkrellm-*)  unset  REQ;
-              REQ='gkrellm';  ESTIMATE='7'  ;;
-esac
+build(){
+ install_gkrellm(){
+  sed -i 's:/usr/local:/usr:' Makefile
 
-install_gkrellm()  {
-  sed  -i  's:/usr/local:/usr:'  Makefile
-
-  make             &&
-  prepare_install  &&
+  make            &&
+  prepare_install &&
   make    install
-}
+ }
 
-install_plugin()  {
-  sed  -i  "s:-O2:$CFLAGS:
-            s:/usr/local:/usr:"  Makefile
+ install_plugin(){
+  sed -i "s:-O2:$CFLAGS:
+          s:/usr/local:/usr:" Makefile
 
-   PD="/usr/lib/gkrellm2/plugins"
-  NLS="enable_nls=1"
-  PPD="PLUGIN_DIR=$PD"
+   PD=/usr/lib/gkrellm2/plugins
+  NLS=enable_nls=1
+  PPD=PLUGIN_DIR=$PD
 
-  make             $NLS  $PPD  &&
-  prepare_install              &&
-  mkdir  -p        $PD         &&
-  make    install  $NLS  $PPD
-}
+  make            $NLS $PPD &&
+  prepare_install           &&
+  mkdir  -p       $PD       &&
+  make    install $NLS $PPD
+ }
 
 
-build() {
-  case  $SPELL  in
-    gkrellm-*)  install_plugin   ;;
-            *)  install_gkrellm  ;;
-  esac
+ case $SPELL in
+  gkrellm-*) install_plugin ;;
+          *) install_gkrellm ;;
+ esac
 }

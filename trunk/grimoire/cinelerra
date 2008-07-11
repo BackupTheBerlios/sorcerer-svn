@@ -1,58 +1,58 @@
-  stable 2.1 2.0
-    IGNORE="\.[0-1][0-9][0-3][0-9][0-9][0-9]"
-  CATEGORY='video/editor'
- ATTRIBUTE='x11 new broke'
-    SOURCE="heroines/cinelerra-$VERSION-src.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://heroinewarrior.com/cinelerra.php3'
-case  $VERSION  in
-  2.0)  USE_GCC="gcc-v3.4"  ;;
+    stable 2.1 2.0
+   require libdv yasm
+  optional alsa-lib HAVE_ALSA   '' for audio output using alsa
+  optional esound   HAVE_ESOUND '' for playing multiple sounds at the same time
+switch            HAVE_GL     '' enable opengl
+switch            HAVE_XFT    '' for xft fonts
+    ignore '\.[0-1][0-9][0-3][0-9][0-9][0-9]'
+  category video/editor
+ attribute x11 new broke
+    source heroines/cinelerra-$VERSION-src.tar.bz2
+       url "$SOURCEFORGE_URL"
+  homepage http://heroinewarrior.com/cinelerra.php3
+case $VERSION in
+ 2.0) use_gcc gcc-v3.4 ;;
 esac
-       REQ=( "libdv yasm"
-             "alsa-lib:HAVE_ALSA::for audio output using alsa"
-             "esound:HAVE_ESOUND::for playing multiple sounds at the same time"
-             ":HAVE_GL::enable opengl"
-             ":HAVE_XFT::for xft fonts" )
-  ESTIMATE='5290'
-      DESC="cinelerra is a complete audio and video production kit.
+  estimate 5290
+      desc 'cinelerra is a complete audio and video production kit.
 It is similar to Broadcast 2000.
 cinelerra does primarily 3 main things:
 capturing, compositing, and editing audio and video
 with sample level accuracy.
 It is a seamless integration of audio, video,
-and still photos rarely experienced on a web server."
+and still photos rarely experienced on a web server.'
 
 
-build() {
-  modify()  {
-    echo  "$OPTS"  |  grep  -q  "$1"                 &&
-    sed   -i -r  "s/($1 :=).*/\1 y/"  global_config  ||
-    sed   -i -r  "s/($1 :=).*/\1 n/"  global_config
-  }
+build(){
+ modify(){
+  echo "$OPTS" | grep -q "$1" &&
+  sed -i -r "s/($1 :=).*/\1 y/" global_config ||
+  sed -i -r "s/($1 :=).*/\1 n/" global_config
+ }
 
-  modify  HAVE_ALSA
-  modify  HAVE_ESOUND
-  modify  HAVE_GL
-  modify  HAVE_XFT
+ modify HAVE_ALSA
+ modify HAVE_ESOUND
+ modify HAVE_GL
+ modify HAVE_XFT
 
-  I="#include"
-  sed  -i -r  "s:($I \"bcnewfolder).inc\":\1.h\":"           guicast/bcfilebox.h
-  sed  -i -r  "/$I \"bcsubwindow.h\"/a$I \"bcmenupopup.h\""  guicast/bcpopupmenu.h
+ I="#include"
+ sed -i -r "s:($I \"bcnewfolder).inc\":\1.h\":"          guicast/bcfilebox.h
+ sed -i -r "/$I \"bcsubwindow.h\"/a$I \"bcmenupopup.h\"" guicast/bcpopupmenu.h
 
-  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-fomit-frame-pointer// )"
-  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-fomit-frame-pointer// )"
-  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-O3/-O2/ )"
-  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-O3/-O2/ )"
-  export    CFLAGS="$( echo  $CFLAGS    |  sed  s/-funroll-all-loops// )"
-  export  CXXFLAGS="$( echo  $CXXFLAGS  |  sed  s/-funroll-all-loops// )"
+ export   CFLAGS="$( echo $CFLAGS   | sed s/-fomit-frame-pointer// )"
+ export CXXFLAGS="$( echo $CXXFLAGS | sed s/-fomit-frame-pointer// )"
+ export   CFLAGS="$( echo $CFLAGS   | sed s/-O3/-O2/ )"
+ export CXXFLAGS="$( echo $CXXFLAGS | sed s/-O3/-O2/ )"
+ export   CFLAGS="$( echo $CFLAGS   | sed s/-funroll-all-loops// )"
+ export CXXFLAGS="$( echo $CXXFLAGS | sed s/-funroll-all-loops// )"
 
-  cd quicktime/libdv-0.104
-  ./configure --prefix=/usr
-  cd ../..
+ cd quicktime/libdv-0.104
+ ./configure --prefix=/usr
+ cd ../..
 
-./configure      \
---prefix=/usr    &&
-make   -S        &&  [  -x  cinelerra/*/cinelerra  ]  &&
-prepare_install  &&
+./configure     \
+--prefix=/usr   &&
+make   -S       && [ -x cinelerra/*/cinelerra ] &&
+prepare_install &&
 make    install
 }

@@ -1,36 +1,36 @@
-  stable 0.7-0.7.45 0.7-0.7.43 0.7-0.7.41 0.7-0.7.38
-    IGNORE='snapshot\|-200\|^0\.5'
-  CATEGORY='video'
- ATTRIBUTE='library x11'
-    SOURCE="avifile/avifile-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://avifile.sourceforge.net'
+    stable 0.7-0.7.45 0.7-0.7.43 0.7-0.7.41 0.7-0.7.38
+   require SDL fontconfig jpeg libXv libXxf86dga libmad libvorbis w32codec
+  optional XviD  '' '' for MPEG-4 playback
+  optional faad2 '' '' for faad2 audio decoder
+    ignore 'snapshot\|-200\|^0\.5'
+  category video
+ attribute library x11
+    source avifile/avifile-$VERSION.tar.bz2
+       url "$SOURCEFORGE_URL"
+  homepage http://avifile.sourceforge.net
 case  $VERSION  in
-  0.7-0.7.45) USE_GCC='gcc-v4.0'  ;;
+  0.7-0.7.45) use_gcc gcc-v4.0  ;;
 esac
-       REQ=( 'SDL fontconfig jpeg libXv libXxf86dga libmad libvorbis w32codec'
-             'XviD:::for MPEG-4 playback'
-             'faad2:::for faad2 audio decoder' )
-      OPTS='--disable-lame --disable-samples'
+      opts --disable-lame --disable-samples
 # 0.7-0.7.38 lame support does not work with gcc 3.4.1
-  ESTIMATE='4000'
-      DESC='avifile is a library for reading and writing compressed AVI files.'
+  estimate 4000
+      desc 'avifile is a library for reading and writing compressed AVI files.'
 
-build() {
-case  $VERSION  in
-  0.7-0.7.45)  sed  -i  "s:player samples:player:"  Makefile.in  ;;
-  0.7-0.7.41)  sed  -i  "\,#include <linux/videodev.h>,i#include <linux/compiler.h>"  \
-                          ffmpeg/libavformat/grab.c       \
-                          samples/qtvidcap/kv4lsetup.cpp  \
-                          samples/qtvidcap/v4lxif.h       ;;
+build(){
+case $VERSION in
+ 0.7-0.7.45) sed -i "s:player samples:player:" Makefile.in ;;
+ 0.7-0.7.41) sed -i "\,#include <linux/videodev.h>,i#include <linux/compiler.h>" \
+              ffmpeg/libavformat/grab.c      \
+              samples/qtvidcap/kv4lsetup.cpp \
+              samples/qtvidcap/v4lxif.h      ;;
 esac
 
-./configure      \
---prefix=/usr    \
---without-qt     \
-$OPTS            &&
-make             &&
-prepare_install  &&
-make    install  &&
-ln  -sf  avifile-${VERSION:0:3}  /usr/include/avifile
+./configure     \
+--prefix=/usr   \
+--without-qt    \
+$OPTS           &&
+make            &&
+prepare_install &&
+make    install &&
+ln -sf avifile-${VERSION:0:3} /usr/include/avifile
 }

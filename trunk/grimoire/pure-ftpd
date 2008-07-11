@@ -1,53 +1,49 @@
-  stable 1.0.21 1.0.20 1.0.19
-    IGNORE="^1\.1\."
-  CATEGORY='network/ftp'
- ATTRIBUTE='server console'
-    SOURCE="pure-ftpd-$VERSION.tar.bz2"
-       URL='ftp://ftp.pureftpd.org/pub/pure-ftpd/releases/'
-  HOMEPAGE='http://www.pureftpd.org/'
-  EPROVIDE="ftpd"
-       REQ=( ""
-             "Linux-PAM:::for pluggable authentication"
-             "xinetd:::for running server"
-             "libcap:::to limit capabilities of a process"
-             "mysql:--with-mysql:--without-mysql:for MySQL user authnetication"
-             "openldap:::for light weight directory access protocol support"
-             "postgresql:--with-pgsql:--without-pgsql:for postgres user authentication"
-             "openssl:--with-tls:--without-tls:enable FTP through SSL" )
-   PROTECT="/etc/pureftpd.passwd
-            /etc/pureftpd.pdb"
-  ESTIMATE='129'
-      DESC="pure-ftpd is an efficient, lightweight, and secure FTP server.
+    stable 1.0.21 1.0.20 1.0.19
+  optional Linux-PAM  --with-pam   ''              for pluggable authentication
+  optional xinetd     ''           ''              for running server
+  optional libcap     ''           ''              to limit capabilities of a process
+  optional mysql      --with-mysql --without-mysql for MySQL user authentication
+  optional openldap   ''           ''              for light weight directory access protocol support
+  optional postgresql --with-pgsql --without-pgsql for postgres user authentication
+  optional openssl    --with-tls   --without-tls   enable FTP through SSL
+
+    ignore '^1\.1\.'
+  category network/ftp
+ attribute server console
+    source pure-ftpd-$VERSION.tar.bz2
+       url ftp://ftp.pureftpd.org/pub/pure-ftpd/releases/
+  homepage http://www.pureftpd.org/
+  eprovide ftpd
+   protect /etc/pureftpd.passwd
+   protect /etc/pureftpd.pdb
+  estimate 100
+      desc 'pure-ftpd is an efficient, lightweight, and secure FTP server.
 pure-ftpd is a fast, production quality,
 standards-conformant FTP server based on Troll-FTPd.
 It has no known buffer overflows, is trivial to set up,
 and is especially designed for modern kernels.
 Features include PAM support, IPv6, chroot()ed home directories,
-virtual domains, built-in 'ls', FXP protocol, anti-warez system,
+virtual domains, built-in ls, FXP protocol, anti-warez system,
 bandwidth throttling, bounded ports for passive downloads,
 an LDAP backend, XML output, and more.
 
 The openssl --with-tls option requires the
 /etc/ssl/private/pure-ftpd.pem
-certificate to be installed."
+certificate to be installed.'
 
-build() {
-  if    spell_installed  Linux-PAM
-  then  WITH_PAM="--with-pam"
-  fi
-
-  ./configure           \
-  --sysconfdir=/etc     \
-  --prefix=/usr         \
-  --with-largefile      \
-  --with-everything     \
-  --without-banner      \
-  --with-virtualchroot  \
-  $WITH_PAM             \
-  $OPTS                 &&
- make                   &&
- prepare_install        &&
- make    install        &&
-         install  -m 0644  -o root  -g root  pam/ftpusers  /etc  &&
- cp  -rv  contrib  /usr/share/pure-ftpd
+build(){
+./configure          \
+--sysconfdir=/etc    \
+--prefix=/usr        \
+--with-largefile     \
+--with-everything    \
+--without-banner     \
+--with-virtualchroot \
+$WITH_PAM            \
+$OPTS                &&
+make                 &&
+prepare_install      &&
+make    install      &&
+        install -vm 644 -o root -g root pam/ftpusers /etc &&
+cp -rv contrib /usr/share/pure-ftpd
 }

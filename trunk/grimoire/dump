@@ -1,37 +1,37 @@
-  stable 0.4b41 0.4b40 0.4b39 0.4b38 0.4b37 0.4b36
-    IGNORE="rules\|net\|mpeg\|dive\|neo\|morpheus"
-  CATEGORY='disk/file-system'
- ATTRIBUTE='console'
-    SOURCE="dump/dump-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://dump.sourceforge.net'
-       REQ='bzip2 e2fsprogs ncurses readline zlib'
-      OPTS="--enable-largefile --enable-rmt --with-manowner=root --with-mangrp=root"
-  ESTIMATE='73'
- FRESHMEAT="dumprestore"
-      DESC="dump and restore utilities for ext2 and ext3 filesystems.
+    stable 0.4b41 0.4b40 0.4b39 0.4b38 0.4b37 0.4b36
+   require bzip2 e2fsprogs ncurses readline zlib
+    ignore 'rules\|net\|mpeg\|dive\|neo\|morpheus'
+  category disk/file-system
+ attribute console
+    source dump/dump-$VERSION.tar.gz
+       url "$SOURCEFORGE_URL"
+  homepage http://dump.sourceforge.net
+      opts --enable-largefile --enable-rmt --with-manowner=root --with-mangrp=root
+  estimate 70
+ freshmeat dumprestore
+      desc 'dump and restore utilities for ext2 and ext3 filesystems.
 dump and restore facilitate backups to
 tapedrive from ext2 and ext3 filesystems.
 If you are using another filesystem (e.g. XFS, Reiser)
 you will not want to use these utilities,
 but rather versions specific to those filesystems
-(e.g. xfs-dump/xfs-restore, etc.) packaged separately."
+(e.g. xfs-dump/xfs-restore, etc.) packaged separately.'
 
-build()  {
-case  $VERSION  in
-  0.4b38)  sed  -i "s:linux/fs.h:ext2fs/ext2fs.h:"  dump/main.c dump/tape.c  ;;
-  0.4b39)  sed  -i "s:linux/fs.h:ext2fs/ext2fs.h:"  dump/main.c dump/tape.c  ;;
+build(){
+case $VERSION in
+ 0.4b38) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;
+ 0.4b39) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;
 esac
 
     CC="--with-cc=gcc $CFLAGS"
-LDOPTS="--with-ldopts=$LDFLAGS"
+LDopts --with-ldopts=$LDFLAGS
 
-./configure      \
---prefix=/usr    \
-$OPTS            \
-"$CC"            \
-"$LDOPTS"        &&
-make             &&
-prepare_install  &&
+./configure     \
+--prefix=/usr   \
+$OPTS           \
+"$CC"           \
+"$LDOPTS"       &&
+make            &&
+prepare_install &&
 make    install
 }

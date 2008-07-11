@@ -1,22 +1,23 @@
-  stable 1.0
-  CATEGORY='security'
- ATTRIBUTE='console new'
-    SOURCE="TFMESS_BSP_LIN_$VERSION.zip"
-       URL='http://www.upek.com/support/download/'
-  HOMEPAGE='http://www.upek.com/'
-       REQ='bioapi'
-  ESTIMATE='5'
-      DESC="tfmess_bioapi_bsp provides tfmess bioapi bsp for linux"
+    stable 1.0
+   require bioapi
 
-install_sample() {
+  category security
+ attribute console new
+    source TFMESS_BSP_LIN_$VERSION.zip
+       url http://www.upek.com/support/download/
+  homepage http://www.upek.com/
+  estimate 5
+      desc 'tfmess_bioapi_bsp provides tfmess bioapi bsp for linux'
+
+build(){
+ install_sample(){
   cd NonGUI_Sample
   perl -i -pe 'print "#include <stdlib.h>\n//DISABLED: " if m!^#include "port/bioapi_port.h"$!'  main.c
   gcc -o Sample main.c -I/usr/include -L/usr/lib -lbioapi100 -DUNIX -DLITTLE_ENDIAN
-  install Sample -m755 /usr/bin/upek-NonGUI_Sample
-}
+  install Sample -m 755 /usr/bin/upek-NonGUI_Sample
+ }
 
-build() {
-prepare_install        &&
+prepare_install &&
 sh install.sh /usr/lib &&
 install_sample
 }

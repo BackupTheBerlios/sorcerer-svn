@@ -1,4 +1,7 @@
-  stable 2.46 2.45 2.44 2.43 2.41 2.40 2.37a 2.37 2.36
+    stable 2.46 2.45 2.44 2.43 2.41 2.40 2.37a 2.37 2.36
+   require Python alsa-lib freealut freetype jpeg libvorbis mozilla scons
+  optional yasm '' '' for fast x264 encoding
+
 # Configuring library blender_creator
 # Configuring program blender
 # scons: done reading SConscript files.
@@ -14,72 +17,26 @@
 # scons: *** [/usr/src/sorcery/blender/build/linux2/bin/blender] Error 1
 # scons: building terminated because of errors.
 
-  CATEGORY='graphic/editor video/editor'
- ATTRIBUTE='new x11'
-#ATTRIBUTE='new x11 broke'
-    SOURCE="blender-$VERSION.tar.gz"
-       URL='http://download.blender.org/source/'
-  HOMEPAGE='http://www.blender3d.org'
+  category graphic/editor video/editor
+ attribute new x11
+    source blender-$VERSION.tar.gz
+       url http://download.blender.org/source/
+  homepage http://www.blender3d.org
 	#to fix ogg and vorbis are really required if compiled in
-#       REQ='Python alsa-lib freetype jpeg libvorbis mozilla freealut'
-        REQ=('Python alsa-lib freealut freetype jpeg libvorbis mozilla scons'
-             'yasm:::for fast x264 encoding')
-#       REQ='Python alsa-lib freetype jpeg libvorbis mozilla scons'
-# CONFLICTS="openal freealut"
-# Requirement list incomplete while blender is broke.
-case  $VERSION  in
-  2.45)  USE_GCC="gcc-v3.4"  ;;
-  2.41)  USE_GCC="gcc-v3.4"  ;;
+case $VERSION in
+ 2.45) use_gcc gcc-v3.4 ;;
+ 2.41) use_gcc gcc-v3.4 ;;
 esac
- FRESHMEAT="blender"
-  ESTIMATE='3821'
-      DESC="blender is a 3d modeling environement
+  estimate 3821
+      desc 'blender is a 3d modeling environement
 Blender is a fully integrated 3D graphics creation suite allowing
 modeling, animation, rendering, post-production, real-time interactive
-3D, and game creation and playback with cross-platform compatibility."
+3D, and game creation and playback with cross-platform compatibility.'
 
 
-build()  {
-export  LDFLAGS+=" -lalut"
-scons            &&
-prepare_install  &&
-scons install BF_INSTALLDIR=/opt/blender
-}
-
-
-
-build_old() {
-
-create_config() {
-                                  PVER="$( installed_version Python )"
-echo "export NAN_PYTHON_VERSION=${PVER:0:3}"
-echo "export OS=linux"
-echo "export LDFLAGS+= -lopenal -lasound -logg -lGL -lGLU -L/usr/X11R6/lib"
-}
-
-binstall() {
-cp obj/linux*/bin/blender /usr/bin
-cp obj/linux*/bin/blenderplayer /usr/bin
-#cp obj/linux*/bin/Blender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
-#cp obj/linux*/bin/npBlender3DPlugin.so /usr/lib/mozilla-${augur version mozilla}/plugins
-}
-
-
-# sed  -i  "s:alutLoadWAVMemory((signed char*:alutLoadWAVMemory((ALbyte*:"  \
-# intern/SoundSystem/openal/SND_OpenALDevice.cpp
-# sed  -i  "s:ALbyte\*\*:ALbyte*:"  \
-# intern/SoundSystem/openal/SND_OpenALDevice.cpp
-
-
-# export    CFLAGS="-I/usr/include/python2.4 $CFLAGS"
-# export  CXXFLAGS="-I/usr/include/python2.4 $CXXFLAGS"
-
-grep  -rl  "\-O2" * |  xargs --max-lines=16  sed  -i  "s:-O2:$CFLAGS:"
-
-cd $BUILD_DIR &&
-create_config > user-def.mk &&
-sed -i "s:BINTARGETS += blenderstatic::g" source/Makefile &&
-make &&
+build(){
+export  LDFLAGS+=' -lalut'
+scons           &&
 prepare_install &&
-binstall
+scons install BF_INSTALLDIR=/opt/blender
 }

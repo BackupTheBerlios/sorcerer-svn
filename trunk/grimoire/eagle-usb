@@ -1,34 +1,33 @@
-  stable 2.3.2 1.9.9.1
-    IGNORE="snapshot"
-  CATEGORY='kernel'
- ATTRIBUTE='linux-26-module'
-    SOURCE="eagle-usb/eagle-usb-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-# HOMEPAGE='http://eagle-usb.sourceforge.net'
-  HOMEPAGE='http://www.eagle-usb.org'
-       REQ=( ""
-             "tk:::for a x11 gui" )
-#     OPTS="--with-kernel-src=/usr/src/linux"
-  ESTIMATE='97'
-      DESC="eagle-usb is a Linux driver for DSL USB modems
+    stable 2.3.2 1.9.9.1
+  optional tk '' '' for a x11 gui
+    ignore 'snapshot'
+  category kernel
+ attribute linux-26-module
+    source eagle-usb/eagle-usb-$VERSION.tar.bz2
+       url "$SOURCEFORGE_URL"
+# homepage http://eagle-usb.sourceforge.net
+  homepage http://www.eagle-usb.org
+#     opts --with-kernel-src=/usr/src/linux
+  estimate 100
+      desc 'eagle-usb is a Linux driver for DSL USB modems
 based on the Analog chipset Eagle 8051 (ADImodem).
 The Sagem F@st 800, USRobotics Sureconnect 9000,
 Comtrend ct-350 / ct-361, Elcon 111U and others are reported to work.
 See forum.eagle-usb.org for support
 
-Please contribute LSB commented eagle-usb init scripts if you write them."
+Please contribute LSB commented eagle-usb init scripts if you write them.'
 
-build() {
-  sed  -i  "s:^PATH=:# PATH=:"  configure
-  default_build  &&
-  depmod  -a     &&
-  rm -f  /etc/eagle-usb/scripts/lock
+build(){
+ sed -i "s:^PATH=:# PATH=:" configure
+ default_build &&
+ depmod -a &&
+ rm -f /etc/eagle-usb/scripts/lock
 }
 
-post_install() { 
-  if  !  [  -z  "$postconfdone" ]
-  then   echo    "postconfdone=true"  >  $SPELL_CONFIG
-         eagleconfig  &
-  fi
-  default_post_install  
+post_install(){
+ if  ! [ -z "$postconfdone" ]
+ then  echo  "postconfdone=true" > $SPELL_CONFIG
+       eagleconfig &
+ fi
+ default_post_install  
 }

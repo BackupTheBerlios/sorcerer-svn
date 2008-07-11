@@ -1,28 +1,19 @@
-  stable 0.3.0 0.2.0 0.1.1 0.1.0 0.0.19
-    IGNORE="data\|i386\|win32"
-  CATEGORY='game'
-  ATTRIBUTE='x11 new'
-    SOURCE=( "dangerdeep/dangerdeep-$VERSION.tar.gz"
-             "dangerdeep/dangerdeep-data-$VERSION.zip" )
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://dangerdeep.sourceforge.net'
-       REQ='SDL_image SDL_mixer SDL_net fftw scons'
-  ESTIMATE='150'
-      DESC="dangerdeep is a World War II german submarine simulation."
+    stable 0.3.0 0.2.0 0.1.1 0.1.0 0.0.19
+   require SDL_image SDL_mixer SDL_net fftw scons
+    ignore 'data\|i386\|win32'
+  category game
+  attribute x11 new
+    source dangerdeep/dangerdeep-$VERSION.tar.gz
+    source dangerdeep/dangerdeep-data-$VERSION.zip
+       url "$SOURCEFORGE_URL"
+  homepage http://dangerdeep.sourceforge.net
+  estimate 150
+      desc 'dangerdeep is a World War II german submarine simulation.'
 
-build()  {
-sed  -i  "s:/usr/local/:/usr/:"  SConstruct
-scons            &&
-prepare_install  &&
-scons   install  &&
-# mv  /usr/local/bin/dangerdeep  /usr/bin/  &&
-cp     -r  data  /usr/share/dangerdeep
-}
-
-build_old() {
-sed    -i  "s:libpath = \[\]:libpath = ['/usr/X11R6/lib']:
-            s:-Wall -g -O2:$CXXFLAGS:" SConstruct
-scons            &&
-prepare_install  &&
-scons   install
+build(){
+sed -i 's:/usr/local/:/usr/:' SConstruct
+scons           &&
+prepare_install &&
+scons   install &&
+cp -r data /usr/share/dangerdeep
 }

@@ -1,20 +1,19 @@
 version_year_month 12
-  CATEGORY='network'
- ATTRIBUTE='client server stale'
-    SOURCE="protocols-$VERSION.tar.bz2"
-       URL='http://sorcerer.silverice.org/download/iana/'
-  HOMEPAGE='http://www.iana.org/'
-       REQ=''
-  ESTIMATE='5'
-   EXCLUDE="/etc/protocols
-            /etc/protocols.old"
-      DESC="protocols translates the protocol numbers assigned by IANA to /etc/protocols"
+  category network
+ attribute client server stale
+    source protocols-$VERSION.tar.bz2
+       url http://sorcerer.silverice.org/download/iana/
+  homepage http://www.iana.org/
+  estimate 5
+   protect /etc/protocols
+   exclude /etc/protocols.old
+      desc 'protocols translates the protocol numbers assigned by IANA to /etc/protocols'
 
-build()  {
-  [  -s  protocols  ]     &&
-  mv     protocols  iana  &&
-  prepare_install         &&
-  cat               iana  |
-  column  -s '	' -t      >  protocols  &&
-  install -m 0644 -b -S .old protocols /etc
+build(){
+ [ -s protocols ] &&
+ mv   protocols iana &&
+ prepare_install &&
+ cat               iana |
+ column -s '	' -t >  protocols &&
+ install -vm 644 -b -S .old protocols /etc
 }

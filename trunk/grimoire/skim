@@ -1,7 +1,6 @@
+# skim uses bundled scons, but that does not work.
+
 # Tested on 20080112 and it failed compilation
-  stable 1.4.5
-  CATEGORY='input'
- ATTRIBUTE='kde3 new broke'
 
 # the bundled scons with scim does not locate or use gcc or g++
 # during compilation and therefore attempts to execute commands
@@ -9,34 +8,35 @@
 # Consequently, it produces a shell error instead.
 # With the new scons I can use a script to recover from the unfortunate error.
 # scons is a horrible substitute for make!!!
-    SOURCE="scim/skim-$VERSION.tar.bz2"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://www.scim-im.org/'
-#case  $VERSION  in
-#  1.4.5)  USE_GCC="gcc-v3.4"  ;;
-#esac
-# skim uses bundled scons, but that does not work.
-#      REQ='kdelibs-v3 scim'
-       REQ='kdelibs-v3 scim scons'
-  ESTIMATE='460'
-      DESC='skim is an input method based upon scim-lib'
+
+    stable 1.4.5
+   require kdelibs-v3 scim scons
+
+  category input
+ attribute kde3 new broke
+
+    source scim/skim-$VERSION.tar.bz2
+       url "$SOURCEFORGE_URL"
+  homepage http://www.scim-im.org/
+  estimate 500
+      desc 'skim is an input method based upon scim-lib'
 
 disable libtool_fix
 
-build()  {
-  case  $VERSION  in
-    1.4.5)  echo  -e  "#!/bin/bash\nset -x\ng++ -o \"\$@\""  >  o
-            chmod a+x o
-            export  PATH="$PWD:$PATH"
-            sed   -i  "/unset/d"  configure  ;;
-  esac
+build(){
+ case $VERSION in
+  1.4.5) echo -e "#!/bin/bash\nset -x\ng++ -o \"\$@\"" > o
+         chmod a+x o
+         export PATH="$PWD:$PATH"
+         sed -i '/unset/d'  configure ;;
+ esac
 
- ./configure   \
-  prefix=/usr  \
-  qtincludes=/usr/include/qt  &&
-  scons            &&
-  prepare_install  &&
-  scons   install
+./configure  \
+ prefix=/usr \
+ qtincludes=/usr/include/qt &&
+ scons &&
+ prepare_install &&
+ scons   install
 }
 
 

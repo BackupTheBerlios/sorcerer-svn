@@ -1,26 +1,28 @@
    [ -z "$VERSION" ] &&
-  stable 0.16.8.13 0.16.8.12 0.16.8.11 0.16.8.10 0.16.8.9 0.16.8.6
-    IGNORE='cvs\|x86_64\|-0\.[0-2]\|5500\|pre'
-  CATEGORY='window-manager'
- ATTRIBUTE='x11'
-    SOURCE="enlightenment/e16-$VERSION.tar.gz"
-       URL="$SOURCEFORGE_URL"
-  HOMEPAGE='http://enlightenment.sourceforge.net'
-       REQ=( 'e16-theme-BrushedMetal-Tigert imlib2 libXcomposite libXdamage libXft libXinerama libXrandr xbitmaps'
-             'libghttp:::for automatic enlightenment upgrades'
-             'esound:::for enlightenment sound mixer'
-             'epplets:::for useful gadgets'
-             'Eterm:::for terminal emulator'
-             'e16-theme-BlueSteel:::for optional theme'
-             'e16-theme-Ganymede:::for optional theme'
-             'e16-theme-ShinyMetal:::for optional theme' )
+    stable 0.16.8.13 0.16.8.12 0.16.8.11 0.16.8.10 0.16.8.9 0.16.8.6
+
+if [ $SPELL == e16 ]; then
+   require e16-theme-BrushedMetal-Tigert imlib2 libXcomposite libXdamage libXft libXinerama libXrandr xbitmaps
+  optional libghttp             '' '' for automatic enlightenment upgrades
+  optional esound               '' '' for enlightenment sound mixer
+  optional epplets              '' '' for useful gadgets
+  optional Eterm                '' '' for terminal emulator
+  optional e16-theme-BlueSteel  '' '' for optional theme
+  optional e16-theme-Ganymede   '' '' for optional theme
+  optional e16-theme-ShinyMetal '' '' for optional theme
+fi
+    ignore 'cvs\|x86_64\|-0\.[0-2]\|5500\|pre'
+  category window-manager
+ attribute x11
+    source enlightenment/e16-$VERSION.tar.gz
+       url "$SOURCEFORGE_URL"
+  homepage http://enlightenment.sourceforge.net
 #            'edox-data:::for enlightenment documentation'
 # edox-spell no longer in grimoire?
-      OPTS='--enable-static=no'
+      opts --enable-static=no
      WMBIN='/usr/bin/starte16'
-  EPROVIDE='enlightenment'
-  ESTIMATE='700'
-      DESC='e16 is a themeable fast flexible X11 windows Manager.
+  estimate 700
+      desc 'e16 is a themeable fast flexible X11 windows Manager.
 It is configurable as possible in both look and feel.
 In addition, Enlightenment provides an applet API that 
 provides functionality somewhere between the GNOME 
@@ -59,21 +61,14 @@ build(){
 }
 
 
-common_set(){
- unset REQ EPROVIDE
- SOURCE="enlightenment/$SPELL-$VERSION.tar.gz"
-}
-
-theme_set(){
- unset REQ EPROVIDE
- SOURCE="enlightenment/$SPELL-$VERSION.tar.gz"
-}
+common_set(){ source enlightenment/$SPELL-$VERSION.tar.gz; }
+ theme_set(){ source enlightenment/$SPELL-$VERSION.tar.gz; }
 
 
 case $SPELL in
-  e16-theme-*) ESTIMATE='16'; CATEGORY='graphic/theme'; ATTRIBUTE='data'
-               theme_set; DESC="$SPELL provides a theme for e16."
+  e16-theme-*) estimate 16; category graphic/theme; attribute data
+               theme_set; desc "$SPELL provides a theme for e16."
                VERSION="${VERSION:0:6}" ;;
- edox-data) common_set;  DESC="$SPELL provides documentation for enlightenment." ;;
-   epplets) common_set;  DESC="$SPELL provides gadgets for enlightenment." ;;
+ edox-data) common_set; desc "$SPELL provides documentation for enlightenment." ;;
+   epplets) common_set; desc "$SPELL provides gadgets for enlightenment." ;;
 esac

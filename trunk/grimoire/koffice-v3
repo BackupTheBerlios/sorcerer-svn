@@ -1,31 +1,34 @@
-  stable 1.6.3
-    IGNORE='l10n'
-  CATEGORY='utility/editor utility/spreadsheet graphic/editor'
- ATTRIBUTE='kde3'
-    SOURCE="stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2"
+    stable 1.6.3
+if [ $SPELL == koffice-v3 ]; then
+   require kdebase-v3 libart_lgpl-v2.3.17 libpaper
+  optional ImageMagick         ''                    ''              for image conversion support
+  optional Python              --with-pythondir=/usr ''              for Python support
+  optional aspell              ''                    ''              for spell checking 
+  optional koffice-l10n        ''                    ''              for internationalization support
+  optional lcms                ''                    ''              for Krita support
+  optional libwpd              ''                    ''              for reading word perfect documents
+  optional libexif             ''                    ''              to enable JPEG format in krita
+  optional mysql               --enable-mysql        --disable-mysql for mysql support in Kexi
+  optional nas                 ''                    ''              for network audio support
+  optional poppler-qt-x11-free ''                    ''              to import pdf files into krita
+  optional postgresql          --enable-pgsql        --disable-pgsql for postgresql support in Kexi
+  optional ruby                ''                    ''              for ruby scripting support
+  optional wv2                 ''                    ''              to build MS word filter
+
+    source stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2
 case $VERSION in
- 1.6.3) SOURCE[1]='security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff'
-        USE_GCC=gcc-v4.2 ;;
+ 1.6.3) source security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff
+        use_gcc gcc-v4.2 ;;
 esac
-  HOMEPAGE='http://www.koffice.org'
-       URL="$KDE_URL"
+fi
+
+    ignore 'l10n'
+  category utility/editor utility/spreadsheet graphic/editor
+ attribute kde3
+  homepage http://www.koffice.org
+       url "$KDE_URL"
 # koffice 1.6.2 gained sqlite as mandatory requirement?
-#      REQ=( 'kdebase-v3 sqlite'
-       REQ=( 'kdebase-v3 libart_lgpl-v2.3.17 libpaper'
-             'ImageMagick:::for image conversion support'
-             'Python:--with-pythondir=/usr::for Python support'
-             'aspell:::for spell checking' 
-             'koffice-l10n:::for internationalization support'
-             'lcms:::for Krita support'
-             'libwpd:::for reading word perfect documents'
-             'libexif:::to enable JPEG format in krita'
-             'mysql:--enable-mysql:--disable-mysql:for mysql support in Kexi'
-             'nas:::for network audio support'
-             'poppler-qt-x11-free:::to import pdf files into krita'
-             'postgresql:--enable-pgsql:--disable-pgsql:for postgresql support in Kexi'
-             'ruby:::for ruby scripting support'
-             'wv2:::to build MS word filter' )
-      OPTS='--prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final'
+      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
 
 # ImageMagick filter deprecated
 #             'ImageMagick:::for image conversion support'
@@ -36,21 +39,20 @@ esac
 # GraphicsMagick has not made a release in a much longer time
 # than ImageMagick and GraphicsMagic has a compile error.
 # Therefore, staying with ImageMagick
- CONFLICTS='koffice'
-  ESTIMATE='20000'
-      DESC='koffice-v3 is an integrated office suite.
+ conflicts koffice
+  estimate 20000
+      desc 'koffice-v3 is an integrated office suite.
 KOffice currently includes KWord, KSpread, KPresenter, KChart,
 Krayon, KIllustrator, KFormula, Kugar, Kexi, Krita and Kivio.
 koffioce-v3 requires an absurd amount of time to compile.'
 
 case ${SPELL:10} in
  -*l10n-*)
-  unset REQ; REQ='kdelibs-v3'
-  unset SOURCE
-  SOURCE="stable/koffice-$VERSION/src/koffice-l10n/${SPELL/-v3/}-${VERSION:0:5}.tar.bz2"
+  require kdelibs-v3
+  source stable/koffice-$VERSION/src/koffice-l10n/${SPELL/-v3/}-${VERSION:0:5}.tar.bz2
   CATEGORY="$CATEGORY documentation/l10n"
-  EPROVIDE='koffice-l10n'
-  ESTIMATE='118' ;;
+  eprovide koffice-l10n
+  estimate 118 ;;
 esac
 
 build(){

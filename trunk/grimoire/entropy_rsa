@@ -1,33 +1,33 @@
-  stable 0.9.1-439 0.9.0-42
-  CATEGORY='network/file-share'
- ATTRIBUTE='console new'
-    SOURCE="entropy_rsa-$VERSION.tgz"
-       URL='http://entropy.stop1984.com/files/'
-      VURL='http://entropy.stop1984.com/en/downloads.html'
-  HOMEPAGE='http://entropy.stop1984.com/'
-case  $VERSION  in
-  0.9.1*)  USE_GCC="gcc-v3.4"  ;;
+    stable 0.9.1-439 0.9.0-42
+   require expat zlib
+  category network/file-share
+ attribute console new
+    source entropy_rsa-$VERSION.tgz
+       url http://entropy.stop1984.com/files/
+      vurl http://entropy.stop1984.com/en/downloads.html
+  homepage http://entropy.stop1984.com/
+case $VERSION in
+ 0.9.1*) use_gcc gcc-v3.4 ;;
 esac
-       REQ='expat zlib'
-  ESTIMATE='75'
-      DESC="entropy is faster replacement for freenet distribute file sharing.
+  estimate 70
+      desc 'entropy is faster replacement for freenet distribute file sharing.
 Do not run this from /opt/entropy_rsa
-Copy it to your home directory and run it as a user after you configure it."
+Copy it to your home directory and run it as a user after you configure it.'
 
 # homepage says not to build with gcc-4.x
 
-build() {
-install_entropy_rsa()  {
-rm     -rf  include  src  install-sh config*  Makefile*
-find   .            |  xargs  --max-lines=64  chmod  og-w
-find   .  -type  d  |  xargs  --max-lines=64  chmod  a+rx
-mkdir  -p     /opt/entropy_rsa
-cp     -a  *  /opt/entropy_rsa
-}
+build(){
+ install_entropy_rsa(){
+  rm    -rf include src install-sh config* Makefile*
+  find  .         | xargs --max-lines=64 chmod og-w
+  find  . -type d | xargs --max-lines=64 chmod a+rx
+  mkdir -p   /opt/entropy_rsa
+  cp    -a * /opt/entropy_rsa
+ }
 
-./configure                \
---prefix=/opt/entropy_rsa  &&
-make                       &&
-prepare_install            &&
-        install_entropy_rsa
+ ./configure               \
+ --prefix=/opt/entropy_rsa &&
+ make                      &&
+ prepare_install           &&
+         install_entropy_rsa
 }

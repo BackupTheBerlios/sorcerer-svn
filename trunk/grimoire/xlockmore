@@ -1,51 +1,36 @@
-  stable 5.24 5.23 5.22 5.21 5.20.1 5.19 5.18 5.17 5.16
-    IGNORE="ALPHA\|BETA\|^5\.1[8-9]\|a\|s\|e"
-  CATEGORY='graphic security'
- ATTRIBUTE='x11'
-    SOURCE="xlockmore-$VERSION.tar.bz2"
-  HOMEPAGE='http://www.tux.org/~bagleyd/xlockmore.html'
-       URL="http://www.tux.org/~bagleyd/latest/
+    stable 5.24 5.23 5.22 5.21 5.20.1 5.19 5.18 5.17 5.16
+   require glut libXpm
+  optional Linux-PAM     ''                  --disable-pam                  for pluggable authentication
+  optional gtk+          ''                  '--without-gtk2 --without-gtk' for xglock
+  optional esound        ''                  --without-esound               for enlightenment sound mixer support
+  optional freetype-v1.3 ''                  --without-freetype             for feeetype font engine
+  optional lesstif       ''                  --without-motif                for lesstif graphic support
+  optional nas           ''                  ''                             for audio output through nas
+  switch               --enable-nice-only  ''                             for low cpu modes
+  switch               --enable-blank-only ''                             for screen blanking only
+
+
+    ignore 'ALPHA\|BETA\|^5\.1[8-9]\|a\|s\|e'
+  category graphic security
+ attribute x11
+    source xlockmore-$VERSION.tar.bz2
+  homepage http://www.tux.org/~bagleyd/xlockmore.html
+       url 'http://www.tux.org/~bagleyd/latest/
              ftp://ftp.tux.org/pub/tux/bagleyd/xlockmore/
-            ftp://ibiblio.org/pub/Linux/X11/screensavers/"
-       REQ=( "glut libXpm"
-             "Linux-PAM::--disable-pam:for pluggable authentication"
-             "gtk+::--without-gtk2 --without-gtk:for xglock"
-             "esound::--without-esound:for enlightenment sound mixer support"
-             "freetype-v1.3::--without-freetype:for feeetype font engine"
-             "lesstif::--without-motif:for lesstif graphic support"
-             "nas:::for audio output through nas"
-             ":--enable-nice-only::for low cpu modes"
-             ":--enable-blank-only::for screen blanking only" )
-  ESTIMATE='380'
-      DESC="xlockmore is an enhanced version of xlock.
+            ftp://ibiblio.org/pub/Linux/X11/screensavers/'
+  estimate 400
+      desc 'xlockmore is an enhanced version of xlock.
 It incorporates several new commandline options,
 which allow you to run it in a window, in the root
 window, in a different size/location, change the
 size of the iconified window, to install a new
-colormap and delay locking for use with xautolock."
+colormap and delay locking for use with xautolock.'
 
-build() {
-if    spell_installed  Linux-PAM
-then  ENABLE_PAM="--enable-pam --enable-bad-pam"
-      sed  -i  "/pam_error = pam_acct_mgmt(pamh, 0);/d"  xlock/passwd.c
+build(){
+if   spell_installed Linux-PAM
+then OPTS+=' --enable-pam --enable-bad-pam'
+     sed -i "/pam_error = pam_acct_mgmt(pamh, 0);/d" xlock/passwd.c
 fi
 
-./configure           \
---prefix=/usr         \
---sysconfdir=/etc     \
---localstatedir=/var  \
-$ENABLE_PAM           \
-$OPTS                 &&
-make                  &&
-prepare_install       &&
-make    install
-}
-
-current()  {
-  case  $VERSION  in
-    5.21)  if    [  -f  $INSTALL_LOGS/Linux-PAM  ]
-           then  [      $INSTALL_LOGS/Linux-PAM  -ot  \
-                        $INSTALL_LOGS/xlockmore  ]
-           fi  ;;
-  esac
+default_build
 }
