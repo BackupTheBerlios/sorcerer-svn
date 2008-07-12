@@ -4,10 +4,10 @@
   category game
  attribute x11
     source jumpnbump-$VERSION.tar.gz
-    source $( sed 's:$:.dat.bz2:' $SCRIPT_DIR/levels )
+    source $( sed 's:$:.dat.bz2:' $GRIMOIRE/jumpnbump.d/levels )
        url http://www.jumpbump.mine.nu/port/
-       url "http://jumpnbump.spaceteddy.net/levels/
-            http://moo.hotsanic.org/jumpnbump/"
+       url 'http://jumpnbump.spaceteddy.net/levels/
+            http://moo.hotsanic.org/jumpnbump/'
   homepage http://www.jumpbump.mine.nu
   estimate 60
       desc 'jumpnbump is a funny multiplayer game with cute bunnies.
@@ -15,21 +15,20 @@
 It is both fun and addictive for the whole family.
 It features AI, multi-player local and network games.'
 
-install_levels(){
-           USJ=/usr/share/jumpnbump
- mkdir -p $USJ
- CX=1
- while [ -n                                "${SOURCE[$CX]}" ]; do
-  decompress "$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$CX]}" \
-                                   >  "$USJ/${SOURCE[$CX]/.bz2/}"
-  touch                               "$USJ/${SOURCE[$CX]/.bz2/}"
-  (( CX++ ))
- done
-}
-
-
 build(){
- make            &&
+ install_levels(){
+            USJ=/usr/share/jumpnbump
+  mkdir -p $USJ
+  CX=1
+  while [ -n                                "${SOURCE[$CX]}" ]; do
+   decompress "$SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$CX]}" \
+                                    >  "$USJ/${SOURCE[$CX]/.bz2/}"
+   touch                               "$USJ/${SOURCE[$CX]/.bz2/}"
+   (( CX++ ))
+  done
+ }
+
+ make &&
  prepare_install &&
  make    install PREFIX=/usr &&
  install_levels
