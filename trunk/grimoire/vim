@@ -8,22 +8,16 @@
  attribute console x11
     source vim-${VERSION:0:3}.tar.bz2
     source vim-${VERSION:0:3}-lang.tar.gz
-    SCX=2
-     for ((PCX=1;PCX<10;PCX++)); do
-#    for ((PCX=1;PCX<=${VERSION:4:7};PCX++)); do
-      source ${VERSION:0:3}.00$PCX
-      (( SCX++ ))
-    done
-    for ((PCX=10;PCX<100;PCX++)); do
-#   for ((PCX=10;PCX<${VERSION:5:7};PCX++)); do
-     source ${VERSION:0:3}.0$PCX
-     (( SCX++ ))
-    done
-    for ((PCX=100;PCX<=${VERSION:5:7};PCX++)); do
-     source ${VERSION:0:3}.$PCX
-     (( SCX++ ))
-    done
-    unset SCX PCX VPAT
+         S=0
+         M="${VERSION:4:7}"
+         M="${M:-0}"
+if    (( M > 9  )); then (( L = 9  )); else (( L == M )); fi
+while (( L > S  )); do   (( S++    )); source ${VERSION:0:3}.00$S; done
+if    (( M > 99 )); then (( L = 99 )); else (( L == M )); fi
+while (( L > S  )); do   (( S++    )); source ${VERSION:0:3}.0$S;  done
+      (( L = M  ))
+while (( L > S  )); do   (( S++    )); source ${VERSION:0:3}.$S;   done
+
        url ftp://ftp.vim.org/pub/vim/unix/
        url ftp://ftp.vim.org/pub/vim/extra/
        url ftp://ftp.vim.org/pub/vim/patches/${VERSION:0:3}/
