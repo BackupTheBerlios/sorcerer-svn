@@ -217,30 +217,31 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
- give(){
-  find $TARGET/var/cache/archive -type f -printf "%T@\t%p\n" |
-  LC_ALL=C sort -g |
-  cut -f2 |
-  sed "\,\.$1$,p;d"
- }
-
- utar(){ tar -C                $TARGET -xvpf -; }
-
  cd /
- mkdir -p                      $TARGET/{dev,home,media/{cdrom,floppy,root},proc,sys,tmp,var}
- mkdir -p                      $TARGET/etc/sorcery/log/{boot.{on,off},config,exile,hold,opt.{on,off},provide,sold,xinetd.{on,off}}
- chmod 1777                    $TARGET/tmp
- cp    -av dev etc init root   $TARGET
- cp    -av     etc/skel        $TARGET/root
- cp    -av /media/IR/boot      $TARGET
- rm    -rf                     $TARGET/boot/isolinux
- cp    -av /media/IR/var/cache $TARGET/var/
- mkdir -p                      $TARGET/lib/udev
- cp    -av /lib/udev/dev       $TARGET/lib/udev/
- give tar.7z  | while read; do 7za x -bd -so "$REPLY" | utar; done
-#give tar.bz2 | while read; do bzip2 -cd     "$REPLY" | utar; done
-#give tar.gz  | while read; do gzip  -cd     "$REPLY" | utar; done
-#give tar     | while read; do cat           "$REPLY" | utar; done
+ rm    -vfr                    $TARGET/{bin,dev,etc,lib,lib64,sbin,tmp,usr,var}
+ mkdir -vpm 755                $TARGET/{dev,etc,home,media/{cdrom,floppy,root},proc,sys,tmp,var/cache/archive}
+ mkdir -vpm 700                $TARGET/etc/sorcery/log/{config,opt.{on,off},provide}
+ chmod -v  1777                $TARGET/tmp
+ cp    -va dev etc init root   $TARGET
+ cp    -va     etc/skel        $TARGET/root
+ chmod -v   700                $TARGET/root
+ if   [  -d  /media/IR/$HOSTTYPE/boot ]
+ then cp -va /media/IR/$HOSTTYPE/boot \
+                               $TARGET
+ else cp -va /media/IR/boot    $TARGET
+ fi
+ rm    -fr                     $TARGET/boot/isolinux
+ cp    -va /media/IR/var/cache/*-$HOSTTYPE-*.tar.7z \
+             $TARGET/var/cache/archive/
+ mkdir -vpm 755                $TARGET/lib/udev
+ cp    -va /lib/udev/dev       $TARGET/lib/udev/
+
+ find $TARGET/var/cache/archive -type f |
+ while read; do
+  7za x -bd -so "$REPLY" |
+  tar -C $TARGET -xvpf
+ done
+
  make_fstab > $TARGET/etc/fstab
  read -n 1 -t 900 -p "Press space to continue."
  $DIALOG --msgbox $"Files transferred." 8 50

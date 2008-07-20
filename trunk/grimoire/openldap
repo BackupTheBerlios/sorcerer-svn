@@ -1,11 +1,15 @@
 # 2.3.42 and 2.3.39 have a problem detecting db
+# 2.3.43 is a security fix
+# 2.3.43 is not compatible with db 4.7.25
+# 2.4.11 is not compatible with db 4.7.25
+# 2.3.43 configure ignores --enable-bdb=no
 
+#   stable 2.3.43 2.3.38 2.3.35 2.3.32 2.3.31 2.3.27
     stable        2.3.38 2.3.35 2.3.32 2.3.31 2.3.27
-    secure        2.3.38 2.3.35 2.3.32 2.3.31 2.3.27
-   require cyrus-sasl db libtool
+    secure 2.3.43 2.3.38
+  unstable 2.4.11
+   require cyrus-sasl db-v4.5 libtool
   optional heimdal --with-kerberos --without-kerberos for kerberos support
-
-  unstable 2.4.10 2.3.38
     ignore '^2\.3\.39\|snacc'
   category utility
  attribute console
@@ -24,8 +28,6 @@
             ftp://ftp.net.lut.ac.uk/openldap/
             ftp://ftp.plig.org/pub/OpenLDAP/
             http://www.openldap.org/software/download/OpenLDAP/'
-#           http://www.planetmirror.com/pub/openldap/
-# planetmirror gave text file instead of 404.
       opts --enable-shell --enable-dynamic --enable-modules=yes --enable-static=no
   estimate 2660
       desc 'openldap is a fully featured open source LDAP software suite.
@@ -51,3 +53,11 @@ post_install(){
           pipe_queue $CAST_QUEUE com
 }
 
+
+build(){
+#export ol_cv_bdb_minor=5
+#export ol_cv_bdb_compat=yes
+ export  CFLAGS+=' -I/opt/db/4.5/include'
+ export LDFLAGS+=' -L/opt/db/4.5/lib -Wl,-rpath /opt/db/4.5/lib'
+ default_build
+}

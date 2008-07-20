@@ -2,34 +2,15 @@
 # db 4.7.25 has an API change that is incompatible with
 # reland and some other programs.
 
-# remeber check /usr/lib/libdb-4.6.so or whatever library it installs
-# to make sure it linked with libpthread.
-
-    stable 4.7.25 4.6.21 4.6.19 4.6.18 4.5.20 4.4.20
-  unstable 4.7.25 4.6.21
+    stable 4.7.25
+  unstable 4.7.25
     ignore '\.NC\|cd'
   category db
  attribute library
     source db-$VERSION.tar.gz
-#            "patch.$VERSION.1" )
-#              "patch.$VERSION.2" )
-#             "patch.$VERSION.3"
-#             "patch.$VERSION.4" )
-#      url ftp://sleepycat1.inetu.net/releases/
        url http://download.oracle.com/berkeley-db/
-       url http://www.oracle.com/technology/products/berkeley-db/xml/update/$VERSION/
-
-#            "http://www.oracle.com/technology/products/berkeley-db/db/update/$VERSION/" )
-#            "http://www.sleepycat.com/update/$VERSION/" )
-#            "http://www.sleepycat.com/update/snapshot"
-# j2sdk is not gcc 3.4.1 compatibile.
-# and so we must get rid of it for db to link
+       url http://www.oracle.com/technology/products/berkeley-db/db/update/$VERSION/
       opts --enable-static=no
- conflicts j2sdk
-#  Removing j2sdk as an optional requirement helps
-#  avoid a recrusive requirement loop
-#   'j2sdk:--enable-java::for java support'
-# homepage http://www.sleepycat.com
   homepage http://www.oracle.com/technology/software/products/berkeley-db/db/index.html
       vurl http://www.oracle.com/technology/software/products/berkeley-db/db/index.html
  freshmeat berkeleydb
@@ -41,19 +22,11 @@ software ranging from applications running on hand-held appliances
 to enterprise-scale servers.'
 
 build(){
-case $VERSION in
- 4.6.21) patch -p0 < $SCRIPT_DIR/patch.4.6.21.1 ;;
-esac
-
 PCX=1
 while [ -n "${SOURCE[$PCX]}" ]; do
  patch -p0 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[$PCX]}
  (( PCX++ ))
 done
-
-if   spell_installed $( get_provider j2sdk )
-then opts ${OPTS} --enable-java
-fi
 
 cd build_unix &&
 ../dist/configure  \
@@ -77,13 +50,4 @@ post_install(){
  LC_ALL=C  sort                  |
            uniq -d               |
            pipe_queue $CAST_QUEUE com
-}
-
-
-current(){
-case $VERSION in
- 4.6.21) grep -qx 'patching file mp/mp_sync.c'     $COMPILE_LOGS/db ;;
- 4.5.20) grep -qx 'patching file rep/rep_record.c' $COMPILE_LOGS/db ;;
- 4.4.20) grep -qx 'patching file mp/mp_fget.c'     $COMPILE_LOGS/db ;;
-esac
 }
