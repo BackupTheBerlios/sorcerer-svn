@@ -2,7 +2,7 @@
 # use firefox instead, please.
 # Note by JM: I test and use seamonkey
 
-    stable 1.1.10 1.1.9 1.1.8 1.1.7 1.1.6 1.1.5 1.1.4
+    stable 1.1.11 1.1.10 1.1.9 1.1.8 1.1.7 1.1.6 1.1.5 1.1.4
     secure 1.1.10
    require gss gtk+ heimdal libIDL libmng zip
   optional libgnomeui '' '--disable-gnomeui --disable-gnomevfs' for gnome support
@@ -195,20 +195,8 @@ build(){
  # ac_add_options --enable-svg
 
  case $HOSTTYPE in 
-  x86_64) case $( installed_version gcc ) in
-           4.1.0|4.1.1) # Stupid gcc is buggy: This fixes an error message
-                  # like: 
-                  # "jsapi.o can't relocate symbols... memcpy@GLIBC, use -fPIC"
-                  # or
-                  # /usr/bin/ld: nsCOMPtr.o: relocation R_X86_64_PC32 against
-                  AC_VISIBILITY="ac_cv_visibility_pragma=no" 
-                  ;;
-            *)    AC_VISIBILITY=""
-          esac
-          ELF_DYNSTR_GC="--disable-elf-dynstr-gc"
-          ;;
-      *)  ELF_DYNSTR_GC="--enable-elf-dynstr-gc" 
-          ;;
+  x86_64) ELF_DYNSTR_GC='--disable-elf-dynstr-gc' ;;
+      *)  ELF_DYNSTR_GC='--enable-elf-dynstr-gc'  ;;
  esac
 
  cat << EOF > .mozconfig
@@ -240,12 +228,13 @@ ac_add_options --disable-gnomevfs
 EOF
 
  case $VERSION in
-  1.1.[456789]|1.1.10)  mkdir -p include/pango-1.0/pango
-          cp    /usr/include/pango-1.0/pango/pangocairo.h \
-                     include/pango-1.0/pango/
-          sed -i  "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
-          export   CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-          export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
+  1.1.[456789]|1.1.1[0-9])
+   mkdir -p include/pango-1.0/pango
+   cp    /usr/include/pango-1.0/pango/pangocairo.h \
+              include/pango-1.0/pango/
+   sed -i  "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
+   export   CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
+   export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
  esac
 
 

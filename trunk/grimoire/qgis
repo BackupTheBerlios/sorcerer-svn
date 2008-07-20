@@ -1,13 +1,10 @@
-    stable 0.10.0 0.9.1 0.7.4
+    stable 0.11.0 0.10.0 0.9.1 0.7.4
    require gdal qt-x11-opensource sqlite
   optional expat '' '' for the GPS plugin
   optional gsl   '' '' for the raster georeferencer plugin
-
     ignore 'win'
   category utility/gis
  attribute kde4
-#    source qgis/qgis-$VERSION.tar.gz
-#       url "$SOURCEFORGE_URL"
     source qgis_$VERSION.tar.gz
        url http://download.osgeo.org/qgis/src/
   homepage http://qgis.org
@@ -20,7 +17,7 @@
 # case $HOSTTYPE in
 #  x86_64) opts -DLIB_DESTINATION=lib64 ;;
 # esac
-  estimate 2000
+  estimate 1300
       desc 'qgis is a Geographic Information System (GIS)
 qgis supports vector, raster, and database formats.
 QGIS lets you browse and create map data on your computer.
@@ -30,33 +27,10 @@ QGIS supports plugins to do things
 like display tracks from your GPS.'
 
 build(){
-build_old(){
-
- export QTDIR=/opt/kde4
-
- case $VERSION in
- 0.7.4)
-  sed -i "s/QgsProject:://"	src/qgsproject.h		&&
-  sed -i "s/QgsRasterLayerProperties:://"			\
-				src/qgsrasterlayerproperties.h	&&
-  sed -i "s/QgsProjectProperties:://"				\
-				src/qgsprojectproperties.h	&&
-  sed -i "s/QgsLabel:://"	src/qgslabel.h			&&
-  sed -i "s/QgsGPXProvider:://"	providers/gpx/qgsgpxprovider.h	&&
-  sed -i "s/DataPointAcetate:://"				\
-		plugins/georeferencer/datapointacetate.h	&&
-  sed -i "s/GraticuleCreator:://"				\
-		plugins/grid_maker/graticulecreator.h
-  ;;
- esac
-
- default_build
-}
-
- mkdir build
- cd    build
- cmake $OPTS ..  &&
- make            &&
- prepare_install &&
- make    install
+mkdir build
+cd    build
+cmake $OPTS ..  &&
+make            &&
+prepare_install &&
+make    install
 }

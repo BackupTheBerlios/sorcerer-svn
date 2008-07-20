@@ -1,6 +1,6 @@
-    stable 034
+    stable 035 034
    require libglade SDL_image SDL_mixer SDL_ttf
-    ignore 'alpha'
+    ignore 'alpha\|win'
   category game
  attribute console x11
     source FAangband$VERSION.tar.gz
@@ -8,7 +8,7 @@
       vurl http://angband.oook.cz/faangband/Downloads.html
   homepage http://angband.oook.cz/faangband/
       opts --with-libpath=/usr/share/games/faangband/lib
-  estimate 100
+  estimate 400
       desc 'FAangband is first age angband'
 
 build(){
@@ -19,25 +19,22 @@ mkdir    -p -m 0755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    games                     2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games 2>/dev/null
 
-# cd src
-# make    -f makefile.std LIBDIR="$USGT/lib" &&
-
- ./configure          \
- --build=$BUILD       \
- --prefix=/usr        \
- --sysconfdir=/etc    \
- --localstatedir=/var \
- $OPTS                &&
- make                 &&
- prepare_install      &&
- install -v -s -g games -m 2775 src/faangband /usr/bin &&
- cd lib/xtra/font &&
- for file in *.fon
- do ln -s $file ${file%x.fon}.fon
- done &&
- cd $OLDPWD &&
- mkdir   -vp            $USGT &&
- cp      -va lib        $USGT &&
- chown   -R root:games $USGT &&
- chmod   -R g+w        $USGT
+./configure          \
+--build=$BUILD       \
+--prefix=/usr        \
+--sysconfdir=/etc    \
+--localstatedir=/var \
+$OPTS           &&
+make            &&
+prepare_install &&
+install -vsg games -m 2775 src/faangband /usr/bin &&
+cd lib/xtra/font &&
+for file in *.fon
+do ln -s $file ${file%x.fon}.fon
+done &&
+cd $OLDPWD &&
+mkdir -vp           $USGT &&
+cp    -va lib       $USGT &&
+chown -R root:games $USGT &&
+chmod -R g+w        $USGT
 }
