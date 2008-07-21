@@ -1,14 +1,10 @@
-# This might be broke since hotplug is no longer used.
-# Does it have udev rules instead?
-# -Kyle 20071211
-
-    stable 2.8.0-1.c2 2.6.0-0.c2 2.1.0-1.c2
+    stable 2.10.0-1 2.8.0-1.c2 2.6.0-0.c2 2.1.0-1.c2
    require libusb sane-backends libpng udev
   optional gimp '' '' to register iscan as gimp plugin
 
   category graphic/scan
  attribute library x11 x86 new
-    source ${VERSION:0:5}/iscan-$VERSION.tar.gz
+    source ${VERSION:0:6}/iscan_$VERSION.tar.gz
     source v1180/iscan-plugin-gt-x750-1.0.0-1.c2.i386.rpm
        url http://lx1.avasys.jp/iscan/
   homepage http://www.avasys.jp/english/linux_e
@@ -18,7 +14,7 @@
 case $HOSTTYPE in
  x86_64) attribute broke ;;
 esac
-  estimate 1100
+  estimate 2844
       desc 'iscan is an EPSON software for their scanners
 iscan is also referred to as epkowa backend by the sane project.
 iscan (Image Scan! for Linux) contains the following parts:
@@ -35,12 +31,6 @@ build(){
   fi
  }
 
- install_hotplug(){
-  mkdir  -pvm 755                             /etc/hotplug/usb
-  install -vm 755 utils/hotplug/iscan-device  /etc/hotplug/usb/
-  install -vm 644 utils/hotplug/iscan.usermap /etc/hotplug/usb/
- }
-
  install_sane_conf(){
   install -vm 644 backend/epkowa.conf /etc/sane.d/
  }
@@ -53,9 +43,12 @@ build(){
 
  install_extra_docs(){ mv usr/share/doc/* doc/; }
 
+ case $VERSION in
+  2.10.0-1)  patch -p0 < $SCRIPT_DIR/fixes-for-GCC43.patch  ;;
+ esac
+
  default_build       &&
  install_binaries    &&
- install_hotplug     &&
  install_sane_conf   &&
  install_gimp_plugin &&
  install_extra_docs
