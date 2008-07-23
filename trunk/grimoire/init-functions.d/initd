@@ -23,9 +23,9 @@ add_idx(){
  local WHAT=$1
  local NAME=$2
  shift 3
- while [ -n "$1" ]; do
-  if ! [    "$1" == "$NAME" ]
-  then echo         "$NAME" >> $WHAT/$1
+ while [[ -n $1 ]]; do
+  if ! [[    $1 == $NAME ]]
+  then echo       "$NAME" >> $WHAT/$1
   fi
   shift
  done
@@ -35,7 +35,7 @@ add_rdx(){
  local WHAT=$1
  local NAME=$2
  shift 3
- while [ -n "$1" ]
+ while [[ -n $1 ]]
  do    echo "$1" >> $WHAT/$NAME; shift
  done
 }
@@ -44,8 +44,8 @@ add_ldx(){
  local WHAT=$1
  local NAME=$2
  shift 3
- while [ -n        "$1" ]; do
-  [      -d   $WHAT/$1  ] ||
+ while [[ -n        $1 ]]; do
+  [[     -d   $WHAT/$1 ]] ||
   mkdir  -p   $WHAT/$1
   echo   -n > $WHAT/$1/$NAME
   shift
@@ -98,8 +98,8 @@ providers(){
  sed 's:.*/::' |
  tr  ':' ' ' |
  while read FAKE REAL; do
-  if   [ -f $INIT_DIE/$FAKE ]
-  then cat  $INIT_DIE/$FAKE >> $INIT_DIE/$REAL
+  if   [[ -f $INIT_DIE/$FAKE ]]
+  then cat   $INIT_DIE/$FAKE >> $INIT_DIE/$REAL
   fi
  done
 }
@@ -109,7 +109,7 @@ rank(){
  RANK=0
  while read; do
   for SYML in $2??$REPLY; do
-   if [ -h "$SYML" ]; then
+   if [[ -h    $SYML ]]; then
        NRANK="${SYML##*/}"
        NRANK="${NRANK:1:2}"
     (( NRANK=10#$NRANK ))
@@ -125,19 +125,19 @@ rank(){
 }
 
 levels(){
- if   [ -f $3 ]
+ if   [[ -f $3 ]]
  then rank $1 $2 < $3
  else REPLY=00
  fi
  ln -s ../../init.d/$1 $2$REPLY$1
 }
 
-order(){ while read; do [ -f $1/$REPLY ] && echo $REPLY; done; }
+order(){ while read; do [[ -f $1/$REPLY ]] && echo $REPLY; done; }
 
 make_link(){
  for RL in $1/*; do
   LVL=${RL##*/}
-  [ -d  $INIT_NEW/rc$LVL.d ] ||
+  [[ -d $INIT_NEW/rc$LVL.d ]] ||
   mkdir $INIT_NEW/rc$LVL.d
   order $RL < $2 |
   while read
@@ -169,10 +169,10 @@ make_links(){
 
 }
 
- remove_initd(){ echo "$@ will not be started during boot" 1>&2; chmod 0600 "$@"; }
-install_initd(){ echo "$@ will be started during boot" 1>&2;     chmod 0700 "$@"; }
+ remove_initd(){ echo "$@ will not be started during boot" 1>&2; chmod 600 "$@"; }
+install_initd(){ echo "$@ will be started during boot" 1>&2;     chmod 700 "$@"; }
 
-if    [ -f "$1" ]; then
+if    [[ -f $1 ]]; then
  if   [ "${0##*/}" == install_initd ]; then install_initd "$1"
  elif [ "${0##*/}" == remove_initd  ]; then  remove_initd "$1"
  fi

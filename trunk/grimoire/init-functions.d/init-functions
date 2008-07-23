@@ -19,11 +19,11 @@ log_warning_msg(){ log_line "$1" "$WHITE warning";}
 locked(){
  local L S P REPLY
 
- [ -n "$2" ] && L=${#2} &&
- [ -n "$1" ] && [ -f  $1 ] &&
+ [[ -n $2 ]] && L=${#2} &&
+ [[ -n $1 ]] && [[ -f $1 ]] &&
  read P < $1 &&
  S="/proc/$P/status" &&
- [ -f   $S ] &&
+ [[ -f  $S ]] &&
  read < $S &&
  [ "${REPLY:6:$L}" == "$2" ]
 }
@@ -41,19 +41,19 @@ pidofproc(){
 
  BASE=${1##*/}
 
- if    [ -z "$PIDF" ]; then
-  if   [ -f /var/run/$BASE.pid ]; then PIDF=/var/run/$BASE.pid
-  elif [ -f /var/run/$BASE     ]; then PIDF=/var/run/$BASE
+ if    [[ -z $PIDF ]]; then
+  if   [[ -f /var/run/$BASE.pid ]]; then PIDF=/var/run/$BASE.pid
+  elif [[ -f /var/run/$BASE     ]]; then PIDF=/var/run/$BASE
   else PIDS=$( /bin/pidof -o %PPID $BASE )
   fi
  fi
 
- if    [  -s  "$PIDF" ]; then
+ if    [[  -s  $PIDF ]]; then
   if   locked "$PIDF" "$BASE"
   then read <  $PIDF; echo $REPLY
   else false
   fi
- elif [  -n "$PIDS" ]
+ elif [[  -n $PIDS ]]
  then echo  "$PIDS"
  else return 1
  fi
@@ -71,18 +71,18 @@ killproc(){
  do shift 2
  done
 
- BASE=${1##*/}; [ -n "$2" ] &&
+ BASE=${1##*/}; [[ -n $2 ]] &&
  SIGL=$2
  PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
- if    [ -n    "$PIDS" ]; then
-  if   [ -n    "$SIGL" ]
+ if    [[ -n    $PIDS ]]; then
+  if   [[ -n    $SIGL ]]
   then kill -s "$SIGL" $PIDS
   else kill -s 15      $PIDS; sleep 3
        kill -s 9       $PIDS
   fi
-  if   [  -n "$PIDF" ] &&
-       [  -f "$PIDF" ]
+  if   [[  -n $PIDF ]] &&
+       [[  -f $PIDF ]]
   then rm -f "$PIDF"
   fi
  else return 1
@@ -91,7 +91,7 @@ killproc(){
 
 start_daemon(){
  run(){
-  if   [ -n "$BACK" ]
+  if   [[ -n $BACK ]]
   then "$@" & sleep .1; echo $! > $PIDF
   else "$@"
   fi
@@ -113,16 +113,16 @@ start_daemon(){
 
  BASE=${1##*/}
 
- if [ -n "$BACK" ]; then
+ if [[ -n $BACK ]]; then
   LOGF="${LOGF:-/var/log/$BASE}"
   PIDF="${PIDF:-/var/run/$BASE.pid}"
  fi
 
  if   pidofproc -p "$PIDF" "$1" &>/dev/null
- then [ -n "$FORC" ] || return 1
+ then [[ -n $FORC ]] || return 1
  fi
 
- if [ -n "$LOGF" ]; then run "$@" &> "$LOGF"; else run "$@";  fi
+ if [[ -n $LOGF ]]; then run "$@" &> "$LOGF"; else run "$@";  fi
 }
 
 
@@ -134,10 +134,10 @@ start_daemon(){
 status(){
  stats(){
   PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-  elif [ -n "$LOCK" ] &&
-       [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+  if   [[ -n $PIDS ]]; then log_warning_msg "$NAME is running"; return 0
+  elif [[ -f $PIDF ]]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+  elif [[ -n $LOCK ]] &&
+       [[ -f $LOCK ]]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
                        else log_warning_msg "$NAME is not running"; return 3
   fi
  }
@@ -158,7 +158,7 @@ status(){
 
  if   [ / = "${NAME:0:1}" ]
  then statm
- elif [ -n "$SERV" ]
+ elif [[ -n $SERV ]]
  then stats
  else statk
  fi
@@ -188,24 +188,24 @@ stop(){
 
  if   [ / = "${NAME:0:1}" ]
  then stopm
- elif [ -n "$SERV" ]
+ elif [[ -n $SERV ]]
  then stops
  else stopk
  fi
 }
 
 mnt(){
- if [ -f /proc/mounts ]; then
+ if [[ -f /proc/mounts ]]; then
   while read DEV MNT JNK
-  do [ $NAME == $MNT ] && return
+  do [[ $NAME == $MNT ]] && return
   done < /proc/mounts
  fi
  return 1
 }
 
 start(){
- conf(){ [ -n "$CONF" ] && ! [ -e "$CONF" ]; }
- miss(){ [ ${SERV:0:1} == / ] && ! [ -f $SERV ]; }
+ conf(){ [[ -n $CONF ]] && ! [[ -e $CONF ]]; }
+ miss(){ [ ${SERV:0:1} == / ] && ! [[ -f $SERV ]]; }
 
  starts(){
   if   conf
@@ -222,7 +222,7 @@ start(){
 
  startm(){
   run(){
-   if   !   [ -d "$NAME" ]
+   if   !  [[ -d  $NAME ]]
    then mkdir -p "$NAME"; fi &&
    mount $OPTS   "$NAME"
   }
@@ -250,14 +250,14 @@ start(){
 
  if   [ / = "${NAME:0:1}" ]
  then startm
- elif [ -n "$SERV" ]
+ elif [[ -n $SERV ]]
  then starts
  else startk
  fi
 }
 
     restart(){ stop && sleep 1; start;}
-try_restart(){ [ -n "$SERV" ] && status &>/dev/null && restart; return 0;}
+try_restart(){ [[ -n $SERV ]] && status &>/dev/null && restart; return 0;}
 
 help(){ echo "Usage: $0 {start|stop|status|restart}";}
 
