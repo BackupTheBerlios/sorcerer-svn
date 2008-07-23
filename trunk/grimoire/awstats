@@ -1,16 +1,12 @@
     stable 6.8
     secure 6.8
    require perl httpd
-  optional perl--Geo-IPfree  ''  ''  for a IP-Country database Perl plugin
-  optional perl--Net-XWhois  ''  ''  to show whois info on host 
-
+  optional perl--Geo-IPfree '' '' for a IP-Country database Perl plugin
+  optional perl--Net-XWhois '' '' to show whois info on host 
   category log web
  attribute utility new
-    source files/awstats-$VERSION.tar.gz
-       url http://awstats.sourceforge.net/
+    source http://awstats.sourceforge.net/files/awstats-$VERSION.tar.gz
   homepage http://awstats.sourceforge.net
- freshmeat awstats
-  estimate 5
       desc 'awstats generates advanced web, ftp or mail server statistics, graphically.
 awstats is a free powerful and featureful tool that generates 
 advanced web, ftp or mail server statistics, graphically. This 
@@ -23,22 +19,21 @@ combined/XLF/ELF log format or common/CLF log format), WebStar
 and most of all web, proxy, wap, streaming servers, mail 
 servers (and some ftp).'
 
-function build() {
-	sed -i "s:/usr/local/awstats:/usr/awstats:g"  tools/httpd_conf
-	sed -i "s:/usr/local/awstats:/usr/awstats:g"  tools/awstats_updateall.pl
-	sed -i "s:/usr/local/awstats:/usr/awstats:g"  tools/awstats_configure.pl
-	sed -i "s:/usr/local/awstats:/usr/awstats:g"  tools/awstats_buildstaticpages.pl
-	sed -i "s:/usr/local/awstats:/usr/awstats:g"  wwwroot/cgi-bin/awstats.pl
+build(){
+sed -i 's:/usr/local/awstats:/usr/awstats:g' tools/httpd_conf
+sed -i 's:/usr/local/awstats:/usr/awstats:g' tools/awstats_updateall.pl
+sed -i 's:/usr/local/awstats:/usr/awstats:g' tools/awstats_configure.pl
+sed -i 's:/usr/local/awstats:/usr/awstats:g' tools/awstats_buildstaticpages.pl
+sed -i 's:/usr/local/awstats:/usr/awstats:g' wwwroot/cgi-bin/awstats.pl
 
-	chown  -R root.root *
-	chmod  -R 644 *
-	chmod  -R a+X *
-	find  -name *.pl  |  xargs chmod a+x 
+chown -R root.root *
+chmod -R 644 *
+chmod -R a+X *
+find -name *.pl  |  xargs chmod a+x
 
-	prepare_install 
-						
-	[ ! -d /usr/awstats ]	&&  mkdir  /usr/awstats
-	cp  -r tools wwwroot /usr/awstats
+prepare_install
 
-	echo  "$BSPELL installed"
+[ ! -d /usr/awstats ] && mkdir -p /usr/awstats
+cp  -r tools wwwroot /usr/awstats
+echo 'awstats installed'
 }
