@@ -11,11 +11,11 @@ export  TEXTDOMAIN=${0##*/}
 export  TEXTDOMAINDIR=/usr/share/locale
 
 mail_immune_report(){
- if   [ -x /usr/bin/mail  ]; then MAILER=/usr/bin/mail
- elif [ -x /usr/bin/mailx ]; then MAILER=/usr/bin/mailx
+ if   [[ -x /usr/bin/mail  ]]; then MAILER=/usr/bin/mail
+ elif [[ -x /usr/bin/mailx ]]; then MAILER=/usr/bin/mailx
  fi
- if   enabled "mail" ${FEATURE[*]} &&
-      [ -n "$MAILER" ] && [ -n "$SORCERER" ]
+ if   enabled mail ${FEATURE[*]} &&
+      [[ -n $MAILER ]] && [[ -n $SORCERER ]]
  then       $MAILER -s  "$1"    $SORCERER $2
  fi
 }
@@ -26,7 +26,7 @@ ldd_bashx(){ LD_TRACE_LOADED_OBJECTS=1 /lib64/ld-linux-x86-64.so.2 /bin/bash 2>&
 check_bash(){
  locked $CAST_QUEUE/glibc cast && return
 
- if   [ -x /lib64/ld-linux-x86-64.so.2 ]
+ if   [[ -x /lib64/ld-linux-x86-64.so.2 ]]
  then      LDD_BASH="$( ldd_bashx )"  &&
       [[ "$LDD_BASH" =~ lib        ]] &&
     ! [[ "$LDD_BASH" =~ not\ found ]]
@@ -41,7 +41,7 @@ check_bash(){
 restore_lib(){
  local LD_LIBRARY_PATH
 
- if [ -d /lib64 ]; then
+ if [[ -d /lib64 ]]; then
   export  LD_LIBRARY_PATH=/lib64.sav
   /lib64.sav/ld-[0-9]*.so /bin/rm -rf                   /lib64.bad
   /lib64.sav/ld-[0-9]*.so /bin/mv                /lib64 /lib64.bad
@@ -121,13 +121,13 @@ export TERM="dumb"
 unset     CRITICAL NEGLECT STALL
 IMMUNITY='critical neglect stall'
 
-if [ -n "$1" ]; then IMMUNITY="$@"; fi
+if [[ -n $1 ]]; then IMMUNITY="$@"; fi
 if enabled critical $IMMUNITY; then CRITICAL=crit_check; fi
 if enabled neglect  $IMMUNITY; then NEGLECT=neglect_check; next_easy; fi
 if enabled stall    $IMMUNITY; then STALL=stall_check; NEXT_STAL=$HOUR; fi
 
-[ -x /usr/bin/nice   ] && renice  19 -p $$ &>/dev/null
-[ -x /usr/bin/ionice ] && ionice -c3 -p $$ &>/dev/null
+[[ -x /usr/bin/nice   ]] && renice  19 -p $$ &>/dev/null
+[[ -x /usr/bin/ionice ]] && ionice -c3 -p $$ &>/dev/null
 
 main 1>>/var/log/immune 2>&1 &
 lock_immune

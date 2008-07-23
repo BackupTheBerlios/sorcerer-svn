@@ -14,7 +14,7 @@ trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGTERM
 BAK=/var/cache/backup/"$( date -u +%Y%m ).tar.7z"
 TMP=$BAK.tmp.$$$RANDOM
 
-DIRS='/bin /etc /lib '; [ $HOSTTYPE == x86_64 ] && DIRS+='/lib64 '
+DIRS='/bin /etc /lib '; [[ $HOSTTYPE == x86_64 ]] && DIRS+='/lib64 '
 DIRS+='/opt /sbin /usr'
 
 renice 19      -p $$ &>/dev/null
@@ -22,10 +22,10 @@ ionice -c2 -n7 -p $$ &>/dev/null
 
 find /var/cache/backup -type f -mtime +90 | xargs -r --max-lines=128 rm -f
 
-rm    -f   $TMP
-touch      $TMP
-chmod 0600 $TMP
+rm    -f  $TMP
+touch     $TMP
+chmod 600 $TMP
 
 if ! tar -cP $DIRS;      then fail; fi |
 if ! 7za -bd -si "$TMP"; then fail; fi
-if [ -f $TMP ];          then made; fi
+if [[ -f $TMP ]];        then made; fi

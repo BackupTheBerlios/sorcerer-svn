@@ -86,7 +86,7 @@ recompress(){
  7zip_it(){ uncompr | if ! 7za a -bd -si "$TMP"; then rtmp; fi; }
 
         IN="$1"
- [ -f "$IN" ] || return 0
+ [[ -f $IN ]] || return 0
 
  if   ! is_comp_tar "$IN" 2>/dev/null
  then rm -f "$IN"; return 0
@@ -115,13 +115,13 @@ recompress(){
  OUT="$REPLY.tar.$SUF"
  TMP="$OUT.new"
 
- if   [ "$IN" == "$OUT" ] ||
+ if   [[ $IN == $OUT ]] ||
       (( LIN  >=  LOUT ))
  then return 0
  fi
 
- if   [ -f  "$OUT" ] &&
-      [ -f  "$IN"  ] &&
+ if   [[ -f  $OUT ]] &&
+      [[ -f  $IN  ]] &&
       chk   "$IN" "$OUT"
  then rm -f "$IN"; return 0
  fi
@@ -135,7 +135,7 @@ recompress(){
  esac &>/dev/null
  umask 0022
 
- if [ -f "$TMP" ]; then
+ if [[ -f $TMP ]]; then
   mv "$TMP" "$OUT"
   chmod $( stat -c "%a" "$IN" ) "$OUT"
   touch -r "$IN" "$OUT"
@@ -161,11 +161,11 @@ reduction(){
 locked(){
  local LEN STATUS LINE LPID
 
- [ -n  "$1" ] && [ -f  $1 ] &&
- [ -n  "$2" ] && LEN=${#2} &&
- read  LPID  <  $1 &&
+ [[ -n $1 ]] && [[ -f $1 ]] &&
+ [[ -n $2 ]] && LEN=${#2} &&
+ read LPID < $1 &&
  STATUS="/proc/$LPID/status" &&
- [  -f       $STATUS ] &&
+ [[  -f      $STATUS ]] &&
  read LINE < $STATUS &&
  [ "${LINE:6:$LEN}" == "$2" ]
 }
@@ -193,7 +193,7 @@ main(){
  done
 }
 
-while [ -n "$1" ]; do
+while [[ -n $1 ]]; do
  case $1 in
     7za) ZPROG=7za;   FILES="$TAR;$TGZ;$BZ2" ;;
   bzip2) ZPROG=bzip2; FILES="$TAR;$TGZ" ;;
@@ -205,9 +205,9 @@ done
 
 (( LOW > 0 )) || return 1
 
-[ -x /usr/bin/nice   ] && renice  19 -p $$ &>/dev/null
-[ -x /usr/bin/ionice ] && ionice -c3 -p $$ &>/dev/null
-[ -f      /usr/libexec/bash/sleep ] &&
+[[ -x /usr/bin/nice   ]] && renice  19 -p $$ &>/dev/null
+[[ -x /usr/bin/ionice ]] && ionice -c3 -p $$ &>/dev/null
+[[ -f     /usr/libexec/bash/sleep ]] &&
 enable -f /usr/libexec/bash/sleep sleep
 
 main 1>>/var/log/bgz 2>&1 &
