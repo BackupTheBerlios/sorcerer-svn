@@ -1,62 +1,60 @@
-    stable 1.12
-   require flex init-functions perl
-
-  category font utility/keyboard
- attribute console
-    source kbd-$VERSION.tar.gz
-       url ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
-  homepage ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
 #            'linuxdoc-tools:::for building HTML documentation' )
 # linuxdoc-tools optional requirement creates problems on the I/R
 # linuxdoc-tools requires openjade and openjade requires gcc-v3.4
+
+    stable 1.12
+   require flex init-functions perl
+  category font utility/keyboard
+ attribute console
+    source ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/kbd-$VERSION.tar.gz
+  homepage ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
  conflicts console-tools console-data
-  estimate 121
+  estimate 100
       desc 'kbd contains keytable files and keyboard utilities.
 Configuration file is /etc/keymap.conf'
-# and font.conf located in /etc/kbd'
 
-configure()  {
-  get()  {
-    menu_list()  {  sed  "1iask	$2
-                          s:$:	$2:"  <  $SCRIPT_DIR/$3;  }
+configure(){
+ get(){
+  menu_list(){ sed "1iask	$2
+                    s:$:	$2:" < $SCRIPT_DIR/$3; }
 
-    WHAT=$( dialog  --stdout                         \
-                    --timeout  ${PROMPT_DELAY:-120}  \
-                    --title "$2 Menu"                \
-                    --default-item "$4"              \
-                    --menu  ""  0 0 0                \
-                    $(  menu_list  "$@"  )
-          )  &&
-    if  [  -n      "$WHAT"  ]
-    then  echo  "$1=$WHAT"  >>  $SPELL_CONFIG
-    fi
-  }
-
-  if    [  -d  /boot/isolinux  ]
-  then      KEYMAP=ask
+  WHAT=$( dialog --stdout                        \
+                 --timeout  ${PROMPT_DELAY:-120} \
+                 --title "$2 Menu"               \
+                 --default-item "$4"             \
+                 --menu  ""  0 0 0               \
+                 $( menu_list "$@" )
+        )  &&
+  if [ -n      "$WHAT" ]
+  then echo "$1=$WHAT" >> $SPELL_CONFIG
   fi
+ }
 
-  if [ -z "$KEYMAP" ]; then get "KEYMAP" "Keymap" "keymaps.txt" "us"; fi
-# if [ -z "$FONT"   ]; then get "FONT"   "Font"   "fonts.txt"   "default8x16"; fi
+ if   [ -d /boot/isolinux ]
+ then KEYMAP=ask
+ fi
+
+ if [ -z "$KEYMAP" ]; then get "KEYMAP" "Keymap" "keymaps.txt" "us"; fi
+#if [ -z "$FONT"   ]; then get "FONT"   "Font"   "fonts.txt"   "default8x16"; fi
 }
 
 
-build()  {
-  rm   -f  /etc/keymap.conf
-  [    -n   "$KEYMAP"  ]  &&
-  sed  -i  "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:"  $SCRIPT_DIR/init.d.on/loadkeys
+build(){
+ rm  -f /etc/keymap.conf
+ [   -n  "$KEYMAP" ] &&
+ sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
 
-  case  $VERSION  in
-    1.12)  sed  -i  "s:-O2:$CFLAGS:"  openvt/Makefile  src/Makefile.in  ;;
-  esac
+ case $VERSION in
+  1.12) sed -i "s:-O2:$CFLAGS:" openvt/Makefile src/Makefile.in ;;
+ esac
 
-  # Fix setfont when compiled with gcc4
-  patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
+ # Fix setfont when compiled with gcc4
+ patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
 
-  ./configure      &&
-  make             &&
-  prepare_install  &&
-  make    install
+ ./configure     &&
+ make            &&
+ prepare_install &&
+ make    install
 }
 
 

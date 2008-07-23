@@ -1,27 +1,26 @@
     stable 20071007
   optional gcc-v3.3 '' '' for cook.so and drvc.so that require libstdc++.so.5
-
     ignore 'alpha\|ppc'
   category video/codec
  attribute library
+       url 'ftp://ftp1.mplayerhq.hu/MPlayer/releases/codecs/
+            ftp://ftp2.mplayerhq.hu/MPlayer/releases/codecs/'
 case $HOSTTYPE in
  x86_64) source essential-amd64-$VERSION.tar.bz2 ;;
       *) source essential-${VERSION}.tar.bz2 ;;
 esac
-       url 'ftp://ftp1.mplayerhq.hu/MPlayer/releases/codecs/
-            ftp://ftp2.mplayerhq.hu/MPlayer/releases/codecs/'
   homepage http://www.mplayerhq.hu/
   estimate 100
       desc 'w32codec contains codecs for decoding video & audio streams.'
 
 build(){
- if   !  [ -f $VERSION_LOGS/gcc-v3.3 ]
- then rm   -f {cook,drvc}.so
- fi
+if   !  [ -f $VERSION_LOGS/gcc-v3.3 ]
+then rm   -f {cook,drvc}.so
+fi
 
- prepare_install &&
- mkdir   -v -m 0755 -p /usr/lib/win32 &&
- find *  -type f |
- xargs   --max-lines=1 --replace={} \
- install -v  -m 0644 -o root -g root {} /usr/lib/win32/
+prepare_install &&
+mkdir   -pvm 755 /usr/lib/win32 &&
+find *  -type f |
+xargs   --max-lines=1 --replace={} \
+install -vm 644 -o root -g root {} /usr/lib/win32/
 }

@@ -2,17 +2,11 @@
    require ncurses
   category utility/editor
  attribute console x11
-    source elvis-$VERSION.tar.gz
-  homepage http://elvis.vi-editor.org/
        url 'ftp://ftp.cs.pdx.edu/pub/elvis/
             http://www.fh-wedel.de/pub/elvis/'
-#  homepage ftp://ftp.cs.pdx.edu/pub/elvis/README.html
-#            'libXft:--with-xft=yes:--without-xft:for Xft under x11 support'
-#            'libXpm:--with-x=yes:--without-x:for elvis with X11 GUI' )
-
-#     opts --bindir=/bin --datadir=/var/lib/elvis     --mandir=/usr/man
+    source elvis-$VERSION.tar.gz
+  homepage http://elvis.vi-editor.org/
       opts --bindir=/bin --datadir=/etc/elvis.default --mandir=/usr/man --without-xft --without-x
-# eprovide vi
    provide console-editor
   estimate 130
       desc 'elvis is a clone of vi/ex, the standard UNIX editor.
@@ -25,28 +19,21 @@ a variety of display modes including hex and html,
 on-line help, WYSIWYG printing, and other miscellaneous extensions.'
 
 
-build()  {
-  sed  -i  "s/-O2/$CFLAGS/"                  configure
-# sed  -i  "s:/\$(LIBS):\$(LIBS) $LDFLAGS:"  Makefile.in
+build(){
+sed -i "s/-O2/$CFLAGS/" configure
 
-  ./configure           \
-  --build=$BUILD        \
-  --prefix=/usr         \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-  --libs="-lncurses $LDFLAGS"  \
-  $OPTS                 &&
-  make                  &&
-  prepare_install       &&
-  make    install       &&
+./configure           \
+--build=$BUILD        \
+--prefix=/usr         \
+--sysconfdir=/etc     \
+--localstatedir=/var  \
+--libs="-lncurses $LDFLAGS"  \
+$OPTS                 &&
+make                  &&
+prepare_install       &&
+make    install       &&
 
-  if    !  [  -e         /bin/vi  ]
-  then  ln    -s  elvis  /bin/vi
-  fi
-}
-
-current()  {
-  case  $VERSION  in
-    2.2_0)  [  -d  /etc/elvis.default  ]  ;;
-  esac
+if   ! [ -e       /bin/vi ]
+then ln  -s elvis /bin/vi
+fi
 }

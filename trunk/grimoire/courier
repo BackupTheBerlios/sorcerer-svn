@@ -5,12 +5,11 @@
   optional ispell   '' --without-ispell for spell checking
   optional openldap '' ''               for ldap address book
   optional openssl  '' ''               for pop3s and imaps servers
-
     ignore 'imap\|2002\|admin\|authlib'
   category network/email
  attribute client console server
+       url $SOURCEFORGE_URL
     source courier/courier-$VERSION.tar.bz2
-       url "$SOURCEFORGE_URL"
 # May require client daemon support pop3 pop3s imap imaps, etc...
 # added to courier.d/courier it's startup script.
   eprovide mail-transport-agent
@@ -27,47 +26,47 @@ Individual components can be enabled or disabled at will.
 Courier implements basic Web-based calendaring and scheduling
 services integrated in the Webmail module.'
 
-build() {
-   sed  -i  's:rootcheck="$withval":rootcheck="$enableval":'  configure
+build(){
+sed -i 's:rootcheck="$withval":rootcheck="$enableval":' configure
 
-   ./configure                         \
-   --prefix=/usr                       \
-   --localstatedir=/var/state/courier  \
-   --sysconfdir=/etc/courier           \
-   --disable-root-check                \
-   $OPTS                               &&
-  make                                 &&
-  prepare_install                      &&
-  make    install                      &&
-  make    install-configure
+./configure                        \
+--prefix=/usr                      \
+--localstatedir=/var/state/courier \
+--sysconfdir=/etc/courier          \
+--disable-root-check               \
+$OPTS                              &&
+make                               &&
+prepare_install                    &&
+make    install                    &&
+make    install-configure
 }
 
-post_install() {
-  default_post_install
-  makealiases
-  makesmtpaccess
-  makesmtpaccess-msa
+post_install(){
+ default_post_install
+ makealiases
+ makesmtpaccess
+ makesmtpaccess-msa
 
-  if     !  [  -d     /etc/skel/Maildir  ]
-  then   maildirmake  /etc/skel/Maildir
+ if    ! [ -d      /etc/skel/Maildir ]
+ then  maildirmake /etc/skel/Maildir
+ fi
+
+ find /home -maxdepth 1 -mindepth 1 -type d |
+ while read;  do
+  if   ! [ -d        $WHO/Maildir ]
+  then maildirmake   $WHO/Maildir
+       chown -R $WHO $WHO/Maildir
   fi
+ done
 
-  find  /home  -maxdepth 1  -mindepth 1  -type d  |
-  while  read;  do
-     if    !  [   -d        $WHO/Maildir  ]
-     then  maildirmake      $WHO/Maildir
-           chown  -R  $WHO  $WHO/Maildir
-     fi
-  done
+ if ! [  -f        /etc/courier/hosteddomains ]; then
+  cp /etc/hostname /etc/courier/hosteddomains
+                            makehosteddomains
+ fi
 
-  if    !  [  -f       /etc/courier/hosteddomains  ];  then
-    cp  /etc/hostname  /etc/courier/hosteddomains
-                                makehosteddomains
-  fi
-
-  if  [  -x  /usr/bin/openssl  ];  then
-    if  !  [  -f  /usr/share/esmtpd.pem  ];  then  mkesmtpdcert;  fi
-    if  !  [  -f  /usr/share/pop3d.pem   ];  then  mkpop3dcert;   fi
-    if  !  [  -f  /usr/share/imapd.pem   ];  then  mkimapdcert;   fi
-  fi
+ if [ -x /usr/bin/openssl ]; then
+  if ! [ -f /usr/share/esmtpd.pem ]; then mkesmtpdcert; fi
+  if ! [ -f /usr/share/pop3d.pem  ]; then mkpop3dcert;  fi
+  if ! [ -f /usr/share/imapd.pem  ]; then mkimapdcert;  fi
+ fi
 }

@@ -2,22 +2,17 @@
 # but is still required to index kde documentation.
 # However, version 3.1.6 does not work properly for
 # indexing kde documentation.
+
     stable 3.2.0b6 3.1.6
    require zlib
-
 case $VERSION in
  3.2.0b6) use_gcc gcc-v4.0 ;;
 esac
-#    ignore 'b'
   category network/web
  attribute client console
-    source htdig-$VERSION.tar.gz
-       url http://htdig.org/files/
-#    source htdig/htdig-$VERSION.tar.gz
-#       url "$SOURCEFORGE_URL"
+    source http://htdig.org/files/htdig-$VERSION.tar.gz
   homepage http://htdig.org
-#     opts --prefix=/opt/www
-  estimate 301
+  estimate 300
       desc 'htdig is a WWW indexing and search engine for a domain or intranet.
 The ht://Dig system is a complete WWW indexing 
 and searching system for a domain or intranet.
@@ -28,24 +23,24 @@ Instead, it is meant to cover the search needs for a single
 company, campus, or even a particular sub-section of a Web site.'
 
 
-build()  {
-  case $HOSTTYPE in
-   x86_64) # This fix is needed for gcc4 
-      case $VERSION in
-        3.1.6)  sed -i "157s:int:long:"  htdig/SGMLEntities.cc	;;
-      esac 
-      ;;
-  esac
+build(){
+ case $HOSTTYPE in
+  x86_64) # This fix is needed for gcc4 
+     case $VERSION in
+      3.1.6)  sed -i "157s:int:long:"  htdig/SGMLEntities.cc	;;
+     esac 
+     ;;
+ esac
 
-  CXX="c++ -Wno-deprecated"  \
-  ./configure           \
-  --build=$BUILD        \
-  --prefix=/opt/www     \
-  --bindir=/usr/bin     \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-  $OPTS                 &&
-  make                  &&
-  prepare_install       &&
-  make    install
+CXX="c++ -Wno-deprecated" \
+./configure          \
+--build=$BUILD       \
+--prefix=/opt/www    \
+--bindir=/usr/bin    \
+--sysconfdir=/etc    \
+--localstatedir=/var \
+$OPTS                &&
+make                 &&
+prepare_install      &&
+make    install
 }

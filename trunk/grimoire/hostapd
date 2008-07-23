@@ -1,12 +1,11 @@
 # 0.6.0 requires modification to build() to compile
-    stable 0.5.10 0.5.9 0.4.9 0.4.7 0.4.3 0.4.2 0.4.1 0.4.0
-   require openssl
 
+    stable 0.5.10 0.5.9
+   require openssl
     ignore 'pre'
   category network
  attribute console
-    source hostapd-$VERSION.tar.gz
-       url http://hostap.epitest.fi/releases/
+    source http://hostap.epitest.fi/releases/hostapd-$VERSION.tar.gz
   homepage http://hostap.epitest.fi/
   estimate 60
       desc 'hostapd provides a daemon extended IEEE 802.11 management.
@@ -15,15 +14,15 @@ IEEE 802.1X Authenticator
 RADIUS Authentication client
 RADIUS Accounting client'
 
-build() {
-  sed  -i  "s:-O2:$CFLAGS:"  Makefile
-  [  -f  .config  ]  ||  cp  defconfig  .config
-  make             &&
-  prepare_install  &&
-  for  FILE  in  *;  do
-    if    [  -f  $FILE  ]  &&
-          [  -x  $FILE  ]
-    then  cp     $FILE  /usr/sbin
-    fi
-  done
+build(){
+ sed -i "s:-O2:$CFLAGS:" Makefile
+ [ -f .config ] || cp defconfig .config
+ make &&
+ prepare_install &&
+ for FILE in *; do
+  if   [ -f $FILE ] &&
+       [ -x $FILE ]
+  then cp   $FILE /usr/sbin
+  fi
+ done
 }

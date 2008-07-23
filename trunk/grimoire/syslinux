@@ -4,34 +4,33 @@
   unstable 3.70 3.63
    require nasm perl
   optional mtools '' '' for creating msdos filesystems
-
   category administration/bootloader
  attribute console
+       url $KERNEL_URL
     source pub/linux/utils/boot/syslinux/syslinux-$VERSION.tar.bz2
   homepage http://syslinux.zytor.com
-       url "$KERNEL_URL"
-  estimate 160
+  estimate 200
       desc 'syslinux is a bootloader for Linux that works on FAT and ISO9660 filesystems.'
 
 build(){
- case $VERSION in
-  3.70) unset LDFLAGS ;;
- esac
+case $VERSION in
+ 3.70) unset LDFLAGS ;;
+esac
 
 # The following sed statement allows syslinux to compile on x86_64
- sed -i 's:dos/syslinux.com::
-         s:dos::
-         s:com32::
-         s:memdisk/memdisk::
-         s:memdisk::
-         s:win32/syslinux.exe::
-         s:win32::
-         s:/sbin:/usr/sbin:
-         /INSTALL_AUX_OPT/d
-         /-C  install/d' Makefile
- make            &&
- prepare_install &&
- make    install &&
- mkdir -p /usr/lib/syslinux &&
- cp *.bin /usr/lib/syslinux
+sed -i 's:dos/syslinux.com::
+        s:dos::
+        s:com32::
+        s:memdisk/memdisk::
+        s:memdisk::
+        s:win32/syslinux.exe::
+        s:win32::
+        s:/sbin:/usr/sbin:
+        /INSTALL_AUX_OPT/d
+        /-C  install/d' Makefile
+make            &&
+prepare_install &&
+make    install &&
+mkdir -p /usr/lib/syslinux &&
+cp *.bin /usr/lib/syslinux
 }

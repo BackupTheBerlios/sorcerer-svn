@@ -1,14 +1,10 @@
-    stable B.02.13 B.02.12.01 B.02.12 B.02.11.01
+    stable B.02.13 B.02.12.01
   optional gtk+ --enable-gui --disable-gui:for gtk+ GUI
-
   category utility
  attribute console
-    source lshw-$VERSION.tar.gz
-       url http://www.ezix.org/software/files/
+    source http://www.ezix.org/software/files/lshw-$VERSION.tar.gz
       vurl http://ezix.org/project/wiki/HardwareLiSter
   homepage http://www.ezix.org/software/lshw.html
-#      url http://ezix.sourceforge.net/software/files/
-# homepage http://ezix.sourceforge.net/software/lshw.html
   estimate 200
       desc 'lshw the hardware lister provides detailed information about the box.
 lshw the hardware lister is a small tool to provide detailed
@@ -18,26 +14,26 @@ mainboard configuration, CPU version and speed, cache
 configuration, bus speed, etc.'
 
 build(){
- case $VERSION in
-  B.02.13)    sed -i '1i#include <cstring>
-                      1i#include <cstdlib>
-                      1i#include <limits.h>' src/core/*.cc src/lshw.cc
-  ;;
-  B.02.12.01) sed -i '1i#include <cstring>
-                      1i#include <cstdlib>
-                      1i#include <limits.h>' src/core/*.cc src/lshw.cc
-  ;;
- esac
+case $VERSION in
+ B.02.13)    sed -i '1i#include <cstring>
+                     1i#include <cstdlib>
+                     1i#include <limits.h>' src/core/*.cc src/lshw.cc
+ ;;
+ B.02.12.01) sed -i '1i#include <cstring>
+                     1i#include <cstdlib>
+                     1i#include <limits.h>' src/core/*.cc src/lshw.cc
+ ;;
+esac
 
- if echo "$OPTS" | grep -q enable-gui; then
-  make                &&
-  make            gui &&
-  prepare_install     &&
-  make    install-gui &&
-  make    install
- else
-  make            &&
-  prepare_install &&
-  make    install
- fi
+if echo "$OPTS" | grep -q enable-gui; then
+ make                &&
+ make            gui &&
+ prepare_install     &&
+ make    install-gui &&
+ make    install
+else
+ make            &&
+ prepare_install &&
+ make    install
+fi
 }

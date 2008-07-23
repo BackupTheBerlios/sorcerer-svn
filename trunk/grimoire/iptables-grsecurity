@@ -1,49 +1,41 @@
-    stable 1.4.0 1.2.11
+    stable 1.4.0
     ignore 'rc\|^1\.3'
   category network security
  attribute console
-    source iptables-$VERSION.tar.bz2
-    source grsecurity-1.4.0-iptables.patch
-       url http://netfilter.samba.org/files/
-       url http://www.grsecurity.net/
+    source http://netfilter.samba.org/files/iptables-$VERSION.tar.bz2
+    source http://www.grsecurity.net/grsecurity-1.4.0-iptables.patch
   homepage http://netfilter.samba.org/
   estimate 400
       desc 'iptables-grsecurity provides iptables with stealth module patch.'
 
 
 build(){
- patch -p1 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]}
+patch -p1 < $SOURCE_CACHE/$SPELL/$VERSION/${SOURCE[1]}
 
- install_devel(){
-  ar rc  iptables.a *.o      &&
-  ranlib iptables.a          &&
-  cp iptables.a /usr/$LIBDIR &&
-  cp -r include/* /usr/include
- }
-
- LIBDIR=/lib
- case $HOSTTYPE in
-  x86_64) LIBDIR+=64 ;;
- esac
-
- sed -i "s/-O2/$CFLAGS/" Makefile
-
- sed -i 's:/usr/local/lib/iptables:$LIBDIR/iptables:' \
-     include/xtables.h libiptc/libiptc.c
-
- make    LIBDIR=$LIBDIR &&
- prepare_install        &&
-         install_devel  &&
- make    install  \
-         install-devel \
-          LIBDIR=$LIBDIR \
-          BINDIR=/sbin \
-          MANDIR=/usr/man \
-          INCDIR=/usr/include
+install_devel(){
+ ar rc  iptables.a *.o      &&
+ ranlib iptables.a          &&
+ cp iptables.a /usr/$LIBDIR &&
+ cp -r include/* /usr/include
 }
 
-current(){
- case $VERSION in
-  1.4.0) [ -f /sbin/iptables ] ;;
- esac
+LIBDIR=/lib
+case $HOSTTYPE in
+ x86_64) LIBDIR+=64 ;;
+esac
+
+sed -i "s/-O2/$CFLAGS/" Makefile
+
+sed -i 's:/usr/local/lib/iptables:$LIBDIR/iptables:' \
+    include/xtables.h libiptc/libiptc.c
+
+make    LIBDIR=$LIBDIR &&
+prepare_install        &&
+        install_devel  &&
+make    install  \
+        install-devel \
+         LIBDIR=$LIBDIR \
+         BINDIR=/sbin \
+         MANDIR=/usr/man \
+         INCDIR=/usr/include
 }

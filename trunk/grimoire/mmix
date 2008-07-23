@@ -1,26 +1,24 @@
-    stable 0.2 0.1
+    stable 0.2
   category audio/mixer
  attribute console
-    source mmix-$VERSION.tar.gz
-       url http://www.mcmilk.de/projects/mmix/dl/
+    source http://www.mcmilk.de/projects/mmix/dl/mmix-$VERSION.tar.gz
   homepage http://www.mcmilk.de/projects/mmix/
-  estimate 18
-      desc "mmix is a small console audio mixer
+      desc 'mmix is a small console audio mixer
 mmix is a small OSS audio mixer with a curses-like user interface.
 It compiles against dietlibc, and supports different configurations
-for all mixer devices which have been found."
+for all mixer devices which have been found.'
 
-build() {
-if    [  -e  /dev/mixer        ];  then  MIXER="/dev/mixer"
-elif  [  -e  /dev/mixer0       ];  then  MIXER="/dev/mixer0"
-elif  [  -e  /dev/sound/mixer  ];  then  MIXER="/dev/sound/mixer"
-                                   else  MIXER="/devices/sound/mixer"
+build(){
+if   [ -e /dev/mixer       ]; then MIXER=/dev/mixer
+elif [ -e /dev/mixer0      ]; then MIXER=/dev/mixer0
+elif [ -e /dev/sound/mixer ]; then MIXER=/dev/sound/mixer
+                              else MIXER=/devices/sound/mixer
 fi
 
-sed  -i  "s:diet gcc:gcc:
-          s:-Os:$CFLAGS:"              Makefile
-sed  -i  "s:/dev/sound/mixer:$MIXER:"  params.h
-make             &&
-prepare_install  &&
+sed -i "s:diet gcc:gcc:
+        s:-Os:$CFLAGS:"             Makefile
+sed -i "s:/dev/sound/mixer:$MIXER:" params.h
+make &&
+prepare_install &&
 make    install
 }
