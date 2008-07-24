@@ -12,6 +12,7 @@
 # luks devices must have names in /etc/fstab such as
 # /dev/mapper/luks-sda3       where /dev/sda3              is a LUKS encrypted partition or
 # /dev/mapper/luks-total-root where /dev/mapper/total-root is a LUKS encrypted LVM2 logical volume
+# /dev/mapper/luks-1234-5678  where /dev/disk/by-uuid      is a LUKS encrypted partition
 #
 # Not supported:
 # lukes encrypted filesystems in files attached to loop devices
@@ -30,8 +31,10 @@ start(){
   while read DEV MNT TYP JNK; do
    REV="/dev/${DEV#*-}"
    MEV="/dev/mapper/${DEV#*-}"
-   if   [ -b $MEV ] && cryptsetup isLuks $MEV; then echo "$MEV|$DEV|$TYP"
-   elif [ -b $REV ] && cryptsetup isLuks $REV; then echo "$REV|$DEV|$TYP"
+   UEV="/dev/disk/by-uuid/${DEV#*-}"
+   if   [[ -b $MEV ]] && cryptsetup isLuks $MEV; then echo "$MEV|$DEV|$TYP"
+   elif [[ -b $REV ]] && cryptsetup isLuks $REV; then echo "$REV|$DEV|$TYP"
+   elif [[ -b $UEV ]] && cryptsetup isLuks $REV; then echo "$UEV|$DEV|$TYP"
    fi
   done
  }
@@ -46,7 +49,7 @@ start(){
    TYP=${LINE##*|}
    DEV=${LINE%|*}
    DEV=${DEV##*|}
-   if   [ "$TYP" == swap ]; then
+   if   [[ $TYP == swap ]]; then
     KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     echo "$KEY" | cryptsetup -c aes-xts-plain -s 512 luksFormat $REV 2>/dev/null
     echo "$KEY" | cryptsetup luksOpen $REV ${DEV##*/} 2>/dev/null
