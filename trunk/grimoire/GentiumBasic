@@ -1,0 +1,33 @@
+    stable 110
+   require fontconfig mkfontdir
+  category xorg/font
+ attribute X11R7 font new
+# How do I specify the source? Curl can download it using
+#  curl -d site_id=nrsi -d format=file -d media_id=GentiumBasic_110 -d filename=GentiumBasic_110.zip  http://scripts.sil.org/cms/scripts/render_download.php -o GentiumBasic_110.zip
+    source GentiumBasic_${VERSION}.zip
+  homepage http://scripts.sil.org/Gentium_basic
+  estimate 4
+      desc 'GentiumBasic provides TTF font families based on Gentium design
+Gentium Basic and Gentium Book Basic are font families based on 
+the original Gentium design, but with additional weights. The Book
+family is slightly heavier. Both families come with a complete 
+regular, bold, italic and bold italic set of fonts. The supported 
+character set, however, is much smaller than for the main Gentium 
+fonts. These Basic fonts support only the Basic Latin and Latin-1 
+Supplement Unicode ranges, plus a selection of the more commonly 
+used extended Latin characters, with miscellaneous diacritical 
+marks, symbols and punctuation.'
+
+
+build() {
+ FDIR=/usr/lib/X11/fonts/TTF
+
+ mkdir     docs   &&
+ mv  *.txt docs   &&
+ prepare_install  &&
+ mkdir -p             $FDIR  &&
+ install -m 644 *.ttf $FDIR  &&
+ mkfontscale          $FDIR  &&
+ mkfontdir            $FDIR  &&
+ fc-cache             $FDIR
+}

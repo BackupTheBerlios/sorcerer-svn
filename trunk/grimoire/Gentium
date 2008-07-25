@@ -1,0 +1,38 @@
+    stable 102
+   require fontconfig mkfontdir
+  category xorg/font
+ attribute X11R7 font new
+# How do I specify the source? Curl can download it using
+# curl -d site_id=nrsi -d format=file -d media_id=Gentium_102_W -d filename=Gentium_102_W.zip  http://scripts.sil.org/cms/scripts/render_download.php -o Gentium_102_W.zip
+    source Gentium_${VERSION}_W.zip
+  homepage http://scripts.sil.org/Gentium
+  estimate 4
+      desc 'Gentium is a typeface family (TTF) 
+designed to enable the diverse ethnic groups around the world
+who use the Latin and Greek scripts to produce readable, 
+high-quality publications. It supports a wide range of 
+Latin-based alphabets and includes glyphs that correspond 
+to all the Latin ranges of Unicode.
+
+The full Gentium fonts currently include only regular and italic 
+faces, but two new font families - Gentium Basic and Gentium Book 
+Basic - give a preview of what a whole range of new weights will 
+eventually look like. The Basic fonts only support a limited Latin 
+character set (no Greek or Cyrillic). Gentium Book is a new 
+companion family to Gentium that is altogether slightly heavier, 
+and better suited for some publishing needs. It supports only the 
+Basic character set at present, but will eventually match the full 
+Gentium character set.'
+
+build() {
+ FDIR=/usr/lib/X11/fonts/TTF
+
+ mkdir     docs   &&
+ mv  *.txt docs   &&
+ prepare_install  &&
+ mkdir -p             $FDIR  &&
+ install -m 644 *.TTF $FDIR  &&
+ mkfontscale          $FDIR  &&
+ mkfontdir            $FDIR  &&
+ fc-cache             $FDIR
+}
