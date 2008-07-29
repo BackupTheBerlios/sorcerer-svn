@@ -17,34 +17,21 @@ DESC="Bluetooth subsystem"
 
 HCID_NAME=hcid
 HID2HCI_NAME=hid2hci
-PAND_NAME=pand
-DUND_NAME=dund
 
 HCID_EXEC="`which $HCID_NAME || true`"
 HID2HCI_EXEC="`which $HID2HCI_NAME || true`"
-PAND_EXEC="`which $PAND_NAME || true`"
-DUND_EXEC="`which $DUND_NAME || true`"
 
 HCID_ENABLE=true
 HID2HCI_ENABLE=true
-DUND_ENABLE=false
-PAND_ENABLE=false
 
 HCID_CONFIG="/etc/bluetooth/hcid.conf"
-
-#DUND_OPTIONS="--search --persist"
-#PAND_OPTIONS="--listen --role NAP"
-#PAND_OPTIONS="--search --cache --persist"
 
 [ -e /etc/default/bluetooth ] && . /etc/default/bluetooth
 
 status(){
  echo "$HCID_NAME status:"  ;  hcitool con
  echo "SDP status:"         ;  sdptool browse local
- echo "HID status:"         ;  hidd --show
  echo "RFCOMM status:"      ;  rfcomm -a
- echo "$DUND_NAME status:"  ;  dund --show
- echo "$PAND_NAME status:"  ;  pand --show
 }
 
 start(){
@@ -57,26 +44,11 @@ start(){
 	$HCID_EXEC -s -f $HCID_CONFIG
 	echo -n " $HCID_NAME"
  fi
- if $DUND_ENABLE && [ -x "$DUND_EXEC" -a -n "$DUND_OPTIONS" ] ; then
-	$DUND_EXEC $DUND_OPTIONS
-	echo -n " $DUND_NAME"
- fi
- if $PAND_ENABLE && [ -x "$PAND_EXEC" -a -n "$PAND_OPTIONS" ] ; then
-	$PAND_EXEC $PAND_OPTIONS
-	echo -n " $PAND_NAME"
- fi
- create_devices
  echo "."
 }
 
 stop(){
  echo -n "Stopping $DESC:"
- $PAND_EXEC -K
- killall $PAND_NAME > /dev/null 2>&1 || true
- echo -n " $PAND_NAME"
- $DUND_EXEC -K
- killall $DUND_NAME > /dev/null 2>&1 || true
- echo -n " $DUND_NAME"
  killall $HCID_NAME > /dev/null 2>&1 || true
  echo -n " $HCID_NAME"
  echo "."

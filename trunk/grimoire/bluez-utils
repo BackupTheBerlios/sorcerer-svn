@@ -1,29 +1,36 @@
     stable 3.36 3.35 3.34 3.33 3.32 3.31 3.30
    require bluez-libs libusb
-  optional alsa-lib         ''            --disable-alsa      for ALSA support
-  optional cups             ''            --disable-cups      for cups printing support
-  optional fuse             --enable-fuse --without-fuse      for FUSE support
-  optional gst-plugins-base ''            --disable-gstreamer for gstreamer
-  optional openobex         ''            --disable-obex      for openobex support
-
+  optional alsa-lib         --enable-alsa      --disable-alsa      for ALSA support
+  optional cups             --enable-cups      --disable-cups      for cups printing support
+  optional gst-plugins-base --enable-gstreamer --disable-gstreamer for gstreamer support
+  optional dbus-python      --enable-test      --disable-test      for test utilities
   category network/mobile
  attribute library
     source http://bluez.sf.net/download/bluez-utils-$VERSION.tar.gz
   homepage http://www.bluez.org/
-# You may add onto the optional section 
-# However, do not issue --enable-all because:
-#   --enable-all            enable all extra options below
-# And that can change fuse cups and other optionals into mandtory requirements.
-
-# No: --enable-all is safe because --disable-<something> overrides it.
-# So if, for example, fuse is disabled by --without-fuse, it is not going 
-# to be built even though --enable-all was given.
-# Furthermore, you want --enable-all otherwise most of the usefull 
-# bluetooth utilities and daemons are not going to be built. I don't think
-# it is sensible to add 30+ optional requirements that you will want 
-# anyway for proper functionality. And on top of that, such spell would
-# need a very carefull review any time there is a new version of bluez-utils
-# to avoid missing anything important again. 
-      opts --enable-all
-  estimate 900
+      opts --enable-tools --enable-usb --enable-hid2hci --enable-netlink
+      opts --enable-configfiles
+  estimate 1026
       desc 'bluez-utils provides official Linux Bluetooth utilities.'
+
+patch_bluez(){
+ sed -i 's:at_console="true":context="default":'  hcid/bluetooth.conf
+ sed -i 's:BlueZ (%d):%h-%d:'                     hcid/hcid.conf
+ for f in $SCRIPT_DIR/*.diff; do patch -p0 < $f ; done
+}
+
+install_tests(){
+ TESTS="hcid/simple-agent hcid/test-adapter hcid/test-device hcid/test-discovery hcid/test-manager hcid/list-devices audio/test-audio tools/avctrl"
+
+ for t in $TESTS; do
+   [ -x "$t" ]  &&  install -v -D -m 0755 $t  /usr/bin/bluez-${t##*/}  ||  : 
+ done
+}
+
+build(){
+ patch_bluez	&&
+ default_build	&&
+ install -v -D -m 0644 audio/audio.conf       /etc/bluetooth/audio.conf  &&
+ install -v -D -m 0644 $SCRIPT_DIR/main.conf  /etc/bluetooth/main.conf   &&
+ install_tests
+}
