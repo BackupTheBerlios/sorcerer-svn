@@ -1,6 +1,4 @@
-# 1.3.x are developmental version
-
-    stable 1.2.6 1.2.5 1.2.4
+    stable       1.2.6 1.2.5 1.2.4
   unstable 1.3.4
    require Python init-functions perl--Net-Server perl--HTML-Template rrdtool
   optional web-server '' '' to intall the main program or node client only
@@ -43,7 +41,9 @@ LOGDIR     = \$(DESTDIR)/var/log/munin
 STATEDIR   = \$(DESTDIR)/var/run/munin
 PYTHON     = \$(shell which python)
 PERL       = \$(shell which perl)
-PERLLIB    = \$(DESTDIR)\$(shell \$(PERL) -V:sitelib | cut -d= -f2 | sed "s/[\';]//g")
+PERLLIB    = \$(DESTDIR)\$(shell \$(PERL) -V:sitelib | cut -d"'" -f2)
+GOODSH     = \$(shell PATH=`getconf PATH` sh -c 'type sh | sed "s/.* //"')
+BASH       = /bin/bash
 OSTYPE     = \$(shell uname | tr '[A-Z]' '[a-z]')
 HOSTNAME   = \$(shell hostname)
 MKTEMP     = \$(shell ./test-mktemp)
@@ -57,6 +57,7 @@ CHECKGROUP = \$(shell \$(GETENT) group \$(GROUP) >/dev/null 2>/dev/null || (echo
 CHOWN      = chown
 CHMOD      = chmod                                             
 CHGRP      = chgrp                                             
+HASSETR = \$(shell perl -e 'use Config; my @vars=("d_setruid", "d_setreuid", "d_setresuid"); foreach my \$\$var (@vars) { if (\$\$Config{\$\$var} eq "define") { print "1\n"; exit 0; } } print "0\n"; exit 0;' )
 EOF
 }
 
