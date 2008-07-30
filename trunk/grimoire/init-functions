@@ -1,17 +1,16 @@
 # LSB-compliant init.d scripts for use with the distribution sorcerer only!
 # Copyright Kyle Sallee 2005, 2006, 2007, 2008.  All rights reserved.
 
-    stable 3.1.0-20080723
+# For init scipt names see:
+# http://www.lanana.org/lsbreg/init/init.txt
+
+    stable 3.1.0-20080729
   category administration/boot
  attribute archive_off console solo
   homepage http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
-  estimate 5
       desc 'init-functions provides /lib/lsb/init-functions.
 init-functions provides /lib/lsb/init-functions as specified at:
 http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html'
-
-# For init scipt names see:
-# http://www.lanana.org/lsbreg/init/init.txt
 
 configure(){
 
@@ -31,8 +30,8 @@ configure(){
   }
 
   export IFS="$STANDARD_IFS"
-  [ -n  "$ON_INITS" ] && echo  "$ON_INITS" | common on
-  [ -n "$OFF_INITS" ] && echo "$OFF_INITS" | common off
+  [[ -n  $ON_INITS ]] && echo  "$ON_INITS" | common on
+  [[ -n $OFF_INITS ]] && echo "$OFF_INITS" | common off
  }
 
 
@@ -53,8 +52,8 @@ configure(){
 
 
  make_it_so(){
- #if   [ -z "$NEW_INITS" ] ||
-  if   [    "$NEW_INITS" == "$ON_INITS" ]
+ #if   [[ -z $NEW_INITS ]] ||
+  if   [[    $NEW_INITS == $ON_INITS ]]
   then return
   fi
 
@@ -71,8 +70,8 @@ configure(){
   sed     "s:$INSTALL_LOGS/::
            s,:/etc/init.d/,$TAB,"    |
   while read SPELL INIT; do
-   [ -f $GRIMOIRE/$SPELL.d/init.d/$INIT ] &&
-   echo          "$INIT$TAB$SPELL"
+   [[ -f $GRIMOIRE/$SPELL.d/init.d/$INIT ]] &&
+   echo  "$INIT$TAB$SPELL"
   done
  }
 
@@ -80,14 +79,14 @@ configure(){
  on_inits(){
   echo "$ALL_INITS" |
   while read INIT SPELL; do
-    [ -x /etc/init.d/$INIT ] &&
-    echo  "$INIT$TAB$SPELL"
+    [[ -x /etc/init.d/$INIT ]] &&
+    echo "$INIT$TAB$SPELL"
   done
  }
 
  off_inits(){
-  ( [ -n "$ALL_INITS" ] && echo "$ALL_INITS"
-    [ -n  "$ON_INITS" ] && echo  "$ON_INITS"
+  ( [[ -n $ALL_INITS ]] && echo "$ALL_INITS"
+    [[ -n  $ON_INITS ]] && echo  "$ON_INITS"
   ) | LC_ALL=C sort | uniq -u
  }
 

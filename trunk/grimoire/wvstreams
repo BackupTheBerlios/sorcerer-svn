@@ -1,9 +1,4 @@
 # optionals not used for wvdial.
-# wvstreams 4.2.2 is not gcc 4.1.0 compatible
-
-#  stable 4.4 4.3 4.2.2 4.2.1 4.2 4.0.2 4.0.1 4.0 3.70
-    stable     4.3 4.2.2 4.2.1 4.2 4.0.2 4.0.1 4.0 3.70
-   require db zlib
 
 #optional libogg --with-ogg --without-ogg with ogg support
 #optional libvorbis --with-vorbis --without-vorbis for vorbis support
@@ -13,26 +8,16 @@
 #optional qt-x11-free --without-qt --without-qt for qt support
 #optional openssl '' '' for secure connections
 
+   stable 4.4.1 4.4 4.3 4.2.2 4.2.1 4.2 4.0.2 4.0.1 4.0
+   require db zlib
   category network
  attribute library
-#attribute library broke
-# wvstreams 4.4 is broke because it is hosted on googlecode.com
-# which is broke because when asked for a header for the file
-# googlecode reports 404 that the file does not exist when
-# it can actually be downloaded.
-# complain to googlecode if you want them to fix their
-# broke http servers
-    source http://alumnit.ca/download/wvstreams-$VERSION.tar.gz
-#   source http://wvstreams.googlecode.com/files/wvstreams-$VERSION.tar.gz
+    source http://wvstreams.googlecode.com/files/wvstreams-$VERSION.tar.gz
   homepage http://alumnit.ca/wiki/?page=WvStreams
-
-#       url http://open.nit.ca/download/
-#  homepage http://open.nit.ca/wvstreams
 case $VERSION in
  4.2.2) use_gcc gcc-v4.0 ;;
 esac
   estimate 600
- freshmeat wvstreams
       desc 'wvstreams are C++ libraries used by wvdial.
 WvStreams is a library set composed of a number of parts.
 Among them are 
@@ -44,3 +29,15 @@ WvLog (nice, simple handling of log files),
 and a whole host of other goodness.
 These are the base classes used to build programs such as the
 ever popular WvDial, TunnelVision, FastForward, KWvDial, and retchmail.'
+
+
+build(){
+ case $VERSION in
+  4.4.1) sed -i '1i#include <climits>' include/uniconfkey.h
+         sed -i 's:_wv_deserialize<WvString>:_wv_deserialize:
+                 s:WvDeserialize<WvBuf *>:WvDeserialize:
+                 s:extern WvString _wv_deserialize:WvString _wv_deserialize:' \
+             include/wvserialize.h ;;
+ esac
+ default_build
+}

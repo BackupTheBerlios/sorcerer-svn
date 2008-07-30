@@ -1,9 +1,7 @@
-# Apparent in udev version 118 and not udev version 115
-# gentoo rules switched from installing
-# sound device nodes in /dev/snd to /dev
-    stable 124 120 119 118
-  unstable 125
-    secure     120 119 118
+# /dev/zero and /dev/mem are needed for uvesafb before udevd starts
+
+    stable 125 124 120 119 118
+    secure     120
    require sysvinit libselinux
   category utility
  attribute console
@@ -17,31 +15,27 @@
 udev replaces hotplug'
 
 build(){
+
 init_install(){
- mkdir   -p      /etc/udev/rules.d  /etc/udev/examples
- cp      -a       etc/udev/*        /etc/udev/examples
- chmod   -R og-w                    /etc/udev/examples
- cd                                 /etc/udev/rules.d/
- ln      -sf   ../examples/gentoo/* /etc/udev/rules.d/
- mkdir   -p                         /etc/udev/scripts
-#install -m 755  extras/*.sh        /etc/udev/scripts
+ mkdir   -vpm 755 /etc/udev/rules.d /etc/udev/examples
+ cp      -va          rules/*       /etc/udev/examples
+ chmod   -vR og-w                   /etc/udev/examples
 }
 
 
 symlink_install(){
- mkdir -p   -m 755                   /lib/udev/dev/{pts,shm}
- ln    -fns /proc/self/fd            /lib/udev/dev/fd
- ln    -fns /proc/self/fd/0          /lib/udev/dev/stdin
- ln    -fns /proc/self/fd/1          /lib/udev/dev/stdout
- ln    -fns /proc/self/fd/2          /lib/udev/dev/stderr
- ln    -fns /proc/kcore              /lib/udev/dev/core
- ln    -fns /proc/asound/oss/sndstat /lib/udev/dev/sndstat
- rm    -f                            /lib/udev/dev/{console,null}
- mknod -m 600                        /lib/udev/dev/console c 5 1
- mknod -m 666                        /lib/udev/dev/null    c 1 3
- # /dev/zero and /dev/mem are needed for uvesafb before udevd starts
- mknod -m 640                        /lib/udev/dev/mem     c 1 1
- mknod -m 666                        /lib/udev/dev/zero    c 1 5
+ mkdir -vpm 755                       /lib/udev/dev/{pts,shm}
+ ln    -vfns /proc/self/fd            /lib/udev/dev/fd
+ ln    -vfns /proc/self/fd/0          /lib/udev/dev/stdin
+ ln    -vfns /proc/self/fd/1          /lib/udev/dev/stdout
+ ln    -vfns /proc/self/fd/2          /lib/udev/dev/stderr
+ ln    -vfns /proc/kcore              /lib/udev/dev/core
+ ln    -vfns /proc/asound/oss/sndstat /lib/udev/dev/sndstat
+ rm    -f                             /lib/udev/dev/{console,mem,null,zero}
+ mknod -m 600                         /lib/udev/dev/console c 5 1
+ mknod -m 640                         /lib/udev/dev/mem     c 1 1
+ mknod -m 666                         /lib/udev/dev/null    c 1 3
+ mknod -m 444                         /lib/udev/dev/zero    c 1 5
 }
 
 
@@ -49,18 +43,19 @@ install_missing(){
  # Default rules script (Gentoo) expects extra binaries in /sbin while udev
  # installation puts them only in /lib/udev - make symlinks to fix this
  for FILE in /lib/udev/*; do
-  if   [  -f  "$FILE" ]
+  if   [[ -f   $FILE ]]
   then ln -fs "$FILE" /sbin
   fi
  done
 }
 
 adjust_rules(){
- local REPLY=/etc/udev/rules.d/50-udev-default.rules
- if   [    -f                               $REPLY ] &&
+ local REPLY=/lib/udev/rules.d/50-udev-default.rules
+ if   [[   -f                               $REPLY ]] &&
       grep -q   'GROUP="kmem"'              $REPLY
  then sed  -i 's:GROUP="kmem":GROUP="mem":' $REPLY
  fi
+ install -vm 644 rules/gentoo/65-permissions.rules /lib/udev/rules.d/
 }
 
  if   spell_installed libselinux
@@ -68,21 +63,14 @@ adjust_rules(){
  fi
 
  case $VERSION in
-  105) EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/run_directory extras/scsi_id extras/usb_id extras/volume_id" ;;
-  075) EXTRAS="extras/ata_id extras/cdrom_id extras/dasd_id extras/eed_id extras/firmware extras/floppy extras/run_directory extras/scsi_id extras/usb_id extras/volume_id" ;;
-    *) EXTRAS="extras/ata_id extras/cdrom_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/scsi_id extras/usb_id extras/volume_id" ;;
+  *) EXTRAS="EXTRAS=extras/ata_id extras/cdrom_id extras/edd_id extras/firmware extras/floppy extras/path_id extras/rule_generator extras/scsi_id extras/usb_id extras/volume_id" ;;
  esac
 
- # sed -i "s:/local::
- #         s:^udevdir = .*:udevdir = /dev:
- #         s:killall:true:" Makefile
- # sed -i "s:@udevdir@:/dev:" etc/udev/udev.conf.in
-
- make    $OPTS   "EXTRAS=$EXTRAS" &&
- prepare_install                  &&
- make    install "EXTRAS=$EXTRAS" &&
-         install_missing          &&
-    init_install                  &&
- symlink_install                  &&
+ make    $OPTS   "$EXTRAS" &&
+ prepare_install           &&
+ make    install "$EXTRAS" &&
+         install_missing   &&
+    init_install           &&
+ symlink_install           &&
   adjust_rules
 }
