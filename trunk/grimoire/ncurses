@@ -22,57 +22,58 @@ utilities, including a terminfo compiler tic,
 a decompiler infocmp, clear, tput, tset,
 and a termcap conversion tool captoinfo.'
 
-build()  {
+build(){
 # Other sources configure scripts check only for 
 # the location of ar libraries.
 # Therefore, symbolic links to ELF libraries
 # must exist in the same directory as the ar libraries
-  move_ar_libs()  {
-    mv  -v    $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a /usr$LIBDIR
-    ln  -vfs  $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses,ncursesw,panel,panelw}.so* /usr$LIBDIR
+  move_ar_libs(){
+   mv -v   $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a /usr$LIBDIR
+   ln -vfs $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses,ncursesw,panel,panelw}.so* /usr$LIBDIR
   }
 
-  if    [ "$HOSTTYPE" == "x86_64" ]
-  then  LIBDIR=/lib64
-  else  LIBDIR=/lib
-  fi
+ if    [[ $HOSTTYPE == x86_64 ]]
+ then  LIBDIR=/lib64
+ else  LIBDIR=/lib
+ fi
 
-  case $VERSION in
-   5.5) # Make sure shared libraries are mode 755
-	sed -i "s:INSTALL_LIB=\"-m 644:INSTALL_LIB=\"-m 755:"  configure
-	;;
-  esac
+ case $VERSION in
+  5.6) sed -i 's:/bin/sh:/bin/bash:' include/MKhashsize.sh ;;
+  5.5) # Make sure shared libraries are mode 755
+       sed -i "s:INSTALL_LIB=\"-m 644:INSTALL_LIB=\"-m 755:" configure
+       ;;
+ esac
 
-  mkdir  -p  destdir/usr/{lib,share/tabset}
+ mkdir -p destdir/usr/{lib,share/tabset}
 
-  ./configure        \
-  --build=$BUILD     \
-  --prefix=/usr      \
-  --libdir=$LIBDIR   \
-  --with-normal      \
-  --with-shared      \
-  --disable-termcap  \
-  $OPTS              &&
-  make               &&
-  make    install    \
-    DESTDIR=$PWD/destdir  &&
-  make    clean      &&
+ ./configure       \
+ --build=$BUILD    \
+ --prefix=/usr     \
+ --libdir=$LIBDIR  \
+ --with-normal     \
+ --with-shared     \
+ --disable-termcap \
+ $OPTS             &&
+ make              &&
+ make    install   \
+ DESTDIR=$PWD/destdir &&
+ make    clean     &&
 
-  ./configure        \
-  --build=$BUILD     \
-  --prefix=/usr      \
-  --libdir=$LIBDIR   \
-  --with-normal      \
-  --with-shared      \
-  --disable-termcap  \
-  --enable-widec     \
-  $OPTS              &&
-  make               &&
-  prepare_install    &&
-  cd      c++        &&
-  make               &&
-  prepare_install    &&  cp  -av  ../destdir/*  /  &&
-  make    install    &&  cd       ..               &&
-  make    install    &&
-  move_ar_libs
+ ./configure       \
+ --build=$BUILD    \
+ --prefix=/usr     \
+ --libdir=$LIBDIR  \
+ --with-normal     \
+ --with-shared     \
+ --disable-termcap \
+ --enable-widec    \
+ $OPTS             &&
+ make              &&
+ prepare_install   &&
+ cd      c++       &&
+ make              &&
+ prepare_install   && cp -av ../destdir/* / &&
+ make    install   && cd     ..             &&
+ make    install   &&
+ move_ar_libs
 }

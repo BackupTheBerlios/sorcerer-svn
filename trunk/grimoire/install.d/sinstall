@@ -169,7 +169,15 @@ list_swaps(){
 }
 
 fstab_line(){
- echo -n "${PDEVICE[$1]}${TAB}"
+ if   [[   ${PFILESYSTEM[$1]} == swap ]] || [[ -n $2 ]]
+ then echo -n "${PDEVICE[$1]}${TAB}"
+ else
+  if ! [[ -n   ${PUUID[$1]} ]];then
+   pvcreate "${PDEVICE[$1]}"
+   PUUID[$1]=$( blkid $PART 2>/dev/null | cut -d '"' -f2 )
+  fi
+  echo -n "UUID=${PUUID[$1]}${TAB}"
+ fi
  echo -n "${PMOUNT[$1]:-none} "
  echo -n "${PFILESYSTEM[$1]:-unknown} "
  echo -n "${POPTIONS[$1]} "
@@ -487,7 +495,7 @@ show_pinfo_init(){
   if  [ -n      "${PMOUNT[$CX]}"              ] ||
       [    "${PFILESYSTEM[$CX]}"     == swap  ]; then
    if [        "${PDEVICE[$CX]:0:5}" == /dev/ ]; then
-      fstab_line         "$CX"
+      fstab_line         "$CX" "dev"
       echo off
    fi
   fi
@@ -518,6 +526,7 @@ root_device(){
 
 empty_entry(){
 #    PDEVICE[$1]=
+#      PUUID[$1]=
       PMOUNT[$1]=
      PRMOUNT[$1]=
 #PFILESYSTEM[$1]=
@@ -745,6 +754,7 @@ filesystem_table_load(){
  for PART in $( list_part ); do
 
       PDEVICE[$CX]="$PART"
+        PUUID[$CX]=$( blkid $PART 2>/dev/null | cut -d '"' -f2 )
   PFILESYSTEM[$CX]="$( installed_fs $PART )"
      POPTIONS[$CX]="defaults,noatime"
         PDUMP[$CX]=0
@@ -799,7 +809,6 @@ initialize(){
   else sleep 10; $DIALOG --msgbox "$FAILURE" 8 50; return 1
   fi
  fi
-
 }
 
 
@@ -842,7 +851,7 @@ filesystem_mount(){
  SUCCESS=$"successfully mounted"
   FAILED=$"failed mounting"
 
- if   [ "$PMOUNTED" == true ]; then $DIALOG --msgbox "$ALREADY" 8 50; false
+ if   [[ $PMOUNTED == true ]]; then $DIALOG --msgbox "$ALREADY" 8 50; false
  elif [ -z "${PMOUNT[*]}"   ]; then $DIALOG --msgbox "$NOT_NOW" 8 50; false
  else
   list_mounts | LC_ALL=C sort | cut -f2 |
@@ -864,11 +873,11 @@ filesystem_mount(){
  fi
 }
 
-trans(){ [ -f $TARGET/etc/fstab ]; }
+trans(){ [[ -f $TARGET/etc/fstab ]]; }
 
 mbr_check(){
- if [ -n "$MBR" ]; then return; fi
- if [ -n "$BB"  ] && echo "$BB" | grep -q '[a-z]$'; then return; fi
+ if [[ -n $MBR ]]; then return; fi
+ if [[ -n $BB  ]] && echo "$BB" | grep -q '[a-z]$'; then return; fi
  if confirm "Install a bootable MBR?"; then write_mbr; fi
 }
 
@@ -885,7 +894,7 @@ filesystem_unmount(){
 Sorcerer and continue installation.
 Really unmount the currently mounted partitions?"
 
- if   ! [ "$PMOUNTED" == true ]
+ if   ! [[ $PMOUNTED == true ]]
  then $DIALOG --msgbox "$ALREADY" 8 50; false
  else
   if trans || confirm "$SURE" --defaultno; then
