@@ -52,6 +52,10 @@ build(){
     ln -s libGLcore.so.1 lib32/libGLcore.so
     ln -s libGL.so.1     lib32/tls/libGL.so
     ln -s libGLcore.so.1 lib32/tls/libGLcore.so ;;
+    rm -f /usr/lib64/libGL.so*
+    sed -i '\,/usr/lib64/libGL\.so,d' \
+        $INSTALL_LOGS/MesaLib  \
+         $MD5SUM_LOGS/MesaLib
    *) /sbin/ldconfig -n lib{,/tls} X11R6/lib{,/modules/extensions} ;;
   esac
 
@@ -60,10 +64,10 @@ build(){
   ln -s libGL.so.1     lib/tls/libGL.so
   ln -s libGLcore.so.1 lib/tls/libGLcore.so
 
-  if /lib/libc.so.6 | grep -q  "Thread-local storage"; then
-    cp -a lib/tls/*   lib; [ -d lib32 ] &&
-    cp -a lib32/tls/* lib32
-  fi
+  #if /lib/libc.so.6 | grep -q  "Thread-local storage"; then
+  #  cp -a lib/tls/*   lib; [ -d lib32 ] &&
+  #  cp -a lib32/tls/* lib32
+  #fi
 
   rm -rf src
 
