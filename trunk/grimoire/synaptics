@@ -1,0 +1,26 @@
+    stable 0.14.7~git20070706 0.14.6
+  category xorg/driver
+ attribute x11 new
+# Latest version from telia.com is 0.14.6 from 2006 but the ubuntu version 
+# is needed because it works 
+    source https://launchpad.net/ubuntu/intrepid/+source/xfree86-driver-synaptics/$VERSION-2.1ubuntu1/+files/xfree86-driver-synaptics_$VERSION.orig.tar.gz
+  homepage http://w1.894.telia.com/~u89404340/touchpad/
+   require pixman libXext
+  estimate 131
+      desc 'synaptics is a driver for the Synaptics TouchPad 
+for XOrg/XFree86 4.x. A Synaptics touchpad by default operates 
+in compatibility mode by emulating a standard mouse. However, 
+by using a dedicated driver, more advanced features of the 
+touchpad become available.'
+
+build() {
+  zcat $SCRIPT_DIR/xfree86-driver-synaptics_$VERSION-2.1ubuntu1.diff.gz | patch -p1  &&
+  for p in debian/patches/[0-9]*
+  do  patch -p1 < $p  ||  return 1
+  done
+  sed  -i 's:/usr/local:/usr:;s:/bin/uname:/usr/bin/uname:' Makefile	&&
+
+  make					&&
+  prepare_install			&&
+  make    install
+}
