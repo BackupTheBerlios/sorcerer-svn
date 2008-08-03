@@ -1,17 +1,15 @@
-# If vsftpd is supposed to be run from xinetd
-# Then how come no vsftpd.d/xinetd.d/vsftpd
-# file exists in the grimoire?
-#
-# because it also can be run standalone
-#
-# warning there is an install hack!
+# vsftpd spell is now configured to run as a server
+# optional xinetd       ''         '' for running server
 
-    stable 2.0.6 2.0.5
+# Please consider using iptables to control access to vsftpd
+# instead of the ancient tcp_wrappers
+# tcp_wrappers will depart the grimoire at the start of 2009
+
+    stable 2.0.7 2.0.6 2.0.5
   optional Linux-PAM    PAM        '' for pluggable authnetication
   optional openssl      SSL        '' for encryption support
   optional libcap       ''         '' for linux capabilities support
   optional tcp_wrappers TCPWRAPPER '' for controlling access to ftpd daemon through tcp_wrappers
-  optional xinetd       ''         '' for running server
   category network/ftp
  attribute server 
     source ftp://vsftpd.beasts.org/users/cevans/vsftpd-$VERSION.tar.gz
@@ -22,56 +20,84 @@
 It is secure, stable and extremely fast.
 Despite being small for purposes of speed and security,
 many more complicated FTP setups are achievable with vsftpd!
-By no means an exclusive list, vsftpd will handle:
+By no means an exclusive list,
+vsftpd will handle:
 
-    * Virtual IP configurations
-    * Virtual users
-    * Standalone or inetd operation
-    * Powerful per-user configurability
-    * Bandwidth throttling
-    * Per-source-IP configurability
-    * Per-source-IP limits
-    * IPv6
-    * Encryption support through SSL integration
-    * etc...'
+Virtual IP configurations;
+Virtual users;
+Standalone or inetd operation;
+Powerful per-user configurability;
+Bandwidth throttling;
+Per-source-IP configurability;
+Per-source-IP limits;
+IPv6;
+Encryption support through SSL integration.'
 
+build(){
 
-build() {
+ conf(){
+  echo '#ifndef VSF_BUILDDEFS_H'
+  echo '#define VSF_BUILDDEFS_H'
 
-configure() {
-echo '#ifndef VSF_BUILDDEFS_H'
-echo '#define VSF_BUILDDEFS_H'
+  [ -f $OPT_ON_LOGS/vsftpd ] &&
+  cat  $OPT_ON_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo '#define VSF_BUILD_PAM' ;;
+    openssl)      echo '#define VSF_BUILD_SSL' ;;
+    tcp_wrappers) echo '#define VSF_BUILD_TCPWRAPPERS' ;;
+   esac
+  done
 
-if grep -qx Linux-PAM $OPT_ON_LOGS/vsftpd; then
-echo "#define VSF_BUILD_PAM"
-else
-echo "#undef VSF_BUILD_PAM"
-fi
+  [ -f $OPT_OFF_LOGS/vsftpd ] &&
+  cat  $OPT_OFF_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo '#undefine VSF_BUILD_PAM' ;;
+    openssl)      echo '#undefine VSF_BUILD_SSL' ;;
+    tcp_wrappers) echo '#undefine VSF_BUILD_TCPWRAPPERS' ;;
+   esac
+  done
 
-if grep -qx openssl $OPT_ON_LOGS/vsftpd; then
-echo "#define VSF_BUILD_SSL"
-else
-echo "#undef VSF_BUILD_SSL"
-fi
+  echo '#endif /* VSF_BUILDDEFS_H */'
+ }
 
-if grep -qx tcp_wrappers $OPT_ON_LOGS/vsftpd; then
-echo "#define VSF_BUILD_TCPWRAPPERS"
-else
-echo "#undef VSF_BUILD_TCPWRAPPERS" 
-fi
+ libs(){
+  echo '#!/bin/bash'
+  echo 'echo -lcrypt'
+  echo 'echo -ldl'
+  echo 'echo -lnsl'
+  echo 'echo -lresolv'
+  echo 'echo -lutil'
+  echo 'echo -lcap'
 
-echo "#endif /* VSF_BUILDDEFS_H */"
-}
+  [ -f $OPT_ON_LOGS/vsftpd ] &&
+  cat  $OPT_ON_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo 'echo -lpam' ;;
+    openssl)      echo 'echo -lssl' ;;
+    tcp_wrappers) echo 'echo -lwrap' ;;
+   esac
+  done
+ }
 
-patch -p1  <  $SCRIPT_DIR/vsftpd-2.0.6.patch
- rm           builddefs.h
- configure >> builddefs.h
- cat          builddefs.h
- make             &&
- prepare_install  &&
- #warning hack
- mkdir -p /usr/local/man/man5/ &&
- make    install            &&
- mkdir -p /usr/share/empty/ &&
- cp vsftpd.conf /etc
+ LC_ALL=C grep -q listen=YES vsftpd.conf ||
+ echo listen=YES >> vsftpd.conf
+
+ sed -i 's:anonymous_enable=YES:anonymous_enable=NO:' vsftpd.conf
+ sed -i 's:/usr/share/empty:/var/empty:' tunables.c vsftpd.conf.5 |
+ sed -i 's:/usr/local:/usr:' Makefile
+
+ rm -f builddefs.h vsf_findlibs.sh
+
+ conf | tee builddefs.h
+ libs | tee vsf_findlibs.sh
+ chmod 755  vsf_findlibs.sh
+
+ mkdir -pm 755 /var/empty
+ make "CFLAGS=$CFLAGS" &&
+ prepare_install && mkdir -vpm 755 /usr/man/man5/ &&
+ make    install && rm    -f /etc/xinetd.d/vsftpd &&
+ install -vm 644 vsftpd.conf /etc
 }

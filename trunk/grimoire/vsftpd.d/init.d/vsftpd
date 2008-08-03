@@ -3,47 +3,17 @@
 ### BEGIN INIT INFO
 # Provides: vsftpd
 # Required-Start: $network run
-# Should-Start: 
 # Required-Stop:  $local_fs $network
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: vsftpd provide a reliable ftp server, the server can be started either through xinetd or standalone.
-# Description: vsftpd provide a reliable ftp server, the server can be started either through xinetd or standalone.
-# The default configuration file, /etc/vsftpd.conf
-# determines the behavior of the daemon.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 PIDF=/var/run/vsftpd.pid
 SERV=/usr/sbin/vsftpd
+CONF=/etc/vsftpd.conf
 NAME=vsftpd
 
-start() {
-  log_warning_msg  "$NAME starting"
-  if    start_daemon     -p $PIDF $SERV
-  then  log_success_msg  "$NAME started"
-        pgrep  -n  -P 1 "^vsftpd$"  >  $PIDF
-  else  log_failure_msg  "$NAME not started"
-        status
-  fi
-}
-
-stop() {
-  if   log_warning_msg "$NAME stopping"; $SERV -K
-  then log_success_msg "$NAME stopped"
-  else log_failure_msg "$NAME not stopped"; status
-  fi
-}
-
-
-help() { echo "Usage: $0 {start|stop|status|restart}"; }
-
-case $1 in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse "$@"
