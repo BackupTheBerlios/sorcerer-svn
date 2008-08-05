@@ -5,8 +5,52 @@
 # /init executes only from the initramfs as PID 1.
 # For use with Sorcerer only
 
+MR=/media/root
+
+dirs(){
+ while read; do
+  while [[ -n $REPLY ]]; do
+   echo "$REPLY"
+   REPLY=${REPLY%/*}
+  done
+ done
+}
+
+what(){
+ if   [ -d /lib64 ]
+ then find /bin /etc /init /lib /lib64 /sbin /usr -mount -anewer /start
+ else find /bin /etc /init /lib        /sbin /usr -mount -anewer /start
+ fi
+ cp -a /lib/udev/dev/* /dev
+ find /bin/sleep /dev/ /etc/init.d/dev.d /init /lib/udev/dev
+}
+
+used(){ what | dirs | sort -u; }
+
+construct(){
+ if [     -f $MR/boot/fast/initrf   ] ||
+    [     -d $MR/boot/isolinux      ] ||
+  ! [     -d $MR/boot               ] ||
+  ! [     -f $MR/usr/bin/cpio       ] ||
+  ! [     -f $MR/usr/bin/uname      ] ||
+  ! [     -f $MR/etc/lilo.conf.fast ] ||
+  ! mkdir -p $MR/boot/fast
+ then return
+ fi
+
+ umask 077
+ used |   $MR/usr/bin/cpio -o -H newc --quiet > \
+          $MR/boot/fast/initrf &&
+ cp   -al $MR/boot/$( $MR/usr/bin/uname -r )/{System.map,linux} \
+          $MR/boot/fast/ &&
+ sync &&
+ lilo -r  $MR -C /etc/lilo.conf.fast
+ umask 022
+}
+
+
 destruct(){
- sleep 600
+ sleep 60
  rm -fr --one-file-system /bin /etc /init /lib /lib64 /sbin /usr
 }
 
@@ -15,6 +59,8 @@ destruct(){
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
+
+echo > /start
 
 [     -d /proc ] ||
 mkdir -p /proc
@@ -32,15 +78,16 @@ done
 
 /etc/init.d/rcS
 
-if [ -f /media/root/sbin/init ]; then
+if [ -f $MR/sbin/init ]; then
+ construct
  destruct &
- cd /media/root
- mount --move /media/root /
+ cd $MR
+ mount --move $MR /
  exec chroot . /sbin/init "$@"
 elif grep -q boot=IR /proc/cmdline; then
  exec /sbin/init "$@"
 else
- echo 'Unable to mount a root filesystem as /media/root'
- echo 'Unable to continue booting'
+ echo Unable to mount a root filesystem as $MR
+ echo Unable to continue booting
  exec sulogin
 fi

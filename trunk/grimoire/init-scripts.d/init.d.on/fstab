@@ -31,10 +31,11 @@ start(){
 
  check(){ [ -n "$( sed 's/#.*//;s:\t: :g;\: / :p;d' /etc/fstab )" ]; }
  modify(){ sed -i 's:\t: :g;  s: / : /media/root :' /etc/fstab; }
+ back(){ cp -a /etc/fstab /etc/fstab.ori; }
 
  [[ -d /opt ]] || grep -q boot=IR /proc/cmdline ||
  if   log_warning_msg 'Checking /etc/fstab for /'; check
- then log_success_msg 'Found /'; modify
+ then log_success_msg 'Found /'; back; modify
  else log_failure_msg '/ not in /etc/fstab'; interact
  fi
 }
