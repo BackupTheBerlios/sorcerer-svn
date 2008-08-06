@@ -31,6 +31,7 @@
 
   category video/dvd video/player
  attribute x11
+ attribute broke
     source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.bz2
       vurl http://www.videolan.org/vlc/download-sources.html
   homepage http://www.videolan.org/
@@ -72,9 +73,35 @@ the Linux framebuffer device, DirectX, BeOS, and
 QNX, audio support for OSS, Esound, ALSA, and
 GNOME, GTK+, Qt and KDE interfaces.'
 
+case $VERSION in
+ 0.8.6i) source http://www.linux1394.org/dl/libraw1394-1.3.0.tar.gz
+         use_gcc gcc-v4.2
+ ;;  # older gcc due to libraw1394 headers
+esac
+
 build(){
+ old_libraw(){
+  cd libraw1394-1.3.0
+  ./configure \
+   --prefix $PWD/install \
+   --enable-shared=no \
+   --enable-static=yes &&
+  make install &&
+  OPTS+=" --with-dv-raw1394=$PWD/install" &&
+  export  CFLAGS+=" -I$PWD/install/include" &&
+  export LDFLAGS+=" -L$PWD/install/lib" &&
+  cd ..
+ }
+
 unset CFLAGS
 unset CXXFLAGS
 export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla'
+
+case $VERSION in
+ 0.8.6i) # sed -i 's/typedef .* byte_t\;/#ifndef byte_t\ntypedef u_int8_t byte_t;\n#endif/' libraw1394-1.3.0/src/raw1394.h
+         old_libraw
+         sed -i /byte_t/d libraw1394-1.3.0/install/include/libraw1394/raw1394.h
+ ;;
+esac
 default_build
 }
