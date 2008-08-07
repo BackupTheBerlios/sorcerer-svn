@@ -1,13 +1,11 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: kdc
 # Required-Start: $network run
 # Required-Stop:  $network
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: kdc serves requests for tickets.
-# Description: kdc serves requests for tickets.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -15,27 +13,14 @@
 PIDF=/var/run/kdc.pid
 SERV=/usr/libexec/kdc
 NAME=kdc
-OPTS='--detach'
+OPTS=--detach
 
-reload() {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if    [ -n            "$PIDS" ]
-  then  kill  -s SIGHUP  $PIDS  &&
-        log_success_msg "$NAME configuration reloaded"
-  fi
+reload(){
+ PIDS="$( pidofproc -p $PIDF $SERV )"
+ if   [ -n            "$PIDS" ]
+ then kill  -s SIGHUP  $PIDS  &&
+      log_success_msg "$NAME configuration reloaded"
+ fi
 }
 
-help() {
-  echo	"Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-case $1 in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)  reload       ;;
-  force-reload)  reload       ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse "$@"

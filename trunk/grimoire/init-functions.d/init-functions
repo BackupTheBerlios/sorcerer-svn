@@ -127,9 +127,10 @@ start_daemon(){
 
 
 # Functions below are not specified in LSB 3.1
-# $SERV $NAME must be set
-# $PIDF $LOCK are optional.
+# $SERV must be set
+# $LOCK $NAME $PIDF are optional.
 # $OPTS is optional except when mounting
+
 
 status(){
  stats(){
@@ -156,6 +157,7 @@ status(){
   fi
  }
 
+ [[ -n $NAME ]] || NAME=${0##*/}
  if   [ / = "${NAME:0:1}" ]
  then statm
  elif [[ -n $SERV ]]
@@ -186,6 +188,7 @@ stop(){
   fi
  }
 
+ [[ -n $NAME ]] || NAME=${0##*/}
  if   [ / = "${NAME:0:1}" ]
  then stopm
  elif [[ -n $SERV ]]
@@ -248,6 +251,7 @@ start(){
   fi
  }
 
+ [[ -n $NAME ]] || NAME=${0##*/}
  if   [ / = "${NAME:0:1}" ]
  then startm
  elif [[ -n $SERV ]]
@@ -259,13 +263,16 @@ start(){
     restart(){ stop && sleep 1; start;}
 try_restart(){ [[ -n $SERV ]] && status &>/dev/null && restart; return 0;}
 
-help(){ echo "Usage: $0 {start|stop|status|restart}";}
+help(){ echo "Usage: $0 {start|stop|status|reload|restart}";}
+
+reload(){ try_restart; }
 
 parse(){
  case $1 in
   start) start ;;
   restart) restart ;;
   try-restart) try_restart ;;
+  reload) reload ;;
     stop) stop   ;;
   status) status ;;
   *) help ;;

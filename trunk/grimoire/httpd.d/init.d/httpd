@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: httpd
 # Required-Start: $network run
 # Should-Start: $remote_fs
 # Required-Stop: kill
@@ -9,7 +8,6 @@
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: httpd is a feature packed web server
-# Description: httpd is the most widely used web server.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -19,14 +17,6 @@ SERV=/usr/sbin/apachectl
 CONF=/etc/httpd/conf/httpd.conf
 NAME=httpd
 OPTS=start
-
-status()  {
- PIDS="$( pidofproc -p $PIDF $NAME )"
- if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
- elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                      else log_warning_msg "$NAME is not running"; return 3
- fi
-}
 
 start(){
  log_warning_msg  "$NAME starting"
@@ -48,18 +38,4 @@ restart(){
  log_success_msg "$NAME restarted"
 }
 
-
-help(){
- echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-case $1 in
-      restart)     restart  ;;
-  try-restart) try_restart  ;;
-       reload) reload       ;;
- force-reload) reload       ;;
-        start) start        ;;
-       status) status       ;;
-         stop) stop         ;;
-            *) help         ;;
-esac
+parse "$@"

@@ -1,7 +1,6 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: kpasswdd
 # Required-Start: $network run
 # Required-Stop:  $network
 # Default-Start: 2 3 4 5
@@ -20,25 +19,12 @@ PIDF=/var/run/kpasswdd.pid
 SERV=/usr/libexec/kpasswdd
 NAME=kpasswdd
 
-reload() {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if    [ -n            "$PIDS" ]
-  then  kill  -s SIGHUP  $PIDS  &&
-        log_success_msg "$NAME configuration reloaded"
-  fi
+reload(){
+ PIDS="$( pidofproc -p $PIDF $SERV )"
+ if   [ -n            "$PIDS" ]
+ then kill  -s SIGHUP  $PIDS  &&
+      log_success_msg "$NAME configuration reloaded"
+ fi
 }
 
-help() {
-  echo	"Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-case $1 in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)  reload       ;;
-  force-reload)  reload       ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse "$@"

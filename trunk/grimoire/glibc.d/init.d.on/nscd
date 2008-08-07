@@ -1,10 +1,9 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: nscd
 # Required-Start: $local_fs var_db_nscd var_run_nscd
 # Should-Start: $network
-# Required-Stop:  $local_fs $network
+# Required-Stop: $local_fs $network
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: nscd provides a cache for the most common name service requests.
@@ -19,7 +18,6 @@
 PIDF=/var/run/nscd/nscd.pid
 SERV=/usr/sbin/nscd
 CONF=/etc/nscd.conf
-NAME=nscd
 
 case $1 in
  stop) OPTS='-K' ;;
@@ -27,15 +25,4 @@ esac
 
 restart(){ OPTS='-K' stop; sleep 1; start; }
 
-help() { echo "Usage: $0 {start|stop|status|restart|reload}"; }
-
-case $1 in
-      restart)     restart ;;
-  try-restart) try_restart ;;
-       reload) reload      ;;
- force-reload) reload      ;;
-        start) start       ;;
-       status) status      ;;
-         stop) stop        ;;
-            *) help        ;;
-esac
+parse "$@"

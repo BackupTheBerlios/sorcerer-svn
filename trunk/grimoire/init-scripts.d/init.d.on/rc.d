@@ -1,6 +1,5 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Provides: rc.d
 # Required-Stop: $local_fs
 # Should-Stop: initramfs tmp
 # Default-Stop: 0 6
@@ -12,12 +11,10 @@
 
 . /lib/lsb/init-functions
 
-NAME=/etc/rc.d
-
 check(){ find /etc/init.d -maxdepth 1 -type f -newer /etc/rc.d | grep -q .; }
 update(){ /lib/lsb/install_initd; }
 
-if   log_warning_msg "$NAME checking"; check
-then log_warning_msg "$NAME updating"; update
-     log_success_msg "$NAME updated"
-fi;  log_success_msg "$NAME checked"
+if   log_warning_msg '/etc/rc.d checking'; check
+then log_warning_msg '/etc/rc.d updating'; update
+     log_success_msg '/etc/rc.d updated'
+fi;  log_success_msg '/etc/rc.d checked'

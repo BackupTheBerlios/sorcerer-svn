@@ -1,13 +1,11 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: ziproxy
 # Required-Start: $local_fs $network run
 # Required-Stop:  $network
 # Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
 # Short-Description: ziproxy provides a web proxy cache.
-# Description: ziproxy provides a web proxy cache.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -16,16 +14,16 @@ PIDF=/var/run/ziproxy.pid
 SERV=/usr/bin/ziproxy
 NAME=ziproxy
 
-start() {
-  log_warning_msg  "$NAME starting"
-# if    start_daemon  -p $PIDF  $SERV  -d  -c /etc/ziproxy.conf  >  $PIDF
-  if    [  -z  "$( pidofproc -p $PIDF $SERV )"  ]  &&
-        su - nobody -s /bin/bash -c "$SERV -d -c /etc/ziproxy.conf" > $PIDF
-  then  log_success_msg  "$NAME started"
-  else  log_failure_msg  "$NAME not started"
-        rm  -f  $PIDF
-        status
-  fi
+start(){
+ log_warning_msg  "$NAME starting"
+#if   start_daemon -p $PIDF $SERV -d -c /etc/ziproxy.conf > $PIDF
+ if   [  -z  "$( pidofproc -p $PIDF $SERV )" ] &&
+      su - nobody -s /bin/bash -c "$SERV -d -c /etc/ziproxy.conf" > $PIDF
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"
+      rm -f $PIDF
+      status
+ fi
 }
 
 parse "$@"

@@ -1,31 +1,20 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Provides: denyhostsd
 # Required-Start: run
-# Should-Start: 
 # Required-Stop: $syslog kill 
-# Should-Stop: 
-# Default-Start:  3 4 5
+# Default-Start: 3 4 5
 # Default-Stop: 0 1 6
 # Description: denyhostsd monitors log files for ssh server attacks
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-PIDF="/var/run/denyhosts.pid"
-SERV="python"
-NAME="denyhosts"
+PIDF=/var/run/denyhosts.pid
+SERV=python
+NAME=denyhosts
 
-status()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if   [ -n "$PIDS" ]; then log_warning_msg "$NAME is running ($PIDS)"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
-}
-
-start()  {
+start(){
   log_warning_msg  "Starting denyhosts (ssh attack monitoring)"
   if    [ -x /usr/sbin/denyhosts ]
   then 
@@ -39,7 +28,7 @@ start()  {
   fi
 }
 
-stop()  {
+stop(){
 	log_warning_msg "Shutting down $NAME"
   if    killproc        -p $PIDF -s 15  $SERV
   then  log_success_msg "$NAME stopped"
@@ -49,22 +38,4 @@ stop()  {
   fi
 }
 
-restart() {  stop  &&  sleep  1;  start;  }
-
-try_restart() {
-  status  &&  restart
-  return 0
-}
-
-help()  {
-  echo "Usage: $0 {restart|try-restart|start|status|stop}" 1>&2
-}
-
-case  $1  in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+parse "$@"

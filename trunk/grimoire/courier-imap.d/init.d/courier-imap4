@@ -4,42 +4,25 @@
 # Provides: imap4
 # Required-Start: $local_fs $network authdaemon
 # Required-Stop: $local_fs
-# Default-Start:  3 4 5
+# Default-Start: 3 4 5
 # Default-Stop: 0 1 2 6
 # Short-Description: courier-imap, IMAP4 daemon
-# Description: courier-imap, IMAP4 daemon
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-SERV=imapd.rc
+SERV=/usr/libexec/imapd.rc
 NAME=courier-imap4
 
-start()  {
-  log_warning_msg  "$NAME starting"
-  cd /usr/libexec
-  ./$SERV start
-  log_success_msg  "$NAME started"
+start(){
+ log_warning_msg "$NAME starting"; $SERV start
+ log_success_msg "$NAME started"
 }
 
-stop()  {
-  log_warning_msg "$NAME stopping"
-  cd /usr/libexec
-  ./$SERV stop
-  log_success_msg "$NAME stopped"
+stop(){
+ log_warning_msg "$NAME stopping"; $SERV stop
+ log_success_msg "$NAME stopped"
 }
 
-restart() {  stop  &&  sleep  1;  start;  }
-
-help()  {
-  echo "Usage: $0 {restart|force-reload|start|stop}" 1>&2
-}
-
-case  $1  in
-       restart)      restart  ;;
-  force-reload)      restart  ;;
-         start)  start        ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
-
+cd /usr/libexec/
+parse "$@"
