@@ -93,3 +93,15 @@ build(){
 # ln -s ../../bin         ${QT4_PREFIX}/bin &&
 # ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }
+
+post_install(){
+ default_post_install
+ if   [[ -s                         $VERSION_LOGS/avahi ]] &&
+      [[ -s                         $OPT_OFF_LOGS/avahi ]] &&
+      grep -qx qt-x11-opensource    $OPT_OFF_LOGS/avahi
+ then sed  -i /qt-x11-opensource/d  $OPT_OFF_LOGS/avahi
+      echo     qt-x11-opensource >>  $OPT_ON_LOGS/avahi
+      echo avahi | pipe_queue $CAST_QUEUE com
+ fi
+}
+
