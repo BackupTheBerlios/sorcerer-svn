@@ -43,19 +43,13 @@ samba provides Windows NT and LAN manager-style
 file and print services to SMB clients such as Windows.'
 
 build(){
-#if   spell_installed Linux-PAM
-#then WITH_PAM='--with-pam --with-pam_smbpass'
-#fi
-
  case $VERSION in
   3.2.1)   sed -i '/#include <krb5\.h>/a#include <stdlib.h>' source/configure ;;
   3.0.20)  sed -i '/DONT_USE_CPLUSPLUS_RESERVED_NAMES/d' source/include/includes.h ;;
   3.0.20a) sed -i '/DONT_USE_CPLUSPLUS_RESERVED_NAMES/d' source/include/includes.h ;;
  esac
 
-#$WITH_PAM            \
-
- cd source            &&
+ cd source &&
  ./configure          \
  --prefix=/usr        \
  --sysconfdir=/etc    \
@@ -63,19 +57,26 @@ build(){
  --with-smbmount      \
  --with-fhs           \
  --with-shared-modules=idmap_rid \
- $OPTS                &&
- make                 &&
- prepare_install      &&
- mkdir  -p  /etc/samba       &&
- mkdir  -p  /usr/share/samba &&
- mkdir  -p  /var/log/samba   &&
- make    install             &&
- rm     -rf /usr/private     &&
- if  [  -f  /usr/lib/samba/libsmbclient.so ]; then
-  ln    -fs          samba/libsmbclient.so /usr/lib/libsmbclient.so
-  ln    -fs          samba/libsmbclient.so /usr/lib/libsmbclient.so.0
+ $OPTS &&
+ make  &&
+ prepare_install &&
+ mkdir -p /etc/samba       &&
+ mkdir -p /usr/share/samba &&
+ mkdir -p /var/log/samba   &&
+ make    install           &&
+ rm    -rf /usr/private    &&
+ if   [ -f  /usr/lib/libsmbclient.so   ] &&
+    ! [ -f  /usr/lib/libsmbclient.so.0 ]
+ then ln -fs         libsmbclient.so   \
+            /usr/lib/libsmbclient.so.0
  fi &&
  if   [  -f  nsswitch/libnss_winbind.so ]
  then cp -av nsswitch/libnss_winbind.so /lib/
  fi
+}
+
+current(){
+ case $VERSION in
+  3.2.1) [ -h /usr/lib/libsmbclient.so.0 ] ;;
+ esac
 }
