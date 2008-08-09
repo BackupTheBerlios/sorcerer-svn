@@ -1,19 +1,17 @@
     stable 1.0
    require pkgconfig
-
   category xserver
  attribute archive_off x11
   homepage http://sorcerer.silverice.org/
-  estimate 5
      desc 'X11R6-symlinks creates /usr/X11R6/ and the symlinks within.'
 
 build(){
 
 fix_sym_dir(){
  fsd(){
-  local SYM="$1"
-  local DES="$2"
-  local DIR="$3"
+  local SYM=$1
+  local DES=$2
+  local DIR=$3
 
     if [ -h $SYM ]; then  :;
   elif [ -f $SYM ]; then                    rm  -f $SYM; ln -s $DES $SYM
@@ -24,7 +22,7 @@ fix_sym_dir(){
  }
 
  mk_dir(){
-  if  [ ! -d $1 ]
+  if  ! [ -d $1 ]
   then rm -f $1
    mkdir  -p $1
    chmod 755 $1
@@ -36,14 +34,14 @@ fix_sym_dir(){
  mk_dir /usr/include/X11
  mk_dir /usr/lib/X11
 
- fsd "/usr/X11R6/bin"     "../bin"     "/usr/bin"
- fsd "/usr/X11R6/include" "../include" "/usr/include"
- fsd "/usr/X11R6/lib"     "../lib"     "/usr/lib"
- fsd "/usr/X11R6/man"     "../man"     "/usr/man"
+ fsd /usr/X11R6/bin     ../bin     /usr/bin
+ fsd /usr/X11R6/include ../include /usr/include
+ fsd /usr/X11R6/lib     ../lib     /usr/lib
+ fsd /usr/X11R6/man     ../man     /usr/man
 
- if [ "$HOSTTYPE" == "x86_64" ]; then
+ if [[ $HOSTTYPE == x86_64 ]]; then
   mk_dir /usr/lib64/X11
-  fsd "/usr/X11R6/lib64" "../lib64" "/usr/lib64"
+  fsd /usr/X11R6/lib64 ../lib64 /usr/lib64
  fi
 }
 

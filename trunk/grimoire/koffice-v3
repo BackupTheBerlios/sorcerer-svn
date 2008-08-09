@@ -1,10 +1,21 @@
+# edit koffice-v3-l10n-* spells when editing koffice-v3
+
+
+# ImageMagick filter deprecated
+#             'ImageMagick:::for image conversion support'
+# koffice wants GraphicsMagick instead of ImageMagick now
+#             'GraphicsMagick:::for image conversion support'
+# GraphicsMagick is supposed to replace ImageMagick in koffice
+# for additional graphic input filters, but
+# GraphicsMagick has not made a release in a much longer time
+# than ImageMagick and GraphicsMagic has a compile error.
+# Therefore, staying with ImageMagick
+
     stable 1.6.3
   category utility/editor utility/spreadsheet graphic/editor
  attribute kde3
+      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
   homepage http://www.koffice.org
-       url $KDE_URL
-
-if [ $SPELL == koffice-v3 ]; then
    require kdebase-v3 libart_lgpl-v2.3.17 libpaper
   optional ImageMagick         ''                    ''              for image conversion support
   optional Python              --with-pythondir=/usr ''              for Python support
@@ -19,27 +30,13 @@ if [ $SPELL == koffice-v3 ]; then
   optional postgresql          --enable-pgsql        --disable-pgsql for postgresql support in Kexi
   optional ruby                ''                    ''              for ruby scripting support
   optional wv2                 ''                    ''              to build MS word filter
+    source $KDE_URL stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2
 
-    source stable/koffice-$VERSION/src/koffice-$VERSION.tar.bz2
 case $VERSION in
- 1.6.3) source security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff
-        use_gcc gcc-v4.2 ;;
+1.6.3)
+    source $KDE_URL security_patches/koffice-1.6.3-xpdf2-CVE-2007-4352-5392-5393.diff
+   use_gcc gcc-v4.2 ;;
 esac
-fi
-
-# koffice 1.6.2 gained sqlite as mandatory requirement?
-      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
-
-# ImageMagick filter deprecated
-#             'ImageMagick:::for image conversion support'
-# koffice wants GraphicsMagick instead of ImageMagick now
-#             'GraphicsMagick:::for image conversion support'
-# GraphicsMagick is supposed to replace ImageMagick in koffice
-# for additional graphic input filters, but
-# GraphicsMagick has not made a release in a much longer time
-# than ImageMagick and GraphicsMagic has a compile error.
-# Therefore, staying with ImageMagick
- conflicts koffice
   estimate 20000
       desc 'koffice-v3 is an integrated office suite.
 KOffice currently includes KWord, KSpread, KPresenter, KChart,

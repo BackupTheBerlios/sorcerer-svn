@@ -3,7 +3,11 @@
 # Copyright Kyle Sallee 2005 through 2008.
 # All rights reserved.
 
-NORM="\e[0m"; RED="\e[31m"; GREEN="\e[32m"; BLUE="\e[34m"; WHITE="\e[37m"
+NORM="\e[0m"
+RED="\e[31m"
+GREEN="\e[32m"
+BLUE="\e[34m"
+WHITE="\e[37m"
 
 S65="                                                                 "
 
@@ -22,10 +26,10 @@ locked(){
  [[ -n $2 ]] && L=${#2} &&
  [[ -n $1 ]] && [[ -f $1 ]] &&
  read P < $1 &&
- S="/proc/$P/status" &&
+ S=/proc/$P/status &&
  [[ -f  $S ]] &&
  read < $S &&
- [ "${REPLY:6:$L}" == "$2" ]
+ [[ ${REPLY:6:$L} == $2 ]]
 }
 
 pidofproc(){
@@ -151,14 +155,14 @@ status(){
  }
 
  statk(){
-  if   lsmod | grep -qws "^${NAME//-/_}"
+  if   lsmod | LC_ALL=C grep -qws "^${NAME//-/_}"
   then log_warning_msg "$NAME module is loaded"; return 0
   else log_warning_msg "$NAME module is not loaded"; return 3
   fi
  }
 
  [[ -n $NAME ]] || NAME=${0##*/}
- if   [ / = "${NAME:0:1}" ]
+ if   [[ / = ${NAME:0:1} ]]
  then statm
  elif [[ -n $SERV ]]
  then stats
@@ -188,8 +192,9 @@ stop(){
   fi
  }
 
+ set +B -f
  [[ -n $NAME ]] || NAME=${0##*/}
- if   [ / = "${NAME:0:1}" ]
+ if   [[ / = ${NAME:0:1} ]]
  then stopm
  elif [[ -n $SERV ]]
  then stops
@@ -208,7 +213,7 @@ mnt(){
 
 start(){
  conf(){ [[ -n $CONF ]] && ! [[ -e $CONF ]]; }
- miss(){ [ ${SERV:0:1} == / ] && ! [[ -f $SERV ]]; }
+ miss(){ [[ ${SERV:0:1} == / ]] && ! [[ -f $SERV ]]; }
 
  starts(){
   if   conf
@@ -230,10 +235,8 @@ start(){
    mount $OPTS   "$NAME"
   }
 
-  stb(){ sed 's/#.*//' /etc/fstab | grep -qw $NAME;}
-  chk(){ case $NAME in /dev|/proc|/sys) return 1;; esac; stb;}
-
-  if mnt || chk; then return; fi
+  set +B -f
+  if mnt; then return; fi
   if   conf
   then log_warning_msg "$NAME not mounted; $CONF does not exist"
   elif log_warning_msg "$NAME mounting"; run
@@ -252,7 +255,7 @@ start(){
  }
 
  [[ -n $NAME ]] || NAME=${0##*/}
- if   [ / = "${NAME:0:1}" ]
+ if   [[ / = ${NAME:0:1} ]]
  then startm
  elif [[ -n $SERV ]]
  then starts
@@ -270,11 +273,11 @@ reload(){ try_restart; }
 parse(){
  case $1 in
   start) start ;;
-  restart) restart ;;
+  stop) stop ;;
   try-restart) try_restart ;;
-  reload) reload ;;
-    stop) stop   ;;
   status) status ;;
+  restart) restart ;;
+  reload) reload ;;
   *) help ;;
  esac
 }
