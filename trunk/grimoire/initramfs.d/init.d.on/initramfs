@@ -14,14 +14,6 @@
 NAME=initramfs
 T='	'
 
-update_lilo(){
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h/initrf\t%h/linux\n' |
- while read IRF IMG; do
-  grep -q "$IRF" /etc/lilo.conf ||
-  sed  -i "s:$IMG$:$IMG\n${T}initrd$T$T=$T$IRF:" /etc/lilo.conf
- done
-}
-
 run_lilo(){ sync; /sbin/lilo -P ignore; }
 
 mkinitrf(){
@@ -106,8 +98,6 @@ initrf_update(){
  then every | cpio -o -H newc --quiet | gzip -9 > $COMMON
  else every | cpio -o -H newc --quiet           > $COMMON
  fi
-
- update_lilo
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 |
