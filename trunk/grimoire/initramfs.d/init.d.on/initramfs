@@ -12,13 +12,12 @@
 . /lib/lsb/init-functions
 
 NAME=initramfs
-T='	'
 
 run_lilo(){ sync; /sbin/lilo -P ignore; }
 
 mkinitrf(){
  cat $COMMON
- if   [ -d /boot/isolinux ]
+ if   [[ -d /boot/isolinux ]]
  then find /lib/modules/$1 | cpio -o -H newc --quiet | gzip -1
  else find /lib/modules/$1 | cpio -o -H newc --quiet
  fi
@@ -29,11 +28,11 @@ every(){
 
  exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
- if [ -d /usr/share/kbd ]; then
-     KBD=/usr/share/kbd
+ if [[ -d /usr/share/kbd ]]
+ then KBD=/usr/share/kbd
  fi
 
- if [ -d /lib64 ]; then L64=/lib64; fi
+ if [[ -d /lib64 ]]; then L64=/lib64; fi
 
  find /bin /dev /etc /lib $L64 /sbin $KBD |
  sed "\
@@ -94,7 +93,7 @@ initrf_update(){
  echo -n > $COMMON
  chmod 600 $COMMON
 
- if   [ -d /boot/isolinux ]
+ if   [[ -d /boot/isolinux ]]
  then every | cpio -o -H newc --quiet | gzip -9 > $COMMON
  else every | cpio -o -H newc --quiet           > $COMMON
  fi
@@ -114,27 +113,27 @@ initrf_update(){
 
 initrf_present(){
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- while read; do [ -f "$REPLY/initrf" ] || return 1; done
+ while read; do [[ -f $REPLY/initrf ]] || return 1; done
 }
 
 initrf_current(){
  IRFL=/var/log/initramfs.log
  DIRS='/bin /etc/bash.d /etc/init.d'
  DIRS+=' /etc/modules.d /etc/networks.d /etc/rc.d /etc/udev /lib /sbin'
- [ -d /etc/lvm ] && DIRS+=' /etc/lvm'
- [ -d /lib64   ] && DIRS+=' /lib64'
+ [[ -d /etc/lvm ]] && DIRS+=' /etc/lvm'
+ [[ -d /lib64   ]] && DIRS+=' /lib64'
 
  FILES='/etc/fstab /etc/hostname /etc/inittab'
  FILES+=' /etc/lilo.conf /etc/lilo.conf.head'
  FILES+=' /etc/modprobe.conf /etc/passwd /etc/shadow'
 
- [ -f /etc/exports    ] && FILES+=' /etc/exports'
- [ -f /etc/mdadm.conf ] && FILES+=' /etc/mdadm.conf'
+ [[ -f /etc/exports    ]] && FILES+=' /etc/exports'
+ [[ -f /etc/mdadm.conf ]] && FILES+=' /etc/mdadm.conf'
 
  IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | sort -g | head -n1 | cut -f2 )
- if [ -z "$IRF" ]; then return 1; fi
+ if [[ -z $IRF ]]; then return 1; fi
  OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
- if [ -n "$OLD" ]; then
+ if [[ -n $OLD ]]; then
   echo   "$OLD" > $IRFL
   return 1
  else rm -f $IRFL
@@ -149,18 +148,18 @@ begin(){
  elif log_warning_msg "$NAME updating"; initrf_update
  then log_success_msg "$NAME updated"
  else log_failure_msg "$NAME failed"
-  if   [ -n "$1" ]
+  if   [[ -n $1 ]]
   then sulogin -t 300 &>/dev/console 0</dev/console
   fi
  fi
 }
 
 main(){
- if ! [ -d /boot ] ||
-      [ -n "$( find /boot -maxdepth 0 -empty )" ]
+ if ! [[ -d /boot ]] ||
+      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
  then return
  fi
- log_warning_msg "$NAME checking"; begin "$1"
+ log_warning_msg "$NAME checking"; begin $1
  log_success_msg "$NAME checked"
 }
 
