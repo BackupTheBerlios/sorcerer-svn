@@ -90,8 +90,12 @@ goodbye(){
 
 list_disk(){ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"; }
 list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '\,^/dev/loop,d;\,^/dev/mapper/,d'; }
-get_bb()   { $DIALOG --title $"Please select boot block" --menu "" 0 0 0 $( list_bb   ); }
 get_disk() { $DIALOG --title $"Please select disk"       --menu "" 0 0 0 $( list_disk ); }
+
+get_bb(){
+ for ((CX=0;CX<MP;CX++)); do if [[ ${PMOUNT[$CX]} == /boot ]]; then BB=$CX; return; fi; done
+ for ((CX=0;CX<MP;CX++)); do if [[ ${PMOUNT[$CX]} == /     ]]; then BB=$CX; return; fi; done
+}
 
 
 boot_dev_check(){
@@ -210,16 +214,16 @@ make_bootloader_conf(){
  MESSAGE="Select the location to install ${BOOTLOADER}"
  $DIALOG --msgbox "$MESSAGE" 8 50
 
- local BB=$( get_boot_block )
- local RD=$( root_device    )
+ get_bb
 
- echo "boot${TAB}${TAB}${TAB}=${TAB}$BB" >> $BL_CONF
- echo "root${TAB}${TAB}${TAB}=${TAB}$RD" >> $BL_CONF
+ echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
 
- MESSAGE="${BOOTLOADER} will be installed to boot block: ${BB}"
+ BBDEV=${PDEVICE[$BB]}
+
+ MESSAGE="${BOOTLOADER} will be installed to boot block: $BBDEV"
  $DIALOG --msgbox "$MESSAGE" 8 50
 
- sfdisk ${BB:0:8} -A ${BB:8:2}
+ sfdisk ${BBDEV:0:8} -A ${BBDEV:8:2}
  mbr_check
 }
 
@@ -305,13 +309,6 @@ editor_menu(){
 edit(){
  [ -n "$EDITOR" ] || editor_menu
  $EDITOR "$1"
-}
-
-
-get_boot_block(){
- local BB
- while [ -z "$BB" ]; do BB="$( get_bb )"; done
- echo "$BB"
 }
 
 
@@ -1114,7 +1111,7 @@ lvm2_menu(){
 
 name_raid(){
  local CX
- for ((CX=0;CX<64;CX++)); do
+ for ((CX=0;CX<MP;CX++)); do
   if ! [ -b /dev/md$CX ]
   then echo /dev/md$CX; break
   fi
