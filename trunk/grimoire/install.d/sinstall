@@ -173,8 +173,8 @@ fstab_line(){
  then echo -n "${PDEVICE[$1]}${TAB}"
  else
   if ! [[ -n   ${PUUID[$1]} ]];then
-   pvcreate "${PDEVICE[$1]}"
-   PUUID[$1]=$( blkid $PART 2>/dev/null | cut -d '"' -f2 )
+   pvcreate "${PDEVICE[$1]}" &>/dev/null
+   PUUID[$1]=$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )
   fi
   echo -n "UUID=${PUUID[$1]}${TAB}"
  fi
@@ -466,7 +466,7 @@ show_pinfo(){
  for (( CX=0; CX<MP; CX++ )); do
   if    [ -n "${PDEVICE[$CX]}" ]; then
    echo   -n  "${PMOUNT[$CX]:-none}	"
-   fstab_line          "$CX"
+   fstab_line          "$CX" $1
   fi
  done | LC_ALL=C sort | cut -f2- | tr '\t' '\n'
 }
@@ -544,7 +544,7 @@ filesystem_table(){
  pselect(){
   $DIALOG --ok-label Select --cancel-label Done \
    --title $"Filesystem Table Menu" \
-   --menu  $"Filesystems with mount point of none are ignored unless swap." 0 70 12 $( show_pinfo )
+   --menu  $"Filesystems with mount point of none are ignored unless swap." 0 70 12 $( show_pinfo dev )
  }
 
  pempty(){
