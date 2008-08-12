@@ -74,7 +74,7 @@ configure(){
 
  ask_port(){
   if          PORT_BASE="$( port_menu )" &&
-       [ -n "$PORT_BASE" ]
+       [[ -n $PORT_BASE ]]
   then echo  "PORT_BASE=$PORT_BASE" >> $SPELL_CONFIG
   fi
  }
@@ -111,7 +111,7 @@ build(){
   echo "options lockd nlm_udpport=$LOCKD nlm_tcpport=$LOCKD" > $MP
  }
 
- if   [ -n "${SOURCE[1]}" ]
+ if   [[ -n ${SOURCE[1]} ]]
  then patch -p1 < $SOURCE_CACHE/nfs-utils/$VERSION/${SOURCE[1]}
  fi
 
@@ -121,8 +121,8 @@ build(){
  then STATIC=yes
  fi
 
- OPTS=${OPTS/dynamic/}
- OPTS=${OPTS/static/}
+ OPTS=${OPTS/-dynamic/}
+ OPTS=${OPTS/-static/}
 
  if   ! spell_installed tcp_wrappers
  then OPTS=' --without-tcp-wrappers'
@@ -133,7 +133,7 @@ build(){
  default_build &&
  install -m 644 $SCRIPT_DIR/idmapd.conf /etc &&
 
- if   [ -n "$STATIC" ]
+ if   [[ -n $STATIC ]]
  then assigned_ports
  else use_rpcbind
  fi
