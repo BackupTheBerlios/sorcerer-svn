@@ -213,7 +213,14 @@ make_bootloader_conf(){
 
  get_bb
 
- echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
+# PUUID might not be assigned, although device does have UUID
+#echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
+
+ # To update /dev/disk/by-uuid/
+ /etc/init.d/udevtrigger start
+
+ UUID=$( blkid ${PDEVICE[$BB]} 2>/dev/null | cut -d '"' -f2 )
+ echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/$UUID" >> $BL_CONF
 
  BBDEV=${PDEVICE[$BB]}
 
