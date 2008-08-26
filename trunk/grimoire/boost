@@ -1,4 +1,4 @@
-    stable 1_36_0 1_34_1
+    stable 1_36_0
    require Python boost-jam bzip2 zlib
   category development
  attribute library solo
@@ -6,9 +6,6 @@
     source boost/boost_$VERSION.tar.bz2
   homepage http://www.boost.org
       opts --with-icu
-# case $VERSION in
-#  1_34_1) use_gcc gcc-v4.2 ;;
-# esac
   estimate 8000
       desc 'boost provides additional C++ libraries.
 boost was begun by members of the C++ standards
@@ -27,21 +24,13 @@ programming style of the Standard Template Library (STL).'
 
 
 build(){
-build_old(){
  symlink_includes(){
-  ln -fsv /usr/include/boost-${VERSION}/boost /usr/include/boost
+  case $VERSION in
+   1_36_0) ln -fsv /usr/include/boost-1_36/boost     /usr/include/boost ;;
+        *) ln -fsv /usr/include/boost-$VERSION/boost /usr/include/boost ;;
+  esac
  }
 
- export PYTHON_ROOT=/usr
- bjam   --prefix=/usr stage   &&
- prepare_install              &&
- bjam   --prefix=/usr install &&
- symlink_includes
-}
-
- symlink_includes(){
-  ln -fsv /usr/include/boost-${VERSION}/boost /usr/include/boost
- }
  ./configure     \
  --prefix=/usr   \
  $OPTS           &&
@@ -49,4 +38,10 @@ build_old(){
  prepare_install &&
  make    install &&
  symlink_includes
+}
+
+current(){
+ case $VERSION in
+  1_36_0) [[ -d /usr/include/boost ]] ;;
+ esac
 }
