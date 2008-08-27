@@ -1,12 +1,18 @@
 # guidedog may require some init-scripts?
 
-    stable 1.0.0
-   require iptables kdelibs-v3
+    stable 1.1 1.0.0
+   require iptables kdebindings-v4
   category network
- attribute kde3
-    source http://www.simonzone.com/software/guidedog/guidedog-$VERSION.tar.gz
+ attribute kde4
+    source http://www.simonzone.com/software/guidedog/guidedog-$VERSION.tar.bz2
   homepage http://www.simonzone.com/software/guidedog/
-      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
+#     opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
+      opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+      opts -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
+      opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+      opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+      opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+      opts -DCMAKE_BUILD_TYPE=Release
   estimate 200
       desc 'guidedog is an advanced routing/network configuration utility 
 for KDE 3 running on Linux 2.4 based machines.
@@ -21,3 +27,12 @@ The goals for guidedog are:
 * IP masquerade.
 * Activating of NAT modules for FTP and IRC.
 * Port Forwarding'
+
+build(){
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
