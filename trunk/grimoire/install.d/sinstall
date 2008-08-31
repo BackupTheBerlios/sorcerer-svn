@@ -255,10 +255,12 @@ transfer_arch(){
  cp    -va /lib/udev/dev       $TARGET/lib/udev/
 
  find $TARGET/var/cache/archive -type f |
- while read; do
-  7za x -bd -so "$REPLY" |
-  tar -C $TARGET -xvpf -
- done
+ while read
+ do 7za x -bd -so "$REPLY"
+ done 2>/dev/null |
+ bfr -b 64m |
+ tar -C $TARGET -ixvpf - 2>&1 |
+ sed '/tar: /d'
 
  make_fstab > $TARGET/etc/fstab
  read -n 1 -t 900 -p "Press space to continue."
@@ -987,9 +989,9 @@ After each shutdown content of encrypted swaps become unencryptable."
 boot_partition_warning(){
 
  $DIALOG --msgbox \
-'A dedicated ext2 /boot partition of 1G is required only on:
+'A dedicated ext2 /boot partition of 1G is required only:
 
-1. Old i586 Hardware with broken BIOS
+1. On old i586 Hardware with broken BIOS
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
 4. When / is a LVM2 logical volume that is also LUKS encrypted.
