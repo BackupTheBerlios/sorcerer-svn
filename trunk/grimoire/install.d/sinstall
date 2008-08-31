@@ -233,6 +233,8 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
+ BUFFER=$( inputbox "Please enter buffer size or press enter" "64m" )
+
  cd /
  rm    -vfr                    $TARGET/{bin,dev,etc,lib,lib64,sbin,tmp,usr,var}
  mkdir -vpm 755                $TARGET/{dev,etc,home,media/{cdrom,floppy,root},proc,sys,tmp,var/cache/archive}
@@ -258,7 +260,7 @@ transfer_arch(){
  while read
  do 7za x -bd -so "$REPLY"
  done 2>/dev/null |
- bfr -b 64m |
+ bfr -b $BUFFER |
  tar -C $TARGET -ixvpf - 2>&1 |
  sed '/tar: /d'
 
