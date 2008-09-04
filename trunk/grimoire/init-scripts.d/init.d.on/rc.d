@@ -11,7 +11,7 @@
 
 . /lib/lsb/init-functions
 
-check(){ find /etc/init.d -maxdepth 1 -type f -newer /etc/rc.d | grep -q .; }
+check(){ find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d | grep -q .; }
 update(){ /lib/lsb/install_initd; }
 
 if   log_warning_msg '/etc/rc.d checking'; check
