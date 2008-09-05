@@ -16,8 +16,8 @@ expire_logs(){
  local LE=${LEECH_EXPIRE:-$EXPIRE}
 
  ( find "${COMPILE_LOGS:-/etc/sorcery/log/compile}" -type f -mtime +$CE | sed -n "/\.bz2/p;/\.gz/p"
-   find "${EVENT_LOGS:-/etc/sorcery/log/event}"     -type f -mtime +$EE
-   find "${LEECH_LOGS:-/etc/sorcery/log/leech}"     -type f -mtime +$LE
+   find "${EVENT_LOGS:-/var/log/sorcery/event}"     -type f -mtime +$EE
+   find "${LEECH_LOGS:-/var/log/sorcery/leech}"     -type f -mtime +$LE
  ) 2>/dev/null | escape_qs | xargs -r --max-lines=64 rm -f
 }
 
@@ -104,8 +104,8 @@ prune_failed_cache(){
 sqz_gz_logs(){
  sqz(){ if [[ -f $1 ]] && gzip -cd $1 | gzip -9 > $1.new; then mv $1.new $1; fi }
 
- sqz ${HISTORY_LOGS:=/etc/sorcery/log/history.gz}
- sqz ${SNAPY_LOGS:=/etc/sorcery/log/snap.gz}
+ sqz ${HISTORY_LOGS:=/var/log/sorcery/history.gz}
+ sqz ${SNAPY_LOGS:=/var/log/sorcery/snap.gz}
 }
 
 #sqz_gz_logs &
