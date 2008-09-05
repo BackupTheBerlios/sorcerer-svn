@@ -1,7 +1,8 @@
 # Even if the website says version 3.2
 # Both the directory name and tarball name have 32
 # Therefore, the released version of cdf is 32 :p
-# If download does not work, make sure .curlrc got --disable-epsv
+# If download does not work, make sure .curlrc has --disable-epsv
+
     stable 32_1 32
     secure 32_1
    require ncurses
@@ -9,7 +10,7 @@
   optional xerces-j ''        '' to enable CDFML, i.e. dumping CDF to XML
    category data science
   attribute library new
-     source ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/cdf$VERSION/linux/cdf${VERSION}-dist-all.tar.gz
+     source ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/cdf$VERSION/linux/cdf$VERSION-dist-all.tar.gz
    homepage http://cdf.gsfc.nasa.gov/
    estimate 200
        desc 'cdf is a library for CDF data format
@@ -32,34 +33,33 @@ and accessible through a consistent set of interface
 Therefore, programmers are not burdened with performing
 low level I/Os to physically format and unformat the data file.'
 
-build() {
+build(){
 
-make_java_api() {
+ make_java_api(){
   if echo $OPTS | grep -q java_api ; then
-    echo "--> Compiling java_api"
+   echo "--> Compiling java_api"
 
-    CDF_BASE=$(pwd)/src
-    JAVA_INC=/opt/jdk/include
-    if [ ! -d $JAVA_INC ]; then
-	echo "ERROR: Directory $JAVA_INC is missing"
-	return 1
-    fi
+   CDF_BASE=$(pwd)/src
+   JAVA_INC=/opt/jdk/include
+   if ! [[ -d $JAVA_INC ]]; then
+    echo "ERROR: Directory $JAVA_INC is missing"
+    return 1
+   fi
 
-    cd cdfjava/jni				&&
-    gcc -c cdfNativeLibrary.c -I${CDF_BASE}/include -I${JAVA_INC}	\
-        -fPIC								\
-        -I${JAVA_INC}/linux -o cdfNativeLibrary.o			&&
-    ld  -shared cdfNativeLibrary.o -o ../lib/libcdfNativeLibrary.so	\
-        -L${CDF_BASE}/lib -lc -lm -lcdf					&&
-    cd  -
+   cd cdfjava/jni &&
+   gcc -c cdfNativeLibrary.c -I${CDF_BASE}/include -I$JAVA_INC \
+       -fPIC -I$JAVA_INC/linux -o cdfNativeLibrary.o &&
+   ld  -shared cdfNativeLibrary.o -o ../lib/libcdfNativeLibrary.so \
+       -L$CDF_BASE/lib -lc -lm -lcdf &&
+   cd  -
   else 
-    echo "WARNING: java_api not compiled"
+   echo "WARNING: java_api not compiled"
   fi
-}
+ }
 
-cdf2xml() {
+ cdf2xml(){
   C2X=/usr/sbin/cdf2xml
-  CDFPATH=/usr/share/${SPELL}
+  CDFPATH=/usr/share/$SPELL
   XERCES=/usr/share/xerces-j
 
   cat > $C2X << EOF
@@ -70,46 +70,31 @@ export CLASSPATH=\${CLASSPATH}:.:${CDFPATH}/classes/cdfjava.jar:${CDFPATH}/cdfml
 java CDF2CDFML \$@
 EOF
  
-  chmod 0755 $C2X
-}
+  chmod 755 $C2X
+ }
 
-install_java_api() {
+ install_java_api(){
   if echo $OPTS | grep -q java_api ; then
-    echo "--> Installing java_api"
-    CLASS_DIR=/usr/share/$SPELL/classes
-    CDFML_DIR=/usr/share/$SPELL/cdfml
+   echo "--> Installing java_api"
+   CLASS_DIR=/usr/share/$SPELL/classes
+   CDFML_DIR=/usr/share/$SPELL/cdfml
 
-    [ ! -d $CLASS_DIR ]  &&  mkdir --verbose -p $CLASS_DIR
-    [ ! -d $CDFML_DIR ]  &&  mkdir --verbose -p $CDFML_DIR
-    cdf2xml  &&
-    install -v -m 644  cdfjava/classes/cdfjava.jar         $CLASS_DIR	&&
-    install -v -m 755  cdfjava/lib/libcdfNativeLibrary.so  /usr/lib	&&
-    install -v -m 644  cdfjava/cdfml/*                     $CDFML_DIR
+   ! [[ -d $CLASS_DIR ]] &&  mkdir -vp $CLASS_DIR
+   ! [[ -d $CDFML_DIR ]] &&  mkdir -vp $CDFML_DIR
+   cdf2xml
+   install -vm 644 cdfjava/classes/cdfjava.jar $CLASS_DIR
+   install -vm 755 cdfjava/lib/libcdfNativeLibrary.so /usr/lib
+   install -vm 644 cdfjava/cdfml/* $CDFML_DIR
   else
-    echo "WARNING: java_api not installed"
+   echo "WARNING: java_api not installed"
   fi
-}
+ }
 
-  INSTALLDIR=/usr
-
-  case $VERSION in
-    2.7)  DEFS=src/definitions/definitions
-          LINE=$( grep -n "^export CDF_BASE" $DEFS.B | cut -d ":" -f 1 )
-          sed  -i "${LINE},${LINE}d"	$DEFS.B
-          sed  -i "${LINE}iexport CDF_BASE; CDF_BASE=$INSTALLDIR"  $DEFS.B
-          LINE=$( grep -n "^setenv CDF_BASE" $DEFS.C | cut -d ":" -f 1 )
-          sed  -i "${LINE},${LINE}d"	$DEFS.C
-          sed  -i "${LINE}isetenv CDF_BASE $INSTALLDIR"	$DEFS.C
-          LINE=$( grep -n "^export CDF_BASE" $DEFS.K | cut -d ":" -f 1 )
-          sed  -i "${LINE},${LINE}d"	$DEFS.K
-          sed  -i "${LINE}iexport CDF_BASE=$INSTALLDIR"	$DEFS.K  ;;
-  esac
-
-  make  OS=linux ENV=gnu all  &&
-  make_java_api               &&
-  make    test                &&
-  prepare_install             &&
-  make    install             \
-          INSTALLDIR=/usr     &&
-  install_java_api
+ make OS=linux ENV=gnu all &&
+ make_java_api             &&
+ make    test              &&
+ prepare_install           &&
+ make    install           \
+         INSTALLDIR=/usr   &&
+ install_java_api
 }

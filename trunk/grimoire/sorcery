@@ -1,6 +1,6 @@
-    stable photon-20080904-1 photon-20080826-0 photon-20080825-2 photon-20080824-0 photon-20080823-4 photon-20080809-3 photon-20080805-0 photon-20080804-0
+    stable photon-20080904-3 photon-20080826-0 photon-20080825-2 photon-20080824-0 photon-20080823-4 photon-20080809-3 photon-20080805-0 photon-20080804-0
 [[ -z $VERSION ]] &&
- VERSION=( photon-20080904-1 )
+ VERSION=( photon-20080904-3 )
        url http://sorcerer.silverice.org/download/sorcery/
        URL=http://sorcerer.silverice.org/download/sorcery/
     source sorcery-$VERSION.tar.bz2
@@ -90,7 +90,7 @@ post_install(){
 
  move_ldd_logs(){
   [[ -d /etc/sorcery/log/elf ]] && return
-  mv          /etc/sorcery/log/ldd /etc/sorcery/log/elf
+  mv   -v     /etc/sorcery/log/ldd /etc/sorcery/log/elf
   grep -lr  '^/etc/sorcery/log/ldd' $INSTALL_LOGS | xargs -r --max-lines=2048 \
   sed  -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
  }
@@ -140,11 +140,30 @@ post_install(){
   done
  }
 
+ move_temporary_logs(){
+  move(){
+   while [[ -n $1 ]]; do
+    if   [[ -e   /etc/sorcery/log/$1 ]] && ! [[ -e /var/log/sorcery/$1 ]]
+    then mv -v   /etc/sorcery/log/$1               /var/log/sorcery/$1
+    else rm -vfr /etc/sorcery/log/$1
+    fi
+    shift
+   done
+  }
+
+  [[ -h /etc/sorcery/log ]] && return
+  [[ -h /var/log/sorcery ]] && return
+  [[ -d /var/log/sorcery/activity ]] && return
+  mkdir_p /var/log/sorcery
+  move activity dispel.gz estimate event fail history.gz leech resume snap snap.gz
+ }
+
  [[ -d  /lib.old/modules ]] &&
  rm -fr /lib.old
 
  [[  -f /etc/sorcery/log/version/install ]] ||
  rm -fr /boot/isolinux
+
 
  #missing_init_script
  move_ldd_logs
@@ -154,5 +173,6 @@ post_install(){
 ## uncomment fix_elf_logs when they should be fixed
 ## because the box went too long without updates.
 #fix_elf_logs
+ move_temporary_logs
  default_post_install
 }
