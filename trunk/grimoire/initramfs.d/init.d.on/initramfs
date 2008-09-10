@@ -133,7 +133,8 @@ initrf_current(){
  [[ -f /etc/mdadm.conf ]] && FILES+=' /etc/mdadm.conf'
  [[ -f /etc/multipath.conf ]] && FILES+=' /etc/multipath.conf'
 
- IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | sort -g | head -n1 | cut -f2 )
+ IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | 
+        sed '\,/boot/fast,d' | sort -g | head -n1 | cut -f2 )
  if [[ -z $IRF ]]; then return 1; fi
  OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
  if [[ -n $OLD ]]; then
