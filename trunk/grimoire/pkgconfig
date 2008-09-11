@@ -5,11 +5,15 @@
     source http://pkgconfig.freedesktop.org/releases/pkg-config-$VERSION.tar.gz
 # Make pkg-config search by default both directories: /usr/lib{,64}/pkgconfig
       opts --with-pc-path=/usr/lib/pkgconfig:/usr/lib64/pkgconfig
-#     opts --with-pc-path=/usr/lib.pc
+
+# if    [[ $HOSTTYPE == x86_64 ]]
+# then  opts --with-pc-path=/usr/lib64.pc:/usr/lib.pc
+# else  opts --with-pc-path=/usr/lib.pc
+# fi
+
       opts --with-installed-glib
       opts --enable-shared=yes
       opts --enable-static=no
-# pkgconfig at freedesktop.org is now called pkg-config, odd?
   homepage http://www.freedesktop.org/
   estimate 200
  freshmeat pkg-config
@@ -20,8 +24,14 @@ It replaces the ubiquitous *-config scripts
 you may have seen with a single tool.'
 
 
-current(){
-case $VERSION in
- 0.23) LC_ALL=C grep -q /usr/lib.pc $COMPILE_LOGS/pkgconfig ;;
-esac
-}
+# post_install(){
+# LC_ALL=C grep -lr '^/usr/lib/pkgconfig/[^/]*\.pc$\|^/usr/lib64/pkgconfig/[^/]*\.pc$' $INSTALL_LOGS |
+# cut -d : -f1 | basenames | pipe_queue $CAST_QUEUE com
+# }
+
+
+# current(){
+# case $VERSION in
+#  0.23) LC_ALL=C grep -q /usr/lib.pc $COMPILE_LOGS/pkgconfig ;;
+# esac
+# }
