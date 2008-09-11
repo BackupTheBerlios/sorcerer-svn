@@ -1,6 +1,9 @@
+    stable 0.60.6
+   require libtool ncurses
   category utility/editor
  attribute console
        url $GNU_URL
+    source aspell/aspell-$VERSION.tar.gz
   homepage http://aspell.net
   estimate 1000
       desc 'aspell is a spell checker designed to eventually replace ispell.
@@ -9,31 +12,3 @@ Its main feature is that it does a much better job of
 coming up with possible suggestions than ispell does.
 It also has support for checking (La)TeX and HTML files,
 and run-time support for other non-English languages.'
-
- if [[ -z $VERSION ]]; then
-    stable 0.60.6 0.60.5
-   require libtool ncurses
-    source aspell/aspell-$VERSION.tar.gz
-case $VERSION in
- 0.60.5) use_gcc gcc-v4.2 ;;
-esac
-fi
-
-case ${SPELL:7} in
- dict-*) 
-     desc 'Dictionary for use with aspell.'
-   source aspell/dict/${SPELL:12}/aspell-${SPELL:12}-$VERSION.tar.bz2 ;;
-esac
-
-build(){
- build_dict(){
-  ./configure     &&
-  prepare_install &&
-  make    install
- }
-
- case ${SPELL:7} in
-  dict-*) build_dict   ;;
-       *) default_build ;;
- esac
-}
