@@ -1,16 +1,29 @@
-    stable 0.0.8
-   require automake
-  optional alsa-lib  --enable-alsa   '' for alsa support
-  optional esound    --enable-esd    '' for esd support
-  optional SDL       --enable-sdl    '' for SDL backend
-  optional libvorbis --enable-vorbis '' for vorbis support
-  optional smpeg     --enable-smpeg  '' for smpeg support
+    stable soft-1.5.304 0.0.8
+#  require automake
+# optional alsa-lib  --enable-alsa   '' for alsa support
+# optional esound    --enable-esd    '' for esd support
+# optional SDL       --enable-sdl    '' for SDL backend
+# optional libvorbis --enable-vorbis '' for vorbis support
+# optional smpeg     --enable-smpeg  '' for smpeg support
+   require cmake
+  optional alsa-lib
+# optional esound
+# optional SDL
+# optional libvorbis
+# optional smpeg
   category audio/library audio/mixer
  attribute library x11
-    source http://openal.org/openal_webstf/downloads/openal-$VERSION.tar.gz
-  homepage http://www.openal.org
-      opts --enable-static=no
-  estimate 800
+    source http://connect.creativelabs.com/openal/Downloads/openal-$VERSION.tar.bz2
+  homepage http://connect.creativelabs.com/openal/default.aspx
+      vurl http://connect.creativelabs.com/openal/Downloads/Forms/AllItems.aspx
+#   source http://openal.org/openal_webstf/downloads/openal-$VERSION.tar.gz
+# homepage http://www.openal.org
+#     opts --enable-static=no
+      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+      opts -DEXAMPLES:BOOL=OFF
+      opts -DDSOUND:BOOL=OFF
+      opts -DWINMM:BOOL=OFF
+  estimate 100
       desc 'openal is a cross-platform audio library.
 openal is a joint effort to create an open, vendor-neutral,
 cross-platform API for interactive, primarily spatialized audio.
@@ -19,6 +32,15 @@ and desktop users that rely on portable standards like
 OpenGL for games and other multimedia applications.'
 
 build(){
+ mkdir build     &&
+ cd    build     &&
+ cmake $OPTS ..  &&
+ make            &&
+ prepare_install &&
+ make    install
+}
+
+build_old(){
  case $VERSION in
   0.0.8) sed -i "s:@requirements@::" admin/pkgconfig/openal.pc.in
          patch -p1 < $SCRIPT_DIR/openal-0.0.8.patch ;;
