@@ -1,6 +1,6 @@
-    stable photon-20080923-3 photon-20080922-0 photon-20080920-3 photon-20080919-0 photon-20080916-1 photon-20080915-0 photon-20080911-1 photon-20080910-0 photon-20080908-1 photon-20080904-3 photon-20080826-0 photon-20080825-2 photon-20080824-0 photon-20080823-4
+    stable photon-20080924-0 photon-20080923-3 photon-20080922-0 photon-20080920-3 photon-20080919-0 photon-20080916-1 photon-20080915-0 photon-20080911-1 photon-20080910-0 photon-20080908-1 photon-20080904-3 photon-20080826-0 photon-20080825-2 photon-20080824-0
 [[ -z $VERSION ]] &&
- VERSION=( photon-20080923-3 )
+ VERSION=( photon-20080924-0 )
        url http://sorcerer.silverice.org/download/sorcery/
        URL=http://sorcerer.silverice.org/download/sorcery/
     source sorcery-$VERSION.tar.bz2
@@ -158,6 +158,13 @@ post_install(){
   move activity dispel.gz estimate event fail history.gz leech resume snap snap.gz
  }
 
+ difuse_old_elf(){
+  case $HOSTTYPE in
+   x86_64) LC_ALL=C grep -lx "/lib64/libc.so.6" $ELF_LOGS | xargs -r --max-lines=256 sed -i '\,/lib64/libc.so.6,d' ;;
+        *) LC_ALL=C grep -lx   "/lib/libc.so.6" $ELF_LOGS | xargs -r --max-lines=256 sed -i   '\,/lib/libc.so.6,d' ;;
+  esac
+ }
+
  [[ -d  /lib.old/modules ]] &&
  rm -fr /lib.old
 
@@ -166,6 +173,7 @@ post_install(){
 
 
  #missing_init_script
+ difuse_old_elf
  move_ldd_logs
  discard_old_index
  make_progress

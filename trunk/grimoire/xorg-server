@@ -1,12 +1,20 @@
-    stable 1.4 X11R7.2-1.2.0
-  unstable 1.5.0 1.4.99.906 1.4.99.902 1.4.2 1.4
-  MVERSION=7.0.1
+# May require inputproto since it
+# Requested 'inputproto >= 1.4.4' ...
+
+    stable 1.5.1 1.4 X11R7.2-1.2.0
+  unstable 1.5.1 1.5.0 1.4.99.906 1.4.99.902 1.4.2 1.4
+  MVERSION=7.2
+# MVERSION=7.0.1
+   require MesaLib bigreqsproto compositeproto evieext hal libXfont libxkbfile pixman randrproto recordproto renderproto resourceproto scrnsaverproto trapproto videoproto xcmiscproto xf86dgaproto xf86driproto xf86miscproto xineramaproto xinit xterm
+   require inputproto libpciaccess
   category xorg/app
  attribute X11R7 x11
        url $XORG_URL
     source xserver/xorg-server-$VERSION.tar.bz2
        url $SOURCEFORGE_URL
     source mesa3d/MesaLib-$MVERSION.tar.bz2
+  estimate 5000
+      desc 'X11 server'
 
 case $VERSION in
  1.4)#source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-multiple-overflows.diff
@@ -19,11 +27,16 @@ case $VERSION in
       secure 1.4 ;;
 esac
 
-   require MesaLib bigreqsproto compositeproto evieext hal libXfont libxkbfile pixman randrproto recordproto renderproto resourceproto scrnsaverproto trapproto videoproto xcmiscproto xf86dgaproto xf86driproto xf86miscproto xineramaproto xinit xterm
-  estimate 7000
-      desc 'X11 server'
-
 build(){
+
+ adjust_xorg_conf(){
+   if   [[ -f         /etc/X11/xorg.conf ]] &&
+        sed 's:#.*::' /etc/X11/xorg.conf |
+        LC_ALL=C grep -q   RgbPath
+   then sed -i 's:RgbPath:#RgbPath:' /etc/X11/xorg.conf
+   fi
+ }
+
  case $HOSTTYPE in
   x86_64) opts  --with-dri-driver-path=/usr/lib64/dri; LDFLAGS+=' -ldl' ;;
        *) opts  --with-dri-driver-path=/usr/lib/dri ;;
@@ -42,6 +55,7 @@ build(){
  esac
 
  default_build
+ adjust_xorg_conf
 }
 
 
