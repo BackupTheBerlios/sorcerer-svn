@@ -30,83 +30,86 @@ test_dns() {
   fi
 }
 
-verify_connection()  {
-  carrier()  {
-    local  REPLY
-    read < /sys/class/net/$INTERFACE/carrier 2>/dev/null
-    (( REPLY == 1 ))
-  }
+verify_connection(){
+ carrier(){
+  local  REPLY
+  [[ -f  /sys/class/net/$INTERFACE/carrier ]] &&
+  read < /sys/class/net/$INTERFACE/carrier    &&
+  (( REPLY == 1 ))
+ }
 
-  local     TIMEOUT=$SECONDS
-         (( TIMEOUT += 10 ))
-  while  (( TIMEOUT > SECONDS ))  &&
-         !  carrier
-  do     sleep 0.1
-  done
+ local    TIMEOUT=$SECONDS
+       (( TIMEOUT += 10 ))
+ while (( TIMEOUT > SECONDS )) &&
+       ! carrier
+ do    sleep 0.1
+ done
 
-  carrier              &&
-  restore_resolv_conf
+ carrier &&
+ restore_resolv_conf
 #  &&
 #  test_dns
 ## namp is not available from the initramfs
 }
 
-start()  {
-  [  -n  "$MODULE"  ]  &&  modprobe  "$MODULE"
+start(){
+ if ! [[ -d /opt ]]; then return 1; fi
+ if ! touch /etc/resolv.conf 2>/dev/null; then return 1; fi
+
+ [[ -n $MODULE ]] && modprobe "$MODULE"
   
-  if [[ "$WPA_SUP" == "yes" ]]; then 
-     # Start wpa_supplicant and let it manage wifi configuration
-     [  -n "$WPA_CONF" ] 	\
-	&&  /sbin/wpa_supplicant  -i${INTERFACE} -Dwext -c${WPA_CONF} -B	\
-	||  /sbin/wpa_supplicant  -i${INTERFACE} -Dwext -B
+ # Start wpa_supplicant and let it manage wifi configuration
+ if [[ $WPA_SUP == yes ]]; then 
+  [[ -n $WPA_CONF ]] &&
+  /sbin/wpa_supplicant -i${INTERFACE} -Dwext -c$WPA_CONF -B ||
+  /sbin/wpa_supplicant -i${INTERFACE} -Dwext -B
 	
-     # Make sure wpa_cli is not running
-     PID=/var/run/wpa_cli.${INTERFACE}
-     [ -f $PID ]  &&  kill $( cat $PID )
+  # Make sure wpa_cli is not running
+  PID=/var/run/wpa_cli.${INTERFACE}
+  [[ -f $PID ]] && kill $(< $PID )
      
-     # Monitor connection status and run network (IP) configuration
-     # script when wireless connection is established 
-     # Wait until wpa_supplicant is running:
-     for (( i=0; i<10; i++ ))
-     do
-	[ -S /var/run/wpa_supplicant/${INTERFACE} ]	&&
-		break					||
-		sleep 1
-	echo -n "."
-     done
-     # Run wpa control interface in daemon mode executing the 
-     # action file (-a <file>) that will perform actions on 
-     # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
-     # The script should, for example call dhcpcd on 'CONNECT'
-     /sbin/wpa_cli -a /usr/local/sbin/wifi_autoconf.sh -i $INTERFACE -B -P "$PID"
-  else
+  # Monitor connection status and run network (IP) configuration
+  # script when wireless connection is established 
+  # Wait until wpa_supplicant is running:
+  for (( i=0; i<10; i++ )); do
+   [ -S /var/run/wpa_supplicant/${INTERFACE} ] && break
+   sleep 0.25
+   echo -n .
+  done
+
+  # Run wpa control interface in daemon mode executing the 
+  # action file (-a <file>) that will perform actions on 
+  # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
+  # The script should, for example call dhcpcd on 'CONNECT'
+  /sbin/wpa_cli -a /usr/local/sbin/wifi_autoconf.sh -i $INTERFACE -B -P "$PID"
+ else
   # Use iwconfig
-                              iwconfig  $INTERFACE mode  "$MODE" 
-     [  -n  "$KEY"     ]  &&  iwconfig  $INTERFACE key   "$KEY"	\
-                          ||  iwconfig  $INTERFACE key   off
-     [  -n  "$ESSID"   ]  &&  iwconfig  $INTERFACE essid "$ESSID"	\
-                          ||  iwconfig  $INTERFACE essid any
-     [  -n  "$AP"      ]  &&  iwconfig  $INTERFACE ap    "$AP"	\
-                          ||  iwconfig  $INTERFACE ap    off
+                     iwconfig $INTERFACE mode  "$MODE" 
+  [[ -n $KEY   ]] && iwconfig $INTERFACE key   "$KEY" \
+                  || iwconfig $INTERFACE key   off
+  [[ -n $ESSID ]] && iwconfig $INTERFACE essid "$ESSID" \
+                  || iwconfig $INTERFACE essid any
+  [[ -n $AP    ]] && iwconfig $INTERFACE ap    "$AP" \
+                  || iwconfig $INTERFACE ap    off
 
-     sleep 1
+  sleep 1
 
-     [  -x  /sbin/dhcpcd   ]  &&  
-            /sbin/dhcpcd   $DHCP_OPTS  $INTERFACE
-  fi
+  [[ -x /sbin/dhcpcd ]] &&  
+        /sbin/dhcpcd $DHCP_OPTS $INTERFACE
+ fi
 
-  verify_connection
+ verify_connection
 }
 
-stop()  {
-               PIDF=/var/run/dhclient.pid ;  [  -f  $PIDF  ]  ||
-               PIDF=/var/run/dhcpcd-$INTERFACE.pid
-  [    -f     $PIDF  ]  	&&
-  kill -s 15  $(< $PIDF )	&&
-  rm   -f     $PIDF		
+stop(){
+             PIDF=/var/run/dhclient.pid; [[ -f $PIDF ]] ||
+             PIDF=/var/run/dhcpcd-$INTERFACE.pid
+ [[   -f    $PIDF ]] &&
+ kill -s 15 $(< $PIDF ) &&
+ rm   -f    $PIDF		
 
-  ifconfig    $INTERFACE  down
-  /sbin/wpa_cli -i $INTERFACE terminate 2>/dev/null
+ ifconfig $INTERFACE down
+ /sbin/wpa_cli -i $INTERFACE terminate 2>/dev/null
 }
 
 $1
