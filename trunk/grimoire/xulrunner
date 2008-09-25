@@ -2,7 +2,7 @@
 #   require gss gtk+ heimdal libIDL libmng startup-notification zip
 #  optional gnome-vfs  '' --disable-gnomevfs for gnomevfs support
 #  optional libgnomeui '' --disable-gnomeui  for libgnomeui support
-#   require jdk
+   require gtk+ jdk
   category network/web
  attribute client x11
     source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION-source.tar.bz2
@@ -24,11 +24,11 @@
            #--enable-cpp-rtti
 #            'jdk:::for building the javaXPCOM components' )
 # compilation with javaXPCOM component support is not working
-  estimate 94000
+  estimate 100900
       desc 'xulrunner'
 
 build(){
-#export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+ export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
 
  ./configure          \
  --build=$BUILD       \
@@ -40,9 +40,6 @@ build(){
  make                 &&
  prepare_install      &&
  make    install
-#      &&
-# rm -fr                   /usr/lib/mozilla &&
-# ln -fs  firefox-$VERSION /usr/lib/mozilla
 }
 
 
@@ -211,13 +208,4 @@ xargs --max-lines=64 sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSIO
  install_symlinks             &&
  fix_config                   &&
  install_security
-}
-
-post_install(){
- default_post_install
- RECAST="$( show_installed seamonkey-plugin )"
- if   [ -n "$RECAST" ]
- then echo "$RECAST" | pipe_queue "$CAST_QUEUE" com
- fi
- true
 }
