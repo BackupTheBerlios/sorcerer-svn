@@ -1,35 +1,46 @@
-# Template for ethernet statically configured network connection.
+# Statically configured Ethernet
 
+# Required in the format ip/netmask (ex 192.168.0.1/24 )
+# One or more IPv4 and/or IPv6         addresses are fine
+# One or more IPv4 and/or IPv6 gateway addresses are fine
+
+IP=( 192.168.1.55/32
+     192.168.1.62/32
+     192.168.1.153/32 )
+
+GATEWAY=( )			# Recommended
 INTERFACE=eth0			# Required
-IP=				# Required in the format ip/netmask (ex 192.168.0.1/24 
-GATEWAY=			# Good idea
 BROADCAST=			# Optional
 MODULE=				# Optional
-IPV6=				# Optional
-IPV6_GATEWAY=			# Optional
 
-start()  {
+. /etc/networks.d/functions/functions
 
-  [  -n  "$MODULE"     ] && modprobe  "$MODULE"
+start(){
+ local AD CMD GW I
 
-  IP_CMD="ip addr add $IP"
-  [  -n  "$BROADCAST"  ] && IP_CMD+=" broadcast $BROADCAST"
-  IP_CMD+=" dev $INTERFACE"
+ for I in ${!IP[@]}; do
+  AD=$(IP[$I]}
+  CMD=ip
+  if v6 "$AD"; then CMD+=' -6'; fi
 
-  $IP_CMD
+  CMD+=" addr add $AD dev $INTERFACE label $INTERFACE:$I"
+  [[ -n $BROADCAST ]] && CMD+=" broadcast $BROADCAST"
+  $CMD
+ done
 
-  [ -n "$IPV6"         ] && ip -6 addr add $IPV6 dev $INTERFACE
+ ip link set $INTERFACE up
 
-  ip link set $INTERFACE  up
-
-  [ -n      "$GATEWAY" ] && ip    route add to default via      $GATEWAY || :
-  [ -n "$IPV6_GATEWAY" ] && ip -6 route add to default via $IPV6_GATEWAY || :
-  
+ for GW in ${GATEWAY[@]}; do
+  if   v6 "$GW"
+  then ip -6 route add to default via $GATEWAY
+  else ip    route add to default via $GATEWAY
+  fi
+ done
 }
 
-stop()  {  
-  ip link set   $INTERFACE  down  &&
-  ip addr flush $INTERFACE
+stop(){
+ ip link set   $INTERFACE down
+ ip addr flush $INTERFACE
 }
 
 $1

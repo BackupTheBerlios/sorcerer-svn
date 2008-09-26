@@ -1,0 +1,72 @@
+# Functions for use from network configuratio ntemplates.
+# For use with the distribution Sorcerer only!
+# Copyright Kyle Sallee 2008.
+# All rights reserved.
+
+[[ -n $MODULE ]] && modprobe $MODULE
+
+carrier(){
+ local  REPLY
+ [[ -f  /sys/class/net/$1/carrier ]] &&
+ read < /sys/class/net/$1/carrier    &&
+ (( REPLY == 1 ))
+}
+
+wait_carrier(){
+ declare -i TIMEOUT
+ 
+ if   [[ -n $2 ]]
+ then (( TIMEOUT = SECONDS + $1 ))
+ else (( TIMEOUT = SECONDS + 10 ))
+ fi
+ while (( TIMEOUT > SECONDS )) && ! carrier ${1-$INTERFACE}; do sleep 0.1; done
+ carrier
+}
+
+test_dns(){
+ if ! which nmap 2>/dev/null; then return 2; fi
+ local NS=$( sed -n 's/nameserver//p' /etc/resolv.conf | head -n 1 )
+ if [[ -z $NS ]]; then return 1; fi
+ nmap -n -p 53 $NS | grep -q 'open.*domain'
+}
+
+from_root(){ [[ -d /opt ]] && touch /etc/resolv.conf 2>/dev/null; }
+
+start_dhcp(){
+ if ! from_root; then return 1; fi
+
+ local     WHERE=${1:-$INTERFACE}
+ if [[ -z $WHERE ]]; then return 1; fi
+ shift 1
+
+   if which dhclient 2>/dev/null; then dhclient "$@" $WHERE
+ elif which dhcpcd   2>/dev/null; then dhcpcd   "$@" $WHERE
+ else return 1
+   fi
+
+ wait_carrier $WHERE
+}
+
+start_ppp(){
+   if ! from_root; then return 1; fi
+   if which pppoe-start 2>/dev/null; then pppoe-start "$@"
+ elif which wvdial      2>/dev/null; then wvdial      "$@" &
+ elif which dial2net    2>/dev/null; then dial2net -a "$@" &
+ else return 1
+   fi
+}
+
+stop_dhcp(){
+ killpid(){ if [[ -f $1 ]]; then kill -p $(< $1 ) -s 15; rm -f $1; fi; }
+
+ killpid /var/run/dhclient.pid
+ killpid /var/run/dhcpcd-${1:-$INTERFACE}.pid
+}
+
+stop_ppp(){
+ if which pppoe-stop; then /usr/sbin/pppoe-stop; fi
+ if which wvdial    ; then pkill -15 "^wvdial$"; fi 2>/dev/null
+ if which dial2net  ; then dial2net -d; fi
+}
+
+v6(){ [[ $1 =~ : ]]; }
