@@ -7,8 +7,8 @@
 
 carrier(){
  local  REPLY
- [[ -f  /sys/class/net/$1/carrier ]] &&
- read < /sys/class/net/$1/carrier    &&
+ [[ -f  /sys/class/net/$IF/carrier ]] &&
+ read < /sys/class/net/$IF/carrier    &&
  (( REPLY == 1 ))
 }
 
@@ -19,7 +19,7 @@ wait_carrier(){
  then (( TIMEOUT = SECONDS + $1 ))
  else (( TIMEOUT = SECONDS + 10 ))
  fi
- while (( TIMEOUT > SECONDS )) && ! carrier ${1-$INTERFACE}; do sleep 0.1; done
+ while (( TIMEOUT > SECONDS )) && ! carrier; do sleep 0.1; done
  carrier
 }
 
@@ -33,18 +33,13 @@ test_dns(){
 from_root(){ [[ -d /opt ]] && touch /etc/resolv.conf 2>/dev/null; }
 
 start_dhcp(){
- if ! from_root; then return 1; fi
-
- local     WHERE=${1:-$INTERFACE}
- if [[ -z $WHERE ]]; then return 1; fi
- shift 1
-
-   if which dhclient 2>/dev/null; then dhclient "$@" $WHERE
- elif which dhcpcd   2>/dev/null; then dhcpcd   "$@" $WHERE
+   if ! from_root; then return 1; fi
+   if which dhclient 2>/dev/null; then dhclient "$@" $IF
+ elif which dhcpcd   2>/dev/null; then dhcpcd   "$@" $IF
  else return 1
    fi
 
- wait_carrier $WHERE
+ wait_carrier
 }
 
 start_ppp(){
@@ -95,11 +90,11 @@ start_wpa(){
  declare -i PID
  declare -i WAIT
 
- /sbin/wpa_supplicant -i${IF} -Dwext -c$WPA_CONF -B ||
- /sbin/wpa_supplicant -i${IF} -Dwext -B
+ /sbin/wpa_supplicant -i$IF -Dwext -c$WPA_CONF -B ||
+ /sbin/wpa_supplicant -i$IF -Dwext -B
 
  # Make sure wpa_cli is not running
- PID=/var/run/wpa_cli.${IF}
+ PID=/var/run/wpa_cli.$IF
  [[ -f $PID ]] && kill $(< $PID )
 
  # Monitor connection status and run network (IP) configuration
@@ -108,7 +103,7 @@ start_wpa(){
 
  ((       WAIT = SECONDS + 10 ))
  while (( WAIT > SECONDS      )); do
-  [ -S /var/run/wpa_supplicant/${INTERFACE} ] && break
+  [ -S /var/run/wpa_supplicant/$IF ] && break
   echo -n .
   sleep 0.25
  done
@@ -134,7 +129,7 @@ stop_dhcp(){
  killpid(){ if [[ -f $1 ]]; then kill -p $(< $1 ) -s 15; rm -f $1; fi; }
 
  killpid /var/run/dhclient.pid
- killpid /var/run/dhcpcd-${1:-$INTERFACE}.pid
+ killpid /var/run/dhcpcd-$IF.pid
 }
 
 
@@ -146,18 +141,18 @@ stop_ppp(){
 
 
 start_smart(){
- if [[ -z $INTERFACE ]]; then start_ppp; return; fi
- if [[ -n $MODE      ]]; then start_wireless; fi
- if [[ -n $WPA_CONF  ]]; then start_wpa; return; fi
- if [[ -n $IPA       ]]; then start_static
-                         else start_dynamic; fi
+ if [[ -z $IF       ]]; then start_ppp; return; fi
+ if [[ -n $MODE     ]]; then start_wireless; fi
+ if [[ -n $WPA_CONF ]]; then start_wpa; return; fi
+ if [[ -n $IPA      ]]; then start_static
+                        else start_dynamic; fi
 }
 
 stop_smart(){
- if [[ -z $INTERFACE ]]; then stop_ppp; return; fi
- if [[ -n $WPA_CONF  ]]; then stop_wpa; return; fi
- if [[ -n $IPA       ]]; then stop_static
-                         else stop_dynamic; fi
+ if [[ -z $IF       ]]; then stop_ppp; return; fi
+ if [[ -n $WPA_CONF ]]; then stop_wpa; return; fi
+ if [[ -n $IPA      ]]; then stop_static
+                        else stop_dynamic; fi
 }
 
 start(){ start_smart; }
