@@ -1,4 +1,4 @@
-# Functions for use from network configuratio ntemplates.
+# Functions for use from network configuration templates.
 # For use with the distribution Sorcerer only!
 # Copyright Kyle Sallee 2008.
 # All rights reserved.
@@ -56,6 +56,80 @@ start_ppp(){
    fi
 }
 
+v6(){ [[ $1 =~ : ]]; }
+
+start_static(){
+ local AD CMD GW I
+
+ for I in ${!IPA[@]}; do
+  AD=${IPA[$I]}
+  CMD=ip
+  if v6 "$AD"; then CMD+=' -6'; fi
+
+  CMD+=" addr add $AD dev $IF label $IF:$I"
+  [[ -n $BROADCAST ]] && CMD+=" broadcast $BROADCAST"
+  $CMD
+ done
+
+ ip link set $IF up
+
+ for GW in ${GATEWAY[@]}; do
+  if   v6 "$GW"
+  then ip -6 route add to default via $GATEWAY
+  else ip    route add to default via $GATEWAY
+  fi
+ done
+}
+
+start_wlan(){
+ local IWI="iwconfig $IF"
+ [[ -n $MODE  ]] && $IWI mode    "$MODE"
+ [[ -n $KEY   ]] && $IWI key     "$KEY"   || $IWI key   off
+ [[ -n $ESSID ]] && $IWI essid   "$ESSID" || $IWI essid any
+ [[ -n $AP    ]] && $IWI ap      "$AP"    || $IWI ap    off
+ [[ -n $IPA   ]] && start_static "$IF"    || start_dhcp $IF
+}
+
+
+start_wpa(){
+ declare -i PID
+ declare -i WAIT
+
+ /sbin/wpa_supplicant -i${IF} -Dwext -c$WPA_CONF -B ||
+ /sbin/wpa_supplicant -i${IF} -Dwext -B
+
+ # Make sure wpa_cli is not running
+ PID=/var/run/wpa_cli.${IF}
+ [[ -f $PID ]] && kill $(< $PID )
+
+ # Monitor connection status and run network (IP) configuration
+ # script when wireless connection is established
+ # Wait until wpa_supplicant is running:
+
+ ((       WAIT = SECONDS + 10 ))
+ while (( WAIT > SECONDS      )); do
+  [ -S /var/run/wpa_supplicant/${INTERFACE} ] && break
+  echo -n .
+  sleep 0.25
+ done
+
+ # Run wpa control interface in daemon mode executing the
+ # action file (-a <file>) that will perform actions on
+ # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
+ # The script should, for example call dhcpcd on 'CONNECT'
+ /sbin/wpa_cli -a $WPA_ACTION -i $IF -B -P "$PID"
+}
+
+stop_if(){
+ ip link set   $IF down
+ ip addr flush $IF
+}
+
+  stop_wlan(){ stop_if; }
+stop_static(){ stop_if; }
+   stop_wpa(){ stop_if; /sbin/wpa_cli -i $IF terminate 2>/dev/null; }
+
+
 stop_dhcp(){
  killpid(){ if [[ -f $1 ]]; then kill -p $(< $1 ) -s 15; rm -f $1; fi; }
 
@@ -63,10 +137,28 @@ stop_dhcp(){
  killpid /var/run/dhcpcd-${1:-$INTERFACE}.pid
 }
 
+
 stop_ppp(){
  if which pppoe-stop; then /usr/sbin/pppoe-stop; fi
  if which wvdial    ; then pkill -15 "^wvdial$"; fi 2>/dev/null
  if which dial2net  ; then dial2net -d; fi
 }
 
-v6(){ [[ $1 =~ : ]]; }
+
+start_smart(){
+ if [[ -z $INTERFACE ]]; then start_ppp; return; fi
+ if [[ -n $MODE      ]]; then start_wireless; fi
+ if [[ -n $WPA_CONF  ]]; then start_wpa; return; fi
+ if [[ -n $IPA       ]]; then start_static
+                         else start_dynamic; fi
+}
+
+stop_smart(){
+ if [[ -z $INTERFACE ]]; then stop_ppp; return; fi
+ if [[ -n $WPA_CONF  ]]; then stop_wpa; return; fi
+ if [[ -n $IPA       ]]; then stop_static
+                         else stop_dynamic; fi
+}
+
+start(){ start_smart; }
+ stop(){  stop_smart; }

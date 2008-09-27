@@ -1,59 +1,53 @@
-This directory holds templates for network configurations.
+1. Concept
 
-=======================IMPORTANT==============================
-sorcerer network configuration is devided into 2 concepts :
--  the concept of links : a link is a physical link that is part of a 
-   network (ethernet, ppp, pppoe, wlan....)
-- the concept of network that is an agregation of links ran into proper order
+Sorcerer network configuration is devided into 2 concepts:
+A. Links:
+    a link may be an interface or physical link
+    that is part of a network: ethernet, ppp, pppoe, wlan, ....
+B. Networks:
+    a network is an agregation of links
 
-for example a home network might require ethernet then pppoe then ipv6tunnel links
-to be started in that order 
+For example, a home network could require ethernet 
+then PPPOE then ipv6tunnel links to be started in that order 
 
-for this a network template is provided in /etc/networks.d/templates and links
-templates are found in /etc/networks.d/templates/links
-
-======================INSTALLATION=============================
-copy a network template to /etc/networks.d/ with a name best describing
-the network
-
-copy the associated links to /etc/networks.d/links with appropriate names
-you find templates into /etc/networks.d/templates/links
-
-note1 : if your network has only one link you can copy the link directly into
-       /etc/networks.d/
-
-note2 : if you have several networks, copy several network templates (note1
-        still apply) into /etc/networks.d/, each network will be brougth 
-        up in alphabetical order until first success (see section misc info)
+Network templates are provided in /etc/networks.d/templates/
+Link    templates are provided in /etc/networks.d/templates/links/
 
 
-=====================configuration============================
-take your favorite editor
+2. Installation
 
-if you used single link method of note1 then simply edit this files
+Copy the network template file
+/etc/networks.d/templates/neworks to /etc/networks.d/
+Rename it to describe the network.
+Then, edit it to properly start and stop the network.
 
-if you used multilink method :
-     -  edit the network template to have it launch the links in the
-        order you need (see note3)
-     -  edit and configure each link that you copied into /etc/networks.d/links
+Copy the associated links template to /etc/networks.d/links/
+Rename it to describe the interface and configuration.
+Edit it to properly define required variables while
+commenting out unused variables.
 
-if you used multiple network of note2 : redo previous step for each networks
+When the only network has only one link
+then the link template can be copied directly into: /etc/networks.d/
+instead of the network template.
 
-note3 : if you look into start function of network template you will see
-        commented lines with eth-static and pppoe. Modify thoses lines 
-        according to the links you need to bring on for this network. You 
-        might also see that pppoe will only be brought up if eth-static 
-        has successfully started (the && at end of line means continue on
-        success)
+When there are several networks
+each network template in /etc/networks.d/
+will be started in alphabetical order until the first success.
 
-======================starting================================
+
+3. Starting and Stopping
+
 # bash /etc/init.d/networks start
+# bash /etc/init.d/networks stop
 
 
-=========================misc info===========================
-A box can be configured for more than one network.
-The order in which network connections are attempted during
-the execution of /etc/init.d/networks start
+4. Additional Information
+
+By using more than one network templates
+a box can be configured to connect to more than one network.
+
+The order in which network connections are attempted
+during the execution of /etc/init.d/networks start
 is determined by the order of the filenames in /etc/networks.d/
 For example if the files are named:
 
@@ -63,24 +57,3 @@ For example if the files are named:
 Upon bash /etc/init.d/networks start
 00-work would be attempted first and if unsuccessful
 01-home would be attempted.
-
------------------------------------------------------------
-	Notes about DNS and resolver configuration files.
-
-Optionally, each network connections can have their own /etc/resolv.conf
-The naming of that file follows this pattern.
-the /etc/resolv.conf is a link to /var/run/resolv.conf
-
-Network config file	->	resolv.conf name
-00-work             ->	/etc/resolv.conf.00-work
-01-home             ->	/etc/resolv.conf.01-home
-
-If the /etc/resolv.conf.$network_config exists
-then it is copied to /var/run/resolv.conf
-when attempting to connect to that network
-
-Rarely, will this be used.
-If the same resolver configuration can be used for all networks
-then edit /etc/resolv.conf instead.
-When a network interface is configured by DHCP
-then /etc/resolv.conf is usually automatically modified.
