@@ -1,7 +1,4 @@
-# In uim 1.4.1 there might be a kde-applet, but for kde 3.x?
-#             ':--enable-kde-applet::for kde panel applet'
-
-    stable 1.5.1
+    stable 1.5.3 1.5.1
   optional Canna       --with-canna ''               for canna Japanese input system
   optional anthy       ''           --without-anthy  for anthy Japanese input system
   optional gnome-panel ''           --disable-applet for gnome applet indicator
@@ -13,8 +10,24 @@
  attribute console library x11
     source http://uim.googlecode.com/files/uim-$VERSION.tar.bz2
   homepage http://uim.freedesktop.org/wiki/
+      vurl http://code.google.com/p/uim/
       opts --enable-dict --enable-static=no
   estimate 2400
       desc 'uim is a multilingual input method library.
 The project goal is to provide a flexible
 development platform and useful user environment for input methods.'
+
+build(){
+ extra_install(){
+  ldconfig
+  if   [[ -x /usr/bin/gtk-query-immodules-2.0 ]]
+  then                gtk-query-immodules-2.0 > /etc/gtk-2.0/gtk.immodules
+  fi
+  mkdir   -p                      /etc/bash.d/noninteractive
+  install -m 755 $SCRIPT_DIR/uim  /etc/bash.d/noninteractive
+ }
+
+ default_build &&
+   extra_install
+}
+
