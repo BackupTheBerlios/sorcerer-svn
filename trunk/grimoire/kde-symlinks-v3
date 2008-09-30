@@ -1,40 +1,36 @@
-    stable 3.5.9
+    stable 3.5.10
   category administration
  attribute kde3 archive_off solo
       desc 'Redirects kde configuration files into /etc'
 
 build(){
  move(){
-  [ -h $2 ] && rm -f $2
-  [ -f $2 ] && rm -f $2;       mkdir -p $2
-  [ -h $1 ] && rm -f $1 && return
-  [ -d $1 ] && cp -av $1/* $2; rm   -fr $1
+  [[ -h $2 ]] && rm -f $2
+  [[ -f $2 ]] && rm -f $2;       mkdir -p $2
+  [[ -h $1 ]] && rm -f $1 && return
+  [[ -d $1 ]] && cp -av $1/* $2; rm   -fr $1
  }
 
  link(){ mkdir -p $2; ln -sv $2 $1; }
 
+ [[ -h /opt/kde3/lib/pkgconig   ]] && rm -f /opt/kde3/lib/pkgconfig
+ [[ -h /opt/kde3/lib64/pkgconig ]] && rm -f /opt/kde3/lib64/pkgconfig
+
  move /opt/kde3/share/config      /etc/kde3.config
  move /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
  move /opt/kde3/etc               /etc
- [ $HOSTTYPE == x86_64 ] &&
- move /opt/kde3/lib64/pkgconfig   /usr/lib64/pkgconfig
- move /opt/kde3/lib/pkgconfig     /usr/lib/pkgconfig
  prepare_install
  mkdir -p /opt/kde3/{share,lib,lib64}
  link /opt/kde3/share/config      /etc/kde3.config
  link /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
  link /opt/kde3/etc               /etc
- [ $HOSTTYPE == x86_64 ] &&
- link /opt/kde3/lib64/pkgconfig   /usr/lib64/pkgconfig
- link /opt/kde3/lib/pkgconfig     /usr/lib/pkgconfig
 }
 
 current(){
  find /var/tmp -maxdepth 0 -perm 1777 | grep -q . || chmod 1777 /var/tmp
- [ -h /opt/kde3/etc ] &&
- [ -h /opt/kde3/lib/pkgconfig ] &&
- [ -h /opt/kde3/share/config ] &&
- [ -h /opt/kde3/share/config.kcfg ] &&
- [ -d /etc/kde3.config ] &&
- [ -d /etc/kde3.config.kcfg ]
+ [[ -h /opt/kde3/etc ]] &&
+ [[ -h /opt/kde3/share/config ]] &&
+ [[ -h /opt/kde3/share/config.kcfg ]] &&
+ [[ -d /etc/kde3.config ]] &&
+ [[ -d /etc/kde3.config.kcfg ]]
 }
