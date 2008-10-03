@@ -1,13 +1,28 @@
-# gegl 0.0.16 requires babl which is only available from svn repository
-# checking for BABL... configure: error: Package requirements (babl >= 0.0.22) were not met:
+# ff-load.c:30:29: error: ffmpeg/avformat.h: No such file or directory
+# Why does it not look in the expected places?
+# /usr/include/libavformat/avformat.h
+
+# ff-load.c: In function ‘prepare’:
+# ff-load.c:281: error: ‘AVCodecContext’ has no member named ‘error_resilience’
+
+#  gegl requires unknown version of ffmpeg?
 
     stable 0.0.18 0.0.16 0.0.14 0.0.12
+   require babl ffmpeg librsvg openexr
   category graphic/library
  attribute library x11
- attribute broke
- attribute incomplete
+#attribute broke
     source ftp://ftp.gimp.org/pub/gegl/${VERSION:0:3}/gegl-$VERSION.tar.bz2
   homepage http://gegl.org/
-  estimate 1000
+  estimate 3000
       desc 'gegl provides a generic graphics library
 gegl provides a framework for graph based image processing.'
+
+build(){
+ case $VERSION in
+  0.0.18) sed -i 's:ffmpeg/avformat.h:libavformat/avformat.h:' \
+              operations/workshop/external/ff-save.c \
+              operations/external/ff-load.c ;;
+ esac
+ default_build
+}
