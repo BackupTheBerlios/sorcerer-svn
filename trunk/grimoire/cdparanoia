@@ -16,8 +16,32 @@ have been damaged in some way.'
 
 
 build(){
+ fix_cdda_interface(){
+  sed -i '1i#include <scsi/sg.h>
+          1i#include <scsi/scsi.h>
+          1i#include <time.h>
+          1i#include <sys/time.h>
+          1i#include <linux/cdrom.h>
+          1istruct cdda_private_data {
+          1i  struct sg_header *sg_hd;
+          1i  unsigned char *sg_buffer; /* points into sg_hd */
+          1i  clockid_t clock;
+          1i  int last_milliseconds;
+          1i};' /usr/include/cdda_interface.h
+ }
+
 case $VERSION in
  III-alpha9.8) sed -i '\,default:,abreak;' interface/utils.h ;;
 esac
 default_build
-}
+# &&
+#case $VERSION in
+# III-10.2.src) fix_cdda_interface ;;
+#esac
+#}
+
+#current(){
+# case $VERSION in
+#  III-10.2.src) LC_ALL=C grep -q sg_header /usr/include/cdda_interface.h ;;
+# esac
+#}
