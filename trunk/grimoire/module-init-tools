@@ -2,16 +2,13 @@
 # 3.4 does not compile due to complications created by using
 # docbook2man from docbook2X and docbook2man does not work properly.
 
-    stable     3.2.2 3.2.1 3.1 3.0
-  unstable 3.4 3.2.2
-   require bison flex init-functions
+    stable 3.4.1 3.2.2 3.2.1 3.1 3.0
+  unstable 3.4.1 3.4 3.2.2
+   require bison flex init-functions zlib
   category kernel
  attribute console
        url $KERNEL_URL
-case $VERSION in
- 3.2*) source /pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2 ;;
- 3.4*) source /pub/linux/kernel/people/jcm/module-init-tools/module-init-tools-$VERSION.tar.gz ;;
-esac
+    source pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2
   homepage ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ
       opts --enable-zlib
 # Odd documentation building requirements for version 3.4
@@ -42,8 +39,8 @@ build(){
 conf_install(){
  touch     /etc/modprobe.conf
  mkdir  -p /etc/modules.d
- if ! [ -f /etc/modules    ]; then cp -av $SCRIPT_DIR/modules    /etc; fi
- if ! [ -f /etc/modules.rm ]; then cp -av $SCRIPT_DIR/modules.rm /etc; fi
+ if ! [[ -f /etc/modules    ]]; then cp -av $SCRIPT_DIR/modules    /etc; fi
+ if ! [[ -f /etc/modules.rm ]]; then cp -av $SCRIPT_DIR/modules.rm /etc; fi
 }
 
 wrap_install(){
@@ -54,6 +51,12 @@ wrap_install(){
 sed -i 's:-Wl,-Bdynamic::
         s:-Wl,-Bstatic:-L/lib -L/lib64:' configure{.in,}
 sed -i 's:insmod.static$(EXEEXT)::'      Makefile.in
+
+case $VERSION in
+ 3.4.1) sed -i 's:install-exec-am install-data-am:install-exec-am:
+                s:MAN5 =.*:MAN5 =:
+                s:MAN8 =.*:MAN8 =:' Makefile.in ;;
+esac
 
 ./configure          \
 --build=$BUILD       \
