@@ -1,9 +1,20 @@
+# cmake build for pcre 7.8 does not install libtool .la file for pcre
+# and installs pcre shared libraries without the dot digits following the so
+# Therefore, explicitly avoid using the cmake build for pcre 7.8
+
     stable 7.8 7.7 7.6
     secure 7.8 7.7
+   require cmake
   category development
  attribute library
     source ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VERSION.tar.bz2
-      opts --enable-unicode-properties --enable-static=no
+     opts --enable-unicode-properties --enable-static=no
+#      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+#      opts -DBUILD_SHARED_LIBS:BOOL=TRUE
+#      opts -DBUILD_STATIC_LIBS:BOOL=FALSE
+#      opts -DPCRE_SUPPORT_UNICODE_PROPERTIES=TRUE
+## Specifying the below opts avoids a bug in the pcre's cmake files in version 7.8
+#      opts -DNCURSES_LIBRARY:STRING=-lncurses
   homepage http://www.pcre.org/
   estimate 500
       desc 'pcre is the Perl compatible regular expression library.
@@ -12,14 +23,24 @@ using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
  mv_so_libs(){
-  for        file in /usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
-   if  [ -f $file ]; then
-    mv      $file ${file#/usr}
-    ln  -sf       ${file#/usr} $file
+  for         file in /usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
+   if  [[ -f $file ]]; then
+    mv       $file ${file#/usr}
+    ln  -sf        ${file#/usr} $file
    fi
   done
  }
 
- default_build &&
+#default_build &&
+ unset LD_PRELOAD
+ ./configure               \
+  --build=$BUILD           \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=${PREFIX:-/usr} \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
  mv_so_libs
 }
