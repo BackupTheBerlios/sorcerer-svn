@@ -5,7 +5,7 @@ if   [[ $HOSTTYPE == x86_64 ]]
 then attribute broke
 fi
 
-    stable 2.4.1_LinuxIntel_install_en-US
+    stable 3.0.0_LinuxIntel_install_en-US 2.4.1_LinuxIntel_install_en-US
     secure 2.4.1_LinuxIntel_install_en-US
    require desktop-file-utils gnome-vfs jdk unzip zip
   optional kdelibs-v3 '' '' for optional kde support
@@ -25,84 +25,84 @@ It can open M$ Office Documents.'
 
 build(){
 
-  install_rpms(){
-    cd  /
-    find  $BUILD_DIR/RPMS{,/desktop-integration/*freedesktop-menus*}  \
-          -maxdepth 1 -name \*.rpm |
-    while  read;  do
-      echo "---> Unpacking $REPLY"
-      rpmunpack < $REPLY  |  gzip -d  |  cpio -idm 
-    done
-    ln  -sf  /opt/openoffice.org${VERSION:0:3}  \
-             /etc/openoffice.org${VERSION:0:3}
+ install_rpms(){
+  mkdir install
+  cd    install
+  find $BUILD_DIR/RPMS{,/desktop-integration/*freedesktop-menus*} -maxdepth 1 -name \*.rpm |
+  while  read;  do
+   echo "---> Unpacking $REPLY"
+   rpmunpack < $REPLY  |  gzip -d  |  cpio -idm --no-absolute-filenames
+  done
 
-    case  $VERSION  in
-      2.2.1_LinuxIntel_install_en-US)  \
-        AGAIN=$BUILD_DIR/RPMS/openoffice.org-core04u-2.2.1-9161.i586.rpm
-        echo "---> Unpacking $AGAIN"
-        # rpmunpack misdetects gzip magic signature on 1st attempt.
-        # It can not be directly piped to rpmunpack, unknown why.
-        ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-        rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm  ;;
+  mkdir -p etc
+  ln -sf /opt/openoffice.org etc/openoffice.org
 
-      2.2.0_LinuxIntel_install_en-US)  \
-        AGAIN=$BUILD_DIR/RPMS/desktop-integration/openoffice.org-freedesktop-menus-2.2-9119.noarch.rpm
-        echo "---> Unpacking $AGAIN"
-        # rpmunpack misdetects gzip magic signature on 1st attempt.
-        # It can not be directly piped to rpmunpack, unknown why.
-        ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-        rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm  ;;
+  case $VERSION in
+   2.2.1_LinuxIntel_install_en-US) \
+    AGAIN=$BUILD_DIR/RPMS/openoffice.org-core04u-2.2.1-9161.i586.rpm
+    echo "---> Unpacking $AGAIN"
+    # rpmunpack misdetects gzip magic signature on 1st attempt.
+    # It can not be directly piped to rpmunpack, unknown why.
+    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
+    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
 
-      2.1.0_LinuxIntel_install_en-US)  \
-        AGAIN=$BUILD_DIR/RPMS/openoffice.org-core05u-2.1.0-6.i586.rpm
-        echo "---> Unpacking $AGAIN"
-        # rpmunpack misdetects gzip magic signature on 1st attempt.
-        # It can not be directly piped to rpmunpack, unknown why.
-        ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-        rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm  ;;
-    esac
-    cd  - 
+   2.2.0_LinuxIntel_install_en-US)  \
+    AGAIN=$BUILD_DIR/RPMS/desktop-integration/openoffice.org-freedesktop-menus-2.2-9119.noarch.rpm
+    echo "---> Unpacking $AGAIN"
+    # rpmunpack misdetects gzip magic signature on 1st attempt.
+    # It can not be directly piped to rpmunpack, unknown why.
+    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
+    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
 
-    chown  -R  root:root  /opt/openoffice.org${VERSION:0:3}
-    find                  /opt/openoffice.org${VERSION:0:3}  -type f  |  xargs  --max-lines=64  chmod o-w
-    find                  /opt/openoffice.org${VERSION:0:3}  -type d  |  xargs  --max-lines=64  chmod 0755
-  }
+   2.1.0_LinuxIntel_install_en-US)  \
+    AGAIN=$BUILD_DIR/RPMS/openoffice.org-core05u-2.1.0-6.i586.rpm
+    echo "---> Unpacking $AGAIN"
+    # rpmunpack misdetects gzip magic signature on 1st attempt.
+    # It can not be directly piped to rpmunpack, unknown why.
+    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
+    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
+  esac
 
-  add_mailcap()  {
-    sed  "s:^:application/:
-          s:$:; openoffice.org${VERSION:0:3} -view %s:"  \
-         $SCRIPT_DIR/mailcap  |
-    sort  -u  > /etc/mailcap.OOo-bin
-  }
+  chown -R root:root * 
+  find               * -type f | xargs --max-lines=64 chmod o-w
+  find               * -type d | xargs --max-lines=64 chmod 755
+  cp -av * /
+ }
 
-  [  -d  RPMS  ]   &&
-  prepare_install  &&
-  install_rpms     &&
-  add_mailcap
+ add_mailcap(){
+  sed "s:^:application/:
+       s:$:; openoffice.org -view %s:" $SCRIPT_DIR/mailcap |
+  sort -u > /etc/mailcap.OOo-bin
+ }
+
+ [[ -d RPMS ]]   &&
+ prepare_install &&
+ install_rpms    &&
+ add_mailcap
 }
 
 
-post_install()  {
-  default_post_install
-  gtk-update-icon-cache  -fqt  /usr/share/icons/{gnome,hicolor,locolor}
-  update-mime-database         /usr/share/mime
-  sed  "s/:\*\./ /"            /usr/share/mime/globs  >  /etc/mime.types
-  update-desktop-database  -q  /usr/share/applications
-  cat  /etc/mailcap.*  >       /etc/mailcap
+post_install(){
+ default_post_install
+ gtk-update-icon-cache -fqt /usr/share/icons/{gnome,hicolor,locolor}
+ update-mime-database       /usr/share/mime
+ sed "s/:\*\./ /"           /usr/share/mime/globs > /etc/mime.types
+ update-desktop-database -q /usr/share/applications
+ cat /etc/mailcap.* >       /etc/mailcap
 }
 
-pre_remove() {
-  if    [    -f  /etc/mailcap ]
-  then  sed  -i  "/openoffice.org/d" /etc/mailcap
-  fi
-  default_pre_remove
+pre_remove(){
+ if   [[  -f /etc/mailcap ]]
+ then sed -i /openoffice.org/d /etc/mailcap
+ fi
+ default_pre_remove
 }
 
-post_remove()  {
-  update-mime-database         /usr/share/mime
-  sed  "s/:\*\./ /"            /usr/share/mime/globs  >  /etc/mime.types
-  update-desktop-database  -q  /usr/share/applications
-  gtk-update-icon-cache  -fqt  /usr/share/icons/{gnome,hicolor,locolor}
-  # update-menus
-  default_post_remove
+post_remove(){
+ update-mime-database        /usr/share/mime
+ sed 's/:\*\./ /'            /usr/share/mime/globs > /etc/mime.types
+ update-desktop-database  -q /usr/share/applications
+ gtk-update-icon-cache  -fqt /usr/share/icons/{gnome,hicolor,locolor}
+ # update-menus
+ default_post_remove
 }
