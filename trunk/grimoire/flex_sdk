@@ -1,0 +1,31 @@
+    stable 3.0.3.2490_mpl
+   require jdk
+  category development/interpreter
+ attribute archive_off seamonkey-plugin x11 x86
+    source http://flexorg.wip3.adobe.com/flexsdk/${VERSION:0:10}/flex_sdk_$VERSION.zip
+  homepage http://opensource.adobe.com/wiki/display/site/Home
+# Requires manual checking since it references no tars nor zips.
+#     vurl http://opensource.adobe.com/wiki/display/flexsdk/Download+Flex+3
+  estimate 2300
+      desc 'software development kit for the actionscript 3 language'
+
+build(){
+ fixthen_install(){
+  find * -type f | xargs --max-lines=256 chmod 644
+  find * -type d | xargs --max-lines=256 chmod 755
+
+  LC_ALL=C find * -type f |
+  xargs --max-lines=256 file |
+  sed 's/: *POSIX shell script text executable$//p;d' > fixed.txt
+
+  sed -i 's:\r::' $(< fixed.txt )
+  chmod 755       $(< fixed.txt )  
+  ln -s $( sed 's:^bin/:/opt/flex_sdk/bin/:p;d' fixed.txt ) /usr/bin/
+  mkdir -pv /opt/flex_sdk
+  cp -av *  /opt/flex_sdk
+ }
+
+ [[ -f license-mpl.htm ]] &&
+ prepare_install &&
+ fixthen_install
+}
