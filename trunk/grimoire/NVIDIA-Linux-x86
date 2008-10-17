@@ -5,7 +5,7 @@
 # Due to the NVIDIA-Linux-x86 header files not providing
 # what xorg-server expects.
 
-    stable 173.14.12 173.14.09 169.12 169.09 169.07 169.04
+    stable 177.80 173.14.12 173.14.09 169.12 169.09 169.07 169.04
    require MesaLib gtk+ mktemp
    require xorg-server
   category kernel
@@ -59,11 +59,12 @@ build(){
     ln -s libGLcore.so.1 lib32/libGLcore.so
     ln -s libGL.so.1     lib32/tls/libGL.so
     ln -s libGLcore.so.1 lib32/tls/libGLcore.so
-    rm -f /usr/lib64/libGL.so*
-    sed -i '\,/usr/lib64/libGL\.so,d' \
-        $INSTALL_LOGS/MesaLib \
-            $ELF_LOGS/MesaLib \
-         $MD5SUM_LOGS/MesaLib ;;
+#    rm -f /usr/lib64/libGL.so*
+#    sed -i '\,/usr/lib64/libGL\.so,d' \
+#        $INSTALL_LOGS/MesaLib \
+#            $ELF_LOGS/MesaLib \
+#         $MD5SUM_LOGS/MesaLib
+    ;;
    *) /sbin/ldconfig -n lib{,/tls} X11R6/lib{,/modules/extensions} ;;
   esac
 
@@ -73,7 +74,7 @@ build(){
   ln -s libGLcore.so.1 lib/tls/libGLcore.so
 
   #if /lib/libc.so.6 | grep -q  "Thread-local storage"; then
-  #  cp -a lib/tls/*   lib; [ -d lib32 ] &&
+  #  cp -a lib/tls/*   lib; [[ -d lib32 ]] &&
   #  cp -a lib32/tls/* lib32
   #fi
 
@@ -87,9 +88,20 @@ build(){
   fi
 
   cd $BUILD_DIR
+  mv           usr/include usr/nv
+  mkdir        usr/include
+  mv    usr/nv usr/include
+
+  mkdir                 usr/lib/nv
+  mv    usr/lib/libGL.* usr/lib/nv
 
   find usr -type f | while read; do install -vD $REPLY /$REPLY; done
   find usr -type l | while read; do mv      -v  $REPLY /$REPLY; done
+
+  if   ! [[ -f                  /etc/ld.so.conf.head ]] ||
+       ! grep -q /usr/lib/nv    /etc/ld.so.conf.head
+  then echo      /usr/lib/nv >> /etc/ld.so.conf.head
+  fi
  }
 
  LVER=$( installed_version $( get_provider linux-kernel ) )
