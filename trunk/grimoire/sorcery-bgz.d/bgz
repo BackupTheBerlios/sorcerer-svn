@@ -28,7 +28,6 @@ IFS="
 export IFS LC_ALL TERM
 
 ll(){
- local REPLY
  read < /proc/loadavg
  REPLY=${REPLY%% *}
  REPLY=${REPLY%%.*}
@@ -144,19 +143,10 @@ recompress(){
  fi
 }
 
-
-reduction(){
- find -L $AC $CC $SC -maxdepth 3 -type f |
- sed -n "$FILES" |
- while read; do
-  if   ll
-  then recompress "$REPLY"
-  else (( NEXT = SECONDS + 300 )); return 1
-  fi
- done
-
- (( NEXT = SECONDS + 3600 ))
-}
+ima(){ local REPLY; acad && ll; }
+pending(){ find -L $AC $CC $SC -maxdepth 3 -type f | sed -n "$FILES"; }
+owari(){ [[ -z $( pending ) ]]; }
+reduction(){ pending | while read && ima; do recompress "$REPLY"; done; }
 
 locked(){
  local LEN STATUS LINE LPID
@@ -180,17 +170,13 @@ lock_bgz(){
 acad(){
  if [ -f /proc/acpi/ac_adapter/*/state ]; then
   read < /proc/acpi/ac_adapter/*/state
-  [ "${REPLY// /}" == "state:on-line" ]
+  [[ ${REPLY// /} == state:on-line ]]
  fi
 }
 
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
- while sleep 300; do
-  if   (( SECONDS > NEXT )) && acad && ll
-  then reduction
-  fi
- done
+ while sleep 600; do if owari; then exit 0; elif ima; then reduction; fi; done
 }
 
 while [[ -n $1 ]]; do
