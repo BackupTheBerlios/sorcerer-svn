@@ -30,6 +30,13 @@ nod_sym_install(){
  mknod -m 444                         /lib/udev/dev/zero    c 1 5
 }
 
+# The extra rules are needed to create frequently needed nodes 
+# and symlinks. Also needed to set privileges to nodes like
+# /dev/dsp, etc.
+rules_install(){
+  install -v -o 0 -g 0 -m 0644   rules/packages/* rules/gentoo/* /lib/udev/rules.d
+}
+
  if   spell_installed libselinux
  then OPTS+=' --with-selinux'
  fi
@@ -43,11 +50,12 @@ nod_sym_install(){
   --build=$BUILD    \
   --sysconfdir=/etc \
   --prefix=/usr     \
-  --exec-prefix=    \
+  --exec-prefix=/   \
  $OPTS           &&
  make            &&
  prepare_install &&
  make    install &&
+ rules_install   &&
  nod_sym_install
 }
 
