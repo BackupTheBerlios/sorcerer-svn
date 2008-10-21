@@ -1,0 +1,22 @@
+    stable 2.4.8
+   require cups
+  category printer
+ attribute console
+  homepage http://www.cups-pdf.de/
+    source http://www.cups-pdf.de/src/cups-pdf_$VERSION.tar.gz
+  estimate 100
+      desc 'output from cups into PDF'
+
+build(){
+ custom_install(){
+  mkdir   -vpm 755          /usr/lib/cups/backend /etc/cups /usr/share/cups/model
+  install -vm  755 cups-pdf /usr/lib/cups/backend
+  install -vm  600 ../extra/cups-pdf.conf         /etc/cups
+  install -vm  644 ../extra/CUPS-PDF.ppd                    /usr/share/cups/model
+ }
+
+ cd src
+ gcc $CFLAGS $LDFLAGS -s -o cups-pdf cups-pdf.c &&
+ prepare_install &&
+ custom_install
+}
