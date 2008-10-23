@@ -3,7 +3,7 @@
 # linux-modular.d/{i586,x86_64}.config
 
 [[ -n $VERSION ]] ||
-    stable 2.6.26.5 2.6.26 2.6.25.10 2.6.25.9 2.6.25.8
+    stable 2.6.27.2 2.6.26.5 2.6.26 2.6.25.10 2.6.25.9 2.6.25.8
    require lilo
 case $SPELL in
  linux-modular) : ;;
@@ -39,6 +39,7 @@ demand loading, shared copy-on-write
 executables, proper memory management,
 and TCP/IP networking.'
 
+
 ## apply_linux_patch must not be nested within build()
 apply_linux_patch() { :; }
 
@@ -49,7 +50,7 @@ configure(){
 
  copy(){ if [[ -f $1 ]]; then cp "$1" "$2"; chmod 600 "$2"; fi; }
 
- if ! [ -f $CUR ]; then
+ if ! [[ -f $CUR ]]; then
   if ! sources_cached "$SPELL"; then
    echo "Sources must be download before configuration."
    leech -w $SPELL
@@ -60,8 +61,8 @@ configure(){
   copy "$OLD" .config &&
   make menuconfig     &&
   cp         .config $CUR
-  if   [ -n   "$BUILD_DIR" ] &&
-       [ -d   "$BUILD_DIR" ]
+  if   [[ -n   $BUILD_DIR ]] &&
+       [[ -d   $BUILD_DIR ]]
   then rm -fr "$BUILD_DIR"
   fi
   clear
@@ -83,8 +84,8 @@ build(){
  store_config(){ cp .config $CONFIG_LOGS/$SPELL/linux-config; }
 
  install_kernel(){
-  SM="System.map"
-  BV="${VERSION}"
+  SM=System.map
+  BV=$VERSION
   BZ=$( find . -type f -name bzImage )
 
   rm    -rf                /boot/$BV
@@ -108,8 +109,8 @@ build(){
   local CUR="$CONFIG_LOGS/$SPELL/linux-config"
   local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
 
-  if   [ -f  $CUR ]; then cp $CUR .config; chmod 600 .config
-  elif [ -f  $OLD ]; then cp $OLD .config; chmod 600 .config
+  if   [[ -f  $CUR ]]; then cp $CUR .config; chmod 600 .config
+  elif [[ -f  $OLD ]]; then cp $OLD .config; chmod 600 .config
   fi
  }
 
@@ -130,7 +131,7 @@ build(){
 
 
  make_modules_install(){
-  if   grep -q "CONFIG_MODULES=y" .config; then 
+  if grep -q "CONFIG_MODULES=y" .config; then 
    mkdir -p  /lib/modules
    chmod 700 /lib/modules
    make modules_install
@@ -152,8 +153,6 @@ build(){
   install_header
  }
 
- # chown -R root:root $BUILD_DIR &&
- # chmod -R go-w      $BUILD_DIR &&
  rm -fr            /usr/src/linux &&
  mv     $BUILD_DIR /usr/src/linux &&
  cd                /usr/src/linux &&
@@ -167,12 +166,12 @@ post_install(){
  show_installed initramfs    |
  sed -n      '/^initramfs/p' | pipe_queue "$CAST_QUEUE" com
 
- if   [ -x /usr/bin/mail  ]; then MAILER=/usr/bin/mail
- elif [ -x /usr/bin/mailx ]; then MAILER=/usr/bin/mailx
+ if   [[ -x /usr/bin/mail  ]]; then MAILER=/usr/bin/mail
+ elif [[ -x /usr/bin/mailx ]]; then MAILER=/usr/bin/mailx
  fi
 
- if   [ -n "$MAILER"   ] &&
-      [ -n "$SORCERER" ]
+ if   [[ -n $MAILER   ]] &&
+      [[ -n $SORCERER ]]
  then
   echo    -e "New linux kernel installed.\nReboot the box, please." |
   $MAILER -s "Reboot reminder from sorcery." $SORCERER
@@ -182,17 +181,13 @@ post_install(){
  sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
  pipe_queue "$CAST_QUEUE" com
 
-#              MODULES="$( show_installed linux-26-module )"
-# if    [ -n "$MODULES" ]; then
-#  echo      "$MODULES" | pipe_queue "$CAST_QUEUE" com
-# fi
-
+ rm -rf /boot/fast
  true
 }
 
 
 current(){
- if   ! [ -f       /usr/include/linux/autoconf.h ]
+ if   ! [[ -f      /usr/include/linux/autoconf.h ]]
  then cp /usr/src/linux/include/linux/autoconf.h \
                    /usr/include/linux/autoconf.h
       true

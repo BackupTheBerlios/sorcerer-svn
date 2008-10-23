@@ -1,31 +1,26 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
-# Required-Start: cryptsetup fsck fstab proc sys
+# Required-Start: cryptsetup fstab proc sys
 # Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
 # Required-Stop: $local_fs
 # Default-Start: S
 # Default-Stop: 0 6
-# Short-Description: At boot mounts / or /media/root rw and ro at shutdown
+# Short-Description: At boot mounts / or /media/root ro and ro at shutdown
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 start(){
  run(){
-  if   [[ -d /opt ]]; then
-   mount -n -o remount,rw /
-  else
-   [[    -d /media/root ]] ||
-   mkdir -p /media/root
-   mount    /media/root
+  if [ -d /opt ]
+  then mount -n -o remount,ro /
+  else mount -n -o         ro /media/root
   fi
  }
 
- restore(){ mv /etc/fstab.ori /etc/fstab; }
-
- if   log_warning_msg 'root mounting'; run
- then log_success_msg 'root mounted'; restore
+ if   log_warning_msg 'root mounting read only'; run
+ then log_success_msg 'root mounted  read only'
  else log_failure_msg 'root not mounted'
  fi
 }

@@ -1,0 +1,37 @@
+#!/bin/dash
+
+### BEGIN INIT INFO
+# Required-Start: root-ro fsck
+# Required-Stop: $local_fs
+# Default-Start: S
+# Short-Description: At boot mounts / or /media/root rw
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+start(){
+ run(){
+  if [ -d /opt ]
+  then mount -n -o remount,rw /
+  else mount -n -o         rw /media/root
+  fi
+ }
+
+ restore(){ mv /etc/fstab.ori /etc/fstab; }
+
+ if   log_warning_msg 'root mounting read write'; run
+ then log_success_msg 'root mounted  read write'; restore
+ else log_failure_msg 'root not mounted'
+ fi
+}
+
+
+
+help(){ echo "Usage: $0 {start}" 1>&2; }
+
+case $@ in
+ start) start ;;
+  stop) :     ;;
+ try-restart) : ;;
+ *) help ;;
+esac

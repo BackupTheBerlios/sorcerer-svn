@@ -1,10 +1,10 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
 # Should-Start: find_ir udevd
 # Required-Stop: halt reboot
 # Default-Start: S
-# Short-Description: fstab avoids rdinit=/bin/bash if / not in fstab
+# Short-Description: fstab avoids rdinit=/bin/dash if / not in fstab
 # Description: fstab checks for / in /etc/fstab and rewrites it to /media/root
 ### END INIT INFO
 
@@ -23,7 +23,7 @@ start(){
   sleep 5
   ROOT=$( root_menu )
   case $ROOT in
-   /sbin/sulogin) sulogin -t 300 &>/dev/console 0</dev/console ;;
+   /sbin/sulogin) sulogin -t 300 1>/dev/console 2>&1 0</dev/console ;;
    /dev*) echo "$ROOT /media/root auto defaults 0 0" >> /etc/fstab
   esac
  }
@@ -32,7 +32,7 @@ start(){
  modify(){ sed -i 's:\t: :g;  s: / : /media/root :' /etc/fstab; }
  back(){ cp -a /etc/fstab /etc/fstab.ori; }
 
- [[ -d /opt ]] || grep -q boot=IR /proc/cmdline ||
+ [ -d /opt ] || grep -q boot=IR /proc/cmdline ||
  if   log_warning_msg 'Checking /etc/fstab for /'; check
  then log_success_msg 'Found /'; back; modify
  else log_failure_msg '/ not in /etc/fstab'; interact

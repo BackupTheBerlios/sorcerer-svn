@@ -1,29 +1,33 @@
-#!/bin/bash
+#!/bin/dash
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
-shopt -s nullglob
+
+# Breaking out of the loop early might cause a bug.
 
 parallel(){
- for ((SEQ=0;SEQ<100;SEQ++)); do
-  if (( 10 > SEQ )); then NOW="0$SEQ"; else NOW="$SEQ"; fi
-  for SCRIPT in /etc/rc.d/rc${RL}.d/$1${NOW}*
-  do $SCRIPT $2 &
+ SEQ=0
+ while [ $SEQ -lt 100 ]; do
+  if   [ $SEQ -lt 10  ]; then NOW="0$SEQ"; else NOW="$SEQ"; fi
+  for F in /etc/rc.d/rc${RL}.d/$1${NOW}*
+  do if [ -f $F ]; then $F $2 & else break 2; fi
   done
   wait
+  SEQ=$(($SEQ+1))
  done
+ wait
 }
 
 linear() {
- for SCRIPT in /etc/rc.d/rc${RL}.d/${1}*
- do $SCRIPT $2
+ for F in /etc/rc.d/rc${RL}.d/${1}*
+ do [ -f $F ] && $F $2
  done
 }
 
 ssp(){ parallel K stop; parallel S start; }
 ssl(){ linear   K stop; linear   S start; }
 log(){ $1; echo End runlevel $RL; }
-cap(){ if [[ -c $RLC ]]; then tee $RLL > $RLC; else tee $RLL; fi; }
+cap(){ if [ -c $RLC ]; then tee $RLL > $RLC; else tee $RLL; fi; }
 
  RL=$1
 RLL=/etc/init.d/log.d/runlevel.$RL

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/dash
 ### BEGIN INIT INFO
 # Required-Stop: $local_fs
 # Should-Stop: initramfs tmp

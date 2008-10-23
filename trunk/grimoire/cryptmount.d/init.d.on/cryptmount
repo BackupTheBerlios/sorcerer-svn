@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
 # Required-Start: $local_fs
@@ -24,7 +24,7 @@ status(){
  for TARGET in $CM_BOOTDV $CM_BOOTSW
  do [ -b "/dev/mapper/${TARGET}" ] && ON+="$TARGET " || OFF+="$TARGET "
  done
- if [ -n "$OFF" ]
+ if [ "$OFF" ]
  then log_warning_msg "$OFF not active"; return 3;
  else log_warning_msg "$ON active";
  fi
@@ -32,10 +32,10 @@ status(){
 
 start(){
  run(){
-  if ! status &>/dev/null; then
-   if [ -n "$CM_BOOTDV" ]; then $SERV --prepare $CM_BOOTDV; fi &&
-   if [ -n "$CM_BOOTSW" ]; then $SERV --swapon  $CM_BOOTSW; fi &&
-   if [ -n "$CM_BOOTFS" ]; then $SERV --mount   $CM_BOOTFS; fi
+  if ! status 2>/dev/null; then
+   if [ "$CM_BOOTDV" ]; then $SERV --prepare $CM_BOOTDV; fi &&
+   if [ "$CM_BOOTSW" ]; then $SERV --swapon  $CM_BOOTSW; fi &&
+   if [ "$CM_BOOTFS" ]; then $SERV --mount   $CM_BOOTFS; fi
   fi
  }
 
@@ -47,9 +47,9 @@ start(){
 
 stop(){
  run(){
-  if [ -n "$CM_BOOTFS" ]; then $SERV --unmount $CM_BOOTFS; fi
-  if [ -n "$CM_BOOTSW" ]; then $SERV --swapoff $CM_BOOTSW; fi
-  if [ -n "$CM_BOOTDV" ]; then $SERV --release $CM_BOOTDV; fi
+  if [ "$CM_BOOTFS" ]; then $SERV --unmount $CM_BOOTFS; fi
+  if [ "$CM_BOOTSW" ]; then $SERV --swapoff $CM_BOOTSW; fi
+  if [ "$CM_BOOTDV" ]; then $SERV --release $CM_BOOTDV; fi
   $SERV -n
  }
 
@@ -62,8 +62,8 @@ stop(){
 [ -f $CONF ] &&
    . $CONF
 
-if [ -n "$CM_BOOTDV" ] ||
-   [ -n "$CM_BOOTSW" ] ||
-   [ -n "$CM_BOOTFS" ]
+if [ "$CM_BOOTDV" ] ||
+   [ "$CM_BOOTSW" ] ||
+   [ "$CM_BOOTFS" ]
 then parse "$@"
 fi

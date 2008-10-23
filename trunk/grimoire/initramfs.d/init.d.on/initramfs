@@ -1,6 +1,6 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Required-Stop: $local_fs root udev
+# Required-Stop: $local_fs root-ro udev
 # Should-Stop: tmp
 # Default-Stop: 0 6
 # Short-Description: initramfs creates boot filesystems
@@ -76,6 +76,8 @@ every(){
 \,^/sbin/mount.smbfs$,d
 \,^/sbin/sln$,d
 1i/init
+1i/media
+1i/media/root
 1i/proc
 1i/sys
 1i/tmp
@@ -87,7 +89,8 @@ every(){
 }
 
 initrf_update(){
- rm -rf /boot/fast
+ [ -d /boot/fast  ] && rm -rf /boot/fast
+ [ -d /media/root ] || mkdir -pm 755 /media/root
 
  local      COMMON="/tmp/initrf.common.$$$RANDOM.new"
  echo -n > $COMMON

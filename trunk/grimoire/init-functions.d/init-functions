@@ -1,20 +1,22 @@
 # Functions for LSB-compliant init-scripts
+# Compatible with /bin/dash and /bin/bash
 # For use with the distribution Sorcerer only!
 # Copyright Kyle Sallee 2005 through 2008.
 # All rights reserved.
 
-NORM="\e[0m"
-RED="\e[31m"
-GREEN="\e[32m"
-BLUE="\e[34m"
-WHITE="\e[37m"
+NORM="[0m"
+RED="[31m"
+GREEN="[32m"
+BLUE="[34m"
+WHITE="[37m"
+OVER="[65G"
 
-S65="                                                                 "
+if   [ "$BASH_VERSION" ]
+then SO='+B -f'; BE=-e;
+else SO=-f
+fi
 
-log_line(){
- REPLY="$GREEN * $NORM$1${S65:${#1}}$BLUE[$2 $BLUE]$NORM\r"
- echo -e "$REPLY" 1>&2
-}
+log_line(){ echo $BE "$GREEN * $NORM$1$OVER$BLUE[$2 $BLUE]$NORM\r" 1>&2; }
 
 log_success_msg(){ log_line "$1" "$GREEN success";}
 log_failure_msg(){ log_line "$1" "$RED failed ";}
@@ -23,13 +25,14 @@ log_warning_msg(){ log_line "$1" "$WHITE warning";}
 locked(){
  local L S P REPLY
 
- [[ -n $2 ]] && L=${#2} &&
- [[ -n $1 ]] && [[ -f $1 ]] &&
+ [ "$2" ] && L=${#2} &&
+ [ "$1" ] && [ -f "$1" ] &&
  read P < $1 &&
  S=/proc/$P/status &&
- [[ -f  $S ]] &&
- read < $S &&
- [[ ${REPLY:6:$L} == $2 ]]
+ [ -f  "$S" ] &&
+ read REPLY < $S &&
+ [ ${REPLY##*	} = "$2" ]
+#[ ${REPLY:6:$L} = "$2" ]
 }
 
 pidofproc(){
@@ -45,19 +48,19 @@ pidofproc(){
 
  BASE=${1##*/}
 
- if    [[ -z $PIDF ]]; then
-  if   [[ -f /var/run/$BASE.pid ]]; then PIDF=/var/run/$BASE.pid
-  elif [[ -f /var/run/$BASE     ]]; then PIDF=/var/run/$BASE
+ if    [ -z "$PIDF" ]; then
+  if   [ -f "/var/run/$BASE.pid" ]; then PIDF=/var/run/$BASE.pid
+  elif [ -f "/var/run/$BASE"     ]; then PIDF=/var/run/$BASE
   else PIDS=$( /bin/pidof -o %PPID $BASE )
   fi
  fi
 
- if    [[  -s  $PIDF ]]; then
+ if    [  -s  "$PIDF" ]; then
   if   locked "$PIDF" "$BASE"
-  then read <  $PIDF; echo $REPLY
+  then read REPLY < $PIDF; echo $REPLY
   else false
   fi
- elif [[  -n $PIDS ]]
+ elif [  -n "$PIDS" ]
  then echo  "$PIDS"
  else return 1
  fi
@@ -75,18 +78,18 @@ killproc(){
  do shift 2
  done
 
- BASE=${1##*/}; [[ -n $2 ]] &&
+ BASE=${1##*/}; [ "$2" ] &&
  SIGL=$2
  PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
- if    [[ -n    $PIDS ]]; then
-  if   [[ -n    $SIGL ]]
+ if    [       "$PIDS" ]; then
+  if   [       "$SIGL" ]
   then kill -s "$SIGL" $PIDS
   else kill -s 15      $PIDS; sleep 3
        kill -s 9       $PIDS
   fi
-  if   [[  -n $PIDF ]] &&
-       [[  -f $PIDF ]]
+  if   [  -n "$PIDF" ] &&
+       [  -f "$PIDF" ]
   then rm -f "$PIDF"
   fi
  else return 1
@@ -95,7 +98,7 @@ killproc(){
 
 start_daemon(){
  run(){
-  if   [[ -n $BACK ]]
+  if   [ "$BACK" ]
   then "$@" & sleep .1; echo $! > $PIDF
   else "$@"
   fi
@@ -117,16 +120,16 @@ start_daemon(){
 
  BASE=${1##*/}
 
- if [[ -n $BACK ]]; then
+ if [ "$BACK" ]; then
   LOGF="${LOGF:-/var/log/$BASE}"
   PIDF="${PIDF:-/var/run/$BASE.pid}"
  fi
 
- if   pidofproc -p "$PIDF" "$1" &>/dev/null
- then [[ -n $FORC ]] || return 1
+ if   pidofproc -p "$PIDF" "$1" 1>/dev/null
+ then [ "$FORC" ] || return 1
  fi
 
- if [[ -n $LOGF ]]; then run "$@" &> "$LOGF"; else run "$@";  fi
+ if [ "$LOGF" ]; then run "$@" 1> "$LOGF" 2>&1; else run "$@";  fi
 }
 
 
@@ -139,10 +142,10 @@ start_daemon(){
 status(){
  stats(){
   PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
-  if   [[ -n $PIDS ]]; then log_warning_msg "$NAME is running"; return 0
-  elif [[ -f $PIDF ]]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-  elif [[ -n $LOCK ]] &&
-       [[ -f $LOCK ]]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+  if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+  elif [    "$LOCK" ] &&
+       [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
                        else log_warning_msg "$NAME is not running"; return 3
   fi
  }
@@ -155,15 +158,17 @@ status(){
  }
 
  statk(){
-  if   lsmod | LC_ALL=C grep -qws "^${NAME//-/_}"
+  local WILD="^$( echo $NAME | tr - . )"
+# if   lsmod | LC_ALL=C grep -qws "^${NAME//-/_}"
+  if   lsmod | LC_ALL=C grep -qws "WILD"
   then log_warning_msg "$NAME module is loaded"; return 0
   else log_warning_msg "$NAME module is not loaded"; return 3
   fi
  }
 
- if   [[ / = ${NAME:0:1} ]]
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then statm
- elif [[ -n $SERV ]]
+ elif [ "$SERV" ]
  then stats
  else statk
  fi
@@ -191,27 +196,29 @@ stop(){
   fi
  }
 
- set +B -f
- if   [[ / = ${NAME:0:1} ]]
+ set $SO
+
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then stopm
- elif [[ -n $SERV ]]
+ elif [ "$SERV" ]
  then stops
  else stopk
  fi
 }
 
 mnt(){
- if [[ -f /proc/mounts ]]; then
+ if [ -f /proc/mounts ]; then
   while read DEV MNT JNK
-  do [[ $NAME == $MNT ]] && return
+  do [ "$NAME" = "$MNT" ] && return
   done < /proc/mounts
  fi
  return 1
 }
 
 start(){
- conf(){ [[ -n $CONF ]] && ! [[ -e $CONF ]]; }
- miss(){ [[ ${SERV:0:1} == / ]] && ! [[ -f $SERV ]]; }
+ conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
+#miss(){ [ ${SERV:0:1} = / ] && ! [ -f "$SERV" ]; }
+ miss(){ ! [ -f "$SERV" ]; }
 
  starts(){
   if   conf
@@ -228,12 +235,11 @@ start(){
 
  startm(){
   run(){
-   if   !  [[ -d  $NAME ]]
+   if   !  [  -d "$NAME" ]
    then mkdir -p "$NAME"; fi &&
    mount $OPTS   "$NAME"
   }
 
-  set +B -f
   if mnt; then return; fi
   if   conf
   then log_warning_msg "$NAME not mounted; $CONF does not exist"
@@ -252,16 +258,18 @@ start(){
   fi
  }
 
- if   [[ / = ${NAME:0:1} ]]
+ set $SO
+
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then startm
- elif [[ -n $SERV ]]
+ elif [ "$SERV" ]
  then starts
  else startk
  fi
 }
 
     restart(){ stop && sleep 1; start;}
-try_restart(){ [[ -n $SERV ]] && status &>/dev/null && restart; return 0;}
+try_restart(){ [ "$SERV" ] && status 2>/dev/null && restart; return 0;}
 
 help(){ echo "Usage: $0 {start|stop|status|reload|restart}";}
 
@@ -279,6 +287,6 @@ parse(){
  esac
 }
 
-if [[ -z $NAME ]]
+if [ -z "$NAME" ]
 then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
 fi

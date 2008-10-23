@@ -1,7 +1,7 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
-# Required-Start: fstab
+# Required-Start: fstab root-ro
 # Should-Start: cryptsetup dmsetup hwclock loadkeys localtime mapper mdadm udev vgchange 
 # Default-Start: S
 # Short-Description: fsck checks local filesystems during boot
@@ -11,16 +11,21 @@
 
 start(){
  fsc(){
-  if [[ -f /fastboot    ]]; then return; fi
-  if [[ -f /forcefsck   ]]; then FORCE='-f'; fi
-  if [[ $FSCKFIX == yes ]]; then FIX='-y';
-                            else FIX='-a'; fi
+  if  [ -f /media/root/sbin/init ]; then local RET
+   if [ -f /media/root/fastboot  ]; then RET=return; fi
+   if [ -f /media/root/forcefsck ]; then FORCE=-f; fi
+   umount  /media/root
+   $RET
+  else
+   if [ -f /fastboot  ]; then return; fi
+   if [ -f /forcefsck ]; then FORCE=-f; fi
+  fi
 
-  fsck -C -A $FIX $FORCE &>/dev/console 0</dev/console
+  fsck -C -A -a $FORCE 1>/dev/console 2>&1 0</dev/console
   if [ $? -gt 1 ]; then
-   log_failure_msg 'fsck failed' &>/dev/console
-   log_failure_msg 'Repair file systems by running /sbin/fsck' &>/dev/console
-   sulogin -t 120 &>/dev/console 0</dev/console
+   log_failure_msg 'fsck failed' 1>/dev/console 2>&1
+   log_failure_msg 'Repair file systems by running /sbin/fsck' 1>/dev/console 2>&1
+   sulogin -t 120 1>/dev/console 2>&1 0</dev/console
   fi
  }
 

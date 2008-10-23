@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
 # Required-Start: dmsetup
@@ -31,9 +31,9 @@ start(){
    REV="/dev/${DEV#*-}"
    MEV="/dev/mapper/${DEV#*-}"
    UEV="/dev/disk/by-uuid/${DEV#*-}"
-   if   [[ -b $MEV ]] && cryptsetup isLuks $MEV; then echo "$MEV|$DEV|$TYP"
-   elif [[ -b $REV ]] && cryptsetup isLuks $REV; then echo "$REV|$DEV|$TYP"
-   elif [[ -b $UEV ]] && cryptsetup isLuks $REV; then echo "$UEV|$DEV|$TYP"
+   if   [ -b "$MEV" ] && cryptsetup isLuks $MEV; then echo "$MEV|$DEV|$TYP"
+   elif [ -b "$REV" ] && cryptsetup isLuks $REV; then echo "$REV|$DEV|$TYP"
+   elif [ -b "$UEV" ] && cryptsetup isLuks $REV; then echo "$UEV|$DEV|$TYP"
    fi
   done
  }
@@ -48,7 +48,7 @@ start(){
    TYP=${LINE##*|}
    DEV=${LINE%|*}
    DEV=${DEV##*|}
-   if   [[ $TYP == swap ]]; then
+   if   [ "$TYP" = swap ]; then
     KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     echo "$KEY" | cryptsetup -c aes-xts-plain -s 512 luksFormat $REV 2>/dev/null
     echo "$KEY" | cryptsetup luksOpen $REV ${DEV##*/} 2>/dev/null
