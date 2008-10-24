@@ -1,0 +1,25 @@
+#!/bin/dash
+
+### BEGIN INIT INFO
+# Default-Stop: 6
+# Required-Stop: mount
+# Short-Description: kexec prepares box for reboot faster.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+run(){
+ if [ -f /boot/fast/initrf ]
+ then V=fast
+ else
+  V="$( find /boot -maxdepth 2 -mindepth 2 -name initrf -printf '%T@\t%h\n' |
+        sort -gr | head -n 1 | sed 's:.*/::' )"
+ fi
+
+ log_success_msg "kexec -l /boot/$V/linux --initrd=/boot/$V/initrf"
+                  kexec -l /boot/$V/linux --initrd=/boot/$V/initrf
+}
+
+case $1 in
+stop) run ;;
+esac
