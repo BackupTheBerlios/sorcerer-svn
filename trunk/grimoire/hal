@@ -35,6 +35,10 @@ It encompasses a shared library for use in applications, a daemon,
 a hotplug tool, command line tools, and a set of stock device info files.'
 
 build(){
+ case $VERSION in
+  0.5.11) sed -i 's:"/usr/bin/udevinfo":"/sbin/udevadm","info":' hald/linux/{blockdev.c,coldplug.c} ;;
+ esac
+
 case $VERSION in
   *-git)  NOCONFIGURE=on ./autogen.sh  ;;
 esac
@@ -43,4 +47,11 @@ mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    haldaemon                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g haldaemon -d /var/empty haldaemon 2>/dev/null
 default_build
+}
+
+
+current(){
+case $VERSION in
+0.5.11) LC_ALL=C grep -q /sbin/udevadm /usr/sbin/hald ;;
+esac
 }
