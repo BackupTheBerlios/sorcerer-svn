@@ -41,10 +41,11 @@ build(){
 }
 
 post_install(){
- grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
- grep -v ":/usr/lib/python${VERSION:0:3}/"    |
- cut  -d  : -f1       |
- sort -u  | basenames |
- grep -v   "Python-v" |
- pipe_queue "$CAST_QUEUE" com
+ ( export LC_ALL=C
+   grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
+   grep -v ":/usr/lib/python${VERSION:0:3}/"    |
+   cut  -d  : -f1       |
+   sort -u  | basenames |
+   grep -v   "^Python"  |
+   pipe_queue "$CAST_QUEUE" com )
 }
