@@ -31,8 +31,19 @@ passing framework, which can be used by any two apps to communicate
 directly (without going through the message bus daemon).'
 
 build(){
+# The follow patch allows hal to restart automatically after update
+# without having to restart dbus or SIGHUP d bus.
+# When it no longer applies it can probably be removed.
+patch -p1 < $SCRIPT_DIR/dbus-1.2.4.system.conf.in.patch
+
 mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    messagebus                          2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g messagebus -d /var/empty messagebus 2>/dev/null
 default_build
+}
+
+current(){
+case $VERSION in
+1.2.4) LC_ALL=C grep -qx 'patching file bus/system.conf.in' $COMPILE_LOGS/dbus ;;
+esac
 }
