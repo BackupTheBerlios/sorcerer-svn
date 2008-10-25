@@ -6,14 +6,21 @@
 # --disable-policy-kit is OK for now, read 
 # http://www.mail-archive.com/desktop-devel-list@gnome.org/msg06861.html
 
-    stable 0.5.11 0.5.10
-  unstable 0.5.11rc2
+    stable            0.5.11 0.5.10
+  unstable 0.5.12-git
    require hal-info dbus-glib libselinux pciutils perl--XML-Parser udev
   optional libusb  ''               ''                for usb support
   optional gtk-doc --enable-gtk-doc --disable-gtk-doc for DocBook documentation
   category system
  attribute console
-    source http://hal.freedesktop.org/releases/hal-$VERSION.tar.gz
+#    source http://hal.freedesktop.org/releases/hal-$VERSION.tar.gz
+    source hal-$VERSION.tar
+case $VERSION in
+ *-git) REPOSITORY=( ""
+                     "git clone git://anongit.freedesktop.org/git/hal hal"
+                     "git pull" ) ;;
+     *) url http://hal.freedesktop.org/releases/
+esac
   homepage http://www.freedesktop.org/wiki/Software/hal
       opts --with-hwdata=/usr/share/
       opts --with-pid-file=/var/run/haldaemon.pid
@@ -28,6 +35,10 @@ It encompasses a shared library for use in applications, a daemon,
 a hotplug tool, command line tools, and a set of stock device info files.'
 
 build(){
+case $VERSION in
+  *-git)  NOCONFIGURE=on ./autogen.sh  ;;
+esac
+
 mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    haldaemon                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g haldaemon -d /var/empty haldaemon 2>/dev/null
