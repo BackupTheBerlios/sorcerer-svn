@@ -1,0 +1,105 @@
+    stable 20081026
+  category administration/spell
+ attribute archive_off console solo
+  homepage http://sorcerer.silverice.org/
+      desc 'menu for selecting which init-scripts run automatically.
+
+init-scripts are installed in /etc/init.d/
+Most will run automatically when required.
+However, scripts can also be set to run
+only when the SA invokes the script by name.
+Starting a web server that requires a password
+to enable the certification would be an example
+of an init-script that should exist but should not run automatically
+since it requires interaction with the system administrator.'
+
+configure(){
+
+ what(){
+  local   WHAT="$( grep Short-Description /etc/init.d/$1 | cut -d : -f2- )"
+  echo "${WHAT:-No Description}"
+ }
+
+ checklist(){
+  common(){
+   while read INIT SPELL; do
+    echo "$INIT"
+    echo "From $SPELL"
+    echo "$1"
+    what "$INIT"
+   done
+  }
+
+  export IFS="$STANDARD_IFS"
+  [[ -n  $ON_INITS ]] && echo  "$ON_INITS" | common on
+  [[ -n $OFF_INITS ]] && echo "$OFF_INITS" | common off
+ }
+
+
+ select_inits(){
+  export IFS="$ENTER_IFS"
+  BACKTITLE=$"init-scripts Configuration Menu"
+      TITLE=$"Optionally automatically executing init-scripts"
+       HELP=$"[*]=on  [ ]=off"
+
+  dialog \
+   --stdout --no-cancel --item-help --separate-output \
+   --backtitle "$BACKTITLE" --title "$TITLE" \
+   --timeout "$PROMPT_DELAY" --checklist "$HELP" 0 0 0 $( checklist )
+ }
+
+
+ chmod_it(){ while read; do chmod $1 /etc/init.d/$REPLY; done; }
+
+
+ make_it_so(){
+ #if   [[ -z $NEW_INITS ]] ||
+  if   [[    $NEW_INITS == $ON_INITS ]]
+  then return
+  fi
+
+  echo    "$NEW_INITS"    | chmod_it 700
+ (echo    "$NEW_INITS"
+  echo    "$NEW_INITS"
+  echo    "$ALL_INITS" | cut -f1 ) |
+  LC_ALL=C sort | uniq -u | chmod_it 600
+ }
+
+
+ all_inits(){
+  grep -r /etc/init.d/ $INSTALL_LOGS |
+  sed     "s:$INSTALL_LOGS/::
+           s,:/etc/init.d/,$TAB,"    |
+  while read SPELL INIT; do
+   [[ -f $GRIMOIRE/$SPELL.d/init.d/$INIT ]] &&
+   echo  "$INIT$TAB$SPELL"
+  done
+ }
+
+
+ on_inits(){
+  echo "$ALL_INITS" |
+  while read INIT SPELL; do
+    [[ -x /etc/init.d/$INIT ]] &&
+    echo "$INIT$TAB$SPELL"
+  done
+ }
+
+ off_inits(){
+  ( [[ -n $ALL_INITS ]] && echo "$ALL_INITS"
+    [[ -n  $ON_INITS ]] && echo  "$ON_INITS"
+  ) | LC_ALL=C sort | uniq -u
+ }
+
+ if dialog \
+     --backtitle "Spell:  $SPELL" --defaultno \
+     --timeout   "$PROMPT_DELAY" \
+     --yesno "Adjust automatic init-scripts execution?" 0 0
+ then
+  ALL_INITS="$(    all_inits | tee /tmp/all.txt )"
+   ON_INITS="$(     on_inits | tee /tmp/on.txt )"
+  OFF_INITS="$(    off_inits | tee /tmp/off.txt )"
+  NEW_INITS="$( select_inits | tee /tmp/new.txt )"
+ else false
+ fi && make_it_so
+}
