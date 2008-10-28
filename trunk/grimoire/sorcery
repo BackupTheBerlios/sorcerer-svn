@@ -126,13 +126,8 @@ post_install(){
   done &&
   rm -fr /etc/sorcery/log/ldd
 
-  find $ELF_LOGS -type f |
-  while read; do
-   read ONE TWO < $REPLY
-   if [[ -n $ONE ]]; then
-      [[ -n $TWO ]] || elf_of "${REPLY##*/}" > $REPLY
-   fi
-  done
+  LC_ALL=C grep -lrv "$TAB" $ELF_LOGS |
+  while read; do elf_of "${REPLY##*/}" > $REPLY; done
  }
 
  move_temporary_logs(){
@@ -185,7 +180,7 @@ post_install(){
  remove_old_logs
 ## uncomment fix_elf_logs when they should be fixed
 ## because the box went too long without updates.
-#fix_elf_logs
+ fix_elf_logs
  move_temporary_logs
  default_post_install
 }
