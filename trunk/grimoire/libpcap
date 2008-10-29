@@ -1,11 +1,11 @@
-    stable 0.9.8 0.9.7 0.9.6
+    stable 1.0.0 0.9.8 0.9.7 0.9.6
    require flex
   category network
  attribute library
     source http://www.tcpdump.org/release/libpcap-$VERSION.tar.gz
   homepage http://www.tcpdump.org/
       opts --enable-yydebug --enable-static=no
-  estimate 100
+  estimate 200
       desc 'libpcap is a capturing library. used by tcpdump
 libpcap is a library which provides a packet
 filtering mechanism based on the BSD packet filter (BPF).
@@ -14,8 +14,14 @@ and there is also a perl module which can use this as well.
 In plain english, if you want to write your own
 network traffic analyzer, this is the place to start.'
 
-current(){
- case $VERSION in
-  0.9.8) ! [ -f /usr/lib/libpcap.so.1 ] ;;
- esac
+build(){
+ default_build       &&
+ make         shared &&
+ make install-shared &&
+ rm -f /usr/lib{,64}/libpcap.a
+ if   ! [ -f /usr/lib/libpcap.so.1 ] && [ -f /usr/lib/libpcap.so.1.0.0 ]
+ then ln -s libpcap.so.1.0.0 /usr/lib/libpcap.so.1
+ elif ! [ -f /usr/lib64/libpcap.so.1 ] && [ -f /usr/lib64/libpcap.so.1.0.0 ]
+ then ln -s libpcap.so.1.0.0 /usr/lib64/libpcap.so.1
+ fi
 }

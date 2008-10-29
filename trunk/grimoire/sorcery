@@ -1,6 +1,6 @@
-    stable photon-20081024-2 photon-20081023-0 photon-20081021-0 photon-20081018-0 photon-20081017-1 photon-20081015-0 photon-20081011-0 photon-20081010-0 photon-20081005-0
+    stable photon-20081029-0 photon-20081024-2 photon-20081023-0 photon-20081021-0 photon-20081018-0 photon-20081017-1 photon-20081015-0 photon-20081011-0 photon-20081010-0 photon-20081005-0
 [[ -z $VERSION ]] &&
- VERSION=( photon-20081024-2 )
+ VERSION=( photon-20081029-0 )
        url http://sorcerer.silverice.org/download/sorcery/
        URL=http://sorcerer.silverice.org/download/sorcery/
     source sorcery-$VERSION.tar.bz2
@@ -110,24 +110,34 @@ post_install(){
  }
 
  discard_old_index(){
-  . /etc/sorcery/config
   merge_grimoires
   generate_index   
  }
 
  fix_elf_logs(){
-  mkdir_p ${ELF_LOGS:=/etc/sorcery/log/elf}
+  local R
+  ELF_LOGS=${ELF_LOGS:-/etc/sorcery/log/elf}
 
-  [[ -d /etc/sorcery/log/ldd ]] &&
-  find  /etc/sorcery/log/ldd -type f |
-  while read; do
-   mv $REPLY $ELF_LOGS
-   sed -i "s:/etc/sorcery/log/ldd/:/etc/sorcery/log/elf/:" $INSTALL_LOGS/${REPLY##*/}
-  done &&
+  if   [ -f             $ELF_LOGS/sorcery-sentinel ] && 
+       read R R REPLY < $ELF_LOGS/sorcery-sentinel   &&
+       [ "$REPLY" ]
+  then return
+  fi
+
+  echo "Fixing ELF logs"
+  echo "This may require several minutes."
+  echo "Please be patient."
+
+  mkdir_p $ELF_LOGS
+
+  show_installed |
+  while read; do elf_of "$REPLY" > $ELF_LOGS/$REPLY; done
+
+  LC_ALL=C grep -lr /etc/sorcery/log/ldd/ $INSTALL_LOGS |
+  xargs -r --max-lines=2048 \
+  sed   -i "s:/etc/sorcery/log/ldd/:/etc/sorcery/log/elf/:"
+
   rm -fr /etc/sorcery/log/ldd
-
-  LC_ALL=C grep -lrv "$TAB" $ELF_LOGS |
-  while read; do elf_of "${REPLY##*/}" > $REPLY; done
  }
 
  move_temporary_logs(){
@@ -170,17 +180,24 @@ post_install(){
  [[  -f /etc/sorcery/log/version/install ]] ||
  rm -fr /boot/isolinux
 
+ fix_md5sum_logs(){
+  grep  -l /var/log/sorcery/ $MD5SUM_LOGS |
+  xargs -r --max-lines=2048 sed -i '\,/var/log/sorcery/,d'
+ }
 
- #missing_init_script
+
+ . /etc/sorcery/config
+
+#missing_init_script
  clean_logd
  difuse_old_elf
  move_ldd_logs
  discard_old_index
  make_progress
  remove_old_logs
-## uncomment fix_elf_logs when they should be fixed
-## because the box went too long without updates.
+
  fix_elf_logs
+ fix_md5sum_logs
  move_temporary_logs
  default_post_install
 }

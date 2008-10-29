@@ -2,7 +2,7 @@
 # That may keep current hal and udev working properly together.
 # When updating udev, email Jan for an early check of udev/hal
 
-    stable 130 125 124 120 119 118
+    stable 130 125 124 120
    require sysvinit libselinux
   category utility
  attribute console
@@ -62,8 +62,14 @@ nod_sym_install(){
 }
 
 
-post_isntall(){
+post_install(){
 if   LC_ALL=C grep -q '^mem:x:'  /etc/groups
 then sed -i 's/^mem:x:/kmem:x:/' /etc/groups
 fi
+}
+
+current(){
+case $VERSION in
+130) [ -f /lib/udev/rules.d/sound.rules ] ;;
+esac
 }
