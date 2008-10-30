@@ -1,0 +1,37 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Required-Start: $network
+# Required-Stop:  $network
+# Should-Start: radvd-ipv6-port-forward
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: radvd ipv6 statless advertisement deamon
+### END INIT INFO
+
+
+NAME=radvd
+SERV=/usr/sbin/$NAME
+PIDF=/var/run/radvd.pid
+CONF=/etc/radvd.conf
+OPTS="-p $PIDF $SERV -C $CONF"
+ENABLE_FORWARD=true
+
+# Options
+OPTIONS=""
+
+. /lib/lsb/init-functions
+
+verify() {
+    # Verify that the configuration file exists
+    if [ ! -f /etc/radvd.conf ]; then
+    	echo "RADVD Configuration file /etc/radvd.conf doesn't exist"
+    	exit 1;
+    fi
+		if $ENABLE_FORWARD; then
+			echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
+			echo 1 > /proc/sys/net/ipv6/conf/default/forwarding
+		fi
+}
+
+parse "$@"
