@@ -1,0 +1,24 @@
+--- tcsh-6.15.00/tw.color.c.orig	2008-09-12 20:30:56.811041446 +0300
++++ tcsh-6.15.00/tw.color.c	2008-09-12 20:44:33.674037411 +0300
+@@ -241,6 +241,21 @@
+ 		    getstring(&c, &v, &variables[i].color, ':');
+ 		    continue;
+ 		}
++		/*
++		 * Fix the following bugs:
++		 *
++		 * - https://qa.mandriva.com/show_bug.cgi?id=40532
++		 * - http://bugs.gentoo.org/show_bug.cgi?id=234700
++		 *
++		 * Apparently, newer versions of dircolors generate
++		 * an rs= variable in LS_COLORS that confuses tcsh.
++		 *
++		 * */
++		else if ((v[0] & CHAR) == 'r' && (v[1] & CHAR) == 's') {
++		    while ((*v) && (*v & CHAR) != ':') {
++			v++;
++		   }
++		}
+ 		else
+ 		    stderror(ERR_BADCOLORVAR, v[0], v[1]);
+ 	    }
