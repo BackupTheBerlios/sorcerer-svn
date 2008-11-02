@@ -144,13 +144,15 @@ fdisc(){
 }
 
 
-partition_disks(){
- launch $( fdisc ) $( get_disk );
+run_partition(){
+ if   launch $( fdisc ) $( get_disk )
+ then PARTITION=true
+ fi
  filesystem_table_load
 }
 
 
-write_mbr(){ ms-sys -s $( get_disk ); MBR=true; }
+run_mbr(){ ms-sys -s $( get_disk ); MBR=true; }
 
 
 get_mount(){
@@ -202,9 +204,6 @@ make_fstab(){
  echo; echo
  cat /etc/fstab.empty
 }
-
-
-option_menu(){ chroot_run sorcery options; }
 
 
 make_bootloader_conf(){
@@ -890,7 +889,7 @@ trans(){ [[ -f $TARGET/etc/fstab ]]; }
 mbr_check(){
  if [[ -n $MBR ]]; then return; fi
  if [[ -n $BB  ]] && echo "$BB" | grep -q '[a-z]$'; then return; fi
- if confirm "Install a bootable MBR?"; then write_mbr; fi
+ if confirm "Install a bootable MBR?"; then run_mbr; fi
 }
 
 
@@ -1006,33 +1005,7 @@ boot_partition_warning(){
 }
 
 
-lvm2_explain(){
- $DIALOG --msgbox \
-'Disks are physical hardware for storing data.
-Partitions are divisions of disks.
-Filesystems can be created on partitions.
-Partitions are also Physical Volumes.
-
-A Volume Group is a collection of Physical Volumes.
-Any number of Physical Volumes can be added to a Volume Group.
-
-Logical Volumes are divisions of Volume Groups.
-The relationship between a Logical Volume and Volume Group
-is very similar to the 
-the relationship between a Partition and a Disk.
-
-In order to more more easily remember these terms:
-A Volume Group is a virtual Disk.
-A Logical Volume is a virtual Partition.
-
-By using LVM2 a single filesystem can be created
-that spans several partitions and disks.
-Or a LVM2 can be used to partition a software RAID' 24 75
-}
-
-
-launch(){ if confirm "Execute $*" --defaultno; then eval "$@"; fi; }
-
+launch(){ if confirm "Execute $*" --defaultno; then eval "$@"; else return 1; fi; }
 name_vg(){ $DIALOG --nocancel --inputbox "Name for VG? No / in name" 0 0; }
 name_lv(){ $DIALOG --nocancel --inputbox "Name for LV? No / in name" 0 0; }
 
@@ -1088,39 +1061,13 @@ cvg(){ launch vgcreate    $( name_vg ) $( get_pv ); }
 rvg(){ launch vgremove -f $( get_vg ); }
 rlv(){ launch lvremove -f $( get_vg_lv ); }
 
+run_vgcreate(){ ppv_to_pv; cvg; vgchange -ay; filesystem_table_load; }
+run_lvcreate(){ ppv_to_pv; clv; vgchange -ay; filesystem_table_load; }
+run_vgremove(){            rvg; vgchange -ay; filesystem_table_load; }
+run_lvremove(){            rlv; vgchange -ay; filesystem_table_load; }
+
+
 pause(){ read -n 1 -t 900 -p "Press space to continue."; }
-
-lvm2_menu(){
-
- ppv_to_pv
- lvm2_explain
-
- while
-  CVG_HELP=$"Create a Volume Group and add Physical Volumes to it"
-  RVG_HELP=$"Remove Volume Group and freeing Physical Volumes"
-  CLV_HELP=$"Create Logical Volume within Volume Group"
-  RLV_HELP=$"Remove Logical Volume within Volume Group"
-
-  WHAT=$(
-   $DIALOG --title $"LVM2 Menu" --no-cancel --item-help --menu "" 0 60 8 \
-   CVG "Create Volume Group"   "$CVG_HELP" \
-   CLV "Create Logical Volume" "$CLV_HELP" \
-   RVG "Remove Volume Group"   "$RVG_HELP" \
-   RLV "Remove Logical Volume" "$RLV_HELP" \
-   Done "" "" )
- do
-  case $WHAT in
-    CVG) cvg	;;
-    RVG) rvg	;;
-    CLV) clv	;;
-    RLV) rlv	;;
-   Done) break	;;
-  esac
-  pause
- done
- vgchange -ay
- filesystem_table_load
-}
 
 name_raid(){
  local CX
@@ -1154,102 +1101,6 @@ raid_part(){
 
  echo "-n $CX $DEVS"
 }
-
-
-mdadm_menu(){
-
- while
-  C_HELP=$"Create a Volume Group and add Physical Volumes to it"
-  S_HELP=$"Stop all RAIDs, only if you want to redefine the RAIDs"
-
-  WHAT=$(
-   $DIALOG --title $"mdadm Software RAID Menu" --no-cancel --item-help --menu "" 0 60 8 \
-   Create "Create a software RAID"  "$C_HELP" \
-   Stop   "Stop all software RAIDs" "$S_HELP" \
-   Done "" "" )
- do
-  case $WHAT in
-   Create)	launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part )	;;
-   Stop)	mdadm --stop --scan	;;
-   Done)	break	;;
-  esac
-  pause
- done
- filesystem_table_load
-}
-
-disk_menu(){
-
- boot_partition_warning
-
- if   [ -z "${PDEVICE[*]}" ]
- then filesystem_table_load
- fi
-
- WHAT="Partition"
-
- while
-  TITLE=$"Disk Menu"
-  A_HELP=$"Transfer files to mounted filesystems"
-  B_HELP=$"Write a LBA addressing enabled bootable public domain MBR"
-  C_HELP=$"Define filesystem table"
-  E_HELP=$"Edit $TARGET/etc/fstab after transfering"
-  I_HELP=$"Selectively create filesystems defined in filesystem table"
-  K_HELP=$"Configure and compile a few programs to complete installation"
-  L_HELP=$"Load unmodified filesystem table by defined disk partitions"
-  M_HELP=$"Mount defined filesystems"
-  O_HELP=$"Install initramfs image, lilo, and networking programs to finish install"
-  P_HELP=$"Create partitions on physical disks"
-  R_HELP=$"Create a software RAID"
-  U_HELP=$"Unmount defined filesystems, do this only to correct mistakes"
-  V_HELP=$"LVM2 Logical Volume Managment 2 Menu"
-
-  if [ "$PMOUNTED" == true ]; then
-
-   WHAT=$(
-    $DIALOG \
-    --title "$TITLE" --ok-label Select --no-cancel \
-    --default-item "$WHAT" --item-help --menu "" 0 40 15 \
-    MBR     "Master Boot Record" "$B_HELP" \
-    Install "Transfer Files"     "$A_HELP" \
-    Compile "Menu $CVIS"         "$K_HELP" \
-    Edit    "$TARGET/etc/fstab"  "$E_HELP" \
-    Unmount "Filesystems"        "$U_HELP" \
-    Done    ""                   ""        )
-  else
-   WHAT=$(
-    $DIALOG \
-    --title "$TITLE" --ok-label Select --no-cancel \
-    --default-item "$WHAT" --item-help --menu "" 0 40 15 \
-    MBR        "Master Boot Record" "$B_HELP" \
-    Partition  "Disks"              "$P_HELP" \
-    mdadm      "Software Raid"      "$R_HELP" \
-    LVM2       "LVM2 Menu"          "$V_HELP" \
-    Reload     "Filesystem Table"   "$L_HELP" \
-    Modify     "Filesystem Table"   "$C_HELP" \
-    Initialize "Filesystems"        "$I_HELP" \
-    Mount      "Filesystems"        "$M_HELP" \
-    Done       ""                   ""        )
-    fi
- do
-  case $WHAT in
-          MBR)	write_mbr		;;
-         LVM2)  lvm2_menu		;;
-        mdadm)  mdadm_menu              ;;
-      Install)	transfer_arch 2>&1 | tee /tmp/transfer.txt ;;
-      Compile)	compile_menu		;;
-    Partition)	partition_disks		;;
-       Reload)	filesystem_table_load	;;
-       Modify)	filesystem_table	;;
-   Initialize)	filesystem_initialize	;;
-        Mount)	filesystem_mount	;;
-      Unmount)	confirm_unmount		;;
-         Edit)	edit_fstab		;;
-         Done)	break			;;
-    esac
- done
-}
-
 
 compile_menu(){
  if   ! [ -f $TARGET/etc/fstab ]
@@ -1287,96 +1138,126 @@ kbd"
  CVIS="Visited"
 }
 
+run_mdadm(){ if launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part ); then MDADM=true; fi; filesystem_table_load; }
+run_mdadm_stop(){ mdadm --stop --scan; filesystem_table_load; }
 
-module_menu(){
+run_lsmod(){ ( lsmod; echo "Press q to return" ) | less; }
 
- list(){ ( lsmod; echo "Press q to return" ) | less; }
- para(){ $DIALOG --nocancel --inputbox "Parameters for $1?" 0 0; }
-
- mods(){
-  find /lib/modules -type f | cut -d / -f6- | LC_ALL=C sort |
-  sed -nr  "s:(.*)/(.*):\2	\1:
-            s:\.ko	:	:p"
- }
-
- mselect(){
-  $DIALOG --title $"Module Load Menu" \
-          --menu  $"Select a module to load please"  0 0 0 $( mods )
- }
-
- load(){
-  local PARAM MODULE
-  if          MODULE="$( mselect )" &&
-       [ -n "$MODULE" ] &&
-       PARAM="$( para "$MODULE" )"
-  then
-   modprobe $MODULE $PARAMETERS
-   read -n 1 -t 900 -p "Press space to continue."
-  fi
- }
-
-
- loaded(){
-  echo "Module"; echo "Used by"
-  lsmod | tr -s ' ' | cut -d ' ' -f1,3- | sed "1d;s: :\n:"
- }
-
- lose(){
-  local MOD=$( $DIALOG \
-   --title $"Module Unload Menu" \
-   --menu  $"Select a module to unload please" 0 0 0  $( loaded ) )
-
-  [ -n "$MOD" ] && rmmod "$MOD"
- }
-
-
- while
-  WHAT=$( $DIALOG \
-   --title $"Module Menu" --ok-label "Select" --no-cancel \
-   --menu  $"Add missing /dev nodes by loading modules." 0 0 0 \
-   List Loaded Load "" Unload "" Done "" )
- do
-  case $WHAT in
-     List) list ;;
-     Load) load ;;
-   Unload) lose ;;
-     Done) break ;;
-  esac
- done
+loaded(){
+ echo "Module"; echo "Used by"
+ lsmod | tr -s ' ' | cut -d ' ' -f1,3- | sed "1d;s: :\n:"
 }
 
+run_rmmod(){
+ local MOD=$( $DIALOG \
+  --title $"Module Unload Menu" \
+  --menu  $"Select a module to unload please" 0 0 0  $( loaded ) )
+
+ [ -n "$MOD" ] && rmmod "$MOD"
+}
+
+
+run_modprobe(){
+ para(){ $DIALOG --nocancel --inputbox "Parameters for $1?" 0 0; }
+ mods(){ find /lib/modules -type f | cut -d / -f6- | LC_ALL=C sort | sed -nr "s:(.*)/(.*):\2\t\1: ; s:\.ko\t:\t:p"; }
+ msel(){ $DIALOG --title $"Module Load Menu" --menu  $"Select a module to load please" 0 0 0 $( mods ); }
+
+ local PARAM MODULE
+ if          MODULE="$( msel )" &&
+      [ -n "$MODULE" ] &&
+      PARAM="$( para "$MODULE" )"
+ then
+  modprobe $MODULE $PARAMETERS
+  read -n 1 -t 900 -p "Press space to continue."
+ fi
+}
+
+run_reload_fstab(){ if [ -z "$MOUNT" ]; then filesystem_table_load; fi; }
+run_modify_fstab(){ filesystem_table; FSTAB=true; }
+run_init_filesys(){ if [ "$FSTAB"    ]; then filesystem_initialize; FINIT=true; fi; }
+     run_install(){ if [ "$MOUNT"    ]; then transfer_arch 2>&1 | tee /tmp/transfer.txt; INSTALL=true; fi; }
+  run_edit_fstab(){ if [ "$INSTALL"  ]; then edit_fstab; fi; }
+     run_compile(){ if [ "$INSTALL"  ]; then compile_menu; COMPILE=true; fi; }
+      run_umount(){ if [ "$MOUNT"    ]; then filesystem_unmount; MOUNT=; fi; }
+        run_done(){ goodbye; }
+
+       rdy_lsmod(){ echo optional; }
+    rdy_modprobe(){ echo optional; }
+       rdy_rmmod(){ echo optional; }
+         rdy_mbr(){ if [ "$MBR"        ]; then echo complete; else echo optional; fi; }
+   rdy_partition(){ if [ "$PARTITION"  ]; then echo complete; else echo optional; fi; }
+    rdy_vgcreate(){ echo optional; }
+    rdy_lvcreate(){ echo optional; }
+    rdy_vgremove(){ echo optional; }
+    rdy_lvremove(){ echo optional; }
+       rdy_mdadm(){ echo optional; }
+  rdy_mdadm_stop(){ echo optional; }
+rdy_reload_fstab(){ if [ -n "$MOUNT"   ]; then echo -n 'too late, '; fi; echo optional; }
+rdy_modify_fstab(){ if [    "$FSTAB"   ]; then echo complete; else echo required; fi; }
+rdy_init_filesys(){ if [ -z "$FSTAB"   ]; then echo -n 'later, '; fi; echo optional; }
+       rdy_mount(){ if [    "$MOUNT"   ]; then echo complete; else if [ -z "$FSTAB"   ]; then echo -n 'later, '; fi; echo required; fi; }
+     rdy_install(){ if [    "$INSTALL" ]; then echo complete; else if [ -z "$MOUNT"   ]; then echo -n 'later, '; fi; echo required; fi; }
+  rdy_edit_fstab(){ if [ -z "$INSTALL" ]; then echo -n 'later, '; fi; echo optional; }
+     rdy_compile(){ if [    "$COMPILE" ]; then echo complete; else if [ -z "$INSTALL" ]; then echo -n 'later, '; fi; echo required; fi; }
+      rdy_umount(){ echo optional; }
+        rdy_done(){ if [ -z "$COMPILE" ]; then echo -n 'later, '; fi; echo required; }
 
 main_menu(){
+ local MAIN
 
- WHAT="Disk"
- MVIS="Optional"
- DVIS="Required"
- OVIS="Optional"
- CVIS="Required"
+ filesystem_table_load
 
  while
-  TITLE="Main Menu"
-   HELP="Sorcerer comes with no warranty."
-  D_HELP="Prepare partitions and transfer operating system"
-  F_HELP="Exit to a manual installation or reboot"
-  M_HELP="List load and unload modules"
+   HELP="Sorcerer comes with no warranty.
+Navigate this menu with the up an down arrow keys.
+Press the Enter key to make a selection."
 
-  WHAT=$( $DIALOG \
-   --title "$TITLE" --nocancel --default-item "$WHAT" \
-   --item-help --menu "$HELP" 0 50 10 \
-   Module  "Menu $MVIS" "$M_HELP" \
-   Disk    "Menu $DVIS" "$D_HELP" \
-   Done    ""           "$F_HELP" )
-
+  MAIN=$( $DIALOG --item-help --nocancel --default-item "$MAIN" --menu "$HELP" 0 60 10 \
+   lsmod        "$( rdy_lsmod        )" "list loaded modules" \
+   modprobe     "$( rdy_modprobe     )" "load module" \
+   rmmod        "$( rdy_rmmod        )" "remove loaded module" \
+   mbr          "$( rdy_mbr          )" "write bootable master boot record" \
+   partition    "$( rdy_partition    )" "create partition on a block device" \
+   vgcreate     "$( rdy_vgcreate     )" "create volume group" \
+   lvcreate     "$( rdy_lvcreate     )" "create logical volume" \
+   vgremove     "$( rdy_vgremove     )" "remove volume group" \
+   lvremove     "$( rdy_lvremove     )" "remove logical volume" \
+   mdadm        "$( rdy_mdadm        )" "create and activate software RAID" \
+   mdadm_stop   "$( rdy_mdadm_stop   )" "stop software RAID" \
+   reload_fstab "$( rdy_reload_fstab )" "reload incomplete filesystem table" \
+   modify_fstab "$( rdy_modify_fstab )" "modify filesystem table" \
+   init_filesys "$( rdy_init_filesys )" "initialize filesystems" \
+   mount        "$( rdy_mount        )" "mount filesystems" \
+   install      "$( rdy_install      )" "install software to new filesystem" \
+   edit_fstab   "$( rdy_edit_fstab   )" "edit /etc/fstab on new root filesystem" \
+   compile      "$( rdy_compile      )" "configure, compile and install some software" \
+   umount       "$( rdy_umount       )" "unmount filesystems" \
+   exit         "$( rdy_done         )" "exit installer" )
  do
-  case $WHAT in
-   Module)	module_menu;	MVIS="Visited"	;;
-     Disk)	disk_menu;	DVIS="Visited"	;;
-     Done)	goodbye	;;
+  case $MAIN in
+   lsmod)		run_lsmod ;;
+   modprobe)		run_modprobe ;;
+   rmmod)		run_rmmod ;;
+   mbr)			run_mbr ;;
+   partition)		run_partition ;;
+   vgcreate)		run_vgcreate ;;
+   lvcreate)		run_lvcreate ;;
+   vgremove)		run_vgremove ;;
+   lvremove)		run_lvremove ;;
+   mdadm)		run_mdadm ;;
+   mdadm_stop)		run_mdadm_stop ;;
+   reload_fstab)	run_reload_fstab ;;
+   modify_fstab)	run_modify_fstab ;;
+   init_filesys)	run_init_filesys ;;
+   mount)		run_mount ;;
+   install)		run_install ;;
+   edit_fstab)		run_edit_fstab ;;
+   compile)		run_compile ;;
+   umount)		run_umount ;;
+   exit)		goodbye	;;
   esac
  done
 }
-
 
 
 # Max Partitions
