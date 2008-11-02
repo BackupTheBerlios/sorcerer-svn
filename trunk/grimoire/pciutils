@@ -33,15 +33,20 @@ build(){
   esac
  }
 
- make            PREFIX=/usr &&
- prepare_install             &&
- make    install PREFIX=/usr &&
-         install_lib
- # libpci.a is 30K, small enough that there is no shared library for it.
+ export CFLAGS+=' -fPIC'
+
+ sed -i "s:-O2:$CFLAGS -fPIC:
+         s:/usr/local:/usr:
+         s:SHARED=no:SHARED=yes:" Makefile
+
+ make            &&
+ prepare_install &&
+ make    install install-lib
 }
 
 current(){
  case $VERSION in
+  3.0.0) [ -f /usr/lib/libpci.so.3.0.0 ] ;;
   2.2.9) [ -f /usr/sbin/lspci ] ;;
  esac
 }
