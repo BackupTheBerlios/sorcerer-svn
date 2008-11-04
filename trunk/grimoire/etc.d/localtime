@@ -12,31 +12,26 @@ points to the correct conversion file."
 
 method(){
 
- tz_menulist(){
-  find /usr/share/zoneinfo -type f -printf '%P	Zone\n' |
-  LC_ALL=C sort
- }
+ tz_menulist(){ find /usr/share/zoneinfo -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
 
  tz_menu(){
   BACKTITLE=$"glibc-localetime Timezone Configuration Menu"
       TITLE=$"Timezone Selection"
        HELP=$"Please an appropriate location"
 
-  dialog --backtitle "$BACKTITLE"  \
-         --title     "$TITLE"      \
-         --stdout                  \
-         --timeout "$PROMPT_DELAY" \
-         --no-cancel               \
-         --menu  "$HELP"           \
-         0 0 0                     \
-         $( tz_menulist )
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout "$PROMPT_DELAY" \
+   --stdout --no-cancel      \
+   --menu "$HELP" 0 0 0      \
+   $( tz_menulist )
  }
 
  local  IFS
  export IFS="$TAB_ENTER_IFS"
  LOCALTIME="$( tz_menu )"
- if [ -n "$LOCALTIME" ]; then
-  echo    "LOCALTIME=\"$LOCALTIME\"" > $CONFIG_LOGS/glibc-localetime
+ if [ "$LOCALTIME" ]; then
   rm -f  /etc/localtime
   ln -sv /usr/share/zoneinfo/$LOCALTIME /etc/localtime
  fi

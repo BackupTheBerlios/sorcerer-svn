@@ -1,0 +1,24 @@
+LOC=/etc/localtime
+WHY=Date
+DES="Set the current date"
+
+method(){
+
+ date_menu(){
+  BACKTITLE=$"Calendar Menu"
+      TITLE=$"Date Selection"
+       HELP=$"Press tab to change fields, use arrow keys to navigate"
+
+  dialog --backtitle "$BACKTITLE"  \
+         --title     "$TITLE"      \
+         --stdout                  \
+         --timeout "$PROMPT_DELAY" \
+         --no-cancel               \
+         --calendar "" 0 0
+ }
+
+ local  IFS
+ export IFS="$TAB_ENTER_IFS"
+ date -s "$( date_menu | sed -r 's:([^/]*)/([^/]*):\2/\1:' )"
+ hwclock --systohc
+}
