@@ -1,0 +1,24 @@
+LOC=/etc/localtime
+WHY=Date
+DES="Set the current time"
+
+method(){
+
+ time_menu(){
+  BACKTITLE=$"Time Menu"
+      TITLE=$"Time Selection"
+       HELP=$"Press tab to change fields, use arrow keys to navigate"
+
+  dialog --backtitle "$BACKTITLE"  \
+         --title     "$TITLE"      \
+         --stdout                  \
+         --timeout "$PROMPT_DELAY" \
+         --no-cancel               \
+         --calendar "" 0 0
+ }
+
+ local  IFS
+ export IFS="$TAB_ENTER_IFS"
+ date -s "$( time_menu )"
+ hwclock --systohc
+}
