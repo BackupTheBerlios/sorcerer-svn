@@ -1,10 +1,10 @@
     stable 2.46 2.45 2.44 2.43 2.42 2.41 2.40
     secure 2.43
   category network/dns
- attribute console server old_init
+ attribute console server
     source http://www.thekelleys.org.uk/dnsmasq/dnsmasq-$VERSION.tar.gz
   homepage http://www.thekelleys.org.uk/dnsmasq/doc.html
-  estimate 30
+  estimate 98
       desc 'dnsmasq is a DNS forwarder for NAT firewalls.
 dnsmasq is lightweight, easy to configure DNS forwarder
 designed to provide DNS (domain name) services to a
@@ -20,7 +20,10 @@ connected via modem, ISDN, ADSL, or cable-modem connections.'
 build(){
 sed -i "s:local::
         s:-O2:${CFLAGS}:" Makefile
-make &&
-prepare_install &&
-make    install
+make            	&&
+prepare_install 	&&
+make    install 	&&
+install -v -m 0644 dnsmasq.conf.example /etc/dnsmasq.conf &&
+install -v -d      /usr/share/dnsmasq	&&
+cp -r -v contrib   /usr/share/dnsmasq
 }
