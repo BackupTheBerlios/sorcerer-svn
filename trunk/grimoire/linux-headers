@@ -1,0 +1,18 @@
+# glibc 2.9 does not compile with linux-headers 2.6.27.7
+# glibc 2.9 does not compile with linux-headers 2.6.26.8
+
+    stable 2.6.24.7
+  category development
+ attribute library solo
+       url $KERNEL_URL
+    source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
+      desc 'installs suitable version of linux headers for use with glibc'
+
+build(){
+if [ -f Kbuild ] && [ -d include ]; then
+ make include/linux/version.h
+ make include/asm
+ prepare_install
+ cp -vrL include/{asm,asm-generic,linux} /usr/include
+else false; fi
+}
