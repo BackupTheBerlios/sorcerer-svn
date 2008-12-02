@@ -9,27 +9,192 @@
   SUSP_VER=( 3.0-rc7 3.0-rc5 )
    S4K_VER=( 2.6.25 )
 
+  progress reposit
+   reposit 2.6.27.7
     stable 2.6.25.10 2.6.25.9 2.6.24.3
-    secure 2.6.25.10
+    secure 2.6.27.7
    require lilo
   optional laptop-mode-tools '' '' for conserving battery power on laptops
-  optional module-init-tools '' '' for tools for modular kernel  optional suspend2-userui   '' '' for interactive suspend interface and progress bar
+  optional module-init-tools '' '' for tools for modular kernel  
+  optional suspend2-userui   '' '' for interactive suspend interface and progress bar
   optional hibernate-script  '' '' for a set of scripts controlling suspend
   category kernel
- attribute archive_off console
-       url $KERNEL_URL
-    source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
-       url http://www.tuxonice.net/ 
-    source downloads/all/tuxonice-$SUSP_VER-for-$S4K_VER.patch.bz2
+ attribute console
+#       url $KERNEL_URL
+#    source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
+#       url http://www.tuxonice.net/ 
+#    source downloads/all/tuxonice-$SUSP_VER-for-$S4K_VER.patch.bz2
+REPOSITORY=( ""
+             "git clone --depth 1 git://git.kernel.org/pub/scm/linux/kernel/git/nigelc/tuxonice-2.6.27.git linux-$VERSION"
+             "git pull" )
+# Do NOT add *.bz2 or *.gz extension!
+    source linux-$VERSION.tar
   homepage http://www.tuxonice.net
-   inherit linux
+   protect /boot
+   protect /lib/modules
   eprovide linux-kernel
+  disable  libtool_fix
   estimate 4200
-      desc 'linux-suspend2 provides 2.6.x stable kernels with suspend capability.
+      desc 'linux-suspend2 provides 2.6.x stable kernels with hibernation.
 This version is patched to provide software suspend,
 aka suspend2 or tuxonice.'
 
-apply_linux_patch(){
- #tuxonice
- bzcat ${SOURCE[1]} | patch -p1
+configure(){
+ local CUR="$CONFIG_LOGS/$SPELL/linux-config"
+ local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+
+
+ copy(){ if [[ -f $1 ]]; then cp "$1" "$2"; chmod 600 "$2"; fi; }
+
+ if ! [[ -f $CUR ]]; then
+  if ! sources_cached "$SPELL"; then
+   echo "Sources must be download before configuration."
+   leech $SPELL
+  fi
+  pre_build           &&
+  optimize            &&
+  copy "$OLD" .config &&
+  make menuconfig     &&
+  cp         .config $CUR
+  if   [[ -n   $BUILD_DIR ]] &&
+       [[ -d   $BUILD_DIR ]]
+  then rm -fr "$BUILD_DIR"
+  fi
+
+  clear
+  echo "Linux kernel configuration complete."
+  cd /tmp
+ fi
+}
+
+build(){
+ backup_modules(){
+  if [ -d  /lib/modules/$RELEASE ]; then
+  rm   -rf /lib/modules/$RELEASE.old
+  cp   -a  /lib/modules/$RELEASE \
+           /lib/modules/$RELEASE.old
+  fi
+ }
+
+
+ store_config(){ cp .config $CONFIG_LOGS/$SPELL/linux-config; }
+
+ install_kernel(){
+  SM=System.map
+  BV=$RELEASE
+  BZ=$( find . -type f -name bzImage )
+
+  rm    -rf                /boot/$BV
+  mkdir -p                 /boot/$BV
+  cp        $BZ            /boot/$BV/linux
+  cp            System.map /boot/$BV
+  rm    -f                 /boot/System.map
+  ln    -s  $BV/System.map /boot/System.map
+ }
+
+ install_header(){
+  mkdir   -vpm 755                           /usr/include/asm
+  install -vm  644 include/asm/asm-offsets.h /usr/include/asm
+  mkdir   -vpm 755                           /usr/include/linux
+  install -vm  644 include/linux/autoconf.h  /usr/include/linux
+  install -vm  644 include/linux/compile.h   /usr/include/linux
+  true
+ }
+
+ restore_linux_configs(){
+  local CUR="$CONFIG_LOGS/$SPELL/linux-config"
+  local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+
+  if   [[ -f  $CUR ]]; then cp $CUR .config; chmod 600 .config
+  elif [[ -f  $OLD ]]; then cp $OLD .config; chmod 600 .config
+  fi
+ }
+
+
+ make_modules(){
+  if   grep -q "CONFIG_MODULES=y" .config
+  then make  modules && backup_modules
+  fi
+ }
+
+
+ gzip_modules(){
+  local KO="/lib/modules/$RELEASE/kernel/"
+  find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+  find $KO -type f              | sed   -n '/\.gz$/p' |
+  while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+ }
+
+
+ make_modules_install(){
+  if grep -q "CONFIG_MODULES=y" .config; then 
+   mkdir -p  /lib/modules
+   chmod 700 /lib/modules
+   make modules_install
+   gzip_modules
+  fi
+ }
+
+ get_release_version(){
+   # If either of CONFIG_LOCAL_VERSION or CONFIG_LOCAL_VERSION_AUTO
+   # is set, then the build process will append a string to $VERSION.
+   # Therefore, $RELEASE must be used so the bzImage and modules are
+   # installed under the same release versions
+   # Note: include/config/kernel.relase exists only AFTER 'make bzImage' 
+   RELEASE=$( cat include/config/kernel.release )
+ }
+
+ compile_and_install(){
+  restore_linux_configs
+  yes "" | make oldconfig
+  store_config
+
+  make   bzImage       &&
+  get_release_version  &&
+  make_modules         &&
+  prepare_install      &&
+  make_modules_install &&
+  install_kernel       &&
+  install_header
+ }
+
+ rm -fr            /usr/src/linux &&
+ mv     $BUILD_DIR /usr/src/linux &&
+ cd                /usr/src/linux &&
+ compile_and_install
+}
+
+
+post_install(){
+ update_etc_lilo_conf
+
+ show_installed initramfs    |
+ sed -n      '/^initramfs/p' | pipe_queue "$CAST_QUEUE" com
+
+ if   [[ -x /usr/bin/mail  ]]; then MAILER=/usr/bin/mail
+ elif [[ -x /usr/bin/mailx ]]; then MAILER=/usr/bin/mailx
+ fi
+
+ if   [[ -n $MAILER   ]] &&
+      [[ -n $SORCERER ]]
+ then
+  echo    -e "New linux kernel installed.\nReboot the box, please." |
+  $MAILER -s "Reboot reminder from sorcery." $SORCERER
+ fi
+
+ grep -lr   '^/lib/modules/' $INSTALL_LOGS |
+ sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
+ pipe_queue "$CAST_QUEUE" com
+
+ rm -rf /boot/fast
+ true
+}
+
+
+current(){
+ if   ! [[ -f      /usr/include/linux/autoconf.h ]]
+ then cp /usr/src/linux/include/linux/autoconf.h \
+                   /usr/include/linux/autoconf.h
+      true
+ fi
 }
