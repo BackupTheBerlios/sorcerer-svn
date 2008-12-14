@@ -1,5 +1,5 @@
-    stable 0.9.8a 0.9.6 0.9.5 0.9.4 0.9.3 0.9.2 0.9.1
-    secure 0.9.8a 0.9.6 0.8.6i
+    stable 0.9.8a 0.9.6 0.9.5 0.9.4 0.9.3
+    secure 0.9.8a 0.9.6
 case $VERSION in
  0.9.4) opts --disable-dv --disable-dc1394 ;;
 esac
@@ -35,6 +35,7 @@ esac
   optional x264        --enable-x264     --disable-x264     for H264 encoding suport
   optional zvbi        --enable-zvbi     --disable-zvbi
     switch             --enable-v4l      --disable-v4l      for Video4Linux support
+     opts --enable-static=no
   category video/dvd video/player
  attribute x11
  attribute kde4
@@ -42,7 +43,7 @@ esac
     source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.bz2
       vurl http://www.videolan.org/vlc/download-sources.html
   homepage http://www.videolan.org/
-      opts --prefix=/opt/kde4
+
 # vlc 0.8.6d does not compile with ffmpeg version 2008-01-13 installed
 #            'ffmpeg:--enable-ffmpeg:--disable-ffmpeg:for WMA,SVQ 1,H263,H263i,MJPEG A/B and other ffmpeg codecs support'
 OPTS+=' --disable-ffmpeg'
@@ -67,11 +68,6 @@ OPTS+=' --disable-ffmpeg'
 # Has new optional requirements on avahi samba sysfsutils libebml
 # not sure why yet.
 #     OPTS+=' --disable-libmpeg2  --disable-ffmpeg'
-     OPTS+=' --enable-static=no'
-case $VERSION in
- 0.9.1) use_gcc gcc-v4.2 ;;
- 0.8.6e) use_gcc gcc-v4.2 ;;
-esac
   estimate 11000
       desc 'vlc is the videolan client multimedia player.
 vlc the VideoLAN Client is an MPEG, MPEG2, VCD and DVD player.
@@ -82,44 +78,12 @@ the Linux framebuffer device, DirectX, BeOS, and
 QNX, audio support for OSS, Esound, ALSA, and
 GNOME, GTK+, Qt and KDE interfaces.'
 
-# older gcc due to libraw1394 headers
-case $VERSION in
- 0.9.2) source http://www.linux1394.org/dl/libraw1394-1.3.0.tar.gz
-         use_gcc gcc-v4.2 ;;
- 0.9.1) source http://www.linux1394.org/dl/libraw1394-1.3.0.tar.gz
-         use_gcc gcc-v4.2 ;;
- 0.8.6i) source http://www.linux1394.org/dl/libraw1394-1.3.0.tar.gz
-         use_gcc gcc-v4.2 ;;
-esac
-
-build(){
- old_libraw(){
-  cd libraw1394-1.3.0
-  ./configure \
-   --prefix $PWD/install \
-   --enable-shared=no \
-   --enable-static=yes &&
-  make install &&
-  OPTS+=" --with-dv-raw1394=$PWD/install" &&
-  export  CFLAGS+=" -I$PWD/install/include" &&
-  export LDFLAGS+=" -L$PWD/install/lib" &&
-  cd ..
- }
-
+build(){ (
 unset CFLAGS
 unset CXXFLAGS
 export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla'
-export QTDIR=/opt/kde4
+#export QTDIR=/opt/kde4
+export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
 
-case $VERSION in
- 0.9.2) # sed -i 's/typedef .* byte_t\;/#ifndef byte_t\ntypedef u_int8_t byte_t;\n#endif/' libraw1394-1.3.0/src/raw1394.h
-         old_libraw
-         sed -i /byte_t/d libraw1394-1.3.0/install/include/libraw1394/raw1394.h
- ;;
- 0.9.1) # sed -i 's/typedef .* byte_t\;/#ifndef byte_t\ntypedef u_int8_t byte_t;\n#endif/' libraw1394-1.3.0/src/raw1394.h
-         old_libraw
-         sed -i /byte_t/d libraw1394-1.3.0/install/include/libraw1394/raw1394.h
- ;;
-esac
 default_build
-}
+) }

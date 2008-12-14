@@ -1,9 +1,5 @@
-# May require inputproto since it
-# Requested 'inputproto >= 1.4.4' ...
-
-# 1.5.2 is not stable for me (Jan)!
-    stable 1.5.3       1.5.1 1.4 X11R7.2-1.2.0
-  unstable 1.5.3 1.5.2 1.5.1 1.5.0 1.4.99.906 1.4.99.902 1.4.2 1.4
+    stable 1.5.3 1.5.1 1.4 X11R7.2-1.2.0
+  unstable 1.5.99.3 1.5.3 1.5.2 1.5.1 1.5.0 1.4.99.906 1.4.99.902
     secure 1.5.3
   MVERSION=7.2
 # MVERSION=7.0.1
@@ -60,6 +56,22 @@ build(){
  adjust_xorg_conf
 }
 
+
+post_install(){
+ if   [ -f                      /etc/X11/xorg.conf ] &&
+      ! grep -q AllowEmptyInput /etc/X11/xorg.conf   &&
+      ! grep -q ServerFlags     /etc/X11/xorg.conf
+ then
+  (
+    echo "Section \"ServerFlags\""
+    echo "	Option  \"AllowEmptyInput\" \"false\""
+    echo "EndSection"
+  ) >> /etc/X11/xorg.conf
+ fi
+ if ! [ -f $VERSION_LOGS/xf86-input-evdev ]
+ then echo xf86-input-evdev | pipe_queue $CAST_QUEUE com
+ fi
+}
 
 current(){
  case $VERSION in
