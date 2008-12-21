@@ -1,5 +1,4 @@
-    latest 1.8.0
-    stable 1.6.5 1.6.4 1.6.3 1.6.2 1.6.1 1.6.0
+    stable 1.8.0 1.6.5
   unstable 1.7.24
    require bzip2 perl zlib
   category security/encryption
@@ -7,10 +6,6 @@
     source http://files.randombit.net/botan/Botan-$VERSION.tgz
       vurl http://botan.randombit.net/download.php
   homepage http://botan.randombit.net
-case  $VERSION  in
- 1.6.4) use_gcc gcc-v4.1 ;;
- 1.6.3) use_gcc gcc-v4.1 ;;
-esac
   estimate 4600
  freshmeat botan
       desc 'Botan is a library of cryptographic algorithms.
@@ -23,6 +18,7 @@ plus a high level filter-based interface.'
 
 
 build(){
+build_old(){
  ./configure.pl    \
  gcc-linux-generic &&
  make              \
@@ -30,4 +26,10 @@ build(){
  "LIB_OPT=$CFLAGS" &&
  prepare_install   &&
  make    install INSTALLROOT=/usr
+}
+
+ ./configure.pl -cc=gcc -os=linux --disable-debug --disable-shared --prefix=/usr &&
+ make            &&
+ prepare_install &&
+ make    install
 }
