@@ -232,7 +232,7 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
-Pekka Panula reports that the transfer fails on his box
+# Pekka Panula reports that the transfer fails on his box
 # unless he selects 6 as ?cache?buffer? size
 
 #BUFFER=$( inputbox "Please enter buffer size or press enter" "64m" )
@@ -246,7 +246,7 @@ Pekka Panula reports that the transfer fails on his box
  mkdir -vpm 755                $TARGET/{dev,etc,home,media/{cdrom,floppy,root},proc,sys,tmp,var/cache/archive}
  mkdir -vpm 700                $TARGET/etc/sorcery/log/{config,opt.{on,off},provide}
  chmod -v  1777                $TARGET/tmp
- cp    -va dev etc init root   $TARGET
+ cp    -va dev etc init        $TARGET
  rm    -f                      $TARGET/etc/init.d/log.d/*
  cp    -va     etc/skel        $TARGET/root
  chmod -v   700                $TARGET/root
@@ -1181,6 +1181,7 @@ run_init_filesys(){ if [ "$FSTAB"    ]; then filesystem_initialize; FINIT=true; 
      run_install(){ if [ "$MOUNT"    ]; then transfer_arch 2>&1 | tee /tmp/transfer.txt; INSTALL=true; fi; }
   run_edit_fstab(){ if [ "$INSTALL"  ]; then edit_fstab; fi; }
      run_compile(){ if [ "$INSTALL"  ]; then compile_menu; COMPILE=true; fi; }
+       run_mount(){ filesystem_mount; MOUNT=true; }
       run_umount(){ if [ "$MOUNT"    ]; then filesystem_unmount; MOUNT=; fi; }
         run_done(){ goodbye; }
 
