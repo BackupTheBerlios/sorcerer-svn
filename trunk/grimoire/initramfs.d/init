@@ -42,10 +42,12 @@ construct(){
 
  umask 077
  read J J V J < $MR/proc/version &&
- used | $MR/usr/bin/cpio -o -H newc --quiet >    $MR/boot/fast/initrf && 
- cp -al $MR/boot/$V/System.map $MR/boot/$V/linux $MR/boot/fast/ &&
- sync &&
- lilo -r $MR -C /etc/lilo.conf.fast
+ if [ -f $MR/boot/$V/linux ]; then
+  cp -al $MR/boot/$V/System.map $MR/boot/$V/linux $MR/boot/fast/ &&
+  used | $MR/usr/bin/cpio -o -H newc --quiet >    $MR/boot/fast/initrf && 
+  sync &&
+  lilo -r $MR -C /etc/lilo.conf.fast
+ fi
  umask 022
 }
 
