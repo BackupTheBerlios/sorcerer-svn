@@ -1,6 +1,7 @@
+# arpd links with /usr/lib/libdb-4.6.so
 # 2.6.26 fails compilation
 
-    stable 2.6.25 2.6.23
+    stable 2.6.28 2.6.25 2.6.23
   unstable 2.6.26
     secure 2.6.25
    require db gmp init-functions
@@ -16,11 +17,11 @@ It can be used tp configure adapters, and provides userland
 programs to control QoS settings in the kernel.'
 
 build(){
-sed -i "s:-O2:$CFLAGS:
-        s:SBINDIR=/usr/sbin:SBINDIR=/sbin:" Makefile
+ move_install(){
+  mv -v /usr/sbin/{ctstat,genl,ifcfg,ifstat,ip,lnstat,nstat,routef,routel,rtacct,rtmon,rtpr,rtstat,ss,tc} /sbin
+ }
 make            &&
 prepare_install &&
 make    install &&
-mv -v /sbin/arpd /usr/sbin
-# arpd links with /usr/lib/libdb-4.6.so
+   move_install
 }
