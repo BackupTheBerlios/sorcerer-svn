@@ -1,4 +1,4 @@
-    stable 0.4.15 0.4.14
+    stable 0.4.15.2 0.4.15 0.4.14
    require scim qt-x11-opensource
   optional doxygen '' --disable-documents for documentation
   category input
@@ -6,9 +6,10 @@
        url $SOURCEFORGE_URL
     source scim/scim-bridge-$VERSION.tar.gz
   homepage http://www.scim-im.org/
-      opts --prefix=/opt/kde4 --enable-agent --disable-qt3-immodule --enable-static=no --enable-qt4-immodule --disable-gtk2-immodule
+#     opts --prefix=/opt/kde4 --enable-agent --disable-qt3-immodule --enable-static=no --enable-qt4-immodule --disable-gtk2-immodule
+      opts --prefix=/opt/kde4 --enable-agent --enable-qt3-immodule=no --enable-static=no --enable-qt4-immodule --enable-gtk2-immodule=no
  conflicts scim-bridge
-  estimate 600
+  estimate 500
       desc 'scim-bridge-qt4 is a wrapper for scim.
 It enables non ASCII language input in
 with qt-x11-opensource and KDE 4.x programs.'
@@ -18,6 +19,17 @@ build(){
   install -vm 755 $SCRIPT_DIR/scim-bridge-qt4 /etc/bash.d/noninteractive/
  }
 
- default_build &&
- extra_install
+(
+ export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+ ./configure               \
+  --build=$BUILD           \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=${PREFIX:-/usr} \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
+   extra_install
+)
 }

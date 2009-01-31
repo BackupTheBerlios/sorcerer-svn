@@ -1,4 +1,4 @@
-    stable 0.4.15 0.4.14
+    stable 0.4.15.2 0.4.15 0.4.14
    require gtk+ scim
   optional doxygen '' --disable-documents for documentation
   category input
@@ -6,7 +6,8 @@
        url $SOURCEFORGE_URL
     source scim/scim-bridge-$VERSION.tar.gz
   homepage http://www.scim-im.org/
-      opts --enable-gtk2-immodule --enable-agent --disable-qt3-immodule --disable-qt4-immodule --enable-static=no
+#     opts --enable-gtk2-immodule --enable-agent --disable-qt3-immodule --disable-qt4-immodule --enable-static=no
+      opts --enable-gtk2-immodule --enable-agent --enable-qt3-immodule=no --enable-qt4-immodule=no --enable-static=no
  conflicts scim-bridge
   estimate 600
       desc 'scim-bridge-gtk+ is a wrapper for scim.
@@ -22,6 +23,15 @@ build(){
   install -m 755 $SCRIPT_DIR/scim-bridge-gtk+ /etc/bash.d/noninteractive/
  }
 
- default_build &&
+#default_build &&
+ ./configure               \
+  --build=$BUILD           \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=${PREFIX:-/usr} \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install &&
    extra_install
 }
