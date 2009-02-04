@@ -56,12 +56,14 @@ v6(){ [[ $1 =~ : ]]; }
 start_static(){
  local AD CMD GW I
 
+ ip link set $IF down
+
  for I in ${!IPA[@]}; do
   AD=${IPA[$I]}
   CMD=ip
   if v6 "$AD"; then CMD+=' -6'; fi
 
-  CMD+=" addr add $AD dev $IF label $IF:$I"
+  CMD+=" addr replace $AD dev $IF label $IF:$I"
   [[ -n $BROADCAST ]] && CMD+=" broadcast $BROADCAST"
   $CMD
  done
@@ -70,19 +72,21 @@ start_static(){
 
  for GW in ${GATEWAY[@]}; do
   if   v6 "$GW"
-  then ip -6 route add to default via $GATEWAY
-  else ip    route add to default via $GATEWAY
+  then ip -6 route replace to default via $GATEWAY
+  else ip    route replace to default via $GATEWAY
   fi
  done
 }
 
 start_wlan(){
  local IWI="iwconfig $IF"
- [[ -n $MODE  ]] && $IWI mode    "$MODE"
- [[ -n $KEY   ]] && $IWI key     "$KEY"   || $IWI key   off
- [[ -n $ESSID ]] && $IWI essid   "$ESSID" || $IWI essid any
- [[ -n $AP    ]] && $IWI ap      "$AP"    || $IWI ap    off
- [[ -n $IPA   ]] && start_static "$IF"    || start_dhcp $IF
+ if [[ -n $MODE  ]]; then $IWI mode    "$MODE"; fi
+ if [[ -n $KEY   ]]; then $IWI key     "$KEY";   else $IWI key   off; fi
+ if [[ -n $ESSID ]]; then $IWI essid   "$ESSID"; else $IWI essid any; fi
+ if [[ -n $AP    ]]; then $IWI ap      "$AP";    else $IWI ap    off; fi
+ if [[ -n $RETRY ]]; then $IWI retry   "$RETRY"; fi
+# done elsewhere
+#if [[ -n $IPA   ]]; then start_static "$IF";    else start_dhcp $IF; fi
 }
 
 
@@ -144,7 +148,7 @@ stop_ppp(){
 
 start_smart(){
  if [[ -z $IF       ]]; then start_ppp; return; fi
- if [[ -n $MODE     ]]; then start_wireless; fi
+ if [[ -n $MODE     ]]; then start_wlan; fi
  if [[ -n $WPA_CONF ]]; then start_wpa; return; fi
  if [[ -n $IPA      ]]; then start_static
                         else start_dynamic; fi
