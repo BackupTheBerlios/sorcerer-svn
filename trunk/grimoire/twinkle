@@ -4,7 +4,7 @@
 # checking for lrelease... no
 # configure: error: lrelease is missing (qt3-devel-tools package)
 
-    stable 1.4 1.3.2 1.3.1 1.3 1.2 1.1 1.0.1 1.0
+    stable 1.4.1 1.4 1.3.2 1.3.1 1.3 1.2 1.1 1.0.1 1.0
   unstable 1.4beta2 1.4beta
    require boost ccrtp kdelibs-v3 libsndfile
   optional ilbc       '' '' for the Internet low bitrate codec support
@@ -16,24 +16,11 @@
     source http://www.xs4all.nl/~mfnboer/twinkle/download/twinkle-$VERSION.tar.gz
   homepage http://www.twinklephone.com/
 #      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
-      opts --with-qt-dir=/opt/kde3 --disable-debug --enable-final
+      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
   estimate 930
       desc 'twinkle is a voice over IP using the SIP protocol application'
 
-build(){
- export QTDIR=/opt/kde3/
- default_build
-}
-
-build_old(){
- case $VERSION in
-  1.1)      sed -i 's:-lboost_regex:-lboost_regex-gcc:' \
-            configure src/{Makefile.in,gui/{Makefile,twinkle.pro}} ;;
-  0.[8-9]*) sed -i 's:-lboost_regex:-lboost_regex-gcc:' \
-            configure src/{Makefile.in,gui/{Makefile,twinkle.pro}} ;;
- esac
-
- sed  -i  "s:INCLUDEPATH	+=:INCLUDEPATH	+= /usr/include/qt:" src/gui/twinkle.pro
- export  QTDIR="/usr/share/qt"
- default_build
-}
+build(){ (
+export QTDIR=/opt/kde3
+default_build
+) }
