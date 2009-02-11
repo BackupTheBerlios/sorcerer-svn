@@ -1,22 +1,14 @@
-# Raid support seems to be broken
-#            ':--with-raid '' to enable RAID support'
-# 5.1.28-rc is an unstable security fix.
+# akonadi requires qt-x11-opensource with mysql server support.
+# mysql server must be running for akonadi to use.
+
+# Added -fPIC to CFLAGS and CXXFLAGS therefore ./configure --with-pic not required.
+# It will not compile with --disable-static
 
     stable 5.1.30 5.0.67 5.0.51b 5.0.51a 5.0.51
   unstable 6.0.8 5.1.28-rc 5.1.26-rc
     secure 5.0.51b 5.0.51a
    require db ncurses openssl readline zlib
-  switch --enable-assembler              ''                                 to use assembler version of some string functions if available
-  switch --with-pthread                  ''                                 for thread support
-  switch --with-archive-storage-engine   --without-archive-storage-engine   to enable the archive storage engine
-  switch --with-blackhole-storage-engine --without-blackhole-storage-engine to enable blackhole storage engine
-## cvs-storage-engine may now be mandatory
-# switch --with-csv-storage-engine       --without-csv-storage-engine       to enable the csv storage engine
-  switch --with-embedded-server          --without-embedded-server          to build embedded server libmysqld
-  switch --with-innodb                   --without-innodb                   to include the InnoDB table handler
-  switch --with-ndbcluster               --without-ndbcluster               to include the NDB cluster table handler
-  switch --with-server                   --without-server                   to build mysql server
-  switch --with-vio                      --without-vio                      to include virtual IO support
+      opts --without-readline --with-pthread --with-embedded-server
   category db
  attribute console
        url $MYSQL_URL
@@ -25,11 +17,11 @@
   homepage http://www.mysql.com
    exclude /var/lib/mysql
   estimate 7000
-      desc 'mysql is a widely used and fast SQL database server.
+      desc 'SQL database server.
+
 mysql is a widely used and fast SQL database server.
 It is a client/server implementation that consists
-of a server daemon (mysqld) and many different
-client programs/libraries.'
+of a server daemon (mysqld) and client programs/libraries.'
 
 build() {
 mkdir    -p -m 755 /var/lib/mysql
@@ -37,62 +29,45 @@ groupadd -K GID_MIN=256 -K GID_MAX=511    mysql                         2>/dev/n
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g mysql -d /var/lib/mysql mysql 2>/dev/null
 chown    -R mysql:mysql /var/lib/mysql
 
+# Added -fno-exceptions -felide-constructors -fno-rtti
+# From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
 
-export   CFLAGS+=' -fPIC'
-export CXXFLAGS+=' -fPIC'
+export   CFLAGS+=' -fPIC -fno-exceptions'
+export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
 
-./configure                     \
---prefix=/usr                   \
---without-bench                 \
---enable-assembler              \
---enable-thread-safe-client     \
---localstatedir=/var/lib/mysql  \
---enable-shared                 \
---with-mysqld-user=mysql        \
---with-berkeley-db              \
---with-mysqld-user=mysql        \
---with-extra-charsets=complex   \
---exec-prefix=/usr              \
---libexecdir=/usr/sbin          \
---sysconfdir=/etc               \
---datadir=/usr/share            \
---infodir=/usr/info             \
---includedir=/usr/include       \
---mandir=/usr/man               \
---with-server-suffix='-Max'     \
---with-comment="MySQL-MAX-$VERSION "  \
---with-unix-socket-path=/var/lib/mysql/mysql.sock  \
-$OPTS                                &&
-make             pkglibdir=/usr/lib  &&
-prepare_install                      &&
-make    install  pkglibdir=/usr/lib  &&
+./configure                    \
+--prefix=/usr                  \
+--enable-assembler             \
+--enable-thread-safe-client    \
+--localstatedir=/var/lib/mysql \
+--enable-shared                \
+--with-mysqld-user=mysql       \
+--with-extra-charsets=complex  \
+--exec-prefix=/usr             \
+--libexecdir=/usr/sbin         \
+--sysconfdir=/etc              \
+--datadir=/usr/share           \
+--infodir=/usr/info            \
+--includedir=/usr/include      \
+--mandir=/usr/man              \
+--with-server-suffix='-Max'    \
+--with-plugins=all             \
+--with-comment="MySQL-MAX-$VERSION " \
+--with-unix-socket-path=/var/lib/mysql/mysql.sock \
+$OPTS                              &&
+make            pkglibdir=/usr/lib &&
+prepare_install                    &&
+make    install pkglibdir=/usr/lib &&
+install -m 700 support-files/my-medium.cnf /etc/my.cnf
 
-if  !  echo  "$OPTS"  |  grep  -q  'without-server';  then
-  mysql_install_db
-  chown    -R mysql:mysql                        /var/lib/mysql
-  install  -m 0700  support-files/mysql.server   /etc/init.d/mysql
-  install  -m 0700  support-files/my-medium.cnf  /etc/my.cnf
-fi
-
+## Use grimoire provided init-script instead
+#install -m 700 support-files/mysql.server  /etc/init.d/mysql && 
 }
 
-post_install() {
-  default_post_install
-  if  [  -f                 /etc/init.d/mysql  ];  then
-    /lib/lsb/install_initd  /etc/init.d/mysql
-      /etc/init.d/mysql restart
-#     if    locked  /var/run/mysql.pid mysqld
-#     then  /etc/init.d/mysql  restart
-#     fi
-  fi
-}
-
-pre_remove() {
-  default_pre_remove
-  if      [  -x  /etc/init.d/mysql  ];  then
-    if    [  -z  "$UPGRADING"  ]
-    then  /etc/init.d/mysql stop
-    fi
-    /lib/lsb/remove_initd  /etc/init.d/mysql
-  fi
+post_install(){
+ mysql_install_db --user mysql
+ mysql_upgrade --user mysql
+ chown -R mysql:mysql /var/lib/mysql
+ default_post_install
+ echo "Please run mysql_secure_installation if it has not been run yet."
 }

@@ -1,8 +1,7 @@
-    stable 1.5.3 1.5.1 1.4 X11R7.2-1.2.0
-  unstable 1.5.99.902 1.5.99.901 1.5.99.3 1.5.3 1.5.2 1.5.1 1.5.0 1.4.99.906 1.4.99.902
+    stable 1.5.3 1.5.1
+  unstable 1.5.99.902 1.5.99.901 1.5.99.3 1.5.3
     secure 1.5.3
   MVERSION=7.2
-# MVERSION=7.0.1
    require MesaLib bigreqsproto compositeproto evieext hal libXfont libxkbfile pixman randrproto recordproto renderproto resourceproto scrnsaverproto trapproto videoproto xcmiscproto xf86dgaproto xf86driproto xf86miscproto xineramaproto xinit xterm
    require inputproto libpciaccess
   category xorg/app
@@ -13,17 +12,6 @@
     source mesa3d/MesaLib-$MVERSION.tar.bz2
   estimate 5000
       desc 'X11 server'
-
-case $VERSION in
- 1.4)#source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-multiple-overflows.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-multiple-overflows-v2.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-cve-2008-1377.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-cve-2008-1379.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-cve-2008-2360.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-cve-2008-2361.diff
-      source http://xorg.freedesktop.org/archive/X11R7.3/patches/xorg-xserver-1.4-cve-2008-2362.diff
-      secure 1.4 ;;
-esac
 
 build(){
 
@@ -42,16 +30,6 @@ build(){
 
  opts --with-mesa-source=$PWD/Mesa-$MVERSION
 
- case $VERSION in
-  1.4) patch -p1 < $SCRIPT_DIR/xorg-server-1.4.dbus.patch
-       patch -p1 < ${SOURCE[2]}
-       patch -p1 < ${SOURCE[3]}
-       patch -p1 < ${SOURCE[4]}
-       patch -p1 < ${SOURCE[5]}
-       patch -p1 < ${SOURCE[6]}
-       patch -p1 < ${SOURCE[7]}
- esac
-
  default_build &&
  adjust_xorg_conf
 }
@@ -68,14 +46,4 @@ post_install(){
     echo "EndSection"
   ) >> /etc/X11/xorg.conf
  fi
- if ! [ -f $VERSION_LOGS/xf86-input-evdev ]
- then echo xf86-input-evdev | pipe_queue $CAST_QUEUE com
- fi
-}
-
-current(){
- case $VERSION in
-  1.4) grep -qsx 'patching file render/render.c' $COMPILE_LOGS/xorg-server &&
-       ! [[ -f /etc/init.d/xorg.conf ]] ;;
- esac
 }
