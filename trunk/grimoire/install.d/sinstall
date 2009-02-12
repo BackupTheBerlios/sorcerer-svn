@@ -112,10 +112,11 @@ boot_dev_check(){
 
 get_filesystem(){
 
- local EXT2 EXT3 JFS XFS REISER SWAP DEFAULT
+ local EXT2 EXT3 EXT4 JFS XFS REISER SWAP DEFAULT
 
    EXT2="Second Extended             file system"
    EXT3="Second Extended  journaling file system"
+   EXT4="Second Extended  journaling filesystem with 64 bit scalability"
     JFS="JFS              journaling file system"
     XFS="XFS              journaling file system"
  REISER="Reiserfs         journaling file system"
@@ -124,15 +125,15 @@ get_filesystem(){
  case "${PMOUNT[$1]}" in
   /boot) DEFAULT=ext2 ; echo ext2; return ;;
    none) DEFAULT=swap ;;
-      *) DEFAULT=ext3 ;;
+      *) DEFAULT=ext4 ;;
  esac
 
  $DIALOG \
  --title $"Filesystem Selection Menu" \
  --default-item "$DEFAULT" \
  --menu $"Please select a filesystem" 0 0 0 \
- ext2 "$EXT2" ext3 "$EXT3" jfs "$JFS" \
- reiserfs "$REISER" xfs "$XFS" swap "$SWAP"
+ ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" \
+ jfs "$JFS"  reiserfs "$REISER" xfs "$XFS" swap "$SWAP"
 }
 
 
@@ -341,16 +342,19 @@ get_options(){
 
  case ${PFILESYSTEM[$1]} in
       swap) DEFAULT_OPTIONS="defaults"                     ;;
+      ext4) DEFAULT_OPTIONS="defaults,noatime,commit=3600" ;;
+      ext3) DEFAULT_OPTIONS="defaults,noatime,commit=3600" ;;
+      ext2) DEFAULT_OPTIONS="defaults,noatime"             ;;
+       xfs) DEFAULT_OPTIONS="defaults,noatime"             ;;
   reiserfs) DEFAULT_OPTIONS="defaults,notail,noatime"      ;;
        jfs) DEFAULT_OPTIONS="defaults,noatime"             ;;
-      ext3) DEFAULT_OPTIONS="defaults,noatime,commit=3600" ;;
-       xfs) DEFAULT_OPTIONS="defaults,noatime"             ;;
-      ext2) DEFAULT_OPTIONS="defaults,noatime"             ;;
  esac
 
  case ${PMOUNT[$1]} in
-  /tmp) [ "${PFILESYSTEM[$1]}" == ext3 ] &&
-        DEFAULT_OPTIONS="defaults,noatime,commit=864000" ;;
+  /tmp) if [ "${PFILESYSTEM[$1]}" == ext3 ] ||
+           [ "${PFILESYSTEM[$1]}" == ext4 ]
+        then DEFAULT_OPTIONS="defaults,noatime,commit=864000"
+        fi ;;
  esac
 
  if   [ -n "$DEFAULT_OPTIONS" ]
@@ -720,6 +724,7 @@ installed_fs(){
 
  case $( file -k - < $1 ) in
   *swap\ file*)		echo  swap	;;
+  *ext4\ filesystem*)	echo  ext4	;;
   *ext3\ filesystem*)	echo  ext3	;;
   *ext2\ filesystem*)	echo  ext2	;;
   *SGI\ XFS*)		echo  xfs	;;
@@ -776,9 +781,7 @@ filesystem_table_load(){
        PORDER[$CX]=0
 
   case "${PFILESYSTEM[$CX]}" in
-   ext2)   PORDER[$CX]=1	;;
-   ext3)   PORDER[$CX]=1	;;
-   ext4)   PORDER[$CX]=1	;;
+   ext*)   PORDER[$CX]=1	;;
    swap) POPTIONS[$CX]=defaults	;;
   esac
 
@@ -798,8 +801,9 @@ get_mk_command(){
  }
 
  case ${PFILESYSTEM[$1]} in
+      ext4) echo "mkfs.ext4	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
+      ext3) echo "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
       ext2) echo "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
-      ext*) echo "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
   reiserfs) echo "mkreiserfs	-f	${PDEVICE[$1]}" ;;
        xfs) echo "mkfs.xfs	-f	${PDEVICE[$1]}" ;;
        jfs) echo "jfs_mkfs	-q	${PCHECK[$1]}	${PDEVICE[$1]}" ;;

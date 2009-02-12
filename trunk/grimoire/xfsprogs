@@ -1,13 +1,15 @@
+# This might have trouble downloading?
 # 2.9.8-1 has compile error
 # 2.10.1-1 has install error
 # 2.10.2-1 has install error
 
-    stable 2.9.7-1 2.9.6-1 2.9.5-1 2.9.4-1 2.9.3-1
+    stable 3.0.0 2.9.7-1 2.9.6-1 2.9.5-1 2.9.4-1 2.9.3-1
   unstable 2.10.2-1
    require e2fsprogs
   category disk/file-system
  attribute console
-    source ftp://oss.sgi.com/projects/xfs/cmd_tars/xfsprogs_$VERSION.tar.gz
+    source ftp://oss.sgi.com/projects/xfs/cmd_tars/xfsprogs-$VERSION.tar.gz
+#   source ftp://oss.sgi.com/projects/xfs/cmd_tars/xfsprogs_$VERSION.tar.gz
   homepage http://oss.sgi.com/projects/xfs/
 case $VERSION in
  2.9.7-1) require libtool-v1.5 ;;
@@ -19,52 +21,13 @@ esac
       desc 'xfsprogs contains the required utilities for the XFS file system.'
 
 build(){
+ export DEBUG=-DNDEBUG
+
  case $VERSION in
-  2.9.7-1) export ac_cv_path_LIBTOOL=/opt/libtool/bin/libtool ;;
+  3.0.0) sed -i '/old_lib/d' include/buildmacros ;;
  esac
 
- OPTS+=' --libdir=/lib'
-
-## results in /lib6464
-# case $HOSTTYPE in
-#  x86_64) OPTS+='64' ;;
-# esac
-
- export DEBUG=-DNDEBUG
-
- ./configure          \
- --build=$BUILD       \
- --prefix=/usr        \
- --bindir=/bin        \
- --sbindir=/sbin      \
- --sysconfdir=/etc    \
- --localstatedir=/var \
- $OPTS                &&
- make                 &&
- prepare_install      &&
- make    install      &&
- make    install-dev
-
-# case $VERSION in
-#  2.9.7-1) unset ac_cv_path_LIBTOOL ;;
-# esac
-}
-
-
-build_old(){
- export OPTIMIZER="$CFLAGS"
- unset              CFLAGS
- export DEBUG=-DNDEBUG
-
- make configure  &&
- make            &&
+ make &&
  prepare_install &&
  make    install install-dev
-}
-
-
-current(){
- case $VERSION in
-  2.9.7-1) [ -f /sbin/fsck.xfs ] ;;
- esac
 }

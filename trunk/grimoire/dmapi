@@ -1,8 +1,9 @@
-    stable 2.2.8-1 2.2.8-1 2.2.5-1
+    stable 2.2.9 2.2.8-1 2.2.8-1 2.2.5-1
    require xfsprogs
   category disk/file-system
  attribute console
-    source ftp://oss.sgi.com/projects/xfs/cmd_tars/dmapi_$VERSION.tar.gz
+    source ftp://oss.sgi.com/projects/xfs/cmd_tars/dmapi-$VERSION.tar.gz
+#   source ftp://oss.sgi.com/projects/xfs/cmd_tars/dmapi_$VERSION.tar.gz
   homepage http://oss.sgi.com/projects/xfs
   estimate 200
       desc 'dmapi provides the Data Management API for XFS Filesystems.'
@@ -12,7 +13,12 @@ export OPTIMIZER="$CFLAGS"
 unset              CFLAGS
 export DEBUG=-DNDEBUG
 
-make  configure &&
+case $VERSION in
+ 2.2.9) sed -i 's:gmake:make:' include/builddefs
+        sed -i 's:felixb:root:;s:sys1:root:' include/builddefs ;;
+esac
+
+#make configure &&
 make            &&
 prepare_install &&
 make    install install-dev
