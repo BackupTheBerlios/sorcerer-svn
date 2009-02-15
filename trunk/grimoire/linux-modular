@@ -32,27 +32,35 @@ build(){
  }
 
  install_header(){
-  mkdir   -m 755 -p                        /usr/include/asm
-  install -m 644 include/asm/asm-offsets.h /usr/include/asm
-  mkdir   -m 755 -p                        /usr/include/linux
-  install -m 644 include/linux/autoconf.h  /usr/include/linux
-  install -m 644 include/linux/compile.h   /usr/include/linux
+  mkdir   -vm 755 -p                                    /usr/include/{asm,linux}
+  install -vm 644 include/asm/asm-offsets.h             /usr/include/asm
+  install -vm 644 include/linux/{autoconf.h,compile.h}  /usr/include/linux
   true
  }
 
  restore_linux_configs(){
-  if   [ -d /isolinux ]
-  then local MAC="$HOSTTYPE"
+  local NOSMP
+
+  if   ! LC_ALL=C grep -q 'processor.*1' /proc/cpuinfo
+  then NOSMP=-nosmp
+  fi
+
+  if   [ -d /boot/isolinux ]
+  then local MAC="$HOSTTYPE"; NOSMP=
   else local MAC="$( uname -m )"
   fi
 
-  if   [ -f $SCRIPT_DIR/$MAC.config ]
-  then cp   $SCRIPT_DIR/$MAC.config .config; chmod 600 .config
-  else cp   $SCRIPT_DIR/i586.config .config; chmod 600 .config
+  if   [ "$MAC" == x86_64 ]
+  then NOSMP=
+  fi
+
+  if   [ -f            $SCRIPT_DIR/$MAC-$VERSION$NOSMP ]
+  then install -vm 600 $SCRIPT_DIR/$MAC-$VERSION$NOSMP .config
+  else install -vm 600 $SCRIPT_DIR/i586-$VERSION-nosmp .config
   fi
  }
 
- gzip_modules()  {
+ gzip_modules(){
   local KO="/lib/modules/$VERSION/kernel/"
   find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
   find $KO -type f              | sed   -n '/\.gz$/p' |
@@ -66,7 +74,7 @@ build(){
   yes "" | make oldconfig
   make bzImage         &&
   make modules         && prepare_install &&
-  make modules_install && gzip_modules    &&
+  make modules_install &&
   install_kernel       &&
   install_header
  }
