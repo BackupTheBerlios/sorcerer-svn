@@ -1,0 +1,32 @@
+    stable 1.0-svn_r48
+   require libXxf86dga
+  category game
+ attribute x11
+       url $SOURCEFORGE_URL
+    source smokinguns/sg-$VERSION.tar.bz2
+    source "http://www.altfire.com/main/files/Gaming/Games/Smokin%20Guns/Smokin_Guns_1.0.zip"
+  homepage http://www.smokin-guns.net
+  estimate 800
+      desc 'westernized quake 3'
+
+build(){
+make_install(){
+rm -f Smokin\'\ Guns/smokinguns{,_dedicated.x86,.exe,.x86}
+find Smokin\'\ Guns         | xargs --max-lines=2048 chown root:root
+find Smokin\'\ Guns -type f | xargs --max-lines=2048 chmod 644
+find Smokin\'\ Guns -type d | xargs --max-lines=2048 chmod 755
+cp -av Smokin\'\ Guns /usr/share/
+cd code/install
+install -vm 755 smokinguns        /usr/libexec/smokinguns.x86
+install -vm 755 smokinguns_server /usr/libexec/smokinguns_dedicated.x86
+install -vm 755 $SCRIPT_DIR/{smokinguns,smokinguns_server} /usr/bin
+ln -vf /usr/libexec/smokinguns.x86           /usr/share/Smokin\'\ Guns/
+ln -vf /usr/libexec/smokinguns_dedicated.x86 /usr/share/Smokin\'\ Guns/
+}
+
+sed -i "s:-O6 -m32 -mtune=pentiumpro -march=pentium:$CFLAGS" code/Construct
+sed -i "s: -m32::" code/Construct
+make &&
+prepare_install &&
+   make_install
+}

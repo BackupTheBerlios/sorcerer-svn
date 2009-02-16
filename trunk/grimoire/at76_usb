@@ -15,18 +15,16 @@ Known devices with this chip are:
 - Netgear MA101B
 and many more.'
 
-build()  {
-  # From linux 2.6.19.2 to linux 2.6.20 the INIT_WORK macro changes
-  # However the lines below do not fix it.
-#   case  $VERSION  in
-#     0.14beta1)  sed  -i  "s:kevent, dev:kevent:"  at76c503.c  ;;
-#   esac
+build(){
+ case $VERSION in
+  0.17) patch -p1 < $SCRIPT_DIR/at76_usb-0.17.patch ;;
+ esac
 
-  sed   -i   "s:\`uname -r\`:$( installed_version $( get_provider linux-kernel ) ):
-              s:/sbin/depmod:true:"  Makefile
-  grep  -rl    "linux/config.h"  *  |  xargs -r --max-lines=64  \
-  sed   -i   "\,linux/config.h,d"
-  make             &&
-  prepare_install  &&
-  make    install
+ sed  -i  "s:\`uname -r\`:$( installed_version $( get_provider linux-kernel ) ):
+           s:/sbin/depmod:true:" Makefile
+ grep -rl   "linux/config.h" * | xargs -r --max-lines=64 \
+ sed  -i  "\,linux/config.h,d"
+ make            &&
+ prepare_install &&
+ make    install
 }

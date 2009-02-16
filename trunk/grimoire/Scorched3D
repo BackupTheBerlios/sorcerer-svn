@@ -1,16 +1,15 @@
-# Scorched3D has compile errors
-
-    stable 41.3-src 41.2-src
+    stable 42-src 41.3-src 41.2-src
   unstable 42Beta-src
    require SDL_mixer SDL_net fftw freealut wxWidgets
+      opts --disable-openaltest
   category game
  attribute x11
  attribute broke
        url $SOURCEFORGE_URL
     source scorched3d/Scorched3D-$VERSION.tar.gz
   homepage http://scorched3d.sourceforge.net
-      opts --disable-openaltest
 case  $VERSION  in
+  42*)  use_gcc gcc-v4.1  ;;
   41*)  use_gcc gcc-v4.1  ;;
   40.1d)  use_gcc gcc-v4.1  ;;
 esac
@@ -20,11 +19,15 @@ esac
       desc 'Scorched3D is an artillery game.'
 
 build(){
-export    CFLAGS+=' -L/usr/X11R6/lib/'
-export  CXXFLAGS+=' -L/usr/X11R6/lib/'
-if  [  -f  /usr/lib/libalut.so.0  ];  then
-export   LDFLAGS+=' -lalut'
+export   CFLAGS+=' -L/usr/X11R6/lib/'
+export CXXFLAGS+=' -L/usr/X11R6/lib/'
+if [ -f /usr/lib/libalut.so.0 ]; then
+#export LDFLAGS+=' -lalut'
 case  $VERSION  in
+     42*) cd scorched; export ac_cv_path_OPENAL_CONFIG=/bin/true
+          LC_ALL=C grep -rl '\-lfftw3f' * |
+          xargs -r --max-lines=64 sed -i 's:-lfftw3f:-lfftw3:'  
+          OPTS+=' --disable-fftwtest' ;;
     41.2) : ;;
      41*) aclocal; automake --foreign; autoconf
           grep  -rl  '\-lfftw3f'  *  |
