@@ -1,23 +1,23 @@
-    stable 0.7.0_rc1
+    stable 0.7.0_rc6 0.7.0_rc1
+   require wxWidgets libpano13 boost tiff jpeg libpng 
+   require openexr autopano-sift-C cmake
+   require exiv2 perl--Image-ExifTool make enblend-enfuse
   category graphic/utility
  attribute x11 new
        url $SOURCEFORGE_URL
     source hugin/hugin-${VERSION}.tar.gz
   homepage http://hugin.sourceforge.net/
-  estimate 690
-   require wxWidgets libpano13 boost tiff jpeg libpng 
-   require openexr autopano-sift-C cmake
-   require exiv2 perl--Image-ExifTool make enblend-enfuse
+  estimate 700
       desc 'hugin is a gui to generate panoramic images'
 
-build() {
-    BOOST_V=$(augur version boost)
-    export CPPFLAGS="${CPPFLAGS} -I /usr/include/boost-${BOOST_V:0:4}"
+build(){
+ BOOST_V="$( installed_version boost )"
+ export CPPFLAGS+=" -I /usr/include/boost-${BOOST_V:0:4}"
 
-    #this is a hack to help detect boost libs.... dont know how to automatize yet
-    cmake .  -DBoost_LIB_SUFFIX=gcc43-mt -DBoost_INCLUDE_DIR=/usr/include/boost-${BOOST_V:0:4}    &&
-    sed -i "s:$:-lpthread:" src/matchpoint/CMakeFiles/matchpoint.dir/link.txt &&
-    make                                                                      &&
-    prepare_install                                                           &&
-    make install
+ #this is a hack to help detect boost libs.... dont know how to automatize yet
+ cmake . -DBoost_LIB_SUFFIX=gcc43-mt -DBoost_INCLUDE_DIR=/usr/include/boost-${BOOST_V:0:4} &&
+ sed -i "s:$:-lpthread:" src/matchpoint/CMakeFiles/matchpoint.dir/link.txt &&
+ make &&
+ prepare_install &&
+ make    install
 }

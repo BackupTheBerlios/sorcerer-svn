@@ -1,0 +1,28 @@
+    stable 0.8.1-1
+   require MesaLib SDL libvorbis openal
+  category game
+ attribute x11
+    source "http://openarena.ws/svn/source/081/openarena-engine-$VERSION.tar.bz2"
+    source "http://download.tuxfamily.org/openarena/rel/081/oa081.zip"
+  homepage http://openarena.ws
+  estimate 300
+      desc 'a first person shooter modification for quake 3'
+
+build(){
+make_install(){
+mv openarena-${VERSION:0:5} openarena
+rm -f openarena/{oa_ded,openarena}.* openarena/*.dll openarena/openarena-deprecated.exe
+
+find openarena         | xargs --max-lines=2048 chown root:root
+find openarena -type f | xargs --max-lines=2048 chmod 644
+find openarena -type d | xargs --max-lines=2048 chmod 755
+
+chmod 755 build/*/*
+cp build/*/{oa_ded,openarena}.* openarena/
+cp -av openarena /usr/share/
+}
+
+make &&
+prepare_install &&
+   make_install
+}
