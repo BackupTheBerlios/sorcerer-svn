@@ -1,0 +1,109 @@
+    stable 3.3.8b 3.3.8 3.3.7
+    secure 3.3.8b 3.3.8
+case $VERSION in
+ 3.3.8b) use_gcc gcc-v3.4 ;;
+esac
+   require MesaLib kde-symlinks-v3 libXcursor libXft libXinerama libXrandr libmng libpng
+  optional cups     -cups     -no-cups     for common unix printing support
+  optional freetype -freetype -no-freetype for quality font engine
+  category graphic/library
+ attribute library
+# Although it is not supposed to the broken library check could
+# happen while qt-x11-free is compiling if another spell finishes casting.
+# The check should not happen, but apparently it sometimes does.
+# That is why qt-x11-free has the attribute solo now
+# It is an odd source to compile because it probably will not
+# compile and install correctly if compiled while installed.
+#   source qt-x11-free-$VERSION.tar.bz2
+       url ftp://ftp.trolltech.com/qt/source/
+    source qt-x11-free-$VERSION.tar.gz
+    source http://people.freedesktop.org/~daisuke/qt-x11-immodule-unified-qt3.3.8-20071116.diff.bz2
+#      url http://distro.ibiblio.org/pub/linux/distributions/gentoo/distfiles/
+#   source qt-x11-immodule-unified-qt3.3.8-20070321-gentoo.diff.bz2
+
+  homepage http://www.trolltech.com/products/qt/x11.html
+
+# is cups required or optional?
+# qt-x11-free does not support nas network audio.
+      opts -qt-gif
+ conflicts qt-x11-free
+ freshmeat qt
+  estimate 4800
+      desc 'qt-x11-free simplifies the task of writing and maintaining GUI applications.'
+
+build(){
+
+ add_rpath_to_la(){
+  sed -i 's:-L/opt/qt-x11-free-gcc-3.4/lib:-L/opt/qt-x11-free-gcc-3.4/lib -R/opt/qt-x11-free-gcc-3.4/lib:
+          s:-L/opt/qt-x11-free-gcc-3.4/lib64:-L/opt/qt-x11-free-gcc-3.4/lib64 -R/opt/qt-x11-free-gcc-3.4/lib64:' \
+      $( find /opt/qt-x11-free-gcc-3.4/ -name libqt\*.la )
+ }
+
+ unset   LD_LIBRARY_PATH
+ export  QTDIR=/opt/qt-x11-free-gcc-3.4
+ sed -i  's:READER 0:READER 1:' src/kernel/qgif.h
+ sed -i  's/sub-tutorial sub-examples//'  Makefile
+ rm  -rf examples tutorial
+
+ SPECS=linux-g++
+  LIBS=/opt/qt-x11-free-gcc-3.4/lib
+
+ case  $HOSTTYPE  in
+  x86_64) OPTS+=" -platform linux-g++-64 -L/lib64 -L/usr/lib64"
+          SPECS+=-64; LIBS+=64 ;;
+ esac
+
+ if [[ -n    ${SOURCE[1]} ]]; then
+  decompress ${SOURCE[1]} | patch -p1 
+  sh ./make-symlinks.sh
+  OPTS+=' -inputmethod'
+ fi
+
+ # Fix for gcc 4.2.2(4.3?)
+ case $VERSION in
+  3.3.8) sed -i '43i#include <cstdlib>' \
+         plugins/src/inputmethods/imsw-none/qnoneinputcontextplugin.cpp ;;
+ esac
+
+#prepare_install # doesn't make right if installed.
+
+ PREFIX=/opt/qt-x11-free-gcc-3.4
+ export LD_LIBRARY_PATH=$PWD/lib
+
+ echo yes |
+ ./configure  -v  \
+ -R$LIBS          \
+ -L$LIBS          \
+ -libdir $LIBS    \
+ -release         \
+ -shared          \
+ -thread          \
+ -system-libmng   \
+ -system-libpng   \
+ -system-libjpeg  \
+ -system-zlib     \
+ -tablet          \
+ -xinerama        \
+ -xft             \
+ -pch             \
+ -no-g++-exceptions \
+ -prefix $PREFIX \
+ -R      $PREFIX/lib \
+ -R      $PREFIX/lib64 \
+ $OPTS &&
+ make  &&
+ prepare_install && mkdir -p /opt/qt-x11-free-gcc-3.4 &&
+ make    install && cp    -R doc/man /usr && add_rpath_to_la
+}
+
+current(){
+ x86_64() {
+  case $HOSTTYPE in
+   x86_64) [ -f /opt/qt-x11-free-gcc-3.4/lib64/libqt-mt.la ] ;;
+  esac
+ }
+
+ case $VERISON in
+  3.3.8b) [ -f /opt/qt-x11-free-gcc-3.4/bin/qmake ] && x86_64 ;;
+ esac
+}
