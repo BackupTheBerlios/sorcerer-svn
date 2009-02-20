@@ -1,0 +1,20 @@
+    stable 0.80.2
+   require ncurses
+  category game
+ attribute console
+  homepage http://www.alcyone.com/max/projects/omega/
+    source http://www.alcyone.com/binaries/omega/omega-$VERSION-src.tar.gz
+      desc 'a rougelike ASCII singe player CRPG'
+
+build(){
+sed -i 's:-ltermcap::' Makefile
+sed -i 's:\./omegalib/:/usr/share/omegalib/:' defs.h
+sed -i 's:/usr/games/lib/omegalib:/usr/share/omegalib:' Makefile
+sed -i 's:/usr/games:/usr/bin:' Makefile
+sed -i 's:../omegalib/:omegalib/:' Makefile
+sed -i '/omegahi\.bak/d' Makefile
+
+make &&
+prepare_install && mkdir -vpm 755 /usr/share/omegalib &&
+make    install
+}
