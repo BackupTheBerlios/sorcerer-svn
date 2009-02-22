@@ -6,12 +6,12 @@
 # This can slightly lag behind the $VERSION (usually in the minor revision
 # number)
 
-  SUSP_VER=( 3.0-rc7 3.0-rc5 )
-   S4K_VER=( 2.6.25 )
+  SUSP_VER=( 20090214-v1 )
+   S4K_VER=( 2.6.28 )
 
-  progress reposit
-   reposit 2.6.27.7
-    stable 2.6.25.10 2.6.25.9 2.6.24.3
+#  progress reposit
+#   reposit 2.6.27.7
+    stable 2.6.28.5 2.6.25.10 2.6.25.9 2.6.24.3
     secure 2.6.27.7
    require lilo
   optional laptop-mode-tools '' '' for conserving battery power on laptops
@@ -20,15 +20,15 @@
   optional hibernate-script  '' '' for a set of scripts controlling suspend
   category kernel
  attribute console
-#       url $KERNEL_URL
-#    source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
-#       url http://www.tuxonice.net/ 
-#    source downloads/all/tuxonice-$SUSP_VER-for-$S4K_VER.patch.bz2
-REPOSITORY=( ""
-             "git clone --depth 1 git://git.kernel.org/pub/scm/linux/kernel/git/nigelc/tuxonice-2.6.27.git linux-$VERSION"
-             "git pull" )
-# Do NOT add *.bz2 or *.gz extension!
-    source linux-$VERSION.tar
+       url $KERNEL_URL
+    source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
+       url http://www.tuxonice.net/downloads/all/ 
+    source current-tuxonice-for-${S4K_VER}.patch-${SUSP_VER}.bz2
+#REPOSITORY=( ""
+#             "git clone --depth 1 git://git.kernel.org/pub/scm/linux/kernel/git/nigelc/tuxonice-2.6.27.git linux-$VERSION"
+#             "git pull" )
+## Do NOT add *.bz2 or *.gz extension!
+#    source linux-$VERSION.tar
   homepage http://www.tuxonice.net
    protect /boot
    protect /lib/modules
@@ -38,6 +38,18 @@ REPOSITORY=( ""
       desc 'linux-suspend2 provides 2.6.x stable kernels with hibernation.
 This version is patched to provide software suspend,
 aka suspend2 or tuxonice.'
+
+# Replace the patcher() function from /usr/libexec/sorcery/cast
+# Patcher is run at the end of default_pre_build()
+patcher() {
+ declare -i SCX=1
+ while [[ -n      ${SOURCE[$SCX]} ]]; do
+  if   decompress ${SOURCE[$SCX]} | grep  -q '^--- '
+  then decompress ${SOURCE[$SCX]} | patch -p1
+  fi;  (( SCX++ ))
+ done
+ return 0
+}
 
 configure(){
  local CUR="$CONFIG_LOGS/$SPELL/linux-config"
@@ -131,7 +143,7 @@ build(){
    mkdir -p  /lib/modules
    chmod 700 /lib/modules
    make modules_install
-   gzip_modules
+   # gzip_modules
   fi
  }
 
