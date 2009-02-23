@@ -1,8 +1,9 @@
-    stable 20081018
+    stable 20090223
    require util-linux
   optional gzip  '' '' for fast but inefficient compression
   optional bzip2 '' '' for slower but more efficient compression
-  optional p7zip '' '' for slowest but most efficient compression
+  optional p7zip '' '' for very slow but most efficient compression
+  optional lzip  '' '' for slowest and nearly most efficient compression
   category administration/spell
  attribute archive_off console
   homepage http://sorcerer.silverice.org/
@@ -13,13 +14,14 @@ may benefit from compressing tarballs within
 /var/cache/{archive,ccache,sources}
 with a more efficient compression method
 Background recompression may happen at nice level 19
-while the load average is less than 2.'
+while the load average is less than 3.'
 
 build(){
  chk(){ grep -qx $1 $OPT_ON_LOGS/sorcery-bgz && Z=$2; }
  chk p7zip 7za   ||
  chk bzip2 bzip2 ||
- chk gzip  gzip
+ chk gzip  gzip  ||
+ chk lzip  lzip
 
  sed -i "s:OPTS=.*:OPTS=$Z:" $SCRIPT_DIR/init.d.on/bgz
  prepare_install
