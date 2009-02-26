@@ -1,0 +1,46 @@
+diff -r -U2 omega/genclr.c omega/genclr.c
+--- omega/genclr.c	1998-08-08 05:53:59.000000000 -0700
++++ omega/genclr.c	1998-08-08 05:53:59.000000000 -0700
+@@ -281,29 +281,7 @@
+      */
+     fp = emitopen (cfile, argv);
+-    fprintf (fp, "\
+-#include <curses.h>\n\
+-#include <stdio.h>\n\
+-#include <stdlib.h>\n\
+-
+-#include \"%s\"\n\
+-
+-void clrgen_init (void)\n\
+-""{\n\
+-    if (%d > COLOR_PAIRS - 1) {\n\
+-	endwin();
+-	fputs (\"Too many color pairs!\\n\", stderr);\n\
+-	exit (1);\n\
+-    }\n\
+-",
+-	     hfile, ncpairs);
++    fprintf (fp, "#include <curses.h>\n#include <stdio.h>\n#include <stdlib.h>\n#include \"%s\"\nvoid clrgen_init (void)\n""{\n    if (%d > COLOR_PAIRS - 1) {\n	endwin();	fputs (\"Too many color pairs!\\n\", stderr);\n	exit (1);\n    }\n",	     hfile, ncpairs);
+     for (i = 0; i < ncpairs; i++)
+-	fprintf (fp, "\
+-    init_pair (%d, COLOR_%s, COLOR_%s);\n\
+-",
+-		 cpairs[i]->idx, cpairs[i]->cfg, cpairs[i]->cbg);
+-    fputs ("\
+-""}\n\
+-",
+-	   fp);
++	fprintf (fp, "    init_pair (%d, COLOR_%s, COLOR_%s);\n",		 cpairs[i]->idx, cpairs[i]->cfg, cpairs[i]->cbg);    fputs ("""}\n",	   fp);
+     emitclose (fp, cfile);
+ 
+@@ -319,9 +297,5 @@
+ 		 pair->idx, pair->boldfg ? "|A_BOLD" : "");
+     }
+-    fputs ("\
+-\n\
+-extern void clrgen_init (void);\n\
+-",
+-	    fp);
++    fputs ("\nextern void clrgen_init (void);\n",	    fp);
+     emitclose (fp, hfile);
+ 

@@ -1,4 +1,4 @@
-    stable 0.80.2
+    stable 0.90.4 0.80.2
    require ncurses
   category game
  attribute console
@@ -14,7 +14,18 @@ sed -i 's:/usr/games:/usr/bin:' Makefile
 sed -i 's:../omegalib/:omegalib/:' Makefile
 sed -i '/omegahi\.bak/d' Makefile
 
+sed -i 's:BINDIR = /home/sdossey/omega/:BINDIR = /usr/bin:' Makefile
+sed -i 's:LIBDIR = /home/sdossey/omega/lib/:LIBDIR = /usr/share/omegalib:' Makefile
+sed -i 's:\./lib/:/usr/share/omegalib/:' defs.h
+
+case $VERSION in
+ 0.90.4) patch -p1 < $SCRIPT_DIR/omega-0.90.4.patch ;;
+esac
+
 make &&
 prepare_install && mkdir -vpm 755 /usr/share/omegalib &&
-make    install
+make    install &&
+chmod 755 /usr/bin/omega &&
+chmod 644 /usr/share/omegalib/* &&
+chmod 666 /usr/share/omegalib/omega.{hi,log}
 }

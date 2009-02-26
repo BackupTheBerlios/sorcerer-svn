@@ -2,7 +2,7 @@
 # Latest Netpbm releases are two numbers, e.g. 9.11, 
 # and Stable Netpbm releases are three numbers, e.g. 9.11.1.
 
-    stable 10.26.59 10.26.58 10.26.57 10.26.56 10.26.55 10.26.54
+    stable 10.26.60 10.26.59 10.26.58 10.26.57 10.26.56 10.26.55 10.26.54
   unstable 10.34
    require libpng tiff
   optional svgalib '' '' for output to svgalib
@@ -23,22 +23,23 @@ Over 40 editing functions include scaling, cropping,
 quantization and dithering, colorizing and
 uncolorizing, blurring, and dimming.'
 
-build()  {
-make_install()  {
-  cd       /tmp/netpbm
-  cp  -av   bin/*             /usr/bin      2>/dev/null
-  cp  -av   include/*         /usr/include  2>/dev/null
-  cp  -av   lib/*             /usr/lib      2>/dev/null
-  cp  -av   link/libnetpbm.a  /usr/lib      2>/dev/null
-  cp  -av   man/*             /usr/man      2>/dev/null
-  cd  -
-  rm  -rf  /tmp/netpbm
+build(){
+make_install(){
+ cd     /tmp/netpbm
+ cp -av bin/*            /usr/bin     2>/dev/null
+ cp -av include/*        /usr/include 2>/dev/null
+ cp -av lib/*            /usr/lib     2>/dev/null
+#cp -av link/libnetpbm.a /usr/lib     2>/dev/null
+ cp -av man/*            /usr/man     2>/dev/null
+ cd -
+ rm -rf /tmp/netpbm
+ rm -f  /usr/lib{,64}/libnetpbm.a
 }
 
 export   CFLAGS="$CFLAGS -fPIC"
 export CXXFLAGS="$CXXFLAGS -fPIC"
 
-echo  -e  "
+echo -e "
 gnu
 regular
 shared
@@ -54,7 +55,7 @@ libz.so
 /usr/include
 
 
-"  |
+" |
 ./configure            &&
 make  "CFLAGS=$CFLAGS" &&
 rm  -rf  /tmp/netpbm   &&
