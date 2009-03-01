@@ -1,6 +1,7 @@
     stable 2.2.11 2.2.10 2.2.9 2.2.8
-    secure 2.2.10 2.2.9 2.2.8
-   require Python
+    secure 2.2.10
+      opts --with-apr=/usr/bin --with-apr-util=/usr/bin
+   require Python apr-util
   optional openssl    --enable-ssl       --disable-ssl     for https enabled server
   optional expat      ''                 ''                for fast non-validating stream-oriented XML parsing 
   optional db         --with-berkeley-db --without-berkeley-db for berkeley database support
@@ -14,11 +15,6 @@
        url $APACHE_URL
     source httpd/httpd-$VERSION.tar.gz
   homepage http://httpd.apache.org
-case $VERSION in
- 2.2.1*) require libtool-v1.5 ;;
- 2.2.9) require libtool-v1.5 ;;
- 2.2.8) require libtool-v1.5 ;;
-esac
    protect /etc/httpd
    protect /usr/share/httpd/htdocs
    protect /usr/share/httpd/error
@@ -131,10 +127,6 @@ build(){
   sed   -i  "s:PEM_F_DEF_CALLBACK:PEM_F_PEM_DEF_CALLBACK:g"
  }
 
- if   [[ -n ${SOURCE[1]} ]]
- then cp    ${SOURCE[1]} srclib/apr-util/dbd/
- fi
-
 # Not using Sorcerer layout because subversion then will
 # not compile with httpd installed complaining that it
 # it can not find Sorcerer layout.
@@ -146,6 +138,7 @@ build(){
  # fix_openssl_PEM_F_DEF_CALLBACK
 
 #--enable-layout=Sorcerer \
+#--with-included-apr      \
  AC="
  --enable-layout=RedHat   \
  --enable-so              \
@@ -174,32 +167,13 @@ build(){
 
  # export  LAYOUT="Sorcerer"
 
- case $VERSION in
-  2.2.1*)
-   export   CFLAGS+=' -I/opt/libtool/include'
-   export CXXFLAGS+=' -I/opt/libtool/include'
-   export  LDFLAGS+=' -L/opt/libtool/lib'  
-   export      PATH="/opt/libtool/bin:$PATH" ;;
-  2.2.[8-9])
-   export   CFLAGS+=' -I/opt/libtool/include'
-   export CXXFLAGS+=' -I/opt/libtool/include'
-   export  LDFLAGS+=' -L/opt/libtool/lib'  
-   export      PATH="/opt/libtool/bin:$PATH" ;;
- esac
 
- save_apr
- if
-  ./buildconf     &&
-  ./configure $AC &&
-  make
-  then
-   restore_apr     &&
-   prepare_install &&
-   save_apr        &&
-   make    install &&
-   finish_install
- else restore_apr; false
- fi
+ ./buildconf     &&
+ ./configure $AC &&
+ make            &&
+ prepare_install &&
+ make    install &&
+  finish_install
 }
 
 post_install(){
