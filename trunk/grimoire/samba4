@@ -1,0 +1,71 @@
+    stable 4.0.0alpha7
+      opts --enable-fhs
+   require avahi e2fsprogs init-functions keyutils ncurses popt readline
+  optional Linux-PAM '--with-pam --with-pam_smbpass' --without-pam  for pluggable authentication
+  optional cups      ''                              --disable-cups for printing support
+  optional dmapi     ''                              ''             for dmapi support
+  optional gamin     ''                              ''             for file change notification and gamin can also be used
+  optional heimdal   ''                              ''             for kerberos support
+  optional libcap    ''                              ''             for POSIX capabilities support
+  optional openldap  '--with-ldap --with-ldapsam'    --without-ldap for connecting with ldap servers
+  optional openssl   ''                              ''             for encrypted communication
+  optional xinetd    ''                              ''             for running samba web administration tool
+  category network
+ attribute server console broke
+       url 'http://us5.samba.org/samba/ftp/
+            http://us2.samba.org/samba/ftp/
+            http://us3.samba.org/samba/ftp/
+            http://us4.samba.org/samba/ftp/
+             ftp://au1.samba.org/pub/samba/
+             ftp://ca.samba.org/
+             ftp://de.samba.org/samba.org/
+             ftp://ftp.easynet.be/samba/
+             ftp://ftp.k2.net/mirrors/samba/
+             ftp://ftp.oss.eznetsols.org/samba/
+             ftp://ftp.te8.com/pub/samba/
+             ftp://ftp.ucr.ac.cr/pub/Unix/samba/
+             ftp://gd.tuwien.ac.at/infosys/servers/samba/
+             ftp://giswitch.sggw.waw.pl/pub/unix/samba/
+             ftp://it.samba.org/pub/samba/
+             ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/
+             ftp://pl.samba.org/pub/unix/net/samba/
+             ftp://ru.samba.org/pub/samba/
+             ftp://se.samba.org/pub/samba/
+            http://sambafr.idealx.org/samba/ftp/
+            http://us1.samba.org/samba/ftp/'
+    source samba4/samba-$VERSION.tar.gz
+  homepage http://www.samba.org/
+  estimate 4000
+      desc 'seamless file and print services to SMB/CIFS clients.
+samba provides Windows NT and LAN manager-style
+file and print services to SMB clients such as Windows.'
+
+build(){
+
+ cd source4 &&
+ ./configure          \
+ --prefix=/opt/samba4 \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --with-smbmount      \
+ --with-fhs           \
+ --with-shared-modules=idmap_rid \
+ $OPTS &&
+ make  &&
+ prepare_install &&
+ mkdir -p /opt/samba4      &&
+# mkdir -p /etc/samba       &&
+# mkdir -p /usr/share/samba &&
+# mkdir -p /var/log/samba   &&
+ make    install
+#           &&
+# rm    -rf /usr/private    &&
+# if   [ -f  /usr/lib/libsmbclient.so   ] &&
+#    ! [ -f  /usr/lib/libsmbclient.so.0 ]
+# then ln -fs         libsmbclient.so   \
+#            /usr/lib/libsmbclient.so.0
+# fi &&
+# if   [  -f  nsswitch/libnss_winbind.so ]
+# then cp -av nsswitch/libnss_winbind.so /lib/
+# fi
+}

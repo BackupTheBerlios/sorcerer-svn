@@ -1,0 +1,25 @@
+# Spell not checked yet
+
+    stable 0.26.0
+   require evolution libmapi
+  category network/email
+ attribute gnome library broke
+       url $GNOME_URL
+    source sources/evolution-mapi/${VERSION:0:4}/evolution-mapi-$VERSION.tar.bz2
+  homepage http://gnome.org/projects/evolution/stable.shtml
+#     opts --with-openldap=yes
+  estimate 5800
+      desc ''
+
+build_old(){
+# export LDFLAGS+=' -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
+# export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-devel-$FV/sdk/lib -Wl,-rpath-link,/usr/lib/firefox-devel-$FV/sdk/lib"
+
+local FV
+FV="$( installed_version firefox )"
+if   [ $FV ]
+then OPTS+=" --with-nss-libs=/usr/lib/firefox-devel-$FV/sdk/lib"
+else OPTS+=" --with-nss-libs=/usr/lib/mozilla"
+fi
+default_build
+}

@@ -1,8 +1,8 @@
 # uncertain if xmlto is actually used.
 
-    stable 2.24.4 2.24.3 2.24.2 2.24.1 2.24.0
-  unstable 2.25.91 2.25.3 2.25.2 2.25.1
-   require gnome-panel gstreamer libnotify
+    stable 2.26.0 2.24.4 2.24.3 2.24.2 2.24.1 2.24.0
+      opts --disable-docbook-docs
+   require DeviceKit gnome-panel gstreamer libcanberra libnotify libunique
   optional docbook2X '' '' for generating manual pages and also requires Internet connection during compilation
 # optional xmlto
   category utility
@@ -10,6 +10,13 @@
        url $GNOME_URL
     source sources/gnome-power-manager/${VERSION:0:4}/gnome-power-manager-$VERSION.tar.bz2
   homepage http://www.gnome.org/projects/gnome-power-manager/
-  estimate 6000
+  estimate 6600
       desc 'gnome-power-manager responds to HAL events with user-configurable reactions.
 Currently it supports UPSs, notebook batteries and AC adapters.'
+
+build(){
+case $VERSION in
+ 2.26.0) sed -i 's:docs man data:docs data:' Makefile.in ;;
+esac
+default_build
+}
