@@ -3,34 +3,32 @@
 # Rather than fix this we shall wait until further releases
 # of gambas2 to see if the software authors fix their oversight.
 
-    stable 2.11.1 2.11.0 2.10.2 2.10.1 2.9.0 2.8.2 2.8.1 2.8.0
-   require kdelibs-v3 libffi
+    stable 2.12 2.11.1 2.11.0 2.10.2 2.10.1 2.9.0 2.8.2 2.8.1 2.8.0
+   require SDL_image libXtst libffi librsvg poppler sqlite-v2.8 unixODBC
   optional SDL_mixer  --enable-sdl        --disable-sdl        for SDL support
   optional curl       '--enable-curl --enable-net' '--disable-curl --disable-net' for curl networking componenets
   optional mysql      --enable-mysql      --disable-mysql      for database support
   optional postgresql --enable-postgresql --disable-postgresql for database support
   optional sqlite     --enable-sqlite     --disable-sqlite     for database support
   optional libxslt    --enable-xlst       --disable-xlst       for the XML components
-  PVERSION=0.10.1
+  PVERSION=0.10.5
   category development
- attribute kde3 new
- attribute broke
+ attribute new
        url $SOURCEFORGE_URL
     source gambas/gambas2-$VERSION.tar.bz2
-#   source http://poppler.freedesktop.org/poppler-$PVERSION.tar.gz
+    source http://poppler.freedesktop.org/poppler-$PVERSION.tar.gz
   homepage http://gambas.sourceforge.net/
-      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
-  estimate 4540
+#     opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
+  estimate 8000
   eprovide gambas
       desc 'gambas2 is a graphical development environment.
 It is similar to the Visual Basic IDE.
 It uses the Qt toolkit, but is able to use any
 other toolkit that a module is written for.'
 
-build_old(){
-# The exports do not work
-# because gambas2 source ignores CFLAGS and CXXFLAGS
- export   CFLAGS+=" -I$PWD/poppler-$PVERSION"
- export CXXFLAGS+=" -I$PWD/poppler-$PVERSION"
+build(){
+ LC_ALL=C grep -rl "\-Os -fno-omit-frame-pointer" * |
+ xargs -r --max-lines=1024 \
+ sed -i "s:-Os -fno-omit-frame-pointer:-Os -fno-omit-frame-pointer -I$PWD/poppler-$PVERSION -I$PWD/poppler-$PVERSION/fofi -I$PWD/poppler-$PVERSION/glib -I$PWD/poppler-$PVERSION/goo -I$PWD/poppler-$PVERSION/poppler -I$PWD/poppler-$PVERSION/qt -I$PWD/poppler-$PVERSION/qt4 -I$PWD/poppler-$PVERSION/splash -I$PWD/poppler-$PVERSION/utils:"
  default_build
 }
