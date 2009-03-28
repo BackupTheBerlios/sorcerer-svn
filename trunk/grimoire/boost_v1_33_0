@@ -1,0 +1,23 @@
+# Update wesnoth when updating boost
+# Update Boost_ADDITIONAL_VERSIONS in kde-v4 akonadi when updating boost
+
+    stable 1_33_0
+   require Python boost-jam bzip2 zlib
+  category development
+ attribute library solo
+       url $SOURCEFORGE_URL
+    source boost/boost_$VERSION.tar.bz2
+  homepage http://www.boost.org
+      opts --with-icu
+  estimate 8400
+      desc 'older version of boost'
+
+build(){
+#export LDFLAGS+=' -Wl,-rpath,/opt/boost/$VERSION/lib'
+ cd tools/build/jam_src &&
+ ./build.sh &&
+ cd ../../..
+ tools/build/jam_src/*/bjam  --prefix=/opt/boost/$VERSION  $OPTS stage &&
+ prepare_install &&
+ tools/build/jam_src/*/bjam  --prefix=/opt/boost/$VERSION  $OPTS install
+}
