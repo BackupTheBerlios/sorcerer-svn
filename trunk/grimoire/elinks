@@ -1,8 +1,8 @@
+# 0.11.6 failed to detect ruby
 # lua support is broken in 0.11.5
-# 0.11.4 had compile error
-    stable 0.11.5 0.11.3 0.11.2
-  unstable 0.12pre2 0.12pre1 0.11.4 0.12pre1 0.11.4 0.11.3
-    secure                        0.11.3
+
+    stable 0.11.6 0.11.5 0.11.3 0.11.2
+    secure 0.11.3
    require bzip2 zlib
   optional expat   ''                  --disable-xbel                  for XML parser for XBEL bookmark support
   optional gpm     ''                  '--disable-mouse --without-gpm' for mouse support
@@ -10,7 +10,7 @@
 # optional lua     ''                  --without-lua                   for writing plugins using lua interface
   optional mozilla --with-spidermonkey --without-spidermonkey          for javascript support using mozilla spidermonkey
   optional openssl --with-ssl          --without-ssl                   for HTTPS encrypted connections
-  optional ruby    --with-ruby         --without-ruby                  for ruby support
+# optional ruby    --with-ruby         --without-ruby                  for ruby support
   optional samba   ''                  --disable-smb                   for smb protocol support
   category network/web
  attribute client console
@@ -24,10 +24,10 @@ and can be extended via Lua, Guile, Perl, or Ruby scripts.
 It has limited support for CSS and Javascript.'
 
 
-build()  {
-  export    CFLAGS="-I/usr/include/mozilla/js    $CFLAGS"
-  export  CXXFLAGS="-I/usr/include/mozilla/js  $CXXFLAGS"
-  export   LDFLAGS="-L/usr/lib/mozilla  -Wl,-rpath-link,/usr/lib/mozilla  -Wl,-rpath,/usr/lib/mozilla  $LDFLAGS"
-  sed  -i  "s:smjs:jsj:"  configure
-  default_build
+build(){
+ export   CFLAGS+=" -I/usr/include/mozilla/js"
+ export CXXFLAGS+=" -I/usr/include/mozilla/js"
+ export  LDFLAGS+=" -L/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla"
+ sed -i "s:smjs:jsj:" configure
+ default_build
 }

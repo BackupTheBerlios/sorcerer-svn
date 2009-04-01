@@ -1,7 +1,25 @@
-    stable 1.4.7 1.4.6 1.4.5 1.4.4 1.4.3 1.4.2 1.4.1 1.4
-  unstable 1.5.14 1.5.13 1.5.11 1.5.10
+# cmake build method does notwork with version 1.6a
+# it will not properly discover installed boost,
+# not even older versions which it should be able to find
+# and the -DBoost_ADDITIONA_VERSIONS does nothelp
+
+#      opts -DBoost_ADDITIONAL_VERSIONS=1.38
+## I wish that opts would work.
+## It works with kde-v4 type spells.
+## Even a simple sediting of cmake/FindBoost.cmake did not work.
+
+
+#  require SDL_image SDL_mixer SDL_net SDL_ttf boost fribidi
+#     opts --with-boost=/usr/include/boost-1_38
+# boost 1_38_0 header files do not compile proper with gcc 4.3.3 nor gcc-v4.2
+
+
+    stable 1.6a 1.4.7 1.4.6 1.4.5 1.4.4 1.4.3 1.4.2 1.4.1 1.4
+    secure 1.6a
    require SDL_image SDL_mixer SDL_net SDL_ttf boost_v1_33_0 fribidi
-      opts --with-boost=/opt/boost/1_33_0
+#     opts --with-boost=/opt/boost/1_33_0
+      opts --with-boost=/opt/boost/1_33_0/include/boost-1_33
+   use_gcc gcc-v4.2
   category game
  attribute x11
        url $SOURCEFORGE_URL
@@ -12,3 +30,10 @@
 Battle for control of villages, using a variety of units
 which have advantages and disadvantages in different
 types of terrain and against different types of attacks.'
+
+build(){
+./configure --prefix=/usr $OPTS &&
+make &&
+prepare_install &&
+make    install
+}
