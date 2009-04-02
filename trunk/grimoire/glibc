@@ -16,39 +16,40 @@ if [ $SPELL == glibc ]; then
    require perl libselinux
 case $VERSION in
   2.7*)
+   require binutils-v2.18
  BVERSION=( 1.0.2 )
        url $GNU_URL
-   source glibc/glibc-$VERSION.tar.bz2
-   source glibc/glibc-libidn-$VERSION.tar.bz2
+    source glibc/glibc-$VERSION.tar.bz2
+    source glibc/glibc-libidn-$VERSION.tar.bz2
        url $KERNEL_URL
    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
   2.6*)
        url $GNU_URL
-   source glibc/glibc-$VERSION.tar.bz2
-   source glibc/glibc-libidn-$VERSION.tar.bz2
+    source glibc/glibc-$VERSION.tar.bz2
+    source glibc/glibc-libidn-$VERSION.tar.bz2
        url $KERNEL_URL
    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
   2.3.6)
        url $GNU_URL
-   source glibc/glibc-$VERSION.tar.bz2
-   source glibc/glibc-linuxthreads-$VERSION.tar.bz2
-   source glibc/glibc-libidn-$VERSION.tar.bz2
+    source glibc/glibc-$VERSION.tar.bz2
+    source glibc/glibc-linuxthreads-$VERSION.tar.bz2
+    source glibc/glibc-libidn-$VERSION.tar.bz2
       url $KERNEL_URL
    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
   2.3.5)
        url $GNU_URL
-   source glibc/glibc-$VERSION.tar.bz2
-   source glibc/glibc-linuxthreads-$VERSION.tar.bz2
-   source glibc/glibc-libidn-$VERSION.tar.bz2
-      url $KERNEL_URL
-   source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2
-    use_gcc gcc-v3.4 ;;
+    source glibc/glibc-$VERSION.tar.bz2
+    source glibc/glibc-linuxthreads-$VERSION.tar.bz2
+    source glibc/glibc-libidn-$VERSION.tar.bz2
+       url $KERNEL_URL
+    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2
+   use_gcc gcc-v3.4 ;;
   2.5)
        url $GNU_URL
-   source glibc/glibc-$VERSION.tar.bz2
-   source glibc/glibc-libidn-$VERSION.tar.bz2
-      url $KERNEL_URL
-   source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
+    source glibc/glibc-$VERSION.tar.bz2
+    source glibc/glibc-libidn-$VERSION.tar.bz2
+       url $KERNEL_URL
+    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
 esac
 fi
 
@@ -88,7 +89,7 @@ gd libpng and zlib are optional requirements for
 building memusagestat, a program to generate graphic
 from memory profiling data.'
 
-build(){
+build(){ (
 
  del_library_cache(){
   ldconfig
@@ -176,7 +177,8 @@ then cp   /usr/include/sys/capability.h   $IR/usr/include/sys
 fi
 
 case $VERSION in
- 2.7*) patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
+ 2.7*) export PATH="/opt/binutils/2.18/bin:$PATH"
+       patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
        patch -p1 < $SCRIPT_DIR/glibc-2.7-i586-memcpy_chk.patch
        # blowfish_patch
        mv  glibc-libidn-* libidn
@@ -215,7 +217,7 @@ make all install install_root=$IR &&
 supported_locales &&
 quick_test        &&
 install_glibc
-}
+) }
 
 
 post_install(){
