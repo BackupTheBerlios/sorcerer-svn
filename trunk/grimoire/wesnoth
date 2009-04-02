@@ -12,26 +12,28 @@
 #  require SDL_image SDL_mixer SDL_net SDL_ttf boost fribidi
 #     opts --with-boost=/usr/include/boost-1_38
 # boost 1_38_0 header files do not compile proper with gcc 4.3.3 nor gcc-v4.2
+#  require SDL_image SDL_mixer SDL_net SDL_ttf boost_v1_33_0 fribidi
 
 
     stable 1.6a 1.4.7 1.4.6 1.4.5 1.4.4 1.4.3 1.4.2 1.4.1 1.4
     secure 1.6a
-   require SDL_image SDL_mixer SDL_net SDL_ttf boost_v1_33_0 fribidi
-#     opts --with-boost=/opt/boost/1_33_0
-      opts --with-boost=/opt/boost/1_33_0/include/boost-1_33
+   require SDL_image SDL_mixer SDL_net SDL_ttf boost fribidi pango
    use_gcc gcc-v4.2
+      opts --with-boost=/usr/include/boost-1_38
+#     opts --with-boost=/opt/boost/1_33_0/include/boost-1_33
   category game
  attribute x11
        url $SOURCEFORGE_URL
     source wesnoth/wesnoth-$VERSION.tar.bz2
   homepage http://www.wesnoth.org/
-  estimate 14000
+  estimate 12000
       desc 'wesnoth is a fantasy themed turn-based strategy game.
 Battle for control of villages, using a variety of units
 which have advantages and disadvantages in different
 types of terrain and against different types of attacks.'
 
 build(){
+export LDFLAGS+=' -lboost_iostreams-gcc43-mt -lboost_regex-gcc43-mt'
 ./configure --prefix=/usr $OPTS &&
 make &&
 prepare_install &&
