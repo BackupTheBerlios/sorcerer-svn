@@ -24,5 +24,12 @@ Escape from Monkey Island, and MDK2.'
 build(){
  make    linux  &&
  prepare_install&&
- make    install INSTALL_TOP=/usr
+ make    install INSTALL_TOP=/usr &&
+ ld --whole-archive -share -ldl -soname \
+                liblua.so.$VERSION \
+    -o /usr/lib/liblua.so.$VERSION \
+       /usr/lib/liblua.a &&
+ ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:3} &&
+ ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:1} &&
+ ln -s liblua.so.$VERSION /usr/lib/liblua.so
 }
