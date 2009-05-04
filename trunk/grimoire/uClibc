@@ -1,0 +1,84 @@
+    stable 0.9.30.1 0.9.30 0.9.29
+  category development
+ attribute library solo
+   require linux-headers
+    source http://www.uclibc.org/downloads/uClibc-$VERSION.tar.bz2
+  homepage http://www.uclibc.org/
+   exclude /etc/ld.so.cache
+   exclude /etc/ld.so.conf
+   exclude /etc/localtime
+   protect /etc/hostname
+   protect /etc/hosts
+   protect /etc/host.conf
+   protect /etc/hosts
+   protect /etc/hosts.allow
+   protect /etc/hosts.deny
+   protect /etc/hosts.equiv
+   protect /etc/hosts.lpd
+   protect /etc/networks
+   protect /etc/nsswitch.conf
+   protect /etc/resolv.conf
+   protect /lib/ld-linux.so.2
+   protect /lib64/ld-linux-x86-64.so.2
+   protect /sbin/ldconfig
+  estimate 19500
+      desc 'a C library implementation ideally suited for embedded distributions'
+
+build(){
+
+ restore_config(){
+  if   [ -d /boot/isolinux ]
+  then local MAC="$HOSTTYPE"
+  else local MAC="$( uname -m )"
+  fi
+
+  if   [ -f            $SCRIPT_DIR/$MAC-$VERSION ]
+  then install -vm 600 $SCRIPT_DIR/$MAC-$VERSION .config
+  else install -vm 600 $SCRIPT_DIR/i586-$VERSION .config
+  fi
+ }
+
+ del_library_cache(){
+  ldconfig
+  rm -fr ${LIBRARY_CACHE:-/lib.old}
+  ldconfig
+  true
+ }
+
+ install_libc(){
+  install -vm 600 ../nscd/nscd.conf $IR/etc/
+  mkdir   -vp                       $IR/var/db
+  mkdir   -vm 700                   $IR/var/db/nscd
+
+  cd    $IR
+  rm -f $IR/etc/{localtime,ld.so.*}
+
+  # elf_of uClibc > $ELF_LOGS/glibc
+
+  prepare_install
+
+  # LD_LIBRARY_PATH="$LLP" LD_PRELOAD="$LPO" $LD_SO 
+
+  /bin/cp -av * /
+
+  del_library_cache
+  true
+ }
+
+           IR=$PWD/install
+ mkdir -p $IR/etc
+ touch    $IR/etc/ld.so.conf
+
+ export   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
+ export CXXFLAGS="$CFLAGS"
+ export LDFLAGS='-Wl,-s -Wl,-O1'
+ export LC_ALL=C
+ unset  LD_PRELOAD LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+
+ restore_config
+ yes "" | make oldconfig
+ make     all       V=1            &&
+ make install       V=1 PREFIX=$IR &&
+ make install_utils V=1 PREFIX=$IR &&
+ install_libc
+}

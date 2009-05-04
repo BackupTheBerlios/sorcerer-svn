@@ -1,60 +1,14 @@
 # Update glibc-locales and when updating glibc
 
-# /usr/src/sorcery/glibc/glibc-2.7/install/usr/include/linux/capability.h:73: 
-# error: expected specifier-qualifier-list before '__le32'
-# Looks like we will not be using linux 2.6.25.4
-# LVERSION=( 2.6.25.4 2.6.24.3 2.6.24.2 2.6.22.9 2.6.22.1 )
-
-  LVERSION=(          2.6.24.3 2.6.24.2 2.6.22.9 2.6.22.1 )
-    stable 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4
-    secure 2.7 2.6.1 2.6 2.5 2.4 2.3.6 2.3.5 2.3.4
-
+    stable 2.7
   category development
  attribute library solo
-
-if [ $SPELL == glibc ]; then
-   require perl libselinux
-case $VERSION in
-  2.7*)
-   require binutils-v2.18
- BVERSION=( 1.0.2 )
+   require binutils-v2.18 perl linux-headers
+      opts --without-selinux
        url $GNU_URL
     source glibc/glibc-$VERSION.tar.bz2
     source glibc/glibc-libidn-$VERSION.tar.bz2
-       url $KERNEL_URL
-   source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
-  2.6*)
-       url $GNU_URL
-    source glibc/glibc-$VERSION.tar.bz2
-    source glibc/glibc-libidn-$VERSION.tar.bz2
-       url $KERNEL_URL
-   source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
-  2.3.6)
-       url $GNU_URL
-    source glibc/glibc-$VERSION.tar.bz2
-    source glibc/glibc-linuxthreads-$VERSION.tar.bz2
-    source glibc/glibc-libidn-$VERSION.tar.bz2
-      url $KERNEL_URL
-   source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
-  2.3.5)
-       url $GNU_URL
-    source glibc/glibc-$VERSION.tar.bz2
-    source glibc/glibc-linuxthreads-$VERSION.tar.bz2
-    source glibc/glibc-libidn-$VERSION.tar.bz2
-       url $KERNEL_URL
-    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2
-   use_gcc gcc-v3.4 ;;
-  2.5)
-       url $GNU_URL
-    source glibc/glibc-$VERSION.tar.bz2
-    source glibc/glibc-libidn-$VERSION.tar.bz2
-       url $KERNEL_URL
-    source pub/linux/kernel/v${LVERSION:0:3}/linux-$LVERSION.tar.bz2 ;;
-esac
-fi
-
   homepage http://www.gnu.org/software/libc
-
    exclude /etc/ld.so.cache
    exclude /etc/ld.so.conf
    exclude /etc/localtime
@@ -72,22 +26,12 @@ fi
    protect /lib/ld-linux.so.2
    protect /lib64/ld-linux-x86-64.so.2
    protect /sbin/ldconfig
-disable lib64
 case $HOSTTYPE in
  x86_64) RPATH='/usr/lib64/gconv' ;;
       *) RPATH='/usr/lib/gconv'   ;;
 esac
   estimate 19500
-      desc 'glibc is a C library for use with GNU/Hurd and GNU/Linux.
-glibc - Library for use with GNU/Hurd and GNU/Linux.
-GNU C Library is one of the most important components
-of the GNU Hurd and most modern Linux distributions.
-It is used by almost all C programs and provides the
-most essential program interface.
-
-gd libpng and zlib are optional requirements for
-building memusagestat, a program to generate graphic
-from memory profiling data.'
+      desc 'glibc is the GNU implementation of a C library.'
 
 build(){ (
 
@@ -135,89 +79,55 @@ build(){ (
  }
 
 
- blowfish_patch(){
-  patch -p1 < $SCRIPT_DIR/glibc-$VERSION-crypt_blowfish-$BVERSION.patch
-  mv crypt/sysdeps/unix/crypt.h          crypt/sysdeps/unix/gnu-crypt.h
-  cp crypt_blowfish-$BVERSION/*.{h,c,S}  crypt/sysdeps/unix/
- }
+  LPO="$LD_PRELOAD"
+ unset  LD_PRELOAD LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
 
+ export   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
+ export CXXFLAGS="$CFLAGS"
+ export LDFLAGS='-Wl,-s -Wl,-O1'
+ export LC_ALL=C
 
- LPO="$LD_PRELOAD"
-unset  LD_PRELOAD LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+           IR=$PWD/install
+ mkdir -p $IR/etc
+ touch    $IR/etc/ld.so.conf
 
-export   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
-export CXXFLAGS="$CFLAGS"
-export LDFLAGS='-Wl,-s -Wl,-O1'
-export LC_ALL=C
+ if   [ $HOSTTYPE == x86_64 ]
+ then LD_SO="$IR/lib64/ld-linux-x86-64.so.2"; LLP="$IR/lib64:$IR/usr/lib64"
+ else LD_SO="$IR/lib/ld-linux.so.2"         ; LLP="$IR/lib:$IR/usr/lib"
+ fi
 
-echo "Linux header version $LVERSION"
+ mkdir -p $IR/usr/include/sys
 
-            IR=$PWD/install
-mkdir  -p  $IR/etc
-touch      $IR/etc/ld.so.conf
-if   [ $HOSTTYPE == x86_64 ]
-then LD_SO="$IR/lib64/ld-linux-x86-64.so.2"; LLP="$IR/lib64:$IR/usr/lib64"
-else LD_SO="$IR/lib/ld-linux.so.2"         ; LLP="$IR/lib:$IR/usr/lib"
-fi
+ export PATH="/opt/binutils/2.18/bin:$PATH"
+ patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
+ patch -p1 < $SCRIPT_DIR/glibc-2.7-i586-memcpy_chk.patch
+ mv  glibc-libidn-* libidn
+ KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
+ (( KVER >= 2624 )) &&
+ opts --enable-kernel=2.6.24
 
+ HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
 
-mkdir -p                                  $IR/usr/include/sys
-cd        linux-$LVERSION
-make      include/linux/version.h
-make      include/asm
-cp    -rL include/{asm,asm-generic,linux} $IR/usr/include
-cd    ..
-rm    -fr linux-$LVERSION   /usr/include/{asm,asm-generic,linux}
-cp    -a  $IR/usr/include/* /usr/include
-
-# ^^ linux headers installed before glibc begins compilation.
-
-if   [ -f /usr/include/sys/capability.h ]
-then cp   /usr/include/sys/capability.h   $IR/usr/include/sys 
-fi
-
-case $VERSION in
- 2.7*) export PATH="/opt/binutils/2.18/bin:$PATH"
-       patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
-       patch -p1 < $SCRIPT_DIR/glibc-2.7-i586-memcpy_chk.patch
-       # blowfish_patch
-       mv  glibc-libidn-* libidn
-       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-       (( KVER >= 2624 )) &&
-       opts --enable-kernel=2.6.24 ;;
- 2.6*) mv  glibc-libidn-* libidn
-       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-       (( KVER >= 2615 )) &&
-       opts --enable-kernel=2.6.15 ;;
- 2.4)  mv  glibc-libidn-2.4 libidn  ;;
- 2.5)  mv  glibc-libidn-*   libidn
-       KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-       (( KVER >= 2615 )) &&
-       opts --enable-kernel=2.6.15 ;;
-esac
-
-HEADERS="--with-headers=$BUILD_DIR/install/usr/include"
-
-mkdir build
-cd    build
-../configure      \
---host=$BUILD     \
---build=$BUILD    \
---prefix=/usr     \
---disable-profile \
---with-tls        \
---with-elf        \
---without-gd      \
---without-cvs     \
---enable-shared   \
---enable-add-ons  \
-$HEADERS          \
-$OPTS             && # make all tests install install_root=$IR &&
-make all install install_root=$IR &&
-supported_locales &&
-quick_test        &&
-install_glibc
-) }
+ mkdir build
+ cd    build
+ ../configure      \
+ --host=$BUILD     \
+ --build=$BUILD    \
+ --prefix=/usr     \
+ --disable-profile \
+ --with-tls        \
+ --with-elf        \
+ --without-gd      \
+ --without-cvs     \
+ --enable-shared   \
+ --enable-add-ons  \
+ $HEADERS          \
+ $OPTS             && # make all tests install install_root=$IR &&
+ make all install install_root=$IR &&
+ supported_locales &&
+ quick_test        &&
+ install_glibc
+ ) }
 
 
 post_install(){
