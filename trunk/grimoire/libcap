@@ -1,8 +1,11 @@
-    stable 1.97 1.10
+# Versions 2.14 and less require indent
+    stable 2.16
+#  require indent
   category kernel
  attribute console
+ attribute broke
        url $KERNEL_URL
-    source /pub/linux/libs/security/linux-privs/libcap1/libcap-$VERSION.tar.bz2
+    source /pub/linux/libs/security/linux-privs/libcap2/libcap-$VERSION.tar.bz2
   homepage http://ftp.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.4/capfaq-0.2.txt
   estimate 50
       desc 'libcap provides the userspace tools for POSIX capabilities.
@@ -12,7 +15,13 @@ Note, this wrapper is intended to assist in overcoming
 a lack of support for filesystem capability attributes
 and should be used to launch other files.'
 
-build() {
+build(){
+make &&
+prepare_install &&
+make    install
+}
+
+build_old() {
 ## Can not compile this as a relocatable library
 ## cap_sys.c:18: error: can't find a register in class 'BREG' while reloading 'asm'
 # CFLAGS="$CFLAGS -fPIC"
