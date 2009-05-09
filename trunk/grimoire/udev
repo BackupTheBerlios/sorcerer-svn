@@ -1,5 +1,6 @@
     stable 141 140 139 138 137 135 130 125 124 120
-   require sysvinit libselinux
+#  require sysvinit libselinux
+   require sysvinit
   category utility
  attribute console
        url $KERNEL_URL
@@ -28,6 +29,8 @@ nod_sym_install(){
  mknod -m 640                         /lib/udev/dev/mem     c 1 1
  mknod -m 666                         /lib/udev/dev/null    c 1 3
  mknod -m 444                         /lib/udev/dev/zero    c 1 5
+ mknod -m 660                         /lib/udev/dev/kmsg    c 1 11
+ true
 }
 
 # The extra rules are needed to create frequently needed nodes 
@@ -36,9 +39,9 @@ nod_sym_install(){
 
  rules_install(){ install -vm 644 $SCRIPT_DIR/rules.d/* /lib/udev/rules.d; }
 
- if   spell_installed libselinux
- then OPTS+=' --with-selinux'
- fi
+ # if   spell_installed libselinux
+ # then OPTS+=' --with-selinux'
+ # fi
 
  case $HOSTTYPE in
   x86_64) OPTS+=' --with-libdir-name=lib64' ;;
@@ -49,7 +52,7 @@ nod_sym_install(){
   --build=$BUILD    \
   --sysconfdir=/etc \
   --prefix=/usr     \
-  --exec-prefix=/   \
+  --exec-prefix=    \
  $OPTS           &&
  make            &&
  prepare_install &&

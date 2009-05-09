@@ -14,12 +14,19 @@ p7zip provides aproximately 15% better compression than bzip2.
 Compression speed is about 400% slower than bzip2.
 Decompression speed is about the same as gzip.'
 
+# if   [ -f $INSTALL_LOGS/gcc-uClibc ]
+# then use_gcc gcc-uClibc
+# fi
+
+
 build(){
-# export LDFLAGS+=' -static -lstdc++ -dynamic'
-# no easy way to only statically link libstdc++ ?
+#  LC_ALL=C grep -rl "wchar\.h" * | xargs -r --max-lines=256 sed -i '/wchar\.h/d'
+
+  # export LDFLAGS+=' -static -lstdc++ -dynamic'
+  # no easy way to only statically link libstdc++ ?
 
  export LDFLAGS+=' -static'
- make OPTFLAGS="$CXXFLAGS" all &&
+ make OPTFLAGS="$CXXFLAGS" CXX=${CXX:-/usr/bin/g++} all &&
  prepare_install &&
        ./install.sh /bin /usr/lib/p7zip /usr/man /usr/share/p7zip &&
 
@@ -27,6 +34,4 @@ build(){
  then mv   /usr/lib/p7zip/7za       /bin
       mv   /usr/lib/p7zip/7zCon.sfx /bin
  fi
-
- rm -f /usr/bin/7za
 }
