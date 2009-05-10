@@ -3,21 +3,35 @@
  attribute archive_off library solo
   homepage http://sorcerer.silverice.org/
    protect /usr/libexec/sorcery/sentinel
-  estimate 10
-      desc 'sorcery-sentinel provides a file modification detection preloadable library
+      desc 'file modification detection preloadable library
 
-Casting spells installs and modifies previously installed files.
-cast learns what files should belong to a spell
-by looking at a log of the files installed and modified.
-The raw install log for a spell is created by a preloadable
-ELF library called sentinel.'
+sentinel is a spy program
+that intercepts and logs calls to libc functions
+that modify the filesystem.
+In this fashion it can report what files and directories
+are created and modified when software installs.
+sentinel is only used during software installation
+and is no risk to system security.'
+
+## sentinel requires libdl
+## libdl requires the libc that goes with the libdl that is preloaded
+## Therefore, even without explicitly compile time linking with
+## libc and libdl when sentinel is preloaded
+## a proper libdl must also be preloaded
+## better to have two complete sentinels one for glibc one for uClibc
+## than one improperly linked sentinel that requires a more complex
+## environment preload.
+
+# cc $CFLAGS -D_GNU_SOURCE -DPIC -fPIC -D_REENTRANT \
+#    $LDFLAGS -shared -nostartfiles -nostdlib \
+#    -o sentinel $SCRIPT_DIR/sentinel.c
 
 build(){
  unset LD_PRELOAD
  gcc $CFLAGS -D_GNU_SOURCE -DPIC -fPIC -D_REENTRANT \
      $LDFLAGS -lc -ldl -shared -nostartfiles \
      -o sentinel $SCRIPT_DIR/sentinel.c &&
- prepare_install && export     LD_PRELOAD=$PWD/sentinel &&
+ prepare_install && export LD_PRELOAD=$PWD/sentinel &&
  mkdir  -pvm 755          /usr/libexec/sorcery &&
  install -vm 755 sentinel /usr/libexec/sorcery/sentinel
 }

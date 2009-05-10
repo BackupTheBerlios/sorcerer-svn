@@ -4,9 +4,9 @@
        url $SOURCEFORGE_URL
     source p7zip/p7zip_$VERSION.tar.bz2
   homepage http://p7zip.sourceforge.net
-    CFLAGS='-O3'
-  CXXFLAGS='-O3'
-   LDFLAGS='-Wl,-O1'
+     CFLAGS='-O3'
+   CXXFLAGS='-O3'
+    LDFLAGS='-Wl,-O1 -static'
    protect /bin/7za
   estimate 320
       desc 'p7zip is a command line high compression ratio archiver.
@@ -14,19 +14,22 @@ p7zip provides aproximately 15% better compression than bzip2.
 Compression speed is about 400% slower than bzip2.
 Decompression speed is about the same as gzip.'
 
-# if   [ -f $INSTALL_LOGS/gcc-uClibc ]
-# then use_gcc gcc-uClibc
-# fi
+# When compiling -O3 using uClibc 7za segfaults when run.
+# uncertain if LDFLAGS are being used.
+if [ -f $INSTALL_LOGS/gcc-uClibc ]; then
+ use_gcc gcc-uClibc
+   CFLAGS='-Os'
+ CXXFLAGS='-Os'
+  LDFLAGS='-Wl,-O1'
+fi
 
 
 build(){
-#  LC_ALL=C grep -rl "wchar\.h" * | xargs -r --max-lines=256 sed -i '/wchar\.h/d'
-
   # export LDFLAGS+=' -static -lstdc++ -dynamic'
   # no easy way to only statically link libstdc++ ?
 
- export LDFLAGS+=' -static'
- make OPTFLAGS="$CXXFLAGS" CXX=${CXX:-/usr/bin/g++} all &&
+ make OPTFLAGS="$CXXFLAGS" all &&
+#make OPTFLAGS="$CXXFLAGS" CC=${CC:-/usr/bin/cc} CXX=${CXX:-/usr/bin/g++} all &&
  prepare_install &&
        ./install.sh /bin /usr/lib/p7zip /usr/man /usr/share/p7zip &&
 
