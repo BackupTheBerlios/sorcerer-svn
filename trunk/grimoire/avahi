@@ -7,10 +7,8 @@
 # 0.6.21 may have acquired a requirement on libcap
 
     stable 0.6.25 0.6.24 0.6.23 0.6.22 0.6.21 0.6.20
-# Jan Merka: libcap seems still needed for version 0.6.25. Otherwise
-# the build fails due to a problem with capability.h header.
-   require dbus libcap libdaemon libglade intltool
-#   require dbus libdaemon libglade intltool
+#   require dbus libcap libdaemon libglade intltool
+   require dbus libdaemon libglade intltool
   optional gtk+              '' --disable-gtk for gtk+ integration
   optional qt-x11-free       '' --disable-qt3 for Qt3 mainloop integration
   optional qt-x11-opensource '' --disable-qt4 for Qt4Core mainloop integration
@@ -34,9 +32,6 @@ running on a local network with no specific configuration.
 For example, you can plug into a network and instantly
 find printers to print to, files to look at, and people to talk to.'
 
-# Avahi needs dbus reload before starting after a successfull installation
-# How to do that?
-#
 build(){
 mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    avahi                     2>/dev/null
@@ -53,4 +48,9 @@ useradd  -K UID_MIN=256 -K UID_MAX=511 -g avahi -d /var/empty avahi 2>/dev/null
  make            &&
  prepare_install &&
  make    install
+}
+
+post_install(){
+ /etc/init.d/dbus reload
+ default_post_install
 }
