@@ -1,0 +1,22 @@
+diff -ruN libs.ori/libksane/libksane/sane_widget.cpp libs/libksane/libksane/sane_widget.cpp
+--- libs.ori/libksane/libksane/sane_widget.cpp  2009-01-01 11:24:39.000000000 -0500
++++ libs/libksane/libksane/sane_widget.cpp  2009-05-06 13:21:32.000000000 -0400
+@@ -1087,7 +1087,7 @@
+     // Start the scanning with sane_start
+     status = sane_start(d->saneHandle);
+ 
+-#ifndef SANE_CAP_ALWAYS_SETTABLE
++#if !defined(SANE_CAP_ALWAYS_SETTABLE) && defined(SANE_STATUS_WARMING_UP)
+     // should better be done by detecting SANE's version in configure and providing a HAS_SANE_1_1
+     // FIXME remove these ifdefs and require sane 1.1.x as soon as possible
+     if (status == SANE_STATUS_WARMING_UP) {
+@@ -1110,7 +1110,7 @@
+              || (status == SANE_STATUS_COVER_OPEN)
+              || (status == SANE_STATUS_DEVICE_BUSY)
+              || (status == SANE_STATUS_ACCESS_DENIED)
+-#ifndef SANE_CAP_ALWAYS_SETTABLE
++#if !defined(SANE_CAP_ALWAYS_SETTABLE) && defined(SANE_STATUS_HW_LOCKED)
+              || (status == SANE_STATUS_HW_LOCKED)
+ #endif
+            )
+
