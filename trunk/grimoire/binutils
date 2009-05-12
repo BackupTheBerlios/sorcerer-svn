@@ -11,7 +11,7 @@
    protect /usr/bin/ranlib
 
 # sysroot option given so that binutils supports sysroot parameter.
-      opts --with-sysroot=/ --enable-shared --disable-static
+      opts --with-sysroot=/ --enable-shared --disable-static --disable-bootstrap --prefix=/usr
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
   estimate 2400
@@ -40,15 +40,13 @@ build(){
  TD="tooldir=/usr"
  LDF="LDFLAGS=$LDFLAGS"
 
-# --host=$BUILD             \
- ./configure                \
- --prefix=/usr              \
- $OPTS                      &&
- make          "$LDF"  $TD  &&
- prepare_install            &&
+ ./configure $OPTS         &&
+ make          "$LDF"  $TD &&
+ prepare_install           &&
  make    install       $TD
+}
+
 # Evert Vorster suggests the following is unnecessary
 # and breaks compilation in some instances.
 # &&
 # make    install-info  $TD
-}
