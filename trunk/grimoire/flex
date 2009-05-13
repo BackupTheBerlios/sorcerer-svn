@@ -29,15 +29,19 @@ build() {
   ln  -sf  $1.so.1  $1.so
  }
 
-  ./configure     \
-  --build=$BUILD  \
-  --prefix=/usr   \
+# cast automatically resets LD_PRELOAD when prepare_install is called.
+# This avoids an unfortunate problem since flex appears to require flex
+# when it is compiled
+  unset LD_PRELOAD
+
+  ./configure   \
+  --prefix=/usr \
   $OPTS                            &&
   make  "LDFLAGS=$LDFLAGS"         &&
   prepare_install                  &&
   make    install                  &&
   # make_shared_lib  /usr/lib/libfl  &&
-  ln  -sf  flex    /usr/bin/lex
+  ln -sf flex /usr/bin/lex
 }
 
 # building shared library causes a problem with
