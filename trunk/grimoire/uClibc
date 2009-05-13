@@ -1,0 +1,70 @@
+# Do not cast this unless the box is *-linux-uclibc,
+# because otherwise a box must be properly cross-compiled
+# to become a uClibc spell.
+# forcing this to cast will only break a glibc installed box.
+
+    stable 0.9.30.1 0.9.30 0.9.29
+  category development
+ attribute library; [ -f $INSTALL_LOGS/uClibc ] ||
+ attribute broke
+   require linux-headers
+    source http://www.uclibc.org/downloads/uClibc-$VERSION.tar.bz2
+  homepage http://www.uclibc.org/
+   exclude /etc/ld.so.cache
+   exclude /etc/ld.so.conf
+   protect /lib/ld-uClibc.so.0
+#  protect /lib64/ld-uClibc-x86-64.so.0
+   protect /etc/hostname
+   protect /etc/hosts
+   protect /etc/host.conf
+   protect /etc/hosts
+   protect /etc/hosts.allow
+   protect /etc/hosts.deny
+   protect /etc/hosts.equiv
+   protect /etc/hosts.lpd
+   protect /etc/networks
+   protect /etc/nsswitch.conf
+   protect /etc/resolv.conf
+   protect /sbin/ldconfig
+  estimate 1500
+      desc 'a C library implementation ideally suited for embedded distributions'
+
+build(){
+
+ restore_config(){
+  if   [ -d /boot/isolinux ]
+  then local MAC="$HOSTTYPE"
+  else local MAC="$( uname -m )"
+  fi
+
+  if   [ -f            $SCRIPT_DIR/$MAC ]
+  then install -vm 600 $SCRIPT_DIR/$MAC .config
+  else install -vm 600 $SCRIPT_DIR/i586 .config
+  fi
+ }
+
+ install_libc(){
+  cd $IR
+  prepare_install
+  cp -av * /
+  true
+ }
+
+           IR=$PWD/install
+ mkdir -p $IR
+
+ export   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
+ export LDFLAGS='-Wl,-s -Wl,-O1'
+ export LC_ALL=C
+ unset  LD_PRELOAD LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+
+ [ -f /opt/uClibc/usr/bin ] &&
+ export PATH="/opt/uClibc/usr/bin:$PATH"
+
+ restore_config
+ yes "" | make oldconfig
+ make     all       V=1            &&
+ make install       V=1 PREFIX=$IR &&
+ make install_utils V=1 PREFIX=$IR &&
+ install_libc
+}
