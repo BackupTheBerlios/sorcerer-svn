@@ -16,6 +16,13 @@ The ext2fsprogs package contains essential ext2 filesystem utilities
 which consists of e2fsck, mke2fs, debugfs, dumpe2fs, tune2fs,
 and most of the other core ext2 filesystem utilities.'
 
+# While uClibc is using oldthreads instead of newthreads,
+# because gcc would not detect threads when newthreads was enabled
+# thread-local-storage must be disabled in order to compile e2fsprogs
+case $MACHTYPE in
+ *-uclibc) opts --disable-tls ;;
+esac
+
 build(){
  install_init(){
   mkdir   -vp                         /usr/include/uuid
