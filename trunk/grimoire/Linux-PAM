@@ -1,4 +1,4 @@
-    stable 1.0.1 0.99.10.0
+    stable 1.0.4 1.0.1 0.99.10.0
 #  require libselinux
   optional cracklib   ''             --disable-cracklib for password checking library
   optional db         --enable-db=db --enable-db=no     for db support
@@ -35,6 +35,10 @@ build(){
   chown root:auth /sbin/unix_chkpwd
   chmod 2755      /sbin/unix_chkpwd
  }
+
+ case $MACHTYPE in
+  *-uclibc) patch -p1 < $SCRIPT_DIR/Linux-PAM-1.0.4-uclibc.patch ;;
+ esac
 
  mkdir    -pm 755 /var/empty
  groupadd -K GID_MIN=256 -K GID_MAX=511    auth                    2>/dev/null

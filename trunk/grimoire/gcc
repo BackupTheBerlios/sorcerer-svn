@@ -101,12 +101,14 @@ del_library_cache(){
 # with future releases of gcc and as uclibc
 # approximates more of glibc's functionality.
 
+#  *-uclibc) for  file in $SCRIPT_DIR/uClibc/*.patch
+#            do   patch -p1 < $file
+#            done
+#            OPTS+=" --enable-clocale=uclibc" ;;
+
  case $MACHTYPE in
-  *-uclibc) for  file in $SCRIPT_DIR/uClibc/*.patch
-            do   patch -p1 < $file
-            done
-            OPTS+=" --enable-clocale=uclibc" ;;
-  *-gnu)    OPTS+=" --enable-clocale=gnu"    ;;
+  *-uclibc) OPTS+=" --disable-__cxa_atexit" ;;
+  *-gnu)    OPTS+=" --enable-__cxa_atexit --enable-clocale=gnu" ;;
  esac
 
    LCF="LIBCFLAGS=$CFLAGS"
@@ -141,7 +143,6 @@ del_library_cache(){
 
  OPTS+="
   --prefix=/usr
-  --enable-__cxa_atexit
   --enable-shared
   --infodir=/usr/info
   --mandir=/usr/man
@@ -156,6 +157,7 @@ del_library_cache(){
 
  DESTDIR=$BUILD_DIR/.dest
 
+ unset LD_PRELOAD
  mkdir BUILD
  cd    BUILD
  ../configure  $OPTS            &&
