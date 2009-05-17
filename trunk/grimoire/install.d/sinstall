@@ -252,24 +252,25 @@ transfer_arch(){
  cp    -va     etc/skel        $TARGET/root
  mkdir -p                      $TARGET/root/.sorcery
  chmod -v   700                $TARGET/root
- if   [  -d  /media/IR/$HOSTTYPE/boot ]
- then cp -va /media/IR/$HOSTTYPE/boot \
-                               $TARGET
- else cp -va /media/IR/boot    $TARGET
- fi
+ cp    -va /media/IR/boot      $TARGET
  cp    -av /media/IR/var/cache/sources \
                                $TARGET/var/cache/
  rm    -fr                     $TARGET/boot/isolinux
- cp    -va /media/IR/var/cache/archive/*-$HOSTTYPE-*.tar.7z \
-             $TARGET/var/cache/archive/
+ cp    -va /media/IR/var/cache/archive \
+                               $TARGET/var/cache/
  mkdir -vpm 755                $TARGET/lib/udev
  cp    -va /lib/udev/dev       $TARGET/lib/udev/
 
+# find $TARGET/var/cache/archive -type f |
+# while read
+# do 7za x -bd -so "$REPLY"
+# done 2>/dev/null |
+# tar -C $TARGET -ixvpf - 2>&1 |
+# sed '/tar: /d'
+
  find $TARGET/var/cache/archive -type f |
- while read
- do 7za x -bd -so "$REPLY"
- done 2>/dev/null |
-#bfr -b $BUFFER |
+ xargs --max-lines=1024 cat |
+ lzip -cd |
  tar -C $TARGET -ixvpf - 2>&1 |
  sed '/tar: /d'
 
