@@ -1,8 +1,3 @@
-# does not properly link with the libintl library on uClibc
-case $MACHTYPE in
- *-uclibc) LDFLAGS="-Wl,-s -Wl,-O1 -lintl" ;;
-esac
-
     stable 2.15 2.14.2 2.14.1 2.14 2.13.1.1 2.13.1 2.13.0.1 2.13
    require e2fsprogs gettext ncurses udev zlib
 # libselinux
@@ -19,7 +14,7 @@ esac
    exclude /etc/fstab
    exclude /etc/mtab
   estimate 800
-      desc 'util-linux contains essential utilities.
+      desc 'essential utilities
 util-linux-ng (based on version 2.13-pre7 of util-linux)
 is a suite of essential utilities for any Linux system.
 
@@ -33,3 +28,37 @@ passwd pg pivot_root ramsize raw rdev readprofile reboot rename renice
 rescuept reset rev rootflags script setfdprm setsid setterm sfdisk
 shutdown simpleinit sln swapoff swapon tunelp ul umount vidmode vipw
 wall whereis write.'
+
+build(){
+
+uclibc_build(){
+ (
+  # cal fails to build on uClibc
+  # does not properly link with the libintl library on uClibc
+  # nor does libtool pass the -lintl when specified in LDFLAGS or LIBS
+
+  # column's output was messed up after compliation with uClibc
+
+  # export CFLAGS+=' -lintl'
+
+  unset LD_PRELOAD
+  ./configure            \
+   --sysconfdir=/etc     \
+   --localstatedir=/var  \
+   --prefix=/usr         \
+   --disable-nls         \
+  $OPTS                  &&
+  touch misc-utils/cal.o &&
+  touch misc-utils/cal   &&
+  make            &&
+  prepare_install &&
+  make    install &&
+  rm -f /usr/bin/cal
+  )
+ }
+
+ case $MACHTYPE in
+  *-uclibc) uclibc_build ;;
+  *-gnu)   default_build ;;
+ esac
+}
