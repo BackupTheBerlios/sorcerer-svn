@@ -15,8 +15,11 @@ loop found in event-driven network servers.'
 
 # Needed in /lib/ or /lib64/ so that /sbin/rpc.idmapd can start
 
-case $HOSTTYPE in
- x86_64) opts --libdir=/lib64 ;;
-      *) opts --libdir=/lib ;;
-esac
-
+build(){
+ default_build &&
+ find /usr/lib/ -maxdepth 1 -name libevent.so\* |
+ while read; do
+  mv $REPLY /lib/ &&
+  ln -sv ../../lib/${REPLY##*/} $REPLY
+ done
+}
