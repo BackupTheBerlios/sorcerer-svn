@@ -63,6 +63,10 @@ chroot_build(){
  chroot $TARGET dispel install
  chroot $TARGET cast "$@"
  scry_finish
+ chroot $TARGET /etc/init.d/depmod
+ chroot $TARGET /etc/init.d/lilo.conf
+ chroot $TARGET /etc/init.d/rc.d
+ chroot $TARGET /etc/init.d/initramfs
  chroot $TARGET swapoff -a
  umount                          $TARGET/var/lock
  umount                          $TARGET/usr/src/sorcery
@@ -1119,8 +1123,6 @@ compile_menu(){
  local EXTRA_SPELLS REQUIRED_SPELLS="\
 etc
 glibc-locales
-initramfs
-init-scripts
 kbd"
 
  if   [ -f $TARGET/etc/lilo.conf.head.new ]
