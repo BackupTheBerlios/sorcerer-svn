@@ -186,6 +186,8 @@ fstab_line(){
   if ! [[ -n   ${PUUID[$1]} ]];then
    pvcreate "${PDEVICE[$1]}" &>/dev/null
    PUUID[$1]=$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )
+  else
+   PUUID[$1]=$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )
   fi
   echo -n "UUID=${PUUID[$1]}${TAB}"
  fi
@@ -937,8 +939,9 @@ Really unmount the currently mounted partitions?"
 
 confirm_unmount(){
  local NOT_YET="
-Until the install image is transfered
-and compilation of initramfs is completed
+Until the install image is transfered,
+initramfs images created,
+and lilo is installed to a boot block
 the filesystems should remain mounted.
 
 However to modify the filesystem table, create,
