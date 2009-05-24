@@ -1,4 +1,5 @@
-    stable "$( date -u +%Y-%m )"
+#   stable "$( date -u +%Y-%m )"
+version_year_month 12
   category network
  attribute client server
     source http://www.iana.org/assignments/port-numbers
@@ -18,10 +19,8 @@ build(){
 # Those reasons are why many tr sanitation commands are required.
 
 LO=/etc/services.local
-[[ -f $SOURCE ]] && prepare_install &&
-( cat $SOURCE ; echo
-  [ -f $LO ] &&
-  cat  $LO ) |
+[[ -s $SOURCE ]]
+( cat $SOURCE ; echo )   |
 tr   -d '\r'             |
 tr      '\t'  ' '        |
 tr   -s ' '              |
@@ -30,9 +29,9 @@ grep    "/tcp\|/udp"     |
 grep -v "^ \|Unassigned" |
 sed  -r "s:([^ ]*) ([^ ]*):\1|\2|#:
          s:\|#$::" |
-column  -s '|' -t  > services &&
-install -vm 644 -b -S .old services /etc
+column  -s '|' -t  > $SCRIPT_DIR/services.d/IANA &&
+prepare_install
 }
 
 
-current(){ [ /etc/services -nt /etc/services.local ]; }
+current(){ [ -f /etc/services.d/IANA ]; }

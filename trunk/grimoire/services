@@ -8,27 +8,11 @@ version_year_month 12
       desc 'services translates tarball of port numbers by IANA into to /etc/services'
 
 build(){
- lo(){
-  [ -f $LO ]          &&
-  cat  $LO            |
-  tr      '\t' ' '    |
-  tr  -s  ' '         |
-  tr  -d  '\177-\377' |
-  sed -n  "\,/tcp,p
-           \,/upd,p"  |
-  sed -r  "s:([^ ]*) ([^ ]*):\1|\2|#:
-           s:\|#$::"  |
-  tr      '|' '\t'
- }
-
- LO=/etc/services.local
- [ -s services ]    &&
- mv   services iana &&
- prepare_install    &&
- ( cat iana; echo; lo ) |
- column  -s '	' -t > services &&
- install -vm 644 -b -S .old services /etc
+ mkdir -p      $SCRIPT_DIR/services.d/
+ [ -s services ] &&
+ mv   services $SCRIPT_DIR/services.d/IANA &&
+ prepare_install
 }
 
 
-current(){ [ /etc/services -nt /etc/services.local ]; }
+current(){ [ -f /etc/services.d/IANA ]; }
