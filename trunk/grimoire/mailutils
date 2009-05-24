@@ -21,7 +21,13 @@
   category network/email
  attribute console client server
        url $GNU_URL
-    source mailutils/mailutils-$VERSION.tar.bz2
+case $VERSION in
+ 2.0)
+    source mailutils/mailutils-$VERSION.tar.gz ;;
+   *)
+    source mailutils/mailutils-$VERSION.tar.bz2 ;;
+esac
+
   homepage http://www.gnu.org/software/mailutils
    provide email-client pop3 pop3s imap imaps mailx
   estimate 3500
@@ -38,6 +44,11 @@ If it does not, please fix and report it
 or use pine SSL mail servers instead.'
 
 build(){
+# The following 3 lines did not fix the 2.0 compile errors
+# find . -name Makefile.in |
+# xargs -r --max-lines=64 grep -l 'SUBDIRS = testsuite' |
+# xargs -r --max-lines=64 sed -i '/SUBDIRS = testsuite/d'
+
    if grep -qx db   $OPT_ON_LOGS/mailutils; then OPTS+=' --with-db2'
  elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then OPTS+=' --with-gdbm'
  fi

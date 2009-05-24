@@ -1,22 +1,25 @@
 # openldap support required for communicating with exchange servers
 
-    stable 2.26.1.1 2.26.0 2.24.5 2.24.4.1 2.24.3 2.24.2 2.24.1.1 2.24.1 2.24.0
+    stable 2.26.2 2.26.1.1 2.26.0
   unstable 2.27.1
-   require intltool libgnomeui libgweather libical libsoup openldap
+   require alsa-lib avahi firefox heimdal intltool libgnomeui libgweather libical libsoup openldap xcb-util
   optional gtk-doc --enable-gtk-doc --disable-gtk-doc
-  optional mozilla '' '' for mozilla-nss
   category network/email
  attribute gnome library
        url $GNOME_URL
     source sources/evolution-data-server/${VERSION:0:4}/evolution-data-server-$VERSION.tar.bz2
   homepage http://gnome.org/projects/evolution/stable.shtml
       opts --with-openldap=yes
-  estimate 5800
+  estimate 5200
       desc 'evolution-data-server provides libraries needed by evolution'
 
 build(){
-# export LDFLAGS+=' -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
-# export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-devel-$FV/sdk/lib -Wl,-rpath-link,/usr/lib/firefox-devel-$FV/sdk/lib"
+# The LDFLAGS that specify rpath is so that evolution and other spells
+# that link with evolutiond-data-server can also complete compilation and
+# linking with mozilla's or firefox's nss library
+# However the ELF log suggests that the extra LDFLAGS has no effect.
+export LDFLAGS+=' -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
+export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-devel-$FV/sdk/lib -Wl,-rpath-link,/usr/lib/firefox-devel-$FV/sdk/lib"
 
 local FV
 FV="$( installed_version firefox )"
