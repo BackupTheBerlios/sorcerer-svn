@@ -19,6 +19,6 @@ update(){
 }
 
 if   log_warning_msg '/etc/services.d checking'; check
-then log_warning_msg '/etc/services.d updating'; update
-     log_success_msg '/etc/services.d updated'
+then log_warning_msg '/etc/services   updating'; update
+     log_success_msg '/etc/services   updated'
 fi;  log_success_msg '/etc/services.d checked'
