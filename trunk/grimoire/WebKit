@@ -1,0 +1,49 @@
+  progress reposit
+    stable 44265
+   require gtk+ icu4c gnutls
+  category network/web
+ attribute library x11
+  switch --enable-3D-transforms        --disable-3D-transforms                "enable support for 3D transforms default=no"
+  switch --enable-channel-messaging    --disable-channel-messaging            "enable HTML5 channel messaging support default=no"
+  switch --enable-javascript-debugger  --disable-javascript-debugger          "enable JavaScript debugger/profiler support default=yes"
+  switch --enable-offline-web-applications --disable-offline-web-applications "enable HTML5 offline web applications supporti default=yes"
+  switch --enable-dom-storage          --disable-dom-storage                  "enable HTML5 client-side session and persistent storage support default=yes"
+  switch --enable-icon-database        --disable-icon-database                "enable icon database default=yes"
+  switch --enable-geolocation          --disable-geolocation                  "enable support for geolocation default=no"
+  switch --enable-gnomekeyring         --disable-gnomekeyring                 "enable support for gnomekeyring default=no"
+  switch --enable-svg                  --disable-svg                          "enable support for SVG default=yes"
+  switch --enable-wml                  --disable-wml                          "enable support for WML default=no"
+  switch --enable-web-workers          --disable-web-workers                  "enable support for Web Workers default=yes"
+  switch --enable-svg-animation        --disable-svg-animation                "enable support for SVG animation (experimental) default=yes"
+  switch --enable-filters              --disable-filters                      "enable support for filters (experimental) default=no"
+  switch --enable-svg-fonts            --disable-svg-fonts                    "enable support for SVG fonts (experimental) default=yes"
+  switch --enable-svg-foreign-object   --disable-svg-foreign-object           "enable support for SVG foreign objects (experimental) default=yes"
+  switch --enable-svg-as-image         --disable-svg-as-image                 "enable SVG as Image support (experimental) default=yes"
+  switch --enable-svg-use-element      --disable-svg-use-element              "enable SVG use element support (experimental) default=yes"
+  switch --enable-coverage             --disable-coverage                     "enable code coverage support default=no"
+  switch --enable-fast-malloc          --disable-fast-malloc                  "enable optimized memory allocator default=yes, default=no for debug builds"
+  switch --enable-jit                  --disable-jit                          "Enable JIT compilation default=yes"
+  switch --enable-xpath                --disable-xpath                        "enable support for XPath default=yes"
+  optional "libxslt" --enable-xslt                 --disable-xslt                         "enable support for XSLT default=yes"
+  optional "gtk-doc" --enable-gtk-doc              --disable-gtk-doc                      "use gtk-doc to build documentation [default=no]"
+  optional "sqlite" --enable-database             --disable-database                     "enable HTML5 client-side database storage support default=yes"
+  optional "gstreamer" --enable-video                --disable-video                        "enable HTML5 video support default=yes"
+#this is a false url to avoid error in sorcery
+       url http://webkit.org/building/
+REPOSITORY=( ""
+             "svn co -r ${VERSION}  http://svn.webkit.org/repository/webkit/trunk WebKit"
+             "svn up -r ${VERSION}  http://svn.webkit.org/repository/webkit/trunk WebKit" )
+    source WebKit-${VERSION}.tar.bz2
+  homepage http://webkit.org/
+  estimate 4322
+      desc "WebKit is an open source web browser engine. 
+WebKit is also the name of the Mac OS X system framework version of the engine that's used by Safari, Dashboard, Mail, and many other OS X applications. WebKit's HTML and JavaScript code began as a branch of the KHTML and KJS libraries from KDE. This website is also the home of S60's S60 WebKit development.
+"
+
+build(){
+   echo ${OPTS} &&
+   ./autogen.sh ${OPTS} --prefix=/usr &&
+   make            &&
+   prepare_install &&
+   make    install
+}
