@@ -1,0 +1,27 @@
+    stable 86
+   require alsa-lib bluez-libs cyrus-sasl gnutls pciutils zlib
+  optional SDL '' '--disable-sdl --disable-gfx-check'
+      opts --audio-drv-list=alsa
+      opts --audio-card-list=ac97
+  category development/emulator
+ attribute console
+    source $SOURCEFORGE_URL kvm/kvm-$VERSION.tar.gz
+  homepage http://www.linux-kvm.org/page/Main_Page
+  eprovide qemu
+  estimate 300
+      desc 'userspace tools for kernel virtual machine emulation
+kvm is a fork of qemu'
+
+build(){
+# Removed the following file so that kernel modules are not built
+# since kernel modules are already provided in the vanillia linux kernel.
+rm -f kvm/kernel/configure
+unset LD_PRELOAD
+./configure      \
+--disable-werror \
+--prefix=/usr    \
+$OPTS           &&
+make            &&
+prepare_install &&
+make    install
+}
