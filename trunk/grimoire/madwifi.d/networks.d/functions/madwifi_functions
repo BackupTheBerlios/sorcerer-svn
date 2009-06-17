@@ -1,0 +1,25 @@
+. /etc/networks.d/functions/functions
+
+stop() {
+        rmmod ath5k;
+        rmmod ath_pci;
+        rmmod ath_rate_sample;
+        rmmod ath_hal;
+        stop_smart;
+	
+}
+
+start() {
+        [ -z "$VIRTUAL_IF" ] && echo "VIRTUAL_IF not set! madwifi require both IF and VIRTUAL_IF, usualy wifi0" && return 1;
+        stop             &&
+        modprobe ath_pci &&
+        if [ "${MODE}" == "Managed" ]; then
+                wlanconfig $IF destroy                                  &&
+                wlanconfig $IF create wlandev $VIRTUAL_IF wlanmode sta
+        elif [ "${MODE}" == "Master" ]; then
+                wlanconfig $IF destroy                                  &&
+                wlanconfig $IF create wlandev $VIRTUAL_IF wlanmode ap
+        fi &&
+	start_smart;
+}
+
