@@ -1,4 +1,4 @@
-# no instructions for instllation
+# no instructions for installation
 
     stable src-0.1.0
    require qt-x11-opensource
@@ -10,3 +10,18 @@
       desc 'tool that generates Qt bindings for Qt Script.
 Generated bindings provide access to substantial portions
 of the Qt API from within Qt Script.'
+
+build(){ (
+ export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+ export            PATH="/opt/kde4/bin:$PATH"
+ export           QTDIR=/opt/kde4
+ cd generator  &&
+ qmake && make &&
+ ./generator   &&
+ cd ..         &&
+ cd qtbindings &&
+ qmake && make &&
+ preprae_install &&
+ mkdir -pv                  /opt/kde4/lib/kde4/plugins/script &&
+ cp    -av libqtscript_*.so /opt/kde4/lib/kde4/plugins/script
+) }
