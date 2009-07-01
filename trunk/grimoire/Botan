@@ -28,7 +28,11 @@ build_old(){
  make    install INSTALLROOT=/usr
 }
 
- ./configure.pl -cc=gcc -os=linux --disable-debug --disable-shared --prefix=/usr &&
+ case $HOSTTYPE in
+  x86_64) export CFLAGS+=' -m64'; opts -cpu=amd64 ;;
+ esac
+
+ ./configure.pl -cc=gcc -os=linux --disable-debug --disable-shared --prefix=/usr $OPTS &&
  make            &&
  prepare_install &&
  make    install
