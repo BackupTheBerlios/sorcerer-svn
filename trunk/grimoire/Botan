@@ -1,4 +1,4 @@
-    stable 1.8.2 1.8.1 1.8.0 1.6.5
+    stable 1.8.3 1.8.2 1.8.1 1.8.0 1.6.5
   unstable 1.7.24
    require bzip2 perl zlib
   category security/encryption
@@ -8,7 +8,7 @@
   homepage http://botan.randombit.net
   estimate 4600
  freshmeat botan
-      desc 'Botan is a library of cryptographic algorithms.
+      desc 'library of cryptographic algorithms
 Botan (formerly OpenCL) is a library of
 cryptographic algorithms, written in C++.
 It currently includes a wide selection of
@@ -18,22 +18,12 @@ plus a high level filter-based interface.'
 
 
 build(){
-build_old(){
- ./configure.pl    \
- gcc-linux-generic &&
- make              \
- INSTALLROOT=/usr  \
- "LIB_OPT=$CFLAGS" &&
- prepare_install   &&
- make    install INSTALLROOT=/usr
-}
+case $HOSTTYPE in
+ x86_64) export CFLAGS+=' -m64'; opts -cpu=amd64 ;;
+esac
 
- case $HOSTTYPE in
-  x86_64) export CFLAGS+=' -m64'; opts -cpu=amd64 ;;
- esac
-
- ./configure.pl -cc=gcc -os=linux --disable-debug --disable-shared --prefix=/usr $OPTS &&
- make            &&
- prepare_install &&
- make    install
+./configure.pl -cc=gcc -os=linux --disable-debug --disable-shared --prefix=/usr $OPTS &&
+make &&
+prepare_install &&
+make    install
 }

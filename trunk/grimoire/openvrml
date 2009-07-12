@@ -4,22 +4,20 @@
 # 0.17.10 did not compile
 # 0.17.11 did not compile
 
-    stable 0.18.1 0.18.0 0.17.12 0.17.11 0.17.8 0.17.5 0.17.4 0.17.3 0.17.2 0.17.1
+    stable 0.18.2 0.18.1 0.18.0 0.17.12 0.17.11 0.17.8 0.17.5 0.17.4 0.17.3 0.17.2 0.17.1
    require MesaLib SDL boost gtkglext
   optional doxygen '' '--without-doxygen --disable-api-docs' for documentation generation
   optional mozilla '' --disable-mozilla-plugin for mozilla openvrml plugin
   category graphic
-#attribute library solo
- attribute library solo
-# broke
+ attribute gnome library solo
        url $SOURCEFORGE_URL
     source openvrml/openvrml-$VERSION.tar.gz
   homepage http://openvrml.sourceforge.net
 #            'jdk:--with-jdk=/opt/jdk/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node'
 # java support broken?
       opts --disable-script-node-javascript --disable-script-node-java
-  estimate 600
-      desc 'openvrml is a library for reading and displaying VRML97.
+  estimate 2000
+      desc 'library and program for reading and displaying VRML97
 openvrml is a C++ class library that allows applications
 to read VRML97 .wrl files and view their geometries.
 It is also working toward full ISO VRML97 Specification compliance.
@@ -35,8 +33,8 @@ MOZ_LIB='-L/usr/lib/mozilla'
 JDK_INC='-I/opt/jdk/include  -I/opt/jdk/include/linux'
 JDK_LIB='-L/opt/jdk/jre/lib/i386/server'
 
-# BST_INC='-I/usr/include/boost-1_33_1'
 BST_INC='-I/usr/include/boost'
+export BOOST_LIB_SUFFIX="-gcc43-mt"
 
 export   CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
 export CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
@@ -45,10 +43,14 @@ export  LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
 #            --without-jdk           \
 #            --without-spidermonkey  \
 
-sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
+# sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
 
-LC_ALL=C grep -rl boost_thread * |
-xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43-mt:g"
+# LC_ALL=C grep -rl boost_thread * |
+# xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43:g"
+#xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43-mt:g"
+
+# LC_ALL=C grep -rl boost_filesystem-mt * |
+# xargs -r --max-lines=64 sed -i "s:boost_filesystem-mt:boost_filesystem-mt-gcc43:g"
 
 default_build
 }

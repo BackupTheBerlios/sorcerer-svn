@@ -2,18 +2,19 @@
 # Requested 'libswscale >= 0.7.0' but version of libswscale is 0.6.1
 
     latest 3.1.2
-    stable 3.1.1 3.1.0 3.0.0 2.1.1 2.1.0 2.0.1 2.0.0
+    stable 3.1.2 3.1.1 3.1.0 3.0.0
    require ffmpeg glib libeXosip2 speex
   optional alsa-lib    --enable-alsa         --disable-alsa       for alsa support
   optional gnome-panel --enable-gnome_ui=yes --enable-gnome_ui=no for GUI support
   optional jackit      ''                    ''                   for jack sound server support
   category network/telephone
  attribute console gnome
-    source http://download.savannah.nongnu.org/releases/linphone/stable/sources/linphone-$VERSION.tar.gz
+#   source http://download.savannah.nongnu.org/releases/linphone/stable/sources/linphone-$VERSION.tar.gz
+    source http://download.savannah.nongnu.org/releases-noredirect/linphone/stable/sources/linphone-$VERSION.tar.gz
   homepage http://www.linphone.org/
       opts --enable-static=no
   estimate 2400
-      desc 'linphone an voice over IP telephone program.
+      desc 'voice over IP telephone program
 linphone is a web phone with a GNOME interface.
 It makes two-party calls over IP networks such as the Internet.
 It uses the IETF protocols SIP (Session Initiation Protocol)
@@ -21,19 +22,3 @@ and RTP (Realtime Transport Protocol) to make calls.
 It should be able to communicate with other SIP-based Web phones.
 With several codecs available, it can be used with
 high speed connections as well as 28k modems.'
-
-build_old(){
- case $VERSION in
-  2.1.1) sed -i 's:ffmpeg/:libavcodec/:' mediastreamer2/src/*.c
-         sed -i 's:libavcodec/swscale.h:libswscale/swscale.h:' mediastreamer2/src/*.c
-         sed -i 's:libavcodec/avutil.h:libavutil/avutil.h:' mediastreamer2/src/*.c
-         ;;
- esac
- default_build
-}
-
-build_older(){
-grep  -lr '\-Werror' * |
-xargs --max-lines=64 sed -i 's:-Werror::'
-default_build
-}
