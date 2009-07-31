@@ -1,4 +1,4 @@
-    stable 2009-06-15-src 2009-02-15-src 2008-08-05-src 2007-12-26 2007-03-23 2006-10-06 2006-07-08
+    stable 2009-06-15-src 2009-06-15-src 2009-02-15-src 2008-08-05-src 2007-12-26 2007-03-23 2006-10-06 2006-07-08
    require SDL_gfx SDL_image SDL_net freealut glew scons
   category game/3d
  attribute x11
@@ -7,19 +7,30 @@
     source vdrift/vdrift-$VERSION.tar.bz2
   homepage http://vdrift.sourceforge.net
   estimate 4400
-      desc 'automobile drift racing game.'
+      desc 'automobile drift racing game'
 
 build(){
-      WHERE=$( find . -name SConstruct )
-cd "${WHERE%/*}"
+build_broke(){
 
-export CXXFLAGS="$( echo "$CXXFLAGS" | sed "s: :', ':g" )"
-sed -i "s:'-O2':'$CXXFLAGS':"  SConstruct
+#      WHERE=$( find . -name SConstruct )
+#cd "${WHERE%/*}"
+
+#export CXXFLAGS="$( echo "$CXXFLAGS" | sed "s: :', ':g" )"
+#sed -i "s:'-O2':'$CXXFLAGS':"  SConstruct
 
 scons           \
 release=1       &&
 prepare_install &&
 echo "Long wait while scons burns your CPU" &&
 echo "while printing nothing is normal"     &&
-scons   install
+scons   install prefix=/usr
+}
+
+tar zxvf tools/scons-local-*.tar.gz &&
+./scons.py      \
+release=1       &&
+prepare_install &&
+echo "Long wait while scons burns your CPU" &&
+echo "while printing nothing is normal"     &&
+./scons.py install prefix=/usr
 }
