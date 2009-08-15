@@ -18,8 +18,9 @@ esac
        url ftp://ftp.trolltech.com/qt/source/
     source qt-x11-free-$VERSION.tar.gz
     source http://people.freedesktop.org/~daisuke/qt-x11-immodule-unified-qt3.3.8-20071116.diff.bz2
-#      url http://distro.ibiblio.org/pub/linux/distributions/gentoo/distfiles/
-#   source qt-x11-immodule-unified-qt3.3.8-20070321-gentoo.diff.bz2
+
+##      url http://distro.ibiblio.org/pub/linux/distributions/gentoo/distfiles/
+##   source qt-x11-immodule-unified-qt3.3.8-20070321-gentoo.diff.bz2
 
   homepage http://www.trolltech.com/products/qt/x11.html
 
@@ -54,6 +55,8 @@ build(){
  esac
 
  if [[ -n    ${SOURCE[1]} ]]; then
+# cast automatically applies the patch
+# But it did not work?
   decompress ${SOURCE[1]} | patch -p1 
   sh ./make-symlinks.sh
   OPTS+=' -inputmethod'
@@ -69,6 +72,7 @@ build(){
 
  PREFIX=/opt/kde3
  export LD_LIBRARY_PATH=$PWD/lib
+ unset  LD_PRELOAD
 
  echo yes |
  ./configure  -v  \
