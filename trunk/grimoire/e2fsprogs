@@ -1,15 +1,15 @@
 # Thanks to a hal developer wanting to use libblkid provided by util-linux
 # e2fsprogs and util-linux now have circuliar requirements upon each other!!!
 
-    stable 1.41.8 1.41.7 1.41.6 1.41.5 1.41.4 1.41.3 1.41.2 1.41.1 1.41.0
+    stable 1.41.9 1.41.8 1.41.7 1.41.6 1.41.5 1.41.4 1.41.3 1.41.2 1.41.1 1.41.0
    require gawk init-functions
-      opts --disable-libblkid
+     opts --disable-libblkid
   category disk/file-system
  attribute console
        url $SOURCEFORGE_URL
     source e2fsprogs/e2fsprogs-$VERSION.tar.gz
   homepage http://e2fsprogs.sourceforge.net
-  estimate 1800
+  estimate 1700
       desc 'required utilities for the EXT2 file system
 e2fsprogs - The EXT2 file system utilities and libraries.
 EXT2 stands for "Extended Filesystem", version 2.
@@ -37,11 +37,13 @@ build(){
 # grep -rl   "#include <linux/fd.h>" * | xargs --max-lines=16 \
 # sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"
 
+# --enable-dynamic-e2fsck not supported in 1.41.9, however e2fsck is dynamically linked.
+# --enable-dynamic-e2fsck \
+
  ./configure             \
  --prefix=/usr           \
  --with-root-prefix=     \
  --enable-elf-shlibs     \
- --enable-dynamic-e2fsck \
  $OPTS                   &&
  make "LDFLAGS=$LDFLAGS" &&
  prepare_install         &&

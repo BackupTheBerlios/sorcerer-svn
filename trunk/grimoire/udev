@@ -1,7 +1,9 @@
+# probably require usbutils
+
     latest 145
-    stable 142 141 140 139 138 137 135 130 125 124 120
+    stable 146 142 141 140 139 138 137 135 130 125 124 120
 #  require sysvinit libselinux
-   require pci.ids sysvinit
+   require acl glib pci.ids sysvinit usbutils
   category utility
  attribute console
        url $KERNEL_URL
@@ -9,7 +11,7 @@
   homepage http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
    exclude /dev
    exclude /lib/udev/dev/core
-  estimate 700
+  estimate 400
       desc 'auto-populating /dev
 udev replaces hotplug'
 
@@ -51,10 +53,22 @@ nod_sym_install(){
   x86_64) OPTS+=' --with-libdir-name=lib64' ;;
  esac
 
- ./configure        \
-  --sysconfdir=/etc \
-  --prefix=/usr     \
-  --exec-prefix=    \
+ export PKG_CONFIG_PATH=/usr/share/pkgconfig
+
+ case $HOSTTYPE in
+  x86_64) LIB=lib64 ;;
+       *) LIB=lib ;;
+ esac
+
+# --exec-prefix=    \
+
+ ./configure              \
+  --prefix=/usr           \
+  --sysconfdir=/etc       \
+  --sbindir=/sbin         \
+  --libdir=/usr/$LIB      \
+  --with-rootlibdir=/$LIB \
+  --libexecdir=/lib/udev  \
  $OPTS           &&
  make            &&
  prepare_install &&
