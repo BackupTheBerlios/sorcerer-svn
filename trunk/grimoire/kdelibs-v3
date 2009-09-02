@@ -1,4 +1,19 @@
+# When kdelibs-v3 compiles it runs
+# /usr/src/sorcery/kdelibs-v3/kdelibs-3.5.10/kdecore/kconfig_compiler/.libs/lt-kconfig_compiler
+# that is dynamically linked and causes the kdelibs-v3 libraries
+# that are installed in /opt/kde3/lib/
+# or in /lib.old to be loaded
+# and those libraries are dynamically linked with 
+# libxcb-xlib.so.0
+# which is no longer installed and probably not run properly if it can be loaded.
+# Solution is to dispel kdelibs-v3 and clear the library cache
+# before re-compiling kdelibs-v3
+
    inherit kde-v3
+case $VERSION in
+ 3.5.10) opts --disable-inotify
+         conflicts kdelibs-v3 ;; # Added due to the complicated update of libxcb
+esac
    require arts bzip2 docbook-xml-4.1.2 e2fsprogs libart_lgpl-v2.3.17 lua-v5.0.3 pcre
   optional aspell   ''              ''                for spell checking 
   optional avahi    ''              ''                for zero conf support
@@ -17,7 +32,14 @@
 #            'libart_lgpl-v2.3.17:--with-libart:--without-libart:for high performance 2d graphics'    
       opts --with-libart
   estimate 11100
-      desc 'The base applications that form the core of KDE
+      desc 'base applications that form the core of KDE
 kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.'
+
+build(){
+case $VERSION in
+ 3.5.10) rm -rf ${LIBRARY_CACHE:-/lib.old} ;;  # Added due to the complicated update of libxcb
+esac
+kde_build
+}
