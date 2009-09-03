@@ -1,8 +1,8 @@
 # Starting with gtk+ version 2.14.1 gtk+ may have a recursive
 # requirement with gail
 
-    stable 2.16.5 2.16.4 2.16.3 2.16.2 2.16.1 2.16.0
-  unstable 2.17.8 2.17.7 2.17.6 2.17.5 2.17.4
+    stable 2.16.6 2.16.5 2.16.4 2.16.3 2.16.2 2.16.1 2.16.0
+  unstable 2.17.9 2.17.8 2.17.7 2.17.6 2.17.5 2.17.4
    require atk jasper libXcomposite libXcursor libXdamage libXinerama libXrandr pango tiff
   optional cups '' '' for optional cups print backend
   category graphic/library
@@ -21,8 +21,37 @@
       desc 'toolkit for creating GUIs'
 
 build(){
+# I created this alternate build on 20090831 because the update
+# involving libxcb which removed libxcb-xlib.so.0 became a problem
+# since running gtk-query-immodules-2.0 as part of the default install
+# of gtk+ can fail due to input modules provided by uim and scim
+# having not yet been recompiled since they require gtk+
+# and yet having references to now undefined symbols.
+# Using DESTDIR to compile gtk+ omits the execution of
+# gtk-query-immodules-2.0 and gdk-pixbuf-query-loaders which are used to create files
+# /etc/gtk-2.0/gtk.immodules and /etc/gtk-2.0/gdk-pixbuf.loaders, respectively.
+# Separate spells with the same names as the programs
+# now exist in order to create those files.
 
- build_old(){
+ sed -i 's:demos tests::' Makefile.in
+
+ local  DD=$PWD/.install
+ mkdir $DD
+
+ ./configure          \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ $OPTS &&
+ make install DESTDIR=$DD     && prepare_install &&
+ cp -av               $DD/* / &&
+ echo gdk-pixbuf-query-loaders | pipe_queue $CAST_QUEUE com &&
+ echo gtk-query-immodules-2.0  | pipe_queue $CAST_QUEUE com
+
+
+build_old(){
+
+ build_older(){
   # using default_build now.
   # if installed with DESTDIR instead then
   # use gtk-query-immodules-2.0  to generate /etc/gtk-2.0/gtk.immodules
@@ -46,4 +75,5 @@ sed -i 's:demos tests::' Makefile.in
  make                 &&
  prepare_install      && uncustomize &&
  make    install
+}
 }
