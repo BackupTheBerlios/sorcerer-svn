@@ -28,6 +28,15 @@ esac
 default_build
 }
 
+post_install(){
+default_post_install
+# the -lxcb-xlib in LA files avoided being logged in the LA logs
+case $VERSION in
+ 1.4) LC_ALL=C grep -l xcb-xlib /usr/lib/*.la |
+      from_spell | pipe_queue $CAST_QUEUE com ;;
+esac
+}
+
 current(){
 case $VERSION in
  1.0) grep -qx 'patching file src/xcb_conn.c' $COMPILE_LOGS/libxcb ;;
