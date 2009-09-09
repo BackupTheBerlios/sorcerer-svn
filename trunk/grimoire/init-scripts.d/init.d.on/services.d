@@ -13,7 +13,7 @@
 
 check(){ find /etc/services.d -maxdepth 1 -type f -cnewer /etc/services | grep -q . || ! [ -f /etc/services ]; }
 update(){
- find /etc/services.d/ -type f -maxdepth 1 |
+ find /etc/services.d/ -maxdepth 1 -type f |
  xargs -r --max-lines=256 \
  sed 's: *#.*::;s:  *:\t:g' > /etc/services
 }
