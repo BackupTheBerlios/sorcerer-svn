@@ -1,17 +1,19 @@
-    stable 3.12 3.11.3 3.11.2 3.11.1 3.11
-  NSPR_VER='4.7'
+    stable 3.12.4 3.12 3.11.3 3.11.2 3.11.1 3.11
+   require nspr sqlite zlib
+# NSPR_VER='4.8'
   category network/web
  attribute library
-       url ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/
-    source nss-$VERSION-with-nspr-$NSPR_VER.tar.gz
-#      url ftp://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$NSPR_VER/src/
-#   source nspr-$NSPR_VER.tar.gz
+    source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
+#   source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION-with-nspr-$NSPR_VER.tar.gz
+case $VERSION in
+ 3.12.4) source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.12.4-standalone-3.patch ;;
+esac
   homepage http://www.mozilla.org/projects/security/pki/nss/
-  eprovide nspr
-  estimate 2600
-      desc 'nss provides mozilla network security service libraries.'
+  estimate 2000
+      desc 'mozilla network security service libraries'
 
 build(){
+build_old(){
  custom_install(){
   cd     ../../dist
   cp    -LRp  {private,public}  /usr/include
@@ -34,4 +36,29 @@ build(){
   prepare_install       &&
   make    install       &&
    custom_install
+}
+
+make_install(){
+ install -vm755 -d /usr/include/nss /usr/lib/pkgconfig
+ cd mozilla/dist
+ chmod 644 {public,private}/nss/*
+ cp -vRL   {public,private}/nss/* /usr/include/nss
+ cd Linux*
+ install -vm755 lib/*.so              /usr/lib
+ install -vm644 lib/{*.chk,libcrmf.a} /usr/lib
+ install -vm755 bin/nss-config        /usr/bin
+ install -vm644 lib/pkgconfig/nss.pc  /usr/lib/pkgconfig
+}
+
+(
+patch -p1 < ${SOURCE[1]}
+export BUILD_OPT=1
+export NSS_USE_SYSTEM_SQLITE=1
+export NSPR_INCLUDE_DIR=/usr/include/nspr
+export USE_SYSTEM_ZLIB=1
+export ZLIB_LIBS=-lz
+make -C mozilla/security/nss nss_build_all &&
+prepare_install &&
+make_install
+)
 }

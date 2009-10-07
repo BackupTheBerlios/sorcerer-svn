@@ -1,0 +1,27 @@
+    stable 4.8
+  category network/web
+ attribute library
+    source http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$VERSION/src/nspr-$VERSION.tar.gz
+case $VERSION in
+ 4.8) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8-pkgconfig-2.patch ;;
+esac
+  homepage http://www.mozilla.org/projects/security/pki/nss/
+  estimate 500
+      desc 'netscape portable runtime'
+
+build(){
+# The patch is for pkgconfig support 
+# However, it does not apply automatically.
+
+ patch -p1 < ${SOURCE[1]}
+ cd mozilla/nsprpub &&
+ ./configure     \
+  --prefix=/usr  \
+  --with-mozilla \
+ --with-pthreads \
+ $OPTS &&
+ make  &&
+ prepare_install &&
+ make    install &&
+ cp -vLR dist/include/nspr /usr/include
+}
