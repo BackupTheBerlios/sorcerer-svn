@@ -2,7 +2,7 @@
 # 0.6.6 0.6.5 and 0.6.4 have compile error
 
     stable 0.6.16 0.6.13 0.6.11 0.6.10 0.6.8 0.6.2
-   require setuptools mechanize lxml python-dateutil PyQt4 Imaging BeautifulSoup xdg-utils dbus-python ImageMagick
+   require setuptools mechanize lxml python-dateutil PyQt4 Imaging BeautifulSoup xdg-utils dbus-python ImageMagick poppler-qt-x11-opensource
   optional unrar '' '' to support rar archives
   category documentation
  attribute new
@@ -17,7 +17,15 @@ an integrated e-book viewer.'
 
 build(){
  export QTDIR=/opt/kde4
- sed -i "s:'qmake':'$QTDIR/bin/qmake':" pyqtdistutils.py
+
+ case $VERSION in
+    0.6.8)  sed -i "s:'qmake':'$QTDIR/bin/qmake':" pyqtdistutils.py ;;
+    0.6.16) export PKG_CONFIG_PATH=$QTDIR/lib/pkgconfig
+            export POPPLER_INC_DIR=$QTDIR/include/poppler:$QTDIR/include
+            export POPPLER_LIB_DIR=$QTDIR/lib
+            ;;
+ esac
+
  default_build &&
  calibre_postinstall
 }
