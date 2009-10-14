@@ -1,26 +1,20 @@
-# ftp://ftp.cwru.edu/pub/bash/readline-6.0-patches/
-
-    stable 6.0 5.2.013 5.2.012 5.2 5.1 5.0.5 5.0
+    stable 6.0.004 6.0
   category development
  attribute console library solo
 #   source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}.tar.gz
-#      url ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}-patches/
-#  case  $VERSION  in
-#    5.2.*) PATCHES=${VERSION:5:2}
-#      for  ((SCX=1; SCX < 10; SCX++))
-#      do   source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}-patches/readline${VERSION:0:1}${VERSION:2:1}-00$SCX
-#      done
-#      for  ((SCX=10; SCX <= PATCHES; SCX++))
-#      do   source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}-patches/readline${VERSION:0:1}${VERSION:2:1}-0$SCX
-#      done ;;
-# esac
-    source ftp://ftp.cwru.edu/pub/bash/readline-$VERSION.tar.gz
+    source ftp://ftp.cwru.edu/pub/bash/readline-${VERSION:0:3}.tar.gz
+ case  $VERSION  in
+    6.0.*) PATCHES=${VERSION:6:1}
+     for  ((SCX=1; SCX <= PATCHES; SCX++))
+      do   source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}-patches/readline${VERSION:0:1}${VERSION:2:1}-00$SCX
+     done ;;
+ esac
   homepage http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
  freshmeat gnureadline
   estimate 400
-      desc 'readline lets users edit command lines as they are typed in.
+      desc 'library for editing command lines while they are being typed
 The readline library provides a set of functions for use by
 applications that allow users to edit command lines as they are typed.
 Both Emacs and vi editing modes are available.
@@ -40,11 +34,12 @@ build(){
   ln -vfs $LIBDIR/lib{history,readline}.so* /usr$LIBDIR
  }
 
- CX=1
- while [[ -n  ${SOURCE[$CX]} ]]; do
-  patch -p0 < ${SOURCE[$CX]}
-  (( CX++ ))
- done
+ ## cast automatically patches
+ #CX=1
+ #while [[ -n  ${SOURCE[$CX]} ]]; do
+ # patch -p0 < ${SOURCE[$CX]}
+ # (( CX++ ))
+ #done
 
  if   [[ $HOSTTYPE == x86_64 ]]
  then LIBDIR=/lib64
