@@ -1,4 +1,4 @@
-    stable photon-20091014-2 photon-20091010-1 photon-20090902-0 photon-20090901-0 photon-20090828-0 photon-20090816-0
+    stable photon-20091020-0 photon-20091014-2 photon-20091010-1 photon-20090902-0 photon-20090901-0
    require bash bzip2 curl dialog diffutils file findutils gcc grep grimoire gzip init-scripts less lzip make mktemp p7zip patch procps rpmunpack sorcery-sentinel tar which
   optional ccache            '' '' for faster compilation when updating installed software
   optional sdelta3           '' '' for downloading tiny source tarball patches
@@ -183,6 +183,14 @@ post_install(){
  then echo xkeyboard-config | pipe_queue $CAST_QUEUE com
  fi
 
+
+ fix_nspr_provide(){
+  if [ -f   $PROVIDE_LOGS/nspr ] &&
+     read < $PROVIDE_LOGS/nspr   && [[ $REPLY == nss ]]
+  then rm   $PROVIDE_LOGS/nspr
+  fi
+ }
+
 #missing_init_script
 #clean_logd
 #difuse_old_elf
@@ -194,5 +202,6 @@ post_install(){
 #fix_elf_logs
 #fix_md5sum_logs
 #move_temporary_logs
+ fix_nspr_provide
  default_post_install
 }

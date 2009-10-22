@@ -2,7 +2,7 @@
 # 3.4 does not compile due to complications created by using
 # docbook2man from docbook2X and docbook2man does not work properly.
 
-    stable 3.10 3.9 3.8 3.7 3.6 3.5 3.4.1 3.2.2 3.2.1 3.1 3.0
+    stable 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4.1 3.2.2 3.2.1 3.1 3.0
   unstable 3.4.1 3.4 3.2.2
    require bison docbook2X flex init-functions zlib
   category kernel
@@ -10,7 +10,7 @@
        url $KERNEL_URL
     source pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2
   homepage ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ
-      opts --enable-zlib
+      opts --enable-zlib --enable-zlib-dynamic --disable-static-utils
 # Odd documentation building requirements for version 3.4
 # case  $VERSION  in
 #   3.[0-2])  :  ;;
@@ -46,11 +46,14 @@ wrap_install(){
  install -m 700 $SCRIPT_DIR/rmmod    /usr/sbin/
 }
 
-sed -i 's:-Wl,-Bdynamic::
-        s:-Wl,-Bstatic:-L/lib -L/lib64:' configure{.in,}
-sed -i 's:insmod.static$(EXEEXT)::'      Makefile.in
+# sed -i 's:-Wl,-Bdynamic::
+#         s:-Wl,-Bstatic:-L/lib -L/lib64:' configure{.in,}
+# sed -i 's:insmod.static$(EXEEXT)::'      Makefile.in
 
 case $VERSION in
+ 3.11)  sed -i 's:install-exec-am install-data-am:install-exec-am:
+                s:MAN5 =.*:MAN5 =:
+                s:MAN8 =.*:MAN8 =:' Makefile.in ;;
  3.6)   sed -i 's:install-exec-am install-data-am:install-exec-am:
                 s:MAN5 =.*:MAN5 =:
                 s:MAN8 =.*:MAN8 =:' Makefile.in ;;
