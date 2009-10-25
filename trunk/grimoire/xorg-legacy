@@ -3,15 +3,27 @@
  attribute x11 X11R7
   homepage http://www.x.org
       desc "set version progress for xorg spells to legacy versions
-The legacy version are compatible with NVIDIA-Linux-x86
-To complete the transition to older versions execute as root:
-augur newer; augur update"
+The legacy version are compatible with NVIDIA-Linux-x86"
 
 build(){
  mkdir -p $PROGRESS_LOGS
  prepare_install
-      view_index "legacy" | cut -f1 |
- pipe view_index "att${TAB}X11R7" |
-      sort | uniq -d |
+ view_index "legacy" | cut -f1 |
+ pipe view_index "att${TAB}X11R7" | sort | uniq -d |
  while read; do echo legacy > "$PROGRESS_LOGS/$REPLY"; done
+}
+
+post_install(){
+ default_post_install
+ generate_index
+ view_index "legacy" | cut -f1 |
+ pipe view_index "att${TAB}X11R7" | sort | uniq -d |
+ while read; do
+  VER="$( installed_version "$REPLY" | grep -v "inactive" )"
+  AVA="$( available_version "$REPLY" )"
+  if     [ -n "$VER" ] &&
+       ! [    "$VER" == "$AVA" ]
+  then echo "$REPLY"
+  fi
+ done | pipe_queue "$CAST_QUEUE" com
 }
