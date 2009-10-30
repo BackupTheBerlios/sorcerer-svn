@@ -1,37 +1,28 @@
-    stable 2.8.0 2.7.0
+    stable 3.0.1 2.8.0 2.7.0
+   require curl icu4c
   category utility
  attribute console library new
-    source http://mirror.olnevhost.net/pub/apache/xerces/c/sources/xerces-c-src_${VERSION//./_}.tar.gz
+    source http://apache.imghat.com/xerces/c/${VERSION:0:1}/sources/xerces-c-$VERSION.tar.gz
   homepage http://xml.apache.org/xerces-c
+      vurl http://xerces.apache.org/xerces-c/download.cgi
 case $VERSION in
  2.[78].0) use_gcc gcc-v4.2 ;;
 esac
-  estimate 894
-      desc 'xerces-c is a validating XML parser written in C++
+  estimate 900
+      desc 'validating XML parser written in C++
 Xerces-C++ makes it easy to give your application
 the ability to read and write XML data.
 A shared library is provided for parsing, generating,
 manipulating, and validating XML documents.'
 
-build(){
-  export XERCESCROOT=$BUILD_DIR
-
-  cd $XERCESCROOT/samples	&&
-  ./runConfigure  -plinux	\
-                  -cgcc		\
-                  -xg++		\
-                  -rpthread	&&
-
-  cd $XERCESCROOT/src/xercesc	&&
-  ./runConfigure  -plinux	\
-                  -cgcc		\
-                  -xg++		\
-                  -rpthread	\
-                  -P/usr	&&
-  make				&&
-  make  samples			&&
-  prepare_install		&&
-  make  install			&&
-  rm -r $XERCESCROOT/bin/obj	&&
-  install -v -m 0755  $XERCESCROOT/bin/*  /usr/bin
+build_old(){
+ export XERCESCROOT=$BUILD_DIR
+ cd $XERCESCROOT/samples     && ./runConfigure -plinux -cgcc -xg++ -rpthread &&
+ cd $XERCESCROOT/src/xercesc && ./runConfigure -plinux -cgcc -xg++ -rpthread -P/usr &&
+ make &&
+ make    samples &&
+ prepare_install &&
+ make    install &&
+ rm -r $XERCESCROOT/bin/obj &&
+ install -v -m 755 $XERCESCROOT/bin/* /usr/bin
 }

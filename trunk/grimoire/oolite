@@ -1,0 +1,37 @@
+    stable 1.65
+   require MesaLib SDL_image SDL_mixer gnustep-back
+  category game/3d/flightsim
+ attribute x11
+#      url 'http://download.berlios.de/
+#           http://download2.berlios.de/'
+    source http://download.berlios.de/oolite-linux/oolite-$VERSION-src.tar.gz
+    source http://download.berlios.de/oolite-linux/oolite-$VERSION-data.tar.gz
+  homepage http://www.oolite.org
+  estimate 50
+      desc 'elite style space combat and trading simulator
+
+This game is far less complete and entertainin than Elite Frontiers First Encounters.
+Also since it might crash, segmentation fault, when starting
+several attempts must be made to start it'
+
+build(){ (
+oolite_install(){
+chown -R root:root oolite.app
+find oolite.app -type d | xargs --max-lines=64 chmod 755
+find oolite.app -type f | xargs --max-lines=64 chmod 644
+chmod 755 oolite.app/oolite
+mkdir -vpm 755      /usr/share  /usr/bin
+cp    -a oolite.app /usr/share/
+echo -e "#!/bin/bash\ncd /usr/share/oolite.app\nexec ./oolite \"\$@\"" > /usr/bin/oolite
+chmod 755 /usr/bin/oolite
+}
+
+case $VERSION in
+1.65) ln -s obj shared_obj ;;
+esac
+. /usr/share/GNUstep/Makefiles/GNUstep.sh
+make debug=no strip=yes shared=yes strip=yes &&
+prepare_install &&
+oolite_install
+# make debug=no strip=yes shared=yes strip=yes install
+) }

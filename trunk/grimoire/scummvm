@@ -1,21 +1,24 @@
+# 1.0.0rc1 is the latest stable release according to http://www.scummvm.org/downloads/
 
-if [ $SPELL == scummvm ]; then
-     stable 0.13.1 0.13.0 0.12.0 0.11.1 0.11.0 0.10.0a 0.10.0
+    stable 1.0.0rc1 0.13.1 0.13.0 0.12.0 0.11.1 0.11.0 0.10.0a 0.10.0
+   require SDL flac fluidsynth libmad libmpeg2 libvorbis
+  optional alsa-lib      '' --disable-alsa for Sound support
+  optional nasm          '' --disable-nasm for assembly language optimizations
+  optional FOTAQ_Talkie
+  optional bass-cd
+  optional drascula
+  optional lure
+  optional lure-de
+  optional lure-es
+  optional lure-fr
+  optional lure-it
+      opts --disable-debug --enable-all-engines --enable-plugins --default-dynamic 
+  category game development/emulator
+ attribute x11
     source $SOURCEFORGE_URL scummvm/scummvm/$VERSION/scummvm-$VERSION.tar.bz2
-    require SDL
-   optional alsa-lib      '' '' for Sound support
-   optional libvorbis     '' '' for OGG music support
-   optional libmad        '' '' for MP3 music support
-   optional libmpeg2      '' '' for cutscenes support
-   optional flac          '' '' for free lossless audio codec
-   optional scummvm-fotaq '' '' for the game Flight Of The Amazon Queen
-   optional scummvm-bass  '' '' for the game Beneath A Steel Sky
-fi
-   category game development/emulator
-  attribute x11
-   homepage http://scummvm.sourceforge.net
-   estimate 1400
-       desc 'scummvm is a virtual machine for classic point-and-click adventure games.
+  homepage http://scummvm.sourceforge.net
+  estimate 1400
+      desc 'virtual machine for classic point-and-click adventure games.
 It is designed to run:
 Simon the Sorcerer 1 and 2 from Adventure Soft;
 Beneath A Steel Sky from Revolution;
@@ -32,26 +35,18 @@ Now supporting also:
 "Drascula: The Vampire Strikes Back".
 '
 
-
 build(){
+build_old(){
 ./configure --disable-debug $OPTS &&
 make            &&
 prepare_install &&
 install -D -s -m 755 scummvm /usr/bin/scummvm
 }
 
-
-install_game(){
- [ -d $1 ] || cd ..
- [ -d $1 ]          &&
- chmod    0755 $1   &&
- chmod -R 0644 $1/* &&
- prepare_install    &&
- mkdir -p  /usr/share/games &&
- cp -rv $1 /usr/share/games
+./configure     \
+ --prefix=/usr  \
+ $OPTS          &&
+make            &&
+prepare_install &&
+make    install
 }
-
-
-case $SPELL in
- scummvm-*) stable 1.0 ;;
-esac
