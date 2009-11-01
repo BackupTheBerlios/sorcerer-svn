@@ -2,20 +2,21 @@
 # 2.9.x.x is developmental branch
 # 2.8.10.1 failed compilation
 
-    stable 2.8.9.2 2.8.9.1 2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
+    stable 2.8.10.1 2.8.9.2 2.8.9.1 2.8.7.1 2.8.6.1 2.8.6.0 2.8.4.2
    require Python wxWidgets
   optional PyOpenGL      ''                          '' for wxGLCanvas
   optional SDL_mixer     '--enable-sound --with-sdl' '--disable-sound --without-sdl' to use SDL for audio
   optional libgnomeprint --with-gnomeprint           --without-gnomeprint for gnome print support
+      opts --enable-compat24 --enable-plugins --with-opengl --with-gtk=2 --enable-zipstream --enable-unicode
   category graphic
  attribute library python-module x11
     source $SOURCEFORGE_URL wxpython/wxPython/$VERSION/wxPython-src-$VERSION.tar.bz2
   homepage http://wxpython.org
-      opts --enable-unicode --enable-optimise
   estimate 3000
-      desc 'wxPython is Python extention module that wraps wxGTK library.'
+      desc 'a blending of the wxWidgets C++ class library with the Python programming language'
 
 build(){
+build_old(){
 # Who wrote build_new()  ?
 build_new(){
 mkdir bld
@@ -44,4 +45,24 @@ python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
  default_build &&
  cd wxPython &&
  python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
+}
+
+# from http://wxpython.org/BUILD.html and http://wxpython.org/INSTALL.html
+mkdir bld
+cd bld
+../configure \
+--prefix=/usr \
+--with-gtk \
+--with-opengl \
+--enable-optimize \
+--enable-geometry \
+--enable-graphics_ctx \
+--enable-mediactrl \
+--enable-display \
+$OPTS &&
+make &&
+make -C contrib/src/gizmos &&
+make -C contrib/src/stc &&
+prepare_install &&
+make    install
 }
