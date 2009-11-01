@@ -1,8 +1,41 @@
-    stable build-12-source
+    stable Build14 build-12
+   require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf boost ggz-client-libs scons
   category game
  attribute x11
- attribute broke
-    source $SOURCEFORGE_URL widelands/widelands/build-12/widelands-$VERSION.tar.bz2
+    source $SOURCEFORGE_URL widelands/widelands/build-${VERSION:5:2}/Widelands-$VERSION-src.7z
   homepage http://xoops.widelands.org/
   estimate 2000
-      desc 'widelands is a game like warcraft or settlers'
+      desc 'game like warcraft or settlers'
+
+pre_build(){
+           BUILD_DIR=$SOURCE_DIR/$SPELL/$SPELL-$VERSION
+ mkdir -p $BUILD_DIR
+ cd       $BUILD_DIR
+ 7za x    $SOURCE &>/dev/null
+}
+
+build(){
+
+wide_install(){
+ rm    -rf /usr/{bin,share}/widelands
+ mkdir -vpm 755 /usr/share/widelands
+ cp    -av campaigns doc fonts global locale maps music pics sound tribes txts worlds /usr/share/widelands
+ find /usr/share/widelands -type d | escape_qs | xargs --max-lines=64 chmod 755
+ find /usr/share/widelands -type f | escape_qs | xargs --max-lines=64 chmod 644
+ cp    -v widelands /usr/bin
+ chmod 755 /usr/bin/widelands
+}
+
+# enable_opengl
+
+cd widelands
+# sed might only be needed when doing the make method instead of scons
+# sed -i 's:INSTALL_PREFIX.*:INSTALL_PREFIX "/usr":
+#         s:INSTALL_BINDIR.*:INSTALL_BINDIR "/usr/bin":
+#         s:INSTALL_DATADIR.*:INSTALL_DATADIR "/usr/share/widelands":
+#         s:INSTALL_LOCALEDIR.*:INSTALL_LOCALEDIR "/usr/share/widelands/locale":' src/config.h.default
+
+scons build=release install_prefix=/usr bindir=bin datadir=share/widelands localedir=share/widelands/locale &&
+prepare_install &&
+wide_install
+}

@@ -3,15 +3,20 @@
 # Update build() in spring
 # update montone when updating boost
 
-    stable 1_38_0 1_37_0 1_36_0
-   require Python boost-jam bzip2 zlib
+    stable 1_40_0 1_38_0 1_37_0 1_36_0
+   require Python boost-jam bzip2 cmake zlib
+      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+      opts -DBUILD_VERSIONED:BOOL=FALSE
+      opts -DCMAKE_IS_EXPERIMENTAL=YES_I_KNOW
+      opts -DBUILD_STATIC:BOOL=FALSE
+      opts -DBUILD_DEBUG:BOOL=FALSE
   category development
  attribute library solo
-    source $SOURCEFORGE_URL boost/boost/1.38.0/boost_$VERSION.tar.bz2
+    source $SOURCEFORGE_URL boost/boost/${VERSION//_/.}/boost_$VERSION.tar.bz2
   homepage http://www.boost.org
       opts --with-icu
   estimate 8400
-      desc 'boost provides additional C++ libraries.
+      desc 'additional C++ libraries
 boost was begun by members of the C++ standards
 committee Library Working Group to provide free
 peer-reviewed portable libraries to the C++ community.
@@ -28,6 +33,7 @@ programming style of the Standard Template Library (STL).'
 
 
 build(){
+build_old(){
  symlink_includes(){
   case $VERSION in
    1_36_0) ln -fsv /usr/include/boost-1_36/boost     /usr/include/boost ;;
@@ -49,4 +55,10 @@ current(){
  case $VERSION in
   1_38_0) [[ -d /usr/include/boost ]] ;;
  esac
+}
+
+./bootstrap.sh --prefix=/usr &&
+./bjam --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage &&
+prepare_install &&
+./bjam --layout=tagged variant=release link=shared threading=multi runtime-link=shared install
 }
