@@ -1,5 +1,9 @@
-    stable 5.3.0 5.2.10 5.2.9 5.2.8
-    secure 5.3.0 5.2.8
+# PHP 5.3.0 is very new and significantly different from 5.2.* so many
+# web applications need to be modified for 5.3.0. Therefore, 5.3.0 
+# should probably be kept as unstable for a while. J.M. 2009-11-05
+    stable 5.2.11 5.2.10 5.2.9 5.2.8
+  unstable 5.3.0
+    secure 5.2.11
    require automake bzip2 libtool libxml2 pcre wget
   optional httpd      '--with-apxs2 --with-mime-magic'   ''               to create a module for apache 2.0.x
   optional aspell     --with-pspell                      ''               for spelling functions
@@ -23,6 +27,7 @@
 
   switch --enable-sockets '' for experimental socket support
   switch --enable-pcntl   '' for experimental pcntl fork process support
+  switch --enable-soap    '' enable SOAP support
 
   category development/interpreter
  attribute console x11
@@ -146,12 +151,16 @@ $OPTS"
 #--with-regex=system
 #--with-pcre-regex=/usr
 
+case $VERSION in
+ 5.2.*) PHPINI=php.ini-dist  ;;
+     *) PHPINI=php.ini-production  ;;
+esac
 
 ./configure $PHP_CONFIGURE &&
 make                       &&
 prepare_install            &&
 make    install            &&
-cp php.ini-production /etc/php.ini
+cp "$PHPINI" /etc/php.ini
 }
 
 post_install(){
