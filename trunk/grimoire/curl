@@ -3,8 +3,7 @@
 # the failure with 7.19.5 was due to partial cmake support for curl
 # that apparently is not yet complete
 
-    latest 7.19.6
-    stable 7.19.4 7.19.3 7.19.2 7.19.1 7.19.0
+    stable 7.19.7 7.19.4 7.19.3 7.19.2 7.19.1 7.19.0
     secure 7.18.2
    require libidn zlib
   optional c-ares   --enable-ares=/usr --disable-ares    for asynchronous IPv4 DNS resolution
@@ -12,18 +11,18 @@
   optional libssh2  ''                 --without-libssh2 for sftp support
   optional openldap --enable-ldap      --disable-ldap    for LDAP support
   optional openssl  ''                 --without-ssl     for ftps and https
+      opts --enable-static=no --enable-ipv6
   category network/ftp
  attribute console
     source http://curl.haxx.se/download/curl-$VERSION.tar.bz2
   homepage http://curl.haxx.se/
    protect /usr/bin/curl
-      opts --enable-static=no --enable-ipv6
 # curl 7.17.0 can have optional on c-ares 1.4.0 library for async DNS resolv.
 # However, c-ares does not support ipv6.
 # libcurl can get also use yassl for the TLS/SSL layer
 # However, yassl support is very recent in libcurl and it has not been tested.
   estimate 1000
-      desc 'curl and libcurl is a tool for transferring files using URL syntax.
+      desc 'program and library for transferring files using URL syntax
 It supports HTTP, HTTPS, FTP, FTPS, DICT, TELNET,
 LDAP, FILE, and GOPHER, as well as HTTP-post, HTTP-put,
 cookies, FTP upload, resumed transfers, passwords,
@@ -31,3 +30,14 @@ portnumbers, SSL certificates, Kerberos, and proxies.
 It is powered by libcurl, the client-side URL transfer library.
 Program libcurl with C/C++ or by using the APIs available
 for Dylan, Java, Perl, PHP, Python, Rexx, Ruby, and Tcl.'
+
+build(){
+ ./configure           \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --prefix=/usr  \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
+}
