@@ -4,19 +4,30 @@
 # faac support broken in 0.16 and causes compile error
 
 
-    stable 0.19 0.18.1 0.18 0.17.1 0.17 0.16 0.15 0.14 0.13.2 0.13.1
-   require lame libvorbis
+    stable 0.20 0.19 0.18.1 0.18 0.17.1 0.17 0.16 0.15 0.14 0.13.2 0.13.1
+   require automake lame libtool libvorbis
   optional alsa-lib --with-alsa --without-alsa for audio ouput using alsa
   optional faac     --with-faac --without-faac for encoding AAC streams
+  optional twolame
   category audio/server
  attribute server x11
-    source http://darkice.tyrell.hu/dist/$VERSION/darkice-$VERSION.tar.gz
+    source http://darkice.googlecode.com/files/darkice-$VERSION.tar.gz
       vurl http://code.google.com/p/darkice/downloads/list
-  homepage http://darkice.tyrell.hu/
+  homepage http://code.google.com/p/darkice/
       opts --without-jack
   estimate 200
-      desc 'darkice is an icecast, icecast2, and shoutcast live audio streamer.
+      desc 'icecast, icecast2, and shoutcast live audio streamer
 It takes audio input from a sound card, encodes it into MP3/Ogg Vorbis,
 and sends the stream to one or more servers
 (Icecast/Shoutcast if it is MP3,
 and Icecast2 if it is Ogg Vorbis).'
+
+build(){
+aclocal -I .             &&
+autoheader               &&
+libtoolize --automake    &&
+automake   --add-missing &&
+autoconf                 &&
+default_build
+}
+
