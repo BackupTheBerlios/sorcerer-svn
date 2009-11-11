@@ -14,7 +14,7 @@
 
     stable 4.5.3 4.5.2 4.5.0 4.4.3
     secure       4.4.0
-   require dbus glib fontconfig kde-symlinks-v4 libXcursor libXinerama libXrandr libmng libpng mysql sqlite tiff
+   require dbus glib fontconfig gst-plugins-base kde-symlinks-v4 libXcursor libXinerama libXrandr libmng libpng mysql sqlite tiff
   optional cups        -cups -no-cups                for common unix printing support
   optional postgresql  ''    -no-sql-psql            for postgresql support
   optional sqlite-v2.8 ''    -no-sql-sqlite2         for old sqlite support
@@ -24,12 +24,14 @@
     source ftp://ftp.trolltech.com/qt/source/qt-x11-opensource-src-$VERSION.tar.gz
 #   source ftp://ftp.trolltech.com/qt/source/qt-x11-opensource-src-$VERSION.tar.bz2
   homepage http://www.trolltech.com/developer/downloads/qt/x11
-      opts -fontconfig -no-phonon -plugin-sql-mysql -xmlpatterns -exceptions
-#     opts -fontconfig -phonon
+##     opts -fontconfig -phonon
+#     opts -fontconfig -no-phonon -plugin-sql-mysql -xmlpatterns -exceptions
+      opts -fontconfig -plugin-sql-mysql -xmlpatterns -exceptions
+ conflicts phonon
   eprovide qt-x11-opensource-desktop
  freshmeat qt
   estimate 8000
-      desc 'qt-x11-opensource simplifies the task of writing and maintaining GUI applications.'
+      desc 'GUI toolkit'
 
 build(){
 
@@ -104,13 +106,13 @@ build(){
 # ln -s ../../$LIBS       ${QT4_PREFIX}/lib
 }
 
-post_install(){
- default_post_install
- if   [[ -s                         $VERSION_LOGS/avahi ]] &&
-      [[ -s                         $OPT_OFF_LOGS/avahi ]] &&
-      grep -qx qt-x11-opensource    $OPT_OFF_LOGS/avahi
- then sed  -i /qt-x11-opensource/d  $OPT_OFF_LOGS/avahi
-      echo     qt-x11-opensource >>  $OPT_ON_LOGS/avahi
-      echo avahi | pipe_queue $CAST_QUEUE com
- fi
-}
+#post_install(){
+# default_post_install
+# if   [[ -s                         $VERSION_LOGS/avahi ]] &&
+#      [[ -s                         $OPT_OFF_LOGS/avahi ]] &&
+#      grep -qx qt-x11-opensource    $OPT_OFF_LOGS/avahi
+# then sed  -i /qt-x11-opensource/d  $OPT_OFF_LOGS/avahi
+#      echo     qt-x11-opensource >>  $OPT_ON_LOGS/avahi
+#      echo avahi | pipe_queue $CAST_QUEUE com
+# fi
+#}

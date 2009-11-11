@@ -1,11 +1,13 @@
+# firefox 3.5.5 must be compiled and linked with it's own xulrunner instead of system installed?
+
 # When glitz is enabled:
 # make[5]: *** No rule to make target `../../../dist/lib/libmozglitz.a', needed by `libthebes.a'.  Stop.
 # glitz support incomplete?
 # In version 3.5 compiling with --enable-glitz made no obvious difference.
 
-    stable 3.5.4 3.5.3 3.5.2 3.5.1 3.5 3.0.11 3.0.10
-#  require gss gtk+ heimdal libIDL libmng startup-notification zip
-   require GConf startup-notification zip
+    stable 3.5.5 3.5.4 3.5.3 3.5.2 3.5.1 3.5 3.0.11 3.0.10
+#  require GConf bzip2 nss startup-notification sqlite xulrunner zip
+   require GConf bzip2 nss startup-notification sqlite zip
   optional gnome-vfs  '' --disable-gnomevfs for gnomevfs support
   optional libgnomeui '' --disable-gnomeui  for libgnomeui support
 #   switch --enable-glitz --disable-glitz 'enable glitz for use with Cairo'
@@ -22,6 +24,22 @@
       opts --enable-system-cairo
       opts --enable-system-lcms
       opts --enable-application=browser
+#     opts --with-system-libxul
+#     opts --with-libxul-sdk=/usr
+#     opts --disable-libxul
+#     opts --disable-xul
+      opts --with-system-nspr
+      opts --with-system-nss
+      opts --enable-strip
+      opts --enable-default-toolkit=cairo-gtk2
+      opts --disable-mochitest
+      opts --disable-tests
+      opts --enable-system-sqlite
+
+## --with-system-png requires png with apng support and currently the patch does not apply
+#     opts --with-system-png
+
+
 # Enable official branding should be fine because we are not 
 # distributing the builds. This option names the browser Firefox instead
 # of Minefield but launches a EULA on the first start:
@@ -53,173 +71,6 @@ prepare_install &&
 make    install &&
 rm -fr                  /usr/lib/mozilla &&
 ln -fs firefox-$VERSION /usr/lib/mozilla
-}
-
-
-build_old(){
- check_space(){
-  KILOBYTES=$(
-    df   -Pkm  $SOURCE_DIR |
-    tr   -s ' '            |
-    tail -n 1              |
-    cut  -d ' '  -f4
-  )
-  if    (( KILOBYTES < 768 )); then
-   echo 'Insufficient disk space available for compiling mozilla.'
-   false
-  fi
- }
-
-
- install_symlinks(){
-  rm -fr                   /usr/include/firefox
-  ln -fs  firefox-$VERSION /usr/include/firefox
-  rm -fr                   /usr/include/mozilla
-  ln -fs  firefox-$VERSION /usr/include/mozilla
-
-  rm -fr                   /usr/lib/firefox
-  ln -fs  firefox-$VERSION /usr/lib/firefox
-  rm -fr                   /usr/lib/mozilla
-  ln -fs  firefox-$VERSION /usr/lib/mozilla
-
-  rm -fr                   /usr/share/idl/firefox
-  ln -fs  firefox-$VERSION /usr/share/idl/firefox
-  rm -fr                   /usr/share/idl/mozilla
-  ln -fs  firefox-$VERSION /usr/share/idl/mozilla
-
-  rm -fr                   /usr/bin/mozilla-config
-  ln -fs  firefox-config   /usr/bin/mozilla-config
-  rm -fr                   /usr/bin/mozilla
-  ln -fs  firefox          /usr/bin/mozilla
- }
-
-
- fix_config(){
-  sed -i "s:/usr/lib/firefox-[^ ]*:/usr/lib/firefox:g" /usr/bin/firefox-config
- }
-
-
-# Modify install_security function if using firefox
-# as dropin replacement for mozilla.
-
- install_security(){
-  local     NSS_DIR=/usr/include/mozilla/nss
-  mkdir -p $NSS_DIR
-  cp    -f $BUILD_DIR/dist/{private,public}/nss/*.h  \
-           $NSS_DIR
- }
-
-
- export   CFLAGS="${CFLAGS/-ffast-math/}"
- export CXXFLAGS="${CXXFLAGS/-ffast-math/}"
- export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-
- export MOZILLA_OFFICIAL=1
- export BUILD_OFFICIAL=1
- export MOZ_PHOENIX=1
-
- case $HOSTTYPE in
-  x86_64) ELF_DYNSTR_GC='--disable-elf-dynstr-gc' ;;
-       *) ELF_DYNSTR_GC='--enable-elf-dynstr-gc'  ;;
- esac
-
-# ac_add_options --prefix=/opt/firefox
-# ac_add_options --with-default-mozilla-five-home=/opt/firefox
-
- cat << EOF > .mozconfig
-mk_add_options MOZ_CO_PROJECT=browser
-ac_add_options --enable-application=browser
-export         MOZ_PHOENIX=1
-mk_add_options MOZ_PHOENIX=1
-ac_add_options --enable-mathml
-ac_add_options --enable-extensions="default,cookie,permissions,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
-
-ac_add_options --enable-crypto
-ac_add_options --disable-tests
-ac_add_options --disable-mailnews
-ac_add_options --disable-composer
-ac_add_options --disable-auto-deps
-ac_add_options --with-pthreads
-ac_add_options --without-system-nspr
-
-ac_add_options --disable-jsd
-ac_add_options --disable-ldap
-ac_add_options --disable-pedantic
-ac_add_options --disable-profilesharing
-ac_add_options --disable-installer
-ac_add_options --enable-single-profile
-ac_add_options --enable-image-decoders=png,gif,jpeg,bmp
-ac_add_options --disable-logging
-
-
-ac_add_options --prefix=/usr
-ac_add_options --enable-shared
-ac_add_options --disable-static
-ac_add_options --with-system-jpeg
-ac_add_options --with-system-zlib
-ac_add_options --with-system-png
-ac_add_options --with-system-mng
-ac_add_options --enable-xinerama
-ac_add_options --disable-tests
-ac_add_options --disable-debug
-ac_add_options --enable-optimize="$CFLAGS"
-ac_add_options --enable-reorder
-ac_add_options --enable-strip
-ac_add_options $ELF_DYNSTR_GC
-ac_add_options --enable-cpp-rtti
-ac_add_options --enable-xterm-updates
-ac_add_options --enable-toolkit-gtk2
-ac_add_options --enable-default-toolkit=gtk2
-ac_add_options --enable-old-abi-compat-wrappers
-ac_add_options --enable-xft
-ac_add_options --disable-freetype2
-ac_add_options --disable-gnomevfs
-EOF
-
-
-# firefox versions 2.0.0.6 and 2.0.0.7 are not compatible with
-# pango versions 1.18.2 1.18.1 1.18.0
-# bug in pango?
- case $VERSION in
-  2.0.0.1[0-4]) mkdir -p include/pango-1.0/pango
-               cp  /usr/include/pango-1.0/pango/pangocairo.h \
-                        include/pango-1.0/pango/
-               sed -i "/cairo_font_type_t/d" include/pango-1.0/pango/pangocairo.h
-               export CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-               export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
-  2.0.0.[789]) mkdir -p include/pango-1.0/pango
-               cp  /usr/include/pango-1.0/pango/pangocairo.h \
-                        include/pango-1.0/pango/
-               sed -i  "/cairo_font_type_t/d" include/pango-1.0/pango/pangocairo.h
-               export CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-               export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
- esac
-
-
-## Causes a compile error.
-# if  spell_installed  jdk;  then
-#   (  echo  "ac_add_options --enable-javaxpcom"
-#      echo  "ac_add_options --with-java-include-path=/opt/jdk/include"
-#      echo  "ac_add_options --with-java-bin-path=/opt/jdk/bin"
-#   )  >>  .mozconfig
-# fi
-
-
-export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
-grep  -rl            "\-Wl,-soname" * |
-xargs --max-lines=64 sed  -i  "s:-Wl,-soname:-Wl,-rpath,/usr/lib/firefox-$VERSION -Wl,-soname:"
-
-#sed -i "s:-Wl,-s:-Wl,-s,-rpath,/usr/lib/firefox-$VERSION" configure{,.in}
-
- check_space                  &&
- # ./configure  $OPTS         &&
- make   -f  client.mk build   &&
- prepare_install              &&
- make   -f  client.mk install &&
- install_symlinks             &&
- fix_config                   &&
- install_security
 }
 
 post_install(){
