@@ -24,6 +24,7 @@ Escape from Monkey Island, and MDK2.'
 build(){
  LC_ALL=C grep -rl "\-O2 -Wall" * |
  xargs -r --max-lines=256 sed -i "s:-O2 -Wall:$CFLAGS -fPIC:"
+ sed -i 's:/usr/local:/usr:' etc/lua.pc
  make    linux   &&
  prepare_install &&
  make    install INSTALL_TOP=/usr &&
@@ -33,5 +34,7 @@ build(){
        /usr/lib/liblua.a &&
  ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:3} &&
  ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:1} &&
- ln -s liblua.so.$VERSION /usr/lib/liblua.so
+ ln -s liblua.so.$VERSION /usr/lib/liblua.so &&
+ mkdir  -pvm 755            /usr/lib/pkgconfig &&
+ install -vm 644 etc/lua.pc /usr/lib/pkgconfig
 }
