@@ -1,0 +1,132 @@
+#!/bin/bash
+# Copyright 2008-2009 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+# bxz recompresses tarballs using xz in the background,
+# during periods of low loadavg, to conserve disk space
+
+VC=/var/cache
+AC=$VC/archive
+CC=$VC/ccache
+SC=$VC/sources
+
+TAR='/\.tar$/p'
+TGZ='/\.tar\.gz$/p;/\.tgz$/p'
+BZ2='/\.tar\.bz2$/p'
+FILES="$TAR;$TGZ;$BZ2"
+PIDF=/var/run/bxz.pid
+
+declare -i NEXT=900
+declare -i LOW=3
+LC_ALL=C
+TERM="dumb"
+IFS=" 	
+"
+export IFS LC_ALL TERM
+
+ll(){
+ read < /proc/loadavg
+ REPLY=${REPLY%% *}
+ REPLY=${REPLY%%.*}
+ (( LOW > REPLY ))
+}
+
+decomp(){
+ local REPLY
+ compressor "$1"
+ case "$REPLY" in
+  bzip2) bzip2 -cd $1 ;;
+   gzip) gzip  -cd $1 ;;
+      *) cat       $1 ;;
+ esac
+}
+
+found(){ while read; do return ; done; return 1; }
+
+compressor(){
+        REPLY="$( file -b $1 )"
+ case "$REPLY" in
+       gzip*) REPLY=gzip  ;;
+      bzip2*) REPLY=bzip2 ;;
+   compress*) REPLY=gzip  ;;
+       *tar*) REPLY=tar   ;;
+ esac
+}
+
+rootname(){
+ REPLY="${1%.bz2}"
+ REPLY="${REPLY%.gz}"
+ REPLY="${REPLY%.tar}"
+ REPLY="${REPLY%.tgz}"
+}
+
+recompress(){
+ local IN OUT TMP REPLY
+
+ rtmp(){ rm -f "$TMP"; }
+ uncompr(){         if ! decomp "$IN"; then rtmp; fi; }
+ xz_it(){ uncompr | if ! xz  > "$TMP"; then rtmp; fi; }
+
+ IN="$1"
+
+ rootname "$1"
+ OUT="$REPLY.tar.xz"
+ TMP="$OUT.new"
+
+ rm -f "$OUT" "$TMP"
+ umask 0077
+ xz_it
+ umask 0022
+
+ if [[ -f $TMP ]]; then
+  mv "$TMP" "$OUT"
+  chmod $( stat -c "%a" "$IN" ) "$OUT"
+  touch -r "$IN" "$OUT"
+  rm    -f "$IN"
+ else false
+ fi
+}
+
+ima(){ local REPLY; acad && ll; }
+pending(){ find -L $AC $CC $SC -maxdepth 3 -type f | sed -n "$FILES"; }
+owari(){ [[ -z $( pending ) ]]; }
+reduction(){ pending | while read && ima; do recompress "$REPLY"; done; }
+
+locked(){
+ local LEN STATUS LINE LPID
+
+ [[ -n $1 ]] && [[ -f $1 ]] &&
+ [[ -n $2 ]] && LEN=${#2} &&
+ read LPID < $1 &&
+ STATUS="/proc/$LPID/status" &&
+ [[  -f      $STATUS ]] &&
+ read LINE < $STATUS &&
+ [ "${LINE:6:$LEN}" == "$2" ]
+}
+
+lock_bxz(){
+ locked       $PIDF bxz &&
+ kill -15 $(< $PIDF ); sleep 0.1
+ echo  $!   > $PIDF
+ disown
+}
+
+acad(){
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then
+  read < /proc/acpi/ac_adapter/*/state
+  [[ ${REPLY// /} == state:on-line ]]
+ fi
+}
+
+main(){
+ trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
+ while sleep 600; do if owari; then rm -f $PIDF; exit 0; elif ima; then reduction; fi; done
+}
+
+[[ -x /usr/bin/nice   ]] && renice  19 -p $$ &>/dev/null
+[[ -x /usr/bin/ionice ]] && ionice -c3 -p $$ &>/dev/null
+[[ -f     /usr/libexec/bash/sleep ]] &&
+enable -f /usr/libexec/bash/sleep sleep
+
+main 1>>/var/log/bxz 2>&1 &
+lock_bxz

@@ -1,0 +1,32 @@
+# XFree86 -> Linux-PAM -> teTeX -> teTex,src -> x11
+# recursive requirement loop.
+# Altered Linux-PAM to no longer optionally require teTeX
+
+# when updating this check to see if it obliterates /usr/bin/man with a directory.
+
+# Requirement on X perhaps unavodiable since texlive requires silgraphite
+# and silgraphite requires pango
+
+
+    stable 20091107
+ conflicts teTeX
+   require TECkit freetype freetype-v1.3 gd libpng poppler silgraphite t1lib zlib
+  optional clisp --enable-xindy --disable-xindy
+#  optional fontconfig '--enable-xetex --enable-xdvipdfmx' '--disable-xetex --disable-xdvipdfmx'
+# optional libXaw '--with-x' '--without-x' for pdfopen and xdvi
+      opts --enable-static=no --disable-dialog --with-system-freetype --with-system-freetype2 --with-system-t1lib --with-system-libpng --with-system-zlib --with-pic --with-system-xpdf --disable-native-texlive-build --with-freetype-includes=/usr/include/freetype --with-system-gd --with-system-teckit --with-system-graphite --with-teckit-includes=/usr/include/teckit --infodir=/usr/share/info --mandir=/usr/share/man --docdir=/usr/share/doc
+
+## the source disregarded the --datadoortdir and --datadir commands
+# --datarootdir=/usr/share --datadir=/usr/share
+
+  category documentation
+ attribute console
+    source ftp://tug.org/historic/systems/texlive/${VERSION:0:4}/texlive-$VERSION-source.tar.xz
+  homepage http://www.tug.org/texlive/
+  estimate 12000
+      desc 'TeX system with programs, macros, and fonts'
+
+post_install(){
+default_post_install
+echo mktexlsr | pipe_queue $CAST_QUEUE com
+}

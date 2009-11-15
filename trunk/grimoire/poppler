@@ -4,6 +4,7 @@
 # The cmake of poppler version 0.12.0 does not install correctly
 # and omits the installation of important headers such as poppler-layer.h
 
+# -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by texlive )
 
     stable 0.10.7 0.10.6
   unstable 0.12.0
@@ -12,7 +13,12 @@
  attribute library x11
     source http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
   homepage http://poppler.freedesktop.org/
-#     opts --disable-gtk-test --disable-poppler-qt --disable-poppler-qt4 --enable-zlib --enable-static=no
-      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
   estimate 700
       desc 'PDF rendering library'
+
+current(){
+case $VERSION in
+ 0.10.7) [ -f /usr/include/poppler/goo/gtypes.h ] ;;
+esac
+}

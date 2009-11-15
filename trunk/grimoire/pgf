@@ -1,22 +1,25 @@
+# Does it require texlive-texmf ?
+
     stable 2.00 1.18 1.10 1.09 1.01
-   require teTeX-texmf
+#  require teTeX-texmf
+#  require texlive-texmf
+   require texlive
   category documentation
  attribute console new
     source $SOURCEFORGE_URL pgf/pgf/version%20$VERSION/pgf-$VERSION.tar.gz
   homepage http://sourceforge.net/projects/pgf
   estimate 300
-      desc 'pgf is a TeX macro package for generating graphics.
+      desc 'TeX macro package for generating graphics
 It is platform- and format-independent and works together with
 the most important TeX backend drivers, including pdftex and dvips.
 It comes with a user-friedly syntax layer called TikZ.'
 
 build(){
+ # Weird install
  pgf_install(){
-  find doc \
-       -name '*' -exec install -D -v '{}' /usr/share/texmf/'{}' \;
-  find generic latex plain \
-       -name '*' -exec install -D -v '{}' /usr/share/texmf/tex/'{}' \;
-  }
+  find doc                 -name '*' -exec install -D -v '{}' /usr/texmf/'{}' \;
+  find generic latex plain -name '*' -exec install -D -v '{}' /usr/texmf/tex/'{}' \;
+ }
 
  prepare_install &&
      pgf_install
@@ -24,6 +27,6 @@ build(){
 }
 
 post_install(){
- [ -x /usr/bin/texhash ] && texhash
  default_post_install
+ echo mktexlsr | pipe_queue $CAST_QUEUE com
 }
