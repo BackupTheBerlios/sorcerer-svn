@@ -1,32 +1,8 @@
     stable 2.49b 2.49 2.48a 2.48 2.47 2.46 2.45 2.44 2.43 2.41 2.40 2.37a 2.37 2.36
    require Python alsa-lib freealut freetype jpeg libvorbis mozilla scons
   optional yasm '' '' for fast x264 encoding
-
-# Configuring library blender_creator
-# Configuring program blender
-# scons: done reading SConscript files.
-# scons: Building targets ...
-# Compiling ==> 'buildinfo.c'
-# Linking program ==> 'blender'
-# /usr/src/sorcery/blender/build/linux2/lib/libbf_soundsystem.a(SND_OpenALDevice.o): 
-# In function `SND_OpenALDevice::LoadSample(STR_String const&, void*, int)':
-# SND_OpenALDevice.cpp:(.text+0x495): undefined reference to `alutLoadWAVMemory'
-# SND_OpenALDevice.cpp:(.text+0x527): undefined reference to `alutUnloadWAV'
-# SND_OpenALDevice.cpp:(.text+0x5c4): undefined reference to `alutLoadWAVFile'
-# collect2: ld returned 1 exit status
-# scons: *** [/usr/src/sorcery/blender/build/linux2/bin/blender] Error 1
-# scons: building terminated because of errors.
-
-# Compiling ==> 'node.c'
-# source/blender/blenkernel/intern/node.c:31:20: error: Python.h: No such file or directory
-# scons: *** [/usr/src/sorcery/blender/build/linux2/source/blender/blenkernel/intern/node.o] 
-# Error 1
-# scons: building terminated because of errors.
-
-
   category graphic/editor video/editor
  attribute new x11
- attribute broke
 #conflicts freealut
     source http://download.blender.org/source/blender-$VERSION.tar.gz
       vurl http://www.blender.org/download/get-blender
@@ -37,13 +13,23 @@ case $VERSION in
  2.41) use_gcc gcc-v3.4 ;;
 esac
   estimate 3800
-      desc 'blender is a 3d modeling environement
+      desc 'a 3d modeling environement
 Blender is a fully integrated 3D graphics creation suite allowing
 modeling, animation, rendering, post-production, real-time interactive
 3D, and game creation and playback with cross-platform compatibility.'
 
 
 build(){
+fix_nasm_inc(){
+cd extern/xvidcore/src/
+find . -type d -exec cp -v nasm.inc '{}' \;
+cd ../../..
+}
+
+case $VERSION in
+2.49b) fix_nasm_inc ;;
+esac
+ 
 export  LDFLAGS+=' -lalut'
 scons           &&
 prepare_install &&
