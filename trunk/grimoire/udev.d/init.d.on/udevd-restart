@@ -12,7 +12,15 @@
 
 . /lib/lsb/init-functions
 
-start(){ /etc/init.d/udevd restart; }
+start(){
+ run(){
+  kill -s 15 $( /bin/pidof %PPID udevd )
+  /sbin/udevd --daemon
+ }
+ log_warning_msg "udevd restarting"; run
+ log_success_msg "udevd restarted"
+}
+# /etc/init.d/udevd restart; }
 stop(){ :; }
 
 parse "$@"
