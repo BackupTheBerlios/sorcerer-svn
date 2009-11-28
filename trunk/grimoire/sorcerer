@@ -12,6 +12,7 @@ post_install(){
 
  default_post_install
 
+ run_init_d services.d
  run_init_d depmod
  run_init_d rc.d
  run_init_d lilo.conf
@@ -23,82 +24,21 @@ post_install(){
  sed     "s:.*/::"          |
  sed     "s/:/-$HOSTTYPE-/" |
  sed     "s:$:.tar:"        |
- sed  -r "s:(.*):\1\n\1.gz\n\1.bz2\n\1.7z\n\1.lz:" |
+ sed  -r "s:(.*):\1\n\1.gz\n\1.bz2\n\1.7z\n\1.lz\n\1.xz:" |
  sed p |
  pipe find $ARCHIVE_CACHE -type f -printf '%f\n' |
  LC_ALL=C sort |
  uniq -u       |
  xargs -r --max-lines=2048 rm
 
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.gz  | xargs -r gzip  -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tgz     | xargs -r gzip  -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.bz2 | xargs -r bzip2 -d
+#find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.gz  | xargs -r gzip  -d
+#find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tgz     | xargs -r gzip  -d
+#find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.bz2 | xargs -r bzip2 -d
  find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar |
  while read; do
   cd "${REPLY%/*}"
-  lzip -9 -s 64Mi "${REPLY##*/}"
- done
-
-            ISO=/var/cache/iso
- rm    -rf $ISO
- mkdir -p  $ISO/var/cache
- cp    -al /var/cache/{archive,sources} $ISO/var/cache/
- cp    -a  /boot                        $ISO/
- rm                                     $ISO/var/cache/archive/sorcerer-*
- cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
-
- DATE=$VERSION
- DEST=/var/cache/sorcerer-${HOSTTYPE/i586/ia32}-$DATE.iso
- rm -f                                $ISO/boot/isolinux/boot.cat
- cp -a /usr/lib/syslinux/isolinux.bin $ISO/boot/isolinux
- rm -f $DEST
- mkisofs \
-  -o $DEST -A "${DEST##*/}"     \
-  -publisher "Kyle D. Sallee"   \
-  -copyright LICENSE.SPL        \
-  -sysid Sorcerer               \
-  -b boot/isolinux/isolinux.bin \
-  -c boot/isolinux/boot.cat     \
-  -no-emul-boot     \
-  -boot-load-size 4 \
-  -boot-info-table  \
-  -R -cache-inodes $ISO &&
- md5sum $DEST | sed 's:/.*/::' > $DEST.md5 &&
- rm -rf $ISO
-}
-
-post_install_old(){
- run_init_d(){ [ -x /etc/init.d/$1 ] && /etc/init.d/$1 ; }
-
- default_post_install
-
- run_init_d depmod
- run_init_d rc.d
- run_init_d lilo.conf
- run_init_d initramfs
-
- [[ -d $ARCHIVE_CACHE ]] || return
- cd    $ARCHIVE_CACHE
- grep -r "." $VERSION_LOGS  |
- sed     "s:.*/::"          |
- sed     "s/:/-$HOSTTYPE-/" |
- sed     "s:$:.tar:"        |
- sed  -r "s:(.*):\1\n\1.gz\n\1.bz2\n\1.7z:" |
- sed p |
- pipe find $ARCHIVE_CACHE -type f -printf '%f\n' |
- LC_ALL=C sort |
- uniq -u       |
- xargs -r --max-lines=2048 rm
-
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.gz  | xargs -r gzip  -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tgz     | xargs -r gzip  -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar.bz2 | xargs -r bzip2 -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar |
- while read; do
-  cd "${REPLY%/*}"
-  7za a -mx=9 -mfb=128 "${REPLY##*/}.7z" "${REPLY##*/}" &&
-  touch -r "$REPLY" "$REPLY.7z" &&
-  rm    -f "$REPLY"
+ #lzip -9 -s 64Mi "${REPLY##*/}"
+  xz -9e --memory=2G "${REPLY##*/}"
  done
 
             ISO=/var/cache/iso
