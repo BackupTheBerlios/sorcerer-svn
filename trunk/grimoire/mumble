@@ -1,8 +1,12 @@
-    stable 1.1.8 1.1.7 1.1.6 1.1.5
+# Trying 1.2.0~beta1 because 1.1.8 stable source does not compile
+# Source not written to be able to locate installed qt
+
+    stable "1.2.0~beta1" 1.1.8 1.1.7 1.1.6 1.1.5
    require speech-dispatcher
   category network/chat
- attribute kde4 broke
-    source $SOURCEFORGE_URL mumble/Mumble/$VERSION/mumble-$VERSION.tar.gz
+ attribute kde4
+ attribute broke
+    source $SOURCEFORGE_URL "mumble/Mumble/$VERSION/mumble-$VERSION.tar.gz"
   homepage http://mumble.sourceforge.net/
       opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
       opts -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
@@ -11,9 +15,10 @@
       opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
       opts -DCMAKE_BUILD_TYPE=Release
   estimate 1000
-      desc 'mumble is a chat program similar to roger wilco and team speak'
+      desc 'chat program similar to roger wilco and team speak'
 
-build(){
+build(){ (
+build_old(){
  sed -i 's:/usr/local:/usr:' src/mumble/mumble.pro
  export PATH+=:/opt/kde4/bin
  qmake main.pro
@@ -21,3 +26,10 @@ build(){
  prepare_install &&
  make    install
 }
+
+ export PATH+=:/opt/kde4/bin
+ qmake main.pro CONFIG+=no-portaudio CONFIG+=no-update CONFIG+=no-pulseaudio &&
+ make release   &&
+ prepare_intsall &&
+ make install
+) }
