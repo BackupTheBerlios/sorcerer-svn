@@ -2,15 +2,14 @@
 # linuxdoc-tools optional requirement creates problems on the I/R
 # linuxdoc-tools requires openjade and openjade requires gcc-v3.4
 
-    stable 1.12
-   require flex init-functions perl
+    stable 1.15.1 1.12
+   require automake flex init-functions libtool perl
   category font utility/keyboard
  attribute console
-    source ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/kbd-$VERSION.tar.gz
-  homepage ftp://ftp.win.tue.nl/pub/linux-local/utils/kbd/
+    source http://ftp.debian.org/debian/pool/main/k/kbd/kbd_$VERSION.orig.tar.gz
  conflicts console-tools console-data
-  estimate 100
-      desc 'kbd contains keytable files and keyboard utilities.
+  estimate 300
+      desc 'keytable files and keyboard utilities
 Configuration file is /etc/keymap.conf'
 
 configure(){
@@ -49,18 +48,16 @@ build(){
  esac
 
  # Fix setfont when compiled with gcc4
- patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
+ # patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
 
- ./configure     &&
+ aclocal -I  .             &&
+ autoheader                &&
+ libtoolize  --automake    &&
+ automake    --add-missing &&
+ autoconf                  &&
+ ./configure --prefix=/usr &&
  make            &&
  prepare_install &&
- make    install
-}
-
-
-current()  {
-  case  $VERSION  in
-    1.12)  [     -f         /etc/init.d/loadkeys  ]  &&
-           grep  -q  'ls '  /etc/init.d/loadkeys  ;;
-  esac
+ make    install &&
+ mv /usr/bin/loadkeys /bin/
 }
