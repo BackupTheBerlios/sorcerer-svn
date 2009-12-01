@@ -1,6 +1,7 @@
     stable 0.4b42 0.4b41 0.4b40 0.4b39 0.4b38 0.4b37 0.4b36
 #  require bzip2 device-mapper e2fsprogs ncurses readline zlib
    require LVM2 bzip2 e2fsprogs ncurses readline zlib
+      opts --disable-transselinux
   category disk/file-system
  attribute console
     source $SOURCEFORGE_URL dump/dump/$VERSION/dump-$VERSION.tar.gz
@@ -8,7 +9,7 @@
       opts --enable-largefile --enable-rmt --with-manowner=root --with-mangrp=root
   estimate 50
  freshmeat dumprestore
-      desc 'dump and restore utilities for ext2 and ext3 filesystems.
+      desc 'dump and restore utilities for ext2 and ext3 filesystems
 dump and restore facilitate backups to
 tapedrive from ext2 and ext3 filesystems.
 If you are using another filesystem (e.g. XFS, Reiser)
@@ -24,6 +25,9 @@ esac
 
 
 build(){
+
+sed -i 's:-lselinux::g;s:-lsepol::g' configure
+
 case $VERSION in
  0.4b38) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;
  0.4b39) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;

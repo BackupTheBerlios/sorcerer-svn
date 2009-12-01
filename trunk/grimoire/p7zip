@@ -10,7 +10,7 @@
    CXXFLAGS='-O3'
     LDFLAGS='-Wl,-s -Wl,-O1'
 #   LDFLAGS='-Wl,-s -Wl,-O1 -static'
-   protect /bin/7za
+#  protect /bin/7za
   estimate 320
       desc 'command line high compression ratio archiver
 p7zip provides aproximately 15% better compression than bzip2.
@@ -28,26 +28,15 @@ Decompression speed is about the same as gzip.'
 #fi
 
 build(){
-build_old(){
-  # export LDFLAGS+=' -static -lstdc++ -dynamic'
-  # no easy way to only statically link libstdc++ ?
-
- make OPTFLAGS="$CXXFLAGS" all &&
- prepare_install &&
-       ./install.sh /bin /usr/lib/p7zip /usr/man /usr/share/p7zip &&
-
- if   [ -f /usr/lib/p7zip/7za ]
- then mv   /usr/lib/p7zip/7za       /bin
-      mv   /usr/lib/p7zip/7zCon.sfx /bin
- fi
-}
 
 sed -i 's:/usr/local:/usr:' makefile
 make all 7z OPTFLAGS="$CXXFLAGS" &&
 rm -f bin/7za   &&
-make all OPTFLAGS="$CXXFLAGS -static" &&
+#ake all OPTFLAGS="$CXXFLAGS -static" &&
+make all OPTFLAGS="$CXXFLAGS" &&
 prepare_install &&
-make    install &&
-rm -f /usr/bin/7za &&
-mv    /usr/lib/p7zip/7za /bin/
+make    install
+# &&
+#rm -f /usr/bin/7za &&
+#mv    /usr/lib/p7zip/7za /bin/
 }
