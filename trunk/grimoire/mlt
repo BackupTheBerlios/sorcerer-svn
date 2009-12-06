@@ -1,0 +1,32 @@
+# This will download during compilation acquire avformat from subversions repository.
+# (--disable-mmx might be necessary on 64bit)
+
+    stable 0.4.6
+   require ffmpeg qt-x11-opensource subversion
+  optional SDL            '' '--disable-sdl'
+  optional libdv          '' '--disable-dv'
+  optional frei0r-plugins '' '--disable-frei0r'
+  optional gtk+           '' '--disable-gtk2'
+  optional jackit
+  optional libquicktime
+  optional libsamplerate
+  optional sox            '' '--disable-sox'
+  optional libvorbis      '' '--disable-vorbis'
+  optional xine-lib       '' '--disable-xine'
+#      opts --enable-gpl --swig-languages=all --avformat-svn --avformat-swscale --qimage-libdir=/opt/kde4/lib --qimage-includedir=/opt/kde4/include
+      opts --enable-gpl --avformat-swscale --qimage-libdir=/opt/kde4/lib --qimage-includedir=/opt/kde4/include
+  category video
+ attribute library
+    source $SOURCEFORGE_URL mlt/mlt/$VERSION/mlt-$VERSION.tar.gz
+  homepage http://www.mltframework.org/twiki/bin/view/MLT/
+    CFLAGS='-O3 -ffast-math'
+   LDFLAGS='-Wl,-O1 -Wl,-rpath,/opt/kde4/lib -Wl,-rpath-link,/opt/kde4/lib'
+  estimate 400
+      desc 'media loving toolkit'
+
+build(){
+case $VERSION in
+0.4.6) sed -i 's:-Wl,--no-undefined ::' configure ;;
+esac
+default_build
+}
