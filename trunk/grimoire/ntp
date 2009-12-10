@@ -1,17 +1,20 @@
 # Both 4.2.4p7 and 4.2.5p204 have compile error
 # The VURL often shows the RC version without the RC.
 # 4.2.4p5 may not yet be stable.
+# 4.2.4p8 has compile error
+# 4.2.4p8 is a security fix, too bad it does not compile.
 
-    secure 4.2.4p7 4.2.4p6
-    stable 4.2.4p7 4.2.4p6 4.2.4p5 4.2.4p4 4.2.4p3 4.2.4p2 4.2.4p0 4.2.4
+    secure 4.2.4p8 4.2.4p7 4.2.4p6
+    stable 4.2.4p8 4.2.4p6 4.2.4p5 4.2.4p4 4.2.4p3 4.2.4p2 4.2.4p0 4.2.4
   unstable 4.2.5p247-RC 4.2.5p225 4.2.5p218
-   require init-functions libelf ncurses openssl readline w3c-libwww
+   require init-functions libcap libelf ncurses openssl readline w3c-libwww
   category utility/time
- attribute client server console broke
+ attribute client server console
+#attribute broke
     source http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-$VERSION.tar.gz
       vurl http://www.ntp.org/downloads.html
   homepage http://www.ntp.org/
-  estimate 1700
+  estimate 1600
       desc 'synchronizes system time with a network time protocol server'
 
 #case $MACHTYPE in
@@ -19,6 +22,9 @@
 #esac
 
 build(){
+case $VERSION in
+ 4.2.4p8) sed -i 's/: install-man/:/' sntp/Makefile.in ;;
+esac
 # so that ntp writes a proper PID file
  sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
  default_build &&

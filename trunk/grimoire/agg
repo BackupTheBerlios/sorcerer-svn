@@ -1,0 +1,36 @@
+    stable 2.5
+   require pkgconfig
+  category graphic/library
+ attribute library
+    source http://www.antigrain.com/agg-$VERSION.tar.gz
+  homepage http://www.antigrain.com/
+      desc 'The antigrain C++ high fidelity 2D graphics rendering engine'
+
+build(){
+make_install(){
+local EXT
+case $HOSTTYPE in
+ x86_64) EXT=64 ;;
+esac
+find include -type d | xargs --max-lines=64 chmod 755
+find include -type f | xargs --max-lines=64 chmod 644
+mkdir -vpm 755  /usr/include/agg2
+mv -v include/* /usr/include/agg2/
+install -vm 644 src/libagg.a /usr/lib$EXT
+sed -i "s:@prefix@:/usr:
+        s:@exec_prefix@:\${prefix}:
+        s:@libdir@:\${exec_prefix}/lib$EXT:
+        s:@includedir@:\${prefix}/include:
+        s:@VERSION@:$VERSION:" libagg.pc.in
+mkdir   -vpm 755              /usr/lib/pkgconfig
+install -vm  644 libagg.pc.in /usr/lib/pkgconfig/libagg.pc
+}
+
+## That does not work.
+# autoconf
+# automake -afc
+
+make &&
+prepare_install &&
+make_install
+}
