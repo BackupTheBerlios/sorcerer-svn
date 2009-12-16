@@ -1,7 +1,7 @@
 #!/bin/dash
 
 # /init
-# Copyright 2008 Kyle Sallee All rights reserved
+# Copyright 2008-2009 Kyle Sallee All rights reserved
 # /init executes only from the initramfs as PID 1.
 # For use with Sorcerer only
 
@@ -23,7 +23,7 @@ what(){
  else find /bin /etc /init /lib        /sbin /usr -mount -anewer /start
  fi
  cp -a /lib/udev/dev/* /dev
- find /bin/sleep /dev/ /etc/init.d/dev.d /init /lib/udev/dev
+ find /bin/sleep /dev/ /etc/init.d/dev.d /etc/coldplug/dev /init /lib/udev/dev
  echo /media/root
  echo /bin/sleep
 }
@@ -33,6 +33,7 @@ used(){ what | sed '\,^/etc/mtab,d' | dirs | sort -u; }
 construct(){
  if [     -f $MR/boot/fast/initrf   ] ||
     [     -d $MR/boot/isolinux      ] ||
+    [     -f    /etc/coldplug/use   ] ||
   ! [     -d $MR/boot               ] ||
   ! [     -f $MR/usr/bin/cpio       ] ||
   ! [     -f $MR/etc/lilo.conf.fast ] ||
@@ -40,10 +41,16 @@ construct(){
  then return
  fi
 
- [     -d  /etc/dev.old ] &&
- rm    -rf /etc/dev.old
- mkdir -p  /etc/dev.old
- cp    -a  /media/root/dev/* /etc/dev.old
+ rm    -rf     $MR/etc/coldplug/*   /etc/coldplug/*
+ mkdir -pm 700 $MR/etc/coldplug     /etc/coldplug
+ mkdir -p      $MR/etc/coldplug/dev /etc/coldplug/dev
+ cp    -a      $MR/dev/* $MR/etc/coldplug/dev/
+ cp    -a      $MR/dev/*    /etc/coldplug/dev/
+
+ sed 's: .*::' $MR/proc/modules | tac |
+ tee $MR/etc/coldplug/modules \
+      > /etc/coldplug/modules
+ echo > /etc/coldplug/use
 
  umask 077
  read J J V J < $MR/proc/version &&

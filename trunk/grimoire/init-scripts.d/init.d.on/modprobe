@@ -13,12 +13,10 @@ fi
 . /lib/lsb/init-functions
 
 if    [ -x /sbin/modprobe ]; then
- if   [ -f /etc/modules   ]; then sed 's:#.*::;/^ *$/d' /etc/modules; fi
- if   [ -d /etc/dev.old   ] &&
-    ! [ -d /opt           ]; then
-  find /lib/modules -mindepth 3 -type f |
-  sed 's:.*/::;s:\.ko$::'
+ if   [ -f /etc/coldplug/use ] && [ -f /etc/coldplug/modules ]
+ then cat  /etc/coldplug/modules
  fi
+ if   [ -f /etc/modules   ]; then sed 's:#.*::;/^ *$/d' /etc/modules; fi
 fi |
 while read REPLY; do
  if log_warning_msg "Module $REPLY loading" && modprobe $REPLY

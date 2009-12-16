@@ -1,7 +1,7 @@
 #!/bin/dash
 
 ### BEGIN INIT INFO
-# Required-Start: dev
+# Required-Start: coldplug dev
 # Default-Start: S
 # Short-Description: dev-cp copies /lib/udev/dev/* to /dev/
 ### END INIT INFO
@@ -9,17 +9,15 @@
 . /lib/lsb/init-functions
 
 start(){
- if   [ -d /etc/dev.old ]
- then
-  if   log_warning_msg 'cp -a /etc/dev.old/* /dev'; cp -a /etc/dev.old/* /dev
-  then log_success_msg '/etc/dev.old/* copied'
-  else log_failure_msg '/etc/dev.old/* not copied'
-  fi
- else
-  if   log_warning_msg 'cp -a /lib/udev/dev/* /dev'; cp -a /lib/udev/dev/* /dev
-  then log_success_msg '/lib/udev/dev/* copied'
-  else log_failure_msg '/lib/udev/dev/* not copied'
-  fi
+ if [ -f /etc/coldplug/use ] &&
+    [ -d /etc/coldplug/dev ]
+ then DM=/etc/coldplug/dev
+ else DM=/lib/udev/dev
+ fi
+
+ if   log_warning_msg "cp -a $DM/* /dev"; cp -a $DM/* /dev
+ then log_success_msg "$DM/* copied"
+ else log_failure_msg "$DM/* not copied"
  fi
 }
 
