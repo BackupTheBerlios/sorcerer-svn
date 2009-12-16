@@ -1,5 +1,127 @@
 #!/bin/dash
-cat << EOF
+less << EOF
+
+Sorcerer System V Initialization and Shutdown Script Documentation
+
+Sections:
+
+1.0 Overview
+2.0 Customization
+3.0 Logs
+
+Section 1.0 Overview
+
+Section 1.1 POST
+
+When power comes on the Power On Self Test, or POST happens.
+Following a successful POST the BIOS, basic input output,
+attempts to load an operating system.
+Depending on how the capability of the BIOS and
+how the BIOS is configured in the BIOS/CMOS configuration menu
+the BIOS will attempted to load an operating system from CDROM, fixed 
+disks, floppy disks, network, or removeable drives.
+When loading an operating system from fixed disk BIOS
+first loads and runs the content of the MBR, master boot record,
+of the primary fixed disk.
+
+Section 1.2 lilo
+
+If the MBR contains a boot loader program such as lilo, the linux loader,
+then lilo is run, otherwise the MBR will usually contain code
+that causes it to load and run the content from
+the boot block of the first partition marked as bootable in
+the partition table.
+Most Sorcerer boxes have lilo installed to the boot block of
+the /boot partition or the / partition of no /boot partition was defined
+during installation.
+The bootloader load into memory from fixed disk a kernel image and also
+an initramfs, initialization random access memory file system.
+
+Section 1.3 linux kernel
+
+When the kernel begins to run it initializes a few important
+hardware devices such as the screen and keyboard.
+Then it decompresses the initramfs image if necessary.
+It mounts the initramfs image as / , the root filesystem.
+Finally, the kernel begins execution of the file /init as process 1.
+Using the kernel paramter rdinit=/bin/bash
+the kernel can be instructed to execute a shell instead of /init
+in order for a SA to debug problems that are happening during sysinit.
+
+Section 1.4 sysinit
+
+sysinit which is run from entirely from the initramfs mounted as root
+is the first of the Sorcerer's 2 stage boot process.
+During sysinit kernel driver modules are loaded into memory
+for supporting installed hardare.
+Also kernel modules are loaded for filesystems and other
+commonly used protocols and methods
+such as FUSE, file system in user space, and networking protocols.
+The primary purpose of the sysinit is to make all the preparations
+that are required to be able to successfully mount real filesystems
+such as the real / and /home and other defined file systems.
+
+Section 1.5 runlevel
+
+Following the successful completion of sysinit
+the real root filesystem is mounted and execution of process 1
+is passed from /init on the initramfs to 
+/sbin/init from the real root filesystem.
+At this point runlevel initialization begins.
+
+For a description of runlevels and to be able to change the
+selected default runlevel please see the file /etc/inittab
+Although only one of 5 possible runlevels is started
+the purpose of runlevels 1 through 5 are to to start
+useful installed services such as webservers
+secure socket shell server, system logger, cron,
+X server and other services that make computers
+friendly and useful to uesrs.
+
+
+
+Section 2.0 Customization
+
+Section 2.1 init-script
+
+A POSIX, portable operating system for unix,
+is a collection of software from various vendors
+which is installed and run in a meaningful fashion.
+Individual init-scripts ensure properly ordered
+execution and shutdown of services and filesystems.
+It is a modular, dynamic, and efficient system
+where init-scripts are added, removed,
+and sometimes customized as necessary
+in order to adjust to installed software.
+
+Section 2.2 init-scripts in detail
+
+Sorcerer provides a system for running LSB compliant
+system V init-scripts with capabilities defined at the following URL:
+http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
+However, Sorcerer init-scripts are not themselves LSB compliant,
+because Sorcerer's init-script method factorized out code common
+to many init-scripts to ensure that init-scripts are small, fast,
+uniform, easy to edit with minimial proability of introducing a bug.
+
+init-scripts that run during sysinit are often specialized and somewhat complex.
+However, the more simple init-scripts that are executed during runlevel are
+often short and simple.
+Each init-script tends to perform a single specific task such as:
+mounting a virtual file system;
+loading a kernel module;
+unloading a kernel module;
+or starting a server.
+
+The best way to understand a Sorcerer init-script is to first learn
+about LSB compliant init-scripts
+and then view some of the already installed init-scripts.
+Since the format of most init-scripts is similar
+typically new init-scripts are created when necessary
+by copying and modifying old init-scripts.
+
+Section 2.3 init-script customization
+
 /etc/init.d/ contains init-scripts.
 
 init-scripts with mode 700 are     run during boot and shutdown.
@@ -17,4 +139,70 @@ Where $ORIGINAL is written please substitute the original file name.
 Add the comment # Provides: $ORIGINAL
 Make other desired modifications.
 CTRL-X y to save.
+
+Customization of init-scripts installed by spells such
+as the init-scripts spell is strongly discouraged.
+SAs should customize init-scripts only when necessary.
+Please be aware of the risk of causing unintended and
+undesirable behavior by assuming that something
+about the functions and naming of
+Sorcerer init-scripts will never change.
+
+
+Section 3.0 Logs
+
+Section 3.1 log names
+
+Output from kernel ring buffer is written to /etc/init.d/log.d/dmesg
+Output from sysinit            is written to /etc/init.d/log.d/sysinit
+Output from runlevel           is written to e/tc/init.d/log.d/runlevel.$RUNLEVEL
+
+
+Section 3.2 /etc/init.d/log.d/
+
+Because the real only the initrf is mounted as the root filesystem
+during startup the real /var/log/ is unavailable at the time that
+init-script execution begins.
+Consequently, a tmpfs, temporary filesystem, is mounted on /etc/init.d/log.d/
+The tmpfs on /etc/init.d/log.d/ is initially mounted on the initrf.
+Later as a box progress to runlevels the /etc/init.d/log.d/ temporary file system
+is moved onto the real root filesystem as /etc/init.d/log.d/
+Therefore, when information about what happened during boot is desired
+then the place to look is always /etc/init.d/log.d/
+regardless of whether the boot stage is sysinit or runlevel execution.
+
+
+Section 3.3 Boot scroll
+
+Currently, there is no SA, system administrator, consensus
+about whether reading boot scroll is useful or desirable.
+Some SAs prefer that the sysinit and runlevel scroll is redirected
+to virtual consoles rather than scrolling on the main console.
+If this is selected then the default virtual console for sysinit scroll
+is /dev/tty9 which can be accessed by pressing the keys ALT F9 or CTRL ALT F9.
+The defautl virtual console for runlevel scroll is /dev/tty10
+As expected it can be viwed with the key sequence ALT F10 or CTRL ALT F10.
+The primary virtual console,
+which is typically used for logging in,
+can be returned to with the key sequence ALT F1 or CTRL ALT F1
+Holding ALT and pressing right or left arrow keys
+switches sequentially among available virtual consoles.
+
+The default for most Sorcerer boxes is to simply send both scrolls to /dev/console .
+/dev/console causes scroll to appear on any actively selected virtual console.
+However, this can be changed by executing the following command at a root prompt:
+augur forget sysvinit; cast sysinit
+Then in the sysinit spell configuration menu
+nearly any available character device can be selected.
+
+Execution of some programs cause uncategorized messags to be printed.
+However, messages printed by init-scripts fall into 3 categories:
+white [ warning ]; green [ success ]; and red [ failure ].
+If the logs in /etc/init.d/log.d/ are cat
+then holding SHIFT while pressing PAGE UP
+can be used to scroll up while looking for red [ failure ] messages.
+A failure message is not necessarily bad,
+but it can indicate something that the SA should be
+aware of and might want to do something about.
+
 EOF
