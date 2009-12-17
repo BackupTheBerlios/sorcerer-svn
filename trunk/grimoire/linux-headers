@@ -1,5 +1,3 @@
-# When updating glibc also update linux-headersto at least 2.6.30
-
 # if   [ -f $INSTALL_LOGS/uClibc ] ||
 #      [ -f $INSTALL_LOGS/linux-headers-uClibc-cross ]
 # then stable 2.6.29.2 2.6.29.1
@@ -13,50 +11,8 @@
     source pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2
 
 build(){
+ rm -rf Documentation
  make headers_install &&
  prepare_install &&
  cp -av usr/include/* /usr/include/
 }
-
-# The below error occurs when compiling gmerlin-avdecodec
-# when using linux-headers 2.6.29.2
-# and glibc 2.7
-
-#  gcc -DHAVE_CONFIG_H -I. -I../include -I../include -DLOCALE_DIR=\"/usr/share/locale\" 
-# -march=pentium3 -mno-sse2 -mtune=pentium3 -O3 -funroll-all-loops -ffast-math -I/usr/include 
-# -march=native -O -march=native -O -I/usr/include/mpeg2dec -march=native -O -D_REENTRANT 
-# -D_FILE_OFFSET_BITS=64 -Wall -Wmissing-declarations -Wdeclaration-after-statement -MT 
-# dvb_channels.lo -MD -MP -MF .deps/dvb_channels.Tpo -c dvb_channels.c  -fPIC -DPIC -o 
-# .libs/dvb_channels.o                                           
-# In file included from /usr/include/stdlib.h:320,
-#                  from dvb_channels.c:27:
-# /usr/include/sys/types.h:52: error: conflicting types for ‘ino_t’
-# /usr/include/linux/types.h:14: note: previous declaration of ‘ino_t’ was here
-# /usr/include/sys/types.h:62: error: conflicting types for ‘dev_t’
-# /usr/include/linux/types.h:13: note: previous declaration of ‘dev_t’ was here
-# /usr/include/sys/types.h:67: error: conflicting types for ‘gid_t’
-# /usr/include/linux/types.h:27: note: previous declaration of ‘gid_t’ was here
-# /usr/include/sys/types.h:72: error: conflicting types for ‘mode_t’
-# /usr/include/linux/types.h:15: note: previous declaration of ‘mode_t’ was here
-# /usr/include/sys/types.h:77: error: conflicting types for ‘nlink_t’
-# /usr/include/linux/types.h:16: note: previous declaration of ‘nlink_t’ was here
-# /usr/include/sys/types.h:82: error: conflicting types for ‘uid_t’
-# /usr/include/linux/types.h:26: note: previous declaration of ‘uid_t’ was here
-# /usr/include/sys/types.h:90: error: conflicting types for ‘off_t’
-# /usr/include/linux/types.h:17: note: previous declaration of ‘off_t’ was here
-# In file included from /usr/include/sys/types.h:133,
-#                  from /usr/include/stdlib.h:320,
-#                  from dvb_channels.c:27:
-# /usr/include/time.h:105: error: conflicting types for ‘timer_t’
-# /usr/include/linux/types.h:22: note: previous declaration of ‘timer_t’ was here
-# In file included from /usr/include/sys/types.h:220,
-#                  from /usr/include/stdlib.h:320,
-#                  from dvb_channels.c:27:
-# /usr/include/sys/select.h:78: error: conflicting types for ‘fd_set’
-# /usr/include/linux/types.h:12: note: previous declaration of ‘fd_set’ was here
-# In file included from /usr/include/stdlib.h:320,
-#                  from dvb_channels.c:27:
-# /usr/include/sys/types.h:248: error: conflicting types for ‘blkcnt_t’
-# /usr/include/linux/types.h:119: note: previous declaration of ‘blkcnt_t’ was here
-# make[2]: *** [dvb_channels.lo] Error 1
-# make[2]: Leaving directory `/usr/src/sorcery/gmerlin-avdecoder/gmerlin-avdecoder-1.0.0/lib'
