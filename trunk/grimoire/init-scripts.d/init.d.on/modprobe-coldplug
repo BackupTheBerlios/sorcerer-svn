@@ -1,23 +1,23 @@
 #!/bin/dash
 
 ### BEGIN INIT INFO
-# Required-Start: proc sys modprobe-coldplug modprobe-r udev
+# Required-Start: proc sys udev
 # Default-Start: S
-# Short-Description: modprobe loads modules during boot
+# Short-Description: loads modules that were coldplugged by udev during a previous boot
 ### END INIT INFO
 
 if [ "$1" = try-restart ]; then exit; fi
 
 . /lib/lsb/init-functions
 
-if [ -x /sbin/modprobe ] &&
-   [ -f /etc/modules   ]
+if [ -x /sbin/modprobe    ] &&
+   [ -f /etc/coldplug/use ] &&
+   [ -f /etc/coldplug/modules ]
 then
- sed 's:#.*::;/^ *$/d' /etc/modules |
  while read REPLY; do
   if   log_warning_msg "Module $REPLY loading" && modprobe $REPLY
   then log_success_msg "Module $REPLY loaded"
   else log_failure_msg "Module $REPLY not loaded"
   fi
- done
+ done < /etc/coldplug/modules
 fi
