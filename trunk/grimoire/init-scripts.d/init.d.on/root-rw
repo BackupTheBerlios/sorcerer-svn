@@ -1,7 +1,7 @@
 #!/bin/dash
 
 ### BEGIN INIT INFO
-# Required-Start: root-ro fsck
+# Required-Start: fsck
 # Required-Stop: $local_fs
 # Default-Start: S
 # Short-Description: At boot mounts / or /media/root rw
@@ -17,21 +17,12 @@ start(){
   fi
  }
 
- restore(){ mv /etc/fstab.ori /etc/fstab; }
-
  if   log_warning_msg 'root mounting read write'; run
- then log_success_msg 'root mounted  read write'; restore
+ then log_success_msg 'root mounted  read write'
  else log_failure_msg 'root not mounted'
  fi
 }
 
-
-
-help(){ echo "Usage: $0 {start}" 1>&2; }
-
-case $@ in
- start) start ;;
-  stop) :     ;;
- try-restart) : ;;
- *) help ;;
-esac
+try_restart(){ :; }
+stop(){ :; }
+parse "$@"

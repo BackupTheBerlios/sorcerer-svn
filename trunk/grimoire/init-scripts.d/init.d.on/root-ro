@@ -5,39 +5,20 @@
 # Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
 # Required-Stop: $local_fs
 # Default-Start: S
-# Default-Stop: 0 6
-# Short-Description: At boot mounts / or /media/root ro and ro at shutdown
+# Short-Description: During non initramfs booting root-ro re-mounts / read-only
 ### END INIT INFO
+
+if [ "$1" = try-restart ] || ! [ -d /opt ]; then exit; fi
 
 . /lib/lsb/init-functions
 
 start(){
- run(){
-  if [ -d /opt ]
-  then mount -n -o remount,ro /
-  else mount -n -o         ro /media/root
-  fi
- }
-
- if   log_warning_msg 'root mounting read only'; run
+ if   log_warning_msg 'root mounting read only'; mount -n -o remount,ro /
  then log_success_msg 'root mounted  read only'
  else log_failure_msg 'root not mounted'
  fi
 }
 
-
-stop(){
- if   log_warning_msg '/ remounting  read only'; mount -o remount,ro /
- then log_success_msg '/ remounted   read only'
- else log_failure_msg '/ not mounted read only'
- fi
-}
-
-help(){ echo "Usage: $0 {start}" 1>&2; }
-
-case $@ in
- start) start ;;
-  stop) stop  ;;
- try-restart) : ;;
- *) help ;;
-esac
+stop(){ :; }
+try_restart(){ :; }
+parse "$@"

@@ -11,17 +11,11 @@
 
 start(){
  fsc(){
-  if  [ -f /media/root/sbin/init ]; then local RET
-   if [ -f /media/root/fastboot  ]; then RET=return; fi
-   if [ -f /media/root/forcefsck ]; then FORCE=-f; fi
-   umount  /media/root
-   $RET
-  else
-   if [ -f /fastboot  ]; then return; fi
-   if [ -f /forcefsck ]; then FORCE=-f; fi
-  fi
+  local FORCE
+  if grep -q fastboot  /proc/cmdline; then return; fi
+  if grep -q forcefsck /proc/cmdline; then FORCE=-f; fi
 
-  fsck -C -A -a $FORCE 1>/dev/console 2>&1 0</dev/console
+  fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
   if [ $? -gt 1 ]; then
    log_failure_msg 'fsck failed' 1>/dev/console 2>&1
    log_failure_msg 'Repair file systems by running /sbin/fsck' 1>/dev/console 2>&1

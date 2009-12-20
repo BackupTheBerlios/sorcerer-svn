@@ -2,7 +2,7 @@
 
 ### BEGIN INIT INFO
 # Provides: $local_fs
-# Required-Start: mtab root-rw
+# Required-Start: mtab root-rw move_dev
 # Required-Stop: cryptmount cryptsetup halt mdadm reboot reboot-kexec
 # Default-Start: S
 # Default-Stop: 0 6
@@ -13,15 +13,16 @@
 
 start(){
  run(){
-  if [ -f                /media/root/sbin/init ]
-  then mount --move /dev /media/root/dev ; sleep 0.01 # ensure move finishes before mount
-       chroot            /media/root mount -a
-  else                               mount -a
+  if [ -f     /media/root/sbin/init ]
+  then chroot /media/root mount -a
+  else                    mount -a
   fi
  }
 
- log_warning_msg 'Mounting filesystems from /etc/fstab'; run
- log_success_msg 'Mounted  filesystems'
+ if   log_warning_msg 'Filesystems from /etc/fstab mounting'; run
+ then log_success_msg 'Filesystems from /etc/fstab mounted'
+ else log_success_msg 'Filesystems from /etc/fstab not mounted'
+ fi
 }
 
 stop(){
@@ -33,15 +34,9 @@ stop(){
   LC_ALL=C sort -ur | xargs -r --max-lines=1024 umount -lr
  }
 
- log_warning_msg 'umounting all filesystems'; run
- log_success_msg 'umounted  all filesystems'
+ log_warning_msg 'Filesystems in /proc/mounts unmounting or remounting read-only'; run
+ log_success_msg 'Filesystems in /proc/mounts unmounted  or remounted  read-only'
 }
 
-help(){ echo "Usage: $0 {start|stop}" 1>&2; }
-
-case $@ in
- start) start ;;
- stop) stop ;;
- try-restart) : ;;
- *) help ;;
-esac
+try_restart(){ :; }
+parse "$@"

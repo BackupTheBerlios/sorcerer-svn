@@ -9,6 +9,8 @@
 # Copyright 2009 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
+if [ "$1" = try-restart ]; then exit; fi
+
 . /lib/lsb/init-functions
 
 check(){ find /etc/services.d -maxdepth 1 -type f -cnewer /etc/services | grep -q . || ! [ -f /etc/services ]; }
