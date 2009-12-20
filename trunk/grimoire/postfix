@@ -25,10 +25,10 @@ build(){
                 VSM='mail_spool_directory = /var/spool/mail'
   sed  -i  "s:#$VSM:$VSM:"  conf/main.cf
 
-mkdir    -p -m 1775 /var/spool/mail
+mkdir    -pm 1775  /var/spool/mail
+chown    mail:mail /var/spool/mail
 groupadd -K GID_MIN=256 -K GID_MAX=511    mail                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g mail -d /var/spool/mail mail 2>/dev/null
-chown    mail:mail  /var/spool/mail
 
 groupadd -K GID_MIN=256 -K GID_MAX=511    postdrop 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g postdrop -d /var/spool/mail postdrop 2>/dev/null
@@ -74,11 +74,13 @@ useradd  -K UID_MIN=256 -K UID_MAX=511 -g postfix -d /var/spool/mail postfix 2>/
 
  sh ./postfix-install    -non-interactive  &&
  ln -fs ../sbin/sendmail /usr/lib/sendmail &&
- ln -fs postfix/aliases  /etc/aliases
+ ln -fs postfix/aliases  /etc/aliases      &&
+ mkdir -pm 1775  /var/spool/mail           &&
+ chown mail:mail /var/spool/mail
 }
 
-post_install() {
+post_install(){
  # Set queue permissions properly to avoid errors like:
  # postsuper: fatal: scan_dir_push: open directory defer: Permission denied
- postfix  set-permissions
+ postfix set-permissions
 }
