@@ -5,6 +5,7 @@
 # Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
 # Required-Stop: $local_fs
 # Default-Start: S
+# Default-Stop: 0 6
 # Short-Description: During non initramfs booting root-ro re-mounts / read-only
 ### END INIT INFO
 
@@ -19,6 +20,12 @@ start(){
  fi
 }
 
-stop(){ :; }
+stop(){
+ if   log_warning_msg '/ remounting  read only'; mount -o remount,ro /
+ then log_success_msg '/ remounted   read only'
+ else log_failure_msg '/ not mounted read only'
+ fi
+}
+
 try_restart(){ :; }
 parse "$@"

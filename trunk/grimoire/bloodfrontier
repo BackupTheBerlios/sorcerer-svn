@@ -1,0 +1,30 @@
+    stable B2-linux
+  category game
+ attribute x11
+    source $SOURCEFORGE_URL bloodfrontier/Blood%20Frontier/Blood%20Frontier%20Beta%202/bloodfrontier-$VERSION.tar.bz2
+  homepage http://www.bloodfrontier.com/
+  estimate 600
+      desc '3D FPS'
+
+build(){
+manual_install(){
+find data -type f | xargs --max-lines=256 chmod 644
+find data -type d | xargs --max-lines=256 chmod 755
+rm -rf  /usr/share/bloodfrontier
+mv data /usr/share/bloodfrontier
+mkdir -vpm 755 /usr/bin /usr/libexec
+for file in */bin;       do install -vm 755 $file /usr/libexec/; done
+for file in $SCRIPT_DIR; do install -vm 755 $file /usr/bin/; done
+true
+}
+
+rm -f bin/* &&
+cd src &&
+rm -rf lib &&
+## Will use included enet library
+#sed -i 's/client:	libenet/client:	true/
+#	s/server:	libenet/server:	true/' Makefile &&
+make clean install &&
+prepare_install
+manual_install
+}
