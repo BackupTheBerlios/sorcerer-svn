@@ -1,5 +1,3 @@
-       url $SOURCEFORGE_URL
-
 case $SPELL in
  uqm) 
     stable 0.6.2 0.6.1 0.6.0 0.5.0 0.4.0 0.3 0.2 0.1
@@ -7,12 +5,12 @@ case $SPELL in
   optional uqm-3domusic '' '' for excellent but large music files
   optional uqm-remix    '' '' for remixed music instead of original music
   optional uqm-voice    '' '' for excellent but large voice files
-   source sc2/uqm-$VERSION-source.tgz
+   source $SOURCEFORGE_URL sc2/UQM/$VERSION/uqm-$VERSION-source.tgz
  estimate 600 ;;
 
    *)
-    stable             0.6.0 0.5.0 0.4.0 0.3 0.2 0.1
-   source sc2/uqm-$VERSION-${SPELL:4}.uqm
+    stable             0.6.0
+   source sc2/UQM/0.6/uqm-0.6.0-${SPELL:4}.uqm
   pre_build(){ :; } ;;
 esac
   category game
@@ -56,10 +54,12 @@ build(){
   CONTENT1=${SOURCE[0]}
   CONTENT2=${SOURCE[1]}
   CONTENT3=${SOURCE[2]}
+  CONTENT4=${SOURCE[3]}
   PACKAGE=/usr/share/uqm/content/packages/addons/uqmremix
   if   [[ -f $CONTENT1 ]] &&
        [[ -f $CONTENT2 ]] &&
-       [[ -f $CONTENT3 ]]
+       [[ -f $CONTENT3 ]] &&
+       [[ -f $CONTENT4 ]]
   then
    prepare_install     &&
    set     -x          &&
@@ -67,6 +67,7 @@ build(){
    install -vm 644 -o root -g root $CONTENT1 $PACKAGE &&
    install -vm 644 -o root -g root $CONTENT2 $PACKAGE &&
    install -vm 644 -o root -g root $CONTENT3 $PACKAGE &&
+   install -vm 644 -o root -g root $CONTENT4 $PACKAGE &&
    set     +x
   else
    echo "Not all remixes tarballs found."
