@@ -6,16 +6,32 @@
 
 # -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by texlive )
 
-    stable 0.10.7 0.10.6
-  unstable 0.12.0
+# 0.12.3 does not install all headers nor properly link 
+# /usr/lib/libpoppler-glib.so.4.0.0       /usr/lib/libgdk-x11-2.0.so.0    gtk+
+# therefore, using configure method to compile and install poppler 0.12.3
+
+    stable 0.12.3 0.10.7 0.10.6
+  unstable 0.12.3 0.12.0
+    legacy 0.10.7
    require cmake gtk+ lcms poppler-data
   category documentation
  attribute library x11
     source http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
   homepage http://poppler.freedesktop.org/
-      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
-  estimate 700
+#     opts -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
+  estimate 900
       desc 'PDF rendering library'
+
+build(){
+ ./configure           \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --prefix=/usr  \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
+}
 
 current(){
 case $VERSION in
