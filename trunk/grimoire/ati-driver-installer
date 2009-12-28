@@ -3,17 +3,18 @@
 # 1 877 284 1566
 # Phone number for ATI support
 
-    stable 9-1-x86.x86_64 8-5-x86.x86_64 8-4-x86.x86_64 8-3-x86.x86_64 8.443.1-x86.x86_64 7-11-x86.x86_64 8.42.3-x86.x86_64 8.40.4-x86.x86_64
+    stable 9-3-x86.x86_64 9-1-x86.x86_64 8-5-x86.x86_64 8-4-x86.x86_64 8-3-x86.x86_64 8.443.1-x86.x86_64 7-11-x86.x86_64 8.42.3-x86.x86_64 8.40.4-x86.x86_64
    require MesaLib gcc-v3.3 xorg-legacy
   optional rovclock '' '' to underclock the ATI GPU before the fan melts
   category kernel
  attribute linux-26-module x11 x86
+ attribute broke
     source http://www2.ati.com/drivers/linux/ati-driver-installer-$VERSION.run
   homepage http://www.ati.com/support/drivers/linux/radeon-linux.html
       vurl http://ati.amd.com/support/drivers/linux/linux-radeon.html
   eprovide ati_firegl fglrx
   estimate 50
-      desc 'ati-driver-installer is provided by ATI for radeon class graphics cards
+      desc 'xorg and linux kernel drivers provided by ATI for radeon class graphics cards
 
 The fglrx module will probably load if agpgart and radeon
 modules are not loaded nor compiled directly into the kernel.
@@ -29,6 +30,7 @@ The display driver requires linux versions 2.6.x and POSIX shared memory.'
 
 pre_build(){
  default_pre_build
+ BUILD_DIR="${BUILD_DIR:-$SOURCE_DIR/ati-driver-installer}"
  cd $BUILD_DIR
  sh $SOURCE --extract $BUILD_DIR
  chown -R root:root   $BUILD_DIR
@@ -102,5 +104,4 @@ build(){
       make_install
 }
 
-
-post_install(){ depmod -a -q -F /boot/System.map; }
+# post_install(){ depmod -a -q -F /boot/System.map; }
