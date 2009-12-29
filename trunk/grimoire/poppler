@@ -6,9 +6,15 @@
 
 # -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by texlive )
 
-# 0.12.3 does not install all headers nor properly link 
+# 0.12.3 cmake method does not install all headers nor properly link 
 # /usr/lib/libpoppler-glib.so.4.0.0       /usr/lib/libgdk-x11-2.0.so.0    gtk+
 # therefore, using configure method to compile and install poppler 0.12.3
+
+# 0.12.3 configure method does not install important header files
+# such as PDFDoc.h
+
+# poppler install methods are partially broke
+# probably due to poppler software authors errors?
 
     stable 0.12.3 0.10.7 0.10.6
   unstable 0.12.3 0.12.0
@@ -19,10 +25,20 @@
     source http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
   homepage http://poppler.freedesktop.org/
 #     opts -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
+      opts --enable-static=no
   estimate 900
       desc 'PDF rendering library'
 
 build(){
+ missing_install(){
+  mkdir -vpm 755 /usr/include/poppler
+  mkdir -vpm 755 /usr/include/poppler/goo
+  mkdir -vpm 755 /usr/include/poppler/splash
+  find poppler -type f -name \*.h | xargs --max-lines=256 cp -t /usr/include/poppler
+  find splash  -type f -name \*.h | xargs --max-lines=256 cp -t /usr/include/poppler/splash
+  find goo     -type f -name \*.h | xargs --max-lines=256 cp -t /usr/include/poppler/goo
+ }
+
  ./configure           \
   --sysconfdir=/etc    \
   --localstatedir=/var \
@@ -30,11 +46,13 @@ build(){
  $OPTS           &&
  make            &&
  prepare_install &&
- make    install
+ make    install &&
+ missing_install
 }
 
 current(){
 case $VERSION in
+ 0.12.3) [ -f /usr/include/poppler/PDFDoc.h ] ;;
  0.10.7) [ -f /usr/include/poppler/goo/gtypes.h ] ;;
 esac
 }
