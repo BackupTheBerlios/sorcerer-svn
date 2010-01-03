@@ -1,13 +1,18 @@
-# 2.28.0 has compile error
-
-    stable 2.26.0 2.24.0 2.22.0
-   require GConf gnome-themes libglade startup-notification zenity
+    stable 2.28.0 2.26.0 2.24.0 2.22.0
+   require GConf gnome-themes libcanberra libgtop startup-notification zenity
+#  require GConf gnome-themes libglade startup-notification zenity
   category window-manager
  attribute gnome
-       url $GNOME_URL
-    source sources/metacity/${VERSION:0:4}/metacity-$VERSION.tar.bz2
+    source $GNOME_URL sources/metacity/${VERSION:0:4}/metacity-$VERSION.tar.bz2
   homepage http://people.redhat.com/~hp/metacity
       opts --enable-static=no
      wmbin /usr/bin/metacity
   estimate 8000
       desc 'gtk+ windows manager'
+
+build(){
+case $VERSION in
+ 2.28.0) sed -i 's:-Werror::g' configure ;;
+esac
+default_build
+}

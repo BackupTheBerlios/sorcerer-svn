@@ -1,4 +1,4 @@
-    stable 4.0.035 4.0.033 4.0.024 4.0.017
+    stable 4.1 4.0.035 4.0.033 4.0.024 4.0.017
    require ncurses readline
   category development/interpreter utility/shell
  attribute console solo
@@ -20,9 +20,9 @@
    protect /bin/bash
    protect /bin/sh
    exclude /etc/shells
-  estimate 1100
+  estimate 1000
  freshmeat gnubash
-      desc 'bash is the bourne again shell.
+      desc 'the bourne again shell
 Bash is an sh-compatible shell that incorporates useful
 features from the Korn shell (ksh) and C shell (csh).
 It is intended to conform to the
@@ -58,6 +58,20 @@ build(){
  }
 
 
+# added because old readline ELF libraries must be removed from the library cache
+# as soon as new bash is compiled because new bash will contain symbols
+# that will only resolve with readline 6.1
+# However, now library cache will not prune while
+# there are any installed spells with missing required ELF libraries.
+
+ clear_library_cache(){
+  case $VERSION in
+   4.1) rm -f $LIBRARY_CACHE/libhistory.so* \
+              $LIBRARY_CACHE/libreadline.so*
+        ldconfig ;;
+  esac
+ }
+
 # cast automatically patches it.
 # CX=1
 # while [[ -n  ${SOURCE[$CX]} ]]; do
@@ -74,10 +88,6 @@ build(){
             sed  -i "s:gnu:uclibc:g" support/config.sub ;;
  esac
 
-case $VERSION in
- 4.0) patch -p1 < $SCRIPT_DIR/bash-4.0.patch ;;
-esac
-
  ./configure               \
  --build=$BUILD            \
  --prefix=/usr             \
@@ -90,5 +100,6 @@ esac
  make    install           &&
  ln -sf bash /bin/sh       &&
  install_loadables         &&
- install_etc
+ install_etc               &&
+ clear_library_cache
 }

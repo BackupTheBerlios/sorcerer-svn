@@ -1,27 +1,29 @@
 # 0.5.904 wants a pkgconfig for liblircclient0, but there is none.
 
-    stable 0.5.904 0.5.903 0.5.902 0.5.901 0.5.11 0.5.10
+    stable 0.5.905 0.5.904 0.5.903 0.5.902 0.5.901 0.5.11 0.5.10
     secure 0.5.903 0.5.902 0.5.901 0.5.11 0.5.10
-   require firefox xine-lib
-      opts --disable-lirc --disable-mozjs --disable-ffjs --disable-seajs
+   require xine-lib xulrunner
+#     opts --disable-lirc --disable-ffjs --disable-seajs
+#     opts --disable-lirc --disable-mozjs --disable-ffjs --disable-seajs
+
 # It will not use lirccd as it should, because it expects a pkgconfig file
 # which does not exist,
 # and it can not detect installed
-# firefox libraries or xulrunner libraries or seamonkey libraries.
 # optional lirc '' '' for infrared remote control support
- attribute broke
   category video/dvd video/player
  attribute x11
+ attribute broke
     source $SOURCEFORGE_URL xine/gxine%20\(GTK%20front%20end\)/$VERSION/gxine-$VERSION.tar.bz2
   homepage http://xine.sourceforge.net
   estimate 700
-      desc 'gxine is a gtk+ front end to xine, a video player.'
+      desc 'front end to xine, a video player'
 
-build(){
-                       ULM=/usr/lib/mozilla
- export  LDFLAGS+=" -L$ULM -Wl,-rpath-link,$ULM -Wl,-rpath,$ULM"
- grep  -lr '\-ljs' * |
- xargs --max-lines=64 \
- sed   -i 's:-ljs:/usr/lib/mozilla/libmozjs.so:'
- default_build
+build_old(){
+(
+export JS_CFLAGS="$( pkg-config --cflags mozilla-js )"
+export JS_CFLAGS+=" $( pkg-config --cflags libxul-unstable )"
+export JS_LIBS="$( pkg-config --libs mozilla-js )"
+export JS_LIBS+=" $( pkg-config --libs libxul-unstable )"
+default_build
+)
 }
