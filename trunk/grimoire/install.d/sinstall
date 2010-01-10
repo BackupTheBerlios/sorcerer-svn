@@ -240,40 +240,33 @@ make_bootloader_conf(){
 
 
 transfer_arch(){
-# Pekka Panula reports that the transfer fails on his box
-# unless he selects 6 as ?cache?buffer? size
-
-#BUFFER=$( inputbox "Please enter buffer size or press enter" "64m" )
+ local MIR=/media/IR
 
  if   [[ -d $TARGET/var/cache ]]
  then mv    $TARGET/var/cache $TARGET/var/cache.old
  fi
 
- cd /
- rm    -vfr                    $TARGET/{bin,dev,etc,lib,lib64,sbin,tmp,usr,var}
- mkdir -vpm 755                $TARGET/{dev,etc,home,media/{cdrom,floppy,root},proc,sys,tmp,var/cache/archive}
- mkdir -vpm 700                $TARGET/etc/sorcery/log/{config,opt.{on,off},provide}
- chmod -v  1777                $TARGET/tmp
- cp    -va dev etc init        $TARGET
- rm    -f                      $TARGET/etc/init.d/log.d/*
- cp    -va     etc/skel        $TARGET/root
- mkdir -p                      $TARGET/root/.sorcery
- chmod -v   700                $TARGET/root
- cp    -va /media/IR/boot      $TARGET
- cp    -av /media/IR/var/cache/sources \
-                               $TARGET/var/cache/
- rm    -fr                     $TARGET/boot/isolinux
- cp    -va /media/IR/var/cache/archive \
-                               $TARGET/var/cache/
- mkdir -vpm 755                $TARGET/lib/udev
- cp    -va /lib/udev/dev       $TARGET/lib/udev/
+ # Free some RAM incase the box is running low.
+ rm -fr /lib/modules
 
-# find $TARGET/var/cache/archive -type f |
-# while read
-# do 7za x -bd -so "$REPLY"
-# done 2>/dev/null |
-# tar -C $TARGET -ixvpf - 2>&1 |
-# sed '/tar: /d'
+ cd /
+ rm    -vfr              $TARGET/{bin,dev,etc,lib,lib64,opt,sbin,tmp,usr,var}
+ mkdir -vpm 755          $TARGET/{dev,etc,home,media/{cdrom,floppy,root},proc,sys,tmp,var/cache/archive}
+ mkdir -vpm 700          $TARGET/etc/sorcery/log/{config,opt.{on,off},provide}
+ chmod -v  1777          $TARGET/tmp
+ cp    -va dev etc init  $TARGET
+ rm    -f                $TARGET/etc/init.d/log.d/*
+ cp    -va     etc/skel  $TARGET/root
+ mkdir -vpm 700          $TARGET/root/.sorcery
+ chmod -v   700          $TARGET/root
+ cp    -va $MIR/boot     $TARGET
+ cp    -av $MIR/var/cache/sources \
+                         $TARGET/var/cache/
+ rm    -fr               $TARGET/boot/isolinux
+ cp    -va $MIR/var/cache/archive \
+                         $TARGET/var/cache/
+ mkdir -vpm 755          $TARGET/lib/udev
+ cp    -va /lib/udev/dev $TARGET/lib/udev/
 
  find $TARGET/var/cache/archive -type f |
  xargs --max-lines=1024 cat |
