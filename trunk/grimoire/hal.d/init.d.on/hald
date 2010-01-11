@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/dash
 
 ### BEGIN INIT INFO
 # Required-Start: dbus run $syslog var_cache_hald
 # Required-Stop: kill
 # Should-Stop: kill
-# Default-Start: 2 3 4 5
-# Default-Stop: 0 1 6
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
 # Short-Description: hald provides present system devices through dbus system bus
 ### END INIT INFO
 
@@ -15,5 +15,11 @@
 PIDF=/var/run/haldaemon.pid
 SERV=/usr/sbin/hald
 OPTS='--daemon=yes --use-syslog'
+
+# reniced to highest priority in order to eliminate slugish keyboard mouse input events
+# remember renice is usually /usr/bin/renice and not available on initramfs
+# have renice move to /bin if hald is started during sysinit
+
+renice -19 $$ 1>/dev/null
 
 parse "$@"
