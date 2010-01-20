@@ -1,51 +1,12 @@
-    stable 1.4.10 1.4.9.1 1.4.8 1.4.7 1.4.6 1.4.5 1.4.4
-# Require ruby-1.8 because newer version don't install ruby.h needed by amarok
-   require kdelibs-v3 ruby-1.8 sqlite taglib
-  optional arts             ''                  --without-arts       to use aRts as multimedia backend, avoid using arts
-  optional faad2            --with-mp4v2        ''                   for MP4/AAC tag reading and writing, remember to compile faad2 with libmp4v2
-  optional gst-plugins-base ''                  --without-gstreamer  to use GStreamer as multimedia backend, recomended
-  optional k3b              ''                  ''                   for CD-burning support
-  optional kdebase-v3       ''                  ''                   to install amaroK side bar to konqueror
-  optional kdemultimedia-v3 ''                  ''                   for playing audio CDs
-  optional libgpod          --with-libgpod      --without-libgpod    for ipod support
-  optional libmtp           --with-libmtp       --without-libmtp     for MTP device support
-  optional mysql            --enable-mysql      --disable-mysql      build amaroK with MySQL support
-  optional postgresql       --enable-postgresql --disable-postgresql build amaroK with PostgreSQL support
-  optional xine-lib         ''                  --without-xine       to use xine-lib as multimedia backend, also recomended
-  optional xmms             --with-xmms         --without-xmms       XMMS visualization support
-#optional sqlite          --without-included-sqlite ''             to use system SQlite or amaroK SQlite'
-
-  category audio/player kde-extragear
- attribute kde3
-       url $KDE_URL
+    stable 2.2.2 2.2.1 2.2.0 2.1.1
+   inherit kde-v4
+   require kdelibs-v4 libmtp mysql qca qtscriptgenerator taglib-extras
+  optional libgpod
+  optional loudmouth
+  category audio
+ attribute kde4
     source stable/amarok/$VERSION/src/amarok-$VERSION.tar.bz2
-  homepage http://amarok.kde.org
-case $VERSION in
- 1.4.9) conflicts libtunepimp ;;
-esac
-# ? amarok does not compile with --enable-final
-#     opts --disable-debug --without-included-sqlite
-
-      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug
-#     opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
-    CFLAGS='-O3 -ffast-math'
-   LDFLAGS='-Wl,-O1'
-  estimate 6000
-      desc 'amarok is a music player for Linux and Unix with an intuitive interface.
-Its interface uses a powerful browser metaphor that allows you to create playlists 
-that make the most of your music collection.' 
-
-build(){
- patch -p0 < $SCRIPT_DIR/amarok-1.4.9.1-libmtp-0.3.0-API.patch  &&
-
- export RUBY=/opt/ruby/bin/ruby
-
- ./configure           \
-  --sysconfdir=/etc    \
-  --localstatedir=/var \
-  --prefix=/usr        \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install
-}
+  homepage http://amarok.kde.org/
+  estimate 2000
+     desc 'music manager for kde4'
+ conflicts amarok2
