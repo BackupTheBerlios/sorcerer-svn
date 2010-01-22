@@ -1,5 +1,4 @@
-    stable photon-20100121-0 photon-20100118-0 photon-20100116-0 photon-20100103-0
-  unstable photon-20100121-8
+    stable photon-20100122-0 photon-20100121-0 photon-20100118-0 photon-20100116-0 photon-20100103-0
    require bash bzip2 curl dialog diffutils file findutils gcc grep grimoire gzip init-scripts less lzip make mktemp p7zip patch procps rpmunpack sorcery-sentinel tar which xz
   optional ccache            '' '' for faster compilation when updating installed software
   optional sdelta3           '' '' for downloading tiny source tarball patches
@@ -63,130 +62,10 @@ build(){
 
 post_install(){
 
- missing_init_script(){
-  find  $VERSION_LOGS -type f -printf '%f\n' |
-  while read
-  do    [[ -d $GRIMOIRE/$REPLY.d/init.d.on ]] &&
-        find  $GRIMOIRE/$REPLY.d/init.d.on -type f -printf '%f\n'
-  done  |
-  while read
-  do    [[ -f /etc/init.d/$REPLY ]] || echo "$REPLY"
-  done  |
-  while read
-  do    find $GRIMOIRE/*.d/init.d.on/$REPLY -type f
-  done  |
-  sed   "s:$GRIMOIRE/::;s:\.d/.*::" |
-  pipe_queue $CAST_QUEUE com
- }
-
- move_ldd_logs(){
-  [[ -d /etc/sorcery/log/elf ]] && return
-  mv   -v     /etc/sorcery/log/ldd /etc/sorcery/log/elf
-  grep -lr  '^/etc/sorcery/log/ldd' $INSTALL_LOGS | xargs -r --max-lines=2048 \
-  sed  -i 's:^/etc/sorcery/log/ldd:/etc/sorcery/log/elf:'
- }
-
- make_progress(){
-  if [ -d ${PROGRESS_LOGS:=/etc/sorcery/log/progress} ]; then return; fi
-  mkdir -p $PROGRESS_LOGS
-  [[ -d /etc/sorcery/log/hold ]] &&
-  find /etc/sorcery/log/hold -type f -printf '%f\n' |
-  while read; do installed_version $REPLY > $PROGRESS_LOGS/$REPLY; done
-  [[ -d /etc/sorcery/log/sold ]] &&
-  find /etc/sorcery/log/sold -type f -printf '%f\n' |
-  while read; do echo secure > $PROGRESS_LOGS/$REPLY; done
-  [[ -d /etc/sorcery/log/exile ]] &&
-  find /etc/sorcery/log/exile -type f -printf '%f\n' |
-  while read; do echo exile > $PROGRESS_LOGS/$REPLY; done
- }
-
- remove_old_logs(){
-  rm -fr /etc/sorcery/log/{id,{boot,xinetd}.{on,off}}
-  rm -fr /etc/sorcery/log/{exile,hold,sold}
- }
-
  discard_old_index(){
   merge_grimoires
   generate_index   
  }
-
- fix_elf_logs(){
-  local R
-  ELF_LOGS=${ELF_LOGS:-/etc/sorcery/log/elf}
-
-  if   [ -f             $ELF_LOGS/sorcery-sentinel ] && 
-       read R R REPLY < $ELF_LOGS/sorcery-sentinel   &&
-       [ "$REPLY" ]
-  then return
-  fi
-
-  echo "Updating ELF logs"
-  echo "This may require several minutes."
-  echo "Please be patient."
-
-  mkdir_p $ELF_LOGS
-
-  show_installed |
-  while read; do elf_of "$REPLY" > $ELF_LOGS/$REPLY; done
-
-  LC_ALL=C grep -lr /etc/sorcery/log/ldd/ $INSTALL_LOGS |
-  xargs -r --max-lines=2048 \
-  sed   -i "s:/etc/sorcery/log/ldd/:/etc/sorcery/log/elf/:"
-
-  rm -fr /etc/sorcery/log/ldd
- }
-
- move_temporary_logs(){
-  move(){
-   while [[ -n $1 ]]; do
-    if   [[ -e   /etc/sorcery/log/$1 ]] && ! [[ -e /var/log/sorcery/$1 ]]
-    then mv -v   /etc/sorcery/log/$1               /var/log/sorcery/$1
-    else rm -vfr /etc/sorcery/log/$1
-    fi
-    shift
-   done
-  }
-
-  [[ -h /etc/sorcery/log ]] && return
-  [[ -h /var/log/sorcery ]] && return
-  [[ -d /var/log/sorcery/activity ]] && return
-  mkdir_p /var/log/sorcery
-  move activity dispel.gz estimate event fail history.gz leech resume snap snap.gz
- }
-
- difuse_old_elf(){
-  case $HOSTTYPE in
-   x86_64) LC_ALL=C grep -lx "/lib64/libc.so.6" $ELF_LOGS | xargs -r --max-lines=256 sed -i '\,/lib64/libc.so.6,d' ;;
-        *) LC_ALL=C grep -lx   "/lib/libc.so.6" $ELF_LOGS | xargs -r --max-lines=256 sed -i   '\,/lib/libc.so.6,d' ;;
-  esac
- }
-
- clean_logd(){
-  TMPD=/tmp/.log.d.$RANDOM$RANDOM$$
-  mkdir $TMPD
-  mount --move /etc/init.d/log.d $TMPD
-  rm -f /etc/init.d/log.d/*
-  mount --move $TMPD /etc/init.d/log.d
-  rmdir $TMPD
- }
-
- [[ -d  /lib.old/modules ]] &&
- rm -fr /lib.old
-
- [[  -f /etc/sorcery/log/version/install ]] ||
- rm -fr /boot/isolinux
-
- fix_md5sum_logs(){
-  grep  -l /var/log/sorcery/ $MD5SUM_LOGS |
-  xargs -r --max-lines=2048 sed -i '\,/var/log/sorcery/,d'
- }
-
- . /etc/sorcery/config
-
- if   [ -f $INSTALL_LOGS/xkbdata ]
- then echo xkeyboard-config | pipe_queue $CAST_QUEUE com
- fi
-
 
  fix_nspr_provide(){
   if [ -f   $PROVIDE_LOGS/nspr ] &&
@@ -195,17 +74,12 @@ post_install(){
   fi
  }
 
-#missing_init_script
-#clean_logd
-#difuse_old_elf
-#move_ldd_logs
- discard_old_index
-#make_progress
-#remove_old_logs
+ . /etc/sorcery/config
 
-#fix_elf_logs
-#fix_md5sum_logs
-#move_temporary_logs
+ [[ -d  /lib.old ]] &&
+ rm -fr /lib.old
+
+ discard_old_index
  fix_nspr_provide
  default_post_install
 }
