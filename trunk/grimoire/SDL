@@ -2,6 +2,7 @@
 
     stable 1.2.14 1.2.13 1.2.12
    require yasm
+      opts --disable-rpath
   optional DirectFB --enable-video-directfb --disable-video-directfb for directfb video output
   optional aalib    --enable-video-aalib    ''                       for ascii art rendering
   optional alsa-lib --enable-alsa           --disable-alsa           for output using ALSA
@@ -22,9 +23,16 @@ SDL is a library that allows portable low-level access
 to a video framebuffer, audio output, mouse, and keyboard.'
 
 
-build(){
+build_old(){
  # SDL unnecessarily links using g++.
  grep -lr CXXLINK * |
  xargs --max-lines=64 sed -i "s:\$(CXXLINK):\$(LINK):"
  default_build
+}
+
+current(){
+case $VERSION in
+ 1.2.14)      [ -f       /usr/lib/pkgconfig/sdl.pc ] &&
+         ! grep -q rpath /usr/lib/pkgconfig/sdl.pc   ;;
+esac
 }
