@@ -1,12 +1,11 @@
     stable 0.19 0.18.2 0.18.1 0.18 0.17
-      opts --disable-rpath
+      opts --disable-rpath --enable-shared=yes --enable-static=no
    require expat zlib
   category graphic utility
  attribute library
     source http://www.exiv2.org/exiv2-$VERSION.tar.gz
       vurl http://www.exiv2.org/download.html
   homepage http://www.exiv2.org/
-      opts --enable-static=no
   estimate 500
       desc 'library and utilities to manipulate image formats
 exiv2 is a C++ library and a utility to access image metadata
@@ -15,8 +14,13 @@ JPEG, TIFF and several RAW image formats.'
 
 build(){
 # Necessary to disable the rpath
-sed -i 's: -rpath $(libdir)::' src/Makefile
-sed -i 's:instname="$dir/$name"i:instname="$dir/$name":' config/ltmain.sh
+# sed -i 's: -rpath $(libdir)::' src/Makefile
+# sed -i 's:instname="$dir/$name"i:instname="$dir/$name":' config/ltmain.sh
+# Neccessary fake rpath for buggy libtool
+#  sed -i 's: -rpath $(libdir): -rpath /rpath:' src/Makefile
+# impossible to disable rpath
+# and generate ELF libraries
+# due to broke libtool
 
 default_build
 }

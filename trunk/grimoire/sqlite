@@ -1,13 +1,13 @@
 # redland version 1.0.9 will not compile with sqlite version > 3.6.16
 # sqlite 3.6.19 compiles fine.
     stable 3.6.22 3.6.21 3.6.16
+      opts --disable-rpath --enable-shared=yes --enable-static=no
    require ncurses readline tcl
   category db
  attribute library
     source http://www.sqlite.org/sqlite-$VERSION.tar.gz
       vurl http://www.sqlite.org/download.html
   homepage http://www.sqlite.org/
-      opts --enable-static=no
   estimate 200
       desc 'a SQL engine in a C library
 sqlite is a C library that implements an SQL database engine.
@@ -23,8 +23,14 @@ the big database servers for most operations.'
 
 build(){
 # Necessary to disable the rpath
-sed -i 's:-rpath "$(libdir)"::;/-rpath "$(TCLLIBDIR)"/d' Makefile.in
-sed -i 's:instname="$dir/$name"i:instname="$dir/$name":' ltmain.sh
+# sed -i 's:-rpath "$(libdir)"::;/-rpath "$(TCLLIBDIR)"/d' Makefile.in
+# sed -i 's:instname="$dir/$name"i:instname="$dir/$name":' ltmain.sh
+# Neccessary fake rpath for buggy libtool
+#sed -i 's:-rpath "$(libdir)":-rpath /rpath:
+#        s:-rpath "$(TCLLIBDIR)":-rpath /rpath:' Makefile.in
+# impossible to disable rpath
+# and generate ELF libraries
+# due to broke libtool
 
 default_build
 }
