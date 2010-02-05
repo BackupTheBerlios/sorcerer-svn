@@ -9,8 +9,6 @@
       opts --without-selinux
        url $GNU_URL
     source glibc/glibc-$VERSION.tar.xz
-#    ource glibc/glibc-$VERSION.tar.bz2
-#   source glibc/glibc-libidn-$VERSION.tar.bz2
   homepage http://www.gnu.org/software/libc
    exclude /etc/ld.so.cache
    exclude /etc/ld.so.conf
@@ -59,7 +57,12 @@ build(){ (
   del_old_cache
   prepare_install
 
-  LD_LIBRARY_PATH="$LLP" $LD_SO /bin/cp -av * /
+# due to changes in coreutils' cp creates hard links
+# in a way that sentinel does not track
+# LD_LIBRARY_PATH="$LLP" $LD_SO /bin/cp -av * /
+
+  LD_LIBRARY_PATH="$LLP" $LD_SO /bin/tar -c * |
+  LD_LIBRARY_PATH="$LLP" $LD_SO /bin/tar -C / -pxf -
 
   del_old_cache
   true
@@ -140,10 +143,4 @@ post_install(){
           pipe_queue $CAST_QUEUE com
  /sbin/init u
  true
-}
-
-current(){
-case $VERSION in
- 2.11.1) [ -f /usr/bin/getconf ] ;;
-esac
 }
