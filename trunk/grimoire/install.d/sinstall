@@ -962,6 +962,7 @@ list_part(){
    sed '\,^/dev/loop,d
         \,^/dev/mapper/,p
         \,^/dev/mapper/,d
+        \,^/dev/fd[0-9]$,d
         \,^/dev/sr[0-9]$,d
         \,[0-9],p;d'
  ) | uniqs
@@ -971,7 +972,7 @@ get_part(){
  $DIALOG \
   --title $"Block Device Selection Menu" \
   --menu  $"Please select a block device" \
-  0 0 0   $( list_part | sed ' s:$:\tblock' )
+  0 0 0   $( list_part | sed ' s:$:\tblock:' )
 }
 
 get_pass(){
@@ -1281,5 +1282,31 @@ export IFS="	$LF"
 export DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
 
 trap : INT QUIT
+
+if   ! [ -d /media/IR/boot/isolinux ]
+then $DIALOG --msgbox "\
+The Sorcerer Install/Rescue image is
+normally automatically mounted during boot
+by the execution of /etc/init.d/find_ir start
+Not having it mounted is unexpected.
+Menu driven installation will not be possible.
+I apologize for the inconvenience.
+Please email a detailed report of the problem,
+cause and solution please to kyle.sallee@gmail.com" 15 60
+exit 1
+fi
+
+if ! [ -f /usr/bin/tr ]
+then $DIALOG --msgbox "\
+Important archives such as coreutils
+were not unarchived from the Install/Rescue image.
+Archive are normally automatically unarchived during boot 
+by the execution of /etc/init.d/archives start
+Consequently, menu driven installation is not possible.
+I apologize for the inconvenience.
+Please email a detailed report of the problem,
+cause and solution please to kyle.sallee@gmail.com" 15 70
+exit 1
+fi
 
 main_menu
