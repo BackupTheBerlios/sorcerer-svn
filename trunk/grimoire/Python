@@ -41,6 +41,8 @@ build(){
  make  "OPT=$CFLAGS" &&
  prepare_install     &&
  make    install     &&
+# while sentinel is unable to track hard links...
+ touch /usr/bin/python &&
  if   ! [ -x /usr/lib/libpython${VERSION:0:3}.so ]
  then ln  -s          libpython${VERSION:0:3}.so.1.0 \
              /usr/lib/libpython${VERSION:0:3}.so
@@ -55,4 +57,10 @@ post_install(){
    sort -u  | basenames |
    grep -v   "^Python"  |
    pipe_queue "$CAST_QUEUE" com )
+}
+
+current(){
+case $VERSION in
+ 2.6.4) LC_ALL=C grep -q /usr/bin/python $INSTALL_LOGS/Python ;;
+esac
 }
