@@ -20,12 +20,11 @@
 
     stable 1.0.10 1.0.9 1.0.8 1.0.7
 case $VERSION in
- 1.0.10) opts --with-virtuoso=no ;;
+ 1.0.10) require automake ;;
 esac
-#     opts --with-virtuoso=yes
+      opts --with-virtuoso=yes
 
-   require libiodbc mysql rasqal sqlite
-#  require libiodbc mysql rasqal sqlite virtuoso-opensource
+   require libiodbc mysql rasqal sqlite virtuoso-opensource
 
 # optional mysql      '' '' for mysql support
   optional postgresql '' '--with-postgresql=no' for postgresql support
@@ -39,14 +38,9 @@ esac
 
 build(){
 case $VERSION in
+ 1.0.10) sed -i 's:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@ librdf.la:'  src/Makefile.am
+         aclocal; automake ;;
  1.0.9) sed -i 's:4\.7 4\.6:4.10 4.9 4.8 4.7 4.6:' configure ;;
 esac
 default_build
 }
-
-#current(){
-#case $VERSION in
-# 1.0.10) ! [ -f /usr/lib/redland/librdf_storage_virtuoso.so ] && 
-#         ! [ -f /usr/lib64/redland/librdf_storage_virtuoso.so ] ;;
-#esac
-#}
