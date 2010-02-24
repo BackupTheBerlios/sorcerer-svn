@@ -1,30 +1,25 @@
-# from: http://techbase.kde.org/Getting_Started/Build/KDE4/LFS
-# For building Virtuoso, these configure parameters are useful:
-#        --with-jdk4= 
-#        --without-internal-zlib 
-#        --with-pthreads 
-#        --with-readline 
-#        --with-iodbc= 
-# If building Virtuoso only for KDE, (to save disk space) use configure parameter:
-#        --disable-all-vads 
-
-
-# ../../libtool: line 4978: cd: libsrc/odbcsdk/lib: No such file or directory
-# libtool: link: cannot determine absolute directory name of `libsrc/odbcsdk/lib'
+# docs for compiling this
+# http://techbase.kde.org/Getting_Started/Build/KDE4/LFS
 
     stable 6.1.0
-      opts --enable-static=no --disable-all-vads --without-internal-zlib --with-pthreads --with-iodbc
+   require libiodbc zlib
+  optional openldap
+  optional openssl
+      opts --enable-static=no --disable-all-vads --without-internal-zlib --with-pthreads --with-iodbc=/usr
   category db
- attribute library x11
- attribute broke
+ attribute console library
     source $SOURCEFORGE_URL virtuoso/virtuoso/$VERSION/virtuoso-opensource-$VERSION.tar.gz
   homepage http://virtuoso.openlinksw.com/dataspace/dav/wiki/Main/
-  estimate 1000
-      desc 'high-performance object-relational SQL database'
+  estimate 7000
+      desc 'object-relational SQL database'
 
 build(){
 case $HOSTTYPE in
  x86_64) export CFLAGS+=' -m64' ;;
+esac
+case $VERSION in
+ 6.0.0) cp -v libsrc/zlib/zutil.h libsrc/Wi/ ;;
+#6.0.0) cp -v /usr/src/linux/include/linux/zutil.h libsrc/Wi/ ;;
 esac
 default_build
 }

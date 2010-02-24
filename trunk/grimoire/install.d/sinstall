@@ -239,8 +239,34 @@ make_bootloader_conf(){
 }
 
 
+terror_retry(){
+
+ rm -f /tmp/terror
+
+#$DIALOG --msgbox $"Errors during unarchiving. Attempting unarchiving archives one at a time." 10 50
+ find /media/IR/var/cache/archive/ -type f |
+ while read; do
+  if ! xz -cd "$REPLY"
+  then echo "$REPLY${TAB}Error decompressing" >> /tmp/terror
+  fi |
+  if ! tar -C $TARGET -ixvpf - 2>&1
+  then echo "$REPLY${TAB}Error while untarring" >> /tmp/terror
+  fi
+ done
+
+ if ! [ -f /tmp/terror ]; then
+  read -n 1 -t 900 -p "Press space to continue."
+  $DIALOG --msgbox $"Files transferred." 8 50
+ else
+  $DIALOG --textbox /tmp/terror 20 70
+ fi
+} 
+
+
 transfer_arch(){
  local MIR=/media/IR
+
+ rm -f /tmp/terror
 
  if   [[ -d $TARGET/var/cache ]]
  then mv    $TARGET/var/cache $TARGET/var/cache.old
@@ -270,13 +296,21 @@ transfer_arch(){
 
  find $TARGET/var/cache/archive -type f |
  xargs --max-lines=1024 cat |
- xz -cd |
- tar -C $TARGET -ixvpf - 2>&1 |
+ if ! xz -cd
+ then echo "Error while decompressing archives" >> /tmp/terror
+ fi |
+ if ! tar -C $TARGET -ixvpf - 2>&1
+ then echo "Error while untarring archives" >> /tmp/terror
+ fi |
  sed '/tar: /d'
 
  make_fstab > $TARGET/etc/fstab
- read -n 1 -t 900 -p "Press space to continue."
- $DIALOG --msgbox $"Files transferred." 8 50
+
+ if ! [ -f /tmp/terror ]; then
+  read -n 1 -t 900 -p "Press space to continue."
+  $DIALOG --msgbox $"Files transferred." 8 50
+ else terror_retry
+ fi
  ARCH_DONE=true
 }
 

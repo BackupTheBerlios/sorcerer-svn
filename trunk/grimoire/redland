@@ -9,11 +9,24 @@
 # -- Found Redland storage: /usr/lib/redland/librdf_storage_mysql.so;/usr/lib/redland/librdf_storage_sqlite.so;/usr/lib/redland/librdf_storage_virtuoso.so
 # -- /usr/lib/redland/librdf_storage_virtuoso.so: undefined symbol: librdf_new_uri
 
+# redland 1.0.10 does not create
+# /usr/lib/redland/librdf_storage_virtuoso.so
+# properly even if virtuoso-opensource is installed
+# This causes soprano and kdelibs-v4 and other spells
+# to fail to discover installed redland due to something like:
+# -- /usr/lib/redland/librdf_storage_virtuoso.so: undefined symbol: librdf_new_uri
+# maybe some wrote a fix patch for redland,
+# but redland authors should instead have released a fixed version 1.0.11
+
     stable 1.0.10 1.0.9 1.0.8 1.0.7
 case $VERSION in
  1.0.10) opts --with-virtuoso=no ;;
 esac
+#     opts --with-virtuoso=yes
+
    require libiodbc mysql rasqal sqlite
+#  require libiodbc mysql rasqal sqlite virtuoso-opensource
+
 # optional mysql      '' '' for mysql support
   optional postgresql '' '--with-postgresql=no' for postgresql support
   category development
@@ -31,9 +44,9 @@ esac
 default_build
 }
 
-current(){
-case $VERSION in
- 1.0.10) ! [ -f /usr/lib/redland/librdf_storage_virtuoso.so ] && 
-         ! [ -f /usr/lib64/redland/librdf_storage_virtuoso.so ] ;;
-esac
-}
+#current(){
+#case $VERSION in
+# 1.0.10) ! [ -f /usr/lib/redland/librdf_storage_virtuoso.so ] && 
+#         ! [ -f /usr/lib64/redland/librdf_storage_virtuoso.so ] ;;
+#esac
+#}
