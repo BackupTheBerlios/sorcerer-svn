@@ -17,10 +17,7 @@ NAME=initramfs
 
 mkinitrf(){
  cat $COMMON
- if   [[ -d /boot/isolinux ]]
- then find /lib/modules/$1 | cpio -o -H newc --quiet | gzip -9
- else find /lib/modules/$1 | cpio -o -H newc --quiet
- fi
+ find /lib/modules/$1 | cpio -o -H newc --quiet
 }
 
 every(){
@@ -104,10 +101,7 @@ initrf_update(){
  echo -n > $COMMON
  chmod 600 $COMMON
 
- if   [[ -d /boot/isolinux ]]
- then every | cpio -o -H newc --quiet | gzip -9 > $COMMON
- else every | cpio -o -H newc --quiet           > $COMMON
- fi
+ every | cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 |
