@@ -1,17 +1,20 @@
 # gnomecal does not work?
 
-    stable 1.91.1 1.91.0 1.90.2 1.90.1
+    stable 1.4.6 1.91.1 1.91.0 1.90.2 1.90.1
    require libgnomeui libmimedir
   category utility/office utility/time
  attribute gnome
-    source http://me.in-berlin.de/~jroger/gnome-pim/gnome-pim-$VERSION.tar.gz
+#   source http://me.in-berlin.de/~jroger/gnome-pim/gnome-pim-$VERSION.tar.gz
+    source $GNOME_URL sources/gnome-pim/${VERSION:0:3}/gnome-pim-$VERSION.tar.gz
   homepage http://www.gnome.org/gnome-office/gnome-pim.shtml
-      desc 'gnome-pim contains a calendar tool and address book.
+      desc 'calendar tool and address book
 This package contains a calendar tool with notifications
 and multiple views, and an address book.'
 
 build(){
- patch -p1 < $SCRIPT_DIR/gnome-pim.patch
+case $VERSION in
+ 1.91.1) patch -p1 < $SCRIPT_DIR/gnome-pim.patch ;;
+esac
  ./configure          \
  --prefix=/usr        \
  --sysconfdir=/etc    \
@@ -21,4 +24,3 @@ build(){
  prepare_install      &&
  make    install
 }
-
