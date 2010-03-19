@@ -1,0 +1,27 @@
+    stable 0.9.7.5
+   require httpd
+  category network/web
+ attribute library
+    source http://cband.linux.pl/download/mod-cband-$VERSION.tgz
+      vurl http://codee.pl/cband.html
+  homepage http://codee.pl/cband.html
+      desc 'bandwidth, quota, and requests per second limit module for httpd
+http://codee.pl/cband_documentation.html'
+   
+build_old(){
+ MPXS="MP_APXS=/usr/sbin/apxs"
+ OMIZ="OPTIMIZE=$CFLAGS"
+
+ perl Makefile.PL "$MPXS" &&
+ make    "$OMIZ" &&
+ prepare_install &&
+ make    install
+}
+
+post_install(){
+ default_post_install
+ if   [ -f /etc/init.d/httpd ]
+ then bash /etc/init.d/httpd try-restart
+ fi
+ true
+}
