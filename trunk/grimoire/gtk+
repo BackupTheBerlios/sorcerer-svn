@@ -2,9 +2,10 @@
 # requirement with gail
 
 # 2.18.8 has a bug that causes firefox to segmentation fault while starting.
+# do not install 2.20.0 it is developmental
 
     stable 2.18.9 2.18.7 2.18.6 2.18.5 2.18.4 2.18.3 2.18.2 2.18.1 2.18.0
-  unstable 2.19.7 2.19.6
+  unstable 2.20.0 2.19.7 2.19.6
    require atk jasper libXcomposite libXcursor libXdamage libXinerama libXrandr pango tiff
   optional cups '' '' for optional cups print backend
       opts --disable-gtk-doc --with-xinput=yes
@@ -50,33 +51,4 @@ build(){
  cp -av               $DD/* / &&
  echo gdk-pixbuf-query-loaders | pipe_queue $CAST_QUEUE com &&
  echo gtk-query-immodules-2.0  | pipe_queue $CAST_QUEUE com
-
-
-build_old(){
-
- build_older(){
-  # using default_build now.
-  # if installed with DESTDIR instead then
-  # use gtk-query-immodules-2.0  to generate /etc/gtk-2.0/gtk.immodules
-  # and gdk-pixbuf-query-loaders to generate /etc/gtk-2.0/gdk-pixbuf.loaders
-  default_build
- }
-
- uncustomize(){
-  if   [  -d  /etc.sav/gtk-2.0 ]
-  then rm -fr /etc.sav/gtk-2.0
-  fi
- }
-
-sed -i 's:demos tests::' Makefile.in
-
- ./configure          \
- --prefix=/usr        \
- --sysconfdir=/etc    \
- --localstatedir=/var \
- $OPTS                &&
- make                 &&
- prepare_install      && uncustomize &&
- make    install
-}
 }
