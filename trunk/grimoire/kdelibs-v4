@@ -1,13 +1,9 @@
    inherit kde-v4
-   require alsa-lib attica automoc4 bzip2 cmake e2fsprogs giflib heimdal libXpm libXScrnSaver libXtst lua pcre phonon polkit-qt polkit-qt-1 qca shared-mime-info shared-desktop-ontologies soprano strigi xz
+   require alsa-lib attica automoc4 avahi-qt-x11-opensource bzip2 cmake e2fsprogs gamin giflib heimdal jasper libXpm libXScrnSaver libXtst lua openexr pcre phonon polkit-qt polkit-qt-1 qca shared-mime-info shared-desktop-ontologies soprano strigi xz
  conflicts kdelibs-experimental-v4
   optional aspell                  '' '' for spell checking 
-  optional avahi-qt-x11-opensource '' '' for zero conf support
   optional enchant                 '' '' for spell checking
-  optional gamin                   '' '' for file system change notification
   optional hspell                  '' '' for spell checking of Hebrew
-  optional jasper                  '' '' for jpeg 2000 support
-  optional openexr                 '' '' for HDR image file format support
   optional openssl                 '' '' for secure socket layer support
   category development
   estimate 17000
@@ -15,23 +11,3 @@
 kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.'
-
-build(){
- muk(){
-  # previously owned by kdebase-workspace-v4 4.3.4
-  # without the touch, might kdelibs-v4 might not take ownership
-  # of the file.
-  # That causes kdebase-workspace-v4 to fail during install
-  if   [ -f  /opt/kde4/lib/libnepomukquery.so ]
-  then touch /opt/kde4/lib/libnepomukquery.so
-  fi
-  if   [ -f  /opt/kde4/lib64/libnepomukquery.so ]
-  then touch /opt/kde4/lib64/libnepomukquery.so
-  fi
- }
-
- kde_build &&
- case $VERSION in
-  4.4.0) muk ;;
- esac
-}
