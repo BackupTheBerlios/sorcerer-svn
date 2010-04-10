@@ -1,8 +1,8 @@
 # openldap support required for communicating with exchange servers
 
-    stable 2.28.3.1 2.28.2 2.28.1 2.28.0 2.26.3 2.26.2 2.26.1.1 2.26.0
-  unstable 2.29.90
-   require alsa-lib avahi firefox heimdal intltool libgnomeui libgweather libical libsoup openldap xcb-util
+    stable 2.30.0 2.28.3.1 2.28.2 2.28.1 2.28.0 2.26.3 2.26.2 2.26.1.1 2.26.0
+   require alsa-lib avahi heimdal intltool libgnomeui libgweather libical libsoup nss openldap xcb-util
+#  require alsa-lib avahi firefox heimdal intltool libgnomeui libgweather libical libsoup openldap xcb-util
       opts --disable-gtk-doc
 # optional gtk-doc --enable-gtk-doc --disable-gtk-doc
   category network/email
@@ -15,6 +15,15 @@
       desc 'libraries needed by evolution'
 
 build(){
+ export pkg-config info instead of using configure switches
+ # --with-nspr-includes
+ export   CFLAGS+=" $( pkg-config --cflags nspr )"
+ export CXXFLAGS+=" $( pkg-config --cflags nspr )"
+ #export  LDFLAGS+=" $( pkg-config --libs   nspr )"
+ default_build
+
+
+build_old(){
 # The LDFLAGS that specify rpath is so that evolution and other spells
 # that link with evolutiond-data-server can also complete compilation and
 # linking with mozilla's or firefox's nss library
@@ -29,4 +38,5 @@ then OPTS+=" --with-nss-libs=/usr/lib/firefox-devel-$FV/sdk/lib"
 else OPTS+=" --with-nss-libs=/usr/lib/mozilla"
 fi
 default_build
+}
 }
