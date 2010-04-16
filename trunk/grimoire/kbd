@@ -2,13 +2,14 @@
 # linuxdoc-tools optional requirement creates problems on the I/R
 # linuxdoc-tools requires openjade and openjade requires gcc-v3.4
 
-    stable 1.15.1 1.12
+    stable 1.15.2 1.15.1 1.12
    require automake flex init-functions libtool perl
 # kbd source ignores --bindir=/bin
 #     opts --bindir=/bin
   category font utility/keyboard
  attribute console
-    source http://ftp.debian.org/debian/pool/main/k/kbd/kbd_$VERSION.orig.tar.gz
+    source ftp://ftp.kernel.org/pub/linux/utils/kbd/kbd-$VERSION.tar.bz2
+#    source http://ftp.debian.org/debian/pool/main/k/kbd/kbd_$VERSION.orig.tar.gz
  conflicts console-tools console-data
   estimate 300
       desc 'keytable files and keyboard utilities
@@ -39,8 +40,16 @@ configure(){
 #if [ -z "$FONT"   ]; then get "FONT"   "Font"   "fonts.txt"   "default8x16"; fi
 }
 
-
 build(){
+ rm  -f /etc/keymap.conf
+ [   -n  "$KEYMAP" ] &&
+ sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
+
+ default_build &&
+ mv /usr/bin/loadkeys /bin/
+
+
+build_old(){
  rm  -f /etc/keymap.conf
  [   -n  "$KEYMAP" ] &&
  sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
@@ -62,4 +71,5 @@ build(){
  prepare_install &&
  make    install &&
  mv /usr/bin/loadkeys /bin/
+}
 }
