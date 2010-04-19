@@ -93,26 +93,29 @@ initrf_update(){
  [ -d /boot/fast  ] && rm -rf /boot/fast
  [ -d /media/root ] || mkdir -pm 755 /media/root
 
+ local       TEMPIF=/tmp/initramfs.$RANDOM$RANDOM
+ rm    -rf  $TEMPIF
+ mkdir -p   $TEMPIF/boot
+ chmod 600  $TEMPIF
+
+ local       COMMON="$TEMPIF/common"
+
  if [ -d /lib.old ] && [ -n "$( find /lib.old -maxdepth 0 -not -empty )" ]
  then ldconfig
  fi
-
- local      COMMON="/tmp/initrf.common.$$$RANDOM.new"
- echo -n > $COMMON
- chmod 600 $COMMON
 
  every | cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 |
  while read; do
-  echo -n         > /boot/$REPLY/initrf
-  chmod 600         /boot/$REPLY/initrf
-  mkinitrf $REPLY > /boot/$REPLY/initrf
+  mkdir             $TEMPIF/boot/$REPLY
+  mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
  done
 
- rm -f $COMMON
-
+ chmod 600 $TEMPIF/boot/*/initrf
+ cp -a     $TEMPIF/boot /
+ rm -fr    $TEMPIF
  sync
  /sbin/lilo -P ignore
 }
