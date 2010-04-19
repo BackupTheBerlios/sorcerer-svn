@@ -3,13 +3,20 @@
 # or was some sort of mistake.
 # php version 5.2.12 has a compile error with gmp 5.0.1
 
-case $HOSTTYPE in
- x86_64)
-    stable 4.3.0 ;;
-      *)
-    stable 5.0.0 4.3.1 4.3.0
-    latest 5.0.1 ;;
-esac
+# case $HOSTTYPE in
+#  x86_64)
+#     stable 4.3.0 ;;
+#       *)
+#     stable 5.0.0 4.3.1 4.3.0
+#     latest 5.0.1 ;;
+# esac
+
+# versions 5.0.0 and 5.0.1 appear to be unstable.
+# ppl requires gmp < 5.0.0
+
+    stable 4.3.2
+# optional on gcc-g++ creates circuliar requirement loop
+# optional gcc-g++
   category utility/math
  attribute library
     source $GNU_URL gmp/gmp-$VERSION.tar.bz2
@@ -31,9 +38,22 @@ since GNUmp in many cases has asymptomatically faster algorithms.'
 
 build(){
 (
-case $HOSTTYPE in
- i[5-6]86) export ABI=32 ;;
-esac
-default_build
+ case $HOSTTYPE in
+  i[5-6]86) export ABI=32 ;;
+ esac
+
+# CPPFLAGS=-fexceptions is required by
+# ppl to create a gmp that can do bounded memory capabilities
+# offered by ppl
+
+ CPPFLAGS=-fexceptions \
+ ./configure           \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --prefix=/usr        \
+ $OPTS           &&
+ make            &&
+ prepare_install &&
+ make    install
 )
 }

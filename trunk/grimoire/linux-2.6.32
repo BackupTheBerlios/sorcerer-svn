@@ -1,0 +1,130 @@
+    stable 2.6.32.11 2.6.32.10 2.6.32.9 2.6.32.8 2.6.32.7 2.6.32.6 2.6.32.5 2.6.32.4 2.6.32.3 2.6.32.2 2.6.32.1 2.6.32
+   require initramfs lilo module-init-tools
+  category kernel
+ attribute console
+case $VERSION in
+ *rc*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:3}/testing/linux-$VERSION.tar.bz2 ;;
+    *) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2 ;;
+esac
+  homepage http://www.kernel.org
+   protect /boot
+   protect /lib/modules
+  eprovide linux-kernel
+  estimate 14000
+      desc '2.6.32.x stable kernels'
+
+build(){
+ backup_modules(){
+  if [ -d  /lib/modules/$VERSION ]; then
+  rm   -rf /lib/modules/$VERSION.old
+  cp   -a  /lib/modules/$VERSION \
+           /lib/modules/$VERSION.old
+  fi
+ }
+
+ install_kernel(){
+  SM="System.map"
+  BV="${VERSION}"
+  BZ=$( find . -type f -name bzImage )
+
+  rm    -rf               /boot/$BV
+  mkdir -p                /boot/$BV
+  cp       $BZ            /boot/$BV/linux
+  chmod 600               /boot/$BV/linux
+  cp           System.map /boot/$BV
+  rm    -f                /boot/System.map
+  ln    -s $BV/System.map /boot/System.map
+ }
+
+ install_header(){
+  mkdir   -vm 755 -p                                    /usr/include/{asm,linux}
+  install -vm 644 include/asm/asm-offsets.h             /usr/include/asm
+  install -vm 644 include/linux/{autoconf.h,compile.h}  /usr/include/linux
+  true
+ }
+
+ restore_linux_configs(){
+  local NOSMP
+
+  if   ! LC_ALL=C grep -q 'processor.*1' /proc/cpuinfo
+  then NOSMP=-nosmp
+  fi
+
+  if   [ -d /boot/isolinux ]
+  then local MAC="$HOSTTYPE"; NOSMP=
+  else local MAC="$( uname -m )"
+  fi
+
+  if   [ "$MAC" == x86_64 ]
+  then NOSMP=
+  fi
+
+  CVER="$( echo "$VERSION" | cut -d '.' -f1-3 )"
+
+  if   [ -f            $SCRIPT_DIR/$MAC-$CVER$NOSMP ]
+  then install -vm 600 $SCRIPT_DIR/$MAC-$CVER$NOSMP .config
+  else install -vm 600 $SCRIPT_DIR/i586-$CVER-nosmp .config
+  fi
+ }
+
+ gzip_modules(){
+  local KO="/lib/modules/$VERSION/kernel/"
+  find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+  find $KO -type f              | sed   -n '/\.gz$/p' |
+  while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+ }
+
+ strip_modules(){
+  find /lib/modules/$VERSION/kernel -type f -name \*.ko |
+  xargs --max-lines=256 strip --strip-unneeded
+ }
+
+ compile_and_install(){
+  restore_linux_configs
+  yes "" | make oldconfig
+  make modules          &&
+  make bzImage          &&
+  prepare_install       &&
+  make modules_install  && strip_modules &&
+  make firmware_install &&
+  install_kernel        &&
+  install_header
+ }
+
+ rm -fr        /usr/src/linux &&
+ mv $BUILD_DIR /usr/src/linux &&
+ cd            /usr/src/linux &&
+ compile_and_install
+}
+
+
+post_install(){
+ update_etc_lilo_conf
+
+ if   [[ -x /usr/bin/mail  ]]; then MAILER=/usr/bin/mail
+ elif [[ -x /usr/bin/mailx ]]; then MAILER=/usr/bin/mailx
+ fi
+
+ if   [[ -n $MAILER   ]] &&
+      [[ -n $SORCERER ]]
+ then
+  echo    -e "New linux kernel installed.\nReboot the box, please." |
+  $MAILER -s "Reboot reminder from sorcery." $SORCERER
+ fi
+
+ grep -lr   '^/lib/modules/' $INSTALL_LOGS |
+ sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
+ pipe_queue "$CAST_QUEUE" com
+
+ rm -rf /boot/fast
+ true
+}
+
+
+current(){
+ if   ! [  -f      /usr/include/linux/autoconf.h ]
+ then cp /usr/src/linux/include/linux/autoconf.h \
+                   /usr/include/linux/autoconf.h
+      true
+ fi
+}

@@ -1,0 +1,168 @@
+    stable custom
+  category kernel
+ attribute console
+case $VERSION in
+ custom) attribute broke ;;
+   *rc*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:3}/testing/linux-$VERSION.tar.bz2 ;;
+      *) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:3}/linux-$VERSION.tar.bz2 ;;
+esac
+  homepage http://www.kernel.org
+   protect /boot
+   protect /lib/modules
+  eprovide linux-kernel
+      desc "linux-custom will compile and install a linux kernel, however
+the SA is responsible for creating the .config
+The file $CONFIG_LOGS/$SPELL/linux-config
+should contain the config file
+otherwise the source for $SPELL must be downloaded
+prior to casting $SPELL in order to create the config file
+using make menuconfig.
+
+Warning:
+Unless you are a system administrator who has prior successful
+experience with creating .config files for linux kernel configuration
+then never cast this spell because the box will likely become unbootable
+
+Warning:
+The SA must set the version for this spell using
+# augur progress $SPELL \$VERSION
+prior to leeching and prior to casting this spell"
+
+configure(){
+ local CUR="$CONFIG_LOGS/$SPELL/linux-config"
+ local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+
+ copy(){ if [[ -f $1 ]]; then cp "$1" "$2"; chmod 600 "$2"; fi; }
+
+ if ! [[ -f $CUR ]]; then
+  if ! sources_cached "$SPELL"; then
+   echo "Sources must be download before configuration."
+  fi
+  pre_build           &&
+  optimize            &&
+  copy "$OLD" .config &&
+  make menuconfig     &&
+  cp         .config $CUR
+  if   [[ -n   $BUILD_DIR ]] &&
+       [[ -d   $BUILD_DIR ]]
+  then rm -fr "$BUILD_DIR"
+  fi
+  clear
+  echo "Linux kernel configuration complete."
+  cd /tmp
+ fi
+}
+
+build(){
+ backup_modules(){
+  if [ -d  /lib/modules/$VERSION ]; then
+  rm   -rf /lib/modules/$VERSION.old
+  cp   -a  /lib/modules/$VERSION \
+           /lib/modules/$VERSION.old
+  fi
+ }
+
+
+ store_config(){ cp .config $CONFIG_LOGS/$SPELL/linux-config; }
+
+ install_kernel(){
+  SM=System.map
+  BV=$VERSION
+  BZ=$( find . -type f -name bzImage )
+
+  rm    -rf                /boot/$BV
+  mkdir -p                 /boot/$BV
+  cp        $BZ            /boot/$BV/linux
+  chmod 600                /boot/$BV/linux
+  cp            System.map /boot/$BV
+  rm    -f                 /boot/System.map
+  ln    -s  $BV/System.map /boot/System.map
+ }
+
+ install_header(){
+  mkdir   -vpm 755                           /usr/include/asm
+  install -vm  644 include/asm/asm-offsets.h /usr/include/asm
+  mkdir   -vpm 755                           /usr/include/linux
+  install -vm  644 include/linux/autoconf.h  /usr/include/linux
+  install -vm  644 include/linux/compile.h   /usr/include/linux
+  true
+ }
+
+ restore_linux_configs(){
+  local CUR="$CONFIG_LOGS/$SPELL/linux-config"
+  local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+
+  if   [[ -f  $CUR ]]; then cp $CUR .config; chmod 600 .config
+  elif [[ -f  $OLD ]]; then cp $OLD .config; chmod 600 .config
+  fi
+ }
+
+
+ make_modules(){
+  if   grep -q "CONFIG_MODULES=y" .config
+  then make  modules && backup_modules
+  fi
+ }
+
+
+ gzip_modules(){
+  local KO="/lib/modules/$VERSION/kernel/"
+  find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+  find $KO -type f              | sed   -n '/\.gz$/p' |
+  while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+ }
+
+
+ make_modules_install(){
+  if grep -q "CONFIG_MODULES=y" .config; then 
+   mkdir -p  /lib/modules
+   chmod 700 /lib/modules
+   make modules_install
+   # gzip_modules
+  fi
+ }
+
+
+ compile_and_install(){
+  restore_linux_configs
+  yes "" | make oldconfig
+  store_config
+  make   bzImage        &&
+  make_modules          &&
+  prepare_install       &&
+  make_modules_install  &&
+  make firmware_install &&
+  install_kernel        &&
+  install_header
+ }
+
+ rm -fr            /usr/src/linux &&
+ mv     $BUILD_DIR /usr/src/linux &&
+ cd                /usr/src/linux &&
+ compile_and_install
+}
+
+
+post_install(){
+ update_etc_lilo_conf
+
+ if   [[ -x /usr/bin/mail  ]]; then MAILER=/usr/bin/mail
+ elif [[ -x /usr/bin/mailx ]]; then MAILER=/usr/bin/mailx
+ fi
+
+ grep -lr   '^/lib/modules/' $INSTALL_LOGS |
+ sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
+ pipe_queue "$CAST_QUEUE" com
+
+ rm -fr /boot/fast
+ true
+}
+
+
+current(){
+ if   ! [[ -f      /usr/include/linux/autoconf.h ]]
+ then cp /usr/src/linux/include/linux/autoconf.h \
+                   /usr/include/linux/autoconf.h
+      true
+ fi
+}
