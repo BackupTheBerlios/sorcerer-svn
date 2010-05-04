@@ -1,15 +1,15 @@
-# Does not detect installed openal
-
-    stable 43.1b 43 42.1-src 42-src 41.3-src 41.2-src
+    stable 43.1c 43.1b 43 42.1-src 42-src 41.3-src 41.2-src
    require SDL_mixer SDL_net fftw freealut wxWidgets
-      opts --disable-openaltest
+# does not link properly with installed fftw; missing symbols?
+#     opts --disable-fftwtest
   category game
  attribute x11
  attribute broke
     source $SOURCEFORGE_URL scorched3d/scorched3d/Version%20$VERSION/Scorched3D-$VERSION-src.tar.gz
 #   source $SOURCEFORGE_URL scorched3d/scorched3d/Version%2042.1/Scorched3D-$VERSION.tar.gz
   homepage http://scorched3d.sourceforge.net
-case  $VERSION  in
+case $VERSION in
+# 43*) use_gcc gcc-v4.1 ;;
   42*)  use_gcc gcc-v4.1  ;;
   41*)  use_gcc gcc-v4.1  ;;
   40.1d)  use_gcc gcc-v4.1  ;;
@@ -19,10 +19,16 @@ esac
  freshmeat scorched3d
       desc 'a 2D an artillery game'
 
-build(){
+build(){ (
+# export PATH=$PWD/scorched-dep-osx/config:$PATH
+# chmod u+x   $PWD/scorched-dep-osx/config/openal-config
+# sed -i 's:prefix=.*:prefix=/usr:' \
+#             $PWD/scorched-dep-osx/config/openal-config
 
+LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
 [ -d scorched ] &&
 cd   scorched
+
 default_build
 
 
@@ -55,5 +61,5 @@ fi
 default_build
 }
 
-}
+) }
 
