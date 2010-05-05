@@ -1,32 +1,30 @@
 # 1.8 has compile error
-    latest 1.8
-    stable 1.6.5 1.6.4 1.6.3 1.6.1 1.6a
+    stable 1.8.1 1.6.5 1.6.4 1.6.3 1.6.1 1.6a
     secure 1.6a
   unstable 1.7.15 1.7.13 1.7.12 1.7.11
-   require SDL_image SDL_mixer SDL_net SDL_ttf boost fribidi pango
+   require SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi lua pango
 #     opts --disable-strict-compilation
+      opts -DENABLE_STRICT_COMPILATION:BOOL=FALSE
    use_gcc gcc-v4.2
   category game
  attribute x11
-case $VERSION in
-1.8)
-    source $SOURCEFORGE_URL wesnoth/wesnoth-1.8/wesnoth-1.8.0/wesnoth-$VERSION.tar.bz2
- ;;
-  *)
     source $SOURCEFORGE_URL wesnoth/wesnoth-${VERSION:0:3}/wesnoth-$VERSION/wesnoth-$VERSION.tar.bz2
- ;;
-esac
   homepage http://www.wesnoth.org/
-  estimate 11000
+  estimate 14000
       desc 'fantasy themed turn-based strategy game
 Battle for control of villages, using a variety of units
 which have advantages and disadvantages in different
 types of terrain and against different types of attacks.'
 
+build(){
 build_old(){
 # export LDFLAGS+=' -lboost_iostreams-gcc43-mt -lboost_regex-gcc43-mt'
 ./configure --prefix=/usr $OPTS &&
 make &&
 prepare_install &&
 make    install
+}
+
+# sed -i 's:-Werror::' SConstruct CMakeLists.txt
+default_build
 }

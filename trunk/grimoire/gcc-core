@@ -10,18 +10,20 @@
  attribute console library solo
 #   source ftp://gcc.gnu.org/pub/gcc/releases/gcc-$VERSION/gcc-$VERSION.tar.bz2
     source $GNU_URL gcc/gcc-$VERSION/gcc-core-$VERSION.tar.bz2
+    source $GNU_URL gcc/gcc-$VERSION/gcc-objc-$VERSION.tar.bz2
   homepage http://gcc.gnu.org
   estimate 13000
+ conflicts gcc-objc
       desc 'GNU compiler collection'
 
 build(){
 
  finish_install(){
-  rm -f   $DESTDIR/usr/info/dir
-  cp -av  $DESTDIR/*   /
-  ln -sfv /usr/bin/cpp /lib/cpp
-  rm -f                /usr/bin/cc 
-  ln -sfv gcc          /usr/bin/cc
+  rm -f  $DESTDIR/usr/info/dir
+  cp -av $DESTDIR/*   /
+  ln -fs /usr/bin/cpp /lib/cpp
+  rm -f               /usr/bin/cc 
+  ln -fs gcc          /usr/bin/cc
  }
 
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
@@ -57,7 +59,7 @@ build(){
   --enable-tls
   --with-system-zlib
   --disable-bootstrap
-  --enable-languages=c"
+  --enable-languages=c,objc"
 
  if [ -d /boot/isolinux ]
  then OPTS+=" --enable-libstdcxx-pch=no"
@@ -67,15 +69,11 @@ build(){
 
  mkdir BUILD
  cd    BUILD
- ../configure $OPTS            &&
- make                          \
-      "$BF"                    \
-      "$LCF"  "$LCXF"  "$LDF"  \
-      "$LJCF" "$LJCXF"         &&
- make install DESTDIR=$DESTDIR \
-      "$BF"                    \
-      "$LCF"  "$LCXF"  "$LDF"  \
-      "$LJCF" "$LJCXF"         && 
+ ../configure $OPTS             &&
+ make "$BF"                     \
+      "$LCF"  "$LCXF"  "$LDF"   \
+      "$LJCF" "$LJCXF"          &&
+ make  install DESTDIR=$DESTDIR &&
  prepare_install &&
   finish_install
 }
@@ -100,7 +98,13 @@ post_install(){
  }
 
  cast_if_needed gcc-g++  /libstdc++.so
- cast_if_needed gcc-objc /libobjc.so
+#cast_if_needed gcc-objc /libobjc.so
  cast_if_needed gcc-java /libgcj.so
  cast_if_needed gcc-fortran /libgfortran.so
+}
+
+current(){
+ case $VERSION in
+  4.4.3) gcc -v | grep -q objc ;;
+ esac
 }
