@@ -1,10 +1,8 @@
-# Update wesnoth when updating boost
-# Update Boost_ADDITIONAL_VERSIONS in kde-v4 akonadi ktorrent when updating boost
 # Update build() in spring
 # update montone when updating boost
 ## Above comments no longer apply.
 
-    stable 1_42_0 1_41_0 1_40_0 1_38_0 1_37_0 1_36_0
+    stable 1_43_0_beta1 1_42_0 1_41_0 1_40_0 1_38_0 1_37_0 1_36_0
    require Python boost-jam bzip2 cmake icu4c zlib
       opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
       opts -DBUILD_VERSIONED:BOOL=FALSE
@@ -13,7 +11,14 @@
       opts -DBUILD_DEBUG:BOOL=FALSE
   category development
  attribute library solo
+case $VERSION in
+ *beta*)
+    source $SOURCEFORGE_URL boost/boost/1.43.0.beta.1/boost_$VERSION.tar.bz2
+;;
+      *)
     source $SOURCEFORGE_URL boost/boost/${VERSION//_/.}/boost_$VERSION.tar.bz2
+;;
+esac
   homepage http://www.boost.org
       opts --with-icu
   estimate 8400
@@ -58,8 +63,14 @@ current(){
  esac
 }
 
+sed -i 's:-O3:-O2:' tools/jam/src/build.jam
 ./bootstrap.sh --prefix=/usr &&
-./bjam --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage &&
+
+# ./bjam -q -d+2 variant=release link=shared runtime-link=shared stage &&
+# prepare_install &&
+# ./bjam -q -d+2 variant=release link=shared runtime-link=shared install
+
+./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage &&
 prepare_install &&
-./bjam --layout=tagged variant=release link=shared threading=multi runtime-link=shared install
+./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared install
 }
