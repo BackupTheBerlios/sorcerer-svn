@@ -1,5 +1,6 @@
     stable 0.6.10 0.6.9 0.6.8 0.6.7 0.6.6 0.6.5 0.6.4 0.6.3 0.6.2 0.6.1 0.6.0
-   require glib libffi
+   require fontconfig freetype glib libffi libxml2
+  optional cairo
   category development
  attribute gnome library
     source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2
@@ -8,10 +9,16 @@
   estimate 800
       desc 'document API'
 
-## Not required if /usr/bin/python exists
-#build(){
-# case $VERSION in
-#  0.6.7) sed -i 's:python1.5:python2.6:' configure ;;
-# esac
-# default_build
-#}
+build(){
+ if   ! spell_installed cairo
+ then patch -p1 < $SCRIPT_DIR/gobject-introspection-0.6.10-no-cairo.patch
+      rm -f gir/Makefile.in
+ fi
+ if   ! spell_installed libX11
+ then patch -p1 < $SCRIPT_DIR/gobject-introspection-0.6.10-no-libX11.patch
+      rm -f gir/Makefile.in
+ fi
+
+ [ -f gir/Makefile.in ] || automake -acf
+ default_build
+}
