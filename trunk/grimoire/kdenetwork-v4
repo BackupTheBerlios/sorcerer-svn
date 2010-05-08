@@ -33,10 +33,32 @@
   optional sqlite                  '' '' for kopete statistics plugin
   optional telepathy-qt            '' '' for telepathy tubes support
   optional xmms                    '' '' for music playing
+
+  switch '' --exclude-filesharing for file sharing front ends
+  switch '' --exclude-kdnssd      for zeroconf support
+  switch '' --exclude-kget        for download manager
+  switch '' --exclude-kopete      for instant messsaging client
+  switch '' --exclude-kppp        for dialer and front end for pppd
+  switch '' --exclude-krdc        for VNC client for desktop sharing
+  switch '' --exclude-krfb        for VNC desktop sharing server
+
   category network/email network/news
   estimate 6600
-      desc 'Chat, email and news clients
-kdenetwork contains network applications.
-Currently contains the mail program, 
-the news reader, and several other 
-network-related programs like kopete.'
+      desc 'chat, networking configuration, filesharing, downloading prorams
+Filesharing: network file sharing
+kdnssd: Zeroconf
+KGet: an advanced download manager
+Kopete: Instant Messaging client
+KPPP: dialer and front end for pppd
+KRDC: a client for Desktop Sharing
+Krfb: Desktop Sharing server, allow others to access your desktop via VNC'
+
+build(){
+ for    DIR in $OPTS; do
+  case $DIR in
+   --exclude-*) rm -frv "${DIR/--exclude-/}" ;;
+  esac
+ done
+
+ kde_build
+}

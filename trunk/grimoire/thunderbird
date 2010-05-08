@@ -1,19 +1,17 @@
-# Not actively tested.
-
-    latest 3.0.1 3.0 2
-    stable 2.0.0.18 2.0.0.17 2.0.0.16 2.0.0.14 2.0.0.12
-    secure 2.0.0.14
-   require gss gtk+ heimdal libmng zip
-  optional libgnomeui '' '' may use libgnome if you have it installed
+    stable 3.0.4 3.0.1 3.0.2 2.0.0.18
+#  require gss gtk+ heimdal libmng zip
+# optional libgnomeui '' '' may use libgnome if you have it installed
+      opts --enable-application=mail
+      opts --enable-static --disable-libxul
   category network/email
  attribute client solo x11
-    source ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source/thunderbird-${VERSION}-source.tar.bz2
+    source ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source/thunderbird-${VERSION}.source.tar.bz2
       vurl http://www.mozilla.com/en-US/thunderbird/
   homepage http://www.mozilla.org/products/thunderbird/
   estimate 80000
       desc 'new UI to gecko the mozilla mail client engine'
 
-build(){
+build_old(){
  check_space(){
   KILOBYTES=$(
     df   -Pkm $SOURCE_DIR |
@@ -22,7 +20,7 @@ build(){
     cut  -d ' ' -f4
   )
   if (( KILOBYTES < 768 )); then
-   echo 'Insufficient disk space available for compiling mozilla.'
+   echo 'Insufficient disk space available for compiling thunderbird.'
    false
   fi
  }
@@ -68,19 +66,9 @@ ac_add_options --prefix=/opt/thunderbird
 #ac_add_options --enable-extensions="cookie,xml-rpc,xmlextras,pref,transformiix,universalchardet,webservices,inspector,p3p"
 EOF
 
-  export LDFLAGS+=" -Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION"
-  grep   -rl             "\-Wl,-soname" * |
-  xargs  --max-lines=64 sed -i "s:-Wl,-soname:-Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION -Wl,-soname:"
-
-
- case $VERSION in
-  2.0.0.1[0-9]) mkdir -p include/pango-1.0/pango
-           cp  /usr/include/pango-1.0/pango/pangocairo.h \
-                    include/pango-1.0/pango/
-           sed -i "/cairo_font_type_t/d"  include/pango-1.0/pango/pangocairo.h
-           export   CFLAGS+=" -I$BUILD_DIR/include/pango-1.0"
-           export CXXFLAGS+=" -I$BUILD_DIR/include/pango-1.0" ;;
- esac
+ export LDFLAGS+=" -Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION"
+ grep   -rl             "\-Wl,-soname" * |
+ xargs  --max-lines=64 sed -i "s:-Wl,-soname:-Wl,-rpath,/opt/thunderbird/lib/thunderbird-$VERSION -Wl,-soname:"
 
  check_space       &&
  ./configure $OPTS &&
