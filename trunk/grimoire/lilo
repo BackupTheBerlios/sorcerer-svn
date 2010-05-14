@@ -1,24 +1,46 @@
     stable 22.8
-#  require bin86 device-mapper nasm
    require LVM2 bin86 nasm
   category administration/bootloader
  attribute console x86
-       url 'http://home.san.rr.com/johninsd/pub/linux/lilo/
-            http://www.ibiblio.org/pub/Linux/system/boot/lilo/'
-    source lilo-$VERSION.src.tar.gz
+    source http://home.san.rr.com/johninsd/pub/linux/lilo/ \
+           http://www.ibiblio.org/pub/Linux/system/boot/lilo/ \
+           lilo-$VERSION.src.tar.gz
   homepage http://home.san.rr.com/johninsd/pub/linux/lilo/
-   exclude /etc/lilo.conf
-   exclude /etc/lilo.conf.fast
-   exclude /etc/lilo.conf.head
-   exclude /etc/lilo.conf.tail
+   protect /etc/lilo/head
+   protect /etc/lilo/tail
+  volatile /etc/lilo.conf
+
+#  exclude /etc/lilo.conf
+#  exclude /etc/lilo.conf.fast
+#  exclude /etc/lilo.conf.head
+#  exclude /etc/lilo.conf.tail
   estimate 200
       desc 'linux boot loader for x86 computers'
 
 build(){
- case $VERSION in
-  22.6.1) patch -p1 < ${SOURCE[1]} ;;
- esac
+ configs_install(){
+  mkdir   -pm 600 /etc/lilo
+  install -m  600 $SCRIPT_DIR/head /etc/lilo/
+  install -m  600 $SCRIPT_DIR/tail /etc/lilo/
+  install -m  700 $SCRIPT_DIR/lilo /usr/sbin/
+  rm      -f /etc/lilo.conf
+  ln      -s /etc/lilo/conf /etc/lilo.conf
+ }
+
  make        all ROOT= OPT="$CFLAGS" LDFLAGS="$LDFLAGS" &&
  prepare_install &&
- make    install ROOT= MAN_DIR=/usr/man
+ make    install ROOT= MAN_DIR=/usr/man &&
+ configs_install
+}
+
+post_install(){
+if [ -f /etc/lilo.conf.head ]; then mv /etc/lilo.conf.head /etc/lilo/head; fi
+if [ -f /etc/lilo.conf.tail ]; then mv /etc/lilo.conf.tail /etc/lilo/tail; fi
+if [ -f /etc/lilo.conf.fast ]; then rm /etc/lilo.conf.fast; fi
+}
+
+current(){
+case $VERSION in
+ 22.8) LC_ALL=C grep -q /etc/lilo/head $INSTALL_LOGS/lilo ;;
+esac
 }
