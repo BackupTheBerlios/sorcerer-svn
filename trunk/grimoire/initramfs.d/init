@@ -30,12 +30,12 @@ what(){
 used(){ what | sed '\,^/etc/mtab,d' | dirs | sort -u; }
 
 construct(){
- if [     -f $MR/boot/fast/initrf   ] ||
-    [     -d $MR/boot/isolinux      ] ||
-    [     -f    /etc/coldplug/use   ] ||
-  ! [     -d $MR/boot               ] ||
-  ! [     -f $MR/usr/bin/cpio       ] ||
-  ! [     -f $MR/etc/lilo.conf.fast ] ||
+ if [     -f $MR/boot/fast/initrf ] ||
+    [     -d $MR/boot/isolinux    ] ||
+    [     -f    /etc/coldplug/use ] ||
+  ! [     -d $MR/boot             ] ||
+  ! [     -f $MR/usr/bin/cpio     ] ||
+  ! [     -f $MR/etc/lilo/fast    ] ||
   ! mkdir -p $MR/boot/fast
  then return
  fi
@@ -57,7 +57,7 @@ construct(){
   cp -al $MR/boot/$V/System.map $MR/boot/$V/linux $MR/boot/fast/ &&
   used | $MR/usr/bin/cpio -o -H newc --quiet >    $MR/boot/fast/initrf && 
   sync &&
-  lilo -r $MR -C /etc/lilo.conf.fast
+  /sbin/lilo -r $MR -C /etc/lilo/fast
  fi
  umask 022
 }

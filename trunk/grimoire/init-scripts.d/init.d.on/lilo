@@ -3,15 +3,19 @@
 # Required-Stop: $local_fs proc udev
 # Should-Stop: initramfs tmp
 # Default-Stop: 0 6
-# Short-Description: lilo.conf regenerates /etc/lilo.conf when necessary
+# Short-Description: lilo regenerates /etc/lilo/conf when necessary
 ### END INIT INFO
 
-# Copyright 2008-2009 by Kyle Sallee, all rights reserved.
+# Copyright 2008-2010 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 . /lib/lsb/init-functions
 
-NAME=/etc/lilo.conf
+NAME=/etc/lilo/conf
+ CON=/etc/lilo/conf
+ FAS=/etc/lilo/fast
+HEAD=/etc/lilo/head
+TAIL=/etc/lilo/tail
 
 lilo_conf_update(){
  img(){
@@ -23,28 +27,13 @@ lilo_conf_update(){
   echo
  }
 
- local LOC=/etc/lilo.conf.local
- local OLD=/etc/lilo.conf.old
- local CON=/etc/lilo.conf
- local FAS=/etc/lilo.conf.fast
  local ICX=0
  local LIM=8
 
- local HEAD=/etc/lilo.conf.head
- local TAIL=/etc/lilo.conf.tail
+ if ! [ -f $HEAD ]; then exit 1; fi
 
  if   [ -f /etc/init.d/initramfs ]
  then LIM=4
- fi
-
- if  ! [ -f $HEAD ]; then 
-  if   [ -f $LOC  ]
-  then mv    $LOC $HEAD
-  else
-   cp       $CON $OLD
-   sed   "/^image/,1000d" $OLD > $HEAD
-   chmod 600                     $HEAD
-  fi
  fi
 
  cp $HEAD $CON
@@ -72,18 +61,18 @@ lilo_conf_update(){
 
  if [ -x /etc/init.d/initramfs ]
  then    /etc/init.d/initramfs
- else /sbin/lilo -P ignore
+ else /sbin/lilo -P ignore -C $CON
  fi
 }
 
 both(){
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%P\n'
- sed 's:#.*::;s: ::g;s:\t::g;s:image=/boot/::p;d' /etc/lilo.conf
+ sed 's:#.*::;s: ::g;s:\t::g;s:image=/boot/::p;d' $CON
 }
 
 current(){ 
- [ /etc/lilo.conf -nt /etc/lilo.conf.head ] &&
- [ /etc/lilo.conf -nt /etc/lilo.conf.tail ] &&
+ [ $CON -nt $HEAD ] &&
+ [ $CON -nt $TAIL ] &&
  ! both | sed '\,fast/linux,d' | sort | uniq -u | grep -q .
 }
 
