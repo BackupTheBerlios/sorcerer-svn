@@ -1,0 +1,60 @@
+    stable 3.3.1
+   require httpd Python
+#  optional sqlite-v2.8 '' '' for old sqlite support
+      opts --with-max-locks=32
+  category development/interpreter/python network/web
+ attribute library
+    source http://apache.deathculture.net/httpd/modpython/mod_python-$VERSION.tgz
+  homepage http://www.modpython.org/
+  estimate 467
+      desc 'mod_python provides a python interpreter module for httpd.
+With mod_python you can write web-based applications in Python
+that will run many times faster than traditional CGI and will
+have access to advanced features such as ability to retain
+database connections and other data between hits and access
+to Apache internals.'
+   
+build() {
+ patch -p1 < ${SCRIPT_DIR}/mod_python-3.3.1.patch
+ default_build
+}
+
+post_install(){
+ add_module(){
+  LPM="lib/apache/mod_python.so"
+  HTTPD_CONF="/etc/httpd/conf/httpd.conf"
+
+  if   grep -v -q "$LPM"  $HTTPD_CONF
+  then
+    pos=$( grep -n LoadModule $HTTPD_CONF | tail -n1 | cut -f1 -d':' )
+    pos=$(( pos + 1 ))
+    sed -i "${pos}iLoadModule python_module $LPM" $HTTPD_CONF
+  fi
+ }
+
+ default_post_install
+ add_module
+ if   [ -f /etc/init.d/httpd ]
+ then bash /etc/init.d/httpd try-restart
+ fi
+ true
+}
+
+pre_remove(){
+ remove_module(){
+  LPM="lib/apache/mod_python.so"
+  HTTPD_CONF="/etc/httpd/conf/httpd.conf"
+  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
+
+  if   grep    "$LPM"  $HTTPD_CONF
+  then grep -v "$LPM"  $HTTPD_CONF > $HTTPD_CONF_TMP
+       cp     $HTTPD_CONF_TMP $HTTPD_CONF
+  fi
+ }
+
+ default_pre_remove
+ remove_module
+ if   [ -f /etc/init.d/httpd  ]
+ then bash /etc/init.d/httpd try-restart
+ fi
+}
