@@ -1,19 +1,14 @@
 # 2.1.22 compiles with gcc version 4.3.3 but not 4.4.0
 
-    stable 2.1.22 2.1.21 2.1.20 2.1.19 2.1.18 2.1.17 2.1.15
-    secure 2.1.22 2.1.21 2.1.20 2.1.19
+    stable 2.1.23 2.1.22
+    secure 2.1.22
    require e2fsprogs gss openssl
   optional Linux-PAM ''                      '' for optional pluggable authentication
   optional heimdal   --with-gss_impl=heimdal '' for kerberos 5 authentication
   category security/authentication security/encryption
  attribute library
-       url ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/
-    source cyrus-sasl-$VERSION.tar.gz
-  homepage http://asg.web.cmu.edu/sasl/sasl-library.html
-#2.1.22) use_gcc gcc-v4.2 ;;
-case $VERSION in
- 2.1.21) use_gcc gcc-v3.4 ;;
-esac
+    source ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-$VERSION.tar.gz
+  homepage http://cyrusimap.web.cmu.edu/
       opts --enable-login --enable-ntlm
  freshmeat cyrussasl
   estimate 1330
@@ -25,3 +20,9 @@ as well as CRAM-MD5 and DIGEST-MD5 shared secret methods
 and KERBEROS_V4 and GSSAPI Kerberos methods.
 The SASL protocol framework is used by SMTP, IMAP, 
 ACAP, LDAP, and other standard protocols.'
+
+build(){
+sed -i 's:*mbdb, path, NULL,:*mbdb, (DB_TXN *) NULL, path, NULL,:' \
+    sasldb/db_berkeley.c utils/dbconverter-2.c
+default_build
+}
