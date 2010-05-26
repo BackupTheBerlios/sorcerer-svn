@@ -1,4 +1,5 @@
 # This probably does not compile
+# Compile log suggests that the source in ati-driver-installer has errors.
 # Mon-Thu, eastern times
 # 1 877 284 1566
 # Phone number for ATI support
@@ -28,13 +29,14 @@ the ATI GPU in order to prevent lockups, fan meltdown, and chip meltdown.
 The display driver requires linux versions 2.6.x and POSIX shared memory.'
 
 
-build(){
+build_broke(){
+# running sh $SOURCE --install does not install anything.
  prepare_install &&
  sh $SOURCE --install
 }
 
 
-pre_build_old(){
+pre_build(){
  default_pre_build
  BUILD_DIR="${BUILD_DIR:-$SOURCE_DIR/ati-driver-installer}"
  cd $BUILD_DIR
@@ -43,53 +45,35 @@ pre_build_old(){
 }
 
 
-build_old(){
+build(){
  make_install(){
-  cd        $BUILD_DIR/common
-  mkdir -p                          usr/share/applications/kde
-  mv        opt/kde3/share/applnk/* usr/share/applications/kde/
-  rm    -rf opt
-  cd        ..
-
-# If the dri module install location is changed
-# then prior to running programs the environment variable
-# LIBGL_DRIVERS_PATH must be exported to the 
-# directory where the fglrx_dri.so file exists
-
-#     mkdir  -p  arch/{x86,x86_64}/usr/lib/dri
-
-#     mv         arch/x86/usr/X11R6/lib/modules/dri/fglrx_dri.so  \
-#                arch/x86/usr/lib/dri
-
-#     mv         arch/x86_64/usr/X11R6/lib64/modules/dri/fglrx_dri.so  \
-#                arch/x86_64/usr/lib64/dri
+  cd        $BUILD_DIR
 
   /sbin/ldconfig -n           arch/$AVER/usr/X11R6/lib
   rm -rf common/{lib,usr/src} arch/$AVER/lib
 
-  find common $XVER arch/$AVER -type f -printf "%p %P\n" |
-  while read         FROM   TO
-  do    install -vD $FROM /$TO
-  done
-  find common $XVER arch/$AVER -type l -printf "%p %P\n" |
-  while read         FROM   TO
-  do    mv     -v   $FROM /$TO
-  done
+  cp -av common/* $XVER/* arch/$AVER/* /
+
+#  find common $XVER arch/$AVER -type f -printf "%p %P\n" |
+#  while read         FROM   TO
+#  do    install -vD $FROM /$TO
+#  done
+#  find common $XVER arch/$AVER -type l -printf "%p %P\n" |
+#  while read         FROM   TO
+#  do    mv     -v   $FROM /$TO
+#  done
 
   # cp  -rv  common/*  $XVER/*     arch/$AVER/usr  /
  }
 
 
  case $HOSTTYPE in
-  x86_64) XVER+=x740_64a ; AVER=x86_64 ;;
-       *) XVER+=x740     ; AVER=x86    ;;
+  x86_64) XVER+=x750_64a ; AVER=x86_64 ;;
+       *) XVER+=x750     ; AVER=x86    ;;
  esac
 
  LVER=$( installed_version $( get_provider linux-kernel ) )
  LVER="${LVER:-$( uname -r )}"
-
-# cp arch/$AVER/lib/modules/fglrx/build_mod/libfglrx_ip.a.GCC4 \
-#        common/lib/modules/fglrx/build_mod/2.6.x/
 
  cd common/lib/modules/fglrx/build_mod
 
@@ -97,7 +81,7 @@ build_old(){
          s:rmmod \$module:true:"     ../make_install.sh
  sed -i "s:\`uname -r\`:\"$LVER\":"  ../make_install.sh make.sh
  sed -i "s:hit=0:hit=1:"                                make.sh
- sed -i "s:^KVER *=.*:KVER = $LVER:" 2.6.x/Makefile
+ sed -i "s:\$\(shell uname -r\):$LVER:" 2.6.x/Makefile
 #sed -i "/LIBIP_PREFIX=/d"           make.sh
  sed -i '/LIBIP_PREFIX=\./d' make.sh
  sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh
