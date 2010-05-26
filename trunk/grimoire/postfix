@@ -66,6 +66,8 @@ useradd  -K UID_MIN=256 -K UID_MAX=511 -g postfix -d /var/spool/mail postfix 2>/
  sed  -i  "s:/usr/local:/usr:" src/global/mail_params.h
  grep -lr "tail +" * | xargs --max-lines=32 sed -i "s:tail +:tail -n +:g"
 
+ sed -i 's:DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0:DB_VERSION_MAJOR >= 4 \&\& DB_VERSION_MINOR >= 0:
+         s:db, 0, db_path:db, (DB_TXN *) 0, db_path:' src/util/dict_db.c
  make  -f Makefile.init makefiles \
  "CC=gcc"                         \
  "AUXLIBS=$AUXLIBS"               \
