@@ -12,7 +12,12 @@
 start(){
  load(){
   cd /
-  cat $FROM/{bfr,coreutils,file,groff,hal,inetutils,kexec-tools,libevent,libnfsidmap,man,man-pages,msyslog,openssh,openssl,parted,pciutils,usbutils,util-linux}-*.tar.xz 2>/dev/null |
+  cat $FROM/{coreutils,file,hal,inetutils,kexec-tools,msyslog,openssh,openssl,parted,pciutils,procps,usbutils,util-linux}-*.tar.xz 2>/dev/null |
+  xz -cd | tar -ixpf -
+  local -i AVAIL
+  AVAIL=$( free -mt | grep Total: | tr -s ' ' | cut -d ' ' -f4 )
+  if (( AVAIL > 256 )) then
+  cat $FROM/{gcc-core,gcc-g++,groff,man,man-pages}-*.tar.xz 2>/dev/null |
   xz -cd | tar -ixpf -
  }
 
