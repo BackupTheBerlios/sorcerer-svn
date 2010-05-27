@@ -292,15 +292,13 @@ transfer_arch(){
  mkdir -vpm 755          $TARGET/lib/udev
  cp    -va /lib/udev/dev $TARGET/lib/udev/
 
+ local ED="Error while decompressing archives"
+ local ET="Error while untarring archives"
+
  find $TARGET/var/cache/archive -type f |
  xargs --max-lines=1024 cat |
- if ! xz -cd
- then echo "Error while decompressing archives" >> /tmp/terror
- fi |
- if ! tar -C $TARGET -ixvpf - 2>&1
- then echo "Error while untarring archives" >> /tmp/terror
- fi |
- sed '/tar: /d'
+ if ! xz -cd;                  then echo "$ED" >> /tmp/terror; fi |
+ if ! tar -C $TARGET -ixvpf -; then echo "$ET" >> /tmp/terror; fi
 
  make_fstab > $TARGET/etc/fstab
 
