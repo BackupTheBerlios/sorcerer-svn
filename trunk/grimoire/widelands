@@ -1,10 +1,8 @@
     stable build15 Build14 build-12
-#  require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf boost ggz-client-libs
    require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf ggz-client-libs lua tiff
   category game
  attribute x11
     source http://launchpad.net/widelands/$VERSION/$VERSION/+download/widelands-$VERSION-src.tar.bz2
-#   source $SOURCEFORGE_URL widelands/widelands/build-${VERSION:5:2}/Widelands-$VERSION-src.7z
   homepage http://xoops.widelands.org/
   estimate 20000
       desc 'game like warcraft or settlers'
@@ -13,39 +11,4 @@ build(){
 sed -i 's:WL_INSTALL_BINDIR games:WL_INSTALL_BINDIR bin:
         s:WL_INSTALL_BINDIR "games":WL_INSTALL_BINDIR "bin":' CMakeLists.txt
 default_build
-
-build_old(){
-
-pre_build_old(){
-           BUILD_DIR=$SOURCE_DIR/$SPELL/$SPELL-$VERSION
- mkdir -p $BUILD_DIR
- cd       $BUILD_DIR
- 7za x    $SOURCE &>/dev/null
-}
-
-
-wide_install(){
- rm    -rf /usr/{bin,share}/widelands
- mkdir -vpm 755 /usr/share/widelands
- cp    -av campaigns doc fonts global locale maps music pics sound tribes txts worlds /usr/share/widelands
- find /usr/share/widelands -type d | escape_qs | xargs --max-lines=64 chmod 755
- find /usr/share/widelands -type f | escape_qs | xargs --max-lines=64 chmod 644
- cp    -v widelands /usr/bin
- chmod 755 /usr/bin/widelands
-}
-
-# enable_opengl
-
-cd widelands
-# sed might only be needed when doing the make method instead of scons
-# sed -i 's:INSTALL_PREFIX.*:INSTALL_PREFIX "/usr":
-#         s:INSTALL_BINDIR.*:INSTALL_BINDIR "/usr/bin":
-#         s:INSTALL_DATADIR.*:INSTALL_DATADIR "/usr/share/widelands":
-#         s:INSTALL_LOCALEDIR.*:INSTALL_LOCALEDIR "/usr/share/widelands/locale":' src/config.h.default
-
-scons build=release install_prefix=/usr bindir=bin datadir=share/widelands localedir=share/widelands/locale &&
-prepare_install &&
-wide_install
-}
-
 }
