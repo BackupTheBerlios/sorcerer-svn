@@ -1,20 +1,28 @@
-    stable Build14 build-12
-   require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf boost ggz-client-libs scons
+    stable build15 Build14 build-12
+#  require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf boost ggz-client-libs
+   require SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf ggz-client-libs lua tiff
   category game
  attribute x11
-    source $SOURCEFORGE_URL widelands/widelands/build-${VERSION:5:2}/Widelands-$VERSION-src.7z
+    source http://launchpad.net/widelands/$VERSION/$VERSION/+download/widelands-$VERSION-src.tar.bz2
+#   source $SOURCEFORGE_URL widelands/widelands/build-${VERSION:5:2}/Widelands-$VERSION-src.7z
   homepage http://xoops.widelands.org/
-  estimate 2000
+  estimate 20000
       desc 'game like warcraft or settlers'
 
-pre_build(){
+build(){
+sed -i 's:WL_INSTALL_BINDIR games:WL_INSTALL_BINDIR bin:
+        s:WL_INSTALL_BINDIR "games":WL_INSTALL_BINDIR "bin":' CMakeLists.txt
+default_build
+
+build_old(){
+
+pre_build_old(){
            BUILD_DIR=$SOURCE_DIR/$SPELL/$SPELL-$VERSION
  mkdir -p $BUILD_DIR
  cd       $BUILD_DIR
  7za x    $SOURCE &>/dev/null
 }
 
-build(){
 
 wide_install(){
  rm    -rf /usr/{bin,share}/widelands
@@ -38,4 +46,6 @@ cd widelands
 scons build=release install_prefix=/usr bindir=bin datadir=share/widelands localedir=share/widelands/locale &&
 prepare_install &&
 wide_install
+}
+
 }
