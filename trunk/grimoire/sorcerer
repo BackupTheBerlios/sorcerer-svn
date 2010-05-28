@@ -37,20 +37,22 @@ post_install(){
  find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar |
  while read; do
   cd "${REPLY%/*}"
-  rm -f              "${REPLY##*/}.xz"
-  xz -9e --memory=2G "${REPLY##*/}"
+  rm -f                "${REPLY##*/}.xz"
+  xz -9e --memory=390M "${REPLY##*/}"
  done
 
             ISO=/var/cache/iso
- rm    -rf $ISO
+ rm    -fr $ISO
  mkdir -p  $ISO/var/cache
  cp    -al /var/cache/{archive,sources} $ISO/var/cache/
  cp    -a  /boot                        $ISO/
- rm                                     $ISO/var/cache/archive/sorcerer-*
+ rm    -f                               $ISO/var/cache/archive/sorcerer-*
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
  find $ISO/boot -name initrf |
  while read
- do    gzip $REPLY && mv $REPLY.gz $REPLY
+ do    gzip -9 $REPLY && mv $REPLY.gz $REPLY
+#do    xz -F lzma -9e $REPLY && mv $REPLY.lzma $REPLY
+#do    xz -F lzma -9e --memory=390M $REPLY && mv $REPLY.lzma $REPLY
  done
 
  DATE=$VERSION
