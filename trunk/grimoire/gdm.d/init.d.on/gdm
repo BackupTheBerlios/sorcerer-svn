@@ -13,10 +13,31 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/gdm.pid
+#PIDF=/var/run/gdm.pid
 SERV=/usr/sbin/gdm
 CONF=/etc/gdm/custom.conf
 LOGF=/var/log/gdm.log
+
+sidofproc(){
+ ps axo sess,comm | grep gdm-binary | cut -d ' ' -f1 | head -n 1
+}
+
+status(){
+ local SIDS="$( sidofproc )"
+ if ["$PIDS" ]
+ then log_warning_msg "$NAME is running"; return 0
+ else log_warning_msg "$NAME is not running"; return 3
+ fi
+}
+
+
+stop(){
+ local SIDS=$( sidofproc )
+ if   log_warning_msg "$NAME stopping"; pkill -15 -s $SIDS
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status
+ fi
+}
 
 start(){
  if   log_warning_msg "$NAME starting"; start_daemon -b -l $LOGF $SERV $OPTS
