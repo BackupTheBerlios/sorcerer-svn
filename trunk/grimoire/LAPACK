@@ -1,9 +1,7 @@
-# no rule to install
     stable 3.2.1-CMAKE 3.0
    require gcc-fortran
   category utility/math
  attribute new console
- attribute broke
     source http://www.netlib.org/lapack/lapack-$VERSION.zip
    disable scavenge
   homepage http://www.netlib.org/lapack
@@ -12,12 +10,14 @@
 of simultaneous linear equations, least-squares solutions of linear
 systems of equations, eigenvalue problems, and singular value problems.'
 
-build_old(){
-cp -f INSTALL/make.inc.LINUX make.inc
-make  blaslib   &&
-make            &&
-prepare_install &&
-install -vm 644 -o root -g root lapack_LINUX.a /usr/lib/liblapack.a &&
-install -vm 644 -o root -g root   blas_LINUX.a /usr/lib/libblas.a &&
-install -vm 644 -o root -g root tmglib_LINUX.a /usr/lib/libtmg.a
+build(){
+ mkdir build    &&
+ cd    build    &&
+ cmake ..   &&
+ make       &&
+ make test  &&
+ prepare_install    &&
+ install -vm 644 -o root -g root SRC/liblapack.a    /usr/lib/   &&
+ install -vm 644 -o root -g root BLAS/SRC/libblas.a /usr/lib/   &&
+ install -vm 644 -o root -g root TESTING/MATGEN/libtmglib.a /usr/lib/
 }
