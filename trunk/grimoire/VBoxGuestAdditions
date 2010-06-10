@@ -1,0 +1,28 @@
+# "VirtualBox Guest Additions installer"
+# "Detected unsupported x86 environment."
+
+# This has complex install.
+# This will require time to make a very custom spell
+# to install the components
+# Spell is currently incomplete
+
+    stable 3.2.4
+   require uniso
+  category development/emulator
+ attribute x11
+ attribute broke
+    source http://download.virtualbox.org/virtualbox/3.2.4/VBoxGuestAdditions_$VERSION.iso
+  homepage http://www.virtualbox.org/
+      desc 'kernel modules for guest operating system'
+
+build(){
+isoinfo -l -J -R -i $SOURCE |
+uniso         -R -i $SOURCE
+case $HOSTTYPE in
+ x86_64) VBoxLinuxAdditions-amd64.run --noexec --target . ;;
+      *) VBoxLinuxAdditions-x86.run   --noexec --target . ;;
+esac
+tar -xf VBoxGuestAdditions.tar.bz2
+prepare_install &&
+false
+}
