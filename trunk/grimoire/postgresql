@@ -19,7 +19,7 @@
 #             ':--enable-odbc::build the ODBC driver package'
 #             'j2sdk:--with-java::build JDBC interface and Java tools'
       opts --enable-integer-datetimes --with-nls --enable-static=no
-  estimate 2200
+  estimate 2748
  freshmeat pgsql
       desc 'postgresql is a sophisticated Object-Relational DBMS
 It supports almost all SQL constructs, including subselects,
@@ -28,5 +28,17 @@ trasactions and user defined types and functions.'
 build(){
  export   CFLAGS="${CFLAGS//-ffast-math/}"
  export CXXFLAGS="${CXXFLAGS//-ffast-math/}"
- default_build
+ ./configure               \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=/usr  \
+ $OPTS           &&
+ make            &&
+ cd contrib      &&
+ make            &&
+ cd -            &&
+ prepare_install &&
+ make    install &&
+ cd contrib      &&
+ make    install
 }
