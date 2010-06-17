@@ -84,9 +84,9 @@ killproc(){
 
  if    [       "$PIDS" ]; then
   if   [       "$SIGL" ]
-  then kill -s "$SIGL" $PIDS
-  else kill -s 15      $PIDS; sleep 3
-       kill -s 9       $PIDS
+  then pkill "-$SIGL" -s $PIDS
+  else pkill -15      -s $PIDS; sleep 3
+       pkill -9       -s $PIDS
   fi
   if   [  -n "$PIDF" ] &&
        [  -f "$PIDF" ]
@@ -99,7 +99,7 @@ killproc(){
 start_daemon(){
  run(){
   if   [ "$BACK" ]
-  then "$@" & sleep .1; echo $! > $PIDF
+  then setsid /lib/lsb/pidf $PIDF "$@" &
   else "$@"
   fi
  }

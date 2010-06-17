@@ -8,15 +8,12 @@
              ftp://ftp5.mplayerhq.hu/MPlayer/'
 
 if [[ $SPELL == MPlayer ]]; then
-    stable 1.0rc2 1.0rc1
+    stable 1.0rc3 1.0rc2 1.0rc1
     secure 1.0rc2
 
 # mplayer 1.0rc2 will not compile with x264 snapshot-20081001-2245
 # nor with x264 version snapshot-20081202-2245
-case $VERSION in
- 1.0rc2)
-      opts --disable-x264 ;;
-esac
+
    require gtk+ a52dec libXv libXxf86dga giflib lzo popt unzip w32codec
 #  require gtk+ a52dec libXv libXxf86dga libdvdread giflib lzo popt unzip w32codec
   optional MPlayer-Skin '' '' to install skins for GUI
@@ -28,7 +25,7 @@ esac
   optional cdparanoia '' --disable-cdparanoia for playing/reading audio CDs
   optional esound '' --disable-esd for sound output through esound
   optional faac '' --disable-faac for faac codec support
-  optional faad2 --enable-faad-external '' for aac decoding support
+# optional faad2 --enable-faad-external '' for aac decoding support
   optional freetype '' --disable-freetype for anti-aliased osd/subs support
   optional fribidi '' --disable-fribidi for bidirectional unicode text
   optional jackit '' --disable-jack for jackit audio mixer output support
@@ -47,19 +44,20 @@ esac
   optional svgalib '' --disable-svga for output through svgalib
   optional x264 '' --disable-x264 for H.264 codec support
   optional xmms --enable-xmms '' to build with XMMS input plugin support
-
-  switch --enable-joystick '' for joystick support
-
-
- use_gcc gcc-v4.2          # for 1.0rc2
-    opts --disable-ivtv    # for 1.0rc2
+    switch --enable-joystick '' for joystick support
 
     source releases/MPlayer-$VERSION.tar.bz2
-       url http://www.mplayerhq.hu/MPlayer/patches/
-    source demux_audio_fix_20080129.diff
-    source demux_mov_fix_20080129.diff
-    source url_fix_20080120.diff
-    source stream_cddb_fix_20080120.diff
+case $VERSION in
+ 1.0rc2)
+   use_gcc gcc-v4.2          # for 1.0rc2
+      opts --disable-ivtv    # for 1.0rc2
+      opts --disable-x264
+    source http://www.mplayerhq.hu/MPlayer/patches/demux_audio_fix_20080129.diff
+    source http://www.mplayerhq.hu/MPlayer/patches/demux_mov_fix_20080129.diff
+    source http://www.mplayerhq.hu/MPlayer/patches/url_fix_20080120.diff
+    source http://www.mplayerhq.hu/MPlayer/patches/stream_cddb_fix_20080120.diff
+    ;;
+esac
  freshmeat mplayer
 fi
 
@@ -67,7 +65,7 @@ fi
  attribute x11
   homepage http://www.mplayerhq.hu
   estimate 3000
-      desc 'MPlayer is a movie and animation player.
+      desc 'movie and animation player
 MPlayer is a movie and animation player that supports a wide
 range of file formats, including ASF, Quicktime, and Vivo.
 It has many MMX/SSE/3Dnow optimized native audio and video
@@ -112,10 +110,13 @@ build(){
    done
   }
 
-  patch -p0 < ${SOURCE[1]}
-  patch -p0 < ${SOURCE[2]}
-  patch -p0 < ${SOURCE[3]}
-  patch -p0 < ${SOURCE[4]}
+  case $VERSION in
+   1.0rc2)
+    patch -p0 < ${SOURCE[1]}
+    patch -p0 < ${SOURCE[2]}
+    patch -p0 < ${SOURCE[3]}
+    patch -p0 < ${SOURCE[4]} ;;
+  esac
 
   unset CFLAGS CXXFLAGS
 

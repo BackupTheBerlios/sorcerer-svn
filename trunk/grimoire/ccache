@@ -5,7 +5,7 @@
     source http://samba.org/ftp/ccache/ccache-$VERSION.tar.gz
   homepage http://ccache.samba.org
     CFLAGS='-O3'
-   LDFLAGS='-Wl,-O1'
+   LDFLAGS='-Wl,-O1 -static'
       desc 'C and C++ compiler wrapper to speed compilation
 ccache is a compiler cache.
 It acts as a caching pre-processor to C/C++ compilers, 
@@ -25,10 +25,22 @@ build(){
  }
 
 
-mtime_patch(){
+mtime_patch2(){
  local MOF="utime(output_file, NULL);"
  local MHA="utime(hashname, NULL);"
  sed -i  "s:$MOF:$MOF $MHA:"  ccache.c
+}
+
+mtime_patch3(){
+# Seems to update the mtime on the cached object file already
+true
+}
+
+mtime_patch(){
+ case $VERSION in
+  2.4)  mtime_patch2 ;;
+  3.0*) mtime_patch3 ;;
+ esac
 }
 
 export LDFLAGS+=" $OPTS"
@@ -36,6 +48,7 @@ export LDFLAGS+=" $OPTS"
 sed -i 's:$(CFLAGS):$(CFLAGS) $(LDFLAGS):' Makefile.in
 
 mtime_patch                  &&
+ac_cv_func_getpwuid=no       \
 ./configure                  \
 --prefix=/usr/libexec/ccache \
 --bindir=/usr/libexec/ccache \
