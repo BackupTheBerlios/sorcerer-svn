@@ -1,7 +1,7 @@
 # Functions for LSB-compliant init-scripts
 # Compatible with /bin/dash and /bin/bash
 # For use with the distribution Sorcerer only!
-# Copyright Kyle Sallee 2005 through 2008.
+# Copyright Kyle Sallee 2005 through 2010.
 # All rights reserved.
 
 NORM="[0m"
@@ -35,7 +35,13 @@ locked(){
 #[ ${REPLY:6:$L} = "$2" ]
 }
 
+session(){
+ read REPLY < $1 &&
+ ps --no-heading -o comm -s $REPLY | grep -qx "$2" 
+}
+
 pidofproc(){
+
  local PIDS
 
  while
@@ -55,13 +61,14 @@ pidofproc(){
   fi
  fi
 
- if    [  -s  "$PIDF" ]; then
-  if   locked "$PIDF" "$BASE"
+ if    [ -s    "$PIDF" ]; then
+  if   locked  "$PIDF" "$BASE" ||
+       session "$PIDF" "$BASE"
   then read REPLY < $PIDF; echo $REPLY
   else false
   fi
- elif [  -n "$PIDS" ]
- then echo  "$PIDS"
+ elif [ -n "$PIDS" ]
+ then echo "$PIDS"
  else return 1
  fi
 }
@@ -99,7 +106,7 @@ killproc(){
 start_daemon(){
  run(){
   if   [ "$BACK" ]
-  then setsid /lib/lsb/pidf $PIDF "$@" &
+  then setsid /lib/lsb/pidf "$PIDF" "$@" &
   else "$@"
   fi
  }
