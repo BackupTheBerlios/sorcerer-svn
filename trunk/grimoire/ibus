@@ -1,0 +1,34 @@
+    stable 1.3.5
+   require GConf-dbus dbus-python iso-codes notify-python
+  category input
+ attribute library x11
+    source http://ibus.googlecode.com/files/ibus-$VERSION.tar.gz
+  homepage http://code.google.com/p/ibus/
+      opts --enable-static=no
+  estimate 800
+      desc 'intelligent input bus
+ibus-setup:
+It is a gtk program to enable and configure ibus.
+
+ibus:
+It is ibus daemon.
+
+hotkeys:
+Ctrl + Space: Enable or Disable input method
+Ctrl + Shift: Change input method.'
+
+build(){
+ extra_install(){
+  ldconfig
+  if   spell_installed gtk-query-immodules-2.0
+  then echo            gtk-query-immodules-2.0 | pipe_queue $CAST_QUEUE com
+  fi
+ }
+
+# case $MACHTYPE in
+#  *-uclibc) sed -i '1i#define __error_t_defined' src/{ltdl.cpp,scim.h} ;;
+#esac
+
+ default_build &&
+   extra_install
+}
