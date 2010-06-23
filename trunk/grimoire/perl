@@ -11,7 +11,7 @@
 
 # is 5.12.0 ready?
 
-    stable 5.12.1 5.12.0 5.10.1 5.10.0 5.8.8
+    stable 5.12.1 5.12.0 5.10.1 5.10.0
     secure 5.10.0
   unstable 5.13.0 5.11.5
   optional gdbm '' '' for database support
@@ -32,24 +32,16 @@ to improve security with setuid scripts and is
 extendable via modules that can interface to C libraries.'
 
 build(){
+ unset LD_PRELOAD
 
  export CFLAGS+=' -fPIC'
 
- if   echo "$CFLAGS" | grep -q "march=i586"
- then       SETARCH="-Darchname=i586-linux"
- else unset SETARCH
- fi
+# if   echo "$CFLAGS" | grep -q "march=i586"
+# then       SETARCH="-Darchname=i586-linux"
+# else unset SETARCH
+# fi
 
  unset LANG LC_CTYPE
-
- #  gcc 4.2.1 ouputs command-line instead of command line
- case  $VERSION  in
-  5.8.8)
-   if   gcc  --version | grep -q '4\.2\.[12]'
-   then grep -rl '<command line>' * | xargs -r \
-        sed  -i  's:ommand line:ommand-line:'
-   fi ;;
- esac
 
 # Even with UCLIBC_HAS_THREADS=y
 # perl says when compiling with uClibc:
@@ -70,8 +62,8 @@ build(){
  -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib" \
  $SETARCH
  make  "OPTIMIZE=$CFLAGS" &&
- prepare_install &&
- make    install
+ make    install "DESTDIR=$DESTDIR" &&
+ prepare_install
 }
 
 
