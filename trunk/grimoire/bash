@@ -36,24 +36,21 @@ In addition, most sh scripts can be run by Bash without modification.'
 
 build(){
  install_loadables(){
-  install -vdm 755 /usr/libexec/bash
+  install -vdm 755 $DESTDIR/usr/libexec/bash
   cd  examples/loadables
   for FILE in *.c
   do  make             ${FILE%.c}
-      install -vsm 755 ${FILE%.c} /usr/libexec/bash
+      install -vsm 755 ${FILE%.c} $DESTDIR/usr/libexec/bash
   done
   true
  }
 
  install_etc(){
- #cp      -va     $SCRIPT_DIR/bash.d  /etc
- #mkdir  -pvm 755 /etc/bash.d
- #install -vm 755 $SCRIPT_DIR/bash.d/default /etc/bash.d
-  install -vm 755 -d                  /etc/skel
-  install -vm 644 $SCRIPT_DIR/profile /etc
-  install -vm 644 $SCRIPT_DIR/profile /etc/skel/.bashrc
-  install -vm 644 $SCRIPT_DIR/profile /etc/skel/.bash_profile
-  install -vm 644 $SCRIPT_DIR/logout  /etc/skel/.bash_logout
+  install -vm 755 -d                  $DESTDIR/etc/skel
+  install -vm 644 $SCRIPT_DIR/profile $DESTDIR/etc
+  install -vm 644 $SCRIPT_DIR/profile $DESTDIR/etc/skel/.bashrc
+  install -vm 644 $SCRIPT_DIR/profile $DESTDIR/etc/skel/.bash_profile
+  install -vm 644 $SCRIPT_DIR/logout  $DESTDIR/etc/skel/.bash_logout
  }
 
 
@@ -95,9 +92,8 @@ build(){
  --with-curses             \
  $OPTS                     &&
  make                      &&
- prepare_install           &&
- make    install           &&
- ln -sf bash /bin/sh       &&
+ make install "DESTDIR=$DESTDIR" &&
+ ln -sf bash  $DESTDIR/bin/sh    &&
  install_loadables         &&
  install_etc               &&
  clear_library_cache

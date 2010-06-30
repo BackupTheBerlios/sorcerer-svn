@@ -1,3 +1,10 @@
+#rp-pppoe currently require net-tools to detect the connection
+#remove this dependency when ip version will be available
+#MALET Jean-Luc
+
+# What did the above comment mean?
+# Should the requirement on net-tools be replaced by iproute2 ?
+
     stable 3.10 3.9 3.8 3.7 3.6 3.5 3.4
    require ppp net-tools
   category network
@@ -5,11 +12,8 @@
     source http://www.roaringpenguin.com/files/download/rp-pppoe-$VERSION.tar.gz
       vurl http://www.roaringpenguin.com/penguin/openSourceProducts/rpPppoe
   homepage http://www.roaringpenguin.com/pppoe/
-#rp-pppoe currently require net-tools to detect the connection
-#remove this dependency when ip version will be available
-#MALET Jean-Luc
   estimate 200
-      desc 'rp-pppoe is a PPP over Ethernet client/server suite.
+      desc 'PPP over Ethernet client/server suite
 rp-pppoe, Roaring Penguin, is a PPPoE client and server
 suite for Linux, NetBSD, Solaris, and Mac OS X Beta.
 It is fully RFC-compliant and supports cookies, relay-IDs,
@@ -19,10 +23,10 @@ and supports kernel-mode PPPoE on Linux 2.4.x.'
 
 build(){
  install_extra(){
-  mkdir -p /usr/share/applnk/Internet
-  mkdir -p /usr/share/gnome/apps/Internet
-  cp $SCRIPT_DIR/tkpppoe.kdelnk  /usr/share/applnk/Internet
-  cp $SCRIPT_DIR/tkpppoe.desktop /usr/share/gnome/apps/Internet
+  mkdir -p $DESTDIR/usr/share/applnk/Internet
+  mkdir -p $DESTDIR/usr/share/gnome/apps/Internet
+  cp $SCRIPT_DIR/tkpppoe.kdelnk  $DESTDIR/usr/share/applnk/Internet
+  cp $SCRIPT_DIR/tkpppoe.desktop $DESTDIR/usr/share/gnome/apps/Internet
  }
 
  sed -i 's/read a/a=0/' scripts/adsl-setup.in
@@ -32,15 +36,13 @@ build(){
  --sbindir=/sbin      \
  --sysconfdir=/etc    \
  --localstatedir=/var \
- $OPTS           &&
- make            &&
- cd  ../gui      &&
- make            &&
- prepare_install &&
- make  install   &&
- cd  ../src      &&
- make  install   &&
-       install_extra
+ $OPTS      &&
+ make       &&
+ cd  ../gui &&
+ make       &&
+ make  install DESTDIR=$DESTDIR && cd ../src &&
+ make  install DESTDIR=$DESTDIR &&
+ install_extra
 }
 
 current(){

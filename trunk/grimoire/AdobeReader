@@ -37,18 +37,19 @@ build(){
  install_files(){
   local BASE=/usr/lib/acrobat/Adobe/Reader9
 
-  mkdir -vpm 755 /usr/lib/acrobat
-  cp    -Rv *    /usr/lib/acrobat/
+  sed   -i 's:/bin/pwd:pwd:' $BASE/bin/acroread
+
+  mkdir -vpm 755 $DESTDIR/usr/lib/acrobat
+  cp    -Rv *    $DESTDIR/usr/lib/acrobat/
 
       PLUG=Browser/intellinux/nppdf.so
   PLUG_DIR=/usr/lib/mozilla/plugins
 
-  if [    -d                    $PLUG_DIR ]; then
-   ln     -f $BASE/$PLUG        $PLUG_DIR
-   chmod 755 $BASE/bin/acroread
-   ln    -fs $BASE/bin/acroread /usr/bin/
-   sed   -i 's:/bin/pwd:pwd:' \
-             $BASE/bin/acroread
+  if [    -d                       $PLUG_DIR ]; then
+   mkdir  -p              $DESTDIR/$PLUG_DIR $DESTDIR/usr/bin
+   ln     -fs $BASE/$PLUG $DESTDIR/$PLUG_DIR
+   chmod 755  $DESTDIR/$BASE/bin/acroread
+   ln    -fs           $BASE/bin/acroread    $DESTDIR/usr/bin/
   fi
  }
 
@@ -64,6 +65,5 @@ unpack_tars(){
   [ -f COMMON.TAR ] &&
   [ -f ILINXR.TAR ] &&
   unpack_tars       &&
-  prepare_install   &&
   install_files
 }

@@ -6,10 +6,12 @@
 
 case $HOSTTYPE in
   x86_64) RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
-    stable 7-ea-bin-b97-linux-x64-10_jun_2010 \
+    stable 7-ea-bin-b99-linux-x64-24_jun_2010 \
+           7-ea-bin-b97-linux-x64-10_jun_2010 \
            7-ea-bin-b93-linux-x64-13_may_2010 ;;
        *)
-    stable 7-ea-bin-b97-linux-i586-10_jun_2010 \
+    stable 7-ea-bin-b99-linux-i586-24_jun_2010 \
+           7-ea-bin-b97-linux-i586-10_jun_2010 \
            7-ea-bin-b93-linux-i586-13_may_2010
           RPATH="/opt/jdk/jre/lib/i386${LF}/opt/jdk/jre/lib/i386/jli${LF}/opt/jdk/jre/lib/i386/client${LF}/opt/jdk/jre/lib/i386/server${LF}/opt/jdk/jre/lib/i386/headless${LF}/opt/jdk/jre/lib/i386/motif21${LF}/opt/jdk/jre/lib/i386/xawt" ;;
 esac
@@ -26,37 +28,39 @@ esac
 
 build(){
 
- install_jdk(){
-  set -x
-  case $VERSION in
-     7*) DIR='jdk1.7.0' ;;
-  esac
+install_jdk(){
+ set -x
+ case $VERSION in
+  7*) DIR='jdk1.7.0' ;;
+ esac
+
+ mkdir -p $DESTDIR/{opt,usr/bin}
 
  # /opt/jdk should be a symbolic link to the current version and NOT a directory
- cd   /opt
+ cd $DESTDIR/opt
  if   unzip $SOURCE
       [[ -f ${DIR}/man/ja_JP.eucJP/man1/xjc.1 ]]
  then
-  rm -rf /opt/jdk
-  ln -fs /opt/$DIR /opt/jdk	
+  ln -fs $DIR $DESTDIR/opt/jdk	
  
-  for         FILE in /opt/jdk/bin/*
-  do  ln -fs $FILE /usr/bin/${FILE##*/}
+  for         FILE in $DESTDIR/opt/jdk/bin/*
+  do  ln -fs /opt/jdk/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
   done
 
-  if   [  -x  /opt/jdk/jre/bin/java_vm ]
-  then ln -fs /opt/jdk/jre/bin/java_vm /usr/bin/java_vm
+  if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
+  then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
   fi 
 
-  if    [ -d   /opt/jdk/jre/plugin ] && [ -d /usr/lib/mozilla/plugins ]
-  then  ln -fs /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so \
-                   /usr/lib/mozilla/plugins/libjavaplugin_oji.so
+  if [ -d  $DESTDIR/opt/jdk/jre/plugin ] && [ -d /usr/lib/mozilla/plugins ]; then
+   mkdir -p $DESTDIR/usr/lib/mozilla/plugins
+   ln -fs       /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so \
+            $DESTDIR/usr/lib/mozilla/plugins/libjavaplugin_oji.so
   fi
 
-  mkdir -p  /etc/.java/.systemPrefs
-  touch     /etc/.java/.systemPrefs/.system.lock
-  touch     /etc/.java/.systemPrefs/.systemRootModFile
-  chmod 644 /etc/.java/.systemPrefs/.system*
+  mkdir -p  $DESTDIR/etc/.java/.systemPrefs
+  touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
+  touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
+  chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
 
   find . -name \*.pack |
   while read; do
@@ -64,16 +68,14 @@ build(){
    rm -f     $REPLY
   done
 
-  install -m 755 $SCRIPT_DIR/jdk /etc/bash.d/noninteractive/
-
   if   uname -m |
        grep  -q "[[:digit:]]86"
-  then java  -client -Xshare:dump
+  then $DESTDIR/opt/jdk/bin/java -client -Xshare:dump
   fi
   true
   set +x
  else
-  rm -fr /opt/$DIR
+  rm -fr $DESTDIR/opt/$DIR
   set +x
   false
  fi
@@ -90,12 +92,11 @@ build(){
 # the assertion for broken locking.
 
 # This fix should be eventually dropped (once JDK is fixed)
-  find /opt/jdk/ -name libmawt.so -exec sed -i 's/XINERAMA/FAKEEXTN/g' '{}' \; 
+  find $DESTDIR/opt/jdk/ -name libmawt.so -exec sed -i 's/XINERAMA/FAKEEXTN/g' '{}' \; 
  }
 
 # Make sure the source downloaded is really a shell script
  file $SOURCE | grep -q 'shell script' && 
- prepare_install     &&
-         install_jdk &&
+ install_jdk &&
  xcb_error_fix
 }

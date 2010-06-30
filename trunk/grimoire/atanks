@@ -2,7 +2,6 @@
    require allegro gcc-g++
   category game
  attribute x11
-#attribute broke
     source $SOURCEFORGE_URL atanks/atanks/atanks-$VERSION/atanks-$VERSION.tar.gz
   homepage http://atanks.sourceforge.net
   estimate 40
@@ -14,30 +13,9 @@ It features a wide array of weapons, destructible landscape,
 weather, parachutes, teleports and a wide range of other features.'
 
 build(){
+# First sed might not be necessary in 4.6 and later versions
+# not yet tested without it.
  sed -i 's:-DDATA_DIR=\\"\.\\":-DDATA_DIR=\\"/usr/share/games/atanks\\":' src/Makefile
  make &&
- prepare_install &&
- make    install
-}
-
-build_old(){
- install_atanks(){
-  mkdir   -vp                 $UB $USA
-  install -vm 755  atanks     $UB
-  install -vm 644 *.{dat,txt} $USA
- }
-
- USA='/usr/share/atanks'
-  UB='/usr/bin'
-
- CF="CFLAGS=$CFLAGS"
- LF="LDFLAGS=$LDFLAGS $( allegro-config  --libs )"
-
- rm -f atanks
- cd src &&
- sed -i 's:-DDATA_DIR=\\".\\":-DDATA_DIR=\\"/usr/share/atanks\\":' Makefile &&
- make "$CF" "$LF" DATA_DIR=$USA &&
- cd .. &&
- prepare_install &&
-         install_atanks
+ make install "PREFIX=$DESTDIR/"
 }

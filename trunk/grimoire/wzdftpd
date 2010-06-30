@@ -40,25 +40,22 @@ It supports IPv6, multi-threading, and external scripts.'
 
 build() {
 finish_install() {
-  install -m 0700 -d            /var/log/wzdftpd
-  install -m 0700    /dev/null  /etc/wzdftpd/users
-  if  !  [  -f                  /etc/wzdftpd/wzd.cfg  ]
-  then  install -m 0600         /etc/wzdftpd/wzd.cfg.sample  \
-                                /etc/wzdftpd/wzd.cfg
-  fi
+  install -m 700 -d        $DESTDIR/var/log/wzdftpd
+  install -m 700 /dev/null $DESTDIR/etc/wzdftpd/users
+  install -m 600           $DESTDIR/etc/wzdftpd/wzd.cfg.sample \
+                           $DESTDIR/etc/wzdftpd/wzd.cfg
 }
 
-[  -x  bootstrap  ]  &&
-     ./bootstrap
+[ -x bootstrap ] &&
+   ./bootstrap
 
 # sed  -i  "s:#pid_file = /usr/share/wzdftpd/wzdftpd.pid:pid_file = /var/run/wzdftpd.pid:"  src/wzd.cfg.sample
-./configure                \
---prefix=/usr              \
---sysconfdir=/etc/wzdftpd  \
---localstatedir=/var       \
-$OPTS                      &&
-make                       &&
-prepare_install            &&
-make    install            &&
- finish_install
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc/wzdftpd \
+--localstatedir=/var \
+$OPTS &&
+make &&
+make install DESTDIR=$DESTDIR &&
+finish_install
 }

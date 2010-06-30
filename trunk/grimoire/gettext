@@ -26,9 +26,8 @@ build(){
   --localstatedir=/var \
   $OPTS                &&
   sed -i 's@^\(archive_cmds.*-shared \)\(.*predep_objects.*\)@\1 -nostartfiles -nostdlib \2 @ g' gettext-runtime/libasprintf/libtool  &&
-  make            &&
-  prepare_install &&
-  make    install
+  make &&
+  make install DESTDIR=$DESTDIR
  }
 
  # gettext 0.14.5 compilation chokes on SMP during parallel builds
@@ -39,9 +38,9 @@ build(){
        *) default_build ;;
  esac &&
 
-find /usr/lib/ -maxdepth 1 -name libintl.so\* |
+find $DESTDIR/usr/lib/ -maxdepth 1 -name libintl.so\* |
 while read; do
- mv $REPLY /lib/ &&
+ mv $REPLY $DESTDIR/lib/ &&
  ln -s ../../lib/${REPLY##*/} $REPLY
 done
 }

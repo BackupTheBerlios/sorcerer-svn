@@ -1,4 +1,4 @@
-    stable B.02.14 B.02.13 B.02.12.01
+    stable B.02.14
    require gcc-g++
   optional gtk+ --enable-gui --disable-gui for gtk+ GUI
   category utility
@@ -6,7 +6,7 @@
     source http://www.ezix.org/software/files/lshw-$VERSION.tar.gz
       vurl http://ezix.org/project/wiki/HardwareLiSter
   homepage http://www.ezix.org/software/lshw.html
-      desc 'lshw the hardware lister provides detailed information about the box.
+      desc 'hardware lister provides detailed information about the box
 lshw the hardware lister is a small tool to provide detailed
 information on the hardware configuration of the machine.
 It can report exact memory configuration, firmware version,
@@ -19,26 +19,12 @@ case $MACHTYPE in
 esac
 
 build(){
-case $VERSION in
- B.02.13)    sed -i '1i#include <cstring>
-                     1i#include <cstdlib>
-                     1i#include <limits.h>' src/core/*.cc src/lshw.cc
- ;;
- B.02.12.01) sed -i '1i#include <cstring>
-                     1i#include <cstdlib>
-                     1i#include <limits.h>' src/core/*.cc src/lshw.cc
- ;;
-esac
-
 if echo "$OPTS" | grep -q enable-gui; then
- make                &&
- make            gui &&
- prepare_install     &&
- make    install-gui &&
- make    install
+ make     &&
+ make gui &&
+ make install install-gui DESTDIR=$DESTDIR
 else
- make            &&
- prepare_install &&
- make    install
+ make &&
+ make install DESTDIR=$DESTDIR
 fi
 }

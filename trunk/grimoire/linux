@@ -41,19 +41,18 @@ build(){
   BV="${VERSION}"
   BZ=$( find . -type f -name bzImage )
 
-  rm    -rf               /boot/$BV
-  mkdir -p                /boot/$BV
-  cp       $BZ            /boot/$BV/linux
-  chmod 600               /boot/$BV/linux
-  cp           System.map /boot/$BV
-  rm    -f                /boot/System.map
-  ln    -s $BV/System.map /boot/System.map
+  mkdir -p                $DESTDIR/boot/$BV
+  cp       $BZ            $DESTDIR/boot/$BV/linux
+  chmod 600               $DESTDIR/boot/$BV/linux
+  cp           System.map $DESTDIR/boot/$BV
+  rm    -f                $DESTDIR/boot/System.map
+  ln    -s $BV/System.map $DESTDIR/boot/System.map
  }
 
  install_header(){
-  mkdir   -vm 755 -p                                     /usr/include/{asm,linux}
-  install -vm 644 include/generated/asm-offsets.h        /usr/include/asm
-  install -vm 644 include/generated/{autoconf,compile}.h /usr/include/linux
+  mkdir   -vm 755 -p                                     $DESTDIR/usr/include/{asm,linux}
+  install -vm 644 include/generated/asm-offsets.h        $DESTDIR/usr/include/asm
+  install -vm 644 include/generated/{autoconf,compile}.h $DESTDIR/usr/include/linux
   true
  }
 
@@ -82,26 +81,25 @@ build(){
  }
 
  gzip_modules(){
-  local KO="/lib/modules/$VERSION/kernel/"
+  local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
   find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
   find $KO -type f              | sed   -n '/\.gz$/p' |
   while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
  }
 
  strip_modules(){
-  find /lib/modules/$VERSION/kernel -type f -name \*.ko |
+  find $DESTDIR/lib/modules/$VERSION/kernel -type f -name \*.ko |
   xargs --max-lines=256 strip --strip-unneeded
  }
 
  compile_and_install(){
   restore_linux_configs
   yes "" | make oldconfig
-  make modules          &&
-  make bzImage          &&
-  prepare_install       &&
-  make modules_install  && strip_modules &&
-  make firmware_install &&
-  install_kernel        &&
+  make modules &&
+  make bzImage &&
+  make modules_install  INSTALL_MOD_PATH=$DESTDIR && strip_modules &&
+  make firmware_install INSTALL_FW_PATH=$DESTDIR &&
+  install_kernel &&
   install_header
  }
 

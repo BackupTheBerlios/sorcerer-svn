@@ -3,7 +3,7 @@
  attribute console
     source http://mangband.org/download/mangband-$VERSION.tar.gz
   homepage http://mangband.org/
-      desc 'mangband is a multiplayer angband game.'
+      desc 'multiplayer angband game'
 
 build(){
  cd src
@@ -13,16 +13,13 @@ build(){
  sed -i "s:mangband.cfg:$MCFG:"          server/init2.c
  sed -i "s:\./lib/:/usr/share/mangband:" config.h
 
- make             &&
- prepare_install &&
- cd ..           &&
- cp    -av mangband    \
-           mangclient  \
-           mangconsole \
-           runserv     /usr/bin            &&
- mkdir -p              /usr/share/mangband &&
- cp    -a  lib/*       /usr/share/mangband &&
- if    ! [ -f         $MCFG ]
- then cp mangband.cfg $MCFG
- fi
+ make &&
+ mkdir -p $DESTDIR/{etc,usr/{bin,share/mangband}} &&
+ cd .. &&
+ cp -a mangband    \
+       mangclient  \
+       mangconsole \
+       runserv     $DESTDIR/usr/bin &&
+ cp -a  lib/*      $DESTDIR/usr/share/mangband &&
+ cp mangband.cfg   $DESTDIR/etc
 }

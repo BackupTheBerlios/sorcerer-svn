@@ -26,13 +26,11 @@ build(){
  sed -i "s:local/::
          s:timidity.cfg:/usr/lib/timidity/timidity.cfg:" timidity/config.h
 
- ./configure     \
- --prefix=/usr   \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install &&
- mkdir   -vp                                         /usr/lib/timidity &&
- cp      -vR    timidity/{instruments,timidity.cfg} /usr/lib/timidity &&
- install -vm 755 build/.libs/play{mus,wave}          /usr/bin/
+ ./configure   \
+ --prefix=/usr \
+ $OPTS         &&
+ make install "DESTDIR=$DESTDIR" &&
+ mkdir   -vp                                        $DESTDIR/usr/{bin,lib/timidity} &&
+ cp      -vR    timidity/{instruments,timidity.cfg} $DESTDIR/usr/lib/timidity &&
+ install -vm 755 build/.libs/play{mus,wave}         $DESTDIR/usr/bin/
 }

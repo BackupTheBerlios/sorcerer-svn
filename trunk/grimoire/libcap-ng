@@ -9,24 +9,3 @@
   estimate 300
       desc 'library for making programming with POSIX capabilities easier
 than the traditional libcap library'
-
-build_old(){
-patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
-make &&
-prepare_install &&
-make    install
-}
-
-build_old() {
-## Can not compile this as a relocatable library
-## cap_sys.c:18: error: can't find a register in class 'BREG' while reloading 'asm'
-# CFLAGS="$CFLAGS -fPIC"
-
-case $VERSION in 
-  1.10) sed -i "s:(COPTFLAG):(COPTFLAGS):"  Make.Rules;;
-esac
-
-make  "COPTFLAGS=$CFLAGS"  "LDFLAGS=$LDFLAGS"	&&
-prepare_install					&&
-make  "COPTFLAGS=$CFLAGS"  "LDFLAGS=$LDFLAGS"   install
-}

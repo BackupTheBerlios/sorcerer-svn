@@ -43,38 +43,22 @@ build(){
     # It can not be directly piped to rpmunpack, unknown why.
     ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
     rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
-
-   2.2.0_LinuxIntel_install_en-US)  \
-    AGAIN=$BUILD_DIR/RPMS/desktop-integration/openoffice.org-freedesktop-menus-2.2-9119.noarch.rpm
-    echo "---> Unpacking $AGAIN"
-    # rpmunpack misdetects gzip magic signature on 1st attempt.
-    # It can not be directly piped to rpmunpack, unknown why.
-    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
-
-   2.1.0_LinuxIntel_install_en-US)  \
-    AGAIN=$BUILD_DIR/RPMS/openoffice.org-core05u-2.1.0-6.i586.rpm
-    echo "---> Unpacking $AGAIN"
-    # rpmunpack misdetects gzip magic signature on 1st attempt.
-    # It can not be directly piped to rpmunpack, unknown why.
-    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
   esac
 
   chown -R root:root * 
   find               * -type f | xargs --max-lines=64 chmod o-w
   find               * -type d | xargs --max-lines=64 chmod 755
-  cp -av * /
+  cp -av * $DESTDIR/
  }
 
  add_mailcap(){
+  mkdir -p $DESTDIR/etc/
   sed "s:^:application/:
        s:$:; openoffice.org -view %s:" $SCRIPT_DIR/mailcap |
-  sort -u > /etc/mailcap.OOo-bin
+  sort -u > $DESTDIR/etc/mailcap.OOo-bin
  }
 
  [[ -d RPMS ]]   &&
- prepare_install &&
  install_rpms    &&
  add_mailcap
 }

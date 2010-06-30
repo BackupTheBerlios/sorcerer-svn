@@ -20,10 +20,9 @@ build(){
 
  finish_install(){
   rm -f  $DESTDIR/usr/info/dir
-  cp -av $DESTDIR/*   /
-  ln -fs /usr/bin/cpp /lib/cpp
-  rm -f               /usr/bin/cc 
-  ln -fs gcc          /usr/bin/cc
+  mkdir -p            $DESTDIR/lib
+  ln -fs /usr/bin/cpp $DESTDIR/lib/cpp
+  ln -fs gcc          $DESTDIR/usr/bin/cc
  }
 
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
@@ -65,8 +64,6 @@ build(){
  then OPTS+=" --enable-libstdcxx-pch=no"
  fi
 
- DESTDIR=$BUILD_DIR/.dest
-
  mkdir BUILD
  cd    BUILD
  ../configure $OPTS             &&
@@ -74,8 +71,7 @@ build(){
       "$LCF"  "$LCXF"  "$LDF"   \
       "$LJCF" "$LJCXF"          &&
  make  install DESTDIR=$DESTDIR &&
- prepare_install &&
-  finish_install
+ finish_install
 }
 
 

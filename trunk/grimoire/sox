@@ -1,12 +1,8 @@
-    stable 14.3.1 14.3.0 14.2.0 14.1.0 14.0.1 14.0.0
-  unstable 14.3.1-rc3 14.3.1-rc1
+    stable 14.3.1
    require alsa-lib file libtool
 # gsm source is missing
 #  require alsa-lib file gsm libtool
 # optional ffmpeg        '' --without-ffmpeg     for ffmpeg supported audio codecs
-case $VERSION in 
- 14.3.0) opts --without-ffmpeg ;;
-esac
   optional lame          '' --disable-lame       for mp3 encoding and decoding
   optional libao         '' --disable-libao      for output through libao sound server
   optional libid3tag     '' --without-id3tag     for id3 tag and metadata support
@@ -24,12 +20,11 @@ It converts audio files among various standard audio file formats
 and can apply different effects and filters to the audio data.'
 
 build(){
- ./configure               \
-  --sysconfdir=/etc        \
-  --localstatedir=/var     \
-  --prefix=${PREFIX:-/usr} \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install
+ ./configure \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --prefix=/usr \
+ $OPTS &&
+ make  &&
+ make install DESTDIR=$DESTDIR
 }

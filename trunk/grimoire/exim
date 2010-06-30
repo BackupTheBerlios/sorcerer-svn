@@ -15,26 +15,7 @@ exim is a message transfer agent (MTA) developed at the University
 of Cambridge for use on Unix systems connected to the Internet.'
 
 
-build(){
-
- install_symlinks(){
-  ln -sf ../sbin/exim /usr/lib/sendmail
-  ln -sf exim         /usr/sbin/sendmail
-  ln -sf exim         /usr/sbin/mailq
-  ln -sf exim         /usr/sbin/rsmtp
-  ln -sf exim         /usr/sbin/rmail
-  ln -sf exim         /usr/sbin/runq
-  ln -sf exim         /usr/sbin/newaliases
- }
-
- install_conf(){
-  echo -n > /etc/aliases
-  sed  -i 's:var/mail:var/spool/mail:
-           s:\# group = mail:  group = mail:
-           s:\# mode = 0660:  mode = 0660:' /etc/exim.conf
-  install -m 0644 doc/exim.8 /usr/man/man8
- }
-
+pre_build(){
  if ! [ -d /var/spool/mail ]; then
   mkdir    -p -m 1775 /var/spool/mail
   groupadd -K GID_MIN=256 -K GID_MAX=511    mail                         2>/dev/null
@@ -45,6 +26,30 @@ build(){
   do   [ -e $ITEM ] && chown -R mail:mail $ITEM
   done
  fi
+ default_pre_build
+}
+
+build(){
+
+ install_symlinks(){
+  mkdir -p $DESTDIR/usr/{lib,sbin}
+  ln -sf ../sbin/exim $DESTDIR/usr/lib/sendmail
+  ln -sf exim         $DESTDIR/usr/sbin/sendmail
+  ln -sf exim         $DESTDIR/usr/sbin/mailq
+  ln -sf exim         $DESTDIR/usr/sbin/rsmtp
+  ln -sf exim         $DESTDIR/usr/sbin/rmail
+  ln -sf exim         $DESTDIR/usr/sbin/runq
+  ln -sf exim         $DESTDIR/usr/sbin/newaliases
+ }
+
+ install_conf(){
+  echo -n > $DESTDIR/etc/aliases
+  sed  -i 's:var/mail:var/spool/mail:
+           s:\# group = mail:  group = mail:
+           s:\# mode = 0660:  mode = 0660:' $DESTDIR/etc/exim.conf
+  mkdir -p $DESTDIR/usr/man/man8
+  install -m 644 doc/exim.8 $DESTDIR/usr/man/man8
+ }
 
  mkdir -p Local
 
@@ -82,9 +87,8 @@ build(){
 
  sed -i 's:tail -1:tail -n 1:' scripts/Configure-config.h
 
- make            &&
- prepare_install &&
- make    install &&
-         install_symlinks &&
-         install_conf
+ make &&
+ make install "DESTDIR=$DESTDIR" &&
+      install_symlinks &&
+      install_conf
 }

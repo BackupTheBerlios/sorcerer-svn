@@ -3,14 +3,10 @@
    require groff gzip
   category administration/log
  attribute server
-#       url 'ftp://ftp.weird.com/pub/local/
-#            http://ftp.weird.com/ftp/pub/local/'
-#    source newsyslog-$VERSION.tar.gz
-# homepage http://www.weird.com/~woods/projects/newsyslog.html
     source  ftp://ftp.planix.com/pub/local/newsyslog-$VERSION.tar.gz
   homepage http://www.planix.com/~woods/projects/newsyslog.html
   estimate 150
-      desc 'newsyslog rotates and archives log files.
+      desc 'rotates and archives log files
 newsyslog is an updated version of a package put
 together by Theodore Tso of MIT Project Athena
 (which is included in NetBSD, FreeBSD, OpenBSD, etc.).
@@ -19,12 +15,8 @@ It manages the rotation and archiving of log files
 
 build(){
  install_conf_scripts(){
-  NC=newsyslog.conf
-
-  if ! [ -f          /etc/$NC ]; then
-   sed -i 's:dialer:ppp:' $NC
-   cp                     $NC /etc
-  fi
+  mkdir -p $DESTDIR/etc
+  sed 's:dialer:ppp:' newsyslog.conf > $DESTDIR/etc/newsyslog.conf
  }
 
 sed -i 's:psman htmlman:psman:' Makefile.in
@@ -37,7 +29,6 @@ sed -i 's:psman htmlman:psman:' Makefile.in
 --with-gzip          \
 $OPTS                &&
 make SHELL=/bin/bash &&
-prepare_install      &&
-make    install      &&
-        install_conf_scripts
+make install DESTDIR=$DESTDIR &&
+install_conf_scripts
 }

@@ -7,21 +7,24 @@
     source http://t-o-m-e.net/dl/src/tome-$VERSION-src.tar.bz2
   homepage http://t-o-m-e.net/
   estimate 250
-      desc 'tome is troubles of middle earth angband, a CRPG.'
+      desc 'Troubles of Middle Earth, an angband fork or a CRPG'
+
+pre_build(){
+mkdir    -pm 755 /var/empty
+groupadd -K GID_MIN=256 -K GID_MAX=511    games                     2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games 2>/dev/null
+default_pre_build
+}
 
 build(){
 USGT='/usr/share/games/tome'
 
-mkdir    -pm 755 /var/empty
-groupadd -K GID_MIN=256 -K GID_MAX=511    games                     2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games 2>/dev/null
-
 cd src
 make    -f makefile.std LIBDIR="$USGT/lib" &&
-prepare_install &&
-install -s -g games -m 2775 tome /usr/bin &&
-mkdir   -p            $USGT &&
-cp      -a ../lib     $USGT &&
-chown   -R root:games $USGT &&
-chmod   -R g+w        $USGT
+mkdir -p $DESTDIR/usr/{bin,share/games/tome} &&
+install -s -g games -m 2775 tome $DESTDIR/usr/bin &&
+mkdir   -p            $DESTDIR/$USGT &&
+cp      -a ../lib     $DESTDIR/$USGT &&
+chown   -R root:games $DESTDIR/$USGT &&
+chmod   -R g+w        $DESTDIR/$USGT
 }

@@ -15,20 +15,19 @@ of walking death machines are not just gonna let you.'
 
 build(){
  install_files(){
-  mkdir   -p          /usr/libexec /usr/share/sdb
-  install -m 0755 sdb /usr/libexec
+  mkdir   -p $DESTDIR/usr/{bin,libexec,share/sdb}
+  install -m 755 sdb $DESTDIR/usr/libexec
   cd      ..
   find    * -type d              | xargs --max-lines=32 chmod 755
   find    * -mindepth 1  -type f | xargs --max-lines=32 chmod 644
-  cp      -rv levels models snd sprites /usr/share/sdb
+  cp      -rv levels models snd sprites $DESTDIR/usr/share/sdb
   echo    -e "#!/bin/bash\ncd /usr/share/sdb\n/usr/libexec/sdb" > sdb
-  install -m 755 -D sdb /usr/bin/sdb
+  install -m 755 -D sdb $DESTDIR/usr/bin/sdb
  }
 
  cd src
  sed -i "s:-O2:$CXXFLAGS:
          s:-lGLU:-lGLU -L/usr/X11R6/lib:" Makefile
- make            &&
- prepare_install &&
+ make &&
  install_files
 }

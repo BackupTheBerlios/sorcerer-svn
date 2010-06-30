@@ -1,29 +1,17 @@
-    stable 015 014
+    stable 015
    require psmisc sysfsutils udev
   category utility kernel
  attribute console
-       url $KERNEL_URL
-    source pub/linux/utils/kernel/pcmcia/pcmciautils-$VERSION.tar.bz2
+    source $KERNEL_URL pub/linux/utils/kernel/pcmcia/pcmciautils-$VERSION.tar.bz2
   homepage http://kernel.org/pub/linux/utils/kernel/pcmcia/pcmcia.html
  conflicts pcmcia-cs
   estimate 100
-      desc 'pcmciautils provides userspace tools for PCMCIA support.
+      desc 'userspace tools for PCMCIA support
 For linux 2.6.x kernels pcmciautils replaces pcmcia_cs.
 pcmciautils does not require an init script and is started by
 hotplug or udev.'
 
 build(){
- case $VERSION in
-  014) sed -i "s:MODALIAS:ENV{MODALIAS}:" udev/rules-{base,modprobe} ;;
- esac
- make            &&
- prepare_install &&
- make    install
-}
-
-
-current(){
- case $VERSION in
-  014) grep -q "ENV{MODALIAS}" /etc/udev/rules.d/60-pcmcia.rules ;;
- esac
+ make &&
+ make install DESTDIR=$DESTDIR
 }

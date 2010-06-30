@@ -5,31 +5,33 @@
   optional tk        ''       --with-tk=no  for a tk interface
   category game
  attribute console x11
-       url 'ftp://ftp.sunet.se/pub/games/Angband/Variant/ZAngband/
-            ftp://clockwork.dementia.org/angband/Variant/ZAngband/
-            ftp://ftp.planetmirror.com/pub/angband/Variant/ZAngband/'
-    source zangband-$VERSION.tar.gz
+    source ftp://ftp.sunet.se/pub/games/Angband/Variant/ZAngband/ \
+           ftp://clockwork.dementia.org/angband/Variant/ZAngband/ \
+           ftp://ftp.planetmirror.com/pub/angband/Variant/ZAngband/ \
+           zangband-$VERSION.tar.gz
   homepage http://www.zangband.org/
   estimate 600
-      desc 'zangband is a modified angband, single player CRPG.
+      desc 'modified angband, single player CRPG
 zangband is a modified angband, a single-player
 rogue-like dungeon exploration game.'
 
-build(){
+pre_build(){
 mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    games                     2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games 2>/dev/null
+default_pre_build
+}
 
-./configure          \
---prefix=/usr        \
---bindir=/usr/bin    \
+build(){
+./configure \
+--prefix=/usr \
+--bindir=/usr/bin \
 --datadir=/usr/share \
---sysconfdir=/etc    \
+--sysconfdir=/etc \
 --localstatedir=/var \
 --with-setgid=games  \
-$OPTS                &&
-make                 &&
-prepare_install      &&
-mkdir  -p /usr/share/games &&
-make    install
+$OPTS &&
+make &&
+mkdir -p $DESTDIR/usr/share/games &&
+make install DESTDIR=$DESTDIR
 }

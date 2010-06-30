@@ -5,13 +5,10 @@ version_year_month 12
   homepage http://www.iana.org/
    protect /etc/protocols
    exclude /etc/protocols.old
-      desc 'protocols translates the protocol numbers assigned by IANA to /etc/protocols'
+      desc 'translates the protocol numbers assigned by IANA to /etc/protocols'
 
 build(){
-[ -s protocols ] &&
-mv   protocols iana &&
-prepare_install &&
-cat               iana |
-column -s '	' -t >  protocols &&
-install -vm 644 -b -S .old protocols /etc
+[ -s protocols ] || return 1
+mkdir -p $DESTDIR/etc
+cat protocols | column -s '	' -t > $DESTDIR/etc/protocols
 }

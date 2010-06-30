@@ -9,8 +9,7 @@
   optional openssl   '' '' for postfix with TLS support
   category network/email
  attribute console server
-       url $POSTFIX_URL
-    source official/postfix-$VERSION.tar.gz
+    source $POSTFIX_URL official/postfix-$VERSION.tar.gz
   homepage http://www.postfix.org
    protect /etc/aliases
   eprovide mail-transport-agent
@@ -23,10 +22,7 @@ case $MACHTYPE in
 esac
 
    
-build(){
-                VSM='mail_spool_directory = /var/spool/mail'
-  sed  -i  "s:#$VSM:$VSM:"  conf/main.cf
-
+pre_build(){
 mkdir    -pm 1775  /var/spool/mail
 chown    mail:mail /var/spool/mail
 groupadd -K GID_MIN=256 -K GID_MAX=511    mail                         2>/dev/null
@@ -36,6 +32,12 @@ groupadd -K GID_MIN=256 -K GID_MAX=511    postdrop 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g postdrop -d /var/spool/mail postdrop 2>/dev/null
 groupadd -K GID_MIN=256 -K GID_MAX=511    postfix 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g postfix -d /var/spool/mail postfix 2>/dev/null
+default_pre_build
+}
+
+build(){
+                VSM='mail_spool_directory = /var/spool/mail'
+  sed  -i  "s:#$VSM:$VSM:"  conf/main.cf
 
  if   grep  -qx       openldap $OPT_ON_LOGS/postfix &&
       spell_installed openldap
@@ -74,11 +76,10 @@ useradd  -K UID_MIN=256 -K UID_MAX=511 -g postfix -d /var/spool/mail postfix 2>/
  "CCARGS=$CCARGS"                 \
  "OPT=$CFLAGS"                    &&
  make                             &&
- prepare_install                  &&
-
- sh ./postfix-install    -non-interactive  &&
- ln -fs ../sbin/sendmail /usr/lib/sendmail &&
- ln -fs postfix/aliases  /etc/aliases
+ mkdir -p $DESTDIR/{etc,usr/lib}  &&
+ sh ./postfix-install    -non-interactive install_root=$DESTDIR &&
+ ln -fs ../sbin/sendmail $DESTDIR/usr/lib/sendmail &&
+ ln -fs postfix/aliases  $DESTDIR/etc/aliases
 }
 
 post_install(){

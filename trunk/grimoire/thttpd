@@ -7,30 +7,33 @@
   homepage http://www.acme.com/software/thttpd/
   eprovide web-server
   estimate 40
-      desc 'thttpd is a throttling httpd server.
+      desc 'throttling httpd server
 thttpd is a simple, small, fast and secure HTTP server.
 It does not have a lot of special features
 but it suffices for most uses of the web.
 It is faster than Apache and it has one extremely useful feature
 (URL-traffic-based throttling) that no other server currently has.'
 
-build() {
-mkdir    -p -m 0755 /srv/http
+pre_build(){
+mkdir    -p -m 755 /srv/http
 groupadd -K GID_MIN=256 -K GID_MAX=511    thttpd                     2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g thttpd -d /srv/http thttpd 2>/dev/null
 chown thttpd:thttpd /srv/http
+default_pre_build
+}
 
-  WD="WEBDIR=/srv/http"
-  CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
-  WG="WEBGROUP=thttpd"
+build() {
+ WD="WEBDIR=/srv/http"
+ CD="CGIBINDIR=/usr/share/thttpd/cgi-bin"
+ WG="WEBGROUP=thttpd"
 
-  ./configure           \
-  --prefix=/usr         \
-  --sysconfdir=/etc     \
-  --localstatedir=/var  \
-  $OPTS                 &&
-  make             $WD  $CD  $WG  &&
-  prepare_install                 &&
-  make    install  $WD  $CD  $WG  &&
-  install  -m 0600 $SCRIPT_DIR/thttpd.conf  /etc/thttpd.conf
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ $OPTS &&
+ make $WD $CD $WG &&
+ make $WD $CD $WG install DESTDIR=$DESTDIR &&
+ mkdir -p $DESTDIR/etc &&
+ install  -m 0600 $SCRIPT_DIR/thttpd.conf $DESTDIR/etc/thttpd.conf
 }

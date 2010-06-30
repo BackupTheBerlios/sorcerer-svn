@@ -12,7 +12,7 @@
    exclude /etc/rc.d
    exclude /etc/rc.d.old
   estimate 40
-      desc 'sysvinit is the parent process of all process.
+      desc 'parent process of all process
 sysvinit starts processes from the information specified in file /etc/inittab.
 sysvinit also contains the following utilities:
 reboot, shutdown, killall, poweroff, tellinit, sulogin, wall
@@ -78,20 +78,18 @@ build(){
  install_init(){
   cpc(){ if [ -n "$1" ] && ! [ /dev/console == "$1" ]; then cp -afv $1 $2; fi; }
 
+  mkdir -p $DESTDIR/etc/init.d/{dev,log}.d
+
   sed     -i      "s:ulimit :# ulimit :" \
                   src/initscript.sample
-  install -vm 700 src/initscript.sample /etc
+  install -vm 700 src/initscript.sample $DESTDIR/etc
 
-  mkdir   -vp                         /etc/init.d
-  install -vm 600 $SCRIPT_DIR/inittab /etc
-  install -vm 700 $SCRIPT_DIR/prc     /etc/init.d
-  install -vm 700 $SCRIPT_DIR/rcS     /etc/init.d
+  install -vm 600 $SCRIPT_DIR/inittab $DESTDIR/etc
+  install -vm 700 $SCRIPT_DIR/prc     $DESTDIR/etc/init.d
+  install -vm 700 $SCRIPT_DIR/rcS     $DESTDIR/etc/init.d
 
-  install -dvm 755 /etc/init.d/log.d
-  install -dvm 755 /etc/init.d/dev.d
-  rm      -f       /etc/init.d/dev.d/{si,rl}
-  cpc "$SI_DEV"    /etc/init.d/dev.d/si
-  cpc "$RL_DEV"    /etc/init.d/dev.d/rl
+  cpc "$SI_DEV" $DESTDIR/etc/init.d/dev.d/si
+  cpc "$RL_DEV" $DESTDIR/etc/init.d/dev.d/rl
 
   return
  }
@@ -115,8 +113,7 @@ build(){
  fi
 
  make -C src $SEL &&
- prepare_install  &&
- make -C src $SEL install &&
+ make -C src $SEL install ROOT=$DESTDIR &&
  install_init
 }
 

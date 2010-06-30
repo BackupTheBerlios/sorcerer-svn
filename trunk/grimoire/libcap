@@ -5,11 +5,10 @@
 #  require indent
   category kernel
  attribute console
-       url $KERNEL_URL
-    source /pub/linux/libs/security/linux-privs/libcap2/libcap-$VERSION.tar.bz2
+    source $KERNEL_URL /pub/linux/libs/security/linux-privs/libcap2/libcap-$VERSION.tar.bz2
   homepage http://ftp.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.4/capfaq-0.2.txt
   estimate 50
-      desc 'libcap provides the userspace tools for POSIX capabilities.
+      desc 'userspace tools for POSIX capabilities
 These programs are used to limit the Inheritable
 capabilities of a program to be executed or processes.
 Note, this wrapper is intended to assist in overcoming
@@ -19,20 +18,5 @@ and should be used to launch other files.'
 build(){
 patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
 make &&
-prepare_install &&
-make    install
-}
-
-build_old() {
-## Can not compile this as a relocatable library
-## cap_sys.c:18: error: can't find a register in class 'BREG' while reloading 'asm'
-# CFLAGS="$CFLAGS -fPIC"
-
-case $VERSION in 
-  1.10) sed -i "s:(COPTFLAG):(COPTFLAGS):"  Make.Rules;;
-esac
-
-make  "COPTFLAGS=$CFLAGS"  "LDFLAGS=$LDFLAGS"	&&
-prepare_install					&&
-make  "COPTFLAGS=$CFLAGS"  "LDFLAGS=$LDFLAGS"   install
+make install DESTDIR=$DESTDIR
 }

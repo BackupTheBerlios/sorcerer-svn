@@ -1,3 +1,5 @@
+# No support for DESTDIR style install
+
     stable 2.3 2.2 2.0
    require qt-x11-free
   category utility/ham
@@ -5,7 +7,7 @@
     source ftp://sunsite.unc.edu/pub/Linux/apps/ham/morse/unixcw-$VERSION.tgz
       opts --enable-static=no
   estimate 200
-      desc 'unixcw provides a complete suite of morse code programs.
+      desc 'complete suite of morse code programs
 UnixCW is a package of UNIX-based programs that fit together
 to form a CW tutor program similar to CP222 by VU2ZAP.
 The core of the package is cwlib, a general-purpose CW functions library.
@@ -27,15 +29,13 @@ build(){
 
  sed -i 's:-lqt:-lqt-mt:' src/xcwcp/Makefile*
 
- ./configure          \
- --prefix=/usr        \
- --sysconfdir=/etc    \
+ ./configure \
+ --prefix=$DESTDIR/usr \
+ --sysconfdir=/etc \
  --localstatedir=/var \
- $OPTS                &&
- make        all      &&
- prepare_install      &&
- make    install      &&
- ln -sf /usr/man/man1/xcwcp.1.gz  \
-        /usr/man/man1/unixcw.1.gz &&
- cp $SCRIPT_DIR/unixcw /usr/bin
+ $OPTS &&
+ make     all &&
+ make install &&
+ ln -sf xcwcp.1.gz $DESTDIR/usr/man/man1/unixcw.1.gz &&
+ cp $SCRIPT_DIR/unixcw $DESTDIR/usr/bin
 }

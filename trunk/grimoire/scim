@@ -1,4 +1,4 @@
-    stable 1.4.9 1.4.8 1.4.7 1.4.6 1.4.5
+    stable 1.4.9
   optional gtk+ '' '--disable-gtk2-immodule --disable-panel-gtk' for gtk tools and immodule
   category input
  attribute console library x11
@@ -6,28 +6,20 @@
   homepage http://www.scim-im.org/
       opts --enable-static=no
   estimate 1700
-      desc 'scim is the smart common input method.
+      desc 'smart common input method
 it provides a user friendly, full featured input method.'
 
 build(){
- extra_install(){
-  ldconfig
-  if   spell_installed gtk-query-immodules-2.0
-  then echo            gtk-query-immodules-2.0 | pipe_queue $CAST_QUEUE com
-  fi
-# install -m 755 $SCRIPT_DIR/scim /etc/bash.d/noninteractive/
- }
-
  case $MACHTYPE in
   *-uclibc) sed -i '1i#define __error_t_defined' src/{ltdl.cpp,scim.h} ;;
  esac
 
- default_build &&
-   extra_install
+ default_build
 }
 
-current(){
- case $VERSION in
-  1.4.7) [ -f /etc/bash.d/noninteractive/scim ] ;;
- esac
+post_install(){
+ if   spell_installed gtk-query-immodules-2.0
+ then echo            gtk-query-immodules-2.0 | pipe_queue $CAST_QUEUE com
+ fi
+ default_post_install
 }

@@ -34,6 +34,7 @@
 build(){
  svn-python-path(){
   PVER=$( installed_version $( get_provider Python ) )
+  mkdir -p                   /usr/lib/python${PVER:0:3}/site-packages
   echo /usr/lib/svn-python > /usr/lib/python${PVER:0:3}/site-packages/subversion.pth
  }
 
@@ -45,9 +46,6 @@ build(){
  make                  &&
  make  swig-py         &&
  make  swig-pl         &&
- prepare_install       &&
- make  install         &&
- make  install-swig-py &&
- make  install-swig-pl &&
+ make  install install-swig-py install-swig-pl DESTDIR=$DESTDIR &&
  svn-python-path
 }

@@ -5,37 +5,12 @@
     source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
   homepage http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
       opts --enable-static=no --libdir=/lib
-case $HOSTTYPE in
- x86_64) OPTS+=64 ;;
-esac
   estimate 400
-      desc 'libtirpc provides a transport independent remote procedure call library.
+      desc 'transport independent remote procedure call library
 libtirpc is required for using NFSv4 over IPv6 networks.'
 
 build(){
  default_build &&
- case $VERSION in
-  1.0.8)
-   if   [ -f   /lib/pkgconfig/libtirpc.pc ]; then
-    mv         /lib/pkgconfig/libtirpc.pc /usr/lib/pkgconfig
-    rmdir      /lib/pkgconfig
-   elif [ -f /lib64/pkgconfig/libtirpc.pc ]; then
-    mv       /lib64/pkgconfig/libtirpc.pc /usr/lib/pkgconfig
-    rmdir    /lib64/pkgconfig
-   fi; true ;;
-  0.1.7)
-   if   [ -f /lib/libtirpc.0.0.0 ]; then
-    mv       /lib/libtirpc.0.0.0          /lib/libtirpc.so.0.0.0
-    rm       /lib/libtirpc.0              /lib/libtirpc
-    ln -s         libtirpc.so.0.0.0       /lib/libtirpc.so.0
-    ln -s         libtirpc.so.0.0.0       /lib/libtirpc.so
-    sed -i     's:libtirpc:libtirpc.so:g' /lib/libtirpc.la
-   elif [ -f /lib64/libtirpc.0.0.0 ]; then
-    mv       /lib64/libtirpc.0.0.0          /lib64/libtirpc.so.0.0.0
-    rm       /lib64/libtirpc.0              /lib64/libtirpc
-    ln -s           libtirpc.so.0.0.0       /lib64/libtirpc.so.0
-    ln -s           libtirpc.so.0.0.0       /lib64/libtirpc.so
-    sed -i       's:libtirpc:libtirpc.so:g' /lib64/libtirpc.la
-   fi ;;
- esac
+ mkdir -p $DESTDIR/usr/lib &&
+ mv $DESTDIR/lib/pkgconfig $DESTDIR/usr/lib
 }

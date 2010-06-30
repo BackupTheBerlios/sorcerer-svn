@@ -1,6 +1,6 @@
 # only acquires gcc-g++ when creating qt GUI
 
-    stable 0.7.2 0.7.1 0.7.0 0.6.9 0.6.8 0.6.7 0.6.6 0.6.5 0.6.4 0.6.3
+    stable 0.7.2 0.7.1 0.7.0
    require dbus ncurses openssl readline
   optional qt-everywhere-opensource '' '' for GUI
   category network/security network/wireless
@@ -24,7 +24,7 @@ It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
 build(){
- create_config() {
+ create_config(){
   cat > .config << EOF
 CONFIG_DRIVER_HOSTAP=y
 CONFIG_DRIVER_ATMEL=y
@@ -59,21 +59,23 @@ EOF
  }
 
  install_man(){
-  for i in doc/docbook/*.[0-9]
-  do  install -v -m 0644 $i /usr/share/man/man${i##*.}
+  for i in doc/docbook/*.[0-9]; do
+   mkdir   -p           $DESTDIR/usr/share/man/man${i##*.}
+   install -v -m 644 $i $DESTDIR/usr/share/man/man${i##*.}
   done
  }
 
  install_wpa_gui(){
-  if                 [ -f wpa_gui-qt4/wpa_gui ]
-  then install -v -m 0755 wpa_gui-qt4/wpa_gui /usr/bin
+  if            [ -f wpa_gui-qt4/wpa_gui ];  then
+   mkdir -p $DESTDIR/usr/bin
+   install -vm 755 wpa_gui-qt4/wpa_gui $DESTDIR/usr/bin
   fi
  }
 
  install_wpa_files(){
-  install -v -d /etc/wpa_supplicant
-  install -v -m 0644 dbus-wpa_supplicant.conf \
-     /etc/dbus-1/system.d/wpa_supplicant.conf  
+  install -dv $DESTDIR/etc/wpa_supplicant
+  install -dv $DESTDIR/etc/dbus-1/system.d/
+  install -vm 644 dbus-wpa_supplicant.conf $DESTDIR/etc/dbus-1/system.d/wpa_supplicant.conf  
   install_wpa_gui
   install_examples
   install_man	
@@ -92,14 +94,6 @@ EOF
  create_config &&
  make &&
  make_gui &&
- prepare_install &&
- make    install &&
+ make install DESTDIR=$DESTDIR &&
  install_wpa_files
-}
-
-
-current(){
- case $VERSION in
-  0.6.3) [ -f /sbin/wpa_cli ] ;;
- esac
 }

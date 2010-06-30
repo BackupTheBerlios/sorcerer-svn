@@ -24,31 +24,8 @@
       desc 'toolkit for creating GUIs'
 
 build(){
-# I created this alternate build on 20090831 because the update
-# involving libxcb which removed libxcb-xlib.so.0 became a problem
-# since running gtk-query-immodules-2.0 as part of the default install
-# of gtk+ can fail due to input modules provided by uim and scim
-# having not yet been recompiled since they require gtk+
-# and yet having references to now undefined symbols.
-# Using DESTDIR to compile gtk+ omits the execution of
-# gtk-query-immodules-2.0 and gdk-pixbuf-query-loaders which are used to create files
-# /etc/gtk-2.0/gtk.immodules and /etc/gtk-2.0/gdk-pixbuf.loaders, respectively.
-# Separate spells with the same names as the programs
-# now exist in order to create those files.
-
  sed -i 's:demos tests::' Makefile.in
-
- local  DD=$PWD/.install
- mkdir $DD
-
- ./configure          \
- --prefix=/usr        \
- --sysconfdir=/etc    \
- --localstatedir=/var \
- $OPTS &&
- make install DESTDIR=$DD &&
- prepare_install &&
- cp -av $DD/* /
+ default_build
 }
 
 post_install(){

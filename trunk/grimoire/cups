@@ -35,9 +35,8 @@ build(){
  check_for_smb_backend(){
   if spell_installed samba; then  
    echo "Setting smb backend for cups"
-   if   ! [ -e                   /usr/lib/cups/backend/smb ]
-   then ln  -s /usr/bin/smbspool /usr/lib/cups/backend/smb
-   fi
+   mkdir -p                 $DESTDIR/usr/lib/cups/backend/
+   ln  -s /usr/bin/smbspool $DESTDIR/usr/lib/cups/backend/smb
   fi
  }
 
@@ -50,11 +49,17 @@ build(){
           OPTS+=64  ;;
  esac
 
- default_build            &&
- cp    -vR  usr/* /usr    &&
- cp    -vR  var/* /var    &&
- cd         var/cups/conf &&
- mkdir -p   /etc/cups     &&
- cp    -v * /etc/cups     &&
+ ./configure              \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=${PREFIX:-/usr} \
+ $OPTS &&
+ make  &&
+ make install "BUILDROOT=$DESTDIR"
+ cp    -vR  usr/* $DESTDIR/usr &&
+ cp    -vR  var/* $DESTDIR/var &&
+ cd         var/cups/conf      &&
+ mkdir -p   $DESTDIR/etc/cups  &&
+ cp    -v * $DESTDIR/etc/cups  &&
  check_for_smb_backend
 }

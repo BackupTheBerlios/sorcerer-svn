@@ -1,3 +1,7 @@
+# This might not install properly
+# or it might not run properly after it is installed
+# 5-1.1.2 does not support DESTDIR install
+
     stable 5-1.1.2 5-1.1.1 5-1.0
   optional tcl
    require ncurses libarchive openssl ruby
@@ -14,14 +18,6 @@
 build(){
 local RUBY_VER="$( installed_version ruby )"
 export CFLAGS+=" -I/usr/include/ruby-${RUBY_VER:0:5}"
+OPTS+=" --prefix=$DESTDIR/usr"
 default_build
-}
-
-build_old(){
- export   CFLAGS="${CFLAGS/-O3/-O2}"
- export CXXFLAGS="${CXXFLAGS/-03/-O2}"
-
- default_build &&
- mkdir -p    /usr/share/epic &&
- cp -va help /usr/share/epic
 }

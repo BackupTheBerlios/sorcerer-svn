@@ -23,7 +23,17 @@ major components of the Domain Name System, including:
 The named server will start during boot when /etc/bind/named.conf exists.'
 
 
+pre_build(){
+                    JAIL=/var/chroot/bind
+mkdir    -p -m 755 $JAIL
+groupadd -K GID_MIN=256 -K GID_MAX=511    bind               2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=511 -g bind -d $JAIL bind 2>/dev/null
+chown    -R  bind:bind  $JAIL
+}
+
+
 build(){
+                    JAIL=$DESTDIR/var/chroot/bind
  conf_install(){
   SNC="$SCRIPT_DIR/named.conf"
   SNR="$SCRIPT_DIR/named.root"
@@ -33,26 +43,17 @@ build(){
   install -dvm 755 -o bind -g bind      $JAIL/etc/bind
   install  -vm 644 -o bind -g bind $SNR $JAIL/etc/bind
 
-  [ -f $JAIL/etc/bind/named.conf ] ||
   install -vm 644 -o bind -g bind $SNC $JAIL/etc/bind
-  [ -f $JAIL/etc/bind/rndc.key ] ||
   rndc-confgen -a -u bind -t $JAIL
   true
  }
-
-                    JAIL=/var/chroot/bind
-mkdir    -p -m 755 $JAIL
-groupadd -K GID_MIN=256 -K GID_MAX=511    bind               2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g bind -d $JAIL bind 2>/dev/null
-chown    -R  bind:bind  $JAIL
 
  ./configure            \
  --prefix=/usr          \
  --sysconfdir=/etc/bind \
  --localstatedir=/var   \
- $OPTS                  &&
- make                   &&
- prepare_install        &&
- make    install        &&
-    conf_install
+ $OPTS &&
+ make  &&
+ make install "DESTDIR=$DESTDIR" &&
+ conf_install
 }

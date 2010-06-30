@@ -35,10 +35,13 @@ build(){
  # must exist in the same directory as the ar libraries
 
  move_ar_libs(){
-  mv -v   $LIBDIR/lib{history,readline}.a   /usr$LIBDIR
-  for REPLY in $LIBDIR/lib{history,readline}.so*
-  do  ln -fs ../..$REPLY /usr$LIBDIR
-  done
+  if   [ -f $DESTDIR/lib/libreadline.a ]; then
+   mkdir -p $DESTDIR/usr/lib
+   mv       $DESTDIR/lib/*.a $DESTDIR/usr/lib/
+  elif [ -f $DESTDIR/lib64/libreadline.a ]; then
+   mkdir -p $DESTDIR/lib64
+   mv       $DESTDIR/lib64/*.a $DESTDIR/usr/lib64/
+  fi
  }
 
  ## cast automatically patches
@@ -63,8 +66,8 @@ build(){
  $OPTS            &&
 #make    shared   &&
  make             &&
- prepare_install  &&
- make    install  &&
+ make install DESTDIR=$DESTDIR &&
  move_ar_libs     &&
- install -m 644 -o root -g root $SCRIPT_DIR/inputrc /etc
+ mkdir -p $DESTDIR/etc &&
+ install -m 644 -o root -g root $SCRIPT_DIR/inputrc $DESTDIR/etc
 }

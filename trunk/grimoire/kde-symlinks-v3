@@ -4,33 +4,10 @@
       desc 'Redirects kde configuration files into /etc'
 
 build(){
- move(){
-  [[ -h $2 ]] && rm -f $2
-  [[ -f $2 ]] && rm -f $2;       mkdir -p $2
-  [[ -h $1 ]] && rm -f $1 && return
-  [[ -d $1 ]] && cp -av $1/* $2; rm   -fr $1
- }
+ link(){ mkdir -p $DESTDIR/$2; ln -s $2 $DESTDIR/$1; }
 
- link(){ mkdir -p $2; ln -s $2 $1; }
-
- [[ -h /opt/kde3/lib/pkgconfig   ]] && rm -f /opt/kde3/lib/pkgconfig
- [[ -h /opt/kde3/lib64/pkgconfig ]] && rm -f /opt/kde3/lib64/pkgconfig
-
- move /opt/kde3/share/config      /etc/kde3.config
- move /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
- move /opt/kde3/etc               /etc
- prepare_install
- mkdir -p /opt/kde3/{share,lib,lib64}
+ mkdir -p $DESTDIR/opt/kde3/{share,lib,lib64}
  link /opt/kde3/share/config      /etc/kde3.config
  link /opt/kde3/share/config.kcfg /etc/kde3.config.kcfg
  link /opt/kde3/etc               /etc
-}
-
-current(){
- find /var/tmp -maxdepth 0 -perm 1777 | grep -q . || chmod 1777 /var/tmp
- [[ -h /opt/kde3/etc ]] &&
- [[ -h /opt/kde3/share/config ]] &&
- [[ -h /opt/kde3/share/config.kcfg ]] &&
- [[ -d /etc/kde3.config ]] &&
- [[ -d /etc/kde3.config.kcfg ]]
 }

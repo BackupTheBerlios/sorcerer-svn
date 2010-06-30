@@ -12,23 +12,3 @@
   estimate 2000
       desc 'IPsec and IKEv1 implementation.
 It interoperates with most other IPsec-based VPN products.'
-
-build_old(){
-grep  -lr                     '/usr/local' * |
-xargs --max-lines=32 sed -i 's:/usr/local:/usr:'
-
-grep  -lr                     '#LIBCURL=1' * |
-xargs --max-lines=16 sed -i 's:#LIBCURL=1:LIBCURL=1:'
-
-echo  "$OPTS" | grep -q openldap &&
-grep  -lr                     '#LDAP_VERSION=3' * |
-xargs --max-lines=16 sed -i 's:#LDAP_VERSION=3:LDAP_VERSION=3:'
-
-echo "$OPTS" | grep -q opensc &&
-grep -lr                      '#SMARTCARD=1' * |
-xargs --max-lines=16 sed -i 's:#SMARTCARD=1:SMARTCARD=1:'
-
-make   programs &&
-prepare_install &&
-make    install
-}

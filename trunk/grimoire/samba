@@ -17,29 +17,29 @@
   optional xinetd    ''                              ''             for running samba web administration tool
   category network
  attribute server console
-       url 'http://us1.samba.org/samba/ftp/
-            http://us5.samba.org/samba/ftp/
-            http://us2.samba.org/samba/ftp/
-            http://us3.samba.org/samba/ftp/
-            http://us4.samba.org/samba/ftp/
-             ftp://au1.samba.org/pub/samba/
-             ftp://ca.samba.org/
-             ftp://de.samba.org/samba.org/
-             ftp://ftp.easynet.be/samba/
-             ftp://ftp.k2.net/mirrors/samba/
-             ftp://ftp.oss.eznetsols.org/samba/
-             ftp://ftp.te8.com/pub/samba/
-             ftp://ftp.ucr.ac.cr/pub/Unix/samba/
-             ftp://gd.tuwien.ac.at/infosys/servers/samba/
-             ftp://giswitch.sggw.waw.pl/pub/unix/samba/
-             ftp://it.samba.org/pub/samba/
-             ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/
-             ftp://pl.samba.org/pub/unix/net/samba/
-             ftp://ru.samba.org/pub/samba/
-             ftp://se.samba.org/pub/samba/
-            http://sambafr.idealx.org/samba/ftp/
-            http://us1.samba.org/samba/ftp/'
-    source stable/samba-$VERSION.tar.gz
+    source http://us1.samba.org/samba/ftp/ \
+           http://us5.samba.org/samba/ftp/ \
+           http://us2.samba.org/samba/ftp/ \
+           http://us3.samba.org/samba/ftp/ \
+           http://us4.samba.org/samba/ftp/ \
+            ftp://au1.samba.org/pub/samba/ \
+            ftp://ca.samba.org/ \
+            ftp://de.samba.org/samba.org/ \
+            ftp://ftp.easynet.be/samba/ \
+            ftp://ftp.k2.net/mirrors/samba/ \
+            ftp://ftp.oss.eznetsols.org/samba/ \
+            ftp://ftp.te8.com/pub/samba/ \
+            ftp://ftp.ucr.ac.cr/pub/Unix/samba/ \
+            ftp://gd.tuwien.ac.at/infosys/servers/samba/ \
+            ftp://giswitch.sggw.waw.pl/pub/unix/samba/ \
+            ftp://it.samba.org/pub/samba/ \
+            ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/ \
+            ftp://pl.samba.org/pub/unix/net/samba/ \
+            ftp://ru.samba.org/pub/samba/ \
+            ftp://se.samba.org/pub/samba/ \
+           http://sambafr.idealx.org/samba/ftp/ \
+           http://us1.samba.org/samba/ftp/ \
+           stable/samba-$VERSION.tar.gz
   homepage http://www.samba.org/
   estimate 3000
       desc 'file and print services to SMB/CIFS clients
@@ -60,18 +60,18 @@ build(){
  --with-shared-modules=idmap_rid \
  $OPTS &&
  make  &&
- prepare_install &&
- mkdir -p /etc/samba       &&
- mkdir -p /usr/share/samba &&
- mkdir -p /var/log/samba   &&
- make    install           &&
- rm    -rf /usr/private    &&
- if   [ -f  /usr/lib/libsmbclient.so   ] &&
-    ! [ -f  /usr/lib/libsmbclient.so.0 ]
- then ln -fs         libsmbclient.so \
-            /usr/lib/libsmbclient.so.0
+ mkdir -p    $DESTDIR/lib             &&
+ mkdir -p    $DESTDIR/etc/samba       &&
+ mkdir -p    $DESTDIR/usr/share/samba &&
+ mkdir -p    $DESTDIR/var/log/samba   &&
+ make install DESTDIR=$DESTDIR        &&
+ rm    -rf   $DESTDIR/usr/private     &&
+ if   [ -f   $DESTDIR/usr/lib/libsmbclient.so   ] &&
+    ! [ -f   $DESTDIR/usr/lib/libsmbclient.so.0 ]
+ then ln -fs                  libsmbclient.so \
+             $DESTDIR/usr/lib/libsmbclient.so.0
  fi &&
  if   [  -f  nsswitch/libnss_winbind.so ]
- then cp -av nsswitch/libnss_winbind.so /lib/
+ then cp -av nsswitch/libnss_winbind.so $DESTDIR/lib/
  fi
 }

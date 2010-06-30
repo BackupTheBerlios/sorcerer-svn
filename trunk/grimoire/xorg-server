@@ -21,32 +21,18 @@ esac
       opts --with-pic
   category xorg/app
  attribute X11R7 x11
-       url $XORG_URL
-    source xserver/xorg-server-$VERSION.tar.bz2
+    source $XORG_URL xserver/xorg-server-$VERSION.tar.bz2
   estimate 2000
       desc 'X11 server'
 
 build(){
 
-post_install_old(){
- if   [ -f                      /etc/X11/xorg.conf ] &&
-      ! grep -q AllowEmptyInput /etc/X11/xorg.conf   &&
-      ! grep -q ServerFlags     /etc/X11/xorg.conf
- then
-  (
-    echo "Section \"ServerFlags\""
-    echo "	Option  \"AllowEmptyInput\" \"false\""
-    echo "EndSection"
-  ) >> /etc/X11/xorg.conf
- fi
-}
-
  adjust_xorg_conf(){
-   if   [[ -f         /etc/X11/xorg.conf ]] &&
-        sed 's:#.*::' /etc/X11/xorg.conf |
-        LC_ALL=C grep -q   RgbPath
-   then sed -i 's:RgbPath:#RgbPath:' /etc/X11/xorg.conf
-   fi
+  if   [[ -f         /etc/X11/xorg.conf ]] &&
+       sed 's:#.*::' /etc/X11/xorg.conf |
+       LC_ALL=C grep -q   RgbPath
+  then sed -i 's:RgbPath:#RgbPath:' /etc/X11/xorg.conf
+  fi
  }
 
  case $HOSTTYPE in

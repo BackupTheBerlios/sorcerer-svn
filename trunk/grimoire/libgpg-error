@@ -10,31 +10,16 @@
  attribute library
     source ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-$VERSION.tar.bz2
   homepage http://www.gnupg.org
-      opts --enable-static=no
+      opts --enable-static=no --libdir=/lib
   estimate 400
-      desc 'libgpg-error defines common error values for GnuPG components.
+      desc 'common error values for GnuPG components
 libgpg-error is a library that defines
 common error values for all GnuPG components.
 Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt,
 pinentry, SmartCard Daemon and possibly more in the future.'
 
 build(){
- add_compat_symlinks(){
-  for        file in /usr/{lib64,lib}/libgpg-error.so*; do
-   if  [ -f $file ]; then
-    mv      $file ${file#/usr}
-    ln -sf        ${file#/usr} $file
-   fi
-  done
- }
-
  default_build &&
- add_compat_symlinks
-}
-
-current(){
- case $VERSION in
-  1.6) [ -f   /lib/libgpg-error.so ] ||
-       [ -f /lib64/libgpg-error.so ] ;;
- esac
+ mkdir -p $DESTDIR/usr/lib &&
+ mv $DESTDIR/lib/libgpg-error.la $DESTDIR/usr/lib
 }

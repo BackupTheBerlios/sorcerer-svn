@@ -9,8 +9,7 @@
 # the ground textures do not show in warzone2100 with NVIDIA-Linux-x86 185.18.14
 # for warzone2100 try 180.60
 
-    legacy 180.60
-    stable 195.36.24 195.36.15 190.53 190.42 185.18.36 185.18.14 180.60 180.29 180.22
+    stable 195.36.24 195.36.15
    require MesaLib gtk+ mktemp
    require xorg-server
   category kernel
@@ -100,13 +99,10 @@ build(){
   mkdir                 usr/lib/nv
   mv    usr/lib/libGL.* usr/lib/nv
 
-  find usr -type f | while read; do install -vD $REPLY /$REPLY; done
-  find usr -type l | while read; do mv      -v  $REPLY /$REPLY; done
-
-  if   ! [[ -f                  /etc/ld.so.conf.d/head ]] ||
-       ! grep -q /usr/lib/nv    /etc/ld.so.conf.d/head
-  then echo      /usr/lib/nv >> /etc/ld.so.conf.d/head
-  fi
+  find usr -type f | while read; do install -vD $REPLY $DESTDIR/$REPLY; done
+  find usr -type l | while read; do mv      -v  $REPLY $DESTDIR/$REPLY; done
+  mkdir -p           $DESTDIR/etc/ld.so.conf.d/
+  echo /usr/lib/nv > $DESTDIR/etc/ld.so.conf.d/head
  }
 
  LVER=$( installed_version $( get_provider linux-kernel ) )
@@ -137,17 +133,8 @@ build(){
  sed -i "s:install $RSC:install:"     Makefile
  sed -i "s:rivafb-sanity-check nvidiafb-sanity-check::" Makefile
 
- prepare_install &&
- make    install CC=gcc \
-                 IGNORE_CC_MISMATCH=1 \
-                 IGNORE_XEN_PRESENCE=1 &&
-    make_install
-}
-
-current(){
-case $VERSION in
- 190.53) [ -f /usr/lib/xorg/modules/drivers/nvidia_drv.so ] &&
- [ -f                /etc/ld.so.conf.d/head ] &&
- grep -q /usr/lib/nv /etc/ld.so.conf.d/head   ;;
-esac
+ make install CC=gcc \
+      IGNORE_CC_MISMATCH=1 \
+      IGNORE_XEN_PRESENCE=1 &&
+ make_install
 }

@@ -72,11 +72,15 @@
 build(){
 
  symlink_icons(){
-  install -vdm 755 /usr/share/applications
-  install -vm  644 $SCRIPT_DIR/applications.d/firefox.desktop /usr/share/applications
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default16.png /usr/share/icons/hicolor/16x16/apps/firefox.png
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default32.png /usr/share/icons/hicolor/32x32/apps/firefox.png
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default48.png /usr/share/icons/hicolor/48x48/apps/firefox.png
+  install -vdm 755 $DESTDIR/usr/share/applications
+  install -vm  644 $SCRIPT_DIR/applications.d/firefox.desktop $DESTDIR/usr/share/applications
+  mkdir -p $DESTDIR/usr/share/icons/hicolor/{16x16,32x32,48x48}
+  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default16.png \
+         $DESTDIR/usr/share/icons/hicolor/16x16/apps/firefox.png
+  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default32.png \
+         $DESTDIR/usr/share/icons/hicolor/32x32/apps/firefox.png
+  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default48.png \
+         $DESTDIR/usr/share/icons/hicolor/48x48/apps/firefox.png
   true
  }
 
@@ -89,12 +93,12 @@ sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
 --sysconfdir=/etc \
 --localstatedir=/var \
 --enable-optimize="$CFLAGS" \
-$OPTS           &&
-make            &&
-prepare_install &&
-make    install &&
-rm -fr                  /usr/lib/mozilla &&
-ln -fs firefox-$VERSION /usr/lib/mozilla &&
+$OPTS &&
+make  &&
+make install "DESTDIR=$DESTDIR" &&
+mkdir -p $DESTDIR/usr/lib &&
+ln -fs firefox-$VERSION $DESTDIR/usr/lib/mozilla &&
+rm -f /usr/lib/mozilla &&
 symlink_icons
 }
 

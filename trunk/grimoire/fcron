@@ -5,9 +5,9 @@
   optional Linux-PAM --with-pam=yes --with-pam=no for pluggable authentication
   category utility/time
  attribute console
-       url 'ftp://ftp.seul.org/pub/fcron/
-            http://fcron.free.fr/archives/'
-    source fcron-$VERSION.src.tar.gz
+    source  ftp://ftp.seul.org/pub/fcron/ \
+           http://fcron.free.fr/archives/ \
+           fcron-$VERSION.src.tar.gz
   homepage http://fcron.free.fr/
       vurl http://fcron.free.fr/download.php
   eprovide cron
@@ -26,15 +26,18 @@ or to do a job only once in a specified interval of time.
 You can also set a nice value to a job, run it
 depending on the system load average, and much more.'
 
+pre_build(){
+mkdir    -p -m 0755 /var/spool/fcron
+groupadd -K GID_MIN=256 -K GID_MAX=511    fcron                           2>/dev/null
+useradd  -K UID_MIN=256 -K UID_MAX=511 -g fcron -d /var/spool/fcron fcron 2>/dev/null
+default_pre_build
+}
+
 build(){
  install_etc(){
   install -vm 644 files/fcron.allow /etc
   install -vm 644 files/fcron.deny  /etc
  }
-
-mkdir    -p -m 0755 /var/spool/fcron
-groupadd -K GID_MIN=256 -K GID_MAX=511    fcron                           2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g fcron -d /var/spool/fcron fcron 2>/dev/null
 
 # if    spell_installed  Linux-PAM
 # then  OPTS+=' --with-pam=yes'

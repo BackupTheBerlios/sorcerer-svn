@@ -27,29 +27,14 @@ case $MACHTYPE in
 esac
 
 build(){
- install_uuid(){
-  mkdir   -vp                         /usr/include/uuid
-  install -vm 0644 lib/uuid/uuid.h    /usr/include/uuid
-  install -vm 0644 lib/uuid/libuuid.a /usr/lib
- }
-
-# grep -rl   "#include <linux/fd.h>" * | xargs --max-lines=16 \
-# sed  -i  "\,#include <linux/fd.h>,i#include <linux/compiler.h>"
-
-# --enable-dynamic-e2fsck not supported in 1.41.9, however e2fsck is dynamically linked.
-# --enable-dynamic-e2fsck \
-
- ./configure             \
- --prefix=/usr           \
- --with-root-prefix=     \
- --enable-elf-shlibs     \
- $OPTS                   &&
+ ./configure \
+ --prefix=/usr \
+ --with-root-prefix= \
+ --enable-elf-shlibs \
+ $OPTS &&
  make "LDFLAGS=$LDFLAGS" &&
- prepare_install         &&
- make    install         &&
- make    install-libs    &&
- make    install-strip   &&
- make    install-libs
-#    &&
-#         install_init
+ make install       "DESTDIR=$DESTDIR" &&
+ make install-libs  "DESTDIR=$DESTDIR" &&
+ make install-strip "DESTDIR=$DESTDIR" &&
+ make install-libs  "DESTDIR=$DESTDIR"
 }

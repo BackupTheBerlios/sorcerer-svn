@@ -1,12 +1,9 @@
-    stable 4.8.4 4.8.2 4.8
+    stable 4.8.4
   category network/web
  attribute library
     source http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$VERSION/src/nspr-$VERSION.tar.gz
 case $VERSION in
  4.8.4) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.3-pkgconfig-1.patch ;;
- 4.8.3) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.3-pkgconfig-1.patch ;;
- 4.8.2) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.2-pkgconfig-1.patch ;;
- 4.8)   source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8-pkgconfig-2.patch ;;
 esac
   homepage http://www.mozilla.org/projects/security/pki/nss/
   estimate 500
@@ -18,7 +15,7 @@ case $HOSTTYPE in
 esac
 
 # The patch is for pkgconfig support 
-# However, it does not apply automatically.
+# However, why does it not apply automatically by cast?
 
  patch -p1 < ${SOURCE[1]}
  cd mozilla/nsprpub &&
@@ -28,7 +25,7 @@ esac
  --with-pthreads \
  $OPTS &&
  make  &&
- prepare_install &&
- make    install &&
- cp -vLR dist/include/nspr /usr/include
+ make install DESTDIR=$DESTDIR &&
+ mkdir -p    $DESTDIR/usr/include &&
+ cp -vLR dist/include/nspr $DESTDIR/usr/include
 }

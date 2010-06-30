@@ -27,19 +27,18 @@ build(){
   cd   sc2
 
   mkdir -p content
-  echo | ./build.sh uqm depend  &&
-         ./build.sh uqm         &&
-  prepare_install               &&
-         ./build.sh uqm install &&
-  echo "$VERSION" > /usr/share/uqm/content/version
+  echo |
+ ./build.sh uqm depend  &&
+ ./build.sh uqm         &&
+ ./build.sh uqm install DESTDIR=$DESTDIR &&
+  echo "$VERSION" > $DESTDIR/usr/share/uqm/content/version
  }
 
 
  install_data(){
   CONTENT=${SOURCE}
-  PACKAGE=/usr/share/uqm/content/packages
+  PACKAGE=$DESTDIR/usr/share/uqm/content/packages
   if [[ -n $CONTENT ]]; then
-   prepare_install &&
    set     -x &&
    mkdir   -p $PACKAGE &&
    install -vm 644 -o root -g root $CONTENT $PACKAGE &&
@@ -56,13 +55,12 @@ build(){
   CONTENT2=${SOURCE[1]}
   CONTENT3=${SOURCE[2]}
   CONTENT4=${SOURCE[3]}
-  PACKAGE=/usr/share/uqm/content/packages/addons/uqmremix
+  PACKAGE=$DESTDIR/usr/share/uqm/content/packages/addons/uqmremix
   if   [[ -f $CONTENT1 ]] &&
        [[ -f $CONTENT2 ]] &&
        [[ -f $CONTENT3 ]] &&
        [[ -f $CONTENT4 ]]
   then
-   prepare_install     &&
    set     -x          &&
    mkdir   -p $PACKAGE &&
    install -vm 644 -o root -g root $CONTENT1 $PACKAGE &&

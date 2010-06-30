@@ -3,28 +3,28 @@
    require Linux-PAM
   category network
  attribute client console
-       url 'ftp://ca.samba.org/
-            ftp://de.samba.org/samba.org/
-            ftp://fi.samba.org/pub/samba/
-            ftp://ftp.azc.uam.mx/mirrors/samba/
-            ftp://ftp.k2.net/mirrors/samba/
-            ftp://ftp.ring.gr.jp/pub/net/samba/
-            ftp://ftp.samba.gr.jp/pub/samba/
-            ftp://ftp.ucr.ac.cr/pub/Unix/samba/
-            ftp://gd.tuwien.ac.at/infosys/servers/samba/
-            ftp://it.samba.org/pub/samba/
-            ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/
-            ftp://pl.samba.org/pub/unix/net/samba/
-            ftp://ru.samba.org/pub/samba/
-            ftp://se.samba.org/pub/samba/
-            ftp://tr.samba.org/samba/
-           http://us1.samba.org/samba/ftp/
-           http://us2.samba.org/samba/ftp/
-           http://us3.samba.org/samba/ftp/'
+    source  ftp://ca.samba.org/ \
+            ftp://de.samba.org/samba.org/ \
+            ftp://fi.samba.org/pub/samba/ \
+            ftp://ftp.azc.uam.mx/mirrors/samba/ \
+            ftp://ftp.k2.net/mirrors/samba/ \
+            ftp://ftp.ring.gr.jp/pub/net/samba/ \
+            ftp://ftp.samba.gr.jp/pub/samba/ \
+            ftp://ftp.ucr.ac.cr/pub/Unix/samba/ \
+            ftp://gd.tuwien.ac.at/infosys/servers/samba/ \
+            ftp://it.samba.org/pub/samba/ \
+            ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/ \
+            ftp://pl.samba.org/pub/unix/net/samba/ \
+            ftp://ru.samba.org/pub/samba/ \
+            ftp://se.samba.org/pub/samba/ \
+            ftp://tr.samba.org/samba/ \
+           http://us1.samba.org/samba/ftp/ \
+           http://us2.samba.org/samba/ftp/ \
+           http://us3.samba.org/samba/ftp/ \
+           pam_smb/pam_smb-$VERSION.tar.gz
   homepage http://www.csn.ul.ie/~airlied/pam_smb/
-    source pam_smb/pam_smb-$VERSION.tar.gz
   estimate 60
-      desc 'pam_smb is a Linux-PAM module for authenticating users from Samba, NT, 95/8
+      desc 'Linux-PAM module for authenticating users from Samba, NT, 95/8
 pam_smb is a module which allows Linux users to be
 authenticated from Samba, NT or Windows 95/8 machines.'
 
@@ -35,18 +35,18 @@ build(){
   esac
 
  make_install(){
-  install -vm 755 pam_smb_auth.so      $LIB/security
-  install -vm 644 pam_smb.conf.example /etc
-  mkdir   -vp                          /usr/doc/pam_smb
-  cp              README  CHANGES      /usr/doc/pam_smb
+  mkdir -p $DESTDIR/{etc,$LIB}
+  install -vm 755 pam_smb_auth.so      $DESTDIR/$LIB/security
+  install -vm 644 pam_smb.conf.example $DESTDIR/etc
+  mkdir   -vp                          $DESTDIR/usr/doc/pam_smb
+  cp              README  CHANGES      $DESTDIR/usr/doc/pam_smb
  }
 
  ./configure          \
  --prefix=/usr        \
  --sysconfdir=/etc    \
  --localstatedir=/var \
-  $OPTS               &&
- make                 &&
- prepare_install      &&
-    make_install
+  $OPTS &&
+ make   &&
+ make_install
 }

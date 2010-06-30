@@ -3,32 +3,31 @@
   optional libX11 --with-x '' for xjed
   category utility/editor
  attribute console x11
-       url 'ftp://space.mit.edu/pub/davis/jed/
-            ftp://space.mit.edu/pub/davis/jed/old/
-           http://download.gna.org/jed/
-            ftp://ftp.ntua.gr/pub/lang/slang/jed/
-            ftp://ftp.fu-berlin.de/pub/unix/editors/jed/'
-    source v${VERSION:0:4}/jed-$VERSION.tar.bz2
+    source  ftp://space.mit.edu/pub/davis/jed/ \
+            ftp://space.mit.edu/pub/davis/jed/old/ \
+           http://download.gna.org/jed/ \
+            ftp://ftp.ntua.gr/pub/lang/slang/jed/ \
+            ftp://ftp.fu-berlin.de/pub/unix/editors/jed/ \
+           v${VERSION:0:4}/jed-$VERSION.tar.bz2
   homepage http://www.jedsoft.org/jed/
    provide console-editor
   estimate 400
-      desc 'jed is a powerful editor with both terminal and X11 interfaces.
+      desc 'text editor with both terminal and X11 interfaces
 Color syntax highlighting is one of its strong suits,
 along with emulation of GNU Emacs, Wordstar, EDT and Brief.
 It also supports use of GPM on Linux consoles.
 Jed has a multitude of programming modes and couples
 with the Slang library for powerful extensions.'
 
-build() {
-  cp  $SCRIPT_DIR/jed.rc  lib  &&
-  JED_ROOT=/var/lib/jed  \
-  ./configure     \
-  --prefix=/usr   &&
-  make            &&
-  make  getmail   &&
-  if    echo  "$OPTS"  |  grep  -q  "\--with-x"
-  then  make  xjed
-  fi    &&
-  prepare_install  &&
-  make    install
+build(){
+ cp $SCRIPT_DIR/jed.rc lib &&
+ JED_ROOT=/var/lib/jed \
+ ./configure   \
+ --prefix=/usr &&
+ make          &&
+ make getmail  &&
+ if   echo "$OPTS" | grep -q "\--with-x"
+ then make xjed
+ fi &&
+ make install DESTDIR=$DESTDIR
 }

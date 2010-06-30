@@ -3,8 +3,7 @@
   optional doxygen '' --disable-documents for documentation
   category input
  attribute console library x11
-       url $SOURCEFORGE_URL
-    source scim/scim-bridge/$VERSION/scim-bridge-$VERSION.tar.gz
+    source $SOURCEFORGE_URL scim/scim-bridge/$VERSION/scim-bridge-$VERSION.tar.gz
   homepage http://www.scim-im.org/
 #     opts --enable-gtk2-immodule --enable-agent --disable-qt3-immodule --disable-qt4-immodule --enable-static=no
       opts --enable-gtk2-immodule --enable-agent --enable-qt3-immodule=no --enable-qt4-immodule=no --enable-static=no
@@ -15,23 +14,9 @@ It avoids libstdc++ shared library loading problems
 when using scim on programs that link with old libstdc++
 such as precompiled binaries such as acroread.'
 
-build_old(){
- extra_install(){
-  ldconfig
-  if   spell_installed gtk-query-immodules-2.0
-  then echo            gtk-query-immodules-2.0 | pipe_queue $CAST_QUEUE com
-  fi
-  install -m 755 $SCRIPT_DIR/scim-bridge-gtk+ /etc/bash.d/noninteractive/
- }
-
-#default_build &&
- ./configure               \
-  --sysconfdir=/etc        \
-  --localstatedir=/var     \
-  --prefix=${PREFIX:-/usr} \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install &&
-   extra_install
+post_install(){
+ if   spell_installed gtk-query-immodules-2.0
+ then echo            gtk-query-immodules-2.0 | pipe_queue $CAST_QUEUE com
+ fi
+ default_post_install
 }

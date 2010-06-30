@@ -4,12 +4,9 @@
  attribute console
   homepage http://mj.ucw.cz/pciutils.html
     source ftp://atrey.karlin.mff.cuni.cz/pub/linux/pci/ ftp://ftp.kernel.org/pub/software/utils/pciutils/ ftp://metalab.unc.edu/pub/Linux/hardware/ pciutils-$VERSION.tar.gz
-#      url $KERNEL_URL
-#   source pub/software/utils/pciutils/pciutils-$VERSION.tar.bz2
-# homepage ftp://ftp.kernel.org/pub/software/utils/pciutils
       opts --enable-static=no
   estimate 100
-      desc 'pciutils provides setpci and lspci utils.
+      desc 'setpci and lspci utils
 
 pciutils include:
 
@@ -25,13 +22,13 @@ setpci		allows to read from and write to
 build(){
 
  install_lib(){
-  mkdir       -vpm 755        /usr/include/pci
+  mkdir       -vpm 755        $DESTDIR/usr/include/pci
   for                    file in lib/*.h
-  do  install -vm  644  $file /usr/include/pci/
+  do  install -vm  644  $file $DESTDIR/usr/include/pci/
   done
   case $HOSTTYPE in
-   x86_64) install -vm 755 lib/libpci.a /usr/lib64 ;;
-        *) install -vm 755 lib/libpci.a /usr/lib   ;;
+   x86_64) mkdir -p $DESTDIR/usr/lib64; install -vm 755 lib/libpci.a $DESTDIR/usr/lib64 ;;
+        *) mkdir -p $DESTDIR/usr/lib;   install -vm 755 lib/libpci.a $DESTDIR/usr/lib   ;;
   esac
  }
 
@@ -40,10 +37,8 @@ build(){
  sed -i "s:-O2:$CFLAGS -fPIC:
          s:/usr/local:/usr:
          s:SHARED=no:SHARED=yes:" Makefile
-
- make            &&
- prepare_install &&
- make    install install-lib
+ make &&
+ make install install-lib DESTDIR=$DESTDIR
 }
 
 current(){

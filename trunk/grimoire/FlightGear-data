@@ -3,32 +3,23 @@
  attribute archive_off data
   homepage http://flightgear.sourceforge.net
       vurl http://www.flightgear.org/Downloads/source.shtml
-       url 'ftp://ftp.flightgear.org/pub/fgfs/Shared/
-            ftp://ftp.kingmont.com/pub/kingmont/flight_simulators/flightgear/Shared/
-            ftp://flightgear.totalpilot.com/pub/fgfs/Shared/
-            ftp://ftp.darklands.cx/pub/fgfs/Shared/
-            ftp://ftp.planetmirror.com/pub/fgfs/Shared/
-            ftp://ftp.ihg.uni-duisburg.de/Mirrors/ftp.flightgear.org/Shared/
-            ftp://obgyn.edu.pl/fgfs/Shared/
-            ftp://ftp2.sinica.edu.tw/pub2/games/fgfs/Shared/'
-    source FlightGear-data-$VERSION.tar.bz2
- conflicts fgfs-base
+    source ftp://ftp.flightgear.org/pub/fgfs/Shared/ \
+           ftp://ftp.kingmont.com/pub/kingmont/flight_simulators/flightgear/Shared/ \
+           ftp://flightgear.totalpilot.com/pub/fgfs/Shared/ \
+           ftp://ftp.darklands.cx/pub/fgfs/Shared/ \
+           ftp://ftp.planetmirror.com/pub/fgfs/Shared/ \
+           FlightGear-data-$VERSION.tar.bz2
       desc 'the base files required by FlightGear
 FlightGear-data provides the necessary data files
 for running FlightGear, flight simulator.'
 
 
 build(){
- if   [ -d data ]
- then cd   data
- fi
- if   [ -f version ]
- then find . -type f | xargs --max-lines=64 chmod 0644 2>/dev/null
-      find . -type d | xargs --max-lines=64 chmod 0755 2>/dev/null
-      true
- else false
- fi              &&
- prepare_install &&
- mkdir  -p    /usr/share/FlightGear &&
- cp     -av * /usr/share/FlightGear
+ if   [ -d data    ]; then cd data;  fi
+ if ! [ -f version ]; then return 1; fi
+
+ find . -type f | xargs --max-lines=64 chmod 0644 2>/dev/null
+ find . -type d | xargs --max-lines=64 chmod 0755 2>/dev/null
+ mkdir  -p    $DESTDIR/usr/share/FlightGear
+ cp     -av * $DESTDIR/usr/share/FlightGear
 }

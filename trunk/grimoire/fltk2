@@ -1,40 +1,30 @@
 # dillo 2.x requires fltk 2.x
 
-    stable 2.0.x-r6970 2.0.x-r6844 2.0.x-r6793 2.0.x-r6525 2.0.x-r6483 2.0.x-r6403 1.1.9 1.1.8 1.1.7 1.1.6 1.1.5 1.1.4 1.0.11
 # Will not accept command to disable static libs.
 #     opts --enable-static=no
+
+    stable 2.0.x-r6970
    require jpeg libXcursor libXext libXft libXi libXinerama libpng
   category graphic
  attribute library x11
-       url http://ftp.easysw.com/pub/fltk/ \
+    source http://ftp.easysw.com/pub/fltk/ \
            http://ftp2.easysw.com/pub/fltk/ \
            http://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/fltk/ \
-           http://ftp.rz.tu-bs.de/pub/mirror/ftp.easysw.com/ftp/pub/fltk/
- case $VERSION in
-  2.0*)
-    source snapshots/fltk-$VERSION.tar.bz2 ;;
-  1.3*)
-    source snapshots/fltk-$VERSION.tar.bz2 ;;
-  *)
-    source $VERSION/fltk-$VERSION-source.tar.bz2 ;;
- esac
-
-#   source http://ftp.easysw.com/pub/fltk/$VERSION/fltk-$VERSION-source.tar.bz2
+           http://ftp.rz.tu-bs.de/pub/mirror/ftp.easysw.com/ftp/pub/fltk/ \
+           snapshots/fltk-$VERSION.tar.bz2
       vurl http://www.fltk.org/software.php
   homepage http://www.fltk.org
   estimate 600
       desc 'fast light graphical toolkit for X11'
 
-
 build(){
- ./configure             \
- --prefix=/usr           \
- --sysconfdir=/etc       \
- --localstatedir=/var    \
- --enable-shared         \
- $OPTS                   &&
- make            CXX=g++ &&
- prepare_install         &&
- make    install CXX=g++ &&
- rm -f /usr/lib{,64}/libfltk*.a
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ --enable-shared \
+ $OPTS &&
+ make CXX=g++ &&
+ make CXX=g++ "DESTDIR=$DESTDIR" install &&
+ rm -f $DESTDIR/usr/lib{,64}/libfltk*.a
 }

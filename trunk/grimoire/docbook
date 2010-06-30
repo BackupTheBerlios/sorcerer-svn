@@ -4,7 +4,6 @@ fi
    require libxslt unzip
   category documentation profile
  attribute data
-       url http://www.docbook.org/
   homepage http://www.docbook.org/
    protect /etc/xml
       desc "$SPELL docbook standards."
@@ -30,11 +29,11 @@ case ${SPELL:8:3} in
 esac
 
 case ${SPELL:8:9} in
- sgml-4.1)   source sgml/$VERSION/docbk41.zip ;;
- sgml-*)     source sgml/$VERSION/docbook-$VERSION.zip ;;
-  xml-4.1.2) source xml/$VERSION/docbkx412.zip ;;
-  xml-4.*)   source xml/$VERSION/docbook-xml-$VERSION.zip ;;
-  xml-*)     source xml/$VERSION/docbook-$VERSION.zip ;;
+ sgml-4.1)   source http://www.docbook.org/sgml/$VERSION/docbk41.zip ;;
+ sgml-*)     source http://www.docbook.org/sgml/$VERSION/docbook-$VERSION.zip ;;
+  xml-4.1.2) source http://www.docbook.org/xml/$VERSION/docbkx412.zip ;;
+  xml-4.*)   source http://www.docbook.org/xml/$VERSION/docbook-xml-$VERSION.zip ;;
+  xml-*)     source http://www.docbook.org/xml/$VERSION/docbook-$VERSION.zip ;;
   xsl*) ;;
 esac
 
@@ -45,7 +44,7 @@ build(){
  local WHERE=/usr/share/xml/docbook/$WHAT/$VERSION
 
  if   [ $SPELL == docbook ]
- then prepare_install && echo "Profile $SPELL installed."; return
+ then echo "Profile $SPELL installed."; return
  fi
 
  if ! [ -f catalog.xml ] &&
@@ -77,9 +76,8 @@ build(){
   xmlcatalog --noout --add "rewriteURI"    "$CRI" "file://$WHERE" catalog.xml
  fi
 
- prepare_install         &&
- mkdir -vm 755 -p $WHERE &&
- cp    -rv *      $WHERE
+ mkdir -pvm 755 $DESTDIR/$WHERE &&
+ cp    -rv *    $DESTDIR/$WHERE
 }
 
 

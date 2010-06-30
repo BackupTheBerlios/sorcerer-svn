@@ -1,24 +1,22 @@
     stable 1.8.3 1.8.2 1.8.0
   category db
  attribute library
-       url $GNU_URL
-    source gdbm/gdbm-$VERSION.tar.gz
+    source $GNU_URL gdbm/gdbm-$VERSION.tar.gz
   homepage http://www.gnu.org/software/gdbm/gdbm.html
       opts --enable-static=no
   estimate 350
-      desc 'gdbm is a database library.
+      desc 'database library
 gdbm is database library.
 It works like the UNIX dbm.'
 
 build(){
  sed -i "s:-O:$CFLAGS:" Makefile.in
 
- ./configure --prefix=/usr          &&
- make                               &&
- prepare_install                    &&
- make    install        prefix=/usr &&
- make    install-compat prefix=/usr &&
- ln -sf libgdbm.so.2.0.0 /usr/lib/libndbm.so
+ ./configure --prefix=/usr &&
+ make &&
+ make install        prefix=/usr &&
+ make install-compat prefix=$DESTDIR/usr &&
+ ln -sf libgdbm.so.2.0.0 $DESTDIR/usr/lib/libndbm.so
 }
 
 post_remove(){

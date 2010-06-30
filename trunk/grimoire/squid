@@ -25,25 +25,18 @@ Squid supports...
   * caching of DNS lookups'
 
 build(){
-SCX=1
-while [[ -n       ${SOURCE[$SCX]} ]]
-do    patch -p1 < ${SOURCE[$SCX]}
-      (( SCX++ ))
-done
-
 sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
 
-./configure                      \
---prefix=/usr                    \
---sysconfdir=/etc/squid          \
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc/squid \
 --localstatedir=/var/cache/squid \
---enable-async-io                \
---enable-snmp                    \
---enable-linux-netfilter         \
-$OPTS                            &&
-make                             &&
-prepare_install                  &&
-make    install                  &&
-mkdir -p                /var/cache/squid &&
-chown -R nobody.nogroup /var/cache/squid
+--enable-async-io \
+--enable-snmp \
+--enable-linux-netfilter \
+$OPTS &&
+make &&
+make install DESTDIR=$DESTDIR &&
+mkdir -p                $DESTDIR/var/cache/squid &&
+chown -R nobody.nogroup $DESTDIR/var/cache/squid
 }

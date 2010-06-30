@@ -1,19 +1,21 @@
 version_year_day 31 $LAG
   category grimoire
  attribute grimoire archive_off solo stale
-       url http://sorcerer.silverice.org/download/grimoire/
-    source grimoire-$VERSION.tar.xz
+    source http://sorcerer.silverice.org/download/grimoire/grimoire-$VERSION.tar.xz
   homepage http://sorcerer.silverice.org/
-      desc 'grimoire is the official grimoire of sorcerer.'
+      desc 'the official grimoire of sorcerer'
 
 build(){
 echo "$LAG days behind available grimoire."
 [[ -f grimoire ]] &&
 [[ -f sorcery  ]] &&
-prepare_install &&
-mkdir -p    $GRIMOIRE_LIBRARY &&
+mkdir -p $DESTDIR/$GRIMOIRE_LIBRARY &&
 find  . -type f -printf "%P\n" |
-tar_files > $GRIMOIRE_LIBRARY/$SPELL.tar &&
-chmod 600   $GRIMOIRE_LIBRARY/$SPELL.tar &&
+tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
+chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
+}
+
+post_install(){
 rm -fr ${FAIL_QUEUE:-$QUEUE_DIR/fail}/*
+default_post_install
 }

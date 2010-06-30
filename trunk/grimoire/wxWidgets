@@ -36,7 +36,7 @@ build(){
   cd contrib/include
   find |
   while read
-  do    install -Dv $REPLY /usr/include/wx-${VERSION:0:3}/$REPLY
+  do    install -Dv $REPLY $DESTDIR/usr/include/wx-${VERSION:0:3}/$REPLY
   done  
   true
 }
@@ -51,19 +51,18 @@ build(){
 
  sed -i "s:OPTIMISE=\"-O2\":OPTIMISE=\"\":" configure
 
- ./configure          \
- --prefix=/usr        \
- --sysconfdir=/etc    \
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
  --localstatedir=/var \
- $OPTS           &&
- make            &&
- cd      contrib &&
- make            &&
- cd      ..      &&
- prepare_install &&
- make    install &&
- cd      contrib &&
- make    install &&
- cd      ..      &&
+ $OPTS &&
+ make &&
+ cd   contrib &&
+ make         &&
+ cd   ..      &&
+ make install DESTDIR=$DESTDIR &&
+ cd   contrib &&
+ make install DESTDIR=$DESTDIR &&
+ cd   ..      &&
  install_contrib_headers
 }

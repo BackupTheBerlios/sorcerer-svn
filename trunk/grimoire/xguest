@@ -1,37 +1,34 @@
-# Copyright Kyle Sallee 2008
+# Copyright Kyle Sallee 2008 through 2010
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
     stable 20080516
    require shadow twm xinit xsetroot xterm
-
   category window-manager
  attribute archive_off x11
   homepage http://sorcerer.silverice.org
-  estimate 10
-      desc 'xguest provides an automatically logged in Xsession following boot.
+      desc 'automatically logged in Xsession following boot
 
 xguest is to configures a kiosk style box.
 This profile creates user xguest and group xguest.
-It installs an init-script that starts are runlevels 4 and 5.
+It installs an init-script that starts on runlevels 4 and 5.
 It continually restarts the Xsession with user xguest logged in.
 The window manager and programs run for user xguest are specified
 in ~/xguest/.xinitrc
 Please customize ~/xguest/.xinitrc
 The manual page for startx contains verbose instructions.'
 
-build(){
+pre_build(){
 XG=xguest
 groupadd -K GID_MIN=512 -K GID_MAX=1023       $XG                  2>/dev/null
 useradd  -K UID_MIN=512 -K UID_MAX=1023 -m -g $XG -d /home/$XG $XG 2>/dev/null
-
-prepare_install
+default_pre_build
 }
 
 post_install(){
- if   ! [ -f ~/home/xguest/.xinitrc ]; then install -m 600 -o xguest -g xguest \
-                $SCRIPT_DIR/xinitrc \
-              /home/xguest/.xinitrc
+ if ! [ -f ~/home/xguest/.xinitrc ]; then
+  install -m 600 -o xguest -g xguest $SCRIPT_DIR/xinitrc \
+  /home/xguest/.xinitrc
  fi
  default_post_install
 }

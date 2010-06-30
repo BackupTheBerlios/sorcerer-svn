@@ -1,20 +1,19 @@
     stable 7.1 7.0 6.1 6.0
-   require cdrtools zlib
+   require cdrtools gcc-g++ zlib
   category disk/cd
  attribute console
     source http://fy.chalmers.se/~appro/linux/DVD+RW/tools/dvd+rw-tools-$VERSION.tar.gz
   homepage http://fy.chalmers.se/~appro/linux/DVD+RW/
-  estimate 50
+  estimate 30
  freshmeat dvdrw-tools
-      desc 'dvd+rw-tools provides a frontend to cdrtools for DVD burning.'
+      desc 'frontend to cdrtools for DVD burning'
 
 build(){
  case $VERSION in
   7.1)  patch -p1 < $SCRIPT_DIR/gcc4.3.patch ;;
  esac
 
- sed -i 's:/usr/local:/usr:; s:-O2::' Makefile.m4
+ sed -i "s:/usr/local:$DESTDIR/usr:; s:-O2::" Makefile.m4
  make "CFLAGS=$CFLAGS" "CXXFLAGS=$CXXFLAGS" &&
- prepare_install &&
- make    install
+ make install
 }

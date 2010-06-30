@@ -6,20 +6,12 @@
  attribute x11
  attribute broke
     source $SOURCEFORGE_URL scorched3d/scorched3d/Version%20$VERSION/Scorched3D-$VERSION-src.tar.gz
-#   source $SOURCEFORGE_URL scorched3d/scorched3d/Version%2042.1/Scorched3D-$VERSION.tar.gz
   homepage http://scorched3d.sourceforge.net
-case $VERSION in
-# 43*) use_gcc gcc-v4.1 ;;
-  42*)  use_gcc gcc-v4.1  ;;
-  41*)  use_gcc gcc-v4.1  ;;
-  40.1d)  use_gcc gcc-v4.1  ;;
-esac
-# openal headers requires gcc-v4.1 to compile
   estimate 4640
  freshmeat scorched3d
       desc 'a 2D an artillery game'
 
-build(){ (
+build(){
 # export PATH=$PWD/scorched-dep-osx/config:$PATH
 # chmod u+x   $PWD/scorched-dep-osx/config/openal-config
 # sed -i 's:prefix=.*:prefix=/usr:' \
@@ -30,36 +22,5 @@ LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
 cd   scorched
 
 default_build
-
-
-build_old(){
-export   CFLAGS+=' -L/usr/X11R6/lib/'
-export CXXFLAGS+=' -L/usr/X11R6/lib/'
-if [ -f /usr/lib/libalut.so.0 ]; then
-#export LDFLAGS+=' -lalut'
-case  $VERSION  in
-     42*) cd scorched; export ac_cv_path_OPENAL_CONFIG=/bin/true
-          LC_ALL=C grep -rl '\-lfftw3f' * |
-          xargs -r --max-lines=64 sed -i 's:-lfftw3f:-lfftw3:'  
-          OPTS+=' --disable-fftwtest' ;;
-    41.2) : ;;
-     41*) aclocal; automake --foreign; autoconf
-          grep  -rl  '\-lfftw3f'  *  |
-          xargs  -r --max-lines=64  sed  -i  's:-lfftw3f:-lfftw3:'  
-          OPTS+=' --disable-fftwtest'  ;;
-  40.1d)  sed  -i  "s:\$LIBS \`\$OPENAL:\$LIBS -lalut \`\$OPENAL:"  configure  ;;
-  40.1c)  sed  -i  "s:\$LIBS \`\$OPENAL:\$LIBS -lalut \`\$OPENAL:"  configure  ;;
-  40.1b)  sed  -i  "s:\$LIBS \`\$OPENAL:\$LIBS -lalut \`\$OPENAL:"  configure  ;;
-  40.1)   sed  -i  "s:\$LIBS \`\$OPENAL:\$LIBS -lalut \`\$OPENAL:"  configure  ;;
-esac
-fi
-
-#RUN="#!/bin/sh\ncd  /opt/scorched3d\n./scorched3d"
-
-# sed  -i  "s:ALubyte:ALchar:" src/sound/Sound.cpp
-
-default_build
 }
-
-) }
 

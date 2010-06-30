@@ -13,8 +13,7 @@
   optional sqlite     --with-sqlite3     --without-sqlite3 for sqlite database support
   category network/web
  attribute console server
-       url $APACHE_URL
-    source httpd/httpd-$VERSION.tar.gz
+    source $APACHE_URL httpd/httpd-$VERSION.tar.gz
   homepage http://httpd.apache.org
    protect /etc/httpd
    protect /usr/share/httpd/htdocs
@@ -99,10 +98,10 @@ query(){ query_dialog "$@"; }
 
 build(){
  finish_install(){
-  mkdir -p /usr/share/httpd/cgi-bin.ssl
-  mkdir -p /usr/share/httpd/htdocs.ssl
-  mkdir -p /usr/share/httpd/logs
-  mkdir -p /var/lib/httpd/run
+  mkdir -p $DESTDIR/usr/share/httpd/cgi-bin.ssl
+  mkdir -p $DESTDIR/usr/share/httpd/htdocs.ssl
+  mkdir -p $DESTDIR/usr/share/httpd/logs
+  mkdir -p $DESTDIR/var/lib/httpd/run
  }
 
  fix_ssl_conf(){
@@ -153,27 +152,13 @@ build(){
  --with-mpm=worker        \
  $OPTS"
 
- save_apr(){
-  [ -f /usr/bin/apr-1-config ] && mv /usr/bin/apr-1-config /usr/bin/apr-1-config.old
-  [ -f /usr/bin/apu-1-config ] && mv /usr/bin/apu-1-config /usr/bin/apu-1-config.old
-  true
- }
-
- restore_apr(){
-  [ -f /usr/bin/apr-1-config.old ] && mv /usr/bin/apr-1-config.old /usr/bin/apr-1-config
-  [ -f /usr/bin/apu-1-config.old ] && mv /usr/bin/apu-1-config.old /usr/bin/apu-1-config
-  true
- }
-
  # export  LAYOUT="Sorcerer"
-
 
  ./buildconf     &&
  ./configure $AC &&
  make            &&
- prepare_install &&
- make    install &&
-  finish_install
+ make install DESTDIR=$DESTDIR &&
+ finish_install
 }
 
 post_install(){

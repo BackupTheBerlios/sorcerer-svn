@@ -1,3 +1,5 @@
+# How to do DESTDIR style install with boost?
+
 # Update build() in spring
 # update montone when updating boost
 ## Above comments no longer apply.
@@ -47,40 +49,10 @@ Graph Component Library (GGCL), is a collection of graph
 algorithms and data structures created in the generic
 programming style of the Standard Template Library (STL).'
 
-
 build(){
-build_old(){
- symlink_includes(){
-  case $VERSION in
-   1_36_0) ln -fs /usr/include/boost-1_36/boost     /usr/include/boost ;;
-   1_38_0) ln -fs /usr/include/boost-1_38/boost     /usr/include/boost ;;
-        *) ln -fs /usr/include/boost-$VERSION/boost /usr/include/boost ;;
-  esac
- }
-
- ./configure     \
- --prefix=/usr   \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install &&
- symlink_includes
-}
-
-current(){
- case $VERSION in
-  1_38_0) [[ -d /usr/include/boost ]] ;;
- esac
-}
-
 sed -i 's:-O3:-O2:' tools/jam/src/build.jam
 ./bootstrap.sh --prefix=/usr &&
 
-# ./bjam -q -d+2 variant=release link=shared runtime-link=shared stage &&
-# prepare_install &&
-# ./bjam -q -d+2 variant=release link=shared runtime-link=shared install
-
 ./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage &&
-prepare_install &&
-./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared install
+./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install
 }

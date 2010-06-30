@@ -38,8 +38,12 @@
      iwall 'kdm-v4 will soon restart'
 
 build(){
-default_build &&
-/opt/kde4/bin/genkdmconf --no-old --no-backup &&
-sed -i 's:PidFile=/var/run/kdm.pid:PidFile=/var/run/kdm-v4.pid:' \
-       /etc/kde4.config/kdm/kdmrc
+sed -i 's:/var/run/kdm.pid:/var/run/kdm-v4.pid:' kdm/config.def
+default_build
 }
+
+post_install(){
+default_post_install
+/opt/kde4/bin/genkdmconf --no-old --no-backup
+}
+

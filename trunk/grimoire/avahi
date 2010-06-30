@@ -1,5 +1,5 @@
 # avahi correctly uses pkgconfig files to locate install locations for:
-# qt-x11-free and qt-x11-opensource
+# qt-x11-free and qt-everywhere-opensource
 # avahi-autoipd if started should be started from a template
 # provided by networks rather than a separate init script
 # since the purpose of avahi-autoipd is to automatically assign
@@ -37,11 +37,14 @@ For example, you can plug into a network and instantly
 find printers to print to, files to look at, and people to talk to.'
 
 
-build(){
+pre_build(){
  mkdir    -pm 755 /var/empty
  groupadd -K GID_MIN=256 -K GID_MAX=511    avahi                     2>/dev/null
  useradd  -K UID_MIN=256 -K UID_MAX=511 -g avahi -d /var/empty avahi 2>/dev/null
+ default_pre_build
+}
 
+build(){
  case $MACHTYPE in
   *-uclibc) export LDFLAGS+=' -lintl' ;;
  esac
@@ -51,10 +54,9 @@ build(){
   --sysconfdir=/etc    \
   --localstatedir=/var \
   --prefix=/usr        \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install
+ $OPTS &&
+ make  &&
+ make install "DESTDIR=$DESTDIR"
 }
 
 post_install(){

@@ -2,7 +2,7 @@
 # and installs pcre shared libraries without the dot digits following the so
 # Therefore, explicitly avoid using the cmake build for pcre 7.8
 
-    stable 8.02 8.01 8.00 7.9 7.8 7.7 7.6
+    stable 8.10 8.02 8.01 8.00 7.9 7.8 7.7 7.6
     secure 7.8 7.7
    require cmake
   optional gcc-g++
@@ -25,22 +25,23 @@ using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
  mv_so_libs(){
-  for         file in /usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
+  cd $DESTDIR
+  for         file in usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
    if  [[ -f $file ]]; then
-    mv       $file ${file#/usr}
-    ln  -sf        ${file#/usr} $file
+    mkdir -p "$DESTDIR/$( dirname "${file#usr/}" )"
+    mv       $file "$DESTDIR/${file#usr/}"
+    ln  -sf  ../../${file#usr/} $file
    fi
   done
  }
 
 #default_build &&
- ./configure               \
-  --sysconfdir=/etc        \
-  --localstatedir=/var     \
-  --prefix=${PREFIX:-/usr} \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install
+ ./configure \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --prefix=/usr \
+ $OPTS &&
+ make &&
+ make install "DESTDIR=$DESTDIR"
  mv_so_libs
 }

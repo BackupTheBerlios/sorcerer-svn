@@ -44,21 +44,6 @@ build(){
   fi
  }
 
- del_library_cache(){
-  ldconfig
-  rm -fr ${LIBRARY_CACHE:-/lib.old}
-  ldconfig
-  true
- }
-
- install_libc(){
-  cd $IR
-  prepare_install
-  cp -av * /
-  del_library_cache
-  true
- }
-
 ## unset LANG LC_ALL
 #  find extra/locale -type f -printf "%P\n" | sed "/\.pairs$/p;d" > extra/locale/codesets.txt
 ## cp -v ${SOURCE[1]} extra/locale/
@@ -66,9 +51,6 @@ build(){
 ## mv -v c8tables.h locale_data.c locale_mmap.h lt_defines.h uClibc_locale_data.h wctables.h extra/locale/
 
 # cp -v ${SOURCE[1]} extra/locale/uClibc-locale-20081111-32-el.tgz
-
-           IR=$PWD/install
- mkdir -p $IR
 
  export   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
  export LDFLAGS='-Wl,-s -Wl,-O1'
@@ -80,8 +62,7 @@ build(){
 
  restore_config
  yes "" | make oldconfig
- make     all       V=1            &&
- make install       V=1 PREFIX=$IR &&
- make install_utils V=1 PREFIX=$IR &&
- install_libc
+ make     all       V=1 &&
+ make install       V=1 PREFIX=$DESTDIR &&
+ make install_utils V=1 PREFIX=$DESTDIR
 }

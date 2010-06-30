@@ -7,7 +7,7 @@
 #     opts --disable-dependency-tracking
 #     opts --disable-dependency-tracking --x-libraries=/usr/lib
  freshmeat torcs
-  estimate 5000
+  estimate 6000
       desc '3D racing cars simulator using OpenGL
 The goal is to have programmed robot drivers
 racing against each others.
@@ -15,7 +15,12 @@ However a human can drive by keyboard, mouse,
 joystick, and perhaps steering wheel and pedal.'
 
 build(){
-sed -i 's:subdirs dep:subdirs:' Make-default.mk
-default_build &&
-make datainstall
+ sed -i 's:subdirs dep:subdirs:' Make-default.mk
+ ./configure           \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --prefix=/usr \
+ $OPTS &&
+ make  &&
+ make install datainstall "DESTDIR=$DESTDIR"
 }

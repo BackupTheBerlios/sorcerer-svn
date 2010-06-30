@@ -3,8 +3,7 @@
   optional mpfr '' '' for C and Fortran library for multiple-pression computations
   category development/compiler
  attribute console library solo
-       url $GNU_URL
-    source gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
   homepage http://gcc.gnu.org
   estimate 9400
       desc 'gcc is the GNU compiler collection.
@@ -16,16 +15,15 @@ and Ada for a wide variety of architectures.'
 build(){
 
  finish_install(){
-  cp -av $DESTDIR/* /
-  ln -fs gcc        /opt/gcc/$VERSION/bin/cc
+  ln -fs gcc        $DESTDIR/opt/gcc/$VERSION/bin/cc
 
                     SEDIT='s:-L/usr/src/sorcery[^ ]*::g'
   case $HOSTTYPE in
-   x86_64) sed -i "$SEDIT" /opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
-        *) sed -i "$SEDIT" /opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
+   x86_64) sed -i "$SEDIT" $DESTDIR/opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
+        *) sed -i "$SEDIT" $DESTDIR/opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
   esac
 
-  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+  STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
   if   [  -f           ${STRSTREAM}   ] &&
      ! [  -f           ${STRSTREAM}.h ]
@@ -74,8 +72,6 @@ ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
   --enable-libstdcxx-pch=no
   $ENABLE_LANGS"             
 
- DESTDIR=$BUILD_DIR/.dest
-
  mkdir   BUILD
  cd      BUILD
  ../configure  $OPTS               &&
@@ -87,6 +83,5 @@ ENABLE_LANGS="--enable-languages=${GCC_LANGUAGES:=c++}"
          "$BF"                     \
          "$LCF"  "$LCXF"  "$LDF"   \
          "$LJCF" "$LJCXF"          && 
- prepare_install                   &&
   finish_install
 }

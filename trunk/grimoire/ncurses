@@ -2,15 +2,14 @@
    require gawk
   category development
  attribute console library solo
-       url $GNU_URL
-    source ncurses/ncurses-$VERSION.tar.gz
+    source $GNU_URL ncurses/ncurses-$VERSION.tar.gz
   homepage http://www.gnu.org/software/ncurses/ncurses.html
       opts --without-debug
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
    protect /usr/share/terminfo
   estimate 8700
-      desc 'ncurses displays and updates text on text-only terminals.
+      desc 'displays and updates text on text-only terminals
 The ncurses (new curses) library is a free software
 emulation of curses in System V Release 4.0 and more.
 It uses terminfo format, supports pads and color
@@ -28,9 +27,9 @@ build(){
 # Therefore, symbolic links to ELF libraries
 # must exist in the same directory as the ar libraries
   move_ar_libs(){
-   mv -v        $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a /usr$LIBDIR
+   mv -v        $DESTDIR/$LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a $DESTDIR/usr$LIBDIR
    for REPLY in $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses,ncursesw,panel,panelw}.so*
-   do  ln -fs ../..$REPLY /usr$LIBDIR
+   do  ln -fs ../..$LIBDIR/${REPLY##*/} $DESTDIR/usr$LIBDIR
    done
   }
 
@@ -45,7 +44,7 @@ build(){
        ;;
  esac
 
- mkdir -p destdir/usr/{lib,share/tabset}
+ mkdir -p $DESTDIR/usr/{lib,share/tabset}
 
  ./configure       \
  --prefix=/usr     \
@@ -53,11 +52,10 @@ build(){
  --with-normal     \
  --with-shared     \
  --disable-termcap \
- $OPTS             &&
- make              &&
- make    install   \
- DESTDIR=$PWD/destdir &&
- make    clean     &&
+ $OPTS &&
+ make  &&
+ make install DESTDIR=$DESTDIR &&
+ make clean &&
 
  ./configure       \
  --prefix=/usr     \
@@ -66,13 +64,12 @@ build(){
  --with-shared     \
  --disable-termcap \
  --enable-widec    \
- $OPTS             &&
- make              &&
- prepare_install   &&
- cd      c++       &&
- make              &&
- prepare_install   && cp -av ../destdir/* / &&
- make    install   && cd     ..             &&
- make    install   &&
+ $OPTS  &&
+ make   &&
+ cd c++ &&
+ make   &&
+ make install DESTDIR=$DESTDIR &&
+ cd ..  &&
+ make install DESTDIR=$DESTDIR &&
  move_ar_libs
 }

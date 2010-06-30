@@ -22,13 +22,20 @@
   homepage http://www.mesa3d.org
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
-  estimate 2700
+  estimate 2800
       desc '3-D graphics library with an API similar to OpenGL'
 
 build(){
 
- install_demos(){ install -vm 755 progs/xdemos/{glxgears,glxinfo} /usr/bin; }
- install_drirc(){ install -vm 644 $SCRIPT_DIR/drirc /etc; }
+ install_demos(){
+  mkdir -p $DESTDIR/usr/bin
+  install -vm 755 progs/xdemos/{glxgears,glxinfo} $DESTDIR/usr/bin
+ }
+
+ install_drirc(){
+  mkdir -p $DESTDIR/etc
+  install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
+ }
 
  case $HOSTTYPE in
   x86_64) CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64 ;;
@@ -50,12 +57,14 @@ build(){
  cd      progs/xdemos             &&
  make    PROGS='glxinfo glxgears' &&
  cd      ../..                    &&
- prepare_install       &&
- make    install       &&
+ make    install       "DESTDIR=$DESTDIR" &&
          install_demos &&
-         install_drirc &&
- sed -i 's:#  define GLUTAPIENTRY GLAPIENTRY:#  define GLUTAPIENTRY:' /usr/include/GL/glut.h 
+         install_drirc
+# &&
+# sed -i 's:#  define GLUTAPIENTRY GLAPIENTRY:#  define GLUTAPIENTRY:' /usr/include/GL/glut.h 
  #PREVIOUS line is to fix a mistake in the header -- JLM
+ # yeah but what version?
+ # always put fixes in case $VERSION in statements.
 }
 
 

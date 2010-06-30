@@ -14,23 +14,22 @@ and Ada for a wide variety of architectures.'
 build(){
 
  finish_install(){
-  cp -av $DESTDIR/* /
-  ln -fs gcc        /opt/gcc/$VERSION/bin/cc
+  ln -fs gcc        $DESTDIR/opt/gcc/$VERSION/bin/cc
 
                     SEDIT='s:-L/usr/src/sorcery[^ ]*::g'
   case $HOSTTYPE in
-   x86_64) sed -i "$SEDIT" /opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
-        *) sed -i "$SEDIT" /opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
+   x86_64) sed -i "$SEDIT" $DESTDIR/opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
+        *) sed -i "$SEDIT" $DESTDIR/opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
   esac
 
-  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+  STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
   if   [  -f           ${STRSTREAM}   ] &&
      ! [  -f           ${STRSTREAM}.h ]
   then ln -s strstream ${STRSTREAM}.h
   fi
 
-  rm -f /opt/gcc/4.0.4/lib/gcc/i686-pc-linux-gnu/4.0.4/include/paper.h
+  rm -f $DESTDIR/opt/gcc/4.0.4/lib/gcc/i686-pc-linux-gnu/4.0.4/include/paper.h
   true
 }
 
@@ -70,8 +69,6 @@ OPTS="$OPTS
  --with-system-zlib
  $ENABLE_LANGS"             
 
- DESTDIR=$BUILD_DIR/.dest
-
  mkdir   BUILD
  cd      BUILD
  ../configure  $OPTS               &&
@@ -83,6 +80,5 @@ OPTS="$OPTS
          "$BF"                     \
          "$LCF"  "$LCXF"  "$LDF"   \
          "$LJCF" "$LJCXF"          && 
- prepare_install                   &&
   finish_install
 }

@@ -36,14 +36,15 @@
 
 build(){
 conf_install(){
- mkdir   -p /etc/modules.d
- if ! [[ -f /etc/modules    ]]; then cp -av $SCRIPT_DIR/modules    /etc; fi
- if ! [[ -f /etc/modules.rm ]]; then cp -av $SCRIPT_DIR/modules.rm /etc; fi
+ mkdir   -p $DESTDIR/etc/modules.d
+ cp -av $SCRIPT_DIR/modules    $DESTDIR/etc
+ cp -av $SCRIPT_DIR/modules.rm $DESTDIR/etc
 }
 
 wrap_install(){
- install -m 700 $SCRIPT_DIR/modprobe /usr/sbin/
- install -m 700 $SCRIPT_DIR/rmmod    /usr/sbin/
+ mkdir -p $DESTDIR/usr/sbin
+ install -m 700 $SCRIPT_DIR/modprobe $DESTDIR/usr/sbin/
+ install -m 700 $SCRIPT_DIR/rmmod    $DESTDIR/usr/sbin/
 }
 
 # sed -i 's:-Wl,-Bdynamic::
@@ -54,27 +55,17 @@ case $VERSION in
  3.12*) sed -i 's:install-exec-am install-data-am:install-exec-am:
                 s:MAN5 =.*:MAN5 =:
                 s:MAN8 =.*:MAN8 =:' Makefile.in ;;
- 3.11*) sed -i 's:install-exec-am install-data-am:install-exec-am:
-                s:MAN5 =.*:MAN5 =:
-                s:MAN8 =.*:MAN8 =:' Makefile.in ;;
- 3.6)   sed -i 's:install-exec-am install-data-am:install-exec-am:
-                s:MAN5 =.*:MAN5 =:
-                s:MAN8 =.*:MAN8 =:' Makefile.in ;;
- 3.4.1) sed -i 's:install-exec-am install-data-am:install-exec-am:
-                s:MAN5 =.*:MAN5 =:
-                s:MAN8 =.*:MAN8 =:' Makefile.in ;;
 esac
 
-./configure          \
---prefix=/           \
+./configure \
+--prefix=/ \
 --datadir=/usr/share \
---sysconfdir=/etc    \
+--sysconfdir=/etc \
 --localstatedir=/var \
---mandir=/usr/man    \
-$OPTS                &&
-make                 &&
-prepare_install      &&
-make    install      &&
-   conf_install      &&
-   wrap_install
+--mandir=/usr/man \
+$OPTS &&
+make DESTDIR=$DESTDIR &&
+make install &&
+conf_install &&
+wrap_install
 }

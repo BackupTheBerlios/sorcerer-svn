@@ -1,13 +1,3 @@
-       url 'http://www1.mplayerhq.hu/MPlayer/
-            http://www2.mplayerhq.hu/MPlayer/
-            http://ftp3.mplayerhq.hu/MPlayer/
-            http://ftp5.mplayerhq.hu/MPlayer/
-             ftp://ftp1.mplayerhq.hu/MPlayer/
-             ftp://ftp2.mplayerhq.hu/MPlayer/
-             ftp://ftp3.mplayerhq.hu/MPlayer/
-             ftp://ftp5.mplayerhq.hu/MPlayer/'
-
-if [[ $SPELL == MPlayer ]]; then
 # 1.0rc3 segfaults when run with mkv
     stable 1.0rc2 1.0rc1
     latest 1.0rc3 1.0rc2
@@ -22,7 +12,6 @@ if [[ $SPELL == MPlayer ]]; then
   optional MPlayer-font '' '' to install fonts
   optional SDL --enable-sdl --disable-sdl to use SDL audio/video output
   optional XviD '' --disable-xvid for encoding movies to XviD format
-  optional aalib --enable-aa --disable-aa for ascii art video output rendering
   optional alsa-lib '' --disable-alsa for alsa sound support
   optional cdparanoia '' --disable-cdparanoia for playing/reading audio CDs
   optional esound '' --disable-esd for sound output through esound
@@ -43,12 +32,11 @@ if [[ $SPELL == MPlayer ]]; then
   optional openal '' --disable-openal for audio output through openal libraries
   optional samba --enable-smb --disable-smb for samba SMB input support
   optional speex '' --disable-speex for speex audio codec support
-  optional svgalib '' --disable-svga for output through svgalib
   optional x264 '' --disable-x264 for H.264 codec support
   optional xmms --enable-xmms '' to build with XMMS input plugin support
     switch --enable-joystick '' for joystick support
 
-    source releases/MPlayer-$VERSION.tar.bz2
+    source $MPLAYER_URL releases/MPlayer-$VERSION.tar.bz2
 case $VERSION in
  1.0rc2)
    use_gcc gcc-v4.2          # for 1.0rc2
@@ -61,12 +49,11 @@ case $VERSION in
     ;;
 esac
  freshmeat mplayer
-fi
 
   category video/dvd video/player
  attribute x11
   homepage http://www.mplayerhq.hu
-  estimate 3000
+  estimate 3100
       desc 'movie and animation player
 MPlayer is a movie and animation player that supports a wide
 range of file formats, including ASF, Quicktime, and Vivo.
@@ -79,38 +66,19 @@ For video output, nearly every existing interface is supported.
 It is also able to convert any supported files to raw/divx/mpeg4
 AVI (pcm/mp3 audio), and even video grabbing from V4L devices.'
 
-case ${SPELL:8} in
- Skin-*) 
-    stable 1.0
-    source skins/${SPELL:13}-$VERSION.tar.bz2
-   provide MPlayer-Skin
-      desc "$SPELL provides a Skin for MPlayer's GUI."
-  attribute data
-   estimate 5 ;;
- font-*)
-    stable 1.0
-    source releases/fonts/${SPELL:8}.tar.bz2
-  EPROVIDE="MPlayer-font"
-      desc "$SPELL provides a default font for MPlayer's GUI."
-  attribute data
-   estimate 5 ;;
-esac
-
-
 build(){
- install_mplayer(){
-  install_conf(){
-   mkdir -p doc
-   mv   etc doc
-   cd       doc/etc
+ install_conf(){
+  mkdir -p doc
+  mv   etc doc
+  cd       doc/etc
 
-   sed -i "s:include =:# include =:; s:# vo=:vo=:; s:# ao=:ao=:" example.conf
-   mkdir -p /etc/mplayer
+  sed -i "s:include =:# include =:; s:# vo=:vo=:; s:# ao=:ao=:" example.conf
+  mkdir -p $DESTDIR/etc/mplayer
 
-   for FILE in *.conf
-   do  install -m 0644 -o root -g root $FILE /etc/mplayer
-   done
-  }
+  for FILE in *.conf
+  do  install -m 0644 -o root -g root $FILE $DESTDIR/etc/mplayer
+  done
+ }
 
   case $VERSION in
    1.0rc2)
@@ -134,43 +102,6 @@ build(){
   --xanimcodecsdir=/usr/lib/win32 \
   --codecsdir=/usr/lib/win32      \
   $OPTS                           &&
-  make                            &&
-  prepare_install                 &&
-  make    install prefix=/usr     &&
+  make    install prefix=/usr "DESTDIR=$DESTDIR" &&
   install_conf
-}
-
- install_skin(){
-  BASE=$( basename $BUILD_DIR )
-  SKIN="/usr/share/mplayer/skins/$BASE"
-  chmod a+r *       &&
-  prepare_install   &&
-  mkdir -p    $SKIN &&
-  cp    -Rv * $SKIN &&
-  if ! [ -h        /usr/share/mplayer/skins/default ]
-  then ln -s $BASE /usr/share/mplayer/skins/default
-  fi
- }
-
- install_font(){
-  FONT="/usr/share/mplayer/fonts"
-  chmod a+r *       &&
-  prepare_install   &&
-  mkdir -p    $FONT &&
-  cp    -Rv * $FONT
- }
-
-
- case ${SPELL:8} in
-  Skin-*) install_skin    ;;
-  font-*) install_font    ;;
-       *) install_mplayer ;;
- esac
-}
-
-
-current(){
- case $VERSION in
-  1.0rc2) grep -qsx 'patching file stream/stream_cddb.c' $COMPILE_LOGS/MPlayer ;;
- esac
 }

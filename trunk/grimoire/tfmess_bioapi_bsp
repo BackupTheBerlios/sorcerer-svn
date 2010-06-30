@@ -4,17 +4,17 @@
  attribute console new
     source http://www.upek.com/support/download/TFMESS_BSP_LIN_$VERSION.zip
   homepage http://www.upek.com/
-      desc 'tfmess_bioapi_bsp provides tfmess bioapi bsp for linux'
+      desc 'tfmess bioapi bsp for linux'
 
 build(){
  install_sample(){
   cd NonGUI_Sample
   perl -i -pe 'print "#include <stdlib.h>\n//DISABLED: " if m!^#include "port/bioapi_port.h"$!'  main.c
   gcc -o Sample main.c -I/usr/include -L/usr/lib -lbioapi100 -DUNIX -DLITTLE_ENDIAN
-  install Sample -m 755 /usr/bin/upek-NonGUI_Sample
+  mkdir -p $DESTDIR/usr/bin
+  install Sample -m 755 $DESTDIR/usr/bin/upek-NonGUI_Sample
  }
 
-prepare_install &&
-sh install.sh /usr/lib &&
+sh install.sh $DESTDIR/usr/lib &&
 install_sample
 }

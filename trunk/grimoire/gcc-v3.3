@@ -1,22 +1,23 @@
+# Probably does not support DESTDIR
+
     stable 3.3.6
    require coreutils
   category development/compiler
  attribute console library solo
-       url $GNU_URL
-    source gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
   homepage http://gcc.gnu.org
   estimate 4200
-      desc 'gcc-v3.3 provides gcc version 3.3.x'
-   
+      desc 'gcc version 3.3.x'
+
 build(){
  finish_install(){
 
-  ln -fs gcc /opt/gcc/$VERSION/bin/cc
+  ln -fs gcc $DESTDIR/opt/gcc/$VERSION/bin/cc
 
            SEDIT="s:-L/usr/src/sorcery[^ ]*::g"
   sed -i "$SEDIT" /opt/gcc/$VERSION/lib/lib*.la 2>/dev/null
 
-  STRSTREAM=/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+  STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
   if   [  -f           ${STRSTREAM}   ] &&
      ! [  -f           ${STRSTREAM}.h ]
@@ -61,7 +62,6 @@ build(){
  make  bootstrap-lean       \
  "$BF"  "$LCF"  "$LCXF"     \
  "$LDF" "$LJCF" "$LJCXF"    &&
- prepare_install            &&
- make    install            &&
+ make    install DESTDIR=$DESTDIR &&
  finish_install
 }

@@ -1,3 +1,6 @@
+# 1.43.03-source might support make install
+# and has support for DESTDIR
+
     stable 1.43.03-source 1.42.04-source 1.42.03-source 1.41.01-source 1.40.02-source 1.39-source 1.38-source 1.37-source
    require portaudio
   category audio/speech
@@ -11,15 +14,15 @@
 
 build(){
  manual_install(){
-  install -m 755 speak /usr/bin
+  mkdir -p $DESTDIR/usr/{bin,share}
+  install -m 755 speak $DESTDIR/usr/bin
   cd ..
   find -type f | xargs --max-lines=64 chmod 644
   find -type d | xargs --max-lines=64 chmod 755
-  cp   -av espeak-data /usr/share
+  cp -av espeak-data $DESTDIR/usr/share
  }
 
  cd src
- make            &&
- prepare_install &&
-  manual_install
+ make &&
+ manual_install
 }

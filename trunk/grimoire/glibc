@@ -36,36 +36,13 @@ esac
 
 build(){ (
 
- del_old_cache(){
-  ldconfig
-  rm -fr "${LIBRARY_CACHE:-/lib.old}" "${OLD_CACHE:-/var/cache/old}"
-  ldconfig
-  true
- }
-
-
  install_glibc(){
-  install -vm 600 ../nscd/nscd.conf $IR/etc/
-  mkdir   -vp                       $IR/var/db
-  mkdir   -vm 700                   $IR/var/db/nscd
+  install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
+  mkdir   -vp                       $DESTDIR/var/db
+  mkdir   -vm 700                   $DESTDIR/var/db/nscd
 
-  cd    $IR
-  rm -f $IR/etc/{localtime,ld.so.*}
-
-  elf_of glibc > $ELF_LOGS/glibc
-
-  del_old_cache
-  prepare_install
-
-# due to changes in coreutils' cp creates hard links
-# in a way that sentinel does not track
-# LD_LIBRARY_PATH="$LLP" $LD_SO /bin/cp -av * /
-
-  LD_LIBRARY_PATH="$LLP" $LD_SO /bin/tar -c * |
-  LD_LIBRARY_PATH="$LLP" $LD_SO /bin/tar -C / -pxf -
-
-  del_old_cache
-  true
+  cd    $DESTDIR
+  rm -f $DESTDIR/etc/{localtime,ld.so.*}
  }
 
 
@@ -81,8 +58,8 @@ build(){ (
 
 
  supported_locales(){
-  mkdir -p                      $IR/usr/share/i18n
-  cp    ../localedata/SUPPORTED $IR/usr/share/i18n
+  mkdir -p                      $DESTDIR/usr/share/i18n
+  cp    ../localedata/SUPPORTED $DESTDIR/usr/share/i18n
  }
 
 
@@ -93,16 +70,15 @@ build(){ (
  export LDFLAGS='-Wl,-s -Wl,-O1'
  export LC_ALL=C
 
-           IR=$PWD/install
- mkdir -p $IR/etc
- touch    $IR/etc/ld.so.conf
+ mkdir -p $DESTDIR/etc
+ touch    $DESTDIR/etc/ld.so.conf
 
  if   [ $HOSTTYPE == x86_64 ]
- then LD_SO="$IR/lib64/ld-linux-x86-64.so.2"; LLP="$IR/lib64:$IR/usr/lib64"
- else LD_SO="$IR/lib/ld-linux.so.2"         ; LLP="$IR/lib:$IR/usr/lib"
+ then LD_SO="$DESTDIR/lib64/ld-linux-x86-64.so.2"; LLP="$DESTDIR/lib64:$DESTDIR/usr/lib64"
+ else LD_SO="$DESTDIR/lib/ld-linux.so.2"         ; LLP="$DESTDIR/lib:$DESTDIR/usr/lib"
  fi
 
- mkdir -p $IR/usr/include/sys
+ mkdir -p $DESTDIR/usr/include/sys
 
 #export PATH="/opt/binutils/2.18/bin:$PATH"
 #patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
@@ -126,8 +102,8 @@ build(){ (
  --enable-shared   \
  --enable-add-ons  \
  --with-headers=/usr/include \
- $OPTS             && # make all tests install install_root=$IR &&
- make all install install_root=$IR &&
+ $OPTS             && # make all tests install install_root=$DESTDIR &&
+ make all install install_root=$DESTDIR &&
  supported_locales &&
  quick_test        &&
  install_glibc
@@ -135,6 +111,9 @@ build(){ (
 
 
 post_install(){
+ ldconfig
+ rm -fr "${OLD_CACHE:-/var/cache/old}"
+ ldconfig
  default_post_install
           get_provider  nss_ldap |
  pipe     show_installed         |

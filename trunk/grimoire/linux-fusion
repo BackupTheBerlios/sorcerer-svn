@@ -9,12 +9,12 @@
 
 build(){
 LVER=$( installed_version $( get_provider linux-kernel ) )
-UDEV=/lib/udev/rules.d/40-fusion.rules
+UDEV=$DESTDIR/lib/udev/rules.d/40-fusion.rules
 
 sed -i "s:\$(shell uname -r):$LVER:" Makefile
-make            &&
-prepare_install &&
-make    install &&
-echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV  &&
+make &&
+make install DESTDIR=$DESTDIR &&
+mkdir -p $( dirname $UDEV ) &&
+echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV &&
 chmod 644 $UDEV
 }

@@ -18,12 +18,15 @@ and a WAP interface is also provided
 to acknowlege problems and disable
 notifications from an internet-ready cellphone.'
 
-build(){
+pre_build(){
 mkdir    -p -m 755 /var/nagios
 groupadd -K GID_MIN=256 -K GID_MAX=511    nagios                       2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g nagios -d /var/nagios nagios 2>/dev/null
 chown nagios:nagios /var/nagios
+default_pre_build
+}
 
+build(){
  ./configure     \
  --prefix=/usr   \
  --bin=/usr/sbin \
@@ -32,10 +35,6 @@ chown nagios:nagios /var/nagios
  --localstatedir=/var/nagios \
  --with-lockfile=/var/run/nagios.pid \
  $OPTS &&
- make        all &&
- prepare_install &&
- make    install{,-commandmode,-config}
-# make        all DESTDIR=$DESTDIR &&
-# prepare_install &&
-# make    install{,-commandmode,-config} DESTDIR=$DESTDIR
+ make     all &&
+ make install{,-commandmode,-config} DESTDIR=$DESTDIR
 }

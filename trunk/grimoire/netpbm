@@ -2,14 +2,8 @@
 # Latest Netpbm releases are two numbers, e.g. 9.11, 
 # and Stable Netpbm releases are three numbers, e.g. 9.11.1.
 
-# Unstable version requires a different build()
-# 10.26.64 failed compilation
-
-    stable 10.26.63 10.26.62 10.26.61 10.26.60
-#   stable 10.26.64 10.26.63 10.26.62 10.26.61 10.26.60
-  unstable 10.35.68 10.34
+    stable 10.35.75 10.26.63 10.26.62 10.26.61 10.26.60
    require libpng tiff
-  optional svgalib '' '' for output to svgalib
   category graphic
  attribute console
     source $SOURCEFORGE_URL netpbm/super_stable/$VERSION/netpbm-$VERSION.tgz
@@ -27,47 +21,16 @@ quantization and dithering, colorizing and
 uncolorizing, blurring, and dimming.'
 
 build(){
-make_install(){
- cd     /tmp/netpbm
- cp -av bin/*            /usr/bin     2>/dev/null
- cp -av include/*        /usr/include 2>/dev/null
- cp -av lib/*            /usr/lib     2>/dev/null
-#cp -av link/libnetpbm.a /usr/lib     2>/dev/null
- cp -av man/*            /usr/man     2>/dev/null
- cd -
- rm -rf /tmp/netpbm
- rm -f  /usr/lib{,64}/libnetpbm.a
-}
 
 export   CFLAGS="$CFLAGS -fPIC"
 export CXXFLAGS="$CXXFLAGS -fPIC"
 
-case $VERSION in
- 10.26.63) LC_ALL=C grep -lr min_DCT_scaled_size * |
-           xargs sed -i 's:min_DCT_scaled_size:min_DCT_h_scaled_size:' ;;
-esac
-
-echo -e "
-gnu
-regular
-shared
-n
-
-libjpeg.so
-/usr/include
-libtiff.so
-/usr/include
-libpng.so
-/usr/include
-libz.so
-/usr/include
-
-
-" |
-./configure            &&
+( echo "${LF}gnu${LF}regular${LF}shared"
+  yes ""
+) |
+./configure &&
 make  "CFLAGS=$CFLAGS" &&
-rm  -rf  /tmp/netpbm   &&
-make     package       &&
-prepare_install        &&
-   make_install
+mkdir -p $DESTDIR      &&
+make package pkgdir=$DESTDIR/usr PKGDIR=$DESTDIR/usr &&
+rm $DESTDIR/usr/{README,VERSION,pkginfo}
 }

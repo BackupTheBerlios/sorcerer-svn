@@ -18,7 +18,7 @@ esac
 # kexec-tools currently requires an ancient kernel header in order to compile
   category administration/bootloader
  attribute archive_off console solo
-      desc 'install provides the menu driven installer for Sorcerer.'
+      desc 'the menu driven installer for Sorcerer'
 
 build(){
  on_iso(){
@@ -42,20 +42,20 @@ build(){
   lver83 $LVER
   YEAR="$( date +%Y )"
 
-  mkdir -vp /boot/isolinux
+  mkdir -vp $DESTDIR/boot/isolinux
   cp    -va /usr/share/isolinux/isolinux.bin \
-            $SCRIPT_DIR/isolinux/* /boot/isolinux/
+            $SCRIPT_DIR/isolinux/* $DESTDIR/boot/isolinux/
   sed   -i "s:\$HOSTTYPE:$HOSTTYPE:
             s:\$LVERSION:$LVER:
-            s:\$VERSION:$VERSION:" /boot/isolinux/sorcerer.txt
-  sed   -i "s:\$LVER83:$LVER83:"   /boot/isolinux/isolinux.cfg
-  sed   -i "s:\$YEAR:$YEAR:"       /boot/isolinux/sorcerer.txt
+            s:\$VERSION:$VERSION:" $DESTDIR/boot/isolinux/sorcerer.txt
+  sed   -i "s:\$LVER83:$LVER83:"   $DESTDIR/boot/isolinux/isolinux.cfg
+  sed   -i "s:\$YEAR:$YEAR:"       $DESTDIR/boot/isolinux/sorcerer.txt
  }
 
  # on_iso        &&
- prepare_install &&  
- install -vm 700 $SCRIPT_DIR/sinstall /sbin/ &&
- install -vm 700 $SCRIPT_DIR/dt       /sbin/ &&
+ mkdir -p $DESTDIR/sbin
+ install -vm 700 $SCRIPT_DIR/sinstall $DESTDIR/sbin/
+ install -vm 700 $SCRIPT_DIR/dt       $DESTDIR/sbin/
  install_isolinux
 }
 

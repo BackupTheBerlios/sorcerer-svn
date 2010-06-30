@@ -1,3 +1,5 @@
+# no method for installing psutils at this moment and so psutils is broke
+
 # a2ps 4.13b has a problem with acroread during compilation
 
 # curl: (67) Access denied: 530
@@ -5,8 +7,8 @@
 
     stable 4.13b 4.13
     secure 4.13b
-#  require ImageMagick psutils teTeX
-   require ImageMagick psutils texlive
+#  require ImageMagick psutils texlive
+   require ImageMagick texlive
   category printer
  attribute console
     source ftp://ftp.enst.fr/pub/unix/a2ps/a2ps-$VERSION.tar.gz
@@ -24,16 +26,15 @@ of heterogeneous files.'
 
 build(){
 
-case  $VERSION  in
-  4.13b)  sed  -i  "s:char \*malloc ();:#include <malloc.h>:"  lib/path-concat.c
-          export  ac_cv_prog_COM_acroread="no"  ;;
+case $VERSION in
+ 4.13b) sed -i "s:char \*malloc ();:#include <malloc.h>:" lib/path-concat.c
+        export ac_cv_prog_COM_acroread="no" ;;
 esac
 
-./configure             \
---prefix=/usr           \
---sysconfdir=/etc/a2ps  &&
-make                    &&
-prepare_install         &&
-make    install         &&
-rm    -f  /a2ps*.el
+./configure            \
+--prefix=/usr          \
+--sysconfdir=/etc/a2ps &&
+#make                  &&
+make install "DESTDIR=$DESTDIR" &&
+rm -f $DESTDIR/a2ps*.el
 }

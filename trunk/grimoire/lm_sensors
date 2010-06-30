@@ -3,10 +3,10 @@
   optional rrdtool sensord '' for sensord HW monitoring daemon
   category utility
  attribute console
-       url 'http://dl.lm-sensors.org/lm-sensors/releases/
-            http://secure.netroedge.com/~lm78/archive/
-             ftp://ftp.netroedge.com/pub/lm-sensors/'
-    source lm_sensors-$VERSION.tar.bz2
+    source http://dl.lm-sensors.org/lm-sensors/releases/ \
+           http://secure.netroedge.com/~lm78/archive/ \
+            ftp://ftp.netroedge.com/pub/lm-sensors/ \
+           lm_sensors-$VERSION.tar.bz2
   homepage http://www.lm-sensors.nu/
       opts --enable-static=no
   estimate 100
@@ -22,12 +22,12 @@ build(){
  fi
 
  sed -i '/-rpath,d/' Makefile
- make    PREFIX=/usr user         &&
- prepare_install                  &&
- make    PREFIX=/usr user_install &&
- rm -f /usr/lib{,64}/libsensors.a &&
+ make    PREFIX=/usr user &&
+ make    PREFIX=/usr DESTDIR=$DESTDIR user_install &&
+ rm -f $DESTDIR/usr/lib{,64}/libsensors.a &&
  if [ -n "$SENSORD" ]; then
-  install -o 0 -g 0 -m 755 prog/sensord/sensord   /usr/bin
-  install -o 0 -g 0 -m 644 prog/sensord/sensord.8 /usr/man/man8
+  mkdir -p $DESTDIR/usr/{bin,man/man8}
+  install -o 0 -g 0 -m 755 prog/sensord/sensord   $DESTDIR/usr/bin
+  install -o 0 -g 0 -m 644 prog/sensord/sensord.8 $DESTDIR/usr/man/man8
  fi
 }

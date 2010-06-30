@@ -8,8 +8,7 @@
 # optional gtk-doc --enable-gtk-doc --disable-gtk-doc
   category network/email
  attribute gnome library
-       url $GNOME_URL
-    source sources/evolution-data-server/${VERSION:0:4}/evolution-data-server-$VERSION.tar.bz2
+    source $GNOME_URL sources/evolution-data-server/${VERSION:0:4}/evolution-data-server-$VERSION.tar.bz2
   homepage http://gnome.org/projects/evolution/stable.shtml
       opts --with-openldap=yes
   estimate 4000
@@ -22,22 +21,4 @@ build(){
  export CXXFLAGS+=" $( pkg-config --cflags nspr )"
  #export  LDFLAGS+=" $( pkg-config --libs   nspr )"
  default_build
-
-
-build_old(){
-# The LDFLAGS that specify rpath is so that evolution and other spells
-# that link with evolutiond-data-server can also complete compilation and
-# linking with mozilla's or firefox's nss library
-# However the ELF log suggests that the extra LDFLAGS has no effect.
-export LDFLAGS+=' -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
-export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-devel-$FV/sdk/lib -Wl,-rpath-link,/usr/lib/firefox-devel-$FV/sdk/lib"
-
-local FV
-FV="$( installed_version firefox )"
-if   [ $FV ]
-then OPTS+=" --with-nss-libs=/usr/lib/firefox-devel-$FV/sdk/lib"
-else OPTS+=" --with-nss-libs=/usr/lib/mozilla"
-fi
-default_build
-}
 }

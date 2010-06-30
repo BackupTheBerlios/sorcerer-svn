@@ -1,45 +1,18 @@
 # libXdmcp may be optional
 # libxcb definitely requires libxslt
 
-#   stable 1.4 1.0
-    stable 1.6 1.4 1.0
+    stable 1.6 1.4
   unstable 1.6 1.5
    require libXau libXdmcp libpthread-stubs libxslt xcb-proto
       opts --enable-static=no
   category xorg/library
  attribute X11R7 library
       opts --enable-static
-#      url $XORG_URL
-#      url ftp://ftp.x.org/pub/X11R7.2/src/update/
-#   source extras/libxcb-$VERSION.tar.bz2
-    source http://xcb.freedesktop.org/dist/libxcb-$VERSION.tar.bz2
+#   source $XORG_URL extras/libxcb-$VERSION.tar.bz2
+    source $XORG_URL http://xcb.freedesktop.org/dist/libxcb-$VERSION.tar.bz2
   estimate 1400
       desc 'X protocol C-language binding
 xcb is a replacement for Xlib.
 It has a small footprint, latency hiding,
 direct access to the protocol,
 improved threading support, and extensibility.'
-
-build(){
-case $VERSION in
- 1.0) patch -p1 < $SCRIPT_DIR/libxcb-1.0.patch ;;
-esac
-default_build
-}
-
-post_install(){
-default_post_install
-# the -lxcb-xlib in LA files avoided being logged in the LA logs
-case $VERSION in
- 1.4) ( LC_ALL=C grep -l xcb-xlib /usr/lib/*.la;  [ -d /usr/lib64/ ]  &&
-        LC_ALL=C grep -l xcb-xlib /usr/lib64/*.la
-      ) |
-      from_spell | pipe_queue $CAST_QUEUE com ;;
-esac
-}
-
-current(){
-case $VERSION in
- 1.0) grep -qx 'patching file src/xcb_conn.c' $COMPILE_LOGS/libxcb ;;
-esac
-}

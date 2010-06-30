@@ -23,12 +23,10 @@
 #esac
 
 build(){
-case $VERSION in
- 4.2.4p8) sed -i 's/: install-man/:/' sntp/Makefile.in ;;
-esac
 # so that ntp writes a proper PID file
  sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
  default_build &&
- cp      -r html /usr/doc/ntp &&
- install -m 640 $SCRIPT_DIR/ntp.conf /etc
+ mkdir -p $DESTDIR/{etc,usr/doc/ntp} &&
+ cp      -r html $DESTDIR/usr/doc/ntp &&
+ install -m 640 $SCRIPT_DIR/ntp.conf $DESTDIR/etc
 }

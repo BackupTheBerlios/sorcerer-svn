@@ -7,7 +7,7 @@
     source ftp://ftp.monash.edu.au/pub/nihongo/kanjidic.gz
     source ftp://ftp.monash.edu.au/pub/nihongo/edict.gz
   estimate 50
-      desc 'kdrill helps people learn Japanese Kanji characters.
+      desc 'teaches Japanese Kanji characters
 It originally started as a simple multiple choice
 Kanji quiz program, to help people learn Japanese characters,
 but it now has a few different guess formats, history options,
@@ -34,14 +34,14 @@ A="CCXDEBUGFLAGS=$CXXFLAGS"
 B="CDEBUGFLAGS=$CXXFLAGS"
 C="CCOPTIONS=$CXXFLAGS"
 D="CCLINK=gcc $LDFLAGS"
-USK="/usr/share/kdrill"
+USK="$DESTDIR/usr/share/kdrill"
 
-sed -i "s:/usr/local/lib:$USK:" Imakefile
+mkdir -p $USK
 
-xmkmf                     &&
-make  "$A" "$B" "$C" "$D" &&
-prepare_install           &&
-make    install           &&
-make    install.man       &&
+sed -i "s:/usr/local/lib:/usr/share/kdrill:" Imakefile
+
+xmkmf &&
+make "$A" "$B" "$C" "$D" &&
+make install install.man DESTDIR=$DESTDIR &&
 install_dics
 }

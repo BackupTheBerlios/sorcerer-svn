@@ -19,17 +19,15 @@
 
 build(){
  configs_install(){
-  mkdir   -pm 600 /etc/lilo
-  install -m  600 $SCRIPT_DIR/head /etc/lilo/
-  install -m  600 $SCRIPT_DIR/tail /etc/lilo/
-  install -m  700 $SCRIPT_DIR/lilo /usr/sbin/
-  rm      -f /etc/lilo.conf
-  ln      -s lilo/conf /etc/lilo.conf
+  mkdir   -pm 600 $DESTDIR/{etc/lilo,usr/sbin}
+  install -m  600 $SCRIPT_DIR/head $DESTDIR/etc/lilo/
+  install -m  600 $SCRIPT_DIR/tail $DESTDIR/etc/lilo/
+  install -m  700 $SCRIPT_DIR/lilo $DESTDIR/usr/sbin/
+  ln      -s lilo/conf $DESTDIR/etc/lilo.conf
  }
 
  make        all ROOT= OPT="$CFLAGS" LDFLAGS="$LDFLAGS" &&
- prepare_install &&
- make    install ROOT= MAN_DIR=/usr/man &&
+ make    install ROOT=$DESTDIR MAN_DIR=/usr/man &&
  configs_install
 }
 

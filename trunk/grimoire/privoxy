@@ -17,12 +17,15 @@ Privoxy has application for both stand-alone
 systems and multi-user networks.
 Privoxy is based on Internet Junkbuster (tm).'
 
-build(){
-
+pre_build(){
 mkdir    -p -m 755 /etc/privoxy
 groupadd -K GID_MIN=256 -K GID_MAX=511    privoxy                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g privoxy -d /etc/privoxy privoxy 2>/dev/null
 chown privoxy:privoxy /etc/privoxy
+default_pre_build
+}
+
+build(){
 
  sed -i "s:/usr/local/etc/privoxy/config:/etc/privoxy/config:" privoxy-generic.init
 
@@ -31,12 +34,11 @@ chown privoxy:privoxy /etc/privoxy
 
  UG="USER=privoxy GROUP=privoxy"
 
- ./configure               \
- --prefix=/usr             \
+ ./configure \
+ --prefix=/usr \
  --sysconfdir=/etc/privoxy \
- --localstatedir=/var      \
- $OPTS                     &&
- make             $UG      &&
- prepare_install           &&
- make    install  $UG
+ --localstatedir=/var \
+ $OPTS &&
+ make $UG &&
+ make $UG install DESTDIR=$DESTDIR
 }

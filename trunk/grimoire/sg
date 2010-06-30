@@ -10,22 +10,22 @@
 
 build(){
 make_install(){
+mkdir -p $DESTDIR/usr/{bin,libexec,share}
 rm -f Smokin\'\ Guns/smokinguns{,_dedicated.x86,.exe,.x86}
 find Smokin\'\ Guns         | xargs --max-lines=2048 chown root:root
 find Smokin\'\ Guns -type f | xargs --max-lines=2048 chmod 644
 find Smokin\'\ Guns -type d | xargs --max-lines=2048 chmod 755
-cp -av Smokin\'\ Guns /usr/share/
+cp -av Smokin\'\ Guns $DESTDIR/usr/share/
 cd code/install
-install -vm 755 smokinguns        /usr/libexec/smokinguns.x86
-install -vm 755 smokinguns_server /usr/libexec/smokinguns_dedicated.x86
-install -vm 755 $SCRIPT_DIR/{smokinguns,smokinguns_server} /usr/bin
-ln -f /usr/libexec/smokinguns.x86           /usr/share/Smokin\'\ Guns/
-ln -f /usr/libexec/smokinguns_dedicated.x86 /usr/share/Smokin\'\ Guns/
+install -vm 755 smokinguns        $DESTDIR/usr/libexec/smokinguns.x86
+install -vm 755 smokinguns_server $DESTDIR/usr/libexec/smokinguns_dedicated.x86
+install -vm 755 $SCRIPT_DIR/{smokinguns,smokinguns_server} $DESTDIR/usr/bin
+ln -f $DESTDIR/usr/libexec/smokinguns.x86           $DESTDIR/usr/share/Smokin\'\ Guns/
+ln -f $DESTDIR/usr/libexec/smokinguns_dedicated.x86 $DESTDIR/usr/share/Smokin\'\ Guns/
 }
 
 sed -i "s:-O6 -m32 -mtune=pentiumpro -march=pentium:$CFLAGS:" code/Construct
 sed -i "s: -m32::" code/Construct
 make &&
-prepare_install &&
-   make_install
+make_install
 }

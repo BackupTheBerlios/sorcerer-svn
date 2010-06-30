@@ -16,32 +16,3 @@ It is an enhancement on ipchains, and is used
 to control packet filtering, Network Address
 Translation (masquerading, portforwarding,
 transparent proxying), and special effects.'
-
-build_old(){
- install_devel(){
-  ar rc  iptables.a *.o      &&
-  ranlib iptables.a          &&
-  cp iptables.a /usr/$LIBDIR &&
-  cp -r include/* /usr/include
- }
-
- LIBDIR=/lib
- case $HOSTTYPE in
-  x86_64) LIBDIR+=64 ;;
- esac
-
- sed -i "s/-O2/$CFLAGS/" Makefile
-
- sed -i 's:/usr/local/lib/iptables:$LIBDIR/iptables:' \
-     include/xtables.h libiptc/libiptc.c
-
- make    LIBDIR=$LIBDIR &&
- prepare_install        &&
-         install_devel  &&
- make    install  \
-         install-devel \
-          LIBDIR=$LIBDIR \
-          BINDIR=/sbin \
-          MANDIR=/usr/man \
-          INCDIR=/usr/include
-}

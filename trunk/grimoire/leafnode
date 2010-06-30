@@ -14,29 +14,20 @@ read and downloads only articles in those groups.
 Leafnode has been designed to require
 no maintenance and to be easy to set up.'
 
-build(){
-
-install_conf(){
- if    !     [ -f  /etc/leafnode/config ]; then
-   cp              /etc/leafnode/config.example \
-                   /etc/leafnode/config
-   chown news:news /etc/leafnode/config
-   chmod -R 664    /etc/leafnode/config
- fi
-}
-
+pre_build(){
 mkdir    -p -m 2755 /var/spool/news
 groupadd -K GID_MIN=256 -K GID_MAX=511    news                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g news -d /var/spool/news news 2>/dev/null
 chown    -R news:news /var/spool/news
+default_pre_build
+}
 
-./configure                \
---prefix=/usr              \
+build(){
+./configure \
+--prefix=/usr \
 --sysconfdir=/etc/leafnode \
---localstatedir=/var       \
-$OPTS                      &&
-make                       &&
-prepare_install            &&
-make    install            &&
-        install_conf
+--localstatedir=/var \
+$OPTS &&
+make  &&
+make install install_conf DESTDIR=$DESTDIR
 }

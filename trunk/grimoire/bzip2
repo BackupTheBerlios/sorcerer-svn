@@ -8,7 +8,7 @@
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
    protect /bin/bzip2
-  estimate 100
+  estimate 120
       desc 'patent free, high-quality data compressor
 bzip2 has average compression ratio
 average compression speed
@@ -19,13 +19,15 @@ build(){
   case $VERSION in
    1.0.5) mv libbz2.so.1.0.4 libbz2.so.1.0.5 ;;
   esac
-  cp -va         libbz2.so.$VERSION     $LIBDIR
-  ln -fs         libbz2.so.$VERSION     $LIBDIR/libbz2.so.1.0
-  ln -fs         libbz2.so.$VERSION     $LIBDIR/libbz2.so
-  ln -fs $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so.$VERSION
-  ln -fs $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so.1.0
-  ln -fs $LIBDIR/libbz2.so.$VERSION /usr$LIBDIR/libbz2.so
-  mv -v /usr/bin/bzip2 /bin/
+  mkdir -p                              $DESTDIR/$LIBDIR
+  cp -va         libbz2.so.$VERSION     $DESTDIR/$LIBDIR
+  ln -fs         libbz2.so.$VERSION     $DESTDIR/$LIBDIR/libbz2.so.1.0
+  ln -fs         libbz2.so.$VERSION     $DESTDIR/$LIBDIR/libbz2.so
+  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so.$VERSION
+  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so.1.0
+  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so
+  mkdir -p                          $DESTDIR/bin
+  mv -v  $DESTDIR/usr/bin/bzip2     $DESTDIR/bin/
  }
 
  if   [ $HOSTTYPE == x86_64 ]
@@ -41,9 +43,7 @@ build(){
   "CFLAGS=$CFLAGS"   \
   "LDFLAGS=$LDFLAGS" \
   "PREFIX=/usr"      &&
- prepare_install     &&
- make    install     \
-  "PREFIX=/usr"      &&
+ make install "PREFIX=$DESTDIR/usr" &&
  make -f Makefile-libbz2_so \
   "CFLAGS=$CFLAGS"   \
   "LDFLAGS=$LDFLAGS" &&

@@ -1,22 +1,21 @@
-    stable 0.8.1 0.8
+    stable 0.8.1
    require libXpm
   category game
  attribute x11
     source http://marc.mongenet.ch/OSS/XGalaga/xgalaga++_$VERSION.tar.gz
   homepage http://marc.mongenet.ch/OSS/XGalaga/
-case $VERSION in
- 0.8) use_gcc gcc-v4.2 ;;
-esac
   estimate 100
-      desc 'xgalaga++ is a classic single screen verticle shoot em up inspired by xgalaga.'
+      desc 'classic single screen verticle shoot em up inspired by xgalaga'
 
-build(){
+pre_build(){
 mkdir    -pm 755 /var/empty
 groupadd -K GID_MIN=256 -K GID_MAX=511    games                      2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g games -d /var/empty games  2>/dev/null
+default_pre_build
+}
 
- mkdir -p /var/games
- make        all &&
- prepare_install &&
- make    install bindir=/usr/bin
+build(){
+ mkdir -p $DESTDIR/var/games
+ make     all &&
+ make install installprefix=$DESTDIR/usr bindir=$DESTDIR/usr/bin
 }

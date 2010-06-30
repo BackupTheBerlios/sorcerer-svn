@@ -20,10 +20,9 @@ connected via modem, ISDN, ADSL, or cable-modem connections.'
 build(){
 sed -i "s:local::
         s:-O2:${CFLAGS}:" Makefile
-make            	&&
-prepare_install 	&&
-make    install 	&&
-install -v -m 0644 dnsmasq.conf.example /etc/dnsmasq.conf &&
-install -v -d      /usr/share/dnsmasq	&&
-cp -r -v contrib   /usr/share/dnsmasq
+make &&
+make install "DESTDIR=$DESTDIR" &&
+mkdir -p $DESTDIR/{etc,usr/share/dnsmasq} &&
+install -vm 644 dnsmasq.conf.example $DESTDIR/etc/dnsmasq.conf &&
+cp -rv contrib $DESTDIR/usr/share/dnsmasq
 }

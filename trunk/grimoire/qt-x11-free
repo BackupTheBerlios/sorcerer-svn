@@ -35,7 +35,7 @@ build(){
  add_rpath_to_la(){
   sed -i 's:-L/opt/kde3/lib:-L/opt/kde3/lib -R/opt/kde3/lib:
           s:-L/opt/kde3/lib64:-L/opt/kde3/lib64 -R/opt/kde3/lib64:' \
-      $( find /opt/kde3/ -name libqt\*.la )
+      $( find $DESTDIR/opt/kde3/ -name libqt\*.la )
  }
 
  unset   LD_LIBRARY_PATH
@@ -67,8 +67,6 @@ build(){
          plugins/src/inputmethods/imsw-none/qnoneinputcontextplugin.cpp ;;
  esac
 
-#prepare_install # doesn't make right if installed.
-
  PREFIX=/opt/kde3
  export LD_LIBRARY_PATH=$PWD/lib
 
@@ -94,8 +92,10 @@ build(){
  -R      $PREFIX/lib64 \
  $OPTS &&
  make  &&
- prepare_install && mkdir -p /opt/kde3 &&
- make    install && cp    -R doc/man /usr && add_rpath_to_la
+ mkdir -p $DESTDIR/opt/kde3 &&
+ make    install DESTDIR=$DESTDIR &&
+ cp    -R doc/man $DESTDIR/usr &&
+ add_rpath_to_la
 }
 
 current(){

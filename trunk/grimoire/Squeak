@@ -1,11 +1,13 @@
 # No useful programs to run, no mouse picture at startup?
 # Squeak 3.9-8 appears useless and/or buggy.
 # Perhaps I installed it wrong
+# Compile error
 
     stable 3.9-8 3.7-7
    require MesaLib
   category development/interpreter
  attribute x11
+ attribute broke
     source http://ftp.squeak.org/${VERSION:0:3}/unix-linux/Squeak-$VERSION.src.tar.gz
     source http://ftp.squeak.org/${VERSION:0:3}/Squeak${VERSION}.zip
   eprovide Squeak-full Squeak-basic
@@ -26,24 +28,25 @@ to your home directory and call the file squeak.image'
 build(){
  image_install(){
   cd ../Squeak${VERSION}
-  install -vm 644 * /usr/lib/squeak/$VERSION/
+  mkdir -p          $DESTDIR/usr/lib/squeak/$VERSION/
+  install -vm 644 * $DESTDIR/usr/lib/squeak/$VERSION/
  }
 
  ini_install(){
-  mv      -v /usr/bin/squeak /usr/libexec/squeak
-  install -vm 755 $SCRIPT_DIR/inisqueak /usr/bin
-  install -vm 755 $SCRIPT_DIR/inisqueak /usr/bin/squeak
+  mkdir   -  $DESTDIR/usr/{bin,libexec/squeak}
+  mv      -v $DESTDIR/usr/bin/squeak $DESTDIR/usr/libexec/squeak
+  install -vm 755 $SCRIPT_DIR/inisqueak $DESTDIR/usr/bin
+  install -vm 755 $SCRIPT_DIR/inisqueak $DESTDIR/usr/bin/squeak
  }
 
-[ -d Squeak${VERSION} ] &&
-[ -d platforms         ] &&
+
+[ -d platforms ] &&
 mkdir bld &&
 cd    bld &&
 ../platforms/unix/config/configure \
---prefix=/usr   &&
-make            &&
-prepare_install &&
-make    install &&
+--prefix=/usr &&
+#make &&
+make    install "DESTDIR=$DESTDIR" &&
   image_install &&
     ini_install
 }

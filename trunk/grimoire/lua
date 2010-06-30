@@ -4,7 +4,7 @@
  attribute console
     source http://www.lua.org/ftp/lua-$VERSION.tar.gz
   homepage http://www.lua.org/
-      desc 'lua is a programming langauge.
+      desc 'lua programming langauge
 lua is a programming language originally designed
 for extending applications, but also frequently
 used as a general-purpose, stand-alone language.
@@ -26,15 +26,15 @@ build(){
  xargs -r --max-lines=256 sed -i "s:-O2 -Wall:$CFLAGS -fPIC:"
  sed -i 's:/usr/local:/usr:' etc/lua.pc
  make    linux   &&
- prepare_install &&
- make    install INSTALL_TOP=/usr &&
+
+ make    install INSTALL_TOP=$DESTDIR/usr &&
  ld --whole-archive -share -ldl -soname \
-                liblua.so.$VERSION \
-    -o /usr/lib/liblua.so.$VERSION \
-       /usr/lib/liblua.a &&
- ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:3} &&
- ln -s liblua.so.$VERSION /usr/lib/liblua.so.${VERSION:0:1} &&
- ln -s liblua.so.$VERSION /usr/lib/liblua.so &&
- mkdir  -pvm 755            /usr/lib/pkgconfig &&
- install -vm 644 etc/lua.pc /usr/lib/pkgconfig
+                        liblua.so.$VERSION \
+    -o $DESTDIR/usr/lib/liblua.so.$VERSION \
+       $DESTDIR/usr/lib/liblua.a &&
+ ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
+ ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
+ ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
+ mkdir  -pm 755            $DESTDIR/usr/lib/pkgconfig &&
+ install -m 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig
 }

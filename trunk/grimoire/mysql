@@ -24,11 +24,16 @@ mysql is a widely used and fast SQL database server.
 It is a client/server implementation that consists
 of a server daemon (mysqld) and client programs/libraries.'
 
-build() {
+pre_build(){
 mkdir    -p -m 755 /var/lib/mysql
 groupadd -K GID_MIN=256 -K GID_MAX=511    mysql                         2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g mysql -d /var/lib/mysql mysql 2>/dev/null
 chown    -R mysql:mysql /var/lib/mysql
+default_pre_build
+}
+
+
+build(){
 
 # Added -fno-exceptions -felide-constructors -fno-rtti
 # From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
@@ -55,14 +60,11 @@ export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
 --with-plugins=all             \
 --with-comment="MySQL-MAX-$VERSION " \
 --with-unix-socket-path=/var/lib/mysql/mysql.sock \
-$OPTS                              &&
-make            pkglibdir=/usr/lib &&
-prepare_install                    &&
-make    install pkglibdir=/usr/lib &&
-install -m 700 support-files/my-medium.cnf /etc/my.cnf
-
-## Use grimoire provided init-script instead
-#install -m 700 support-files/mysql.server  /etc/init.d/mysql && 
+$OPTS &&
+make pkglibdir=/usr/lib &&
+make pkglibdir=/usr/lib install DESTDIR=$DESTDIR &&
+mkdir -p $DESTDIR/etc &&
+install -m 700 support-files/my-medium.cnf $DESTDIR/etc/my.cnf
 }
 
 post_install(){

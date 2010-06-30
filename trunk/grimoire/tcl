@@ -21,16 +21,15 @@ handling, script packages, and dynamic loading of DLLs.'
 build(){
 make_shared_lib(){ ld --whole-archive -share -o $1.so $1.a; }
 
-cd  unix             &&
-./configure          \
---prefix=/usr        \
---sysconfdir=/etc    \
+cd unix &&
+./configure \
+--prefix=/usr \
+--sysconfdir=/etc \
 --localstatedir=/var \
---enable-shared      \
---enable-threads     \
-$OPTS                &&
-make                 &&
-prepare_install      &&
-make    install      &&
-ln  -sf  /usr/bin/tclsh${VERSION:0:3} /usr/bin/tclsh
+--enable-shared \
+--enable-threads \
+$OPTS &&
+make &&
+make install DESTDIR=$DESTDIR &&
+ln -sf tclsh${VERSION:0:3} $DESTDIR/usr/bin/tclsh
 }

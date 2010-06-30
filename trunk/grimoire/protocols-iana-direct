@@ -8,14 +8,15 @@ version_year_month 12
 disable scavenge
    protect /etc/protocols
   eprovide protocols
-      desc 'protocols-iana-direct translates the protocol numbers assigned by IANA to /etc/protocols'
+      desc 'translates the protocol numbers assigned by IANA to /etc/protocols'
 
 build(){
 local  LC_ALL=C
 export LC_ALL
 
-[[ -f $SOURCE ]] &&
-prepare_install  &&
+[[ -f $SOURCE ]] || return 1
+
+mkdir -p $DESTDIR/etc
 cat   $SOURCE  |
 tr -d '\r'     |
 tr    '\t' ' ' |
@@ -30,5 +31,5 @@ while read NUMBER NAME DESCRIPTION; do
 done             | 
 tr     -d '\r'   |
 column -s '|' -t >         protocols &&
-install -vm 644 -b -S .old protocols /etc
+install -vm 644 -b -S .old protocols $DESTDIR/etc
 }

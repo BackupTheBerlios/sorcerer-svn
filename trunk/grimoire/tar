@@ -12,9 +12,9 @@
 build(){
 
  templat_install(){
-  mkdir   -p                          /etc/backup
-  chmod      755                      /etc/backup
-  install -m 644 scripts/backup-specs /etc/backup/backup-specs.template
+  mkdir   -p                          $DESTDIR/etc/backup
+  chmod      755                      $DESTDIR/etc/backup
+  install -m 644 scripts/backup-specs $DESTDIR/etc/backup/backup-specs.template
  }
 
 #            --disable-nls      \
@@ -25,10 +25,9 @@ build(){
  --libexecdir=/bin \
  --bindir=/bin     \
  --program-transform-name='s/backup$/tar-&/;s/restore$/tar-&/' \
- $OPTS           &&
- make            &&
- make    html    &&
- prepare_install &&
- make    install &&
+ $OPTS &&
+ make &&
+ make html &&
+ make install DESTDIR=$DESTDIR &&
  templat_install
 }

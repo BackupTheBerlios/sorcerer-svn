@@ -52,11 +52,11 @@ if   ! grep flags < /proc/cpuinfo | grep -q mmx
 then OPTS+=' --disable-mmx'
 fi
 
-./configure     \
---prefix=/usr   \
-$OPTS           &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
-make            &&
-prepare_install &&
-make    install &&
-install -m 644 doc/ffserver.conf /etc
+./configure   \
+--prefix=/usr \
+$OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
+make  &&
+make install "DESTDIR=$DESTDIR" &&
+mkdir -p "$DESTDIR/etc" &&
+install -m 644 doc/ffserver.conf "$DESTDIR/etc"
 }

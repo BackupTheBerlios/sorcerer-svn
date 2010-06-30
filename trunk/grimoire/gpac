@@ -25,7 +25,8 @@ GPAC also features MP4Box, a multimedia swiss-army knife for the prompt.'
 build(){
 
  install_headers(){
-  cp -av include/gpac /usr/include/gpac
+  mkdir -p            $DESTDIR/usr/include/gpac
+  cp -av include/gpac $DESTDIR/usr/include/gpac
  }
 
  export CFLAGS+=' -fPIC'
@@ -34,11 +35,10 @@ build(){
          s:-O3 \$CFLAGS:$CFLAGS \$CFLAGS:" configure
  chmod 755 configure
 
- ./configure     \
- --prefix=/usr   \
- $OPTS           &&
- make            &&
- prepare_install &&
- make    install &&
-         install_headers 
+ ./configure \
+ --prefix=/usr \
+ $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ install_headers 
 }

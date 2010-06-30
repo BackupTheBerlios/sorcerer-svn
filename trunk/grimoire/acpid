@@ -12,22 +12,22 @@ through regex matches and arbitrary action rules.'
 
 build(){
  install_config(){
-  mkdir   -p   /etc/acpi/events  /etc/acpi/samples/battery \
-                                 /etc/acpi/samples/panasonic
-  install -m 755  samples/acpi_handler.sh  /etc/acpi/samples
-  install -m 644  samples/sample.conf      /etc/acpi/samples
-  install -m 644  samples/battery/*  /etc/acpi/samples/battery
-  install -m 644  samples/panasonic/*  /etc/acpi/samples/panasonic
+  mkdir   -p   $DESTDIR/etc/acpi/events \
+               $DESTDIR/etc/acpi/samples/battery \
+               $DESTDIR/etc/acpi/samples/panasonic
+  install -m 755  samples/acpi_handler.sh  $DESTDIR/etc/acpi/samples
+  install -m 644  samples/sample.conf      $DESTDIR/etc/acpi/samples
+  install -m 644  samples/battery/*        $DESTDIR/etc/acpi/samples/battery
+  install -m 644  samples/panasonic/*      $DESTDIR/etc/acpi/samples/panasonic
  }
 
-   CFLAGS+="-D_GNU_SOURCE"
- CXXFLAGS+="-D_GNU_SOURCE"
+   CFLAGS+=" -D_GNU_SOURCE"
+ CXXFLAGS+=" -D_GNU_SOURCE"
 
  CF="CFLAGS=${CFLAGS} -g -Wall -DVERSION=\"\\\"${VERSION}\\\"\""
  MD=MAN8DIR=/usr/man/man8
 
- make            "$CF" &&
- prepare_install       &&
- make    install "$MD" &&
+ make         "$CF" &&
+ make install "$MD" "DESTDIR=$DESTDIR" &&
  install_config
 }

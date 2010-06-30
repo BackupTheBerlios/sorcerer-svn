@@ -1,5 +1,6 @@
 # Where is this hosted now?
 # freshmeat does not know.
+# Uncertain if modified build() is DESTDIR compliant
 
     stable 1.0.13 1.0.12
   category audio/codec audio/library
@@ -7,27 +8,26 @@
 #   source http://kbs.cs.tu-berlin.de/~jutta/gsm/gsm-$VERSION.tar.gz
   homepage http://kbs.cs.tu-berlin.de/~jutta/toast.html
   estimate 100
-      desc 'gsm is an audio codec library.'
+      desc 'audio codec library'
 
 build(){
 
  install_libs(){
-  ld      --whole-archive -shared -o /usr/lib/libgsm.so.1 /usr/lib/libgsm.a
-  ln      -s                                  libgsm.so.1 /usr/lib/libgsm.so
+  ld --whole-archive -shared -o $DESTDIR/usr/lib/libgsm.so.1 $DESTDIR/usr/lib/libgsm.a
+  ln -s libgsm.so.1 $DESTDIR/usr/lib/libgsm.so
  }
 
  install_headers(){
   chmod 755 inc
   chmod 644 inc/*
-  cp    -av inc       /usr/include/gsm
-  ln    -s  gsm/gsm.h /usr/include/gsm.h
+  cp    -av inc       $DESTDIR/usr/include/gsm
+  ln    -s  gsm/gsm.h $DESTDIR/usr/include/gsm.h
  }
 
  sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:" Makefile
 
- make            &&
- prepare_install &&
- make    install  INSTALL_ROOT=/usr &&
-         install_headers            &&
-         install_libs
+ make &&
+ make install INSTALL_ROOT=$DESTDIR/usr &&
+      install_headers &&
+      install_libs
 }

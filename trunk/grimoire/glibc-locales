@@ -87,8 +87,6 @@ query_dialog(){
 query(){ query_dialog "$@"; }
 
 
-
-
  locales_checklist(){
   sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED |
   while read; do
@@ -168,16 +166,13 @@ query(){ query_dialog "$@"; }
 }
 
 build(){
- tmp_locale_archive(){
-  local TMP=/tmp/locale.$RANDOM$RANDOM
-  local DIR=$TMP/usr/lib/locale
+ locale_archive(){
+  local TMP=$DESTDIR/usr/lib/locale/
   local SUPPORTED="/usr/share/i18n/SUPPORTED"
 
-  mkdir -p $DIR
-
-    if [ -n "$LOCALES"            ]; then echo "$LOCALES"
-  elif [ -f            $SUPPORTED ]; then cat             $SUPPORTED
-  elif [ -f $SCRIPT_DIR/SUPPORTED ]; then cat  $SCRIPT_DIR/SUPPORTED
+  mkdir -p $TMP
+    if [ -n "$LOCALES" ]; then echo "$LOCALES"
+  elif [ -f $SUPPORTED ]; then cat $SUPPORTED
   fi | grep / | cut -d ' ' -f1 |
   while read; do
    CHARMAP="${REPLY##*/}"
@@ -187,17 +182,12 @@ build(){
    localedef -i $SOURCE -c -f $CHARMAP --prefix=$TMP $NAME
    echo " done"
   done
-  mv $DIR/locale-archive /usr/lib/locale
-  rm -rf $TMP
  }
 
- prepare_install
- rm    -rf      /usr/lib/locale
- mkdir -vpm 755 /usr/lib/locale
- tmp_locale_archive &&
+ locale_archive &&
  if [ -n           "$DLOCALE" ]; then
-  mkdir -vpm 755                /etc/bash.d/noninteractive
-  echo "export LANG=$DLOCALE" > /etc/bash.d/noninteractive/LANG
-  chmod 755                     /etc/bash.d/noninteractive/LANG
+  mkdir -vpm 755                $DESTDIR/etc/bash.d/noninteractive
+  echo "export LANG=$DLOCALE" > $DESTDIR/etc/bash.d/noninteractive/LANG
+  chmod 755                     $DESTDIR/etc/bash.d/noninteractive/LANG
  fi
 }

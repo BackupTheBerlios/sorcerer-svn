@@ -1,21 +1,40 @@
 # 3a5 is not detected by gnucash versions 2.2.4 nor 2.2.3
 
-    stable     3a4 3a3 3a4 3a2 2d6 2d5 2d4
-  unstable 3a5 3a4
+# Version 3a4 does not support DESTDIR style installation
+# Version 3b2 does support DESTDIR
+
+    stable 3b2 3a4 3a3 3a4 3a2 2d6 2d5 2d4
    require guile unzip
   category development
  attribute library
+    source http://swiss.csail.mit.edu/ftpdir/scm/ \
+           http://swissnet.ai.mit.edu/ftpdir/scm/ \
+           http://www.ibiblio.org/pub/gnu/slib/ \
+           http://swiss.csail.mit.edu/ftpdir/scm/OLD/ \
+           http://swissnet.ai.mit.edu/ftpdir/scm/OLD/ \
+           http://www.ibiblio.org/pub/gnu/slib/OLD/ \
+           slib-$VERSION.tar.gz
+#          slib$VERSION.tar.gz
   homepage http://www-swiss.ai.mit.edu/~jaffer/SLIB.html
-       url 'http://swiss.csail.mit.edu/ftpdir/scm/OLD/
-            http://swissnet.ai.mit.edu/ftpdir/scm/OLD/
-            http://www.ibiblio.org/pub/gnu/slib/OLD/'
-    source slib$VERSION.tar.gz
-      desc 'slib is a scheme library
+      desc 'scheme library
 slib is a scheme library used primarily for gnuCash.'
 
-build(){
+build_old(){
  sed -i 's:/usr/local:/usr:' Makefile &&
- prepare_install &&
- make    install &&
+ make install &&
  ln -fs /usr/lib/slib /usr/share/guile/1.6/slib
+}
+
+build(){
+sed -i 's:/usr/local:/usr:' Makefile
+make infoz   DESTDIR=$DESTDIR
+make install DESTDIR=$DESTDIR
+mkdir -p    $DESTDIR/usr/share/guile/1.6
+ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/1.6/slib
+}
+
+post_install(){
+echo "(require 'new-catalog)" |
+guile -l /usr/share/guile/1.6/slib/guile.init
+default_post_install
 }

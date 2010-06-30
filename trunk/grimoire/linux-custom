@@ -70,21 +70,19 @@ build(){
   BV=$VERSION
   BZ=$( find . -type f -name bzImage )
 
-  rm    -rf                /boot/$BV
-  mkdir -p                 /boot/$BV
-  cp        $BZ            /boot/$BV/linux
-  chmod 600                /boot/$BV/linux
-  cp            System.map /boot/$BV
-  rm    -f                 /boot/System.map
-  ln    -s  $BV/System.map /boot/System.map
+  rm    -rf                $DESTDIR/boot/$BV
+  mkdir -p                 $DESTDIR/boot/$BV
+  cp        $BZ            $DESTDIR/boot/$BV/linux
+  chmod 600                $DESTDIR/boot/$BV/linux
+  cp            System.map $DESTDIR/boot/$BV
+  rm    -f                 $DESTDIR/boot/System.map
+  ln    -s  $BV/System.map $DESTDIR/boot/System.map
  }
 
  install_header(){
-  mkdir   -vpm 755                           /usr/include/asm
-  install -vm  644 include/asm/asm-offsets.h /usr/include/asm
-  mkdir   -vpm 755                           /usr/include/linux
-  install -vm  644 include/linux/autoconf.h  /usr/include/linux
-  install -vm  644 include/linux/compile.h   /usr/include/linux
+  mkdir   -vm 755 -p                                     $DESTDIR/usr/include/{asm,linux}
+  install -vm 644 include/generated/asm-offsets.h        $DESTDIR/usr/include/asm
+  install -vm 644 include/generated/{autoconf,compile}.h $DESTDIR/usr/include/linux
   true
  }
 
@@ -106,7 +104,7 @@ build(){
 
 
  gzip_modules(){
-  local KO="/lib/modules/$VERSION/kernel/"
+  local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
   find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
   find $KO -type f              | sed   -n '/\.gz$/p' |
   while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
@@ -117,7 +115,7 @@ build(){
   if grep -q "CONFIG_MODULES=y" .config; then 
    mkdir -p  /lib/modules
    chmod 700 /lib/modules
-   make modules_install
+   make modules_install INSTALL_MOD_PATH=$DESTDIR
    # gzip_modules
   fi
  }
@@ -129,9 +127,8 @@ build(){
   store_config
   make   bzImage        &&
   make_modules          &&
-  prepare_install       &&
   make_modules_install  &&
-  make firmware_install &&
+  make firmware_install INSTALL_FW_PATH=$DESTDIR &&
   install_kernel        &&
   install_header
  }

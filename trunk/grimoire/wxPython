@@ -16,53 +16,9 @@
       desc 'a blending of the wxWidgets C++ class library with the Python programming language'
 
 build(){
-build_old(){
-# Who wrote build_new()  ?
-build_new(){
-mkdir bld
-cd    bld
-../configure              \
---prefix=/usr             \
---with-gtk                \
---with-opengl             \
---disable-debug           \
---enable-geometry         \
---enable-graphics_ctx     \
---enable-sound --with-sdl \
---enable-mediactrl        \
---enable-display          \
---disable-debugreport     \
-$OPTS                     &&
-make                      &&
-prepare_install           &&
-make    install           &&
-cd      ../wxPython       &&
-python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
-}
-
  grep -rl '\-O3' * |
  xargs --max-lines=64 sed -i 's:-O3:-Os:'
  default_build &&
  cd wxPython &&
- python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1
-}
-
-# from http://wxpython.org/BUILD.html and http://wxpython.org/INSTALL.html
-mkdir bld
-cd bld
-../configure \
---prefix=/usr \
---with-gtk \
---with-opengl \
---enable-optimize \
---enable-geometry \
---enable-graphics_ctx \
---enable-mediactrl \
---enable-display \
-$OPTS &&
-make &&
-make -C contrib/src/gizmos &&
-make -C contrib/src/stc &&
-prepare_install &&
-make    install
+ python setup.py build_ext install BUILD_GLCANVAS=0 UNICODE=1 "--root=$DESTDIR"
 }
