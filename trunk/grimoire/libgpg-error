@@ -18,18 +18,33 @@ common error values for all GnuPG components.
 Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt,
 pinentry, SmartCard Daemon and possibly more in the future.'
 
-# Should the .la file be moved back to /usr/lib ?
-# Nope, causes problems due to .la files
 
-# build(){
-#  default_build &&
-#  mkdir -p $DESTDIR/usr/lib &&
-#  mv $DESTDIR/lib/libgpg-error.la $DESTDIR/usr/lib
-# }
+build(){
+ default_build &&
+ mkdir -p $DESTDIR/usr/lib &&
+ for REPLY in $DESTDIR/lib/*
+ do ln -s ../../lib/${REPLY##*/} $DESTDIR/usr/lib/${REPLY##*/}
+ done &&
+ rm -f $DESTDIR/usr/lib/libgpg-error.la &&
+ mv        $DESTDIR/lib/libgpg-error.la $DESTDIR/usr/lib
+}
 
 current(){
  case $VERSION in
-  1.7) [ -f /lib/libgpg-error.so ] &&
-       [ -f /lib/libgpg-error.la ] ;;
-esac
+  1.7) [ -f /usr/lib/libgpg-error.la ] &&
+       [ -h /usr/lib/libgpg-error.so.0.5.0 ] ;;
+ esac
+}
+
+post_install(){
+# for version 1.7
+# libtool makes a mess out of everything
+# if a single .la file is moved!
+
+ LC_ALL=C grep /lib/libgpg-error.la /usr/lib{,64}/*.la 2>/dev/null |
+ grep -v /usr/lib/libgpg-error.la |
+ cut -d : -f1 | augur from |
+ cut -d : -f1 | sort -u |
+ pipe_queue $CAST_QUEUE com
+ default_post_install
 }
