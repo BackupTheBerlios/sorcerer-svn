@@ -1,6 +1,6 @@
 # requirement on glitz inherited from cairo
 
-    stable 0.6.14 0.6.10 0.6.9 0.6.8 0.6.7 0.6.6 0.6.5 0.6.4 0.6.3 0.6.2 0.6.1 0.6.0
+    stable 0.9.0 0.6.14 0.6.10 0.6.9 0.6.8 0.6.7 0.6.6 0.6.5 0.6.4 0.6.3 0.6.2 0.6.1 0.6.0
    require automake
    require fontconfig freetype glib libffi libxml2
   optional cairo
@@ -9,7 +9,7 @@
     source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2
   homepage http://www.gnome.org
       opts --enable-static=no
-  estimate 400
+  estimate 500
       desc 'document API'
 
 build(){
@@ -24,4 +24,22 @@ build(){
 
  [ -f gir/Makefile.in ] || automake -acf
  default_build
+}
+
+
+# /usr/bin/g-ir-scanner from gobject-introspection version 0.9.0
+# failed compilation of gtk+
+# /usr/bin/g-ir-scanner --add-include-path=../gdk-pixbuf --namespace=Gdk --nsversion=2.0 --libtool="/bin/sh ../libtool"  --include=Gio-2.0 --include=GdkPixbuf-2.0 --include=Pango-1.0  --library=libgdk-x11-2.0.la --strip-prefix=Gdk --add-include-path=../gdk-pixbuf -DG_LOG_DOMAIN=\"Gdk\" -DGDK_COMPILATION -I.. -I../gdk -I../gdk-pixbuf -DG_DISABLE_CAST_CHECKS -pthread -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/gio-unix-2.0/      gdk.h gdkapplaunchcontext.h gdkcairo.h gdkcolor.h gdkcursor.h gdkdisplay.h gdkdisplaymanager.h gdkdnd.h gdkdrawable.h gdkevents.h gdkfont.h gdkgc.h gdki18n.h gdkimage.h gdkinput.h gdkkeys.h gdkkeysyms.h gdkpango.h gdkpixbuf.h gdkpixmap.h gdkprivate.h gdkproperty.h gdkregion.h gdkrgb.h gdkscreen.h gdkselection.h gdkspawn.h gdktestutils.h gdktypes.h gdkvisual.h gdkwindow.h gdk.c gdkapplaunchcontext.c gdkcairo.c gdkcolor.c gdkcursor.c gdkdisplay.c gdkdisplaymanager.c gdkdnd.c gdkdraw.c gdkevents.c gdkfont.c gdkgc.c gdkglobals.c gdkimage.c gdkkeys.c gdkkeyuni.c gdkoffscreenwindow.c gdkpango.c gdkpixbuf-drawable.c gdkpixbuf-render.c gdkpixmap.c gdkpolyreg-generic.c gdkrectangle.c gdkregion-generic.c gdkrgb.c gdkscreen.c gdkselection.c gdkvisual.c gdkwindow.c gdkwindowimpl.c gdkenumtypes.c gdkenumtypes.h x11/checksettings.c x11/gdkapplaunchcontext-x11.c x11/gdkasync.c x11/gdkcolor-x11.c x11/gdkcursor-x11.c x11/gdkdisplay-x11.c x11/gdkdnd-x11.c x11/gdkdrawable-x11.c x11/gdkevents-x11.c x11/gdkfont-x11.c x11/gdkgc-x11.c x11/gdkgeometry-x11.c x11/gdkglobals-x11.c x11/gdkim-x11.c x11/gdkimage-x11.c x11/gdkinput-none.c x11/gdkinput-x11.c x11/gdkinput-xfree.c x11/gdkinput.c x11/gdkkeys-x11.c x11/gdkmain-x11.c x11/gdkpixmap-x11.c x11/gdkproperty-x11.c x11/gdkscreen-x11.c x11/gdkselection-x11.c x11/gdksettings.c x11/gdkspawn-x11.c x11/gdktestutils-x11.c x11/gdkvisual-x11.c x11/gdkwindow-x11.c x11/gdkxftdefaults.c x11/gdkxid.c x11/xsettings-client.c x11/xsettings-common.c libgdk-x11-2.0.la Makefile --output Gdk-2.0.gir
+# /usr/share/gir-1.0/Pango-1.0.gir: Incompatible version 1.0 (supported: 1.1)
+# make[4]: *** [Gdk-2.0.gir] Error 1
+
+# Therefore any source that installed files into /usr/share/gir-1.0
+# will be recompiled following and update of gobject-introspection
+# in order to ensure that g-ir-scanner does not choke on old formats.
+
+post_install(){
+ LC_ALL=C grep -lr /usr/share/gir-1.0/ $INSTALL_LOGS |
+ basenames |
+ grep -v gobject-introspection |
+ pipe_queue $CAST_QUEUE com
 }
