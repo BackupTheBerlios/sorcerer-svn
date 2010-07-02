@@ -10,15 +10,33 @@
     source ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-$VERSION.tar.bz2
   homepage http://directory.fsf.org/security/libgcrypt.html
       opts --enable-static=no --libdir=/lib
-case $HOSTTYPE in
- x86_64) OPTS+=64 ;;
-esac
   estimate 600
-      desc 'libgcrypt is a general purpose crypto library.
+      desc 'general purpose crypto library
 libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
 
-case $VERSION in
- 1.4.1) [ -f   /lib/libgcrypt.so.11.4.4 ] ||
-        [ -f /lib64/libgcrypt.so.11.4.4 ] ;;
-esac
+build(){
+ default_build &&
+ mkdir -p $DESTDIR/usr/lib &&
+ for REPLY in $DESTDIR/lib/*
+ do ln -s ../../lib/${REPLY##*/} $DESTDIR/usr/lib/${REPLY##*/}
+ done &&
+ rm -f $DESTDIR/usr/lib/libgcrypt.la &&
+ mv        $DESTDIR/lib/libgcrypt.la $DESTDIR/usr/lib
+}
+
+post_install(){
+# for version 1.7
+# libtool makes a mess out of everything
+# if a single .la file is moved!
+
+ LC_ALL=C grep /lib/libgcrypt.la {,/usr}/lib{,64}/*.la 2>/dev/null |
+ grep -v /usr/lib/libgcrypt.la |
+ cut -d : -f1 |
+ while read
+ do show_from "$REPLY"
+ done |
+ cut -d : -f1 | sort -u |
+ pipe_queue $CAST_QUEUE com
+ default_post_install
+}
