@@ -15,8 +15,12 @@
 # error: libnetfilter_queue/libnetfilter_queue.h: No such file or directory
 # nufw 2.2.14 requires a legacy kernel?
 
+# Will it compile without gsasl?
+# gsasl has compile error
+
     stable 2.4.0 2.2.21 2.2.20 2.2.19 2.2.18 2.2.17 2.2.16
-   require glib gnutls gsasl init-functions iptables libnetfilter_conntrack libnetfilter_queue libtool openssl
+   require glib gnutls init-functions iptables libnetfilter_conntrack libnetfilter_queue libtool openssl
+#  require glib gnutls gsasl init-functions iptables libnetfilter_conntrack libnetfilter_queue libtool openssl
   optional Linux-PAM  --with-system-auth --without-system-auth for authentication via PAM
   optional docbook2X
   optional gdbm       ''                 ''                    for user authnetication from gdbm database
@@ -66,12 +70,13 @@ send back a decision to nufw.'
 
 build(){
  install_etc(){
-  install -D -m 700 $DESTDIR/etc/nufw
+  install -dm 700 $DESTDIR/etc/nufw
   for  file in conf/certs/*.pem conf/*.conf conf/*.nufw
   do   install -m 600 "$file" $DESTDIR/etc/nufw
   done
  }
 
  default_build &&
+ make install-conf &&
  install_etc
 }
