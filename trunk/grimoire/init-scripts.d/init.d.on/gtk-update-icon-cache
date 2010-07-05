@@ -1,0 +1,28 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Required-Stop: kexec $local_fs root-ro udev
+# Should-Stop: tmp
+# Default-Stop: 0 6
+# Short-Description: Updates the icon cache
+### END INIT INFO
+
+HI=/usr/share/icons/hicolor
+HC=/usr/share/icons/hicolor/icon-theme.cache
+
+up(){
+ if   log_warning_msg "Updating $HC"; gtk-update-icon-cache -f -t $HI
+ then log_success_msg "Updated  $HC"
+ else log_failure_msg "Failed to update $HC"
+ fi
+}
+
+[ -f /usr/bin/gtk-update-icon-cache ] || return
+
+. /lib/lsb/init-functions
+
+log_warning_msg "Checking $HC"
+
+  if ! [ -f $HC ]; then up
+elif find $HI -type f -newer $HC | grep -q .; then up
+else log_success_msg "Current  $HC"
+fi
