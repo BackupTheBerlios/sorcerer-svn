@@ -1,0 +1,35 @@
+    stable 3.8.3
+  unstable 3.9.25
+   require LAPACK
+  category utility/math
+ attribute new console
+# Disable automatic detection if CPU throttling is enabled because if it is,
+# the cast would fail. Some computers (often laptops) have BIOS that does
+# not allow users to disable throttling. Of course if throttling is enabled,
+# ATLAS install will be junk because the timings will be completely random.
+      opts '-Si cputhrchk 0'
+    source $SOURCEFORGE_URL math-atlas/Stable/$VERSION/atlas$VERSION.tar.bz2
+  homepage http://math-atlas.sourceforge.net
+  estimate 30624
+      desc 'ATLAS provides automatically tuned routines for linear algebra'
+
+build(){
+ case $HOSTTYPE in
+  x86_64) B='64' ;;
+       *) B='32' ;;
+ esac
+
+ mkdir build    &&
+ cd    build    &&
+ ../configure -b $B     \
+    -D c  -DWALL        \
+    --with-netlib-lapack=/usr/lib/lapack/liblapack_netlib.a   \
+    --prefix=$DESTDIR/usr       \
+    $OPTS
+ make       &&
+ make check &&
+ make ptcheck   &&
+ make time  &&
+ prepare_install    &&
+ make install
+}
