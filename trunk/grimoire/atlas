@@ -1,6 +1,6 @@
     stable 3.8.3
   unstable 3.9.25
-   require LAPACK
+   require gcc-fortran
   category utility/math
  attribute new console
 # Disable automatic detection if CPU throttling is enabled because if it is,
@@ -8,12 +8,56 @@
 # not allow users to disable throttling. Of course if throttling is enabled,
 # ATLAS install will be junk because the timings will be completely random.
       opts '-Si cputhrchk 0'
-    source $SOURCEFORGE_URL math-atlas/Stable/$VERSION/atlas$VERSION.tar.bz2
+# Shared libraries should be installed but the libraries are installed with
+# wrong names (or sonames?) so ldconfig issues errors like:
+# ldconfig: Can't link /usr/lib//usr/src/sorcery/.destdir/atlas/usr/lib/liblapack.so to liblapack.so
+#      opts '--shared'
+case $VERSION in
+ 3.9*) source $SOURCEFORGE_URL math-atlas/Developer%20%28unstable%29/$VERSION/atlas$VERSION.tar.bz2
+       source http://www.netlib.org/lapack/lapack.tgz ;;
+    *) source $SOURCEFORGE_URL math-atlas/Stable/$VERSION/atlas$VERSION.tar.bz2 ;;
+esac
   homepage http://math-atlas.sourceforge.net
   estimate 30624
       desc 'ATLAS provides automatically tuned routines for linear algebra'
 
-build(){
+build() {
+ adjust_soname(){
+   sed -i "s:-soname \$(LIBINSTdir)/\(lib.*\.so\):-soname \1.$VERSION:" lib/Makefile
+ }
+
+ case $HOSTTYPE in
+  x86_64) B='64' ;;
+       *) B='32' ;;
+ esac
+
+ mkdir build  &&
+ cd    build  &&
+ ../configure -b $B        \
+    -Ss flapack ../lapack* \
+    -D c    '-DWALL'       \
+    -Fa alg '-fPIC'        \
+    --prefix=$DESTDIR/usr  \
+    $OPTS        &&
+ adjust_soname   &&
+ make            &&
+ make check      &&
+ make ptcheck    &&
+ make time       &&
+ make install
+}
+
+old_build(){
+ make_shared(){
+   case $VERSION in
+     3.8.3) sed -i 's:\(liblapack.a --no-whole-archive\):\1 --alow-multiple-definition:' Makefile ;;
+   esac
+ 
+   cd lib  &&
+   make shared  &&
+   make ptshared
+ }
+
  case $HOSTTYPE in
   x86_64) B='64' ;;
        *) B='32' ;;
@@ -22,14 +66,15 @@ build(){
  mkdir build    &&
  cd    build    &&
  ../configure -b $B     \
-    -D c  -DWALL        \
-    -Fa alg -fPIC       \
+    -D gc  '-DWALL'     \
+    -Fa alg '-fPIC'     \
     --with-netlib-lapack=/usr/lib/lapack/liblapack_netlib.a   \
     --prefix=$DESTDIR/usr       \
     $OPTS
  make &&
  make check &&
- make ptcheck &&
- make time &&
+ make ptcheck   &&
+ make time  &&
+ make_shared  &&
  make install
 }
