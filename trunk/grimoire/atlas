@@ -1,6 +1,7 @@
     stable 3.8.3
   unstable 3.9.25
-   require gcc-fortran
+# Not sure if LAPACK is required (separately) for 3.9.25
+   require gcc-fortran LAPACK
   category utility/math
  attribute new console
 # Disable automatic detection if CPU throttling is enabled because if it is,
@@ -8,7 +9,6 @@
 # not allow users to disable throttling. Of course if throttling is enabled,
 # ATLAS install will be junk because the timings will be completely random.
       opts '-Si cputhrchk 0'
-      opts '--shared'
 case $VERSION in
  3.9*) source $SOURCEFORGE_URL math-atlas/Developer%20%28unstable%29/$VERSION/atlas$VERSION.tar.bz2
        source http://www.netlib.org/lapack/lapack.tgz ;;
@@ -19,6 +19,7 @@ esac
       desc 'ATLAS provides automatically tuned routines for linear algebra'
 
 build() {
+new_build(){
  adjust_soname(){
    sed -i "s:-soname \$(LIBINSTdir)/\(lib[^ ]*\.so\):-soname \1.$VERSION:" lib/Makefile
  }
@@ -35,6 +36,7 @@ build() {
     -D c    '-DWALL'       \
     -Fa alg '-fPIC'        \
     --prefix=$DESTDIR/usr  \
+    --shared               \
     $OPTS        &&
  adjust_soname   &&
  make            &&
@@ -52,7 +54,10 @@ old_build(){
  
    cd lib  &&
    make shared  &&
-   make ptshared
+   make ptshared  &&
+   mkdir $DESTDIR/usr/lib  &&
+   install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib  &&
+   cd -
  }
 
  case $HOSTTYPE in
@@ -74,4 +79,10 @@ old_build(){
  make time  &&
  make_shared  &&
  make install
+}
+ 
+ case $VERSION in
+   3.8*) old_build ;;
+   3.9*) new_build ;;
+ esac
 }
