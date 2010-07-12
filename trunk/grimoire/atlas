@@ -8,10 +8,7 @@
 # not allow users to disable throttling. Of course if throttling is enabled,
 # ATLAS install will be junk because the timings will be completely random.
       opts '-Si cputhrchk 0'
-# Shared libraries should be installed but the libraries are installed with
-# wrong names (or sonames?) so ldconfig issues errors like:
-# ldconfig: Can't link /usr/lib//usr/src/sorcery/.destdir/atlas/usr/lib/liblapack.so to liblapack.so
-#      opts '--shared'
+      opts '--shared'
 case $VERSION in
  3.9*) source $SOURCEFORGE_URL math-atlas/Developer%20%28unstable%29/$VERSION/atlas$VERSION.tar.bz2
        source http://www.netlib.org/lapack/lapack.tgz ;;
@@ -23,7 +20,7 @@ esac
 
 build() {
  adjust_soname(){
-   sed -i "s:-soname \$(LIBINSTdir)/\(lib.*\.so\):-soname \1.$VERSION:" lib/Makefile
+   sed -i "s:-soname \$(LIBINSTdir)/\(lib[^ ]*\.so\):-soname \1.$VERSION:" lib/Makefile
  }
 
  case $HOSTTYPE in
