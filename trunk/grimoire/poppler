@@ -16,7 +16,7 @@
 # poppler install methods are partially broke
 # probably due to poppler software authors errors?
 
-    stable 0.14.0 0.12.4 0.12.3 0.10.7 0.10.6
+    stable 0.14.1 0.14.0 0.12.4 0.12.3
    require cmake gtk+ lcms poppler-data
   category documentation
  attribute library x11
@@ -24,7 +24,7 @@
   homepage http://poppler.freedesktop.org/
 #     opts -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
       opts --enable-static=no
-  estimate 900
+  estimate 600
       desc 'PDF rendering library'
 
 build(){
@@ -35,6 +35,7 @@ build(){
   find poppler -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler
   find splash  -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler/splash
   find goo     -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler/goo
+  true
  }
 
  ./configure \
@@ -43,7 +44,8 @@ build(){
   --prefix=/usr \
  $OPTS &&
  make  &&
- make    install &&
+ make install DESTDIR=$DESTDIR &&
+#default_build &&
  missing_install
 }
 
