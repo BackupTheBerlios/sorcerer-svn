@@ -123,6 +123,15 @@ php is a scripting language that is especially suited
 for Web development and can be embedded into HTML.'
 
 build(){
+
+ almost_install(){
+  mkdir -p $DESTDIR/{etc/httpd/conf,usr/lib/apache}
+  if   [ -f /etc/httpd/conf/httpd.conf ]
+  then cp   /etc/httpd/conf/httpd.conf \
+            $DESTDIR/etc/httpd/conf/
+  fi
+ }
+
 # --with-pcre-regex=/usr
 PHP_CONFIGURE="
 --prefix=/usr
@@ -168,6 +177,7 @@ esac
 
 ./configure $PHP_CONFIGURE &&
 make &&
+almost_install &&
 make install  DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR &&
 mkdir -p     $DESTDIR/etc      &&
 cp "$PHPINI" $DESTDIR/etc/php.ini
