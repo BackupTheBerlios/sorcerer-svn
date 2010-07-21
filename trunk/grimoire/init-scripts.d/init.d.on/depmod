@@ -13,14 +13,18 @@ if [ "$1" = try-restart ] || ! [ -s /sbin/depmod ]; then exit; fi
 
 . /lib/lsb/init-functions
 
-check(){
- VER="$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf "%T@	%h\n" |
-         sort -gr | cut -d / -f3 | sed '/^fast$/d' | head -n 1 )"
- find /lib/modules/$VER/kernel -type f -newer \
-      /lib/modules/$VER/modules.dep | grep -q .
-}
-
-if   log_warning_msg 'depmod checking modules.dep'; check
-then log_warning_msg 'depmod updating'; depmod -aA $VER
-     log_success_msg 'depmod updated'
-fi;  log_success_msg 'depmod checked'
+find /lib/modules -maxdepth 2 -mindepth 2 -name modules.dep -printf '%P\n' |
+sed 's:/.*::' |
+while read REPLY; do
+ log_warning_msg "depmod checking /lib/modules/$REPLY/modules.dep"
+ find /lib/modules/$REPLY/kernel -type f -newer \
+ /lib/modules/$REPLY/modules.dep | grep -q . &&
+ echo "$REPLY"
+ log_success_msg "depmod checked  /lib/modules/$REPLY/modules.dep"
+done |
+while read REPLY; do
+ if   log_warning_msg "depmod updating /lib/modules/$REPLY/modules.dep"; depmod -aA $REPLY
+ then log_success_msg "depmod updated  /lib/modules/$REPLY/modules.dep"
+ else log_failure_msg "depmod failed   /lib/modules/$REPLY/modules.dep"
+ fi
+done
