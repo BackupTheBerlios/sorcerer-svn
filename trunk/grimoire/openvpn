@@ -1,11 +1,14 @@
     stable 2.1.1
    require lzo2 libselinux openssl
   optional libselinux '' '--disable-selinux' for SELinux support
+  optional Linux-PAM  '' '' for auth-pam plugin
+    switch --enable-password-save '' allow passwords to be read from a file
+# May als need (optional) something called pkcs11-helper
   category security
  attribute console server new
     source http://www.openvpn.net/release/openvpn-$VERSION.tar.gz
   homepage http://www.openvpn.net
-  estimate 467
+  estimate 480
       desc ' an application to securely tunnel IP networks
 over a single UDP port, with support for SSL/TLS-based
 session authentication and key exchange, packet encryption,
@@ -20,3 +23,41 @@ fundamental premise that complexity is the enemy of security,
 OpenVPN offers a cost-effective, lightweight alternative to
 other VPN technologies that is well-targeted for the SME and
 enterprise markets.'
+
+build(){
+ make_plugins(){
+  for pi in $PLUGINS; do
+    cd plugin/$pi &&
+    make          &&
+    cd -          ||
+    return 1 
+  done
+ }
+
+ install_plugins(){
+  for pi in $PLUGINS; do
+    cp plugin/$pi/README README.$pi             &&
+    install -c -m 755 plugin/$pi/openvpn-$pi.so \
+         $DESTDIR/usr/share/openvpn/plugin/lib/ ||
+    return 1
+  done
+  cp plugin/README README.plugins
+ }
+ 
+ spell_installed Linux-PAM    &&
+ PLUGINS="down-root auth-pam" ||
+ PLUGINS="down-root"
+ 
+ ./configure               \
+  --sysconfdir=/etc        \
+  --localstatedir=/var     \
+  --prefix=${PREFIX:-/usr} \
+ $OPTS &&
+ make  &&
+ make_plugins &&
+ make install "DESTDIR=$DESTDIR" &&
+ mkdir -p $DESTDIR{/etc/openvpn,/usr/share/openvpn/plugin/lib} &&
+ mkdir -p $DESTDIR/usr/doc/openvpn &&
+ install_plugins &&
+ cp -r contrib/ easy-rsa/ sample-*/ $DESTDIR/usr/doc/openvpn/
+}

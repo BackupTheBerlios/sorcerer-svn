@@ -1,0 +1,177 @@
+#!/bin/dash
+
+### BEGIN INIT INFO
+# Provides: openvpn
+# Required-Start: $network
+# Required-Stop: $network
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 1 6
+# Short-Description: openvpn starts and stops OpenVPN
+# Description: OpenVPN is a robust and highly flexible tunneling
+#              application that uses all of the encryption, authentication,
+#              and certification features of the OpenSSL library to securely
+#              tunnel IP networks over a single UDP port.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+# Based on the RedHat /etc/init.d/openvpn script
+SERV=/usr/sbin/openvpn
+LOCK=/var/lock/openvpn
+PIDDIR=/var/run/openvpn
+CONFDIR=/etc/openvpn
+
+#parse "$@"
+
+# The init script does the following:
+#
+# - Starts an openvpn process for each .conf file it finds in
+#   /etc/openvpn.
+#
+# - If /etc/openvpn/xxx.sh exists for a xxx.conf file then it executes
+#   it before starting openvpn (useful for doing openvpn --mktun...).
+#
+# - In addition to start/stop you can do:
+#
+#   reload - SIGHUP
+#   reopen - SIGUSR1
+#   status - SIGUSR2
+#
+#
+
+if ! [ -x "$SERV" ]; then
+ log_failure_msg "$NAME not started: Missing $SERV executable."
+ exit 1
+fi
+
+# See how we were called.
+case "$1" in
+  start)
+	log_warning_msg "$NAME starting"
+
+	/sbin/modprobe tun >/dev/null 2>&1
+
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+
+	# Run startup script, if defined
+	if [ -x $CONFDIR/openvpn-startup ]; then
+	    log_warning_msg "$NAME starting $CONFDIR/openvpn-starup"
+	    $CONFDIR/openvpn-startup
+	fi
+
+	[ ! -d  $PIDDIR ] && mkdir -p $PIDDIR
+
+	if [ -f $LOCK ]; then
+	    # we were not shut down correctly
+	    log_warning_msg "$NAME was not shut down correctly"
+	    for pidf in `/bin/ls $PIDDIR/*.pid 2>/dev/null`; do
+	      if [ -s $pidf ]; then
+		kill `cat $pidf` >/dev/null 2>&1
+	      fi
+	      rm -f $pidf
+	    done
+	    rm -f $lock
+	    sleep 2
+	fi
+
+	rm -f $PIDDIR/*.pid
+	cd $CONFDIR
+
+	# Start every .conf in $CONFDIR and run .sh if exists
+	errors=0
+	successes=0
+	for c in `/bin/ls *.conf 2>/dev/null`; do
+	    bn=${c%%.conf}
+	    if [ -f "$bn.sh" ]; then
+		. $bn.sh
+	    fi
+	    rm -f $PIDDIR/$bn.pid
+	    $SERV --daemon --writepid $PIDDIR/$bn.pid --config $c --cd $CONFDIR
+	    if [ $? = 0 ]; then
+		successes=1
+		log_success_msg "$NAME started $c"
+	    else
+		errors=1
+		log_failure_msg "$NAME failed to start $c"
+	    fi
+	done
+
+	if [ $successes = 1 ]; then
+	    touch $LOCK
+	else
+	    log_failure_msg "$NAME not started"
+        fi
+	;;
+  stop)
+	log_warning_msg "$NAME shutting down"
+	for pidf in `/bin/ls $PIDDIR/*.pid 2>/dev/null`; do
+	  if [ -s $pidf ]; then
+	    kill `cat $pidf` >/dev/null 2>&1
+	  fi
+	  rm -f $pidf
+	done
+
+	# Run shutdown script, if defined
+	if [ -f $CONFDIR/openvpn-shutdown ]; then
+	    $CONFDIR/openvpn-shutdown
+	fi
+
+	log_success_msg "$NAME shut down"
+	rm -f $LOCK
+	;;
+  try-restart|restart)
+	$0 stop
+	sleep 2
+	$0 start
+	;;
+  reload)
+	if [ -f $LOCK ]; then
+	    for pidf in `/bin/ls $PIDDIR/*.pid 2>/dev/null`; do
+		if [ -s $pidf ]; then
+		    kill -HUP `cat $pidf` >/dev/null 2>&1
+		fi
+	    done
+	else
+	    log_failure_msg "$NAME: service not running"
+	    exit 1
+	fi
+	;;
+  reopen)
+	if [ -f $LOCK ]; then
+	    for pidf in `/bin/ls $PIDDIR/*.pid 2>/dev/null`; do
+		if [ -s $pidf ]; then
+		    kill -USR1 `cat $pidf` >/dev/null 2>&1
+		fi
+	    done
+	else
+	    log_failure_msg "$NAME: service not running"
+	    exit 1
+	fi
+	;;
+  condrestart)
+	if [ -f $LOCK ]; then
+	    $0 stop
+	    # avoid race
+	    sleep 2
+	    $0 start
+	fi
+	;;
+  status)
+	if [ -f $LOCK ]; then
+	    for pidf in `/bin/ls $PIDDIR/*.pid 2>/dev/null`; do
+		if [ -s $pidf ]; then
+		    kill -USR2 `cat $pidf` >/dev/null 2>&1
+		fi
+	    done
+	    log_warning_msg "$NAME: Status written to /var/log/messages"
+	else
+	    log_failure_msg "$NAME: service not running"
+	    exit 1
+	fi
+        ;;
+  *)
+	echo "Usage: openvpn {start|stop|restart|condrestart|reload|reopen|status}"
+	exit 1
+	;;
+esac
+exit 0
