@@ -20,6 +20,8 @@ VL=/var/lock
 NAME=$2
 CMD=$3
 
+[ -x /usr/libexec/bash/rmdir  ] && enable -f /usr/libexec/bash/rmdir rmdir
+
 run_ready(){
  common(){
   [ -d /var/lock/$1 ] &&
@@ -41,22 +43,26 @@ prw_init(){
   $( find $RLP -name K\* -printf '%P\n' | sed "s:^:$VL/stop/:" )
 
  grep -r '# Provides:' $RLP | sed 's:.*[/]::;s/:.*://' |
- while read NAME PROS; do echo "$PROS" > /var/lock/pro/$NAME; done 
+ while read NAME PROS; do echo "$PROS" > /var/lock/pro/$NAME; done  &
 
  grep -r "# Required-Start:\|# Should-Start:" $RLP | sed 's:.*[/]::;s/:.*://' |
  while read NAME REQS; do
   [ -d /var/lock/start/$NAME ] &&
   for REQ in $REQS; do echo -n > /var/lock/start/$NAME/$REQ; done
- done
+ done &
 
  grep -r "# Required-Stop:\|# Should-Stop:" $RLP | sed 's:.*[/]::;s/:.*://' |
  while read NAME REQS; do
   [ -d /var/lock/stop/$NAME ] &&
   for REQ in $REQS; do echo -n > /var/lock/stop/$NAME/$REQ; done
- done
+ done &
+
+ wait
 
  find /var/lock -maxdepth 1 -mindepth 1 -type f -printf '%P\n' |
- while read; do rm -f /var/lock/start/*/$REPLY; done
+ while read; do rm -f /var/lock/start/*/$REPLY; done 
+
+ rmdir /var/lock/{start,stop} 2>/dev/null
 
  run_ready
  exit
