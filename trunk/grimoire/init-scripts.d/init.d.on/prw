@@ -1,0 +1,79 @@
+#!/bin/bash
+
+# Experimental alternate Parallel runlevel init-script execution wrapper script
+# as discussed with jean Luc Malet
+# designed and implemented by Kyle Sallee
+# Copyright by Kyle Sallee 2010 with All Rights Reserved
+
+# This wrapper is flawed since not all K symbolic linked init-scripts
+# are run before all S symbolc linked init-scripts begin running.
+# However, no problem expected because
+# most runlevels do not contain both K and S init-scripts.
+
+# This requires lock files in /var/lock/ to have already been
+# created for all the init-scripts that ran during sysinit
+# Otherwise some or all init-scripts will not execute.
+
+RL=$1
+RLP=/etc/rc.d/rc$RL.d
+VL=/var/lock
+NAME=$2
+CMD=$3
+
+run_ready(){
+ common(){
+  [ -d /var/lock/$1 ] &&
+  find /var/lock/$1 -maxdepth 1 -mindepth 1 -type d -empty |
+  while read; do
+   [ -d  $REPLY ] &&
+   rmdir $REPLY   &&
+   /etc/init.d/pwr $RL $RLP/${REPLY##*/} $1 &
+  done
+ }
+ common stop
+ common start
+}
+
+prw_init(){
+ rm    -fr /var/lock/{start,stop,pro}
+ mkdir -p  /var/lock/{start,stop,pro} \
+  $( find $RLP -name S\* -printf '%P\n' | sed "s:^:$VL/start/:" ) \
+  $( find $RLP -name K\* -printf '%P\n' | sed "s:^:$VL/stop/:" )
+
+ grep -r '# Provides:' $RLP | sed 's:.*[/]::;s/:.*://' |
+ while read NAME PROS; do echo "$PROS" > /var/lock/pro/$NAME; done 
+
+ grep -r "# Required-Start:\|# Should-Start:" $RLP | sed 's:.*[/]::;s/:.*://' |
+ while read NAME REQS; do
+  [ -d /var/lock/start/$NAME ] &&
+  for REQ in $REQS; do echo -n > /var/lock/start/$NAME/$REQ; done
+ done
+
+ grep -r "# Required-Stop:\|# Should-Stop:" $RLP | sed 's:.*[/]::;s/:.*://' |
+ while read NAME REQS; do
+  [ -d /var/lock/stop/$NAME ] &&
+  for REQ in $REQS; do echo -n > /var/lock/stop/$NAME/$REQ; done
+ done
+
+ find /var/lock -maxdepth 1 -mindepth 1 -type f -printf '%P\n' |
+ while read; do rm -f /var/lock/start/*/$REPLY; done
+
+ run_ready
+ exit
+}
+
+
+if [ -z "$NAME" ]; then prw_init; fi
+
+BNAME="${NAME##*/}"
+BNAME="${BNAME:3}"
+if $NAME $CMD; then
+ echo -n > /var/lock/$BNAME; rm -f /var/lock/{start,stop}/$BNAME
+ if [ -f /var/lock/pro/$NAME ]; then
+  for PRO in $(< /var/lock/pro/$NAME ); do
+  do echo -n > /var/lock/$PRO; rm -f /var/lock/{start,stop}/$PRO
+  done
+ fi
+fi
+
+run_ready
