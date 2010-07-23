@@ -30,6 +30,13 @@ please see:
 http://www.kernel.org/pub/linux/libs/pam/modules.html'
 
 
+pre_build(){
+ mkdir    -pm 755 /var/empty
+ groupadd -K GID_MIN=256 -K GID_MAX=511    auth                    2>/dev/null
+ useradd  -K UID_MIN=256 -K UID_MAX=511 -g auth -d /var/empty auth 2>/dev/null
+ default_pre_build
+}
+
 build(){
  adjust_unix_chkpwd(){
   chown root:auth /sbin/unix_chkpwd
@@ -39,10 +46,9 @@ build(){
  case $MACHTYPE in
   *-uclibc) patch -p1 < $SCRIPT_DIR/Linux-PAM-1.0.4-uclibc.patch ;;
  esac
-
- mkdir    -pm 755 /var/empty
- groupadd -K GID_MIN=256 -K GID_MAX=511    auth                    2>/dev/null
- useradd  -K UID_MIN=256 -K UID_MAX=511 -g auth -d /var/empty auth 2>/dev/null
+ case $MACHTYPE in
+  *-uclibc) export LDFLAGS+=' -lintl ' ;;
+ esac
 
  export HAVE_SGML2LATEX=no
  sed -i 's: doc examples::g' Makefile.in
