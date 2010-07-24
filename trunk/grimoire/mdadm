@@ -11,6 +11,10 @@ mdadm can be used in conjunction or as a replacement for raidtools.
 mdadm can diagnose, monitor, and gather detailed information about RAIDs.'
 
 build(){
+case $MACHTYPE in
+ *-uclibc) sed -i '1i#define canonicalize_file_name(foo) realpath(foo, NULL)' platform-intel.c ;;
+esac
+
 sed -i "s:CFLAGS = :CFLAGS = ${CFLAGS} :
         s:-Werror::" Makefile
 make &&

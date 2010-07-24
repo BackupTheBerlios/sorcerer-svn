@@ -32,6 +32,13 @@ shutdown simpleinit sln swapoff swapon tunelp ul umount vidmode vipw
 wall whereis write.'
 
 build(){
+case $MACHTYPE in
+ *-uclibc) LDFLAGS+=' -lintl' ;;
+esac
+default_build
+}
+
+build_old(){
 
 uclibc_build(){
  (
@@ -43,17 +50,14 @@ uclibc_build(){
 
   # export CFLAGS+=' -lintl'
 
-  ./configure            \
-   --sysconfdir=/etc     \
-   --localstatedir=/var  \
-   --prefix=/usr         \
-   --disable-nls         \
-  $OPTS                  &&
-  touch misc-utils/cal.o &&
-  touch misc-utils/cal   &&
-  make &&
-  make install DESTDIR=$DESTDIR &&
-  rm -f $DESTDIR/usr/bin/cal
+  ./configure           \
+   --sysconfdir=/etc    \
+   --localstatedir=/var \
+   --prefix=/usr        \
+   --disable-nls        \
+  $OPTS             &&
+  make cal_SOURCES= &&
+  make cal_SOURCES= DESTDIR=$DESTDIR install
   )
  }
 
