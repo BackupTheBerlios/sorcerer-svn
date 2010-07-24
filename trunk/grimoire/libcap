@@ -19,11 +19,17 @@ a lack of support for filesystem capability attributes
 and should be used to launch other files.'
 
 build(){
+case $MACHTYPE in
+ *-uclibc) local lib_prefix=/lib ;;
+  x86_64*) local lib_prefix=/lib64 ;;
+        *) local lib_prefix=/lib ;;
+esac
+
 # patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
 make &&
-make install DESTDIR=$DESTDIR &&
-if [ -d   $DESTDIR/libcap.so ]; then
- mkdir -p $DESTDIR/lib
- mv       $DESTDIR/libcap.* $DESTDIR/lib
-fi
+make install     prefix=/usr \
+             inc_prefix=/usr/include \
+             lib_prefix=$lib_prefix  \
+             man_prefix=/usr/man \
+     DESTDIR=$DESTDIR
 }
