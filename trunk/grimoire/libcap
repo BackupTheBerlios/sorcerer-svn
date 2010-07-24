@@ -1,4 +1,6 @@
 # Perhaps linux capabilities are no longer supported?
+# libcap version 2.19 on uClibc installed libraries
+# to / instead of /lib, how strange.
 
 # Versions 2.14 and less require indent
     stable 2.19 2.16
@@ -17,7 +19,11 @@ a lack of support for filesystem capability attributes
 and should be used to launch other files.'
 
 build(){
-patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
+# patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
 make &&
-make install DESTDIR=$DESTDIR
+make install DESTDIR=$DESTDIR &&
+if [ -d   $DESTDIR/libcap.so ]; then
+ mkdir -p $DESTDIR/lib
+ mv       $DESTDIR/libcap.* $DESTDIR/lib
+fi
 }
