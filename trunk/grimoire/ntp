@@ -21,11 +21,16 @@
   estimate 2100
       desc 'synchronizes system time with a network time protocol server'
 
-#case $MACHTYPE in
-# *-uclibc) attribute broke ;;
-#esac
+case $MACHTYPE in
+ *-uclibc) attribute broke ;;
+esac
 
 build(){
+# patch does not fix all compile problems.
+# case $MACHTYPE in
+#  *-uclibc) attribute patch -p1 < $SCRIPT_DIR/ntp-4.2.6.uClibc.patch ;;
+# esac
+
 # so that ntp writes a proper PID file
  sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
  default_build &&
