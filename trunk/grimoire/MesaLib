@@ -25,7 +25,7 @@
   homepage http://www.mesa3d.org
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
-  estimate 2800
+  estimate 2700
       desc '3-D graphics library with an API similar to OpenGL'
 
 build(){
@@ -42,8 +42,11 @@ build(){
 
  case $HOSTTYPE in
   x86_64) CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64 ;;
-       *) CONFIG_NAME=linux-dri-x86    ; LIB=lib   ;;
+       *) CONFIG_NAME=linux-dri        ; LIB=lib   ;;
  esac
+
+# linux-dri-x86 causes failed compilation on i586
+# due to use of compiler flags for non supported CPU instruction sets.
 
  case $MACHTYPE in
   *-uclibc) patch -p1 < $SCRIPT_DIR/Mesa-7.8.1.uClibc.patch ;;
