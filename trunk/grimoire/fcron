@@ -39,11 +39,6 @@ build(){
   install -vm 644 files/fcron.deny  /etc
  }
 
-# if    spell_installed  Linux-PAM
-# then  OPTS+=' --with-pam=yes'
-# else  OPTS+=' --with-pam=no'
-# fi
-
  EDITOR=`which $EDITOR 2>/dev/null`  ||
  EDITOR=`which nano`
   OPTS+=" --with-editor=$EDITOR"
@@ -52,6 +47,10 @@ build(){
  sed  -i  "s,next_file:,next_file:\
  ;,"  conf.c
 
+ # If the pam.d directory does not exist, then the installation
+ # script creates /etc/pam.conf instead and PAM authentication
+ # won't work:
+ mkdir -p $DESTDIR/etc/pam.d &&
  default_build &&
  install_etc
 }
