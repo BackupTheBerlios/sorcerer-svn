@@ -9,15 +9,19 @@
 # the ground textures do not show in warzone2100 with NVIDIA-Linux-x86 185.18.14
 # for warzone2100 try 180.60
 
-    stable 195.36.24 195.36.15
+    stable 256.44 195.36.24 195.36.15
    require MesaLib gtk+ mktemp
    require xorg-server
   category kernel
 case $HOSTTYPE in
  x86_64) attribute solo linux-26-module x11 x86_64
-            source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-pkg2.run ;;
+            source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run ;;
+#           source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-pkg2.run ;;
+# http://us.download.nvidia.com/XFree86/Linux-x86_64/256.44/NVIDIA-Linux-x86_64-256.44.run
       *) attribute solo linux-26-module x11 x86
-            source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION-pkg1.run ;;
+            source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run ;;
+#           source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION-pkg1.run ;;
+# http://us.download.nvidia.com/XFree86/Linux-x86/256.44/NVIDIA-Linux-x86-256.44.run
 esac
       vurl http://www.nvidia.com/object/unix.html
   homepage http://www.nvidia.com
@@ -39,7 +43,7 @@ of /etc/X11/xorg.conf and add:
 Included is a sample config file that works with 2 monitors.
 /root/.sorcery/grimoire/NVIDIA-Linux-x86.d/xorg.conf'
 
-pre_build(){
+pre_build_old(){
 #default_pre_build
  BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
  cd  ..
@@ -48,7 +52,7 @@ pre_build(){
  chown -R root:root     $BUILD_DIR
 }
 
-build(){
+build_old(){
  make_install(){
   cd $BUILD_DIR/usr
 
@@ -137,4 +141,56 @@ build(){
       IGNORE_CC_MISMATCH=1 \
       IGNORE_XEN_PRESENCE=1 &&
  make_install
+}
+
+
+build(){
+ fix_install(){
+  mv       $DESTDIR/usr/include     $DESTDIR/usr/nv
+  mkdir -p $DESTDIR/usr/include
+  mv       $DESTDIR/usr/nv          $DESTDIR/usr/include
+  mkdir -p $DESTDIR/usr/lib/nv
+  mv       $DESTDIR/usr/lib/libGL.* $DESTDIR/usr/lib/nv
+  mkdir -p           $DESTDIR/etc/ld.so.conf.d/
+  echo /usr/lib/nv > $DESTDIR/etc/ld.so.conf.d/head
+  return 0
+ }
+
+ LVER="$( installed_version $( get_provider linux-kernel ) )"
+
+ PARAMETERS="
+--accept-license
+--no-questions
+--ui=none
+--x-prefix=$DESTDIR/usr
+--x-module-path=$DESTDIR/usr/lib/xorg/modules
+--x-library-path=$DESTDIR/usr/lib
+--opengl-prefix=$DESTDIR/usr
+--installer-prefix=$DESTDIR/usr
+--utility-prefix=$DESTDIR/usr
+--documentation-prefix=$DESTDIR/usr
+--kernel-source-path=/usr/src/linux
+--kernel-install-path=$DESTDIR/lib/modules/$LVER/kernel/drivers/video
+--kernel-name=$LVER
+--no-runlevel-check
+--no-abi-note
+--no-rpms
+--no-backup 
+--no-network
+--no-recursion
+--no-x-check
+--no-cc-version-check
+--no-distro-scripts"
+
+local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
+mkdir -p $BUILD_DIR
+cd       $BUILD_DIR
+echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUILD_DIR/lsmod
+chmod a+x $BUILD_DIR/lsmod
+export PATH=$BUILD_DIR:$PATH
+
+mkdir -p $DESTDIR/lib/modules/$LVER/kernel/drivers/video
+mkdir -p $DESTDIR/usr/{include,lib}
+bash $SOURCE $PARAMETERS &&
+fix_install
 }
