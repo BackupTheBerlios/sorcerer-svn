@@ -1,0 +1,41 @@
+# Also edit the function call to source when checking a new version.
+
+    stable 2010_07_28_justice_edition_linux
+   require SDL_image SDL_mixer libX11
+  category game
+ attribute x11
+    source $SOURCEFORGE_URL "sauerbraten/sauerbraten/2010_07_19/sauerbraten_$VERSION.tar.bz2"
+  homepage http://sauerbraten.org/
+  estimate 300
+      desc 'Cube 2: Sauerbraten first person shooter
+Cube 2: Sauerbraten is a free is a free multiplayer/singleplayer 
+first person shooter, built as a major redesign of the Cube FPS.'
+
+
+build(){
+make_install(){
+ local DL=$DESTDIR/usr/libexec/sauerbraten
+ local DS=$DESTDIR/usr/share/games/sauerbraten
+ local DB=$DESTDIR/usr/bin
+
+ cd ..
+ mkdir -p      $DL
+ mv bin_unix/* $DL
+ chmod 755     $DL/*
+
+ mkdir -p $DS; mv docs data packages server-init.cfg \
+          $DS
+ find     $DS -type d | escape_qs | xargs --max-lines=256 chmod 755 
+ find     $DS -type f | escape_qs | xargs --max-lines=256 chmod 644 
+
+ mkdir -p $DB
+ cp $SCRIPT_DIR/sauerbraten_{client,server} $DB
+ chmod 755 $DB/*
+}
+
+rm bin_unix/*
+cd src
+make "CXXFLAGS=$CXXFLAGS" &&
+make "CXXFLAGS=$CXXFLAGS" install &&
+make_install
+}
