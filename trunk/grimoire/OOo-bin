@@ -4,7 +4,7 @@ case $HOSTTYPE in
       *)
     stable 3.2.0_LinuxIntel_install_en-US  3.1.1_LinuxIntel_install_en-US ;;
 esac
-   require desktop-file-utils gnome-vfs jdk unzip zip
+   require desktop-file-utils gnome-vfs jdk rpmunpack unzip zip
   optional kdelibs-v3 '' '' for optional kde3 support
   optional kdelibs-v4 '' '' for optional kde4 support
   optional libsndfile '' '' for optional libsndfile support
@@ -13,7 +13,7 @@ esac
     source http://mirrors.ibiblio.org/pub/mirrors/openoffice/stable/${VERSION:0:5}/OOo_$VERSION.tar.gz
       vurl http://download.openoffice.org/
   homepage http://www.openoffice.org
-  estimate 70
+  estimate 100
       desc 'pre-compiled Open Source Office Suite
 OOo-bin (OpenOffice.org) provides an open source
 office suite that runs on all major platforms and
@@ -24,16 +24,15 @@ It can open M$ Office Documents.'
 build(){
 
  install_rpms(){
-  mkdir install
-  cd    install
+  mkdir -p $DESTDIR/etc
+  cd       $DESTDIR
   find $BUILD_DIR/RPMS{,/desktop-integration/*freedesktop-menus*} -maxdepth 1 -name \*.rpm |
   while  read;  do
    echo "---> Unpacking $REPLY"
-   rpmunpack < $REPLY  |  gzip -d  |  cpio -idm --no-absolute-filenames
+   rpmunpack < $REPLY | gzip -d | cpio -idm --no-absolute-filenames
   done
 
-  mkdir -p etc
-  ln -sf /opt/openoffice.org etc/openoffice.org
+  ln -sf /opt/openoffice.org $DESTDIR/etc/openoffice.org
 
   case $VERSION in
    2.2.1_LinuxIntel_install_en-US) \
@@ -42,17 +41,16 @@ build(){
     # rpmunpack misdetects gzip magic signature on 1st attempt.
     # It can not be directly piped to rpmunpack, unknown why.
     ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
-    rpmunpack < $AGAIN.rpm  | gzip -d | cpio -idm --no-absolute-filenames ;;
+    rpmunpack < $AGAIN.rpm | gzip -d | cpio -idm --no-absolute-filenames ;;
   esac
 
   chown -R root:root * 
-  find               * -type f | xargs --max-lines=64 chmod o-w
-  find               * -type d | xargs --max-lines=64 chmod 755
-  cp -av * $DESTDIR/
+  find * -type f | xargs --max-lines=64 chmod o-w
+  find * -type d | xargs --max-lines=64 chmod 755
  }
 
  add_mailcap(){
-  mkdir -p $DESTDIR/etc/
+  mkdir -p $DESTDIR/etc
   sed "s:^:application/:
        s:$:; openoffice.org -view %s:" $SCRIPT_DIR/mailcap |
   sort -u > $DESTDIR/etc/mailcap.OOo-bin
@@ -63,12 +61,11 @@ build(){
  add_mailcap
 }
 
-
 post_install(){
  default_post_install
- gtk-update-icon-cache -fqt /usr/share/icons/{gnome,hicolor,locolor}
- update-mime-database       /usr/share/mime
- sed "s/:\*\./ /"           /usr/share/mime/globs > /etc/mime.types
+# gtk-update-icon-cache -fqt /usr/share/icons/{gnome,hicolor,locolor}
+# update-mime-database       /usr/share/mime
+# sed "s/:\*\./ /"           /usr/share/mime/globs > /etc/mime.types
  update-desktop-database -q /usr/share/applications
  cat /etc/mailcap.* >       /etc/mailcap
 }
@@ -78,13 +75,4 @@ pre_remove(){
  then sed -i /openoffice.org/d /etc/mailcap
  fi
  default_pre_remove
-}
-
-post_remove(){
- update-mime-database        /usr/share/mime
- sed 's/:\*\./ /'            /usr/share/mime/globs > /etc/mime.types
- update-desktop-database  -q /usr/share/applications
- gtk-update-icon-cache  -fqt /usr/share/icons/{gnome,hicolor,locolor}
- # update-menus
- default_post_remove
 }
