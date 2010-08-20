@@ -41,7 +41,17 @@ fi
 
 build(){
  local  WHAT="$( echo "$SPELL" | cut -d '-' -f2  )"
- local WHERE=/usr/share/xml/docbook/$WHAT/$VERSION
+
+ # Adjusting install location to where kdelibs-v4 expects to find it.
+ # see kdelibs-4.5.0/cmake/modules/FindDocBookXML.cmake
+ # see kdelibs-4.5.0/cmake/modules/FindDocBookXSL.cmake
+
+ case $WHAT in
+  xml) WHAT=xml-dtd; local WHERE=/usr/share/xml/docbook/$WHAT-$VERSION ;;
+  xsl) WHAT=xsl;     local WHERE=/usr/share/xsl/docbook ;;
+    *)               local WHERE=/usr/share/xml/docbook/$WHAT/$VERSION ;;
+ esac
+
 
  if   [ $SPELL == docbook ]
  then echo "Profile $SPELL installed."; return
