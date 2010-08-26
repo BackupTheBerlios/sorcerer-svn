@@ -23,7 +23,7 @@ lilo_conf_update(){
   echo "	initrd		=	/boot/$REPLY/initrf"
   echo "	label		=	$REPLY"
   echo "	read-only"
-  echo "	restricted"
+  echo "	$1"
   echo
  }
 
@@ -39,7 +39,7 @@ lilo_conf_update(){
  cp $HEAD $CON
  cp $HEAD $FAS
 
- REPLY=fast img >> $FAS
+ REPLY=fast img restricted >> $FAS
 
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
  sort -gr |
@@ -47,7 +47,7 @@ lilo_conf_update(){
  while read REPLY; do
   ICX=$(($ICX+1))
   if [ $ICX -lt $LIM ]
-  then img
+  then img restricted
   else
    rm -fr /boot/$REPLY \
    /lib/modules/$REPLY \
@@ -56,7 +56,7 @@ lilo_conf_update(){
  done | tee -a $FAS >> $CON
 
  if   [ -f /boot/rescue/initrf ]
- then REPLY=rescue img | tee -a $FAS >> $CON
+ then REPLY=rescue img mandatory | tee -a $FAS >> $CON
  fi
 
  if   [ -f $TAIL ]
