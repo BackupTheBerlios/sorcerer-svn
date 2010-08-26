@@ -43,7 +43,7 @@ lilo_conf_update(){
 
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
  sort -gr |
- sed '\,/boot/fast,d; s:.*/::' |
+ sed '\,/boot/fast,d; \,/boot/rescue,d; s:.*/::' |
  while read REPLY; do
   ICX=$(($ICX+1))
   if [ $ICX -lt $LIM ]
@@ -54,6 +54,10 @@ lilo_conf_update(){
    /lib/modules/$REPLY.old
   fi
  done | tee -a $FAS >> $CON
+
+ if   [ -f /boot/rescue/initrf ]
+ then REPLY=rescue img | tee -a $FAS >> $CON
+ fi
 
  if   [ -f $TAIL ]
  then cat  $TAIL | tee -a $FAS >> $CON

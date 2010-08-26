@@ -100,14 +100,11 @@ initrf_update(){
 
  local       COMMON="$TEMPIF/common"
 
- if [ -d /lib.old ] && [ -n "$( find /lib.old -maxdepth 0 -not -empty )" ]
- then ldconfig
- fi
-
  every | cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 |
+ sed '\,rescue,d' |
  while read; do
   mkdir             $TEMPIF/boot/$REPLY
   mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
@@ -140,7 +137,9 @@ initrf_current(){
  [[ -f /etc/multipath.conf ]] && FILES+=' /etc/multipath.conf'
 
  IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | 
-        sed '\,/boot/fast,d' | sort -g | head -n1 | cut -f2 )
+        sed '\,/boot/fast,d
+             \,/boot/rescue,d' |
+        sort -g | head -n1 | cut -f2 )
  if [[ -z $IRF ]]; then return 1; fi
  OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
  if [[ -n $OLD ]]; then
