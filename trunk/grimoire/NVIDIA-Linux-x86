@@ -5,10 +5,6 @@
 # Due to the NVIDIA-Linux-x86 header files not providing
 # what xorg-server expects.
 
-# 185.18.14 probably has bugs
-# the ground textures do not show in warzone2100 with NVIDIA-Linux-x86 185.18.14
-# for warzone2100 try 180.60
-
     stable 256.44 195.36.24 195.36.15
    require MesaLib gtk+ mktemp
    require xorg-server
@@ -43,108 +39,6 @@ of /etc/X11/xorg.conf and add:
 Included is a sample config file that works with 2 monitors.
 /root/.sorcery/grimoire/NVIDIA-Linux-x86.d/xorg.conf'
 
-pre_build_old(){
-#default_pre_build
- BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
- cd  ..
- rm -fr                 $BUILD_DIR
- sh $SOURCE -x --target $BUILD_DIR
- chown -R root:root     $BUILD_DIR
-}
-
-build_old(){
- make_install(){
-  cd $BUILD_DIR/usr
-
-  GB="ltmain.sh - GNU libtool 1.5 (1.1220 2003/04/05 19:32:58)"
-  sed -i "s:__LIBGL_PATH__:/usr/lib:
-          s,__GENERATED_BY__,$GB," lib/libGL.la
-
-  case $HOSTTYPE in
-   x86_64)
-    /sbin/ldconfig -n lib{,32}{,/tls} X11R6/lib{,/modules/extensions}
-    ln -s libGL.so.1     lib32/libGL.so
-    ln -s libGLcore.so.1 lib32/libGLcore.so
-    ln -s libGL.so.1     lib32/tls/libGL.so
-    ln -s libGLcore.so.1 lib32/tls/libGLcore.so
-#    rm -f /usr/lib64/libGL.so*
-#    sed -i '\,/usr/lib64/libGL\.so,d' \
-#        $INSTALL_LOGS/MesaLib \
-#            $ELF_LOGS/MesaLib \
-#         $MD5SUM_LOGS/MesaLib
-    ;;
-   *) /sbin/ldconfig -n lib{,/tls} X11R6/lib{,/modules/extensions} ;;
-  esac
-
-  ln -s libGL.so.1     lib/libGL.so
-  ln -s libGLcore.so.1 lib/libGLcore.so
-  ln -s libGL.so.1     lib/tls/libGL.so
-  ln -s libGLcore.so.1 lib/tls/libGLcore.so
-
-  #if /lib/libc.so.6 | grep -q  "Thread-local storage"; then
-  #  cp -a lib/tls/*   lib; [[ -d lib32 ]] &&
-  #  cp -a lib32/tls/* lib32
-  #fi
-
-  rm -rf src
-
-  if    [  -f  share/doc/Copyrights  ]
-  then  mv     share/doc NVIDIA-Linux-x86
-        mkdir  share/doc
-        mv               NVIDIA-Linux-x86  \
-               share/doc
-  fi
-
-  cd $BUILD_DIR
-  mv           usr/include usr/nv
-  mkdir        usr/include
-  mv    usr/nv usr/include
-
-  mkdir                 usr/lib/nv
-  mv    usr/lib/libGL.* usr/lib/nv
-
-  find usr -type f | while read; do install -vD $REPLY $DESTDIR/$REPLY; done
-  find usr -type l | while read; do mv      -v  $REPLY $DESTDIR/$REPLY; done
-  mkdir -p           $DESTDIR/etc/ld.so.conf.d/
-  echo /usr/lib/nv > $DESTDIR/etc/ld.so.conf.d/head
-  rm -f $DESTDIR/usr/lib/xorg/modules/libwfb.*
-  rm -f $DESTDIR/usr/lib/xorg/modules/libglx.*
- }
-
- LVER=$( installed_version $( get_provider linux-kernel ) )
-
- if lsmod | grep -q nvidiafb; then rmmod nvidiafb; fi
- if lsmod | grep -q   rivafb; then rmmod   rivafb;  fi
-
- if [ -z "$LVER" ]; then LVER=$( uname -r ); fi
-
- cd $BUILD_DIR
- cd usr/src/nv
-
- rm -f makefile Makefile
-
- case $LVER in
-  2.4*) cp Makefile.nvidia Makefile ;;
-     *) cp Makefile.kbuild Makefile ;;
- esac
-
-  SM=/usr/src/linux/System.map
- SSC=suser-sanity-check
- RSC=rmmod-sanity-check
-
- sed -i "s/\$(shell uname -r)/$LVER/" Makefile
- sed -i "s:depmod:true:"              Makefile
- sed -i "s:modprobe:true:"            Makefile
- sed -i "s:$SSC $RSC:$SSC:"           Makefile
- sed -i "s:install $RSC:install:"     Makefile
- sed -i "s:rivafb-sanity-check nvidiafb-sanity-check::" Makefile
-
- make install CC=gcc \
-      IGNORE_CC_MISMATCH=1 \
-      IGNORE_XEN_PRESENCE=1 &&
- make_install
-}
-
 
 build(){
  fix_install(){
@@ -155,6 +49,8 @@ build(){
   mv       $DESTDIR/usr/lib/libGL.* $DESTDIR/usr/lib/nv
   mkdir -p           $DESTDIR/etc/ld.so.conf.d/
   echo /usr/lib/nv > $DESTDIR/etc/ld.so.conf.d/head
+  rm -f $DESTDIR/usr/lib/xorg/modules/libwfb.*
+  rm -f $DESTDIR/usr/lib/xorg/modules/libglx.*
   return 0
  }
 
