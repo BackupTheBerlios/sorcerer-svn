@@ -10,7 +10,9 @@ build(){
 zcat ${SOURCE[1]} | patch -p1 &&
 # Install libraries in /lib so they get included on initramfs
 # This is needed by, for example, multipathd
-sed -i 's:\$(prefix)/lib:/lib:' Makefile  &&
+sed -i "s:\$(prefix)/lib:${DESTDIR}/lib:" Makefile  &&
+sed -i "s:prefix=/usr:prefix=${DESTDIR}/usr:" Makefile &&
 make &&
-make prefix=$DESTDIR/usr install
+prepare_install &&
+make install
 }
