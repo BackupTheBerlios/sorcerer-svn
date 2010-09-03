@@ -1,3 +1,10 @@
+# Some dumb sources find /usr/lib/libreadline.a
+# and assume there is no /lib/libreadline.so.*
+# Not all of those dumb sources are capable of
+# compiling and linking with libreadline.a
+# such as lftp
+
+
     stable 6.1.002 6.1.001 6.1
 #     opts --disable-rpath
 # I wish --disable-rpath was obeyed
@@ -67,7 +74,14 @@ build(){
 #make    shared   &&
  make             &&
  make install DESTDIR=$DESTDIR &&
- move_ar_libs     &&
+#move_ar_libs     &&
  mkdir -p $DESTDIR/etc &&
  install -m 644 -o root -g root $SCRIPT_DIR/inputrc $DESTDIR/etc
+}
+
+current(){
+ case $VERSION in
+  6.1.002) [ -f /lib/libreadline.a ] ||
+           [ -f /lib64/libreadline.a ] ;;
+ esac
 }
