@@ -1,4 +1,5 @@
     stable kame-20100805-0 kame-20100803-0 kame-20100729-0 kame-20100720-0 kame-20100719-0 kame-20100712-0 kame-20100705-0
+  unstable event-20100903-0
    require grimoire
   category utility
  attribute archive_off solo sorcery
@@ -61,8 +62,17 @@ post_install(){
   generate_index   
  }
 
+ discard_obsolete_event_logs(){
+  case $VERSION in
+   event*) find ${EVENT_LOGS:-/var/log/sorcery/event} -mindepth 1 -type d |
+           escape_qs | xargs -r --max-lines=16 rm -r ;;
+  esac
+ }
+
+
  . /etc/sorcery/config
 
  discard_old_index
+ discard_obsolete_event_logs
  default_post_install
 }

@@ -1,23 +1,27 @@
-# 4.1.1 is available from
-# http://www1.mplayerhq.hu/MPlayer/releases/dvdnav/
-# 4.1.2 requires libdvdread 4.1.3 which does not compile
-# 0.1.10 fork bombs during compilation on x86_64 architecture
-
-    stable 0.1.10
-#   stable 4.1.2 0.1.10
+    stable 4.1.2 0.1.10
 case $HOSTTYPE in
 x86_64) attribute broke ;;
 esac
    require automake libdvdread
   category video
  attribute library x11
-#   source http://www1.mplayerhq.hu/MPlayer/releases/dvdnav/libdvdnav-$VERSION.tar.gz
-    source $SOURCEFORGE_URL dvd/libdvdnav/$VERSION/libdvdnav-$VERSION.tar.gz
+    source http://www1.mplayerhq.hu/MPlayer/releases/dvdnav/libdvdnav-$VERSION.tar.gz
+#   source $SOURCEFORGE_URL dvd/libdvdnav/$VERSION/libdvdnav-$VERSION.tar.gz
   homepage http://dvd.sourceforge.net
-  estimate 400
+  estimate 370
       desc 'library navigating DVDs'
 
+# build(){
+# ./autogen.sh
+# default_build
+# }
+
 build(){
-./autogen.sh
-default_build
+ mkdir bin
+ ln -s /usr/bin/aclocal bin/aclocal-1.11
+ ln -s /usr/bin/automake bin/automake-1.11
+ local  PATH="$PWD/bin:$PATH"
+ export PATH
+ autoreconf -if
+ default_build
 }

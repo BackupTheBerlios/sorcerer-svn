@@ -1,0 +1,20 @@
+    stable 2_6_1
+   require gcc-g++
+  category development
+ attribute library
+    source $SOURCEFORGE_URL tinyxml/tinyxml/${VERSION//_/.}/tinyxml_$VERSION.tar.gz
+  homepage http://www.grinninglizard.com/tinyxml/index.html
+      desc 'simple, small, C++ XML parser'
+
+build(){
+g++ $CXXFLAGS -Wall -Wno-unknown-pragmas -DPIC -fPIC -shared \
+-o libtinyxml.2.6.1 -Wl,-soname=libtinyxml.so.2 \
+tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+
+mkdir -p $DESTDIR/usr/{include,lib}
+install -m 644 tinystr.h $DESTDIR/usr/include
+install -m 644 tinyxml.h $DESTDIR/usr/include
+install -m 755 libtinyxml.2.6.1 $DESTDIR/usr/lib
+ln -s libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so.2
+ln -s libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so
+}

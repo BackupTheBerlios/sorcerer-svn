@@ -1,0 +1,18 @@
+    stable 1.2.0
+   require pygame
+  category educational game
+ attribute x11
+    source $SOURCEFORGE_URL omnitux/omnitux/v${VERSION:0:3}/omnitux-1.2.0.tar.bz2
+  homepage http://omnitux.sourceforge.net/index.en.php
+      desc '115M of educational activities'
+
+build(){
+chown -R root:root *
+chmod 755 omnitux.sh
+find bin data log -type d | escape_qs | xargs --max-lines=64 chmod 755
+find bin data log -type f | escape_qs | xargs --max-lines=64 chmod 644
+mkdir -p $DESTDIR/usr/{bin,share/omnitux}
+mv *     $DESTDIR/usr/share/omnitux
+echo -e "#!/bin/bash\ncd /usr/share/omnitux\n./omnitux.sh $@" > $DESTDIR/usr/bin/omnitux
+chmod 755 $DESTDIR/usr/bin/omnitux
+}

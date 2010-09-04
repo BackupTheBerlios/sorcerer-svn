@@ -27,6 +27,13 @@ what(){
  echo /media/root
 }
 
+rmnod(){
+ find $1 -not -type d |
+ xargs -r --max-lines=256 stat --printf "%t\t%n\n" |
+ grep "^f[0-9abcde]" | cut -f2 |
+ xargs -r --max-lines=256 rm -f
+}
+
 used(){ what | sed '\,^/etc/mtab,d' | dirs | sort -u; }
 
 construct(){
@@ -40,11 +47,11 @@ construct(){
  then return
  fi
 
- rm    -rf     $MR/etc/coldplug/*   /etc/coldplug/*
- mkdir -pm 700 $MR/etc/coldplug     /etc/coldplug
- mkdir -p      $MR/etc/coldplug/dev /etc/coldplug/dev
- cp    -a      $MR/dev/* $MR/etc/coldplug/dev/
- cp    -a      $MR/dev/*    /etc/coldplug/dev/
+ rm    -fr     $MR/etc/coldplug/*          /etc/coldplug/*
+ mkdir -pm 700 $MR/etc/coldplug/dev        /etc/coldplug/dev
+ cp    -a      $MR/dev/*                   /etc/coldplug/dev/
+ rmnod            /etc/coldplug/dev
+ cp    -a         /etc/coldplug/dev/*   $MR/etc/coldplug/dev/
 
  sed 's: .*::' $MR/proc/modules | tac |
  tee $MR/etc/coldplug/modules \
