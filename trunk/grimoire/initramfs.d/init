@@ -30,7 +30,8 @@ what(){
 rmnod(){
  find $1 -not -type d |
  xargs -r --max-lines=256 stat --printf "%t\t%n\n" |
- grep "^f[0-9abcde]" | cut -f2 |
+#grep "^f[0-9abcde]" | cut -f2 |
+ sed -n "s:^f[0-9abcde]\t::p" |
  xargs -r --max-lines=256 rm -f
 }
 
@@ -53,7 +54,8 @@ construct(){
  rmnod            /etc/coldplug/dev
  cp    -a         /etc/coldplug/dev/*   $MR/etc/coldplug/dev/
 
- sed 's: .*::' $MR/proc/modules | tac |
+#sed 's: .*::' $MR/proc/modules | tac |
+ sed -n 's: .*::; 1! G; $ p; h' |
  tee $MR/etc/coldplug/modules \
       > /etc/coldplug/modules
  echo > /etc/coldplug/use
