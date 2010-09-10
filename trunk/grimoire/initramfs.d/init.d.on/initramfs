@@ -150,11 +150,8 @@ initrf_current(){
 }
 
 
-begin(){
- if   initrf_present &&
-      initrf_current
- then return
- elif log_warning_msg "$NAME updating"; initrf_update
+stop(){
+ if   log_warning_msg "$NAME updating"; initrf_update
  then log_success_msg "$NAME updated"
  else log_failure_msg "$NAME failed"
   if   [[ -n $1 ]]
@@ -163,17 +160,25 @@ begin(){
  fi
 }
 
-main(){
- if ! [[ -d /boot ]] ||
-      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
- then return
+status(){
+ if   log_warning_msg "$NAME checking"; initrf_present && initrf_current
+ then log_success_msg "$NAME checked current"
+ else log_warning_msg "$NAME checked old"; return 1
  fi
- log_warning_msg "$NAME checking"; begin $1
- log_success_msg "$NAME checked"
 }
+
+help(){ echo "Usage: $0 {stop|status|reload}"; }
+
+if ! [[ -d /boot ]] ||
+     [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
+then log_failure_msg "$NAME unknown boot method"; return 1
+fi
 
 export LC_ALL=C
 case $1 in
- stop) main s ;;
-    *) main ;;
+   help) help             ;;
+ status) status           ;;
+  force)           stop   ;;
+   stop) status || stop s ;;
+      *) status || stop   ;;
 esac
