@@ -1,15 +1,19 @@
-# Hmm, what files does it write/modify?
-# not a DESTDIR compatibile spell?
-
     stable 20091107
    require texlive
   category documentation
- attribute console broke
+ attribute console
   homepage http://www.tug.org/texlive/
-   protect /usr/texmf /usr/texmf-dist
       desc 'Updates texmf indexes'
 
 build(){
-if [ -d /usr/texmf      ]; then mktexlsr /usr/texmf;      fi &&
-if [ -d /usr/texmf-dist ]; then mktexlsr /usr/texmf-dist; fi
+ do_save(){
+  if [ -d   "$1" ]; then
+   mktexlsr "$1" &&
+   mkdir -p     "$DESTDIR/$1" &&
+   mv "$1/ls-R" "$DESTDIR/$1"
+  fi
+ }
+
+ do_save /usr/texmf
+ do_save /usr/texmf-dist
 }

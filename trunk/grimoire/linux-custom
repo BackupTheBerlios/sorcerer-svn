@@ -10,8 +10,8 @@ esac
    protect /boot
    protect /lib/modules
   eprovide linux-kernel
-      desc "linux-custom will compile and install a linux kernel, however
-the SA is responsible for creating the .config
+      desc "compile and install a linux kernel using custom .config
+The SA is responsible for creating the .config
 The file $CONFIG_LOGS/$SPELL/linux-config
 should contain the config file
 otherwise the source for $SPELL must be downloaded
@@ -19,9 +19,10 @@ prior to casting $SPELL in order to create the config file
 using make menuconfig.
 
 Warning:
-Unless you are a system administrator who has prior successful
-experience with creating .config files for linux kernel configuration
-then never cast this spell because the box will likely become unbootable
+Only system administrators with prior successful
+experience at creating .config files for linux kernel configuration
+should cast this spell.
+A mistake with configuration can create a box that is unbootable.
 
 Warning:
 The SA must set the version for this spell using
@@ -31,26 +32,104 @@ prior to leeching and prior to casting this spell"
 configure(){
  local CUR="$CONFIG_LOGS/$SPELL/linux-config"
  local OLD="$CONFIG_LOGS/$SPELL/linux-config.old"
+ local USE
 
- copy(){ if [[ -f $1 ]]; then cp "$1" "$2"; chmod 600 "$2"; fi; }
+ use_what(){
+    if [ -f "$CUR" ]; then USE=$CUR
+  elif [ -f "$OLD" ]; then USE=$OLD
+                      else USE="still need .config"
+    fi
+ }
 
- if ! [[ -f $CUR ]]; then
-  if ! sources_cached "$SPELL"; then
-   echo "Sources must be download before configuration."
+ msg(){ dialog --title "$SPELL" --stdout --timeout 60 --msgbox "$1" 0 0; }
+ must_provide(){ msg "Providing a .config file for linux-custom is mandatory."; }
+
+ missing_config(){
+  if   ! [ -f $OLD ] && ! [ -f $CUR ]
+  then must_provide; true
+  else false
   fi
+ }
+
+ fselect(){
+  local WHERE
+    if [ -d  /etc/$SPELL ]
+  then WHERE=/etc/$SPELL
+  elif [ -d  /usr/src/linux ]
+  then WHERE=/usr/src/linux
+  else WHERE=/
+  fi
+
+  dialog --title "$SPELL .config file selection menu" --stdout \
+         --timeout 60 --fselect "$WHERE" 0 0
+ }
+
+ conf_import(){
+  local REPLY
+
+  REPLY="$( fselect )"
+   if [ -f "$REPLY" ] && grep -q "CONFIG_" $REPLY; then
+    cp "$REPLY" "$CUR"
+    store_in_etc
+    msg "$REPLY successfully imported"
+   else
+    msg "$REPLY does not appear to be a linux configuration file"
+  fi
+ }
+
+ conf_menuconfig(){
+
+  store_in_etc(){
+   mkdir -pm 755 /etc/$SPELL
+   if [ -f "$CUR" ]
+   then cp "$CUR" "/etc/$SPELL/linux-$VERSION-$( date +%Y%m%d%H%M%S )"
+   fi
+  }
+
+  rm_build_dir(){
+   if   [[ -n   $BUILD_DIR ]] &&
+        [[ -d   $BUILD_DIR ]]
+   then rm -fr "$BUILD_DIR"
+   fi
+  }
+
+  copy(){ if [[ -f $1 ]]; then cp "$1" "$2"; chmod 600 "$2"; fi; }
+
+  use_what
+  if ! sources_cached "$SPELL"; then
+   msg "Sources must be download before configuration."; 
+   leech $SPELL
+   return
+  fi
+
   pre_build           &&
   optimize            &&
-  copy "$OLD" .config &&
+  copy "$USE" .config &&
   make menuconfig     &&
-  cp         .config $CUR
-  if   [[ -n   $BUILD_DIR ]] &&
-       [[ -d   $BUILD_DIR ]]
-  then rm -fr "$BUILD_DIR"
-  fi
-  clear
-  echo "Linux kernel configuration complete."
+  cp   .config $CUR   &&
+  store_in_etc        &&
+  rm_build_dir        &&
+  msg "Linux kernel configuration complete." &&
   cd /tmp
- fi
+ }
+
+ conf_menu(){
+  use_what
+  dialog --title "$SPELL configuration menu" --stdout \
+         --ok-label $"Select" --cancel-label $"Done" \
+         --timeout 60 --menu "Using: $USE" 0 0 0 \
+         "Import" "an existing .config" \
+         "Make"   "menuconfig"
+ }
+
+ while missing_config; do
+  while  REPLY="$( conf_menu )"; do
+   case $REPLY in
+    Import) conf_import ;;
+    Make)   conf_menuconfig ;;
+   esac
+  done
+ done
 }
 
 build(){
@@ -152,5 +231,6 @@ post_install(){
  pipe_queue "$CAST_QUEUE" com
 
  rm -fr /boot/fast
+ rm -fr $CONFIG_LOGS/$SPELL/sorcery
  true
 }

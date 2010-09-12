@@ -1,7 +1,7 @@
 #!/bin/dash
 
 # /init
-# Copyright 2008-2009 Kyle Sallee All rights reserved
+# Copyright 2008-2010 Kyle Sallee All rights reserved
 # /init executes only from the initramfs as PID 1.
 # For use with Sorcerer only
 
@@ -29,8 +29,7 @@ what(){
 
 rmnod(){
  find $1 -not -type d |
- xargs -r --max-lines=256 stat --printf "%t\t%n\n" |
-#grep "^f[0-9abcde]" | cut -f2 |
+ xargs -r --max-lines=256 stat --printf "%t\t%n\n" 2>/dev/null |
  sed -n "s:^f[0-9abcde]\t::p" |
  xargs -r --max-lines=256 rm -f
 }
@@ -54,8 +53,7 @@ construct(){
  rmnod            /etc/coldplug/dev
  cp    -a         /etc/coldplug/dev/*   $MR/etc/coldplug/dev/
 
-#sed 's: .*::' $MR/proc/modules | tac |
- sed -n 's: .*::; 1! G; $ p; h' |
+ sed -n 's: .*::; 1! G; $ p; h' $MR/proc/modules |
  tee $MR/etc/coldplug/modules \
       > /etc/coldplug/modules
  echo > /etc/coldplug/use

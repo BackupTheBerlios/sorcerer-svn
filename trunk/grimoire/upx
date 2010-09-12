@@ -1,24 +1,30 @@
-    stable 3.05 3.04 3.03 3.02 3.01 3.00
+    stable 3.07 3.05 3.04 3.03 3.02 3.01 3.00
    require gcc-g++ ucl zlib
   category archive
  attribute library
     source http://upx.sourceforge.net/download/upx-$VERSION-src.tar.bz2
   homepage http://upx.sourceforge.net/
+  estimate 60
       desc 'an executable compressor'
 
 build(){
+ make_install(){
+  mkdir -p $DESTDIR/usr/man/man1
+  mkdir -p $DESTDIR/usr/bin
+  if   [ -f upx ]
+  then install -m 755 -o root -g root upx     $DESTDIR/usr/bin/
+  else install -m 755 -o root -g root upx.out $DESTDIR/usr/bin/upx
+  fi
+  install -m 644 -o root -g root ../doc/upx.1 $DESTDIR/usr/man/man1
+ }
+
  cd src
  sed -i "s:-march=i386 -mcpu=i686:$CXXFLAGS:
          s:-O2::" Makefile*
 
  make target=linux UCLDIR=/usr &&
- cd ../doc       &&
- make            &&
- mkdir -p $DESTDIR/usr/bin &&
- cd ../src       &&
- if   [ -f upx ]
- then install -m 755 -o root -g root upx     $DESTDIR/usr/bin/
- else install -m 755 -o root -g root upx.out $DESTDIR/usr/bin/upx
- fi &&
- install -m 644 -o root -g root ../doc/upx.1 $DESTDIR/usr/man/man1
+ cd ../doc &&
+ make      &&
+ cd ../src &&
+ make_install
 }

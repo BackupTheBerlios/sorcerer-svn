@@ -1,0 +1,24 @@
+    stable 0.3
+   require SDL_image SDL_mixer gcc-g++
+  category game
+ attribute x11
+    source $SOURCEFORGE_URL freesynd/freesynd/freesynd-$VERSION/freesynd-$VERSION.tar.gz
+  homepage http://freesynd.sourceforge.net/
+  estimate 90
+      desc 'reimplementation of syndicate style games'
+
+build(){
+rm -f bin/freesynd
+cd src
+make &&
+mkdir -p $DESTDIR/usr/{bin,libexec,share/freesynd} &&
+chmod 755 freesynd &&
+mv        freesynd $DESTDIR/usr/libexec &&
+echo -e "#!/bin/bash\ncd /usr/share/freesynd\n/usr/libexec/freesynd $@" \
+        > $DESTDIR/usr/bin/freesynd &&
+chmod 755 $DESTDIR/usr/bin/freesynd &&
+cd ../bin/ &&
+find data -type d | xargs chmod 755 &&
+find data -type f | xargs chmod 644 &&
+mv   data $DESTDIR/usr/share/freesynd/
+}
