@@ -14,8 +14,7 @@ ionice -c2 -n7 -p $$ &>/dev/null
 
 SKIP='\:  /etc/init.d/:p;\:  /etc/:d'
 WHAT='Unexpected md5sum'
- WHY="${TAB}Failed md5sum check"
- LOG='Cast Reason'
+ LOG='Cast MD5'
  EXT=$RANDOM$RANDOM$RANDOM
  OLD=/tmp/md5sums.old.$EXT
  MIS=/tmp/md5sums.mis.$EXT
@@ -30,13 +29,19 @@ sums(){ tsum | xargs -r --max-lines=1024 cat
 name(){ cut -b 35-; }
  now(){ name | sort -u | escape_qs | xargs -r --max-lines=1024 md5sum | tee $CHK; }
 from(){ while read; do grep -rx "$REPLY" $INSTALL_LOGS; done | sed "s:$INSTALL_LOGS/::"; }
-peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee  /dev/stderr | cut -f2 | sort -u; }
- why(){ echo 1>&2; while read R; do inc_event_log "$R" "$LOG" "$WHY"; echo "$R"; done; }
+peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee /dev/stderr | cut -f2 | sort -u; }
 this(){ pipe_queue "$CAST_QUEUE" com; }
 miss(){ sed 's/^md5sum: //;s/: No such file or directory$//p;d' $MIS; }
 prepare(){ echo -en "\r0%"; }
 percent(){ SOLD=$( finfo -s $OLD ); SCHK=$( finfo -s $CHK );
            (( PER = SCHK * 100 / $SOLD )); echo -en "\r$PER%"; }
+
+why(){
+ echo 1>&2; while read R; do
+  event "$R" "$( installed_version "$R" )" "$LOG"
+  echo "$R"
+ done
+ }
 
 
 check(){
