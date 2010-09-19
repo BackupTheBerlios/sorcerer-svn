@@ -11,9 +11,10 @@
 
 . /lib/lsb/init-functions
 
+LILO=/etc/lilo.conf
 NAME=/etc/lilo/conf
- CON=/etc/lilo/conf
- FAS=/etc/lilo/fast
+CONF=/etc/lilo/conf
+FAST=/etc/lilo/fast
 HEAD=/etc/lilo/head
 TAIL=/etc/lilo/tail
 
@@ -36,10 +37,10 @@ lilo_conf_update(){
  then LIM=4
  fi
 
- cp $HEAD $CON
- cp $HEAD $FAS
+ cp $HEAD $CONF
+ cp $HEAD $FAST
 
- REPLY=fast img restricted >> $FAS
+ REPLY=fast img restricted >> $FAST
 
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
  sort -gr |
@@ -53,30 +54,38 @@ lilo_conf_update(){
    /lib/modules/$REPLY \
    /lib/modules/$REPLY.old
   fi
- done | tee -a $FAS >> $CON
+ done | tee -a $FAST >> $CONF
 
  if   [ -f /boot/rescue/initrf ]
- then REPLY=rescue img mandatory | tee -a $FAS >> $CON
+ then REPLY=rescue img mandatory | tee -a $FAST >> $CONF
  fi
 
  if   [ -f $TAIL ]
- then cat  $TAIL | tee -a $FAS >> $CON
+ then cat  $TAIL | tee -a $FAST >> $CONF
+ fi
+
+ if ! [ -h  $LILO ] ||
+    ! [ -f  $LILO ]
+ then rm -f $LILO; ln -s lilo/conf $LILO
  fi
 
  if [ -x /etc/init.d/initramfs ]
  then    /etc/init.d/initramfs
- else /sbin/lilo -P ignore -C $CON
+ else /sbin/lilo -P ignore -C $CONF
  fi
 }
 
 both(){
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%P\n'
- sed 's:#.*::;s: ::g;s:\t::g;s:image=/boot/::p;d' $CON
+ sed 's:#.*::;s: ::g;s:\t::g;s:image=/boot/::p;d' $CONF
 }
 
 current(){ 
- [ $CON -nt $HEAD ] &&
- [ $CON -nt $TAIL ] &&
+ [       -h  $LILO ] &&
+ [       -f  $LILO ] &&
+ [       -f  $CONF ] &&
+ [ $CONF -nt $HEAD ] &&
+ [ $CONF -nt $TAIL ] &&
  ! both | sed '\,fast/linux,d' | sort | uniq -u | grep -q .
 }
 

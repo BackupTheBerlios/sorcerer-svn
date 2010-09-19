@@ -2,8 +2,54 @@
 # isdn4k-utils.v3.2p1.tar.bz2  	5116 KB  	08/01/2002  	12:00:00 AM
 # No new source releases since 2002
 # Probably does not compile with current versions of gcc.
+# Is isdn4k-utils even usable anymore?
+
+
+# capi20 has libtool created fork bomb.
+# capifax  has compile error
+# capiinfo has compile error
+# capiinit has compile error
+# act2000  has compile error
+# eicon    has compile error
+# ipppd    has compile error
+# isdnlog  has compile error
+# isdnlog/client has compile error
+# now assuming all of isdnlog/* fails or would be useless alone
+# rcapid   has compile error
+# hisax    has install error
+# vbox     installs improperly
 
     stable v3.2p1 v3.1pre1
+  optional linuxdoc-tools --with-FAQ  '' frequently asked questions about isdn4linux
+# optional tcl            --with-vbox '' answering machine/voice mailbox
+
+#   switch  act2000                --with-act2000 '' setup utility for the act2000 driver
+    switch  avmb1                  --with-avmb1 '' setup utility for the avmb1 driver
+#   switch  capi20                 --with-capi20 '' needed by rcapid
+#   switch  capifax                --with-capifax ''  faxing via capi
+#   switch  capiinfo               --with-capiinfo '' needed by rcapid
+#   switch  capiinit               --with-capiinit '' needed by avmb1
+    switch  divertctrl             --with-divertctrl '' setup utility for dss1 diversion services
+#   switch  doc                    --with-doc '' documentation for isdn4linux
+#   switch  eicon                  --with-eicon '' setup utility for the eicon driver
+    switch  eurofile               --with-eurofile '' implementation of eurofile transfer protocol
+#   switch  hisax                  --with-hisax '' setup utility for the HiSax driver
+    switch  icn                    --with-icn '' setup utility for the icn driver
+    switch  imon                   --with-imon '' ncurses based utility for monitoring ISDN-activities
+#   switch  ipppd                  --with-ipppd '' daemon need for syncPPP and MPP
+    switch  ipppstats              --with-ipppstats '' utility for showing syncPPP statistics
+    switch  iprofd                 --with-iprofd '' "daemon for realizing AT&W0 on ttyI"
+    switch  isdnctrl               --with-isdnctrl '' general link-level setup utility
+#   switch  isdnlog                --with-isdnlog '' set of utilities for connection logging
+#   switch  isdnlog/client         --with-isdnlog/client '' for use with isdnlog
+#   switch  isdnlog/tools/cdb      --with-isdnlog/tools/cdb '' for use with isdnlog
+#   switch  isdnlog/tools/dest     --with-isdnlog/tools/dest '' for use with isdnlog
+#   switch  isdnlog/tools/telrate  --with-isdnlog/tools/telrate '' for use with isdnlog
+#   switch  isdnlog/tools/zone     --with-isdnlog/tools/zone '' for use with isdnlog
+    switch  loop                   --with-loop '' tools for the loopback isdn device
+    switch  pcbit                  --with-pcbit '' setup utility for the pcbit driver
+#   switch  rcapid                 --with-rcapid '' remote CAPI server for use with avmb1 cards
+
   category network
  attribute console
   homepage http://www.isdn4linux.org/
@@ -17,10 +63,12 @@
 isdn4linux is a set of kernel modules which are part of the Linux kernel.
 It consists of the main module isdn and the actual hardware driver that
 control some specific card.In addition, the package isdn4k-utils
-contains utilities to make use of ISDN specific features.'
+contains utilities to make use of ISDN specific features.
+
+The source is so old and broke it might not be of any use.'
 
 
-configure(){
+configure_old(){
  local CUR="$CONFIG_LOGS/$SPELL/isdn4k-utils-config"
  local OLD="$CONFIG_LOGS/$SPELL/isdn4k-utils-config.old"
 
@@ -34,7 +82,7 @@ configure(){
   pre_build &&
   optimize  &&
   copy "$OLD" .config &&
-  make         config &&
+  make     menuconfig &&
   cp          .config  $CUR
   if   [  -n  "$BUILD_DIR" ] &&
        [  -d  "$BUILD_DIR" ]
@@ -46,7 +94,7 @@ configure(){
  fi
 }
 
-build(){
+build_old(){
  restore_linux_configs(){
   local CUR="$CONFIG_LOGS/$SPELL/isdn4k-utils-config"
   local OLD="$CONFIG_LOGS/$SPELL/isdn4k-utils-config.old"
@@ -65,4 +113,29 @@ build(){
 
  restore_linux_configs
  make_install
+}
+
+
+build(){
+ ind(){ echo "Entering directory: $PWD/$1"; }
+
+ configure_in(){ ind $1; cd $1; sh ./configure --prefix=/usr  && cd $OLDPWD; }
+ make_in(){      ind $1; cd $1; make                          && cd $OLDPWD; }
+ install_in(){   ind $1; cd $1; make install DESTDIR=$DESTDIR && cd $OLDPWD; }
+
+
+ if   spell_installed $( get_provider tcl ); then
+  TCL_VERSION=$( installed_version $( get_provider tcl ) )
+  TCL_VERSION="${TCL_VERSION:0:3}"
+  sed -i "s:tcl8\.0:tcl$TCL_VERSION:" vbox/configure
+ fi
+
+ local DIRS="doc"
+ spell_installed linuxdoc-tools && DIRS+=" FAQ"
+
+ for DIR in $OPTS; do DIRS+=" ${DIR/--with-/}";       done
+ for DIR in $DIRS; do configure_in $DIR || return 1 ; done &&
+ for DIR in $DIRS; do make_in      $DIR || return 1 ; done &&
+ mkdir -p $DESTDIR/{bin,etc,lib,sbin,usr/{bin,lib,sbin}}   &&
+ for DIR in $DIRS; do install_in   $DIR || return 1 ; done
 }
