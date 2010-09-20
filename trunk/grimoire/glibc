@@ -102,11 +102,9 @@ build(){ (
 #export PATH="/opt/binutils/2.18/bin:$PATH"
 #patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
 #patch -p1 < $SCRIPT_DIR/glibc-2.7-i586-memcpy_chk.patch
- mv glibc-libidn-* libidn
+#mv glibc-libidn-* libidn
  KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
-   if (( KVER >= 2630 )); then opts --enable-kernel=2.6.30
- elif (( KVER >= 2624 )); then opts --enable-kernel=2.6.24
-   fi
+ if (( KVER >= 2630 )); then opts --enable-kernel=2.6.30; fi
 
  LC_ALL=C grep -q /bin/pwd configure && sed -i 's:/bin/pwd:pwd:g' configure
 
@@ -133,12 +131,13 @@ build(){ (
 post_install(){
  ldconfig; rm -fr "${OLD_CACHE:-/var/cache/old}"
  ldconfig
- default_post_install
-          get_provider  nss_ldap |
- pipe     show_installed         |
- LC_ALL=C sort                   |
-          uniq -d                |
+          get_provider nss_ldap      |
+ pipe     get_provider glibc-locales |
+ pipe     show_installed             |
+ LC_ALL=C sort                       |
+          uniq -d                    |
           pipe_queue $CAST_QUEUE com
+
  /sbin/init u
  true
 }
