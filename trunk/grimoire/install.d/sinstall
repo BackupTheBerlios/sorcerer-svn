@@ -119,10 +119,10 @@ boot_dev_check(){
  if   [ "${PDEVICE[$1]:0:12}" == /dev/mapper/ ]; then
        PMOUNT[$1]=
   PFILESYSTEM[$1]=
-  $DIALOG --msgbox "/boot must not be a mapped device" 8 50
+  $DIALOG --msgbox $"/boot must not be a mapped device" 8 50
  elif ! [ "${PFILESYSTEM[$1]}" == ext2 ]; then
   PFILESYSTEM[$1]=ext2
-  $DIALOG --msgbox "/boot must be ext2" 8 50
+  $DIALOG --msgbox $"/boot must be ext2" 8 50
  fi
 }
 
@@ -139,6 +139,7 @@ get_filesystem(){
     XFS="XFS              journaling file system"
  REISER="Reiserfs         journaling file system"
    SWAP="Swap"
+   BOOT=$"Reiserfs XFS and BTRFS can be selected for / after /boot is defined."
 
  case "${PMOUNT[$1]}" in
   /boot) DEFAULT=ext2 ; echo ext2; return ;;
@@ -146,12 +147,22 @@ get_filesystem(){
       *) DEFAULT=ext4 ;;
  esac
 
- $DIALOG \
- --title $"Filesystem Selection Menu" \
- --default-item "$DEFAULT" \
- --menu $"Please select a filesystem" 0 0 0 \
- ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" \
- jfs "$JFS"  reiserfs "$REISER" xfs "$XFS" swap "$SWAP" btrfs "$BTRFS"
+ if ! [ / == "${PMOUNT[$1]}" ] || boot_device | grep -q .
+ then
+  $DIALOG \
+  --title $"File System Selection Menu" \
+  --default-item "$DEFAULT" \
+  --menu $"Please select a filesystem" 0 0 0 \
+  ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" jfs "$JFS" swap "$SWAP" \
+  reiserfs "$REISER" xfs "$XFS" btrfs "$BTRFS"
+ else
+  msgbox "$BOOT"
+  $DIALOG \
+  --title $"File System Selection Menu" \
+  --default-item "$DEFAULT" \
+  --menu $"Please select a filesystem" 0 0 0 \
+  ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" jfs "$JFS" swap "$SWAP"
+ fi
 }
 
 
@@ -211,16 +222,21 @@ list_swaps(){
  done
 }
 
+set_puuid(){
+ if ! [[ -n  "${PUUID[$1]}" ]]; then
+  pvcreate "${PDEVICE[$1]}" &>/dev/null
+  case "${PFILESYSTEM[$1]}" in
+   btrfs) $PUUID[$1]="$( btrfs-show "${PDEVICE[$1]}" | sed 's/.*uuid: //p;d' )" ;;
+       *) $PUUID[$1]="$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )" ;;
+  esac
+ fi
+}
+
 fstab_line(){
  if   [[   ${PFILESYSTEM[$1]} == swap ]] || [[ -n $2 ]]
  then echo -n "${PDEVICE[$1]}${TAB}"
  else
-  if ! [[ -n   ${PUUID[$1]} ]];then
-   pvcreate "${PDEVICE[$1]}" &>/dev/null
-   PUUID[$1]=$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )
-  else
-   PUUID[$1]=$( blkid ${PDEVICE[$1]} 2>/dev/null | cut -d '"' -f2 )
-  fi
+  set_puuid $1
   echo -n "UUID=${PUUID[$1]}${TAB}"
  fi
  echo -n "${PMOUNT[$1]:-none} "
@@ -249,18 +265,16 @@ make_bootloader_conf(){
 
  get_bb
 
-# PUUID might not be assigned, although device does have UUID
-#echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
-
  # To update /dev/disk/by-uuid/
  /etc/init.d/udevtrigger start
 
- UUID=$( blkid ${PDEVICE[$BB]} 2>/dev/null | cut -d '"' -f2 )
-echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/$UUID" >> $BL_CONF
+ set_puuid $BB
+
+ echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
 
 # The UUID= notation works on lilo 22.8's command line
 # but when properly written in lilo's configuration file.
-#echo "boot${TAB}${TAB}${TAB}=${TAB}\"UUID=$UUID\"" >> $BL_CONF
+#echo "boot${TAB}${TAB}${TAB}=${TAB}\"UUID=${PUUID[$BB]}\"" >> $BL_CONF
 
  BBDEV=${PDEVICE[$BB]}
 
@@ -341,14 +355,13 @@ transfer_arch(){
  if ! xz -cd;                  then echo "$ED" >> /tmp/terror; fi |
  if ! tar -C $TARGET -ixvpf -; then echo "$ET" >> /tmp/terror; fi
 
- cp /tmp/fstab > $TARGET/etc/fstab
-
  if ! [ -f /tmp/terror ]; then
   read -n 1 -t 900 -p "Press space to continue."
   $DIALOG --msgbox $"Files transferred." 8 50
  else terror_retry
  fi
- ARCH_DONE=true
+
+ cp /tmp/fstab > $TARGET/etc/fstab
 }
 
 
@@ -667,6 +680,15 @@ root_device(){
  done
 }
 
+boot_device(){
+ for (( CX=0; CX<MP; CX++ )); do
+  if   [ /boot == "${PMOUNT[$CX]}" ]
+  then echo      "${PDEVICE[$CX]}"; break
+  fi
+ done
+}
+
+
 empty_entry(){
 #    PDEVICE[$1]=
 #      PUUID[$1]=
@@ -908,7 +930,7 @@ filesystem_table_load(){
  for PART in $( list_part ); do
 
       PDEVICE[$CX]="$PART"
-        PUUID[$CX]=$( blkid $PART 2>/dev/null | cut -d '"' -f2 )
+    set_puuid $CX
   PFILESYSTEM[$CX]="$( installed_fs $PART )"
      POPTIONS[$CX]="defaults,noatime"
         PDUMP[$CX]=0
@@ -1172,14 +1194,15 @@ After each shutdown content of encrypted swaps become unencryptable."
 boot_partition_warning(){
 
  $DIALOG --msgbox \
-'A dedicated ext2 /boot partition of 1G is required only:
+'A dedicated /boot partition with ext2 file system
+of size 2G is required when
+any of these conditions are true:
 
-1. On old i586 Hardware with broken BIOS
+1. On old 80586 with broken BIOS
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
-4. When / is a LVM2 logical volume that is also LUKS encrypted.
 5. When / is a software RAID.
-6. When / is an XFS filesystem' 20 75
+6. When / is a XFS, BTRFS, or Reiserfs file system' 20 75
 }
 
 
