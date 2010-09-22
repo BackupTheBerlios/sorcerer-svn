@@ -118,8 +118,9 @@ get_filesystem_assumptions(){
  get_mkfs        $1
  get_def_options $1
  get_def_order   $1
- get_def_dump    $1; [ -z "${PMOUNT[$1]}" ] ||
+ get_def_dump    $1; [ -n "${PMOUNT[$1]}" ] ||
  get_def_mount   $1
+ get_def_feature $1
 }
 
 
@@ -132,7 +133,7 @@ boot_dev_check(){
   $DIALOG --msgbox $"/boot must not be a mapped device" 8 50
  elif ! [ "${PFILESYSTEM[$1]}" == ext2 ]; then
   PFILESYSTEM[$1]=ext2
-  get_filesystem_assumptions
+  get_filesystem_assumptions $1
   $DIALOG --msgbox $"/boot must be ext2" 8 50
  fi
 }
@@ -145,7 +146,7 @@ get_filesystem(){
   BTRFS=$"B Tree Reversible           file system experimental"
    EXT2=$"Second Extended             file system"
    EXT3=$"Second Extended  journaling file system"
-   EXT4=$"Second Extended  journaling filesystem with 64 bit scalability"
+   EXT4=$"Second Extended  journaling file system with 64 bit scalability"
     JFS=$"JFS              journaling file system"
     XFS=$"XFS              journaling file system"
  REISER=$"Reiserfs         journaling file system"
@@ -154,7 +155,7 @@ get_filesystem(){
  local BOOT HELP TITLE FS
 
   BOOT=$"Reiserfs XFS and BTRFS can be selected for / after /boot is defined."
-  HELP=$"Please select a filesystem"
+  HELP=$"Please select a file system"
  TITLE=$"File System Selection Menu"
 
  case "${PMOUNT[$1]}" in
@@ -209,6 +210,7 @@ get_def_mount(){
  local FS="${PFILESYSTEM[$1]}"
  local MOUNT
  local ASK="$2"
+ local CX
 
  for ((CX=0; CX<$MP; CX++)); do
   case "${PMOUNT[$CX]}" in
@@ -270,8 +272,8 @@ get_puuid(){
  from_btrfs(){ btrfs-show "${PDEVICE[$1]}" | sed 's/.*uuid: //p;d'; }
 
  case "${PFILESYSTEM[$1]}" in
-  btrfs)       PUUID[$1]="$( from_btrfs )" ;;
-      *)       PUUID[$1]="$( from_blkid )" ;;
+  btrfs)       PUUID[$1]="$( from_btrfs $1 )" ;;
+      *)       PUUID[$1]="$( from_blkid $1 )" ;;
  esac
 }
 
@@ -515,7 +517,8 @@ get_password(){
  local FIRST_DEV=$"Please first set device."
  local FIRST_FIL=$"Please first set file system type."
  local FIRST_MNT=$"Please first set mount point."
- local  NOT_BOOT=$"/boot can not be encrypted."
+ local MUST_BOOT=$"/boot must exists."
+ local  NOT_BOOT=$"/boot must not be encrypted."
  local  PASSWORD=$"Please enter a password for key 0."
  local      SWAP=$"Encrypted swap?"
 
@@ -525,6 +528,8 @@ get_password(){
  if   [ -z  "${PFILESYSTEM[$1]}" ]; then msgbox "$FIRST_FIL"; return 1; fi
  if   [ -z       "${PMOUNT[$1]}" ]; then msgbox "$FIRST_MNT"; return 1; fi
  if   [ /boot == "${PMOUNT[$1]}" ]; then msgbox "$NOT_BOOT";  return 1; fi
+ if ! boot_device | grep -q .     ; then msgbox "$MUST_BOOT"; return 1; fi
+
  if   [     "${PFILESYSTEM[$1]}" == swap ]
  then confirm "$SWAP" --defaultno &&
       KEY=$RANDOM$RANDOM$RANDOM
@@ -553,6 +558,16 @@ get_password(){
  fi
 }
 
+
+get_def_feature(){
+ if [ -z  "${PFEATURE[$1]}" ]; then
+  case "${PFILESYSTEM[$1]}" in
+   ext*)     PFEATURE[$1]="-O	dir_index,filetype,sparse_super" ;;
+  esac
+ fi
+}
+
+
 get_feature(){
  local FAIL=$"First select file system"
 
@@ -564,7 +579,7 @@ get_feature(){
 
  local FEAT
 
- if [ -z "${PFEATURE[$1]}" ]; then
+ if [ -z  "${PFEATURE[$1]}" ]; then
   case "${PFILESYSTEM[$1]}" in
    ext*) FEAT="dir_index,filetype,sparse_super" ;;
   esac
@@ -596,7 +611,7 @@ get_check(){
 
  local FIRST_FS=$"Please first set file system type."
  local FIRST_DEV=$"Please first set device first."
- local TITLE=$"Filesystem Check Menu"
+ local TITLE=$"File system Check Menu"
  local HELP=$"Please select desired checking"
 
  if   [ -z "${PFILESYSTEM[$1]}" ]; then msgbox "$FIRST_FS";  return 1
@@ -626,15 +641,27 @@ get_def_order(){
 get_def_dump(){ PDUMP[$1]=0; }
 
 
-show_pinfo(){
+show_pinfo_old(){
  echo "device"
- echo "mount filesys options d o"
+ echo "mount fsys options d o"
  for (( CX=0; CX<MP; CX++ )); do
   if    [ -n "${PDEVICE[$CX]}" ]; then
    echo   -n  "${PMOUNT[$CX]:-none}	"
    fstab_line          "$CX" $1
   fi
  done | LC_ALL=C sort | cut -f2- | tr '\t' '\n'
+}
+
+show_pinfo(){
+ (
+  echo "device mount fsys options d o"
+  for (( CX=0; CX<MP; CX++ )); do
+   if    [ -n "${PDEVICE[$CX]}" ]; then
+    echo   -n  "${PMOUNT[$CX]:-none} "
+    fstab_line          "$CX" $1
+   fi
+  done | tr '\t' ' ' | LC_ALL=C sort | cut -d ' ' -f2-
+ ) | column -s ' ' -t | sed -r "s: +:\n:"
 }
 
 
@@ -648,8 +675,9 @@ get_pcx(){
   done
  else
   for (( CX=0; CX<MP; CX++ )); do
-   if   [ "${PDEVICE[$CX]}" == "$1" ]
-   then echo        "$CX"; break
+   if   [ "$1" == "${PLDEVICE[$CX]}" ] ||
+        [ "$1" ==  "${PDEVICE[$CX]}" ]
+   then echo                 "$CX"; break
    fi
   done
  fi
@@ -710,6 +738,12 @@ empty_entry(){
     PFEATURE[$1]=
       PCHECK[$1]=
    PPASSWORD[$1]=
+
+ if [ /swap ==     "${PDEVICE[$1]}" ] &&
+    [  swap == "${PFILESYSTEM[$1]}" ]; then
+      PDEVICE[$1]=
+  PFILESYSTEM[$1]=
+ fi
 }
 
 
@@ -718,12 +752,16 @@ filesystem_table(){
  pselect(){
   $DIALOG --ok-label Select --cancel-label Done \
    --title $"File System Table Menu" \
-   --menu  $"File systems with mount point of none are ignored unless swap." 0 70 12 $( show_pinfo dev )
+   --menu  $"File systems with mount point of none are ignored unless swap." 0 75 12 $( show_pinfo dev )
  }
 
  pempty(){
-  if   confirm $"Please confirm removal of this entry?" --defaultno;
+  if   confirm $"Remove this entry?" --defaultno
   then empty_entry "$1"
+  fi
+  if   confirm $"Remove device from file system table?" --defaultno; then
+       PDEVICE[$1]=
+   PFILESYSTEM[$1]=
   fi
  }
 
@@ -748,7 +786,7 @@ filesystem_table(){
 
   local COMMAND TITLE EHELP HELP
 
-  TITLE=$"Filesystem entry menu"
+  TITLE=$"File system entry menu"
    HELP=$"Please visit every menu item except the Empty All Fields"
 
   while
@@ -798,14 +836,15 @@ filesystem_table(){
    esac
   done
 
-  check_pentry "$1" &&
-  PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
+  if   check_pentry "$1"
+  then PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
+  fi
  }
 
 
  check_root_defined(){
   if   ! root_device | grep -q .
-  then msgbox $"/ Root filesystem required!"; return 1
+  then msgbox $"/ Root file system required!"; return 1
   fi
  }
 
@@ -827,7 +866,7 @@ filesystem_table(){
  }
 
 
- local HELP="The following menu is for specifying filesystems
+ local HELP="The following menu is for specifying file systems
 to mount prior to transfering sorcerer.
 The information prompted for corresponds
 to the fields on a line in /etc/fstab"
@@ -845,11 +884,11 @@ to the fields on a line in /etc/fstab"
 }
 
 
-select_partitions_to_initialize(){
+select_filesystems_to_initialize(){
 
- local TITLE=$"Partition Initialization Selection Menu"
- local HELP=$"Select Partitions to initialize.
-All data on selected partitions will be lost.
+ local TITLE=$"File System Initialization Selection Menu"
+ local HELP=$"Select file systems to initialize.
+All data on selected device will be lost.
 [x] = initialize  [ ] = leave alone 
 Up and Down arrows navigate.  Space toggles.  Enter proceeds."
 
@@ -932,7 +971,7 @@ filesystem_table_load(){
 
       PDEVICE[$CX]="$PART"
   PFILESYSTEM[$CX]="$( installed_fs $PART )"
-  get_filesystem_assumptions
+  get_filesystem_assumptions $CX
   (( CX++ ))
  done
 
@@ -957,19 +996,22 @@ get_mkfs(){
 get_mk_command(){
  file_or_part(){
   case ${PDEVICE[$1]:0:5} in
-   /dev/) echo "mkswap	${PCHECK[$1]}	${PDEVICE[$1]}" ;;
-       *) echo "dd	of=$TARGET${PDEVICE[$1]}	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET${PDEVICE[$1]}	&&${LF}chmod	0	$TARGET${PDEVICE[$1]}" ;;
+   /dev/) echo "mkswap	${PCHECK[$1]}	$DEV" ;;
+       *) echo "dd	of=$TARGET$DEV	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET$DEV	&&${LF}chmod	0	$TARGET$DEV" ;;
   esac
  }
 
+ local DEV="${PLDEVICE[$1]}"
+ DEV="${DEV:-${PDEVICE[$1]}}"
+
  case ${PFILESYSTEM[$1]} in
-      ext4) echo "mkfs.ext4	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
-      ext3) echo "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
-      ext2) echo "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	${PDEVICE[$1]}" ;;
-     btrfs) echo "mkfs.btrfs	${PDEVICE[$1]}" ;;
-  reiserfs) echo "mkreiserfs	-f	${PDEVICE[$1]}" ;;
-       xfs) echo "mkfs.xfs	-f	${PDEVICE[$1]}" ;;
-       jfs) echo "jfs_mkfs	-q	${PCHECK[$1]}	${PDEVICE[$1]}" ;;
+      ext4) echo "mkfs.ext4	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
+      ext3) echo "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
+      ext2) echo "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
+     btrfs) echo "mkfs.btrfs	$DEV" ;;
+  reiserfs) echo "mkreiserfs	-f	$DEV" ;;
+       xfs) echo "mkfs.xfs	-f	$DEV" ;;
+       jfs) echo "jfs_mkfs	-q	${PCHECK[$1]}	$DEV" ;;
       swap) file_or_part "$1" ;;
  esac
 }
@@ -1010,7 +1052,7 @@ filesystem_initialize(){
  local PART
 
  [ -n "${PDEVICE[1]}" ] &&
- for PART in $( select_partitions_to_initialize )
+ for PART in $( select_filesystems_to_initialize )
  do  initialize $( get_pcx "$PART" )
  done
 }
@@ -1110,14 +1152,14 @@ confirm_unmount(){
 Until the install image is transfered,
 initramfs images created,
 and lilo is installed to a boot block
-the filesystems should remain mounted.
+the file systems should remain mounted.
 
-However to modify the filesystem table, create,
+However to modify the file system table, create,
 initialize and/or mount more file systems
-then the currently mounted filesystems must be unmounted first."
+then the currently mounted file systems must be unmounted first."
 
  $DIALOG --msgbox "$NOT_YET" 20 70
- if   confirm "Really Unmount filesystems?" --defaultno
+ if   confirm "Really Unmount file systems?" --defaultno
  then filesystem_unmount
  fi
 }
@@ -1157,24 +1199,6 @@ get_pass(){
  then echo "$PASS1";
  else $DIALOG --msgbox "passwords did not match" 0 0; false
  fi
-}
-
-# Creating LUKS devices from filesystem table instead
-luks(){
- luks_format_open(){
-  [ -n "$1" ] && [ -n "$2" ] || return
-  echo "$1" | cryptsetup -c aes-xts-plain -s 512 luksFormat $2
-  echo "$1" | cryptsetup luksOpen $2
- }
-
- MESSAGE="\
-An encrypted / requires a 1G unencrypted /boot
-because lilo can not load files from encrypted partitions.
-Passwords for encrypted swaps are not asked at boot.
-After each shutdown content of encrypted swaps become unencryptable."
-
- $DIALOG --msgbox "$MESSAGE" 20 70
- luks_format_open "$( get_pass )" "$( get_part )"
 }
 
 boot_partition_warning(){
@@ -1336,15 +1360,15 @@ kbd"
 
 expert_advise(){
  local   HINT=$"Here are easy to forget yet useful facts."
- local  DISKS=$"Disks      can be partitioned."
- local PARTS1=$"Partitions can be added to mdRAIDs."
- local PARTS2=$"Partitions can be converted into physical volumes."
- local   RAID=$"mdRAIDs    can be converted into physical volumes."
+ local  DISKS=$"Disks            can be partitioned."
+ local PARTS1=$"Partitions       can be added to mdRAIDs."
+ local PARTS2=$"Partitions       can be converted into physical volumes."
+ local   RAID=$"mdRAIDs          can be converted into physical volumes."
  local PVTOVG=$"Physical volumes can be added     to   volume groups."
  local VGTOLV=$"Logical  volumes can be allocated from volume groups."
- local CRYPT1=$"Partitions      can be LUKS encrypted."
- local CRYPT2=$"mdRAIDs         can be LUKS encrypted."
- local CRYPT3=$"Logical volumes can be LUKS encrypted."
+ local CRYPT1=$"Partitions       can be LUKS encrypted."
+ local CRYPT2=$"mdRAIDs          can be LUKS encrypted."
+ local CRYPT3=$"Logical  volumes can be LUKS encrypted."
  local  BOOT0=$"During boot:"
  local  BOOT1=$"mdRAIDs activate first;"
  local  BOOT2=$"volume groups activate after mdRAIDs;"
@@ -1529,8 +1553,8 @@ rdy_modify_fstab(){
 
 rdy_init_filesys(){
  if   initialized; then echo 'complete'
- elif fstabed;     then echo 'prudent later' 
-                   else echo 'prudent'
+ elif fstabed;     then echo 'prudent' 
+                   else echo 'prudent later'
  fi
 }
 
@@ -1586,12 +1610,12 @@ Press the Enter key to make a selection."
   skill        "$SKILL"                "Select novice or expert menus" \
   mbr          "$( rdy_mbr          )" "write bootable master boot record" \
   partition    "$( rdy_partition    )" "create partition on a block device" \
-  modify_fstab "$( rdy_modify_fstab )" "modify filesystem table" \
-  init_filesys "$( rdy_init_filesys )" "initialize filesystems" \
-  mount        "$( rdy_mount        )" "mount filesystems" \
-  install      "$( rdy_install      )" "install software to new filesystem" \
+  modify_fstab "$( rdy_modify_fstab )" "modify     file system table" \
+  init_filesys "$( rdy_init_filesys )" "initialize file systems" \
+  mount        "$( rdy_mount        )" "mount file systems" \
+  install      "$( rdy_install      )" "install software" \
   compile      "$( rdy_compile      )" "configure, compile and install some software" \
-  umount       "$( rdy_umount       )" "unmount filesystems" \
+  umount       "$( rdy_umount       )" "unmount file systems" \
   exit         "$( rdy_done         )" "exit installer"
 }
 
@@ -1614,14 +1638,14 @@ Press the Enter key to make a selection."
   lvcreate     "$( rdy_lvcreate     )" "create logical volume" \
   vgremove     "$( rdy_vgremove     )" "remove volume group" \
   lvremove     "$( rdy_lvremove     )" "remove logical volume" \
-  reload_fstab "$( rdy_reload_fstab )" "reload incomplete filesystem table" \
-  modify_fstab "$( rdy_modify_fstab )" "modify filesystem table" \
-  init_filesys "$( rdy_init_filesys )" "initialize filesystems" \
-  mount        "$( rdy_mount        )" "mount filesystems" \
-  install      "$( rdy_install      )" "install software to new filesystem" \
-  edit_fstab   "$( rdy_edit_fstab   )" "edit /etc/fstab on new root filesystem" \
+  reload_fstab "$( rdy_reload_fstab )" "reload incomplete file system table" \
+  modify_fstab "$( rdy_modify_fstab )" "modify file system table" \
+  init_filesys "$( rdy_init_filesys )" "initialize file systems" \
+  mount        "$( rdy_mount        )" "mount file systems" \
+  install      "$( rdy_install      )" "install software" \
+  edit_fstab   "$( rdy_edit_fstab   )" "edit /etc/fstab on new root file system" \
   compile      "$( rdy_compile      )" "configure, compile and install some software" \
-  umount       "$( rdy_umount       )" "unmount filesystems" \
+  umount       "$( rdy_umount       )" "unmount file systems" \
   exit         "$( rdy_done         )" "exit installer"
 }
 
