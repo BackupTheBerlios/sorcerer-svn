@@ -93,7 +93,7 @@ offer_man(){
 }
 
 goodbye(){
- if   [ "$PMOUNTED" == true ]
+ if   mounted
  then filesystem_unmount
  fi
 
@@ -112,6 +112,11 @@ get_bb(){
  for ((CX=0;CX<MP;CX++)); do if [[ ${PMOUNT[$CX]} == /     ]]; then BB=$CX; return; fi; done
 }
 
+get_def_prmount(){
+ if   [ -n               "${PMOUNT[$1]}" ]
+ then PRMOUNT[$1]="$TARGET${PMOUNT[$1]}"
+ fi
+}
 
 get_filesystem_assumptions(){
  get_puuid       $1
@@ -121,6 +126,7 @@ get_filesystem_assumptions(){
  get_def_dump    $1; [ -n "${PMOUNT[$1]}" ] ||
  get_def_mount   $1
  get_def_feature $1
+ get_def_prmount $1
 }
 
 
@@ -963,7 +969,7 @@ filesystem_table_load(){
        PDUMP[0]=0
       PORDER[0]=0
       PMOUNT[0]=none
-       PSIZE[0]=1024
+       PSIZE[0]=256
 
  (( CX = 1 ))
 
@@ -1082,31 +1088,24 @@ filesystem_mount(){
 
  local ALREADY NOT_NOW SUCCESS FAILED
 
- ALREADY=$"Partitions are already mounted."
- NOT_NOW=$"No partitions to mount, yet."
  SUCCESS=$"successfully mounted"
   FAILED=$"failed mounting"
 
- if   [[ $PMOUNTED == true ]]; then $DIALOG --msgbox "$ALREADY" 8 50; false
- elif [ -z "${PMOUNT[*]}"   ]; then $DIALOG --msgbox "$NOT_NOW" 8 50; false
- else
-  list_mounts | LC_ALL=C sort | cut -f2 |
-  while read CX; do
-   if mkdir -p     ${PRMOUNT[$CX]} &&
-      mount -t ${PFILESYSTEM[$CX]} \
-            -o  ${POPTIONS[$CX]} \
-                ${PDEVICE[$CX]} \
-                ${PRMOUNT[$CX]}
-   then          $DIALOG --msgbox "${PRMOUNT[$CX]} $SUCCESS" 8 50
-   else sleep 5; $DIALOG --msgbox "${RPMOUNT[$CX]} $FAILED"  8 50
-   fi
-   if   [ -d      $TARGET/tmp ]
-   then chmod 1777 $TARGET/tmp
-   fi
-  done
-  swapfile_initialize
-  PMOUNTED=true
- fi
+ list_mounts | LC_ALL=C sort | cut -f2 |
+ while read CX; do
+  if mkdir -p     ${PRMOUNT[$CX]} &&
+     mount -t ${PFILESYSTEM[$CX]} \
+           -o  ${POPTIONS[$CX]} \
+               ${PLDEVICE[$CX]:-${PDEVICE[$CX]}} \
+               ${PRMOUNT[$CX]}
+  then        msgbox "${PRMOUNT[$CX]} $SUCCESS"
+  else pause; msgbox "${RPMOUNT[$CX]} $FAILED"
+  fi
+  if   [ -d       $TARGET/tmp ]
+  then chmod 1777 $TARGET/tmp
+  fi
+ done
+ swapfile_initialize
 }
 
 trans(){ [[ -f $TARGET/etc/fstab ]]; }
@@ -1124,25 +1123,19 @@ filesystem_unmount(){
 
  SUCCESS=$"successfully unmounted"
   FAILED=$"failed unmounting"
- ALREADY=$"Partitions are not mounted."
 
   SURE=$"Partitions must be mounted to transfer 
 Sorcerer and continue installation.
 Really unmount the currently mounted partitions?"
 
- if   ! [[ $PMOUNTED == true ]]
- then $DIALOG --msgbox "$ALREADY" 8 50; false
- else
-  if trans || confirm "$SURE" --defaultno; then
-   list_mounts | LC_ALL=C sort -r | cut -f2 |
-   while read CX; do
-    if   umount ${PRMOUNT[$CX]}
-    then          $DIALOG --msgbox "${PRMOUNT[$CX]} $SUCCESS" 8 50
-    else sleep 5; $DIALOG --msgbox "${PRMOUNT[$CX]} $FAILED"  8 50
-    fi
-   done
-   PMOUNTED=false
-  fi
+ if trans || confirm "$SURE" --defaultno; then
+  list_mounts | LC_ALL=C sort -r | cut -f2 |
+  while read CX; do
+   if   umount ${PRMOUNT[$CX]}
+   then          $DIALOG --msgbox "${PRMOUNT[$CX]} $SUCCESS" 8 50
+   else sleep 5; $DIALOG --msgbox "${PRMOUNT[$CX]} $FAILED"  8 50
+   fi
+  done
  fi
 }
 
