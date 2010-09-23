@@ -105,7 +105,12 @@ goodbye(){
  exit  0
 }
 
-list_disk(){ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"; }
+list_disk(){
+ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"
+ find /dev -group disk -printf "%p	RAID\n" | sed "\,/dev/md[0-9]\t,p;d"
+}
+
+
 list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '\,^/dev/loop,d;\,^/dev/dm-[0-9],d;\,^/dev/mapper/,d'; }
 get_disk() { $DIALOG --title $"Please select disk"       --menu "" 0 0 0 $( list_disk ); }
 
@@ -280,10 +285,14 @@ get_puuid(){
  from_btrfs(){ btrfs-show                "${PDEVICE[$1]}" |
                sed 's/.*uuid: //p;d'; }
 
- case "${PFILESYSTEM[$1]}" in
-  btrfs)       PUUID[$1]="$( from_btrfs $1 )" ;;
-      *)       PUUID[$1]="$( from_blkid $1 )" ;;
- esac
+# blkid can fetch UUID from btrfs
+
+ PUUID[$1]="$( from_blkid $1 )"
+
+# case "${PFILESYSTEM[$1]}" in
+#  btrfs)       PUUID[$1]="$( from_btrfs $1 )" ;;
+#      *)       PUUID[$1]="$( from_blkid $1 )" ;;
+# esac
 }
 
 
@@ -422,12 +431,8 @@ transfer_arch(){
 
 
 select_extra_spells(){
- HELP="
-The sources CD contains sources for software
-that may be useful or required for networking.
-Please select software that will also be compiled and installed.
-Any of this software can also be installed after the first boot
-should you decide later that they will be required."
+ HELP="Additional software may be useful or required for networking.
+Please select software that will also be compiled and installed."
 
  show_extra(){
   ( find $TARGET/var/cache/sources -maxdepth 1 -mindepth 1 -type d -printf "%P\n"
@@ -1170,7 +1175,7 @@ mapped(){
 
 
 list_part(){
- ( mapped | pipe pv_in_vg | sed p
+ ( mapped | pipe pv_in_vg 2>/dev/null | sed p
    find /dev -type b |
    sed '\,^/dev/loop,d
         \,^/dev/dm-[0-9],d
@@ -1299,10 +1304,22 @@ name_raid(){
 }
 
 raid_level(){
- $DIALOG --title $"RAID Level?" --no-cancel --menu "" 20 20 15 \
- linear "" raid0 "" 0 "" stripe "" raid1 "" 1 "" mirror "" \
- raid4 "" 4 "" raid5 "" 5 "" raid6 "" 6 "" \
- raid10 "" 10 "" multipath "" mp "" faulty ""
+ $DIALOG --title $"RAID Level?" --item-help --no-cancel --menu "" 20 40 10 \
+ linear "2 >= devices" "concatenate devices"  \
+ raid0  "2 >= devices" "concatenate devices and stripe data" \
+ 0      "2 >= devices" "concatenate devices and stripe data" \
+ stripe "2 >= devices" "concatenate devices and stripe data" \
+ raid1  "2 >= devices" "mirror devices" \
+ 1      "2 >= devices" "mirror devices" \
+ mirror "2 >= devices" "mirror devices" \
+ raid4  "3 >= devices" "block-level striping with dedicated parity confined to single device" \
+ 4      "3 >= devices" "block-level striping with dedicated parity confined to single device" \
+ raid5  "3 >= devices" "block-level striping with distributed parity" \
+ 5      "3 >= devices" "block-level striping with distributed parity" \
+ raid6  "4 >= devices" "block-level striping with double distributed parity" \
+ 6      "4 >= devices" "block-level striping with double distributed parity" \
+ raid10 "2 >= devices" "RAID 1 + RAID 0" \
+ 10     "2 >= devices" "RAID 1 + RAID 0"
 }
 
 raid_part(){
@@ -1310,13 +1327,17 @@ raid_part(){
 
  DEVS=$( $DIALOG --separate-output --nocancel \
          --title "Select Devices for RAID" --checklist "" 20 70 10 \
-         $( list_part | sed '\,^/dev/mapper,d
-                             s:$:	Partition Volume	off:' ) )
+         $( list_disk | sed 's:$:	off:'
+            list_part | sed '\,^/dev/mapper,d
+                             s:$:	Partition	off:' ) )
  [ -n "$DEVS" ] || return
 
  for DEV in $DEVS; do
   (( CX++ ))
-  sfdisk -c ${DEV:0:8} ${DEV:8:2} fd
+  case $DEV in
+   hd[a-z][0-9]) sfdisk -c ${DEV:0:8} ${DEV:8:2} fd ;;
+   sd[a-z][0-9]) sfdisk -c ${DEV:0:8} ${DEV:8:2} fd ;;
+  esac
  done
 
  echo "-n $CX $DEVS"
@@ -1357,33 +1378,40 @@ kbd"
 
 expert_advise(){
  local   HINT=$"Here are easy to forget yet useful facts."
- local  DISKS=$"Disks         should be partitioned."
- local PARTS1=$"Partitions       can be added to mdRAIDs."
+ local DISKS0=$"Disks         should be partitioned."
+ local DISKS1=$"Disks            can be added to MDRAIDs."
+ local PARTS1=$"Partitions       can be added to MDRAIDs."
  local PARTS2=$"Partitions       can be converted into physical volumes."
- local   RAID=$"mdRAID           can be converted into physical volume."
+ local  RAID0=$"MDRAID           can be converted into physical volume."
+ local  RAID1=$"MDRAID           can be partitioned."
  local PVTOVG=$"Physical volumes can be added     to   a volume group."
  local VGTOLV=$"Logical  volumes can be allocated from a volume group."
  local CRYPT1=$"Partition        can be LUKS encrypted."
- local CRYPT2=$"mdRAID           can be LUKS encrypted."
+ local CRYPT2=$"MDRAID           can be LUKS encrypted."
  local CRYPT3=$"Logical  volumes can be LUKS encrypted."
  local  BOOT0=$"During boot:"
- local  BOOT1=$"mdRAIDs         activate first;"
- local  BOOT2=$"Logical volumes activate after mdRAIDs;"
+ local  BOOT1=$"MDRAIDs         activate first;"
+ local  BOOT2=$"Logical volumes activate after MDRAIDs;"
  local  BOOT3=$"LUKS            activate after volume groups;"
  local  BOOT4=$"file systems    check;"
  local  BOOT5=$"file systems    mount;"
  local  BOOT6=$"swaps           activate."
  local   LVM2=$"LVM2: physical volumes -> volume groups -> logical volumes"
  local   LUKS=$"LUKS, the Linux Unified Key Setup, is encryption."
- local COMBO0=$"Usable combinations are:"
- local COMBO1=$"Partition  ->                            file system"
- local COMBO2=$"Partition  ->                    LUKS -> file system"
- local COMBO3=$"Partitions -> mdRAID  ->                 file system"
- local COMBO4=$"Partitions -> mdRAID  ->         LUKS -> file system"
- local COMBO5=$"Partitions -> mdRAID  -> LVM2 ->      -> file systems"
- local COMBO6=$"Partitions -> mdRAID  -> LVM2 -> LUKS -> file system"
- local COMBO7=$"Partitions ->            LVM2 ->      -> file systems"
- local COMBO8=$"Partitions ->            LVM2 -> LUKS -> file system"
+ local COMBO0=$"A partial list of usable combinations are:"
+ local COMBO1=$"Disk -> Part ->                                FS"
+ local COMBO2=$"Disk -> Part ->                        LUKS -> FS"
+ local COMBO3=$"Disk or Part -> RAID ->                        FS"
+ local COMBO4=$"Disk or Part -> RAID ->                LUKS -> FS"
+ local COMBO5=$"Disk or Part -> RAID -> Part ->                FS"
+ local COMBO6=$"Disk or Part -> RAID -> Part ->        LUKS -> FS"
+ local COMBO7=$"Disk or Part -> RAID ->         LVM ->      -> FS"
+ local COMBO8=$"Disk or Part -> RAID ->         LVM -> LUKS -> FS"
+ local COMBO9=$"Disk -> Part ->                 LVM ->      -> FS"
+ local COMBOa=$"Disk -> Part ->                 LVM -> LUKS -> FS"
+
+ local WARN0=$"The Primary disk must be partitioned."
+
  local SWAPS0=$"A swap area can be created instead of  a file system."
  local SWAPS1=$"A swap file can be created         on  a file system."
  local SWAPS2=$"A swap file is less efficient than     a swap area."
@@ -1392,7 +1420,7 @@ expert_advise(){
 
  local   OKAY=$"Easy, yes?  Good luck."
 
- msgbox "${HINT}${LF}${LF}${DISKS}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${BOOT6}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${LF}${SWAPS0}${LF}${SWAPS1}${LF}${SWAPS2}${LF}${SWAPS3}${LF}${LF}${MEMORY}${LF}${LF}${OKAY}"
+ msgbox "${HINT}${LF}${LF}${DISKS0}${LF}${DISKS1}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID0}${LF}${RAID1}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${BOOT6}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${COMBO9}${LF}${COMBOa}${LF}${LF}${WARN0}${LF}${LF}${SWAPS0}${LF}${SWAPS1}${LF}${SWAPS2}${LF}${SWAPS3}${LF}${LF}${MEMORY}${LF}${LF}${OKAY}"
 }
 
 
@@ -1436,7 +1464,7 @@ run_skill(){
 }
 
 
-run_mdadm(){ launch mdadm -C $( name_raid ) -l $( raid_level ) $( raid_part ); filesystem_table_load; }
+run_mdadm(){ launch mdadm -C -a mdp $( name_raid ) -l $( raid_level ) $( raid_part ); filesystem_table_load; }
 run_mdadm_stop(){ mdadm --stop --scan; filesystem_table_load; }
 
 run_lsmod(){ ( lsmod; echo "Press q to return" ) | less; }
