@@ -37,6 +37,7 @@ chroot_run(){
  umount                          $TARGET/dev/pts
  umount                          $TARGET/dev
  umount                          $TARGET/$TARGET/dev # avoids bug in linux?
+ pause
 }
 
 
@@ -76,6 +77,7 @@ chroot_build(){
  umount                          $TARGET/dev/pts
  umount                          $TARGET/dev
  umount                          $TARGET/$TARGET/dev # avoids bug in linux?
+ pause
 }
 
 msgbox(){  $DIALOG --no-collapse --msgbox "$1" 0 0; }
@@ -274,8 +276,9 @@ get_puuid(){
  then return
  fi
 
- from_blkid(){ blkid      "${PDEVICE[$1]}" 2>/dev/null | cut -d '"' -f2; }
- from_btrfs(){ btrfs-show "${PDEVICE[$1]}" | sed 's/.*uuid: //p;d'; }
+ from_blkid(){ blkid -p -o value -s UUID "${PDEVICE[$1]}" 2>/dev/null; }
+ from_btrfs(){ btrfs-show                "${PDEVICE[$1]}" |
+               sed 's/.*uuid: //p;d'; }
 
  case "${PFILESYSTEM[$1]}" in
   btrfs)       PUUID[$1]="$( from_btrfs $1 )" ;;
@@ -414,7 +417,7 @@ transfer_arch(){
  else terror_retry
  fi
 
- cp /tmp/fstab > $TARGET/etc/fstab
+ cp /tmp/fstab $TARGET/etc/fstab
 }
 
 
@@ -1353,12 +1356,12 @@ kbd"
 
 expert_advise(){
  local   HINT=$"Here are easy to forget yet useful facts."
- local  DISKS=$"Disks            can be partitioned."
+ local  DISKS=$"Disks         should be partitioned."
  local PARTS1=$"Partitions       can be added to mdRAIDs."
  local PARTS2=$"Partitions       can be converted into physical volumes."
  local   RAID=$"mdRAIDs          can be converted into physical volumes."
- local PVTOVG=$"Physical volumes can be added     to   volume groups."
- local VGTOLV=$"Logical  volumes can be allocated from volume groups."
+ local PVTOVG=$"Physical volumes can be added     to   a volume group."
+ local VGTOLV=$"Logical  volumes can be allocated from a volume group."
  local CRYPT1=$"Partitions       can be LUKS encrypted."
  local CRYPT2=$"mdRAIDs          can be LUKS encrypted."
  local CRYPT3=$"Logical  volumes can be LUKS encrypted."
@@ -1371,17 +1374,23 @@ expert_advise(){
  local   LVM2=$"LVM2: physical volumes -> volume groups -> logical volumes"
  local   LUKS=$"LUKS, the Linux Unified Key Setup, is encryption."
  local COMBO0=$"Usable combinations are:"
- local COMBO1=$"Partitions ->                            file systems"
- local COMBO2=$"Partitions ->                    LUKS -> file systems"
- local COMBO3=$"Partitions -> mdRAIDs ->                 file systems"
- local COMBO4=$"Partitions -> mdRAIDs ->         LUKS -> file systems"
- local COMBO5=$"Partitions -> mdRAIDs -> LVM2 ->      -> file systems"
- local COMBO6=$"Partitions -> mdRAIDs -> LVM2 -> LUKS -> file systems"
+ local COMBO1=$"Partition  ->                            file system"
+ local COMBO2=$"Partition  ->                    LUKS -> file system"
+ local COMBO3=$"Partitions -> mdRAID  ->                 file system"
+ local COMBO4=$"Partitions -> mdRAID  ->         LUKS -> file system"
+ local COMBO5=$"Partitions -> mdRAID  -> LVM2 ->      -> file systems"
+ local COMBO6=$"Partitions -> mdRAID  -> LVM2 -> LUKS -> file system"
  local COMBO7=$"Partitions ->            LVM2 ->      -> file systems"
- local COMBO8=$"Partitions ->            LVM2 -> LUKS -> file systems"
+ local COMBO8=$"Partitions ->            LVM2 -> LUKS -> file system"
+ local SWAPS0=$"A swap area can be created instead of  a file system."
+ local SWAPS1=$"A swap file can be created         on  a file system."
+ local SWAPS2=$"A swap file is less efficient than     a swap area."
+ local SWAPS3=$"A swap file can fix a temporary low memory situation."
+ local MEMORY=$"Installed RAM + SWAP >= 3G"
+
  local   OKAY=$"Easy, yes?  Good luck."
 
- msgbox "${HINT}${LF}${LF}${DISKS}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${LF}${OKAY}"
+ msgbox "${HINT}${LF}${LF}${DISKS}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${LF}${SWAPS0}${LF}${SWAPS1}${LF}${SWAPS2}${LF}${SWAPS3}${LF}${LF}${MEMORY}${LF}${LF}${OKAY}"
 }
 
 
