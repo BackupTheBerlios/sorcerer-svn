@@ -269,7 +269,7 @@ get_device(){ PDEVICE[$1]="$( get_part "$1" )"; }
 list_swaps(){
  for (( CX=0; CX<MP; CX++ )); do
   if   [ "${PFILESYSTEM[$CX]}" == swap ]
-  then echo  "${PDEVICE[$CX]} none swap defaults 0 0"
+  then echo "${PLDEVICE[$CX]:-${PDEVICE[$CX]}} none swap defaults 0 0"
   fi
  done
 }
@@ -1046,9 +1046,9 @@ initialize(){
 
  local SURE SUCCESS FAILURE COMMAND
 
- SURE=$"Please confirm that all data on ${PDEVICE[$1]} will be lost?"
- SUCCESS=$"${PFILESYSTEM[$1]} successfully created on ${PDEVICE[$1]}"
- FAILURE=$"No success at creating ${PFILESYSTEM[$1]} on ${PDEVICE[$1]}"
+ SURE=$"Please confirm that all data on ${PLDEVICE[$1]:-${PDEVICE[$1]}} will be lost?"
+ SUCCESS=$"${PFILESYSTEM[$1]} successfully created on ${PLDEVICE[$1]:-${PDEVICE[$1]}}"
+ FAILURE=$"No success at creating ${PFILESYSTEM[$1]} on ${PLDEVICE[$1]:-${PDEVICE[$1]}}"
 
  if confirm "$SURE" --defaultno; then
                   COMMAND="$( get_mk_command "$1" )"
@@ -1399,16 +1399,16 @@ expert_advise(){
  local   LVM2=$"LVM2: physical volumes -> volume groups -> logical volumes"
  local   LUKS=$"LUKS, the Linux Unified Key Setup, is encryption."
  local COMBO0=$"A partial list of usable combinations are:"
- local COMBO1=$"Disk -> Part ->                                FS"
- local COMBO2=$"Disk -> Part ->                        LUKS -> FS"
- local COMBO3=$"Disk or Part -> RAID ->                        FS"
- local COMBO4=$"Disk or Part -> RAID ->                LUKS -> FS"
- local COMBO5=$"Disk or Part -> RAID -> Part ->                FS"
- local COMBO6=$"Disk or Part -> RAID -> Part ->        LUKS -> FS"
- local COMBO7=$"Disk or Part -> RAID ->         LVM ->      -> FS"
- local COMBO8=$"Disk or Part -> RAID ->         LVM -> LUKS -> FS"
- local COMBO9=$"Disk -> Part ->                 LVM ->      -> FS"
- local COMBOa=$"Disk -> Part ->                 LVM -> LUKS -> FS"
+ local COMBO1=$"Disk -> Part ->                                FS or Swap"
+ local COMBO2=$"Disk -> Part ->                        LUKS -> FS or Swap"
+ local COMBO3=$"Disk or Part -> RAID ->                        FS or Swap"
+ local COMBO4=$"Disk or Part -> RAID ->                LUKS -> FS or Swap"
+ local COMBO5=$"Disk or Part -> RAID -> Part ->                FS or Swap"
+ local COMBO6=$"Disk or Part -> RAID -> Part ->        LUKS -> FS or Swap"
+ local COMBO7=$"Disk or Part -> RAID ->         LVM ->      -> FS or Swap"
+ local COMBO8=$"Disk or Part -> RAID ->         LVM -> LUKS -> FS or Swap"
+ local COMBO9=$"Disk -> Part ->                 LVM ->      -> FS or Swap"
+ local COMBOa=$"Disk -> Part ->                 LVM -> LUKS -> FS or Swap"
 
  local WARN0=$"The Primary disk must be partitioned."
 
