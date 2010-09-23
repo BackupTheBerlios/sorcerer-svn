@@ -11,7 +11,7 @@
 ############################################################
 
 
-inputbox(){ $DIALOG --nocancel --inputbox "$1" 0 0 "$2"; }
+inputbox(){ $DIALOG --no-collapse --nocancel --inputbox "$1" 0 0 "$2"; }
 
 
 chroot_run(){
@@ -106,7 +106,7 @@ goodbye(){
 }
 
 list_disk(){ find /dev -group disk -printf "%p	disk\n" | sed "/[0-9]/d"; }
-list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '\,^/dev/loop,d;\,^/dev/mapper/,d'; }
+list_bb()  { find /dev -type b -printf "%p	%y\n"   | sed '\,^/dev/loop,d;\,^/dev/dm-[0-9],d;\,^/dev/mapper/,d'; }
 get_disk() { $DIALOG --title $"Please select disk"       --menu "" 0 0 0 $( list_disk ); }
 
 get_bb(){
@@ -955,6 +955,7 @@ ppv(){
  pv | sed p | pipe \
  find /dev -type b |
  sed '\,^/dev/loop,d
+      \,^/dev/dm-[0-9],d
       \,^/dev/mapper/,d
       \,^/dev/fd[0-9],d
       \,^/dev/sr[0-9],d
@@ -1172,6 +1173,7 @@ list_part(){
  ( mapped | pipe pv_in_vg | sed p
    find /dev -type b |
    sed '\,^/dev/loop,d
+        \,^/dev/dm-[0-9],d
         \,^/dev/mapper/,p
         \,^/dev/mapper/,d
         \,^/dev/fd[0-9],d
@@ -1213,9 +1215,9 @@ any of these conditions are true:
 
 
 launch(){ if confirm "Execute $*" --defaultno; then eval "$@"; else return 1; fi; }
-name_vg(){ $DIALOG --nocancel --inputbox "Name for VG? No / in name" 0 0; }
-name_lv(){ $DIALOG --nocancel --inputbox "Name for LV? No / in name" 0 0; }
 
+name_vg(){ inputbox $"Name for Volume Group?${LF}No / in name"; }
+name_lv(){ inputbox $"Name for Logical Volume?${LF}No / in name"; }
 
 set_pv(){
  local HELP=$"Select block device"
@@ -1252,18 +1254,17 @@ get_vg_lv(){
 
 get_lv_size(){
  local SIZE
- local HELP=\
-'Enter Size where suffix can be:
+ local HELP=$"
+Enter Size where suffix can be:
  %VG   Percentage of total space in Volume Group
  %FREE Percentage of free  space in Volume Group
- M for megabytes,
- G for Gigabytes
- T for Terabytes
- P for Petabytes
- E for Exabytes'
+ M for Megabytes,
+ G for Gigabytes,
+ T for Terabytes,
+ P for Petabytes,
+ E for Exabytes"
 
-
- SIZE=$( $DIALOG --no-cancel --inputbox "$HELP" 0 0 )
+ SIZE=$( inputbox "$HELP" )
 
  case $SIZE in
   *VG) echo "-l	$SIZE" ;;
@@ -1359,18 +1360,19 @@ expert_advise(){
  local  DISKS=$"Disks         should be partitioned."
  local PARTS1=$"Partitions       can be added to mdRAIDs."
  local PARTS2=$"Partitions       can be converted into physical volumes."
- local   RAID=$"mdRAIDs          can be converted into physical volumes."
+ local   RAID=$"mdRAID           can be converted into physical volume."
  local PVTOVG=$"Physical volumes can be added     to   a volume group."
  local VGTOLV=$"Logical  volumes can be allocated from a volume group."
- local CRYPT1=$"Partitions       can be LUKS encrypted."
- local CRYPT2=$"mdRAIDs          can be LUKS encrypted."
+ local CRYPT1=$"Partition        can be LUKS encrypted."
+ local CRYPT2=$"mdRAID           can be LUKS encrypted."
  local CRYPT3=$"Logical  volumes can be LUKS encrypted."
  local  BOOT0=$"During boot:"
- local  BOOT1=$"mdRAIDs activate first;"
- local  BOOT2=$"volume groups activate after mdRAIDs;"
- local  BOOT3=$"LUKS activate after volume groups;"
- local  BOOT4=$"file systems are checked;"
- local  BOOT5=$"and finally file systems mount."
+ local  BOOT1=$"mdRAIDs         activate first;"
+ local  BOOT2=$"Logical volumes activate after mdRAIDs;"
+ local  BOOT3=$"LUKS            activate after volume groups;"
+ local  BOOT4=$"file systems    check;"
+ local  BOOT5=$"file systems    mount;"
+ local  BOOT6=$"swaps           activate."
  local   LVM2=$"LVM2: physical volumes -> volume groups -> logical volumes"
  local   LUKS=$"LUKS, the Linux Unified Key Setup, is encryption."
  local COMBO0=$"Usable combinations are:"
@@ -1390,7 +1392,7 @@ expert_advise(){
 
  local   OKAY=$"Easy, yes?  Good luck."
 
- msgbox "${HINT}${LF}${LF}${DISKS}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${LF}${SWAPS0}${LF}${SWAPS1}${LF}${SWAPS2}${LF}${SWAPS3}${LF}${LF}${MEMORY}${LF}${LF}${OKAY}"
+ msgbox "${HINT}${LF}${LF}${DISKS}${LF}${PARTS1}${LF}${PARTS2}${LF}${RAID}${LF}${PVTOVG}${LF}${VGTOLV}${LF}${CRYPT1}${LF}${CRYPT2}${LF}${CRYPT3}${LF}${LF}${BOOT0}${LF}${BOOT1}${LF}${BOOT2}${LF}${BOOT3}${LF}${BOOT4}${LF}${BOOT5}${LF}${BOOT6}${LF}${LF}${LVM2}${LF}${LUKS}${LF}${LF}${COMBO0}${LF}${LF}${COMBO1}${LF}${COMBO2}${LF}${COMBO3}${LF}${COMBO4}${LF}${COMBO5}${LF}${COMBO6}${LF}${COMBO7}${LF}${COMBO8}${LF}${LF}${SWAPS0}${LF}${SWAPS1}${LF}${SWAPS2}${LF}${SWAPS3}${LF}${LF}${MEMORY}${LF}${LF}${OKAY}"
 }
 
 

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2008-2009 by Kyle Sallee,
+# Copyright 2008-2010 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 # bxz recompresses tarballs using xz in the background,
@@ -17,7 +17,7 @@ FILES="$TAR;$TGZ;$BZ2"
 PIDF=/var/run/bxz.pid
 
 declare -i NEXT=900
-declare -i LOW=3
+declare -i LOW=2
 LC_ALL=C
 TERM="dumb"
 IFS=" 	
@@ -44,12 +44,12 @@ decomp(){
 found(){ while read; do return ; done; return 1; }
 
 compressor(){
-        REPLY="$( file -b $1 )"
+        REPLY="$( file -bk $1 )"
  case "$REPLY" in
-       gzip*) REPLY=gzip  ;;
-      bzip2*) REPLY=bzip2 ;;
-   compress*) REPLY=gzip  ;;
-       *tar*) REPLY=tar   ;;
+      gzip*) REPLY=gzip  ;;
+     bzip2*) REPLY=bzip2 ;;
+  compress*) REPLY=gzip  ;;
+      *tar*) REPLY=tar   ;;
  esac
 }
 
@@ -122,6 +122,10 @@ main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  while sleep 600; do if owari; then rm -f $PIDF; exit 0; elif ima; then reduction; fi; done
 }
+
+if   [ -f /etc/init.d/find_ir ]
+then exit 1
+fi
 
 [[ -x /usr/bin/nice   ]] && renice  19 -p $$ &>/dev/null
 [[ -x /usr/bin/ionice ]] && ionice -c3 -p $$ &>/dev/null
