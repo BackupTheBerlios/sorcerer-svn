@@ -1,5 +1,5 @@
-#!/bin/dash
-
+#!/bin/bash
+# must be /bin/bash for $RANDOM
 ### BEGIN INIT INFO
 # Required-Start: dmsetup
 # Should-Start: loadkeys mdadm udev vgchange
@@ -49,13 +49,16 @@ start(){
    DEV=${LINE%|*}
    DEV=${DEV##*|}
    if   [ "$TYP" = swap ]; then
-    KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+     KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     echo "$KEY" | cryptsetup -c aes-xts-plain -s 512 luksFormat $REV 2>/dev/null
     echo "$KEY" | cryptsetup luksOpen $REV ${DEV##*/} 2>/dev/null
     mkswap $DEV
    else
     dialog \
-     --backtitle cryptsetup --stdout --no-cancel --timeout 60 \
+     --backtitle cryptsetup --stdout --no-cancel --timeout 300 \
      --title "Device Password Menu" \
      --passwordbox "Password for $DEV?" 0 0 |
     cryptsetup luksOpen $REV ${DEV##*/}
