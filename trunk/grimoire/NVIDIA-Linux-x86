@@ -5,8 +5,8 @@
 # Due to the NVIDIA-Linux-x86 header files not providing
 # what xorg-server expects.
 
-    stable 256.44 195.36.24 195.36.15
-   require MesaLib gtk+ mktemp
+    stable 256.53 256.44 195.36.24 195.36.15
+   require MesaLib gtk+ libXvMC linux-kernel mktemp
    require xorg-server
   category kernel
 case $HOSTTYPE in
@@ -56,6 +56,14 @@ build(){
 
   return 0
  }
+
+if ! [ -d /usr/src/linux ]; then
+ echo "Before casting NVIDIA-Linux-x86"
+ echo "Please cast a spell that provides linux-kernel"
+ echo "Such as:"
+ find_providers linux-kernel
+ return 1
+fi
 
  LVER="$( installed_version $( get_provider linux-kernel ) )"
 
