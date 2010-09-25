@@ -46,30 +46,12 @@ build(){
  sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
 
  default_build &&
- mv /usr/bin/loadkeys /bin/
-
-
-build_old(){
- rm  -f /etc/keymap.conf
- [   -n  "$KEYMAP" ] &&
- sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
-
- case $VERSION in
-  1.12) sed -i "s:-O2:$CFLAGS:" openvt/Makefile src/Makefile.in ;;
- esac
-
- # Fix setfont when compiled with gcc4
- # patch -p1 < $SCRIPT_DIR/kbd-1.12-gcc4-fixes-1.patch
-
- aclocal -I  .             &&
- autoheader                &&
- libtoolize  --automake    &&
- automake    --add-missing &&
- autoconf                  &&
- ./configure --prefix=/usr &&
- make            &&
- make install DESTDIR=$DESTDIR &&
  mkdir -p                     $DESTDIR/bin &&
  mv $DESTDIR/usr/bin/loadkeys $DESTDIR/bin/
 }
+
+current(){
+ case $VERSION in
+  1.15.2) [ -f /bin/loadkeys ] ;;
+ esac
 }
