@@ -1,4 +1,4 @@
-    stable event-20100924-0 event-20100923-0 event-20100921-0 event-20100920-0 event-20100919-1 event-20100913-0 event-20100912-0 event-20100911-0 kame-20100805-0
+    stable event-20100928-0 event-20100924-0 event-20100923-0 event-20100921-0 event-20100920-0 event-20100919-1 event-20100913-0 event-20100912-0 event-20100911-0 kame-20100805-0
    require grimoire
   category utility
  attribute archive_off solo sorcery
@@ -56,6 +56,13 @@ build(){
 
 post_install(){
 
+ fix_gconf(){
+  if   [ -f                $PROVIDE_LOGS/GConf ] &&
+       grep -qx GConf-dbus $PROVIDE_LOGS/GConf
+  then rm   -f             $PROVIDE_LOGS/GConf
+  fi
+ }
+
  discard_old_index(){
   merge_grimoires
   generate_index   
@@ -71,6 +78,7 @@ post_install(){
 
  . /etc/sorcery/config
 
+ fix_gconf
  discard_old_index
  discard_obsolete_event_logs
  default_post_install
