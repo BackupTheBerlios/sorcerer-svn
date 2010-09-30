@@ -11,16 +11,17 @@ fi
 if [ $SPELL == docbook ]; then
  attribute data profile
    require libxslt unzip
-  optional docbook-xml-5.0  '' '' for XML DTD
-  optional docbook-xml-4.5  '' '' for XML DTD
-  optional docbook-sgml-4.5 '' '' for SGML DTD
-  optional docbook-xml-4.4  '' '' for XML DTD
-  optional docbook-sgml-4.4 '' '' for SGML DTD
-  optional docbook-xml-4.3  '' '' for XML DTD
-  optional docbook-sgml-4.3 '' '' for SGML DTD
-  optional docbook-xml-4.2  '' '' for XML DTD
-  optional docbook-sgml-4.2 '' '' for SGML DTD
-  optional docbook-xsl      '' '' for XSL stylesheets
+  optional docbook-xml-5.0   '' '' for XML DTD
+  optional docbook-xml-4.5   '' '' for XML DTD
+  optional docbook-sgml-4.5  '' '' for SGML DTD
+  optional docbook-xml-4.4   '' '' for XML DTD
+  optional docbook-sgml-4.4  '' '' for SGML DTD
+  optional docbook-xml-4.3   '' '' for XML DTD
+  optional docbook-sgml-4.3  '' '' for SGML DTD
+  optional docbook-xml-4.2   '' '' for XML DTD
+  optional docbook-sgml-4.2  '' '' for SGML DTD
+  optional docbook-xml-4.1.2 '' '' for XML DTD
+  optional docbook-xsl       '' '' for XSL stylesheets
 else
 
 case ${SPELL:8:3} in
@@ -99,27 +100,26 @@ post_install(){
   local  ORUL="http://www.oasis-open.org/docbook/"
   local   XCP="--noout --add"
 
-  mkdir -vm 755 -p /etc/xml
-  if ! [ -f $ROOTCATALOG ]; then
-   xmlcatalog --noout --create $ROOTCATALOG
-   xmlcatalog $XCP "delegatePublic" "-//OASIS//ENTITIES DocBook XML"  "$WHERE" $ROOTCATALOG
-   xmlcatalog $XCP "delegatePublic" "-//OASIS//DTD DocBook XML"       "$WHERE" $ROOTCATALOG
-   xmlcatalog $XCP "delegateSystem" "$OURL"         "$WHERE" $ROOTCATALOG
-   xmlcatalog $XCP "delegateURI"    "$OURL"         "$WHERE" $ROOTCATALOG
-   xmlcatalog $XCP "delegatePublic" "ISO 8879:1986" "$WHERE" $ROOTCATALOG
-  fi
+  mkdir -pvm 755 /etc/xml
+  rm -f $ROOTCATALOG
+  xmlcatalog --noout --create $ROOTCATALOG
+  xmlcatalog $XCP "delegatePublic" "-//OASIS//ENTITIES DocBook XML"  "$WHERE" $ROOTCATALOG
+  xmlcatalog $XCP "delegatePublic" "-//OASIS//DTD DocBook XML"       "$WHERE" $ROOTCATALOG
+  xmlcatalog $XCP "delegateSystem" "$OURL"         "$WHERE" $ROOTCATALOG
+  xmlcatalog $XCP "delegateURI"    "$OURL"         "$WHERE" $ROOTCATALOG
+  xmlcatalog $XCP "delegatePublic" "ISO 8879:1986" "$WHERE" $ROOTCATALOG
 }
 
 
 update_docbook_catalog(){
  local CATALOG=/etc/xml/docbook
 
- mkdir -vm 755 -p /etc/xml
- rm            -f /etc/xml/docbook
+ mkdir -pvm 755 /etc/xml
+ rm    -f       /etc/xml/docbook
  xmlcatalog --noout --create $CATALOG
  sed   -i  "s:/>:>:"         $CATALOG
  grep  -v -h  "xml version\|catalog xmlns\|/catalog" \
-                 /usr/share/xml/docbook/*/*/catalog.xml |
+       $( find /usr/share/xml/docbook -type f -name catalog.xml ) |
  tr    -d   '\n'         |
  sed   "s:>:>\n:g"       |
  sed   "s: *uri=: uri=:" |
