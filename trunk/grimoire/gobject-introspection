@@ -1,9 +1,15 @@
-# requirement on glitz inherited from cairo
-# gobject-introspection is not easily upgraded to 0.9.0
-# especially since gir-repository version 0.6.5 will not recompile
+# When gobject-introspection version > 0.9.10
+# check to see if clutter can compile with introspection enabled
 
-    stable 0.6.14 0.6.10 0.6.9
-  unstable 0.9.6 0.9.3 0.9.2
+# pango                 version 1.28.3 will compile with
+# gobject-introspection version 0.9.8, but not with
+# gobject-introspection version 0.9.6
+
+# clutter-gtk           version 0.10.8 will compile wtih
+# gobject-introspection version 0.9.6, but not with
+# gobject-introspection version 0.9.8
+
+    stable 0.9.10 0.9.6 0.6.14 0.6.10 0.6.9
    require automake
    require cairo fontconfig freetype glib libffi libxml2
   category development
@@ -11,7 +17,8 @@
     source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2
   homepage http://www.gnome.org
       opts --enable-static=no
-  estimate 500
+ conflicts gir-repository
+  estimate 700
       desc 'document API'
 
 # /usr/bin/g-ir-scanner from gobject-introspection version 0.9.0
@@ -25,8 +32,9 @@
 # in order to ensure that g-ir-scanner does not choke on old formats.
 
 post_install(){
+ default_post_install
  LC_ALL=C grep -lr /usr/share/gir-1.0/ $INSTALL_LOGS |
  basenames |
- grep -v gobject-introspection |
+ grep -v "gobject-introspection\|gir-repository" |
  pipe_queue $CAST_QUEUE com
 }

@@ -1,24 +1,16 @@
-# checking for LIBNL... configure: error: Package requirements (libnl-1 >= 1.0-pre8) were not met:
-# No package 'libnl-1' found
-
-# Still broke in spite of fixing libnl from git.
-
-    stable 0.8.1 0.8 0.7.2 0.7.1 0.7.0 0.6.5 0.6.4 0.6.3
-#  require dhcdbd dhcpcd libnl wireless_tools wpa_supplicant
-   require libnl nss wireless_tools wpa_supplicant
+    stable 0.8.1 0.8
+   require libnl nss polkit udev wireless_tools wpa_supplicant
   category development
  attribute gnome new
- attribute broke
     source $GNOME_URL sources/NetworkManager/${VERSION:0:3}/NetworkManager-$VERSION.tar.bz2
   homepage http://www.gnome.org
-# dhcdbd requirement departs with NetworkManager 0.7.x
       opts --with-distro=gentoo
-  estimate 150
+  estimate 6870
       desc 'GUI for wireless networking network selection'
 
 build(){
  case $VERSION in
-  0.6.4) patch -p1 < $SCRIPT_DIR/NetworkManager-0.6.4.patch ;;
+  0.8.1) sed -i 's:-Werror::' configure ;;
  esac
  default_build
 }

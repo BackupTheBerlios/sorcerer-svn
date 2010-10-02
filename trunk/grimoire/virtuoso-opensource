@@ -5,7 +5,8 @@
    require libiodbc zlib
   optional openldap
   optional openssl
-      opts --enable-static=no --disable-all-vads --without-internal-zlib --with-pthreads --with-iodbc=/usr
+      opts --enable-static=no --disable-all-vads --without-internal-zlib --with-pthreads
+      opts --with-iodbc=/opt/libiodbc
   category db
  attribute console library
     source $SOURCEFORGE_URL virtuoso/virtuoso/$VERSION/virtuoso-opensource-$VERSION.tar.gz
@@ -14,12 +15,15 @@
       desc 'object-relational SQL database'
 
 build(){
-case $HOSTTYPE in
- x86_64) export CFLAGS+=' -m64' ;;
-esac
-case $VERSION in
- 6.0.0) cp -v libsrc/zlib/zutil.h libsrc/Wi/ ;;
-#6.0.0) cp -v /usr/src/linux/include/linux/zutil.h libsrc/Wi/ ;;
-esac
-default_build
+ case $HOSTTYPE in
+  x86_64) export CFLAGS+=' -m64' ;;
+ esac
+ case $VERSION in
+  6.0.0) cp -v libsrc/zlib/zutil.h libsrc/Wi/ ;;
+ #6.0.0) cp -v /usr/src/linux/include/linux/zutil.h libsrc/Wi/ ;;
+ esac
+ local  RATH="/opt/libiodbc/bin:$PATH"
+ local  PATH
+ export PATH=$RATH
+ default_build
 }

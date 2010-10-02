@@ -2,12 +2,28 @@
 # Requires a mozilla 2.0 element
 # not sure why it can not find it in firefox.
 
+# does not want to compile against xulrunner
+
+# From the README:
+# * mozilla or firefox trunk build from 2005-07-19 or later
+
+# Did development on gnome-web-photo end?
+
     stable 0.5 0.4
   category development
  attribute gnome library
  attribute broke
+   require xulrunner
     source $GNOME_URL sources/gnome-web-photo/${VERSION:0:3}/gnome-web-photo-$VERSION.tar.bz2
   homepage http://www.gnome.org
       opts --enable-static=no
   estimate 7000
       desc 'generate full-size image files and thumbnails from HTML files and web pages'
+
+build(){
+local XVER=$( installed_version $( get_provider xulrunner ) )
+   CFLAGS+=" -I/usr/include/nspr -I/usr/include/xulrunner-$XVER"
+ CXXFLAGS+=" -I/usr/include/nspr -I/usr/include/xulrunner-$XVER"
+
+ default_build
+}

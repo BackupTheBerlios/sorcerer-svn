@@ -9,13 +9,7 @@
 
 MR=/media/root
 
-dirs(){
- while read -r REPLY; do
-  while [ "$REPLY" ]
-  do echo "$REPLY"; REPLY=${REPLY%/*}
-  done
- done
-}
+allpaths(){ export LC_ALL=C; sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 
 what(){
  if   [ -d /lib64 ]
@@ -34,7 +28,7 @@ rmnod(){
  xargs -r --max-lines=256 rm -f
 }
 
-used(){ what | sed '\,^/etc/mtab,d' | dirs | sort -u; }
+used(){ what | sed '\,^/etc/mtab,d' | allpaths; }
 
 construct(){
  if [     -f $MR/boot/fast/initrf ] ||

@@ -1,4 +1,13 @@
+# 2.32.0 is failing to compile in the doc directory
+
     stable 2.32.0 2.30.3 2.30.2 2.30.1 2.30.0
+
+# --enable-gtk-doc-html=no did not avert the compile error
+#case $VERSION in
+# 2.32.0)
+#      opts --enable-gtk-doc-html=no ;;
+#esac
+
    require libgnomeui xcb-util
   optional gnome-doc-utils '' '' for documentation generation
   category font/editor
@@ -10,3 +19,10 @@
 gucharmap is a Unicode/ISO 10646 character map and font viewer.
 It supports anti-aliased, scalable truetype fonts in X, using Xft, 
 and works on Unix and Windows platforms.'
+
+build(){
+ case $VERSION in
+  2.32.0) sed -i 's: docs : :' Makefile.in ;;
+ esac
+ default_build
+}

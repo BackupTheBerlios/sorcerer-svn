@@ -7,9 +7,9 @@
 # gtk+ with version 2.22.0
 # Requested 'glib-2.0 >= 2.25.10' but version of GLib is 2.24.2
 
-    stable 2.20.1 2.20.0 2.18.9
+    stable 2.22.0 2.20.1 2.20.0 2.18.9
   unstable 2.22.0 2.21.8
-   require atk jasper libXcomposite libXcursor libXdamage libXinerama libXrandr pango tiff
+   require atk gdk-pixbuf gobject-introspection jasper libXcomposite libXcursor libXdamage libXinerama libXrandr pango
   optional cups '' '' for optional cups print backend
       opts --disable-gtk-doc --with-xinput=yes
   category graphic/library
@@ -21,9 +21,12 @@
 # Can not add cups optional requirement which exists at this time
 # To avoid circuliar requirement loop with cups dbus gtk+
 # dbus's optional requirement on gtk+ was dropped
-  estimate 5000
+  estimate 4200
    protect /etc/gtk-2.0/gtk.immodules
  freshmeat gtk
+
+# Actually, gtk+ version 2.22.0 seems to provide gail.
+ conflicts gail
       desc 'toolkit for creating GUIs'
 
 build(){
@@ -33,6 +36,5 @@ build(){
 
 post_install(){
  default_post_install
- echo gdk-pixbuf-query-loaders | pipe_queue $CAST_QUEUE com
  echo gtk-query-immodules-2.0  | pipe_queue $CAST_QUEUE com
 }

@@ -1,5 +1,5 @@
     stable 2.0
-   require gtk+
+   require gdk-pixbuf
   category graphic/library
  attribute library gnome
   homepage http://www.gtk.org
@@ -8,7 +8,13 @@
       desc 'generates and installs GdkPixbuf image loader modules file'
 
 build(){
-mkdir -p $DESTDIR/etc/gtk-2.0/
-gdk-pixbuf-query-loaders > $DESTDIR/etc/gtk-2.0/gdk-pixbuf.loaders
-true
+# mkdir -p $DESTDIR/etc/gtk-2.0/
+# gdk-pixbuf-query-loaders > $DESTDIR/etc/gtk-2.0/gdk-pixbuf.loaders
+# true
+
+ dest=$DESTDIR/"$( sed -nr "s:# LoaderDir = (.*)/loaders$:\1:p" loaders.cache )"
+ mkdir -p $dest
+ cd       $dest
+ gdk-pixbuf-query-loaders > loaders.cache
+ chmod 644                  loaders.cache
 }
