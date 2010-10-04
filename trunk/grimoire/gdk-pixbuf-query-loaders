@@ -8,13 +8,21 @@
       desc 'generates and installs GdkPixbuf image loader modules file'
 
 build(){
+ local dest
 # mkdir -p $DESTDIR/etc/gtk-2.0/
 # gdk-pixbuf-query-loaders > $DESTDIR/etc/gtk-2.0/gdk-pixbuf.loaders
 # true
 
- dest=$DESTDIR/"$( sed -nr "s:# LoaderDir = (.*)/loaders$:\1:p" loaders.cache )"
- mkdir -p $dest
- cd       $dest
  gdk-pixbuf-query-loaders > loaders.cache
- chmod 644                  loaders.cache
+ dest=$DESTDIR/"$( sed -nr "s:# LoaderDir = (.*)/loaders$:\1:p" loaders.cache )"
+ mkdir -p         $dest
+ mv loaders.cache $dest
+ chmod 644        $dest/loaders.cache
 }
+
+current(){
+ case $VERSION in
+  2.22.0) [ -f /usr/lib/gdk-pixbuf-2.0/2.10.0/loaders.cache ] ;;
+ esac
+}
+
