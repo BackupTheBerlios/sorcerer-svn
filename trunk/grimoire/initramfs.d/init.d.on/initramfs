@@ -15,15 +15,21 @@ if [ "$1" = try-restart ]; then exit; fi
 
 NAME=initramfs
 
+
+allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+
+exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
+
+
 mkinitrf(){
  cat $COMMON
- find /lib/modules/$1 | cpio -o -H newc --quiet
+ find /lib/modules/$1 |
+ LC_ALL=C sort -u |
+ cpio -o -H newc --quiet
 }
 
 every(){
  local KBD L64
-
- exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
  if [[ -d  /usr/share/consolefonts ]]
  then KBD="/usr/share/consolefonts /usr/share/consoletrans /usr/share/keymaps /usr/share/unimaps"
@@ -35,8 +41,12 @@ every(){
  sed "\
 \,^/dev/pts/,d
 \,^/dev/.udev,d
+\,^/dev/dm-0/,d
+\,^/dev/mapper/,d
+\,^/dev/rtc0/,d
 \,^/dev/shm/,d
 \,^/etc/[^/]*\.old$,d
+\,^/etc/X11,d
 \,^/etc/sorcery/,d
 \,^/etc/selinux/,d
 \,^/etc/asciidoc/,d
@@ -48,18 +58,22 @@ every(){
 \,^/etc/fonts/,d
 \,^/etc/gconf/,d
 \,^/etc/gdm/,d
+\,^/etc/gimp/,d
 \,^/etc/gtk/,d
 \,^/etc/httpd/,d
 \,^/etc/init.d/log.d/,d
 \,^/etc/kde,d
 \,^/etc/lilo/,d
+\,^/etc/logcheck,d
 \,^/etc/mono/,d
 \,^/etc/mplayer/,d
 \,^/etc/mtab,d
 \,^/etc/openldap/,d
+\,^/etc/php.ini$,d
 \,^/etc/ppp/,d
 \,^/etc/prelink,d
-\,^/etc/sane.d/,d
+\,^/etc/sane\.d/,d
+\,^/etc/services\.d/,d
 \,^/etc/sound/,d
 \,^/etc/squid/,d
 \,^/etc/ssh/,d
@@ -69,10 +83,12 @@ every(){
 \,^/lib/modules/,d
 \,^/lib.*\.la$,d
 \,^/lib.*lib.*\.a$,d
-\,^/bin/7zCon.sfx$,d
+\,^/bin/7zCon\.sfx$,d
 \,^/bin/bashbug$,d
-\,^/sbin/mount.ecryptfs$,d
-\,^/sbin/mount.smbfs$,d
+\,^/sbin/dhcpd$,d
+\,^/sbin/dhcrelay$,d
+\,^/sbin/mount\.ecryptfs$,d
+\,^/sbin/mount\.smbfs$,d
 \,^/sbin/sln$,d
 1i/init
 1i/media
@@ -86,7 +102,7 @@ every(){
 1i/usr/share/usb.ids
 1i/usr/share/terminfo
 1i/usr/share/terminfo/l
-1i/usr/share/terminfo/l/linux" | exists
+1i/usr/share/terminfo/l/linux"
 }
 
 initrf_update(){
@@ -100,7 +116,8 @@ initrf_update(){
 
  local       COMMON="$TEMPIF/common"
 
- every | cpio -o -H newc --quiet > $COMMON
+ every | allpaths | exists |
+ cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 |
@@ -169,7 +186,7 @@ status(){
  fi
 }
 
-help(){ echo "Usage: $0 {stop|status|reload}"; }
+help(){ echo "Usage: $0 {stop|status|force}"; }
 
 if ! [[ -d /boot ]] ||
      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
