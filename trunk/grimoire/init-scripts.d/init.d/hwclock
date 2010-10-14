@@ -14,10 +14,16 @@
 
 NAME='System clock from hardware clock time restoring'
 SERV=/sbin/hwclock
-OPTS='--hctosys --utc'
+
+start(){
+ if   log_warning_msg 'System clock from hardware clock'; /sbin/hwclock -s
+ then log_success_msg 'System clock set'
+ else log_failure_msg 'System clock not set'
+ fi
+}
 
 stop(){
- if   log_warning_msg 'Hardware clock from system time setting'; /sbin/hwclock --systohc --noadjfile --utc
+ if   log_warning_msg 'Hardware clock from system clock'; /sbin/hwclock -w
  then log_success_msg 'Hardware clock set'
  else log_failure_msg 'Hardware clock not set'
  fi

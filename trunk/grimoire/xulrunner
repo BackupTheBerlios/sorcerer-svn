@@ -1,4 +1,4 @@
-    stable 1.9.2.9 1.9.2.8 1.9.2 1.9.1.7 1.9.0.15 1.9.0.14 1.9.0.7 1.9.0.1
+    stable 1.9.2.10 1.9.2.9 1.9.2.8 1.9.2 1.9.1.7 1.9.0.15 1.9.0.14 1.9.0.7 1.9.0.1
 # Using internal mng
    require GConf jdk libIDL libnotify nss sqlite startup-notification zip
 #  require GConf-dbus jdk libIDL libnotify nss sqlite startup-notification zip
@@ -47,6 +47,11 @@
       desc 'HTML rendering and javascript library'
 
 build(){
+ add_symlinks(){
+  ln -s xulrunner-$VERSION $DESTDIR/usr/lib/xulrunner
+  ln -s xulrunner-$VERSION $DESTDIR/usr/include/xulrunner
+ }
+
  export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
 
  ./configure \
@@ -56,5 +61,6 @@ build(){
  --enable-optimize="$CFLAGS" \
  $OPTS &&
  make &&
- make install DESTDIR=$DESTDIR
+ make install DESTDIR=$DESTDIR &&
+ add_symlinks
 }
