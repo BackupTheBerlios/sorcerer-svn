@@ -6,18 +6,23 @@
 # Short-Description: runs depmod as required
 ### END INIT INFO
 
-# Copyright 2008 by Kyle Sallee, all rights reserved.
+# Copyright 2008 through 2010 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 if [ "$1" = try-restart ] || ! [ -s /sbin/depmod ]; then exit; fi
 
 . /lib/lsb/init-functions
 
+local MPD
+if   [ -d /etc/modprobe.d ]
+then  MPD=/etc/modprobe.d
+fi
+
 find /lib/modules -maxdepth 2 -mindepth 2 -name modules.dep -printf '%P\n' |
 sed 's:/.*::' |
 while read REPLY; do
  log_warning_msg "depmod checking /lib/modules/$REPLY/modules.dep"
- find /lib/modules/$REPLY/kernel -type f -newer \
+ find /lib/modules/$REPLY/kernel $MPD -type f -newer \
  /lib/modules/$REPLY/modules.dep | grep -q . &&
  echo "$REPLY"
  log_success_msg "depmod checked  /lib/modules/$REPLY/modules.dep"
