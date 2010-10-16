@@ -17,3 +17,19 @@
  conflicts GConf-dbus
   estimate 850
       desc 'system for storing configuration information'
+
+current(){
+ if ! find  /etc/gconf/gconf.xml.system -mode 755 | grep -q .; then
+  mkdir -p  /etc/gconf/gconf.xml.system
+  chmod 755 /etc/gconf/gconf.xml.system
+ fi
+}
+
+# If sources did not do this when installed then
+# the following commands might be useful for updating
+# gconf's defaults database
+
+# GCONF_CONFIG_SOURCE=xml:merged:/etc/gconf/gconf.xml.defaults gconftool-2 --makefile-install-rule /etc/gconf/schemas/*.schemas
+# for REPLY in /etc/gconf/schemas/*.entries
+# do gconftool-2  --direct --config-source=xml:merged:/etc/gconf/gconf.xml.defaults --load $REPLY
+# done
