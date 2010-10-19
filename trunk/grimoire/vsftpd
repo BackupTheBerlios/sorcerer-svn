@@ -1,0 +1,105 @@
+# vsftpd spell is now configured to run as a server
+# optional xinetd       ''         '' for running server
+
+# Please consider using iptables to control access to vsftpd
+# instead of the ancient tcp_wrappers
+# tcp_wrappers will depart the grimoire at the start of 2009
+
+    stable 2.2.2 2.2.1 2.2.0 2.1.2 2.1.0 2.0.7 2.0.6 2.0.5
+   require libcap
+  optional Linux-PAM    PAM        '' for pluggable authnetication
+  optional openssl      SSL        '' for encryption support
+  optional tcp_wrappers TCPWRAPPER '' for controlling access to ftpd daemon through tcp_wrappers
+  category network/ftp
+ attribute server 
+    source ftp://vsftpd.beasts.org/users/cevans/vsftpd-$VERSION.tar.gz
+  homepage http://vsftpd.beasts.org/
+  eprovide ftpd
+      desc 'FTP server
+It is secure, stable and extremely fast.
+Despite being small for purposes of speed and security,
+many more complicated FTP setups are achievable with vsftpd!
+By no means an exclusive list,
+vsftpd will handle:
+
+Virtual IP configurations;
+Virtual users;
+Standalone or inetd operation;
+Powerful per-user configurability;
+Bandwidth throttling;
+Per-source-IP configurability;
+Per-source-IP limits;
+IPv6;
+Encryption support through SSL integration.'
+
+build(){
+
+ conf(){
+  echo '#ifndef VSF_BUILDDEFS_H'
+  echo '#define VSF_BUILDDEFS_H'
+
+  [ -f $OPT_ON_LOGS/vsftpd ] &&
+  cat  $OPT_ON_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo '#define VSF_BUILD_PAM' ;;
+    openssl)      echo '#define VSF_BUILD_SSL' ;;
+    tcp_wrappers) echo '#define VSF_BUILD_TCPWRAPPERS' ;;
+   esac
+  done
+
+  [ -f $OPT_OFF_LOGS/vsftpd ] &&
+  cat  $OPT_OFF_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo '#undefine VSF_BUILD_PAM' ;;
+    openssl)      echo '#undefine VSF_BUILD_SSL' ;;
+    tcp_wrappers) echo '#undefine VSF_BUILD_TCPWRAPPERS' ;;
+   esac
+  done
+
+  echo '#endif /* VSF_BUILDDEFS_H */'
+ }
+
+ libs(){
+  echo '#!/bin/bash'
+  echo 'echo -lcrypt'
+  echo 'echo -ldl'
+  echo 'echo -lnsl'
+  echo 'echo -lresolv'
+  echo 'echo -lutil'
+  echo 'echo -lcap'
+
+  [ -f $OPT_ON_LOGS/vsftpd ] &&
+  cat  $OPT_ON_LOGS/vsftpd |
+  while read; do
+   case $REPLY in
+    Linux-PAM)    echo 'echo -lpam' ;;
+    openssl)      echo 'echo -lssl' ;;
+    tcp_wrappers) echo 'echo -lwrap' ;;
+   esac
+  done
+ }
+
+ LC_ALL=C grep -q listen=YES vsftpd.conf ||
+ echo listen=YES >> vsftpd.conf
+
+ sed -i 's:anonymous_enable=YES:anonymous_enable=NO:' vsftpd.conf
+ sed -i 's:/usr/share/empty:/var/empty:' tunables.c vsftpd.conf.5 |
+
+ rm -f builddefs.h vsf_findlibs.sh
+
+ conf | tee builddefs.h
+ libs | tee vsf_findlibs.sh
+ chmod 755  vsf_findlibs.sh
+
+ patch -p1 < ${SCRIPT_DIR}/vsftp-2.2.2-DESTDIR.patch &&
+ sed -i 's:/usr/local:/usr:' Makefile &&
+ make "CFLAGS=$CFLAGS" &&
+ mkdir -pm 755 ${DESTDIR}/var/empty &&
+ mkdir -vpm 755 ${DESTDIR}/usr/man/man5/ &&
+ make    install DESTDIR="${DESTDIR}" &&
+ rm    -f ${DESTDIR}/etc/xinetd.d/vsftpd &&
+ install -D -vm 644 vsftpd.conf ${DESTDIR}/etc/vsftpd.conf 
+}
+
