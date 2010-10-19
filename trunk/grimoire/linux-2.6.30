@@ -1,11 +1,4 @@
-# No version listed for 2.6.30 kernels on http://www.kernel.org
-# on Sat Jul  3 21:18:13 UTC 2010
-# Wonder if it will be discontinued before broken drivers
-# are fixed in later kernels?
-# at76c50x_usb was broke in later kernels
-# last tested around 20100101
-
-    stable 2.6.30.10 2.6.30.9 2.6.30.8 2.6.30.7 2.6.30.6 2.6.30.5 2.6.30.4 2.6.30.3 2.6.30.2 2.6.30.1 2.6.30
+    stable 2.6.35.7 2.6.35.4 2.6.35.3
    require initramfs lilo module-init-tools
   category kernel
  attribute console
@@ -18,9 +11,97 @@ esac
    protect /lib/modules
   eprovide linux-kernel
   estimate 14000
-      desc '2.6.30.x stable linux kernels'
+      desc '2.6.35.x stable linux kernels
+linux is a clone of the Unix kernel,
+written from scratch by Linus Torvalds
+with assistance from a loosely-knit
+team of hackers across the Net.
+It aims towards POSIX and Single
+UNIX Specification compliance.
+It has all the features you would
+expect in a modern fully-fledged
+Unix kernel, including true multitasking,
+virtual memory, shared libraries,
+demand loading, shared copy-on-write
+executables, proper memory management,
+and TCP/IP networking.'
+
 
 build(){
+
+ geode(){
+  if grep -q /proc/cpuinfo Geode; then
+   if grep flags /proc/cpuinfo | grep -wq 3dnow
+   then echo GEODE_LX
+   else echo MGEODGX1
+   fi
+  else false
+  fi
+ }
+
+ amd(){
+  if    grep "model name" /proc/cpuinfo | grep -q AMD; then
+     if grep "flags"      /proc/cpuinfo | grep -qw "lm";       then echo K8
+   elif grep "flags"      /proc/cpuinfo | grep -qw "3dnowext"; then echo K7
+                                                               else echo K6
+     fi
+  else false
+  fi
+ }
+
+ intel(){
+# pentium MMX and pentium II has MMX, but pentium pro does not
+# pentium III has SSE, but Pentium II does not.
+# CONFIG_M686 is Pentium Pro the default
+
+  if    grep "model name" /proc/cpuinfo | grep -q "Intel"; then
+   if   grep "model name" /proc/cpuinfo | grep -q "Core\|Xeon"    &&
+        grep "cpu family" /proc/cpuinfo | grep -q "6";            then echo CORE2
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium\|Xeon" &&
+        grep "cpu family" /proc/cpuinfo | grep -q "15";           then echo PENTIUM4
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium(R) M"; then echo PENTIUMM
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium III";  then echo PENTIUMIII
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium II";   then echo PENTIUMII
+   fi
+   else false
+  fi
+ }
+
+
+ get_cpu_ia32(){
+  geode ||
+  amd   ||
+  intel
+ }
+
+ get_cpu_x86_64(){
+  if   grep "model name" /proc/cpuinfo | grep -q "AMD";   then echo K8
+  elif grep "model name" /proc/cpuinfo | grep -q "Atom";  then echo ATOM
+  elif grep "model name" /proc/cpuinfo | "Core\|Xeon" &&
+       grep "cpu family" /proc/cpuinfo | grep -q "6";     then echo CORE2
+  elif grep "model name" /proc/cpuinfo | grep -q "Intel"; then echo PSC
+  else false
+  fi
+ }
+
+
+ adjust_config(){
+  if [ -n "$2" ]; then
+   sed -i "s:$1=y:# $1 is not set:" .config
+   sed -i "s:# CONFIG_M$2 is not set:#CONFIG_M$2=y:" .config
+  fi
+ }
+
+
+ get_cpu(){
+  case $HOSTYPE in
+   x86_64) adjust_config "CONFIG_GENERIC_CPU" $( get_cpu_x86_64 ) ;;
+        *) adjust_config "CONFIG_M686"        $( get_cpu_ia32   ) ;;
+  esac
+ }
+
+
+
  backup_modules(){
   if [ -d  /lib/modules/$VERSION ]; then
   rm   -rf /lib/modules/$VERSION.old
@@ -44,34 +125,33 @@ build(){
  }
 
  install_header(){
-  mkdir   -vm 755 -p                                   $DESTDIR/usr/include/{asm,linux}
-  install -vm 644 include/asm/asm-offsets.h            $DESTDIR/usr/include/asm
-  install -vm 644 include/linux/{autoconf.h,compile.h} $DESTDIR/usr/include/linux
+  mkdir   -vm 755 -p                                     $DESTDIR/usr/include/{asm,linux}
+  install -vm 644 include/generated/asm-offsets.h        $DESTDIR/usr/include/asm
+  install -vm 644 include/generated/{autoconf,compile}.h $DESTDIR/usr/include/linux
   true
  }
 
  restore_linux_configs(){
-  local NOSMP
 
-  if   ! LC_ALL=C grep -q 'processor.*1' /proc/cpuinfo
-  then NOSMP=-nosmp
+  local NAME
+  case $HOSTTYPE in
+   x86_64) NAME=x86_64 ;;
+        *) if   [ -f /boot/isolinux/config.gz ]
+           then   CZ=/boot/isolinux/config.gz
+           else   CZ=/proc/config.gz
+           fi
+           if gzip -cd $CZ | grep -q CONFIG_SMP=y
+           then NAME="ia32-smp"
+           else NAME="ia32-up"
+           fi ;;
+  esac
+
+  if   [ -f            $SCRIPT_DIR/$NAME ]
+  then install -vm 600 $SCRIPT_DIR/$NAME    .config
+  else install -vm 600 $SCRIPT_DIR/ia32-smp .config
   fi
 
-  if   [ -d /boot/isolinux ]
-  then local MAC="$HOSTTYPE"; NOSMP=
-  else local MAC="$( uname -m )"
-  fi
-
-  if   [ "$MAC" == x86_64 ]
-  then NOSMP=
-  fi
-
-  CVER="$( echo "$VERSION" | cut -d '.' -f1-3 )"
-
-  if   [ -f            $SCRIPT_DIR/$MAC-$CVER$NOSMP ]
-  then install -vm 600 $SCRIPT_DIR/$MAC-$CVER$NOSMP .config
-  else install -vm 600 $SCRIPT_DIR/i586-$CVER-nosmp .config
-  fi
+  [ -d /boot/isolinux ] || get_cpu
  }
 
  gzip_modules(){
@@ -89,11 +169,11 @@ build(){
  compile_and_install(){
   restore_linux_configs
   yes "" | make oldconfig
-  make modules          &&
-  make bzImage          &&
+  make modules &&
+  make bzImage &&
   make modules_install  INSTALL_MOD_PATH=$DESTDIR && strip_modules &&
   make firmware_install INSTALL_MOD_PATH=$DESTDIR &&
-  install_kernel        &&
+  install_kernel &&
   install_header
  }
 
