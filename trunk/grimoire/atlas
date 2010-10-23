@@ -1,10 +1,10 @@
     stable 3.8.3
-  unstable 3.9.25
+  unstable 3.9.26 3.9.25
 # Not sure if LAPACK is required (separately) for 3.9.25
    require gcc-fortran LAPACK
   category utility/math
  attribute new console
- attribute broke
+#attribute broke
 # Disable automatic detection if CPU throttling is enabled because if it is,
 # the cast would fail. Some computers (often laptops) have BIOS that does
 # not allow users to disable throttling. Of course if throttling is enabled,
@@ -19,10 +19,10 @@ esac
   estimate 30624
       desc 'automatically tuned routines for linear algebra'
 
-build() {
+build(){
 new_build(){
  adjust_soname(){
-   sed -i "s:-soname \$(LIBINSTdir)/\(lib[^ ]*\.so\):-soname \1.$VERSION:" lib/Makefile
+  sed -i "s:-soname \$(LIBINSTdir)/\(lib[^ ]*\.so\):-soname \1.$VERSION:" lib/Makefile
  }
 
  case $HOSTTYPE in
@@ -30,35 +30,35 @@ new_build(){
        *) B='32' ;;
  esac
 
- mkdir build  &&
- cd    build  &&
+ mkdir build &&
+ cd    build &&
  ../configure -b $B        \
     -Ss flapack ../lapack* \
     -D c    '-DWALL'       \
     -Fa alg '-fPIC'        \
     --prefix=$DESTDIR/usr  \
     --shared               \
-    $OPTS        &&
- adjust_soname   &&
- make            &&
- make check      &&
- make ptcheck    &&
- make time       &&
+    $OPTS      &&
+ adjust_soname &&
+ make          &&
+ make check    &&
+ make ptcheck  &&
+ make time     &&
  make install
 }
 
 old_build(){
  make_shared(){
-   case $VERSION in
-     3.8.3) sed -i 's:\(-shared\):\1 --allow-multiple-definition:' lib/Makefile ;;
-   esac
+  case $VERSION in
+   3.8.3) sed -i 's:\(-shared\):\1 --allow-multiple-definition:' lib/Makefile ;;
+  esac
  
-   cd lib  &&
-   make shared  &&
-   make ptshared  &&
-   mkdir -p $DESTDIR/usr/lib  &&
-   install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib  &&
-   cd -
+  cd lib  &&
+  make shared  &&
+  make ptshared  &&
+  mkdir -p $DESTDIR/usr/lib  &&
+  install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib  &&
+  cd -
  }
 
  case $HOSTTYPE in
@@ -66,19 +66,19 @@ old_build(){
        *) B='32' ;;
  esac
 
- mkdir build    &&
- cd    build    &&
- ../configure -b $B     \
-    -D gc  '-DWALL'     \
-    -Fa alg '-fPIC'     \
-    --with-netlib-lapack=/usr/lib/lapack/liblapack_netlib.a   \
-    --prefix=$DESTDIR/usr       \
-    $OPTS
+ mkdir build &&
+ cd    build &&
+ ../configure -b $B \
+  -D gc  '-DWALL'   \
+  -Fa alg '-fPIC'   \
+  --with-netlib-lapack=/usr/lib/lapack/liblapack_netlib.a \
+  --prefix=$DESTDIR/usr \
+  $OPTS
  make &&
  make check &&
- make ptcheck   &&
- make time  &&
- make_shared  &&
+ make ptcheck &&
+ make time &&
+ make_shared &&
  make install
 }
  

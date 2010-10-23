@@ -13,7 +13,7 @@ Section 1.0 Overview
 
 Section 1.1 POST
 
-When power comes on the Power On Self Test, or POST happens.
+Following power on the Power On Self Test, or POST begins.
 Following a successful POST the BIOS, basic input output,
 attempts to load an operating system.
 Depending on how the capability of the BIOS and
@@ -31,53 +31,62 @@ then lilo is run, otherwise the MBR will usually contain code
 that causes it to load and run the content from
 the boot block of the first partition marked as bootable in
 the partition table.
-Most Sorcerer boxes have lilo installed to the boot block of
-the /boot partition or the / partition of no /boot partition was defined
-during installation.
-The bootloader load into memory from fixed disk a kernel image and also
-an initramfs, initialization random access memory file system.
+Most Sorcerer boxes have lilo installed
+to the boot block of the /boot partition.
+However, if no /boot partition was defined
+then the boot block of the / partition will contain lilo.
+The bootloader load into memory a kernel image
+and also an initramfs image.
+Initramfs is the initialization random access
+memory file system.
+Initramfs exists entirely in RAM and is not backed by swap.
 
 Section 1.3 linux kernel
 
-When the kernel begins to run it initializes a few important
+Soon after the kernel begins running
+the kernel initializes important
 hardware devices such as the screen and keyboard.
-Then it decompresses the initramfs image if necessary.
+Then the kernel decompresses the initramfs image if necessary.
 It mounts the initramfs image as / , the root filesystem.
 Finally, the kernel begins execution of the file /init as process 1.
 Using the kernel paramter rdinit=/bin/bash
-the kernel can be instructed to execute a shell instead of /init
-in order for a SA to debug problems that are happening during sysinit.
+the kernel can be instructed to execute a shell instead of /init.
+Executing a shell instead of the normal /init is useful
+when the SA wants to debug problems that occur during sysinit.
 
 Section 1.4 sysinit
 
-sysinit which is run from entirely from the initramfs mounted as root
-is the first of the Sorcerer's 2 stage boot process.
-During sysinit kernel driver modules are loaded into memory
-for supporting installed hardare.
+Sysinit which is run from entirely from the initramfs.
+Sysinit is the second stage of the boot process.
+During sysinit udev is re-triggers cold plug events
+to load kernel driver modules and firmware into memory
+for all detected installed hardare.
 Also kernel modules are loaded for filesystems and other
 commonly used protocols and methods
 such as FUSE, file system in user space, and networking protocols.
-The primary purpose of the sysinit is to make all the preparations
-that are required to be able to successfully mount real filesystems
-such as the real / and /home and other defined file systems.
+The purpose of the sysinit is to complete required preparations
+for being able to successfully mount the real filesystems
+such as the real / /boot and /home file systems.
 
 Section 1.5 runlevel
 
 Following the successful completion of sysinit
-the real root filesystem is mounted and execution of process 1
-is passed from /init on the initramfs to 
-/sbin/init from the real root filesystem.
+the real root filesystem is mounted as /media/root/
+Virtual file systems such as /dev and /proc are moved
+from / to /media/root/dev and /media/root/proc, respectively.
+Using a chroot execute into /media/root/
+process 1 is passed from /init on the initramfs
+to /sbin/init on the real root filesystem.
 At this point runlevel initialization begins.
 
 For a description of runlevels and to be able to change the
 selected default runlevel please see the file /etc/inittab
 Although only one of 5 possible runlevels is started
-the purpose of runlevels 1 through 5 are to to start
-useful installed services such as webservers
-secure socket shell server, system logger, cron,
-X server and other services that make computers
-friendly and useful to uesrs.
-
+the purpose of runlevels 1 through 5
+are to to start useful installed services
+such as webservers, secure socket shell server,
+system logger, cron, X server and other services
+that make computers friendly and useful to uesrs.
 
 
 Section 2.0 Customization
@@ -99,13 +108,15 @@ Section 2.2 init-scripts in detail
 Sorcerer provides a system for running LSB compliant
 system V init-scripts with capabilities defined at the following URL:
 http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
-However, Sorcerer init-scripts are not themselves LSB compliant,
-because Sorcerer's init-script method factorized out code common
-to many init-scripts to ensure that init-scripts are small, fast,
-uniform, easy to edit with minimial proability of introducing a bug.
+However, Sorcerer init-scripts are not themselves LSB compliant.
+Sorcerer init-scripts have nearly all common code factorized out
+and made available in /lib/lsb/init-functions.
+This makes small, fast, uniform, easy to edit init-script.
 
-init-scripts that run during sysinit are often specialized and somewhat complex.
-However, the more simple init-scripts that are executed during runlevel are
+init-scripts that run during sysinit
+are frequently specialized and sometimes complex.
+However, the more simple init-scripts
+that are executed during runlevel are
 often short and simple.
 Each init-script tends to perform a single specific task such as:
 mounting a virtual file system;
@@ -113,11 +124,11 @@ loading a kernel module;
 unloading a kernel module;
 or starting a server.
 
-The best way to understand a Sorcerer init-script is to first learn
-about LSB compliant init-scripts
+The best way to understand a Sorcerer init-script
+is to first learn about LSB compliant init-scripts
 and then view some of the already installed init-scripts.
 Since the format of most init-scripts is similar
-typically new init-scripts are created when necessary
+new init-scripts are usually created
 by copying and modifying old init-scripts.
 
 Section 2.3 init-script customization
@@ -126,6 +137,13 @@ Section 2.3 init-script customization
 
 init-scripts with mode 700 are     run during boot and shutdown.
 init-scripts with mode 600 are not run during boot and shutdown.
+init-scripts with mode 700 are     restarted by cast following updates.
+init-scripts with mode 740 are not restarted by cast following updates.
+
+Mode 740 init-scripts are useful for services such as
+/etc/init.d/kdm-v4 /etc/init.d/gdm /etc/init.d/xdm.
+Sometimes restarting those services will immediately force
+the end of a X session for anyone logged in.
 
 Modes         of init-scripts are     retained across updates.
 Modifications to init-scripts are not retained across updates.
@@ -142,11 +160,8 @@ CTRL-X y to save.
 
 Customization of init-scripts installed by spells such
 as the init-scripts spell is strongly discouraged.
-SAs should customize init-scripts only when necessary.
-Please be aware of the risk of causing unintended and
-undesirable behavior by assuming that something
-about the functions and naming of
-Sorcerer init-scripts will never change.
+Customizing init-scripts can cause failure of services to start
+or even failure of a box being able to mount the real root file system.
 
 
 Section 3.0 Logs
