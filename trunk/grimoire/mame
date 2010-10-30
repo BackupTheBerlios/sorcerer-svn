@@ -1,0 +1,31 @@
+    stable 0140s
+   require GConf SDL gtk+ unzip
+#  require GConf-dbus SDL unzip
+  category game development/emulator
+ attribute x11
+    source http://www.aarongiles.com/mirror/releases/mame$VERSION.zip
+#   source http://mamedev.org/downloader.php?&file=/mame$VERSION.zip
+      vurl http://www.aarongiles.com/mirror/releases/
+  homepage http://mamedev.org
+  estimate 10000
+      desc 'multi arcade machine emulator using SDL'
+
+# Where it really is:
+# curl -A "Mozilla/4.0" -D head.txt "http://mamedev.org/downloader.php?&file=mame0140s.zip"
+
+
+build(){
+ if [ -f mame.zip ]; then
+  unzip  mame.zip
+  rm     mame.zip
+ fi
+
+ sed -i 's:-Werror::g' makefile
+ sed -i '1iCC = g++'   src/emu/cpu/cpu.mak
+#sed -i '1iCC = gcc'   src/lib/lib.mak
+ sed -i 's:$(CC):gcc:' src/lib/lib.mak
+
+ make    -f makefile &&
+ mkdir   -p           $DESTDIR/usr/bin &&
+ install -vm 755 mame $DESTDIR/usr/bin/
+}

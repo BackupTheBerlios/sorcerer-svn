@@ -26,6 +26,61 @@ demand loading, shared copy-on-write
 executables, proper memory management,
 and TCP/IP networking.'
 
+[ -f   $GRIMOIRE/linux.d/trim ] &&
+while read        CONF      SIZE  DESC
+do   switch OMIT_$CONF "" "$SIZE $DESC"
+done < $GRIMOIRE/linux.d/trim
+
+
+# Unsetting CONFIG_NETDEV_1000
+# makes no difference to the size nor number
+# of the installed kernel modules?
+# as compared to merely unsetting CONFIG_NETDEV_10000
+# Why is that?
+
+# Stuff that I might make optional...
+
+# CRYPTO Bolted down by something, AF_RXRPC, bolted downn by AFS
+# CONFIG_CRYPTO=y		600K	cryptographic API
+
+
+# NETDEV_1000 bolted down by the following
+# drivers/scsi/bnx2i/Kconfig:   select NETDEV_1000
+# drivers/staging/et131x/Kconfig:       depends on NETDEV_1000 && PCI
+# drivers/staging/slicoss/Kconfig:      depends on PCI && X86 && NETDEV_1000
+# definitely being held down by: CONFIG_SCSI_BNX2_ISCSI
+
+
+# CONFIG_INPUT_TABLET=y		100K	Tablet drivers
+# CONFIG_MFD_SUPPORT=y		150K	Multifunction devices found mostly on embedded platforms
+# CONFIG_REGULATOR=y		130K	Generic Voltage and Current regulator support
+# CONFIG_INPUT_TOUCHSCREEN=y	250K	Touchscreen drivers
+# CONFIG_WATCHDOG=y		400K	dead man switch which sometimes be used to reboot in critical situations 
+
+# CONFIG_ATM_DRIVERS=y		360K	Asynchronous Transfer Mode device drivers
+# CONFIG_WAN=y			400K	Wide Area Networks such as X.25, Frame Releay and leased lines
+# CONFIG_NET_ETHERNET=y 	????K	IEEE 802.3 ISO 802-2 LAN 10 Mpbs and 100 Mbps LAN drivers
+# CONFIG_NETDEV_1000=y	 	????K	IEEE 802.3 or ISO 8802-2 1000 Mpbs LAN drivers
+# CONFIG_NETDEV_10000=y 	????K	10 gigabit Ethernet drivers
+# CONFIG_WLAN=y			3300K	pre 802.11 and 802.11 wireless device drivers
+# CONFIG_INFINIBAND=m		1000K	Core supoort for InfiniBand (IB) drivers and protocols
+# CONFIG_ISDN=y			2300K	Integrated Services Digital Network or DNIS
+# CONFIG_NETFILTER=y		1200K	framework for filtering and mangling network packets
+
+# CONFIG_BTRFS_FS=m		550K	b tree reversible file system
+# CONFIG_XFS_FS=m		550K	journaling file system
+# CONFIG_NETWORK_FILESYSTEMS=y	1000K	NFS NFSD CODA CIFS AFS 9P file systems
+# CONFIG_OCFS2_FS=m		1000K	extent based shared disk cluster file system
+
+
+# CONFIG_PCMCIA=m		1600K	16 bit PCMCIA and 32 bit CardBus cards used on laptops
+# CONFIG_SND=m			5000K	Advanced Linux Sound Architecture drivers
+# CONFIG_RADIO_ADAPTERS=y	300K	AM/FM radio adapters
+## CONFIG_IR_CORE		450K	Infrared remote controller drivers for video capture drivers adpaters
+# CONFIG_VIDEO_CAPTURE_DRIVERS=y 4300K	webcams, analog TV, hybrid analog/digital TV, and FM radio
+# CONFIG_DVB_CAPTURE_DRIVERS=y	2300K	DVB/ATSC Digital TV adapters
+
+
 
 build(){
 
@@ -135,7 +190,7 @@ build(){
 
  restore_linux_configs(){
 
-  local NAME
+  local NAME CZ
   case $HOSTTYPE in
    x86_64) NAME=x86_64 ;;
         *) if   [ -f /boot/isolinux/config.gz ]
@@ -156,11 +211,25 @@ build(){
   [ -d /boot/isolinux ] || get_cpu
  }
 
+ trim_config(){
+  for OMIT in $OPTS; do
+   case $OMIT in
+    OMIT_NETDEV_1000)
+            sed -i "s:CONFIG_SCSI_BNX2_ISCSI=m:# CONFIG_SCSI_BNX2_ISCSI is not set:" .config
+            sed -i "s:${OMIT/OMIT_/CONFIG_}=.*:# ${OMIT/OMIT_/CONFIG_} is not set:" .config  ;;
+    OMIT_*) sed -i "s:${OMIT/OMIT_/CONFIG_}=.*:# ${OMIT/OMIT_/CONFIG_} is not set:" .config  ;;
+   esac
+  done
+ }
+
  gzip_modules(){
-  local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
-  find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
-  find $KO -type f              | sed   -n '/\.gz$/p' |
-  while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+  if ! [ -d /boot/isolinux ]; then
+   local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
+ # find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+   find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
+   find $KO -type f              | sed   -n '/\.gz$/p' |
+   while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
+  fi
  }
 
  strip_modules(){
@@ -170,13 +239,16 @@ build(){
 
  compile_and_install(){
   restore_linux_configs
+  trim_config
   yes "" | make oldconfig
   make modules &&
   make bzImage &&
   make modules_install  INSTALL_MOD_PATH=$DESTDIR && strip_modules &&
   make firmware_install INSTALL_MOD_PATH=$DESTDIR &&
   install_kernel &&
-  install_header
+  install_header &&
+  gzip_modules   &&
+  rm -fr /lib/modules/$VERSION
  }
 
  rm -fr        /usr/src/linux &&

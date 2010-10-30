@@ -3,6 +3,25 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+CYAN="[36m"
+NORM="[0m"
+
+if   [ "$BASH_VERSION" ]
+then BE=-e
+fi
+
+info(){ echo $BE "$CYAN * $NORM$1\r" 1>&2; }
+
+linear() {
+ for F in /etc/rc.d/rc${RL}.d/${1}*; do
+  if [ -f $F ]; then
+   info "Run $F $2"; $F $2
+   info "Ran $F $2"
+  fi
+ done
+}
+
+
 # Breaking out of the loop early might cause a bug.
 
 parallel(){
@@ -16,12 +35,6 @@ parallel(){
   SEQ=$(($SEQ+1))
  done
  wait
-}
-
-linear() {
- for F in /etc/rc.d/rc${RL}.d/${1}*
- do [ -f $F ] && $F $2
- done
 }
 
 ssp(){ parallel K stop; parallel S start; }

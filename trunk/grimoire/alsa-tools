@@ -1,0 +1,36 @@
+# Not sure what this provides, but it seems seriously broke
+
+    stable 1.0.23
+   require alsa-lib fltk
+#ncurses
+      opts --disable-xmlto
+  category audio/editor audio/mixer audio/player
+ attribute console broke
+    source  ftp://ftp.alsa-project.org/pub/ \
+            ftp://ftp.silug.org/pub/alsa/ \
+            ftp://ftp.eecs.umich.edu/pub/linux/alsa/ \
+            ftp://ftp.rfc822.org/pub/mirror/ftp.alsa-project.org/pub/ \
+            ftp://ftp.sunet.se/pub/Linux/alsa/ \
+            ftp://ftp.task.gda.pl/pub/linux/misc/alsa/ \
+            ftp://linux.sarang.net/mirror/driver/sound/alsa/ \
+            ftp://ftp.nagoyalinux.org/mirror/alsa/ \
+           http://www.alsa-project.org/alsa/ftp/ \
+           tools/alsa-tools-$VERSION.tar.bz2
+      vurl http://www.alsa-project.org/main/index.php/Download
+  homepage http://www.alsa-project.org
+  estimate 500
+      desc 'tools for use with alsa'
+
+build(){
+case $MACHTYPE in
+ *-uclibc) export LDFLAGS+=' -lintl ' ;;
+esac
+case $VERSION in
+ 1.0.23) sed -i 's:ld10k1::
+                 s:echomixer::
+                 s:vxloader::
+                 s:usx2yloader::
+                 s:us428control::' Makefile ;;
+esac
+default_build
+}
