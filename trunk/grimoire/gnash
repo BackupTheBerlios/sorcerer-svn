@@ -1,17 +1,26 @@
+# Problem linking with libgtkglext
+# /usr/lib/libgtkglext-x11-1.0.so: undefined reference to `GTK_WIDGET_TOPLEVEL'
+# /usr/lib/libgtkglext-x11-1.0.so: undefined reference to `GTK_WIDGET_REALIZED'
+# /usr/lib/libgtkglext-x11-1.0.so: undefined reference to `GTK_WIDGET_NO_WINDOW'
+
     stable 0.8.8
-   require agg
-  optional kdelibs-v4 "--with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include --with-qt4-lib=/opt/kde4/lib" --enable-gui=gtk
+   require SDL agg boost curl kdelibs-v4 speex
+      opts --with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/ --enable-gui=kde4
+# optional kdelibs-v4 "--with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/" --enable-gui=gtk
   category utility/editor
- attribute console
- attribute broke
+ attribute kde4
+#attribute broke
     source $GNU_URL gnash/$VERSION/gnash-$VERSION.tar.bz2
   homepage http://www.gnashdev.org
-  estimate 1500
+  estimate 2100
       desc 'Free flash player'
 
 build(){ (
 export PATH="/opt/kde4/bin:$PATH"
 export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
-export CXXFLAGS+=" -I/opt/kde4/include/QtGui/"
+
+# Below did not fix the link errors for use of deprecated defines
+# export   CFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
+# export CXXFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
 default_build
 ) }
