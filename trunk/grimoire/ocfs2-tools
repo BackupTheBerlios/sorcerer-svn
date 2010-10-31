@@ -1,6 +1,7 @@
     stable 1.6.3
    require e2fsprogs util-linux
       opts --disable-glibtest --enable-dynamic-fsck=yes --enable-dynamic-ctl=yes
+#     opts --with-vendor=common
   category disk/file-system
  attribute console
     source http://oss.oracle.com/projects/ocfs2-tools/dist/files/source/v${VERSION:0:3}/ocfs2-tools-$VERSION.tar.gz
@@ -8,3 +9,28 @@
       vurl http://oss.oracle.com/projects/ocfs2-tools/files/source/
   estimate 700
       desc 'tools for ocfs2 file system'
+
+build(){
+ install_rules(){
+  local RULES=$DESTDIR/etc/udev/rules.d
+  mkdir -p $RULES
+  install -m 644 -o root -g root vendor/common/51-ocfs2.rules $RULES
+ }
+
+ install_init(){
+  local INIT=$DESTDIR/etc/init.d/
+  mkdir -p   $DESTDIR/etc/default $INIT
+  install -m 700 -o root -g root vendor/common/o2cb.init.sh $INIT/o2cb
+  install -m 700 -o root -g root vendor/common/ocfs2.init   $INIT/ocfs2
+ }
+
+ default_build &&
+ install_rules &&
+ install_init
+}
+
+current(){
+ case $VERSION in
+  1.6.3) [ -f /etc/init.d/o2cb ] ;;
+ esac
+}

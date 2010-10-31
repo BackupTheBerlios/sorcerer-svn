@@ -154,12 +154,13 @@ boot_dev_check(){
 
 get_filesystem(){
 
- local BTRFS EXT2 EXT3 EXT4 JFS XFS REISER SWAP
+ local BTRFS EXT2 EXT3 EXT4 OCFS2 JFS XFS REISER SWAP
 
   BTRFS=$"B Tree Reversible           file system experimental"
    EXT2=$"Second Extended             file system"
    EXT3=$"Second Extended  journaling file system"
    EXT4=$"Second Extended  journaling file system with 64 bit scalability"
+  OCFS2=$"Oracle Clustering           file system"
     JFS=$"JFS              journaling file system"
     XFS=$"XFS              journaling file system"
  REISER=$"Reiserfs         journaling file system"
@@ -167,7 +168,7 @@ get_filesystem(){
 
  local BOOT HELP TITLE FS
 
-  BOOT=$"Reiserfs XFS and BTRFS can be selected for / after /boot is defined."
+  BOOT=$"Reiserfs OCFS2 XFS and BTRFS can be selected for / after /boot is defined."
   HELP=$"Please select a file system"
  TITLE=$"File System Selection Menu"
 
@@ -181,7 +182,7 @@ get_filesystem(){
  then
   FS="$(
    $DIALOG --title "$TITLE" --default-item "$FS" --menu "$HELP" 0 0 0 \
-    ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" jfs "$JFS" swap "$SWAP" \
+    ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" ocfs2 "$OCFS2" jfs "$JFS" swap "$SWAP" \
     reiserfs "$REISER" xfs "$XFS" btrfs "$BTRFS" )"
  else
   msgbox "$BOOT"
@@ -220,6 +221,7 @@ get_def_mount(){
  local BOOTDEV ROOTDEV HOMEDEV NOTROOT
  local NOTXFS=$"xfs on / requires a /boot partition"
  local NOTBTRFS=$"btrfs on / requires a /boot partition"
+ local NOOCFS2=$"ocfs2 on / requires a /boot partition"
  local FS="${PFILESYSTEM[$1]}"
  local MOUNT
  local ASK="$2"
@@ -236,6 +238,7 @@ get_def_mount(){
  case "$FS" in
      xfs) NOTROOT="$NOTXFS" ;;
    btrfs) NOTROOT="$NOTBTRFS" ;;
+   ocfs2) NOTROOT="$NOOCFS2" ;;
  esac
 
  if   [ swap == "$FS" ];                      then MOUNT="none"
@@ -489,6 +492,7 @@ get_def_options(){
       ext4) REPLY="defaults,noatime,commit=3600" ;;
       ext3) REPLY="defaults,noatime,commit=3600" ;;
       ext2) REPLY="defaults,noatime"             ;;
+     ocfs2) REPLY="defaults,noatime"             ;;
      btrfs) REPLY="defaults"                     ;;
       swap) REPLY="defaults"                     ;;
        xfs) REPLY="defaults,noatime"             ;;
@@ -576,7 +580,8 @@ get_password(){
 get_def_feature(){
  if [ -z  "${PFEATURE[$1]}" ]; then
   case "${PFILESYSTEM[$1]}" in
-   ext*)     PFEATURE[$1]="-O	dir_index,filetype,sparse_super" ;;
+    ext*)    PFEATURE[$1]="-O	dir_index,filetype,sparse_super" ;;
+   ocfs2)    PFEATURE[$1]="--fs-feature-level=max-features" ;;
   esac
  fi
 }
@@ -596,10 +601,15 @@ get_feature(){
  if [ -z  "${PFEATURE[$1]}" ]; then
   case "${PFILESYSTEM[$1]}" in
    ext*) FEAT="dir_index,filetype,sparse_super" ;;
+  ocfs2) FEAT="--fs-feature-level=max-features" ;;
   esac
  fi
+
  FEAT="$( inputbox "Please enter optional features" "$FEATURE" )"
- PFEATURE[$1]="-O	$FEAT"
+ case "${PFILESYSTEM[$1]}" in
+   ext*) PFEATURE[$1]="-O	$FEAT" ;;
+  ocfs2) PFEATURE[$1]="$FEAT" ;;
+ esac
 }
 
 
@@ -933,6 +943,7 @@ installed_fs(){
   *ext4\ filesystem*)	echo  ext4	;;
   *ext3\ filesystem*)	echo  ext3	;;
   *ext2\ filesystem*)	echo  ext2	;;
+  *ocfs2*)		echo  ocfs2	;;
   *BTRFS\ Filesystem*)  echo  btrfs     ;;
   *SGI\ XFS*)		echo  xfs	;;
   *ReiserFS*)		echo  reiserfs	;;    
@@ -999,6 +1010,7 @@ get_mkfs(){
       ext4) PMKFS[$1]="mkfs.ext4"	;;
       ext3) PMKFS[$1]="mkfs.ext3"	;;
       ext2) PMKFS[$1]="mkfs.ext2"	;;
+     ocfs2) PMKFS[$1]="mkfs.ocfs2"      ;;
      btrfs) PMKFS[$1]="mkfs.btrfs"	;;
       swap) PMKFS[$1]="mkswap"		;;
   reiserfs) PMKFS[$1]="mkreiserfs"	;;
@@ -1023,6 +1035,7 @@ get_mk_command(){
       ext4) echo "mkfs.ext4	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
       ext3) echo "mkfs.ext3	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
       ext2) echo "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
+     ocfs2) echo "mkfs.ocfs2	-F		${PFEATURE[$1]}	$DEV" ;;
      btrfs) echo "mkfs.btrfs	$DEV" ;;
   reiserfs) echo "mkreiserfs	-f	$DEV" ;;
        xfs) echo "mkfs.xfs	-f	$DEV" ;;
@@ -1215,7 +1228,7 @@ any of these conditions are true:
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
 5. When / is a software RAID.
-6. When / is a XFS, BTRFS, or Reiserfs file system' 20 75
+6. When / is a XFS, BTRFS, ocfs2 or Reiserfs file system' 20 75
 }
 
 
