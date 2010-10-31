@@ -6,7 +6,9 @@
     stable 0.8.8
    require SDL agg boost curl kdelibs-v4 speex
       opts --with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/ --enable-gui=kde4
-# optional kdelibs-v4 "--with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/" --enable-gui=gtk
+# --with-kde4-plugindir=/opt/kde4/lib//kde4/plugins
+      opts --with-plugins-install=system --with-npapi-install=system --with-npapi-plugindir=/usr/lib/mozilla/plugins/
+# optional firefox
   category utility/editor
  attribute kde4
 #attribute broke
@@ -16,11 +18,20 @@
       desc 'Free flash player'
 
 build(){ (
-export PATH="/opt/kde4/bin:$PATH"
-export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
-
 # Below did not fix the link errors for use of deprecated defines
 # export   CFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
 # export CXXFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
-default_build
+
+export PATH="/opt/kde4/bin:$PATH"
+export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+default_build &&
+make install-plugins DESTDIR=$DESTDIR
+
 ) }
+
+
+current(){
+ case $VERSION in
+  0.8.8) [ -f /usr/lib/mozilla/plugins/libgnashplugin.so ] ;;
+ esac
+}
