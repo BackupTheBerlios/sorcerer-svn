@@ -1,8 +1,9 @@
-    stable 0.7.24 0.7.23
+    stable 0.7.26 0.7.24 0.7.23
    require BeautifulSoup ImageMagick Imaging PyQt4 cssutils dbus-python lxml mechanize  podofo poppler-qt-x11-opensource python-dateutil setuptools xdg-utils
   optional unrar '' '' to support rar archives
   category documentation
  attribute python-module
+ attribute broke
     source $SOURCEFORGE_URL calibre/$VERSION/calibre-$VERSION.tar.gz
   homepage http://calibre-ebook.com/
   estimate 2800
@@ -15,16 +16,11 @@ an integrated e-book viewer.'
 build(){ (
  export QTDIR=/opt/kde4
 
- case $VERSION in
-  0.6.8) sed -i "s:'qmake':'$QTDIR/bin/qmake':" pyqtdistutils.py ;;
-  0.6.[1-9][0-9])
-   export PKG_CONFIG_PATH=$QTDIR/lib/pkgconfig
-   export POPPLER_INC_DIR=$QTDIR/include/poppler:$QTDIR/include
-   export POPPLER_LIB_DIR=$QTDIR/lib ;;
- esac
+ export PKG_CONFIG_PATH=$QTDIR/lib/pkgconfig
+ export POPPLER_INC_DIR=$QTDIR/include/poppler:$QTDIR/include
+ export POPPLER_LIB_DIR=$QTDIR/lib
 
 #default_build &&
-
  python setup.py build   $OPTS &&
  python setup.py install $OPTS "--root=$DESTDIR" &&
  calibre_postinstall

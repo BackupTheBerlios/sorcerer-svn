@@ -125,10 +125,10 @@ build(){
 
  almost_install(){
   mkdir -p $DESTDIR/{etc/httpd/conf,usr/lib/apache}
-  if   [ -f /etc/httpd/conf/httpd.conf ]
-  then cp   /etc/httpd/conf/httpd.conf \
-            $DESTDIR/etc/httpd/conf/
-  fi
+#  if   [ -f /etc/httpd/conf/httpd.conf ]
+#  then cp   /etc/httpd/conf/httpd.conf \
+#            $DESTDIR/etc/httpd/conf/
+#  fi
  }
 
 # --with-pcre-regex=/usr
@@ -190,42 +190,4 @@ if   [ -f /etc/init.d/httpd ] &&
 then      /etc/init.d/httpd try-restart
 fi
 true
-}
-
-pre_remove(){
- remove_php_module(){
-  LPM=lib/apache/libphp5.so
-  HTTPD_CONF=/etc/httpd/conf/httpd.conf
-  HTTPD_CONF_TMP="/tmp/httpd.conf.$$.$RANDOM"
-
-  if   grep    "$LPM"     $HTTPD_CONF
-  then grep -v "$LPM"     $HTTPD_CONF > $HTTPD_CONF_TMP
-       cp $HTTPD_CONF_TMP $HTTPD_CONF
-  fi
- }
-
- default_pre_remove
- remove_php_module
- if   [ -f /etc/init.d/httpd ]
- then      /etc/init.d/httpd try-restart
- fi
- true
-}
-
-post_remove(){
- modify(){ (
-  TEMP="$( cat $1 )"
-  echo "$TEMP"                      |
-  grep -v  "LoadModule php4_module" |
-  grep -v  "AddModule mod_php4.c"   >  $1
-  if   [ -x /usr/sbin/apachectl ]
-  then      /usr/sbin/apachectl graceful
-  fi
- ) }
-
-  default_post_remove
-  if   [ -f /etc/httpd/conf/httpd.conf  ]; then modify /etc/httpd/conf/httpd.conf
-  elif [ -f /etc/apache/httpd.conf ];      then modify /etc/apache/httpd.conf
-  fi
-  true
 }
