@@ -1,6 +1,8 @@
     stable 1.0.23
+      opts --enable-dynamic-minors
   category audio
  attribute linux-26-module
+ attribute broke
     source ftp://ftp.alsa-project.org/pub/ \
            ftp://ftp.silug.org/pub/alsa/ \
            ftp://ftp.eecs.umich.edu/pub/linux/alsa/ \
@@ -14,4 +16,39 @@
       vurl http://www.alsa-project.org/main/index.php/Download
   homepage http://www.alsa-project.org
       desc 'driver for audio cards
-alsa modular drivers for sound cards are also provided by linux'
+alsa modular drivers for sound cards are also provided by linux
+
+Provided that
+/etc/modprobe.d/sound      or
+/etc/modprobe.d/sound.conf
+created by running alsaconf exists
+then this spell can compile the exact alsa-drivers
+that are required for audio output.
+Otherwise it will compile all alsa drivers.'
+
+build(){
+
+ rename_sound_conf(){
+  if   [ -f /etc/modprobe.d/sound ] &&
+     ! [ -f /etc/modprobe.d/sound.conf
+  then mv   /etc/modprobe.d/sound \
+            /etc/modprobe.d/sound.conf
+  fi
+ }
+
+ with_cards(){
+  if ! [ -f /etc/modprobe.d/sound.conf ]; then return; fi
+
+  local CARDS
+
+  CARDS="$( sed "s:.*snd-::p;d" /etc/modprobe.d/sound.conf | sort -u )"
+  if   [ -n "$CARDS" ]
+  then OPTS+=" --with-cards=${CARDS//$LF/,}"
+  fi
+ }
+
+ rename_sound_conf
+ with_cards
+ grep -lr /bin/pwd * | xargs -r --max-lines=64 sed -i "s:/bin/pwd:pwd:"
+ default_build
+}
