@@ -7,16 +7,21 @@
 # 1 877 284 1566
 # Phone number for ATI support
 
-    stable 10-4-x86.x86_64 9-3-x86.x86_64 9-1-x86.x86_64 8-5-x86.x86_64 8-4-x86.x86_64 8-3-x86.x86_64 8.443.1-x86.x86_64 7-11-x86.x86_64 8.42.3-x86.x86_64 8.40.4-x86.x86_64
-#  require MesaLib gcc-v3.3 xorg-legacy
+    stable 10-10-x86.x86_64 10-4-x86.x86_64 9-3-x86.x86_64
+#  require MesaLib gcc-v3.3
   optional rovclock '' '' to underclock the ATI GPU before the fan melts
   category kernel
  attribute linux-26-module x11 x86
- attribute broke
     source http://www2.ati.com/drivers/linux/ati-driver-installer-$VERSION.run
+case $VERSION in
+ 10-10-x86.x86_64)
+    source http://www.cosmicencounter.net/mirror/patch/ati-drivers-2.6.36.patch
+    source http://www.cosmicencounter.net/mirror/patch/arch-2.6.36.patch
+    source http://www.cosmicencounter.net/mirror/patch/ati-drivers-fix_compilation-bug-297322.patch
+    source http://www.cosmicencounter.net/mirror/patch/sema_init.patch ;;
+esac
   homepage http://www.ati.com/support/drivers/linux/radeon-linux.html
       vurl http://ati.amd.com/support/drivers/linux/linux-radeon.html
-  eprovide ati_firegl fglrx
   estimate 50
       desc 'xorg and linux kernel drivers provided by ATI for radeon class graphics cards
 
@@ -39,11 +44,19 @@ build_broke(){
 
 
 pre_build(){
- default_pre_build
- BUILD_DIR="${BUILD_DIR:-$SOURCE_DIR/ati-driver-installer}"
- cd $BUILD_DIR
- sh $SOURCE --extract $BUILD_DIR
- chown -R root:root   $BUILD_DIR
+                       BUILD_DIR="${BUILD_DIR:-$SOURCE_DIR/ati-driver-installer}"
+ sh $SOURCE --extract $BUILD_DIR &&
+ chown -R root:root   $BUILD_DIR &&
+ cd                   $BUILD_DIR &&
+ case $VERSION in
+  10-10-x86.x86_64)
+   patch           -p1 < ${SOURCE[1]} &&
+   patch -d common -p1 < ${SOURCE[2]} &&
+   patch -d common -p1 < ${SOURCE[3]} &&
+   patch -d common -p1 < ${SOURCE[4]} ;;
+ esac
+
+#default_pre_build
 }
 
 
@@ -54,7 +67,8 @@ build(){
   /sbin/ldconfig -n           arch/$AVER/usr/X11R6/lib
   rm -rf common/{lib,usr/src} arch/$AVER/lib
 
-  cp -av common/* $XVER/* arch/$AVER/* /
+  mkdir -p $DESTDIR
+  cp -av common/* $XVER/* arch/$AVER/* $DESTDIR
 
 #  find common $XVER arch/$AVER -type f -printf "%p %P\n" |
 #  while read         FROM   TO
@@ -70,8 +84,8 @@ build(){
 
 
  case $HOSTTYPE in
-  x86_64) XVER+=x750_64a ; AVER=x86_64 ;;
-       *) XVER+=x750     ; AVER=x86    ;;
+  x86_64) XVER+=x760_64a ; AVER=x86_64 ;;
+       *) XVER+=x760     ; AVER=x86    ;;
  esac
 
  LVER=$( installed_version $( get_provider linux-kernel ) )
@@ -88,7 +102,7 @@ build(){
  sed -i '/LIBIP_PREFIX=\./d' make.sh
  sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh
 
- LIBIP_PREFIX=../../../../../../arch/$AVER/lib/modules/fglrx/build_mod  \
+ LIBIP_PREFIX=../../../../../../arch/$AVER/lib/modules/fglrx/build_mod \
  sh -x ./make.sh &&
  cd .. &&
  sh ./make_install.sh &&
