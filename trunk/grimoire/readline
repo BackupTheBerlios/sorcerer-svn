@@ -6,6 +6,9 @@
 
 
     stable 6.1.002 6.1.001 6.1
+   require ncurses
+
+      opts --with-curses
 #     opts --disable-rpath
 # I wish --disable-rpath was obeyed
 
@@ -36,28 +39,6 @@ to recall and perhaps reedit those lines, and perform
 csh-like history expansion on previous commands.'
 
 build(){
- # Other sources configure scripts check only for
- # the location of ar libraries.
- # Therefore, symbolic links to ELF libraries
- # must exist in the same directory as the ar libraries
-
- move_ar_libs(){
-  if   [ -f $DESTDIR/lib/libreadline.a ]; then
-   mkdir -p $DESTDIR/usr/lib
-   mv       $DESTDIR/lib/*.a $DESTDIR/usr/lib/
-  elif [ -f $DESTDIR/lib64/libreadline.a ]; then
-   mkdir -p $DESTDIR/lib64
-   mv       $DESTDIR/lib64/*.a $DESTDIR/usr/lib64/
-  fi
- }
-
- ## cast automatically patches
- #CX=1
- #while [[ -n  ${SOURCE[$CX]} ]]; do
- # patch -p0 < ${SOURCE[$CX]}
- # (( CX++ ))
- #done
-
  if   [[ $HOSTTYPE == x86_64 ]]
  then LIBDIR=/lib64
  else LIBDIR=/lib
@@ -67,6 +48,12 @@ build(){
  sed -i 's:enable_rpath=yes:enable_rpath=no:' aclocal.m4
  sed -i 's:-Wl,-rpath,$(libdir) ::' support/shobj-conf
 
+# it really does use functions for ncurses
+# but the software authors choose not
+# to explicitly link it as they should
+
+ export LDFLAGS+=" -lncurses"
+
  ./configure      \
  --prefix=/usr    \
  --libdir=$LIBDIR \
@@ -74,14 +61,12 @@ build(){
 #make    shared   &&
  make             &&
  make install DESTDIR=$DESTDIR &&
-#move_ar_libs     &&
  mkdir -p $DESTDIR/etc &&
  install -m 644 -o root -g root $SCRIPT_DIR/inputrc $DESTDIR/etc
 }
 
 current(){
  case $VERSION in
-  6.1.002) [ -f /lib/libreadline.a ] ||
-           [ -f /lib64/libreadline.a ] ;;
+  6.1.002) grep -q ncurses $ELF_LOGS/readline ;;
  esac
 }

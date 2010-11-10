@@ -41,34 +41,8 @@ build(){
 case $MACHTYPE in
  *-uclibc) LDFLAGS+=' -lintl' ;;
 esac
+case $HOSTTYPE in
+ x86_64) OPTS+=' --libdir=/lib64' ;;
+esac
 default_build
-}
-
-build_old(){
-
-uclibc_build(){
- (
-  # cal fails to build on uClibc
-  # does not properly link with the libintl library on uClibc
-  # nor does libtool pass the -lintl when specified in LDFLAGS or LIBS
-
-  # column's output was messed up after compliation with uClibc
-
-  # export CFLAGS+=' -lintl'
-
-  ./configure           \
-   --sysconfdir=/etc    \
-   --localstatedir=/var \
-   --prefix=/usr        \
-   --disable-nls        \
-  $OPTS             &&
-  make cal_SOURCES= &&
-  make cal_SOURCES= DESTDIR=$DESTDIR install
-  )
- }
-
- case $MACHTYPE in
-  *-uclibc) uclibc_build ;;
-  *-gnu)   default_build ;;
- esac
 }

@@ -21,34 +21,14 @@ for use on virtually any computer hardware and operating system.
 The zlib data format is portable across platforms.'
 
 build(){
-
- add_compat_syms(){
-  if   [ -d $DESTDIR/lib64 ]; then
-   mkdir -p $DESTDIR/usr/lib64
-   for REPLY in $DESTDIR/lib64/*
-   do ln -s ../../lib64/${REPLY##*/} $DESTDIR/usr/lib64/${REPLY##*/}
-   done
-  elif [ -d $DESTDIR/lib ]; then
-   mkdir -p $DESTDIR/usr/lib
-   for REPLY in $DESTDIR/lib/*
-   do ln -s ../../lib/${REPLY##*/} $DESTDIR/usr/lib/${REPLY##*/}
-  done
-  fi
- }
-
- if   [[ $HOSTTYPE == x86_64 ]]
- then LIBDIR=/lib64
- else LIBDIR=/lib
- fi
-
  export    CFLAGS+=' -fPIC'
  export  CXXFLAGS+=' -fPIC'
 
- ./configure \
- --prefix=/usr \
- --shared &&
+ ./configure --prefix=/usr --shared $OPTS &&
  make "CFLAGS=$CFLAGS" &&
  strip -s libz.so* &&
  make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR &&
- add_compat_syms
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then mv $DESTDIR/lib $DESTDIR/lib64
+ fi
 }

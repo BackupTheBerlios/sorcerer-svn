@@ -23,68 +23,37 @@ esac
       desc 'free implementation of Kerberos 5'
 
 build(){
-export CFLAGS+=' -fPIC'
-export CXXFLAGS+=' -fPIC'
+ export CFLAGS+=' -fPIC'
+ export CXXFLAGS+=' -fPIC'
 
-sed -i 's:db, fn, NULL,:db, (DB_TXN *) NULL, fn, NULL,:
-        s:db, db->hdb_name, NULL,:db, (DB_TXN *) NULL, db->hdb_name, NULL,:' lib/hdb/db3.c
-
-
-sed -i 's:db, fn, NULL,:db, (DB_TXN *) NULL, fn, NULL,:' lib/roken/ndbm_wrap.c
+ sed -i 's:db, fn, NULL,:db, (DB_TXN *) NULL, fn, NULL,:
+         s:db, db->hdb_name, NULL,:db, (DB_TXN *) NULL, db->hdb_name, NULL,:' lib/hdb/db3.c
 
 
+ sed -i 's:db, fn, NULL,:db, (DB_TXN *) NULL, fn, NULL,:' lib/roken/ndbm_wrap.c
 
-LOG='
+ LOG='
 [logging]
  kdc = FILE:/var/heimdal/kdc.log
  kdc = SYSLOG:INFO
  default = SYSLOG:INFO:USER
 '
 
-copy_headers(){
- mkdir -p                  save
- cp /usr/include/glob.h    save
- cp /usr/include/fnmatch.h save
- cp /usr/include/ss/ss.h   save
- true
-}
+ install_conf(){
+  echo "$LOG" >> krb5.conf
+  mkdir -p $DESTDIR/etc
+  install -vm 600 krb5.conf $DESTDIR/etc/
+ }
 
-restore_headers(){
+ install_dir(){ mkdir -vp 700 $DESTDIR/var/heimdal; }
 
- chk_or_cp(){
-  cmp -s /usr/include/$1 save/$2 ||
-  cp     save/$2 /usr/include/$1
-}
+ # export  ac_cv_func_glob_working=yes
 
- chk_or_cp glob.h    glob.h
- chk_or_cp fnmatch.h fnmatch.h
- chk_or_cp ss/ss.h   ss.h
- true
-}
+ case $MACHTYPE in
+  *-uclibc) sed -i 's:ruserpass:ruserpw:' appl/ftp/ftp/{extern.h,ftp.c,ruserpass.c} ;;
+ esac
 
-install_conf(){
- echo "$LOG" >> krb5.conf
- mkdir -p $DESTDIR/etc
- install -vm 600 krb5.conf $DESTDIR/etc/
-}
-
-install_dir(){ mkdir -vp 700 $DESTDIR/var/heimdal; }
-
-# export  ac_cv_func_glob_working=yes
-
-case $MACHTYPE in
- *-uclibc) sed -i 's:ruserpass:ruserpw:' appl/ftp/ftp/{extern.h,ftp.c,ruserpass.c} ;;
-esac
-
-./configure \
---prefix=/usr \
---sysconfdir=/etc \
---localstatedir=/var \
-$OPTS &&
-make &&
-#  copy_headers &&
-make    install DESTDIR=$DESTDIR &&
-#restore_headers &&
-install_conf &&
-install_dir
+ default_build &&
+ install_conf &&
+ install_dir
 }

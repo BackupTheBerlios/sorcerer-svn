@@ -69,23 +69,35 @@ build(){
 
   mkdir -p $DESTDIR
   cp -av common/* $XVER/* arch/$AVER/* $DESTDIR
+  cp -a  $DESTDIR/usr/X11R6/*          $DESTDIR/usr/
+  rm -fr $DESTDIR/usr/X11R6
 
-#  find common $XVER arch/$AVER -type f -printf "%p %P\n" |
-#  while read         FROM   TO
-#  do    install -vD $FROM /$TO
-#  done
-#  find common $XVER arch/$AVER -type l -printf "%p %P\n" |
-#  while read         FROM   TO
-#  do    mv     -v   $FROM /$TO
-#  done
-
-  # cp  -rv  common/*  $XVER/*     arch/$AVER/usr  /
+  if   [ -d $DESTDIR/usr/lib64/modules ]; then
+   mkdir    $DESTDIR/usr/lib64/xorg
+   mv       $DESTDIR/usr/lib64/modules \
+            $DESTDIR/usr/lib64/xorg/
+  elif [ -d $DESTDIR/usr/lib/modules ]; then
+   mkdir    $DESTDIR/usr/lib/xorg
+   mv       $DESTDIR/usr/lib/modules \
+            $DESTDIR/usr/lib/xorg/
+  fi
+  if   [ -d $DESTDIR/usr/lib64/xorg/modules/dri ]; then
+   mv       $DESTIDR/usr/lib64/xorg/modules/dri \
+            $DESTDIR/usr/lib64/
+  elif [ -d $DESTDIR/usr/lib/xorg/modules/dri ]; then
+   mv       $DESTIDR/usr/lib/xorg/modules/dri \
+            $DESTDIR/usr/lib/
+  fi
  }
 
+ case $( installed_version $( get_provider xorg-server ) ) in
+  1.7*) XV=75 ;;
+     *) XV=76 ;;
+ esac
 
  case $HOSTTYPE in
-  x86_64) XVER+=x760_64a ; AVER=x86_64 ;;
-       *) XVER+=x760     ; AVER=x86    ;;
+  x86_64) XVER+=x${XV}0_64a ; AVER=x86_64 ;;
+       *) XVER+=x${XV}0     ; AVER=x86    ;;
  esac
 
  LVER=$( installed_version $( get_provider linux-kernel ) )
@@ -97,7 +109,7 @@ build(){
          s:rmmod \$module:true:"     ../make_install.sh
  sed -i "s:\`uname -r\`:\"$LVER\":"  ../make_install.sh make.sh
  sed -i "s:hit=0:hit=1:"                                make.sh
- sed -i "s:\$\(shell uname -r\):$LVER:" 2.6.x/Makefile
+#sed -i "s:\$\(shell uname -r\):$LVER:" 2.6.x/Makefile
 #sed -i "/LIBIP_PREFIX=/d"           make.sh
  sed -i '/LIBIP_PREFIX=\./d' make.sh
  sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh

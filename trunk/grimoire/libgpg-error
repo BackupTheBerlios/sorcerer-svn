@@ -10,42 +10,15 @@
  attribute library
     source ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-$VERSION.tar.bz2
   homepage http://www.gnupg.org
-      opts --enable-static=no --libdir=/lib
+      opts --enable-static=no
+case $HOSTTYPE in
+ x86_64)
+      opts --libdir=/lib64 ;;
+ *)   opts --libdir=/lib ;;
+esac
   estimate 400
       desc 'common error values for GnuPG components
 libgpg-error is a library that defines
 common error values for all GnuPG components.
 Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt,
 pinentry, SmartCard Daemon and possibly more in the future.'
-
-
-build(){
- default_build &&
- mkdir -p $DESTDIR/usr/lib &&
- for REPLY in $DESTDIR/lib/*
- do ln -s ../../lib/${REPLY##*/} $DESTDIR/usr/lib/${REPLY##*/}
- done
-}
-
-current(){
- case $VERSION in
-  1.7) [ -f     /lib/libgpg-error.la ] &&
-       [ -f /usr/lib/libgpg-error.la ] ;;
- esac
-}
-
-#post_install(){
-## for version 1.7
-## libtool makes a mess out of everything
-## if a single .la file is moved!
-#
-# LC_ALL=C grep /lib/libgpg-error.la {,/usr}/lib{,64}/*.la 2>/dev/null |
-# grep -v /usr/lib/libgpg-error.la |
-# cut -d : -f1 |
-# while read
-# do show_from "$REPLY"
-# done |
-# cut -d : -f1 | sort -u |
-# pipe_queue $CAST_QUEUE com
-# default_post_install
-#}

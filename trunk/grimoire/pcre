@@ -3,20 +3,21 @@
 # Therefore, explicitly avoid using the cmake build for pcre 7.8
 
     stable 8.10 8.02 8.01 8.00 7.9 7.8 7.7 7.6
-    secure 7.8 7.7
    require cmake
   optional gcc-g++
   category development
  attribute library solo
     source ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VERSION.tar.bz2
-#    opts --enable-unicode-properties --enable-static=no
-     opts --enable-utf8 --enable-unicode-properties --enable-static=no
+      opts --enable-utf8 --enable-unicode-properties --enable-static=no
 #      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
 #      opts -DBUILD_SHARED_LIBS:BOOL=TRUE
 #      opts -DBUILD_STATIC_LIBS:BOOL=FALSE
 #      opts -DPCRE_SUPPORT_UNICODE_PROPERTIES=TRUE
+#      opts -DCMAKE_BUILD_TYPE=Release
+
 ## Specifying the below opts avoids a bug in the pcre's cmake files in version 7.8
 #      opts -DNCURSES_LIBRARY:STRING=-lncurses
+
   homepage http://www.pcre.org/
   estimate 500
       desc 'Perl compatible regular expression library
@@ -24,18 +25,10 @@ pcre is a library that implement regular expression pattern matching
 using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
- mv_so_libs(){
-  cd $DESTDIR
-  for         file in usr/{lib64,lib}/lib{pcre,pcrecpp,pcreposix}.so*; do
-   if  [[ -f $file ]]; then
-    mkdir -p "$DESTDIR/$( dirname "${file#usr/}" )"
-    mv       $file "$DESTDIR/${file#usr/}"
-    ln  -sf  ../../${file#usr/} $file
-   fi
-  done
- }
-
-#default_build &&
+ case $HOSTTYPE in
+  x86_64) OPTS+=" --libdir=/lib64" ;;
+       *) OPTS+=" --libdir=/lib"   ;;
+ esac
  ./configure \
   --sysconfdir=/etc \
   --localstatedir=/var \
@@ -43,5 +36,4 @@ build(){
  $OPTS &&
  make &&
  make install "DESTDIR=$DESTDIR"
- mv_so_libs
 }
