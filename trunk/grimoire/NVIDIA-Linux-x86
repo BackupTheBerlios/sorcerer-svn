@@ -5,7 +5,7 @@
 # Due to the NVIDIA-Linux-x86 header files not providing
 # what xorg-server expects.
 
-    stable 260.19.12 256.53 256.44 195.36.24 195.36.15
+    stable 260.19.21 260.19.12 256.53 256.44 195.36.24 195.36.15
    require MesaLib gtk+ libXvMC linux-kernel mktemp
    require xorg-server
   category kernel
@@ -46,10 +46,22 @@ build(){
   mkdir -p $DESTDIR/usr/include
   mv       $DESTDIR/usr/nv/vdpau    $DESTDIR/usr/include
   mv       $DESTDIR/usr/nv          $DESTDIR/usr/include
-  mkdir -p $DESTDIR/usr/lib/nv
-  mv       $DESTDIR/usr/lib/libGL.* $DESTDIR/usr/lib/nv
-  mkdir -p           $DESTDIR/etc/ld.so.conf.d/
-  echo /usr/lib/nv > $DESTDIR/etc/ld.so.conf.d/head
+  mkdir -p $DESTDIR/etc/opengl/
+
+  if   [ -h $DESTDIR/usr/lib64/libGL.so.1 ]; then
+   mkdir -p $DESTDIR/usr/lib64/nv
+   mv       $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib/nvidia/
+   echo        /usr/lib64/nvidia  >    $DESTDIR/etc/opengl/nvidia
+   echo          /usr/lib/nvidia >>    $DESTDIR/etc/opengl/nvidia
+   echo /opt/ia32/usr/lib/nvidia >>    $DESTDIR/etc/opengl/nvidia
+   mv       $DESTDIR/usr/lib/*         $DESTDIR/usr/lib64/
+   rmdir    $DESTDIR/usr/lib
+  elif [ -h $DESTDIR/usr/lib/libGL.so.1 ]; then
+   mkdir -p $DESTDIR/usr/lib/nv
+   mv       $DESTDIR/usr/lib/libGL.*   $DESTDIR/usr/lib/nvidia/
+   echo          /usr/lib/nvidia  >    $DESTDIR/etc/opengl/nvidia
+  fi
+
   rm -f $DESTDIR/usr/lib/xorg/modules/libwfb.*
 # rm -f $DESTDIR/usr/lib/xorg/modules/extensions/libglx.*
 ## libglx extension should be installed over xorg-server's libglx
@@ -67,12 +79,18 @@ fi
 
  LVER="$( installed_version $( get_provider linux-kernel ) )"
 
+ case $HOSTTYPE in
+  x86_64) MOD_PATH=/usr/lib64/xorg/modules ;;
+       *) MOD_PATH=/usr/lib/xorg/modules   ;;
+  esac
+
+
  PARAMETERS="
 --accept-license
 --no-questions
 --ui=none
 --x-prefix=$DESTDIR/usr
---x-module-path=$DESTDIR/usr/lib/xorg/modules
+--x-module-path=$DESTDIR/$MOD_PATH
 --x-library-path=$DESTDIR/usr/lib
 --opengl-prefix=$DESTDIR/usr
 --installer-prefix=$DESTDIR/usr
@@ -90,6 +108,12 @@ fi
 --no-x-check
 --no-cc-version-check
 --no-distro-scripts"
+
+if ! [ -d /usr/src/linux ]; then
+ echo    "/usr/src/linux is missing."
+ echo    "Therefore, trying to compile and install without kernel module."
+ PARAMETERS+=" --no-kernel-module"
+fi
 
 local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
 mkdir -p $BUILD_DIR

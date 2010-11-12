@@ -84,12 +84,30 @@ build(){
    mv       $DESTDIR/usr/lib/modules \
             $DESTDIR/usr/lib/xorg/
   fi
+
   if   [ -d $DESTDIR/usr/lib64/xorg/modules/dri ]; then
    mv       $DESTDIR/usr/lib64/xorg/modules/dri \
             $DESTDIR/usr/lib64/
   elif [ -d $DESTDIR/usr/lib/xorg/modules/dri ]; then
    mv       $DESTDIR/usr/lib/xorg/modules/dri \
             $DESTDIR/usr/lib/
+  fi
+
+  mkdir -p     $DESTDIR/etc/opengl
+  if   [ -f    $DESTDIR/usr/lib64/libGL.so.1.2 ]; then
+   mkdir       $DESTDIR/usr/lib64/ati
+   mv          $DESTDIR/usr/lib64/libGL.so.1.2 \
+               $DESTDIR/usr/lib64/ati/
+   ldconfig -n $DESTDIR/usr/lib64/ati
+   echo               /usr/lib64/ati  > $DESTDIR/etc/opengl/ati
+   echo                 /usr/lib/ati >> $DESTDIR/etc/opengl/ati
+   echo        /opt/ia32/usr/lib/ati >> $DESTDIR/etc/opengl/ati
+  elif [ -f    $DESTDIR/usr/lib/libGL.so.1.2 ]; then
+   mkdir       $DESTDIR/usr/lib/ati
+   mv          $DESTDIR/usr/lib/libGL.so.1.2 \
+               $DESTDIR/usr/lib/ati
+   ldconfig -n $DESTDIR/usr/lib/ati
+   echo        /usr/lib/ati > $DESTDIR/etc/opengl/ati
   fi
  }
 
