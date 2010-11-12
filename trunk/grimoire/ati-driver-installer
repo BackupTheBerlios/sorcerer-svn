@@ -34,13 +34,18 @@ $GRIMOIRE/ati-driver-installer.d/
 You may also want to install rovclock and reduce the clock speed of
 the ATI GPU in order to prevent lockups, fan meltdown, and chip meltdown.
 
-The display driver requires linux versions 2.6.x and POSIX shared memory.'
+The display driver requires linux versions 2.6.x and POSIX shared memory.
 
-
-build_broke(){
-# running sh $SOURCE --install does not install anything.
- sh $SOURCE --install
-}
+Observations about version 10-10-x86.x86_64
+seems to cause black textures when pixel shading is enabled.
+Also xinerama and compositing can not be used concurrently.
+amdccle is the ATI Catalyst Control Center program
+which can be run by root in order to fix the -15%
+underscaling that ATI cards do by default.
+The black screen board can be eliminated with this.
+Logging out or restart X might cause X and/or KDM to hang
+and/or the driver might crash making X impossible to kill
+and will require a system reboot to fix.'
 
 
 pre_build(){
@@ -55,8 +60,6 @@ pre_build(){
    patch -d common -p1 < ${SOURCE[3]} &&
    patch -d common -p1 < ${SOURCE[4]} ;;
  esac
-
-#default_pre_build
 }
 
 
@@ -115,11 +118,15 @@ build(){
  sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh
  sed -i "s:OS_MOD=/lib/modules:OS_MOD=$DESTDIR/lib/modules:" ../make_install.sh
 
- LIBIP_PREFIX=../../../../../../arch/$AVER/lib/modules/fglrx/build_mod \
- sh -x ./make.sh &&
- cd .. &&
- sh ./make_install.sh &&
+ 
+ if   LIBIP_PREFIX=../../../../../../arch/$AVER/lib/modules/fglrx/build_mod \
+      sh -x ./make.sh &&
+      cd .. &&
+      sh ./make_install.sh
+ then echo "Kernel Module fglrx.ko should be installed"
+ else echo "A problem might exist in /usr/src/linux"
+      echo "Kernel module fglrx.ko will not be installed"
+      echo "3D will not be hardware accelerated."
+ fi
       make_install
 }
-
-# post_install(){ depmod -a -q -F /boot/System.map; }
