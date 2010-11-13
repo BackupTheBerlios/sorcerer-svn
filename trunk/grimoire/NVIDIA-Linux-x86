@@ -6,8 +6,8 @@
 # what xorg-server expects.
 
     stable 260.19.21 260.19.12 256.53 256.44 195.36.24 195.36.15
-   require MesaLib gtk+ libXvMC linux-kernel mktemp
-   require xorg-server
+   require MesaLib gtk+ libXvMC mktemp xorg-server
+   optional linux-kernel '' '' for kernel module
   category kernel
 case $HOSTTYPE in
  x86_64) attribute solo linux-26-module x11 x86_64
@@ -71,21 +71,16 @@ build(){
   return 0
  }
 
-if ! [ -d /usr/src/linux ]; then
- echo "Before casting NVIDIA-Linux-x86"
- echo "Please cast a spell that provides linux-kernel"
- echo "Such as:"
- find_providers linux-kernel
- return 1
-fi
-
- LVER="$( installed_version $( get_provider linux-kernel ) )"
-
  case $HOSTTYPE in
   x86_64) MOD_PATH=/usr/lib64/xorg/modules ;;
        *) MOD_PATH=/usr/lib/xorg/modules   ;;
   esac
 
+ PRO="$( get_provider linux-kernel )"
+ if   spell_installed $PRO
+ then LVER="$( installed_version $PRO  )"
+ else LVER="$( available_version linux )"
+ fi
 
  PARAMETERS="
 --accept-license
@@ -118,13 +113,11 @@ echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUI
 chmod a+x $BUILD_DIR/lsmod
 export PATH=$BUILD_DIR:$PATH
 
-if   ! [ "$( uname -m )" == "$HOSTNAME" ]; then
+if   ! [ "$( uname -m )" == "$HOSTTYPE" ]; then
  echo "Assuming compiling on x86_64 architecture while chrooted into"
  echo "/opt/ia32 onto a Sorcerer IA32 installation."
  echo    "Therefore, trying to compile and install without kernel module."
  PARAMETERS+=" --no-kernel-module"
- echo -e "exec /usr/bin/uname \"\$@\" | sed \"s:x86_64:i686:\"" > $BUILD_DIR/uname
- chmod a+x $BUILD_DIR/uname
 elif ! [ -d /usr/src/linux ]; then
  echo    "/usr/src/linux is missing."
  echo    "Therefore, trying to compile and install without kernel module."
