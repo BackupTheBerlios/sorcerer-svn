@@ -1,15 +1,15 @@
 # Spell requires serious modification and testing
 # to become DESTDIR compatible
 
-    stable 1.4.0 1.2.6 1.2.5 1.2.4
+    stable 1.4.5 1.4.0 1.2.6 1.2.5 1.2.4
   unstable 1.4.0-beta 1.4.0-alpha 1.3.4
-   require Python init-functions perl--Net-Server perl--HTML-Template rrdtool
-  optional web-server '' '' to intall the main program or node client only
+   require Python init-functions perl--Net-Server perl--HTML-Template rrdtool perl--Log-Log4perl perl--Net-SSLeay perl--Net-SNMP perl--Time-HiRes
+  optional web-server 'perl--Storable' '' to intall the main program or node client only
   category administration/monitoring
- attribute new web broke
-  homepage http://munin.projects.linpro.no/
-    source $SOURCEFORGE_URL munin/munin%20stable/$VERSION/munin_$VERSION.tar.gz
-  estimate 300
+ attribute new web
+  homepage http://munin-monitoring.org/
+    source http://sourceforge.net/projects/munin/files/munin%20stable/$VERSION/munin-$VERSION.tar.gz
+  estimate 830
       desc 'present system stats on webpage
 It surveys computers and presents the information
 in graphs throug a web interface.
@@ -28,6 +28,7 @@ build(){
 
 configure_munin(){
  cat > Makefile.config << EOF
+DESTDIR    = $DESTDIR
 PREFIX     = \$(DESTDIR)/usr
 CONFDIR    = \$(DESTDIR)/etc/munin
 LIBDIR     = \$(PREFIX)/share/munin
@@ -71,15 +72,21 @@ doc_hack(){
  perl -pi -e 's,\$\(INSTALL.+\.(pdf|txt) \$\(DOCDIR,# $&,' Makefile
 }
 
-install_server(){
+install_munin(){
  if grep -q web-server $OPT_ON_LOGS/munin 2>/dev/null; then
-  echo "Installing munin server..."
-  make install-main
+  echo "Installing both munin server and node..."
+  make install
  else 
-  echo "Installing munin client only..."
+  echo "Installing munin node only..."
+  make install-common-prime install-node-prime install-plugins-prime
  fi
 }
 
+fix_paths(){
+ for file in "$( grep -l $DESTDIR -r $DESTDIR/)"; do 
+   sed -i "s:$DESTDIR::g" $file
+ done
+}
 
 mkdir    -p -m 0755 /var/lib/munin
 groupadd -K GID_MIN=256 -K GID_MAX=511    munin                         2>/dev/null
@@ -88,6 +95,6 @@ useradd  -K UID_MIN=256 -K UID_MAX=511 -g munin -d /var/lib/munin munin 2>/dev/n
  configure_munin &&
  doc_hack        &&
  make            &&
- install_server  &&
- make    install-{node,node-plugins,doc,man}
+ install_munin   &&
+ fix_paths
 }
