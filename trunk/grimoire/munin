@@ -5,6 +5,7 @@
   unstable 1.4.0-beta 1.4.0-alpha 1.3.4
    require Python init-functions perl--Net-Server perl--HTML-Template rrdtool perl--Log-Log4perl perl--Net-SSLeay perl--Net-SNMP perl--Time-HiRes
   optional web-server 'perl--Storable' '' to intall the main program or node client only
+  sys_user munin munin /var/lib/munin
   category administration/monitoring
  attribute new web
   homepage http://munin-monitoring.org/
@@ -83,14 +84,9 @@ install_munin(){
 }
 
 fix_paths(){
- for file in "$( grep -l $DESTDIR -r $DESTDIR/)"; do 
-   sed -i "s:$DESTDIR::g" $file
- done
+ grep -lr $DESTDIR $DESTDIR |
+ xargs -r --max-lines=16 sed -i "s:$DESTDIR::g"
 }
-
-mkdir    -p -m 0755 /var/lib/munin
-groupadd -K GID_MIN=256 -K GID_MAX=511    munin                         2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g munin -d /var/lib/munin munin 2>/dev/null
 
  configure_munin &&
  doc_hack        &&

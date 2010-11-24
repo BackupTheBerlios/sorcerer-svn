@@ -11,6 +11,7 @@
   optional libXevie     --with-xevie              --without-xevie
   optional openssh      --enable-secureremote=yes ''                     for secure remote connection support
   optional tcp_wrappers --with-tcp-wrappers=yes   --with-tcp-wrappers=no to control allowed remote connections using tcp_wrappers
+  sys_user gdm gdm /var/gdm
   category window-manager
  attribute gnome
     source $GNOME_URL sources/gdm/${VERSION:0:4}/gdm-$VERSION.tar.bz2
@@ -24,15 +25,6 @@
 gdm the Gnome Display Manager is a re-implementation
 of the well known xdm program.'
      iwall 'gdm will soon restart'
-
-pre_build(){
-mkdir    -pm 750 /var/gdm
-groupadd -K GID_MIN=256 -K GID_MAX=511    gdm                 2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g gdm -d /var/gdm gdm 2>/dev/null
-chown    -R gdm:gdm /var/gdm
-default_pre_build
-}
-
 
 build(){
  if   spell_installed Linux-PAM; then SCHEME=pam

@@ -5,6 +5,7 @@
   optional Linux-PAM '' '' for pluggable authentication
   optional mysql     '' '' for MySQL support
   optional openssl   '' '' for postfix with TLS support
+  sys_user mail mail /var/spool/mail
   category network/email
  attribute console server
     source $POSTFIX_URL official/postfix-$VERSION.tar.gz
@@ -21,11 +22,8 @@ esac
 
    
 pre_build(){
-mkdir    -pm 1775  /var/spool/mail
-chown    mail:mail /var/spool/mail
-groupadd -K GID_MIN=256 -K GID_MAX=511    mail                         2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g mail -d /var/spool/mail mail 2>/dev/null
-
+default_build
+chmod  1775 /var/spool/mail
 groupadd -K GID_MIN=256 -K GID_MAX=511    postdrop 2>/dev/null
 useradd  -K UID_MIN=256 -K UID_MAX=511 -g postdrop -d /var/spool/mail postdrop 2>/dev/null
 groupadd -K GID_MIN=256 -K GID_MAX=511    postfix 2>/dev/null

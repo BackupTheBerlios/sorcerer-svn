@@ -1,6 +1,7 @@
     stable 9.7.2-P2 9.7.1-P2 9.7.1-P1 9.7.1 9.7.0-P2 9.7.0-P1 9.7.0
     secure 9.7.2-p@ 9.6.1-P2
    require init-functions libcap libxml2 openssl
+  sys_user bind bind /var/chroot/bind
 case $MACHTYPE in
  *-uclibc)
       opts --disable-linux-caps ;;
@@ -24,16 +25,6 @@ major components of the Domain Name System, including:
 * tools for verifying the proper operation of the DNS server
 
 The named server will start during boot when /etc/bind/named.conf exists.'
-
-
-pre_build(){
-                    JAIL=/var/chroot/bind
-mkdir    -p -m 755 $JAIL
-groupadd -K GID_MIN=256 -K GID_MAX=511    bind               2>/dev/null
-useradd  -K UID_MIN=256 -K UID_MAX=511 -g bind -d $JAIL bind 2>/dev/null
-chown    -R  bind:bind  $JAIL
-default_pre_build
-}
 
 
 build(){
