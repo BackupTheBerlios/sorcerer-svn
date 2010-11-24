@@ -12,3 +12,17 @@ esac
   homepage http://code.google.com/p/libproxy/
   estimate 500
       desc 'library that provides automatic proxy configuration management'
+
+build(){
+# version 0.2.3 requires linking with libdl, but
+# the software author forgot to explicitly make it so
+# that causes subversion to fail to compile
+ export LDFLAGS+=' -ldl'
+ default_build
+}
+
+current(){
+ case $VERSION in
+  0.2.3) grep -q "libproxy.so.0.0.0.*libdl.so.2" ;;
+ esac
+}

@@ -1,4 +1,4 @@
-    stable 0.65.1 0.65.0 0.64.2 0.64.1 0.64.0
+    stable 0.65.2 0.65.1 0.65.0
    require automake courier-authlib db docbook-xml-4.1.2 gamin gettext openjade pcre
   optional gnutls   '' ''               instead of openssl for pop3 and imaps
   optional ispell   '' --without-ispell for spell checking
@@ -6,6 +6,7 @@
   optional openssl  '' ''               for pop3s and imaps servers
   category network/email
  attribute client console server
+ attribute broke
     source $SOURCEFORGE_URL courier/courier/$VERSION/courier-$VERSION.tar.bz2
 # May require client daemon support pop3 pop3s imap imaps, etc...
 # added to courier.d/courier it's startup script.
@@ -33,14 +34,18 @@ sed -i 's:rootcheck="$withval":rootcheck="$enableval":' configure
 --disable-root-check               \
 $OPTS                              &&
 make                               &&
-make    install           "DESTDIR=$DESTDIR" &&
-make    install-configure "DESTDIR=$DESTDIR"
+make install           "DESTDIR=$DESTDIR" &&
+make install-configure "DESTDIR=$DESTDIR"
 }
 
 post_install(){
+echo "default_post_install"
  default_post_install
+echo "makealiases"
  makealiases
+echo "makesmtpaccess"
  makesmtpaccess
+echo "makesmtpaccess-msa"
  makesmtpaccess-msa
 
  if    ! [ -d      /etc/skel/Maildir ]
@@ -49,9 +54,9 @@ post_install(){
 
  find /home -maxdepth 1 -mindepth 1 -type d |
  while read;  do
-  if   ! [ -d        $WHO/Maildir ]
-  then maildirmake   $WHO/Maildir
-       chown -R $WHO $WHO/Maildir
+  if   ! [ -d                 $REPLY/Maildir ]
+  then maildirmake            $REPLY/Maildir
+       chown -R $REPLY:$REPLY $REPLY/Maildir
   fi
  done
 

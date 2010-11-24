@@ -1,0 +1,24 @@
+#!/bin/dash
+
+### BEGIN INIT INFO
+# Required-Start: $local_fs pts
+# Should-Start: udev
+# Default-Start: 1 2 3 4 5
+# Short-Description: creates symbolic link from pts/ptmx to /dev/ptmx
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+NAME=/dev/ptmx
+
+start(){
+ if   [ -c       $ROOT_PREFIX/dev/pts/ptmx ] &&
+    ! [ -h       $ROOT_PREFIX/dev/ptmx     ]; then
+  rm -f          $ROOT_PREFIX/dev/ptmx
+  ln -s pts/ptmx $ROOT_PREFIX/dev/ptmx
+ fi
+}
+
+stop(){ :; }
+ 
+parse "$@"
