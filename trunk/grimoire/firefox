@@ -92,17 +92,23 @@ export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
 
 sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
 
+local LIBDIR=/usr/lib
+case $HOSTTYPE in
+ x86_64) LIBDIR+=64 ;;
+esac
+
 ./configure \
 --prefix=/usr \
 --sysconfdir=/etc \
 --localstatedir=/var \
+--libdir=$LIBDIR \
 --enable-optimize="$CFLAGS" \
 $OPTS &&
 make  &&
 make install "DESTDIR=$DESTDIR" &&
 mkdir -p $DESTDIR/usr/lib &&
-ln -fs firefox-$VERSION $DESTDIR/usr/lib/mozilla &&
-rm -f /usr/lib/mozilla &&
+ln -fs firefox-$VERSION $DESTDIR/$LIBDIR/mozilla &&
+rm -fr $LIBDIR/mozilla &&
 symlink_icons
 }
 
