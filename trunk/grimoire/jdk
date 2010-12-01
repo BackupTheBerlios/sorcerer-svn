@@ -56,14 +56,19 @@ install_jdk(){
   then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
   fi 
 
-  if [ -d  $DESTDIR/opt/jdk/jre/plugin ] && [ -d /usr/lib/mozilla/plugins ]; then
-   mkdir -p $DESTDIR/usr/lib/mozilla/plugins
-   ln -fs       /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so \
-            $DESTDIR/usr/lib/mozilla/plugins/libjavaplugin_oji.so
-   # This plugin is required by firefox 3.6 because libjavaplugin_oji.so
-   # does not work for it.
-   ln -fs       /opt/jdk/jre/lib/${ADIR}/libnpjp2.so \
-            $DESTIDR/usr/lib/mozilla/plugins/libnpjp2.so
+# no libjavaplugin_oji.so for x86_64 ?
+
+  local PD
+  if   [ -d   /usr/lib64/mozilla/plugins ]; then
+   PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
+   ln -fs /opt/jdk/jre/lib/amd64/libjavaplugin_jni.so       $PD/
+   ln -fs /opt/jdk/jre/lib/amd64/libnpjp2.so                $PD/
+  elif [ -d         /usr/lib/mozilla/plugins ]; then
+   PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
+#  ln -fs /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so $PD/
+   ln -fs /opt/jdk/jre/lib/i386/libjavaplugin_oji.so        $PD/
+   ln -fs /opt/jdk/jre/lib/i386/libjavaplugin_jni.so        $PD/
+   ln -fs /opt/jdk/jre/lib/i386/libnpjp2.so                 $PD/
   fi
 
   mkdir -p  $DESTDIR/etc/.java/.systemPrefs

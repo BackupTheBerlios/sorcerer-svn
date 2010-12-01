@@ -19,11 +19,14 @@
       desc 'multimedia plugin for Mozilla'
 
 build(){
-case $HOSTTYPE in
- x86_64) sed -i "s:XLIBDIR):XLIBDIR) -L\$(XLIBDIR)64:" Makefile ;;
-esac
+# Yes =/lib is correct and not /usr/lib
+
+ local LP='libprefix=/lib'
+ case $HOSTTYPE in
+  x86_64) LP+=64 ;;
+ esac
 
 sed -i "s:-O2:$CFLAGS:" Makefile
 make linux &&
-make install root=$DESTDIR
+make install $LP root=$DESTDIR
 }
