@@ -1,9 +1,12 @@
-# 5.0.4 failed to compile
-# 5.0.5 failed to compile
+# patch file for autofs version 5.0.5 in autofs.d/5.0.5/
 
-  unstable 5.0.5 5.0.4
-    stable 4.1.4 4.1.3 4.1.2 4.1.1 4.1.0
-   require mktemp openldap
+    stable 5.0.5 4.1.4
+   require mktemp
+#  require openldap
+case $VERSION in
+ 5.0.5)
+      opts --without-openldap --without-sasl ;;
+esac
   category disk
  attribute console
     source $KERNEL_URL pub/linux/daemons/autofs/v${VERSION:0:1}/autofs-$VERSION.tar.bz2
@@ -21,17 +24,4 @@ sed -i "s:-O3 -fomit-frame-pointer -Wall:$CFLAGS:" Makefile.rules
 default_build &&
 mkdir -p $DESTDIR/etc &&
 install -m 755 $SCRIPT_DIR/auto.net $DESTDIR/etc
-}
-
-post_install(){
- default_post_install
-            INC="alias	autofs	autofs4"
- sed -i "\,$INC,d"  /etc/modules.conf
- echo     "$INC" >> /etc/modules.conf
-}
-
-pre_remove(){
- default_pre_remove
-            INC="alias	autofs	autofs4"
- sed -i "\,$INC,d" /etc/modules.conf
 }
