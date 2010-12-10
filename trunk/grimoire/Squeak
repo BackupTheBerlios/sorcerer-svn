@@ -3,17 +3,18 @@
 # Perhaps I installed it wrong
 # Compile error
 
-    stable 3.9-8 3.7-7
-   require MesaLib
+# update the parameters to source also when updating Squeak's version
+
+    stable 4.0.3.2202 3.9-8
+   require MesaLib Squeak-image
+  optional gstreamer
   category development/interpreter
  attribute x11
- attribute broke
-    source http://ftp.squeak.org/${VERSION:0:3}/unix-linux/Squeak-$VERSION.src.tar.gz
-    source http://ftp.squeak.org/${VERSION:0:3}/Squeak${VERSION}.zip
-  eprovide Squeak-full Squeak-basic
-  homepage http://squeak.org
-  estimate 1000
-      desc 'Squeak is a SmallTalk Development system.
+    source http://ftp.squeak.org/4.1/unix-linux/Squeak-${VERSION}-src.tar.gz
+      home http://squeak.org/
+      docs http://squeak.org/Documentation/
+  estimate 1400
+      desc 'SmallTalk Development system
 Squeak is an OpenSource and super-portable implementation of a 
 multi-media capable Smalltalk-80 
 based object-oriented programming environment.
@@ -26,12 +27,6 @@ To run squeak first copy the Image file from /usr/share/squeak
 to your home directory and call the file squeak.image'
 
 build(){
- image_install(){
-  cd ../Squeak${VERSION}
-  mkdir -p          $DESTDIR/usr/lib/squeak/$VERSION/
-  install -vm 644 * $DESTDIR/usr/lib/squeak/$VERSION/
- }
-
  ini_install(){
   mkdir   -  $DESTDIR/usr/{bin,libexec/squeak}
   mv      -v $DESTDIR/usr/bin/squeak $DESTDIR/usr/libexec/squeak
@@ -39,14 +34,11 @@ build(){
   install -vm 755 $SCRIPT_DIR/inisqueak $DESTDIR/usr/bin/squeak
  }
 
-
-[ -d platforms ] &&
 mkdir bld &&
 cd    bld &&
-../platforms/unix/config/configure \
+../unix/cmake/configure \
 --prefix=/usr &&
-#make &&
-make    install "DESTDIR=$DESTDIR" &&
-  image_install &&
-    ini_install
+make &&
+make install "DESTDIR=$DESTDIR" &&
+ ini_install
 }

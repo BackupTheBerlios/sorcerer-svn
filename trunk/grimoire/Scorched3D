@@ -1,26 +1,42 @@
-    stable 43.2 43.1c 43.1b
+# requires it's own special static FFTW in order to compile.
+# What version of FFTW, I wonder.
+
+    stable 43.2a 43.2 43.1c 43.1b
    require SDL_mixer SDL_net fftw freealut wxWidgets
 # does not link properly with installed fftw; missing symbols?
-#     opts --disable-fftwtest
+      opts --disable-fftwtest
   category game
  attribute x11
- attribute broke
-    source $SOURCEFORGE_URL scorched3d/scorched3d/Version%20$VERSION/Scorched3D-$VERSION-src.tar.gz
-  homepage http://scorched3d.sourceforge.net
+#attribute broke
+    source $SOURCEFORGE_URL scorched3d/scorched3d/Version%20${VERSION}/Scorched3D-${VERSION}-src.tar.gz
+    source ftp://ftp.fftw.org/pub/fftw/fftw-3.2.2.tar.gz
+      home http://scorched3d.sourceforge.net/
+      docs http://www.scorched3d.co.uk/wiki/index.php/Main_Page
   estimate 4640
  freshmeat scorched3d
       desc 'a 2D an artillery game'
 
 build(){
-# export PATH=$PWD/scorched-dep-osx/config:$PATH
-# chmod u+x   $PWD/scorched-dep-osx/config/openal-config
-# sed -i 's:prefix=.*:prefix=/usr:' \
-#             $PWD/scorched-dep-osx/config/openal-config
+ cd fftw-3.2.2
+ ./configure \
+  --enable-shared=no  \
+  --enable-static=yes \
+  --enable-float      \
+  --prefix=$PWD/installed &&
+ make &&
+ make install &&
+ OPTS+=" --with-fftw=$PWD/installed" &&
+ cd .. &&
 
-# LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
-[ -d scorched ] &&
-cd   scorched
+ # export PATH=$PWD/scorched-dep-osx/config:$PATH
+ # chmod u+x   $PWD/scorched-dep-osx/config/openal-config
+ # sed -i 's:prefix=.*:prefix=/usr:' \
+ #             $PWD/scorched-dep-osx/config/openal-config
 
-default_build
+ # LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
+
+ if [ -d scorched ]
+ then cd scorched
+ fi &&
+ default_build
 }
-

@@ -1,32 +1,17 @@
-# 7.0.2 is missing glw.pc.in and therefore fails during installation
-# 7.3 requires dri2proto 1.99.3+
-# 7.2 failed compilation recently.
-
-# with 7.5
-# /usr/bin/ld: cannot find -lGLEW
-# collect2: ld returned 1 exit status
-# make[3]: *** [arbfplight] Error 1
-# make[3]: Leaving directory `/usr/src/sorcery/MesaLib/Mesa-7.5/progs/demos'
-
-# 7.8.1 fails compilation on IA32 i586
-# make[4]: *** [slang_common_builtin_gc.h] Illegal instruction
-
-
-    stable 7.8.2 7.8.1 7.7.1 7.6.1 7.5.2 7.5.1 7.4.4 7.4.3 7.4.2 7.4.1 7.2 7.0.1 6.5.2
-    legacy 7.4.2
-  unstable 7.8 7.7 7.6
+    stable 7.8.2 7.8.1 7.7.1
+  unstable 7.9
    require dri2proto expat gcc-g++ glproto libXdamage libXi libXmu libXxf86vm libdrm makedepend
   category graphic/library
  attribute library x11 X11R7 hidden
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaGLUT-$VERSION.tar.bz2
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaDemos-$VERSION.tar.bz2
-
-  homepage http://www.mesa3d.org
-    CFLAGS='-O3'
-   LDFLAGS='-Wl,-O1'
+      home http://www.mesa3d.org
   estimate 2750
       desc '3-D graphics library with an API similar to OpenGL'
+
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
 
 build(){
 
@@ -61,20 +46,15 @@ build(){
  # in order for OpenGL to work with xf86-video-intel drivers
  CFLAGS+=' -fno-strict-aliasing'
 
- make    "$CONFIG_NAME"           \
-         "PIC_FLAGS=-fPIC"        \
-         "OPT_FLAGS=$CFLAGS"      &&
- cd      progs/xdemos             &&
- make    PROGS='glxinfo glxgears' &&
- cd      ../..                    &&
- make    install       "DESTDIR=$DESTDIR" &&
-         install_demos &&
-         install_drirc
-# &&
-# sed -i 's:#  define GLUTAPIENTRY GLAPIENTRY:#  define GLUTAPIENTRY:' /usr/include/GL/glut.h 
- #PREVIOUS line is to fix a mistake in the header -- JLM
- # yeah but what version?
- # always put fixes in case $VERSION in statements.
+ make "$CONFIG_NAME"           \
+      "PIC_FLAGS=-fPIC"        \
+      "OPT_FLAGS=$CFLAGS"      &&
+ cd   progs/xdemos             &&
+ make PROGS='glxinfo glxgears' &&
+ cd   ../..                    &&
+ make install       "DESTDIR=$DESTDIR" &&
+      install_demos &&
+      install_drirc
 }
 
 

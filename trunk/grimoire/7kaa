@@ -1,15 +1,21 @@
-    stable 2.14.0
+    stable 2.14.1 2.14.0
    require SDL 7kaa-data openal
   category game
  attribute x11
-    source $SOURCEFORGE_URL "skfans/Seven%20Kingdoms%20AA/Source/7kaa-$VERSION.tar.bz2"
-  homepage http://7kfans.com/
+#   source $SOURCEFORGE_URL "skfans/Seven%20Kingdoms%20AA/Source/7kaa-$VERSION.tar.bz2"
+    source $SOURCEFORGE_URL "skfans/7KAA%20$VERSION/7kaa-source-$VERSION.tar.bz2"
   estimate 360
+      home http://7kfans.com/
+      docs http://www.7kfans.com/wiki/index.php/Contents
       desc 'mix of RTS and turn-based strategy game'
 
 build(){
-./configure.pl &&
-./build.pl &&
-mkdir -p    $DESTDIR/usr/bin &&
-cp src/7kaa $DESTDIR/usr/bin
+ case $HOSTTYPE in
+  x86_64) sed -i 's:-m32::' build.pl ;;
+ esac
+
+ ./configure.pl &&
+ ./build.pl &&
+ mkdir -p    $DESTDIR/usr/bin &&
+ cp src/7kaa $DESTDIR/usr/bin
 }
