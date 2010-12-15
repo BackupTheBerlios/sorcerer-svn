@@ -1,8 +1,18 @@
 # requires ancient version of gnome-doc-utils
 # configure: error: gnome-doc-utils >= 0.3.2 not found
+# 2.32.1 and 2.32.0 errors with:
+#   CC     libevolution_module_addressbook_la-e-book-shell-backend.lo
+# e-book-shell-backend.c: In function ‘book_shell_backend_init_preferences’:
+# e-book-shell-backend.c:326: error: ‘certificate_manager_config_new’ undeclared (first use in this function)
+# e-book-shell-backend.c:326: error: (Each undeclared identifier is reported only once
+# e-book-shell-backend.c:326: error: for each function it appears in.)
+# make[3]: *** [libevolution_module_addressbook_la-e-book-shell-backend.lo] Error 1
+# make[3]: Leaving directory `/usr/src/sorcery/evolution/evolution-2.32.1/modules/addressbook'
+
     stable 2.32.1 2.32.0 2.30.3
   unstable 2.91.3 2.91.2
-   require evolution-data-server gnome-desktop gnome-doc-utils gstreamer gtkhtml gtkimageview libcanberra libnotify libpst libunique psmisc
+   require evolution-data-server gnome-desktop gnome-doc-utils gstreamer gtkhtml gtkimageview libcanberra libnotify libunique psmisc
+#  require evolution-data-server gnome-desktop gnome-doc-utils gstreamer gtkhtml gtkimageview libcanberra libnotify libpst libunique psmisc
   optional enchant
       opts --disable-nm
 # libpst is currently not linking because the software author
@@ -25,12 +35,13 @@ calendaring, meeting scheduling, contact management
 and online task lists in a single application.'
 
 build(){
+ local PKG_CONFIG_PATH FV
 
-FV="$( installed_version firefox )"
-if   [ $FV ]
-then OPTS+=" --with-nss-libs=/usr/lib/firefox-devel-$FV/sdk/lib"
-else OPTS+=" --with-nss-libs=/usr/lib/mozilla"
-fi
+ FV="$( installed_version firefox )"
+ if   [ $FV ]
+ then OPTS+=" --with-nss-libs=/usr/lib/firefox-devel-$FV/sdk/lib"
+ else OPTS+=" --with-nss-libs=/usr/lib/mozilla"
+ fi
 
  OPTS+=" --with-db3=$BUILD_DIR/evolution-db3"
 
@@ -44,6 +55,7 @@ fi
 
  cd  $BUILD_DIR    &&
 
+ export PKG_CONFIG_PATH=/usr/share/pkgconfig
  export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla -Wl,-rpath-link,/usr/lib/mozilla'
  ./configure          \
  --prefix=/usr        \

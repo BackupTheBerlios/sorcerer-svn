@@ -9,21 +9,33 @@
 
 # 1.4.3 was a security release?
 
-    stable 1.2.40 1.2.39 1.2.38 1.2.37 1.2.36
-    secure 1.2.40 1.2.35
+    stable 1.2.44 1.2.40 1.2.39 1.2.38
   unstable 1.5.0beta47
     latest 1.4.5 1.4.4
    require zlib
       opts --enable-static=no
   category graphic
  attribute library
-    source $SOURCEFORGE_URL libpng/00-libpng-stable/$VERSION/libpng-$VERSION.tar.xz
-#   source $SOURCEFORGE_URL libpng/01-libpng-master/$VERSION/libpng-$VERSION.tar.bz2
-#   source $SOURCEFORGE_URL libpng/00-libpng-stable/$VERSION/libpng-$VERSION.tar.bz2
-#   source http://littlesvr.ca/apng/diff/libpng-$VERSION-apng.patch
+    source $SOURCEFORGE_URL libpng${VERSION:0:1}${VERSION:2:1}/$VERSION/libpng-$VERSION.tar.xz
   homepage http://www.libpng.org/pub/png/libpng.html
       desc 'library that supports the PNG graphics format
 libpng is the PNG library is a collection of routines
 used to create and manipulate PNG format graphics files.
 The PNG format was designed as a replacement for GIF
 and to a lesser extent, TIFF, with many improvements and extensions.'
+
+build(){
+# Default method chooses cmake.
+# cmake sucks
+# libpng's cmake files can not do lib64 install directories.
+
+ case $HOSTTYPE in
+  x86_64) LIBDIR=--libdir=/usr/lib64 ;;
+ esac
+
+ OPTS="--sysconfdir=/etc --localstatedir=/var --prefix=/usr $LIBDIR $OPTS"
+
+ ./configure $OPTS &&
+ make &&
+ make install "DESTDIR=$DESTDIR"
+}

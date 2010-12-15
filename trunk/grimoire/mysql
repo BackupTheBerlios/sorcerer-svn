@@ -26,18 +26,23 @@ It is a client/server implementation that consists
 of a server daemon (mysqld) and client programs/libraries.'
 
 build(){
+ local pld
 
-# Added -fno-exceptions -felide-constructors -fno-rtti
-# From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
+ # Added -fno-exceptions -felide-constructors -fno-rtti
+ # From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
 
-export   CFLAGS+=' -fPIC -fno-exceptions'
-export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
+ export   CFLAGS+=' -fPIC -fno-exceptions'
+ export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
+
+ case $HOSTTYPE in
+  x86_64) OPTS+=' --localstatedir=/var/lib64/mysql --libdir=/usr/lib64'; pld=pkglibdir=/usr/lib64 ;;
+       *) OPTS+=' --localstatedir=/var/lib/mysql   --libdir=/usr/lib';   pld=pkglibdir=/usr/lib ;;
+ esac
 
 ./configure                    \
 --prefix=/usr                  \
 --enable-assembler             \
 --enable-thread-safe-client    \
---localstatedir=/var/lib/mysql \
 --enable-shared                \
 --with-mysqld-user=mysql       \
 --with-extra-charsets=complex  \
@@ -53,8 +58,8 @@ export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
 --with-comment="MySQL-MAX-$VERSION " \
 --with-unix-socket-path=/var/lib/mysql/mysql.sock \
 $OPTS &&
-make pkglibdir=/usr/lib &&
-make pkglibdir=/usr/lib install DESTDIR=$DESTDIR &&
+make $pld &&
+make $pld install DESTDIR=$DESTDIR &&
 mkdir -p $DESTDIR/etc &&
 install -m 700 support-files/my-medium.cnf $DESTDIR/etc/my.cnf
 }
@@ -65,4 +70,10 @@ post_install(){
  default_post_install
  mysql_upgrade --user mysql
  echo "Please run mysql_secure_installation if it has not been run yet."
+}
+
+current(){
+ case $VERSION in
+  5.1.53) [ -f /usr/lib64/libmysqlclient.so ] ;;
+ esac
 }
