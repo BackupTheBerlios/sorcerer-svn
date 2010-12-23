@@ -13,7 +13,7 @@
       opts --without-readline --with-pthread --with-embedded-server
   sys_user mysql mysql /var/lib/mysql
   category db
- attribute console
+ attribute console library
     source $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
       vurl http://dev.mysql.com/downloads/mysql/${VERSION:0:3}.html
   homepage http://www.mysql.com
@@ -34,10 +34,12 @@ build(){
  export   CFLAGS+=' -fPIC -fno-exceptions'
  export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
 
- case $HOSTTYPE in
-  x86_64) OPTS+=' --localstatedir=/var/lib64/mysql --libdir=/usr/lib64'; pld=pkglibdir=/usr/lib64 ;;
-       *) OPTS+=' --localstatedir=/var/lib/mysql   --libdir=/usr/lib';   pld=pkglibdir=/usr/lib ;;
- esac
+# --localstatedir=/var/lib64/mysql is especially bad.
+
+# case $HOSTTYPE in
+#  x86_64) OPTS+=' --localstatedir=/var/lib64/mysql --libdir=/usr/lib64'; pld=pkglibdir=/usr/lib64 ;;
+#       *) OPTS+=' --localstatedir=/var/lib/mysql   --libdir=/usr/lib';   pld=pkglibdir=/usr/lib ;;
+# esac
 
 ./configure                    \
 --prefix=/usr                  \
