@@ -5,20 +5,20 @@
 # libgcrypt dynamically links with libgpg-error
 # Therefore, libgpg-error must have libraries installed in /lib or /lib64
 
-    stable 1.7 1.6 1.5
+    stable 1.10 1.7 1.6 1.5
+      opts --exec-prefix= --enable-static=no
   category security/encryption
  attribute library
     source ftp://ftp.gnupg.org/gcrypt/libgpg-error/libgpg-error-$VERSION.tar.bz2
   homepage http://www.gnupg.org
-      opts --enable-static=no
-case $HOSTTYPE in
- x86_64)
-      opts --libdir=/lib64 ;;
- *)   opts --libdir=/lib ;;
-esac
   estimate 400
       desc 'common error values for GnuPG components
 libgpg-error is a library that defines
 common error values for all GnuPG components.
 Among these are GPG, GPGSM, GPGME, GPG-Agent, libgcrypt,
 pinentry, SmartCard Daemon and possibly more in the future.'
+
+build(){
+ sed -i '/x$libdir/,+2d' src/gpg-error-config.in
+ default_build
+}

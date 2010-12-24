@@ -1,23 +1,15 @@
-# Python 2.6 only works properly with --libdir=/usr/lib
-# it will not work if installed with parts installed in /usr/lib64/
+# Almost no software checks for nor expects Python 3.0
 
-    stable 2.7.1 2.6.6
+    stable 3.1.3 2.7.1 2.6.6
    require bzip2 db gdbm expat gmp ncurses readline zlib
   optional openssl '' '' for secure socket connections
   optional sqlite  '' '' for sqlite support
-
-case $VERSION in
- 2.7.1)
-      opts --libdir=/usr/lib ;;
- 2.6.6)
-      opts --libdir=/usr/lib ;;
-esac
 
 # Commenting out optional on tk to avoid recursive requirement loop
 # optional tk      '' '' to use tk for GUI and graphics
 
   category development/interpreter
- attribute console library multilib-fail x11
+ attribute console library x11
     source http://www.python.org/ftp/python/$VERSION/ \
             ftp://ftp.python.org/pub/python/$VERSION/ \
            Python-$VERSION.tar.bz2
@@ -48,12 +40,12 @@ build(){
  make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR"
 }
 
-post_install(){
- ( export LC_ALL=C
-   grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
-   grep -v ":/usr/lib/python${VERSION:0:3}/"    |
-   cut  -d  : -f1       |
-   sort -u  | basenames |
-   grep -v   "^Python"  |
-   pipe_queue "$CAST_QUEUE" com )
-}
+# post_install(){
+#  ( export LC_ALL=C
+#    grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
+#    grep -v ":/usr/lib/python${VERSION:0:3}/"    |
+#    cut  -d  : -f1       |
+#    sort -u  | basenames |
+#    grep -v   "^Python"  |
+#    pipe_queue "$CAST_QUEUE" com )
+# }

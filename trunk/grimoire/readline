@@ -7,7 +7,7 @@
 
     stable 6.1.002 6.1.001 6.1
    require ncurses
-
+      opts --exec-prefix= --enable-shared=yes --enable-static=no
       opts --with-curses
 #     opts --disable-rpath
 # I wish --disable-rpath was obeyed
@@ -39,10 +39,22 @@ to recall and perhaps reedit those lines, and perform
 csh-like history expansion on previous commands.'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]]
- then LIBDIR=/lib64
- else LIBDIR=/lib
- fi
+ # because readline is not properly not adding a rpath although instructed
+ sed -i 's:enable_rpath=yes:enable_rpath=no:' aclocal.m4
+ sed -i 's:-Wl,-rpath,$(libdir) ::' support/shobj-conf
+
+ export LDFLAGS+=" -lncurses $CFLAGS"
+
+ default_build &&
+ mkdir -p $DESTDIR/etc &&
+ install -m 644 -o root -g root $SCRIPT_DIR/inputrc $DESTDIR/etc
+}
+
+build_old(){
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then LIBDIR=/lib64
+# else LIBDIR=/lib
+# fi
 
 # because readline is not properly not adding a rpath although instructed
  sed -i 's:enable_rpath=yes:enable_rpath=no:' aclocal.m4

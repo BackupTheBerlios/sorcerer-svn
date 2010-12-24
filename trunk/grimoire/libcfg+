@@ -1,13 +1,15 @@
+# version 0.6.2 from 2004-02-17 17:29
+
     stable 0.6.2
   optional docbook2X
+      opts --enable-static=no
   category development
- attribute library
+ attribute library multilib-fail
     source "http://platon.sk/projects/download.php?id=57&force=1/libcfg+-$VERSION.tar.gz"
   homepage http://platon.sk/projects/libcfg+/
-      opts --enable-static=no
   estimate 30
  freshmeat libcfgplus
-      desc 'libcfg+ is a multi-command line configuration file parsing library.
+      desc 'multi-command line configuration file parsing library
 It is possible to set up various special properties
 such as quoting characters, deliminator strings,
 file comment prefixes, multi-line postfixes, and more.
@@ -16,7 +18,13 @@ decimal numbers, strings with many additional data type flags
 (such as multiple values for a single option).'
 
 build(){
-unset LDFLAGS
-export CFLAGS+=' -fPIC'
-default_build
+
+# if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+# then export LDFLAGS="-b elf32-i386"
+# else unset  LDFLAGS
+# fi
+
+ unset LDFLAGS
+ export CFLAGS+=' -fPIC'
+ default_build
 }

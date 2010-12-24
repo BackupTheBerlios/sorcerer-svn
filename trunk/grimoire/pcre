@@ -5,6 +5,7 @@
     stable 8.11 8.10 8.02
    require cmake
   optional gcc-g++
+      opts --exec-prefix= --bindir=/usr/bin
   category development
  attribute library solo
     source ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VERSION.tar.bz2
@@ -25,10 +26,16 @@ pcre is a library that implement regular expression pattern matching
 using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
- case $HOSTTYPE in
-  x86_64) OPTS+=" --libdir=/lib64" ;;
-       *) OPTS+=" --libdir=/lib"   ;;
- esac
+ rm -f CMakeLists.txt
+ default_build
+}
+
+build_old(){
+ if   [ $HOSTTYPE == x86_64 ] && ! echo "$CFLAGS" | grep -q "\-m32"
+ then OPTS+=" --libdir=/lib64"
+ else OPTS+=" --libdir=/lib"
+ fi
+
  ./configure \
   --sysconfdir=/etc \
   --localstatedir=/var \

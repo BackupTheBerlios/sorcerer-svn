@@ -7,7 +7,7 @@
 #  require indent
    require attr
   category kernel
- attribute console
+ attribute console library
     source $KERNEL_URL /pub/linux/libs/security/linux-privs/libcap2/libcap-$VERSION.tar.bz2
   homepage http://ftp.kernel.org/pub/linux/libs/security/linux-privs/kernel-2.4/capfaq-0.2.txt
   estimate 90
@@ -19,16 +19,20 @@ a lack of support for filesystem capability attributes
 and should be used to launch other files.'
 
 build(){
-case $MACHTYPE in
-  x86_64*) local lib=lib64 ;;
-        *) local lib=lib ;;
-esac
+ local lib
 
-# patch -p1 < $SCRIPT_DIR/libcap-2.15-capability_h-2.patch  &&
-make &&
-make install     prefix=/usr \
-             inc_prefix=/usr \
-             man_prefix=/usr \
-             lib_prefix=/ \
-     DESTDIR=$DESTDIR
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then lib=lib64
+ else lib=lib
+ fi
+
+ make "LDFLAGS=$CFLAGS $LDFLAGS -L$PWD/libcap" \
+       "CFLAGS=$CFLAGS -fPIC -I$PWD/libcap/include" &&
+ make install     prefix=/usr \
+              inc_prefix=/usr \
+              man_prefix=/usr \
+              lib_prefix=/ \
+                     lib=$lib \
+                 DESTDIR=$DESTDIR &&
+ rm -f $DESTDIR/lib{,64}/libcap.a
 }

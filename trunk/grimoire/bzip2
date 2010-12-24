@@ -1,6 +1,6 @@
     stable 1.0.6
   category archive
- attribute console solo
+ attribute console library solo
     source http://www.bzip.org/$VERSION/bzip2-$VERSION.tar.gz
       vurl http://www.bzip.org/downloads.html
       home http://www.bzip.org/
@@ -16,21 +16,18 @@ and average decompression speed.'
 
 build(){
  make_install(){
-  case $VERSION in
-   1.0.5) mv libbz2.so.1.0.4 libbz2.so.1.0.5 ;;
-  esac
-  mkdir -p                             $DESTDIR/$LIBDIR
-  cp -va         libbz2.so.$VERSION    $DESTDIR/$LIBDIR
-  ln -fs         libbz2.so.$VERSION    $DESTDIR/$LIBDIR/libbz2.so.1.0
-  ln -fs         libbz2.so.$VERSION    $DESTDIR/$LIBDIR/libbz2.so
-  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so.$VERSION
-  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so.1.0
-  ln -fs $LIBDIR/libbz2.so.$VERSION $DESTDIR/usr$LIBDIR/libbz2.so
-  mkdir -p                          $DESTDIR/bin
-  mv -v  $DESTDIR/usr/bin/bzip2     $DESTDIR/bin/
+  mkdir -p                                 $DESTDIR/$LIBDIR
+  cp -va         libbz2.so.$VERSION        $DESTDIR/$LIBDIR
+  ln -fs         libbz2.so.$VERSION        $DESTDIR/$LIBDIR/libbz2.so.1.0
+  ln -fs         libbz2.so.$VERSION        $DESTDIR/$LIBDIR/libbz2.so
+  mv    -v       $DESTDIR/usr/lib/libbz2.a $DESTDIR/$LIBDIR/
+  mkdir -vpm 755                           $DESTDIR/bin
+  mv    -v       $DESTDIR/usr/bin/bzip2    $DESTDIR/bin/
+  rmdir          $DESTDIR/usr/lib
  }
 
- if   [ $HOSTTYPE == x86_64 ]
+ if   [ $HOSTTYPE == x86_64 ] &&
+      ! echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"
  then LIBDIR=/lib64
  else LIBDIR=/lib
  fi
@@ -38,6 +35,10 @@ build(){
  export  CFLAGS+=' -fPIC'
 
  sed -i "s:ln \$(PREFIX):ln -f \$(PREFIX):" Makefile
+
+ case $VERSION in
+  1.0.6) sed -i 's: -shared : $(CFLAGS) -shared :' Makefile-libbz2_so ;;
+ esac
 
  make                \
   "CFLAGS=$CFLAGS"   \

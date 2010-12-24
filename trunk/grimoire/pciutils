@@ -1,10 +1,10 @@
-    stable 3.1.0 3.0.0 2.2.10 2.2.9
+    stable 3.1.0 3.0.0 2.2.10
    require zlib
+      opts --enable-static=no
   category utility
- attribute console
+ attribute console library
   homepage http://mj.ucw.cz/pciutils.html
     source ftp://atrey.karlin.mff.cuni.cz/pub/linux/pci/ ftp://ftp.kernel.org/pub/software/utils/pciutils/ ftp://metalab.unc.edu/pub/Linux/hardware/ pciutils-$VERSION.tar.gz
-      opts --enable-static=no
   estimate 100
       desc 'setpci and lspci utils
 
@@ -20,30 +20,17 @@ setpci		allows to read from and write to
 		the latency timers with it.'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/usr/lib64
+ else LIBDIR=/usr/lib
+ fi
 
- install_lib(){
-  mkdir       -vpm 755        $DESTDIR/usr/include/pci
-  for                    file in lib/*.h
-  do  install -vm  644  $file $DESTDIR/usr/include/pci/
-  done
-  case $HOSTTYPE in
-   x86_64) mkdir -p $DESTDIR/usr/lib64; install -vm 755 lib/libpci.a $DESTDIR/usr/lib64 ;;
-        *) mkdir -p $DESTDIR/usr/lib;   install -vm 755 lib/libpci.a $DESTDIR/usr/lib   ;;
-  esac
- }
-
+ export LDFLAGS+=" $CFLAGS"
  export CFLAGS+=' -fPIC'
 
  sed -i "s:-O2:$CFLAGS -fPIC:
          s:/usr/local:/usr:
          s:SHARED=no:SHARED=yes:" Makefile
- make &&
- make install install-lib DESTDIR=$DESTDIR
-}
-
-current(){
- case $VERSION in
-  3.0.0) [ -f /usr/lib/libpci.so.3.0.0 ] ;;
-  2.2.9) [ -f /usr/sbin/lspci ] ;;
- esac
+ make CC="gcc $CFLAGS"    "LIBDIR=$LIBDIR" &&
+ make install install-lib "LIBDIR=$LIBDIR" DESTDIR=$DESTDIR
 }

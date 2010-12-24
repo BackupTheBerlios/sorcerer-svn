@@ -18,7 +18,7 @@
   optional db   '' '' for database support
  conflicts perl--File-Spec
   category development/interpreter
- attribute console
+ attribute console library multilib-fail
     source http://www.cpan.org/src/perl-$VERSION.tar.gz
   homepage http://www.perl.org/
   estimate 10300
@@ -32,14 +32,10 @@ to improve security with setuid scripts and is
 extendable via modules that can interface to C libraries.'
 
 build(){
+ local CC libpth
  unset LD_PRELOAD
 
  export CFLAGS+=' -fPIC'
-
-# if   echo "$CFLAGS" | grep -q "march=i586"
-# then       SETARCH="-Darchname=i586-linux"
-# else unset SETARCH
-# fi
 
  unset LANG LC_CTYPE
 
@@ -57,10 +53,16 @@ build(){
 
  sed -i 's:-Wl,-rpath,$shrpdir::' Configure
 
- ./Configure \
- -Dprefix=/usr -d -e $THREADS \
- -A define:libpth="/lib64 /lib /usr/lib64 /usr/lib" \
- $SETARCH
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then libpth='/lib64 /lib /usr/lib64 /usr/lib'
+ else libpth='/lib /usr/lib'
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export CC="gcc -m32"
+ fi
+
+ ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth"
  make "OPTIMIZE=$CFLAGS" &&
  make install DESTDIR=$DESTDIR
 }

@@ -1,9 +1,11 @@
+# gdbm-1.8.3.tar.gz 224 KB 10/16/2002 12:00:00 AM
+
     stable 1.8.3 1.8.2 1.8.0
+      opts --enable-static=no
   category db
  attribute library
     source $GNU_URL gdbm/gdbm-$VERSION.tar.gz
   homepage http://www.gnu.org/software/gdbm/gdbm.html
-      opts --enable-static=no
   estimate 250
       desc 'database library
 gdbm is database library.
@@ -11,6 +13,11 @@ It works like the UNIX dbm.'
 
 build(){
  sed -i "s:-O:$CFLAGS:" Makefile.in
+
+ local CC
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export CC="gcc -m32"
+ fi
 
  ./configure --prefix=/usr $OPTS &&
  make &&

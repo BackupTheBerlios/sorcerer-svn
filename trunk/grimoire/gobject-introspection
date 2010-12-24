@@ -1,40 +1,13 @@
-# When gobject-introspection version > 0.9.10
-# check to see if clutter can compile with introspection enabled
-
-# pango                 version 1.28.3 will compile with
-# gobject-introspection version 0.9.8, but not with
-# gobject-introspection version 0.9.6
-
-# clutter-gtk           version 0.10.8 will compile wtih
-# gobject-introspection version 0.9.6, but not with
-# gobject-introspection version 0.9.8
-
-    stable 0.9.12 0.9.10 0.9.6 0.6.14
-   require automake
-   require cairo fontconfig freetype glib libffi libxml2
+    stable 0.9.12 0.9.10 0.9.6
+   require automake cairo fontconfig freetype glib libffi libxml2
+      opts --enable-static=no
   category development
- attribute gnome library
+ attribute gnome library multilib-fail
+ attribute broke
     source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2
   homepage http://www.gnome.org
-      opts --enable-static=no
  conflicts gir-repository
   estimate 550
       desc 'document API'
 
-# /usr/bin/g-ir-scanner from gobject-introspection version 0.9.0
-# failed compilation of gtk+
-# /usr/bin/g-ir-scanner --add-include-path=../gdk-pixbuf --namespace=Gdk --nsversion=2.0 --libtool="/bin/sh ../libtool"  --include=Gio-2.0 --include=GdkPixbuf-2.0 --include=Pango-1.0  --library=libgdk-x11-2.0.la --strip-prefix=Gdk --add-include-path=../gdk-pixbuf -DG_LOG_DOMAIN=\"Gdk\" -DGDK_COMPILATION -I.. -I../gdk -I../gdk-pixbuf -DG_DISABLE_CAST_CHECKS -pthread -I/usr/include/glib-2.0 -I/usr/lib/glib-2.0/include -I/usr/include/pango-1.0 -I/usr/include/cairo -I/usr/include/pixman-1 -I/usr/include/freetype2 -I/usr/include/libpng12 -I/usr/include/gio-unix-2.0/      gdk.h gdkapplaunchcontext.h gdkcairo.h gdkcolor.h gdkcursor.h gdkdisplay.h gdkdisplaymanager.h gdkdnd.h gdkdrawable.h gdkevents.h gdkfont.h gdkgc.h gdki18n.h gdkimage.h gdkinput.h gdkkeys.h gdkkeysyms.h gdkpango.h gdkpixbuf.h gdkpixmap.h gdkprivate.h gdkproperty.h gdkregion.h gdkrgb.h gdkscreen.h gdkselection.h gdkspawn.h gdktestutils.h gdktypes.h gdkvisual.h gdkwindow.h gdk.c gdkapplaunchcontext.c gdkcairo.c gdkcolor.c gdkcursor.c gdkdisplay.c gdkdisplaymanager.c gdkdnd.c gdkdraw.c gdkevents.c gdkfont.c gdkgc.c gdkglobals.c gdkimage.c gdkkeys.c gdkkeyuni.c gdkoffscreenwindow.c gdkpango.c gdkpixbuf-drawable.c gdkpixbuf-render.c gdkpixmap.c gdkpolyreg-generic.c gdkrectangle.c gdkregion-generic.c gdkrgb.c gdkscreen.c gdkselection.c gdkvisual.c gdkwindow.c gdkwindowimpl.c gdkenumtypes.c gdkenumtypes.h x11/checksettings.c x11/gdkapplaunchcontext-x11.c x11/gdkasync.c x11/gdkcolor-x11.c x11/gdkcursor-x11.c x11/gdkdisplay-x11.c x11/gdkdnd-x11.c x11/gdkdrawable-x11.c x11/gdkevents-x11.c x11/gdkfont-x11.c x11/gdkgc-x11.c x11/gdkgeometry-x11.c x11/gdkglobals-x11.c x11/gdkim-x11.c x11/gdkimage-x11.c x11/gdkinput-none.c x11/gdkinput-x11.c x11/gdkinput-xfree.c x11/gdkinput.c x11/gdkkeys-x11.c x11/gdkmain-x11.c x11/gdkpixmap-x11.c x11/gdkproperty-x11.c x11/gdkscreen-x11.c x11/gdkselection-x11.c x11/gdksettings.c x11/gdkspawn-x11.c x11/gdktestutils-x11.c x11/gdkvisual-x11.c x11/gdkwindow-x11.c x11/gdkxftdefaults.c x11/gdkxid.c x11/xsettings-client.c x11/xsettings-common.c libgdk-x11-2.0.la Makefile --output Gdk-2.0.gir
-# /usr/share/gir-1.0/Pango-1.0.gir: Incompatible version 1.0 (supported: 1.1)
-# make[4]: *** [Gdk-2.0.gir] Error 1
-
-# Therefore any source that installed files into /usr/share/gir-1.0
-# will be recompiled following and update of gobject-introspection
-# in order to ensure that g-ir-scanner does not choke on old formats.
-
-# post_install(){
-#  default_post_install
-#  LC_ALL=C grep -lr /usr/share/gir-1.0/ $INSTALL_LOGS |
-#  basenames |
-#  grep -v "gobject-introspection\|gir-repository" |
-#  pipe_queue $CAST_QUEUE com
-# }
+current(){ echo gobject-introspection | pipe_queue $DISPEL_QUEUE; }

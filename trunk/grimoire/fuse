@@ -1,13 +1,14 @@
 # no configure switch to disable selinux support with fuse 2.6.3
 # --disable-static causes compilation error with fuse 2.7.0
 
-    stable 2.8.5 2.8.4 2.8.3 2.8.2 2.8.1 2.8.0
+    stable 2.8.5 2.8.4 2.8.3
    require automake init-functions libtool
+      opts --exec-prefix= --enable-static=no
+#     opts --disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig --enable-static=no
   category utility
  attribute library
     source $SOURCEFORGE_URL fuse/fuse-2.X/$VERSION/fuse-$VERSION.tar.gz
   homepage http://fuse.sourceforge.net
-      opts --disable-kernel-module --with-pkgconfigdir=/usr/lib/pkgconfig --enable-static=no
   estimate 300
       desc 'file system in userspace program and kernel module
 fuse is a simple interface for userspace programs
@@ -18,30 +19,6 @@ This spell installs the library only.
 Install the fuse kernel module using linux.'
 
 build(){
- mv_libs(){
-  if   [ -f  $DESTDIR/lib/libfuse.la ]; then
-   mkdir -p  $DESTDIR/usr/lib/
-   mv        $DESTDIR/lib/{libfuse,libulockmgr}.la \
-             $DESTDIR/usr/lib/
-  elif [ -f  $DESTDIR/lib64/libfuse.la ]; then
-   mkdir -p  $DESTDIR/usr/lib64/
-   mv        $DESTDIR/lib64/{libfuse,libulockmgr}.la \
-             $DESTDIR/usr/lib64/
-  fi
-
-  if   [  -f $DESTDIR/lib/pkgconfig/fuse.pc ]; then
-   mkdir  -p $DESTDIR/usr/lib/pkgconfig
-   mv     -v $DESTDIR/lib/pkgconfig/fuse.pc \
-             $DESTDIR/usr/lib/pkgconfig/
-   rm   -frv $DESTDIR/lib/pkgconfig
-  fi
- }
-
- if   [ $HOSTTYPE == x86_64 ]
- then LIBDIR=/lib64
- else LIBDIR=/lib
- fi
-
  case $VERSION in
   2.6*) sed -i "s:PRGNAME=.*:PRGNAME=\"\${0##*/}\":
                 s:which \${FSTYPE}:hash \${FSTYPE}:" util/mount.fuse ;;
@@ -50,11 +27,9 @@ build(){
  ./configure          \
  --prefix=/usr        \
  --bindir=/bin        \
- --libdir=$LIBDIR     \
  --sysconfdir=/etc    \
  --localstatedir=/var \
  $OPTS                &&
  make                 &&
- make install DESTDIR=$DESTDIR &&
- mv_libs
+ make install DESTDIR=$DESTDIR
 }

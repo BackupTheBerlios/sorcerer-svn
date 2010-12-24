@@ -5,11 +5,11 @@
    require e2fsprogs gss openssl
   optional Linux-PAM ''                      '' for optional pluggable authentication
   optional heimdal   --with-gss_impl=heimdal '' for kerberos 5 authentication
+      opts --enable-login --enable-ntlm
   category security/authentication security/encryption
  attribute library
     source ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-$VERSION.tar.gz
   homepage http://cyrusimap.web.cmu.edu/
-      opts --enable-login --enable-ntlm
  freshmeat cyrussasl
   estimate 1330
       desc 'library for secure network authentication
@@ -21,8 +21,19 @@ and KERBEROS_V4 and GSSAPI Kerberos methods.
 The SASL protocol framework is used by SMTP, IMAP, 
 ACAP, LDAP, and other standard protocols.'
 
-build(){
-sed -i 's:*mbdb, path, NULL,:*mbdb, (DB_TXN *) NULL, path, NULL,:' \
-    sasldb/db_berkeley.c utils/dbconverter-2.c
-default_build
-}
+build(){ (
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --with-plugindir=/usr/lib64/sasl2 
+      opts --with-configdir=/usr/lib64/sasl2
+ else opts --with-plugindir=/usr/lib/sasl2 
+      opts --with-configdir=/usr/lib/sasl2
+ fi
+
+ sed -i 's:*mbdb, path, NULL,:*mbdb, (DB_TXN *) NULL, path, NULL,:' \
+     sasldb/db_berkeley.c utils/dbconverter-2.c
+
+ if   [[ $CFLAGS =~ -m32 ]]
+ then CC="gcc -m32" default_build
+ else               default_build
+ fi
+) }

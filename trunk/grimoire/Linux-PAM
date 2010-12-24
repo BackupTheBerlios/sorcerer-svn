@@ -23,10 +23,6 @@ esac
 
 # If the root filesystem can not be mounted
 # login must be possible from the initramfs
-  case $HOSTTYPE in
-    x86_64) opts --libdir=/lib64 --enable-securedir=/lib64/security ;;
-         *) opts --libdir=/lib   --enable-securedir=/lib/security   ;;
-  esac
    protect /etc/security
  freshmeat linux-pam
   estimate 2000
@@ -43,12 +39,14 @@ build(){
  }
 
  case $MACHTYPE in
-  *-uclibc) patch -p1 < $SCRIPT_DIR/Linux-PAM-1.0.4-uclibc.patch ;;
+  *-uclibc) patch -p1 < $SCRIPT_DIR/Linux-PAM-1.0.4-uclibc.patch
+            export LDFLAGS+=' -lintl ' ;;
  esac
 
- case $MACHTYPE in
-  *-uclibc) export LDFLAGS+=' -lintl ' ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/lib64 --enable-securedir=/lib64/security
+ else opts --libdir=/lib   --enable-securedir=/lib/security
+ fi
 
  export HAVE_SGML2LATEX=no
  sed -i 's: doc examples::g' Makefile.in

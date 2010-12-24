@@ -1,19 +1,18 @@
     stable 2.02.74 2.02.73 2.02.60
    require ncurses readline
 #  require libselinux
-      opts --enable-pkgconfig --sbindir=/sbin
+      opts --exec-prefix= --enable-pkgconfig --sbindir=/sbin
   category disk
- attribute console
+ attribute console library
     source ftp://sources.redhat.com/pub/lvm2/LVM2.$VERSION.tgz
       home http://sources.redhat.com/lvm2
   estimate 1700
       desc 'the userspace toolset that provide logical volume management'
 
-
 build(){
-OPTS+=" --libdir=/lib"
-if   [ $HOSTTYPE = x86_64 ]
-then OPTS+=64
-fi
-default_build
-}
+ if   [[ $HOSTTYPE = x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then OPTS+=" --with-usrlibdir=/usr/lib64"
+ else OPTS+=" --with-usrlibdir=/usr/lib"
+ fi
+ default_build
+} 

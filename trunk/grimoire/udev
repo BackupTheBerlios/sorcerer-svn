@@ -1,8 +1,11 @@
     stable 164 163 162
-   require acl glib gobject-introspection gperf pci.ids sysvinit usbutils
+   require acl glib gperf pci.ids sysvinit usbutils
+#  require acl glib gobject-introspection gperf pci.ids sysvinit usbutils
   optional ConsoleKit
+      opts --disable-introspection --sbindir=/sbin --libexecdir=/lib/udev
   category utility
- attribute console server
+ attribute console library server
+#attribute console library multilib-fail server
     source $KERNEL_URL pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.gz
   homepage http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
    exclude /dev
@@ -44,33 +47,12 @@ nod_sym_install(){
   install -vm 644 $SCRIPT_DIR/rules.d/* $DESTDIR/lib/udev/rules.d/
  }
 
- # if   spell_installed libselinux
- # then OPTS+=' --with-selinux'
- # fi
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --with-rootlibdir=/lib64
+ else opts --with-rootlibdir=/lib
+ fi
 
- case $HOSTTYPE in
-  x86_64) OPTS+=' --with-libdir-name=lib64' ;;
- esac
-
- export PKG_CONFIG_PATH=/usr/share/pkgconfig
-
- case $HOSTTYPE in
-  x86_64) LIB=lib64 ;;
-       *) LIB=lib ;;
- esac
-
-# --exec-prefix=    \
-
- ./configure \
-  --prefix=/usr \
-  --sysconfdir=/etc \
-  --sbindir=/sbin \
-  --libdir=/usr/$LIB \
-  --with-rootlibdir=/$LIB \
-  --libexecdir=/lib/udev \
- $OPTS &&
- make &&
- make install DESTDIR=$DESTDIR &&
+ default_build   &&
  nod_sym_install &&
    rules_install
 }

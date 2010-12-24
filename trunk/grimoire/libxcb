@@ -6,7 +6,6 @@
       opts --enable-static=no
   category xorg/library
  attribute X11R7 library
-      opts --enable-static
     source http://xcb.freedesktop.org/dist/libxcb-$VERSION.tar.bz2
   estimate 750
       desc 'X protocol C-language binding
@@ -14,3 +13,19 @@ xcb is a replacement for Xlib.
 It has a small footprint, latency hiding,
 direct access to the protocol,
 improved threading support, and extensibility.'
+
+case $VERSION in
+ 1.7)
+   require automake libtool ;;
+esac
+
+build_old(){
+ case $VERSION in
+  1.7) aclocal -I .
+       autoheader
+       libtoolize --automake
+       automake   --add-missing
+       autoconf ;;
+ esac
+ default_build
+}

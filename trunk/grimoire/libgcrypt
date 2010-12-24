@@ -3,19 +3,39 @@
 # sysinit may run on an initramfs image
 # Therefore, libgcrypt must have libraries installed in /lib or /lib64
 
-    stable 1.4.5 1.4.1 1.4.0
+# version of autotools that comes with libgcrypt version 1.4.5 and 1.4.6
+# is buggy and does not choose correct libgpg-error library when linking.
+
+    stable 1.4.6 1.4.5 1.4.1 1.4.0
    require libgpg-error
+      opts --exec-prefix= --enable-static=no
   category security/encryption
  attribute library
     source ftp://ftp.gnupg.org/gcrypt/libgcrypt/libgcrypt-$VERSION.tar.bz2
   homepage http://directory.fsf.org/security/libgcrypt.html
-      opts --enable-static=no
-case $HOSTTYPE in
- x86_64)
-      opts --libdir=/lib64 ;;
- *)   opts --libdir=/lib ;;
-esac
   estimate 600
       desc 'general purpose crypto library
 libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
+
+case $VERSION in
+ 1.4.6)
+   require automake libtool ;;
+esac
+
+build(){ (
+ case $VERSION in
+  1.4.6) aclocal -I .
+         autoheader
+         libtoolize --automake
+         automake   --add-missing
+         autoconf ;;
+ esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then OPTS+=" --host=${MACHTYPE/x86_64/i686}"
+ fi
+
+ sed -i '/x$libdir/,+2d' src/libgcrypt-config.in
+ default_build
+) }

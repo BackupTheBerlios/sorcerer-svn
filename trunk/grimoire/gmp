@@ -38,11 +38,26 @@ since GNUmp in many cases has asymptomatically faster algorithms.'
 
 build(){
 (
+ # gmp's 64-bit and 32-bit headers differ
+ preserve_ia32_headers(){
+   if [[ $HOSTTYPE == x86_64 ]] &&
+      echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
+   mkdir -vpm 755 $DESTDIR/usr/include32/
+   mv $DESTDIR/usr/include/gmp.h   $DESTDIR/usr/include32/
+   mv $DESTDIR/usr/include/gmpxx.h $DESTDIR/usr/include32/
+  fi
+}
+
 # configure: error: ABI=64 is not among the following valid choices: 32
 #   x86_64) export ABI=64 ;;
  case $HOSTTYPE in
   i[5-6]86) export ABI=32 ;;
  esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"
+ then export ABI=32
+ fi
 
 # CPPFLAGS=-fexceptions is required by
 # ppl to create a gmp that can do bounded memory capabilities
@@ -56,6 +71,7 @@ build(){
   --build=$MACHTYPE    \
  $OPTS &&
  make  &&
- make install DESTDIR=$DESTDIR
+ make install DESTDIR=$DESTDIR &&
+ preserve_ia32_headers
 )
 }

@@ -1,14 +1,14 @@
     stable 3.2.0 3.1.2 3.1.1
    require flex
   optional rrdtool sensord '' for sensord HW monitoring daemon
-  category utility
- attribute console
+  category library utility
+ attribute console library
+#attribute multilib-fail
     source http://dl.lm-sensors.org/lm-sensors/releases/ \
            http://secure.netroedge.com/~lm78/archive/ \
             ftp://ftp.netroedge.com/pub/lm-sensors/ \
            lm_sensors-$VERSION.tar.bz2
   homepage http://www.lm-sensors.nu/
-      opts --enable-static=no
   estimate 100
       desc 'hardware health monitoring tools
 lm_sensors provides essential tools for
@@ -21,10 +21,19 @@ build(){
  then sed -i "s/# PROG_EXTRA/PROG_EXTRA/" Makefile; SENSORD=1
  fi
 
- sed -i '/-rpath,d/' Makefile
- make    PREFIX=/usr user &&
- make    PREFIX=/usr DESTDIR=$DESTDIR user_install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:$(PREFIX)/lib:$(PREFIX)/lib64:' Makefile
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:EXLDFLAGS.*:EXLDFLAGS = -m32:' Makefile; export LDFLAGS+=' -m32'
+ else sed -i '/-rpath/d'                       Makefile
+ fi
+
+ make    user &&
+ make    user_install PREFIX=/usr DESTDIR=$DESTDIR &&
  rm -f $DESTDIR/usr/lib{,64}/libsensors.a &&
+
  if [ -n "$SENSORD" ]; then
   mkdir -p $DESTDIR/usr/{bin,man/man8}
   install -o 0 -g 0 -m 755 prog/sensord/sensord   $DESTDIR/usr/bin

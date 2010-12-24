@@ -3,9 +3,9 @@
 
     stable 1.41.13 1.41.12 1.41.11
    require gawk init-functions util-linux
-     opts --disable-libblkid --disable-libuuid
+     opts --exec-prefix= --with-root-prefix= --enable-elf-shlibs --disable-libblkid --disable-libuuid
   category disk/file-system
- attribute console
+ attribute console library
     source $SOURCEFORGE_URL e2fsprogs/e2fsprogs/$VERSION/e2fsprogs-$VERSION.tar.gz
   homepage http://e2fsprogs.sourceforge.net
   estimate 1350
@@ -26,11 +26,18 @@ case $MACHTYPE in
  *-uclibc) opts --disable-tls ;;
 esac
 
-case $HOSTTYPE in
- x86_64) OPTS+=" --libdir=/lib64" ;;
-esac
-
 build(){
+ if   [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=" -m32"
+# OPTS+=" --host=${MACHTYPE/x86_64/i686}"
+ fi
+
+ default_build &&
+ make install-{strip,libs} "DESTDIR=$DESTDIR"
+}
+
+build_old(){
+
  ./configure \
  --prefix=/usr \
  --with-root-prefix= \

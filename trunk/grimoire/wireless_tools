@@ -1,7 +1,7 @@
-    stable 29 28 27 26 25 24 23
+    stable 29 28 27
   optional pcmciautils '' '' for PCMCIA Card Services
   category network
- attribute console
+ attribute console library
     source http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.$VERSION.tar.gz
   homepage http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html
   estimate 30
@@ -16,12 +16,21 @@ Includes:
 
 
 build(){
- case $HOSTTYPE in
-  x86_64) LIB=/lib64 ;;
-       *) LIB=/lib   ;;
- esac
+ local CC
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIB=/lib64
+ else LIB=/lib
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then CC='gcc -m32'
+ else CC='gcc'
+ fi
+
  sed -i "s/-O2/$CFLAGS/
+         s/-Os/$CFLAGS/
          s:/usr/local:/usr:" Makefile
- make &&
+ make CC="$CC" &&
  make install PREFIX=$DESTDIR/usr INSTALL_DIR=$DESTDIR/sbin/ INSTALL_LIB=$DESTDIR/$LIB
 }

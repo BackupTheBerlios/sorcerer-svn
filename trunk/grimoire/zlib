@@ -24,11 +24,14 @@ build(){
  export    CFLAGS+=' -fPIC'
  export  CXXFLAGS+=' -fPIC'
 
+ if   [ $HOSTTYPE == x86_64 ] && ! echo "$CFLAGS" | grep -q "\-m32"
+ then OPTS+=" --libdir=$DESTDIR/lib64"
+ else OPTS+=" --libdir=$DESTDIR/lib"
+ fi
+
  ./configure --prefix=/usr --shared $OPTS &&
  make "CFLAGS=$CFLAGS" &&
  strip -s libz.so* &&
  make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR &&
- if   [[ $HOSTTYPE == x86_64 ]]
- then mv $DESTDIR/lib $DESTDIR/lib64
- fi
+ rm -f $DESTDIR/lib{,64}libz.a
 }

@@ -1,22 +1,10 @@
-# If a box fails to fsck and fails to mount /
-# then try
-# augur progress util-linux legacy
-# cast util-linux
-
-    stable 2.18 2.17.2 2.17.1 2.17 2.16.2 2.16.1 2.16
-    legacy 2.17.2 2.17.1 2.17 2.18 2.16.2 2.16.1 2.16
+    stable 2.18 2.17.2 2.17.1
    require gettext ncurses zlib
-# libselinux
-# due to some sorcery bug util-linux wants to reconfigure all the time
-# temporarily disabling these switches
-# will fix in the future.
-#    switch --enable-arch  '' to build arch
-#    switch --enable-write '' to build write
+      opts --exec-prefix= --disable-wall --with-pam --with-fsprobe=builtin --disable-static --enable-arch
   category utility
- attribute console
+ attribute console library
     source $KERNEL_URL /pub/linux/utils/util-linux-ng/v${VERSION:0:4}/util-linux-ng-$VERSION.tar.bz2
   homepage http://kernel.org/~kzak/util-linux-ng/
-      opts --disable-wall --with-pam --with-fsprobe=builtin --disable-static --enable-arch
    protect /usr/bin/column
    protect /usr/bin/renice
    exclude /etc/fstab
@@ -40,9 +28,6 @@ wall whereis write.'
 build(){
 case $MACHTYPE in
  *-uclibc) LDFLAGS+=' -lintl' ;;
-esac
-case $HOSTTYPE in
- x86_64) OPTS+=' --libdir=/lib64' ;;
 esac
 default_build
 }

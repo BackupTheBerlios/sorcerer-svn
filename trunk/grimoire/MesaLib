@@ -2,7 +2,7 @@
   unstable 7.9
    require dri2proto expat gcc-g++ glproto libXdamage libXi libXmu libXxf86vm libdrm makedepend
   category graphic/library
- attribute library x11 X11R7 hidden
+ attribute library makej x11 X11R7 hidden
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaGLUT-$VERSION.tar.bz2
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaDemos-$VERSION.tar.bz2
@@ -13,7 +13,7 @@
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
 
-build(){
+build(){ (
 
  install_demos(){
   mkdir -p $DESTDIR/usr/bin
@@ -25,10 +25,10 @@ build(){
   install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
  }
 
- case $HOSTTYPE in
-  x86_64) CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64 ;;
-       *) CONFIG_NAME=linux-dri        ; LIB=lib   ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64
+ else CONFIG_NAME=linux-dri        ; LIB=lib
+ fi
 
 # linux-dri-x86 causes failed compilation on i586
 # due to use of compiler flags for non supported CPU instruction sets.
@@ -46,16 +46,32 @@ build(){
  # in order for OpenGL to work with xf86-video-intel drivers
  CFLAGS+=' -fno-strict-aliasing'
 
- make "$CONFIG_NAME"           \
-      "PIC_FLAGS=-fPIC"        \
-      "OPT_FLAGS=$CFLAGS"      &&
- cd   progs/xdemos             &&
- make PROGS='glxinfo glxgears' &&
- cd   ../..                    &&
- make install       "DESTDIR=$DESTDIR" &&
+# make "$CONFIG_NAME"           \
+#      "PIC_FLAGS=-fPIC"        \
+#      "OPT_FLAGS=$CFLAGS"      &&
+# cd   progs/xdemos             &&
+# make PROGS='glxinfo glxgears' &&
+# cd   ../..                    &&
+
+#  --enable-32-bit \
+#  --enable-64-bit \
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --host="${MACHTYPE/x86_64/i686}"
+ fi
+
+ ./configure \
+  --prefix=/usr \
+  --enable-shared \
+  --disable-static \
+  --enable-pic \
+  --enable-xcb \
+  $OPTS &&
+ make   &&
+ make install "DESTDIR=$DESTDIR" &&
       install_demos &&
       install_drirc
-}
+) }
 
 
 post_install(){

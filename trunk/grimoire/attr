@@ -2,8 +2,9 @@
 
     stable 2.4.44 2.4.43-1 2.4.41-1
    require automake libtool
+      opts --exec-prefix= --enable-shared=yes --enable-static=no
   category disk/file-system
- attribute console
+ attribute console library
 #   source ftp://oss.sgi.com/projects/xfs/cmd_tars/attr_$VERSION.tar.gz
 #     home http://oss.sgi.com/projects/xfs
     source http://download.savannah.gnu.org/releases/attr/attr-$VERSION.src.tar.gz
@@ -13,12 +14,63 @@
       desc 'extended attribute (EA) support for XFS and ext3'
 
 build(){
+
+ fix_la(){
+  if   [    -f                $DESTDIR/lib/libattr.la ] &&
+       grep -q "/lib64"       $DESTDIR/lib/libattr.la
+  then sed  -i "s:lib64:lib:" $DESTDIR/lib/libattr.la
+  fi
+ }
+
+ rid_ar(){ rm -f $DESTDIR/lib{,64}/libattr.a; }
+
+ # wants to install .la to /libexec but fails so this fixes that.
+ sed -i 's:@libexecdir@@libdirsuffix@:@libdir@@libdirsuffix@:' include/builddefs.in
+
+
+ local OPTIMIZER DEBUG DIST_ROOT LIBDIR
+
+ export LDFLAGS+=" $CFLAGS"
  export OPTIMIZER="$CFLAGS"
  unset              CFLAGS
  export DEBUG=-DNDEBUG
  export DIST_ROOT="$DESTDIR"
 
- make configure &&
+ ./configure --prefix=/usr $OPTS &&
  make &&
- make install install-lib install-dev
+ make install install-lib install-dev &&
+ fix_la &&
+ rid_ar
+}
+
+build_old(){
+
+ fix_la(){
+  if   [    -f                $DESTDIR/lib/libattr.la ] &&
+       grep -q "/lib64"       $DESTDIR/lib/libattr.la
+  then sed  -i "s:lib64:lib:" $DESTDIR/lib/libattr.la
+  fi
+ }
+
+ rid_ar(){ rm -f $DESTDIR/lib{,64}/libattr.a; }
+
+ local OPTIMIZER DEBUG DIST_ROOT LIBDIR
+
+ if   [ $HOSTTYPE == x86_64 ] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
+
+ export LDFLAGS+=" $CFLAGS"
+ export OPTIMIZER="$CFLAGS"
+ unset              CFLAGS
+ export DEBUG=-DNDEBUG
+ export DIST_ROOT="$DESTDIR"
+
+#make configure &&
+ ./configure --prefix=/usr --libdir=$LIBDIR $OPTS &&
+ make &&
+ make install install-lib install-dev &&
+ fix_la &&
+ rid_ar
 }

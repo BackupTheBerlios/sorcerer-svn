@@ -5,51 +5,14 @@
 # segementation faults during compilation if emacs installed
 # and --without-emacs not passed to configure
 
-    stable 0.18.1.1 0.18 0.17 0.16.1 0.16 0.15
+    stable 0.18.1.1 0.18 0.17
    require acl gcc-g++ libcroco m4
-case $MACHTYPE in
-  *-uclibc)
- attribute solo ;;
-esac
+      opts --disable-csharp --without-emacs --disable-static
   category development
- attribute console solo
+ attribute console library solo
     source $GNU_URL gettext/gettext-$VERSION.tar.gz
   homepage http://www.gnu.org/software/gettext
-      opts --disable-csharp --without-emacs --disable-static
   estimate 5000
       desc 'GNU internationalisation library
 Many programs that have translated messages depend upon this
 library and tools.'
-
-build(){
-
- case $MACHTYPE in
-  *-uclibc) sed -i '1i#include <sched.h>' gettext-tools/gnulib-lib/spawn.in.h ;;
- esac
-
- x86_64-pc-linux-gnu-build(){
-  ./configure          \
-  --prefix=/usr        \
-  --sysconfdir=/etc    \
-  --localstatedir=/var \
-  $OPTS                &&
-  sed -i 's@^\(archive_cmds.*-shared \)\(.*predep_objects.*\)@\1 -nostartfiles -nostdlib \2 @ g' gettext-runtime/libasprintf/libtool  &&
-  make &&
-  make install DESTDIR=$DESTDIR
- }
-
- # gettext 0.14.5 compilation chokes on SMP during parallel builds
- echo '.NOTPARALLEL:' >> gettext-tools/misc/Makefile.in
-
- case $HOSTTYPE in
-  x86_64) x86_64-pc-linux-gnu-build ;;
-       *) default_build ;;
- esac &&
-
- mkdir -p $DESTDIR/lib &&
- find $DESTDIR/usr/lib/ -maxdepth 1 -name libintl.so\* |
- while read; do
-  mv $REPLY $DESTDIR/lib/ &&
-  ln -s ../../lib/${REPLY##*/} $REPLY
- done
-}
