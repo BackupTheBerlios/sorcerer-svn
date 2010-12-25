@@ -9,29 +9,29 @@
       desc 'The antigrain C++ high fidelity 2D graphics rendering engine'
 
 build(){
-make_install(){
-local EXT
-case $HOSTTYPE in
- x86_64) EXT=64 ;;
-esac
-find include -type d | xargs --max-lines=64 chmod 755
-find include -type f | xargs --max-lines=64 chmod 644
-mkdir -vpm 755  $DESTDIR/usr/include/agg2  $DESTDIR/usr/lib$EXT
-mv -v include/* $DESTDIR/usr/include/agg2/
-install -vm 644 src/libagg.a               $DESTDIR/usr/lib$EXT
-sed -i "s:@prefix@:/usr:
-        s:@exec_prefix@:\${prefix}:
-        s:@libdir@:\${exec_prefix}/lib$EXT:
-        s:@includedir@:\${prefix}/include:
-        s:@VERSION@:$VERSION:" libagg.pc.in
-mkdir   -vpm 755              $DESTDIR/usr/lib/pkgconfig
-install -vm  644 libagg.pc.in $DESTDIR/usr/lib/pkgconfig/libagg.pc
-}
+ make_install(){
+  local EXT
+  if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then EXT=64
+  fi
+  find include -type d | xargs --max-lines=64 chmod 755
+  find include -type f | xargs --max-lines=64 chmod 644
+  mkdir -vpm 755  $DESTDIR/usr/include/agg2  $DESTDIR/usr/lib$EXT
+  mv -v include/* $DESTDIR/usr/include/agg2/
+  install -vm 644 src/libagg.a               $DESTDIR/usr/lib$EXT
+  sed -i "s:@prefix@:/usr:
+          s:@exec_prefix@:\${prefix}:
+          s:@libdir@:\${exec_prefix}/lib$EXT:
+          s:@includedir@:\${prefix}/include:
+          s:@VERSION@:$VERSION:" libagg.pc.in
+  mkdir   -vpm 755              $DESTDIR/usr/lib/pkgconfig
+  install -vm  644 libagg.pc.in $DESTDIR/usr/lib/pkgconfig/libagg.pc
+ }
 
-## That does not work.
-# autoconf
-# automake -afc
+ ## That does not work.
+ # autoconf
+ # automake -afc
 
-make &&
-make_install
+ make &&
+ make_install
 }

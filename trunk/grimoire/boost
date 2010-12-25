@@ -9,6 +9,7 @@
       opts -DBUILD_DEBUG:BOOL=FALSE
   category development
  attribute library
+#attribute multilib-fail
     source $SOURCEFORGE_URL boost/boost/${VERSION//_/.}/boost_$VERSION.tar.bz2
       home http://www.boost.org/
       docs http://www.boost.org/doc/
@@ -29,9 +30,20 @@ algorithms and data structures created in the generic
 programming style of the Standard Template Library (STL).'
 
 build(){
-sed -i 's:-O3:-O2:' tools/jam/src/build.jam
-./bootstrap.sh --prefix=/usr &&
+ local LIBDIR
+ sed -i 's:-O3:-O2:' tools/jam/src/build.jam
+ ./bootstrap.sh --prefix=/usr &&
 
-./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage -j${CAST_RATE:-2} &&
-./bjam -q --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install
+## that did not work, maybe it installed them without DESTDIR?
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then LIBDIR='--libdir=/usr/lib64'
+# else LIBDIR='--libdir=/usr/lib'
+# fi
+
+ ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage -j${CAST_RATE:-2} &&
+ ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install
+# &&
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+# fi
 }

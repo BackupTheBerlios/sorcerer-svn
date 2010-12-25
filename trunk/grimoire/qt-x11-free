@@ -11,7 +11,7 @@
   optional cups     -cups     -no-cups     for common unix printing support
   optional freetype -freetype -no-freetype for quality font engine
   category graphic/library
- attribute library kde3 solo
+ attribute library multilib-fail kde3 solo
     source ftp://ftp.trolltech.com/qt/source/qt-x11-free-$VERSION.tar.gz
   homepage http://www.trolltech.com/products/qt/x11.html
 
@@ -47,10 +47,11 @@ build(){
  SPECS=linux-g++
   LIBS=/opt/kde3/lib
 
- case  $HOSTTYPE  in
-  x86_64) OPTS+=" -platform linux-g++-64 -L/lib64 -L/usr/lib64"
-          SPECS+=-64; LIBS+=64 ;;
- esac
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  opts -platform linux-g++-64 -L/lib64 -L/usr/lib64
+  SPECS+=-64
+  LIBS+=64
+ fi
 
 # if [[ -n    ${SOURCE[1]} ]]; then
 # cast automatically applies the patch

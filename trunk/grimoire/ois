@@ -1,13 +1,22 @@
+# odd that this should not work multilib
+
     stable 1.2.0
    require gcc-g++ libX11
   category graphic/library
- attribute library
+ attribute library multilib-fail
     source $SOURCEFORGE_URL wgois/Source%20Release/${VERSION:0:3}/ois_$VERSION.tar.gz
   homepage http://sourceforge.net/projects/wgois/
   estimate 200
       desc 'object oriented input system'
 
 build(){
-sh ./bootstrap
-default_build
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then opts --x-libraries=/usr/lib    --host=${MACHTYPE/x86_64/i686} 
+  else opts --x-libraries=/usr/lib64
+  fi
+ else  opts --x-libraries=/usr/lib
+ fi
+ sh ./bootstrap
+ default_build
 }

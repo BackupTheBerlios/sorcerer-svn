@@ -1,9 +1,16 @@
-    stable 0.3.17 0.3.16 0.3.15 0.3.14 0.3.13
+    stable 0.3.17 0.3.16 0.3.15
    require glib
+      opts --enable-static=no
   category development
- attribute library
+ attribute library multilib-fail
     source http://www.schleef.org/liboil/download/liboil-$VERSION.tar.gz
   homepage http://www.schleef.org/liboil/
-      opts --enable-static=no
   estimate 1300
       desc 'library of simple functions optimized for various CPUs'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --host=${MACHTYPE/x86_64/i686}
+ fi
+ default_build
+}

@@ -13,12 +13,15 @@ esac
       desc 'netscape portable runtime'
 
 build(){
-case $HOSTTYPE in
- x86_64) OPTS+=' --enable-64bit' ;;
-esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --enable-64bit
+ fi
+ export LDFLAGS+=" $CFLAGS"
 
 # The patch is for pkgconfig support 
 # However, why does it not apply automatically by cast?
+
+ sed -i 's:$libdirs::' mozilla/nsprpub/config/nspr-config.in
 
  patch -p1 < ${SOURCE[1]}
  cd mozilla/nsprpub &&

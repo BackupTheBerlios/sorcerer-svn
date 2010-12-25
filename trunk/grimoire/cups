@@ -49,11 +49,11 @@ build(){
 # if spell_installed Linux-PAM; then OPTS+=' --enable-pam'; fi
 # if spell_installed openssl;   then OPTS+=' --enable-ssl'; fi
 
- OPTS+=' --libdir=/usr/lib'
- case $HOSTTYPE in
-  x86_64) sed -i 's:/lib/security/pam:/lib64/security/pam:' configure
-          OPTS+=64  ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:/lib/security/pam:/lib64/security/pam:' configure
+      opts --libdir=/usr/lib64
+ else opts --libdir=/usr/lib
+ fi
 
  ./configure              \
   --sysconfdir=/etc        \

@@ -1,16 +1,14 @@
 # 3.8.3 may be unsafe
 
-    stable 3.8.3 3.8.2 3.8.1 3.8.0 3.7.13
+    stable 3.8.3 3.8.2 3.8.1
    require gcc-g++ zlib
+      opts --enable-static=no
   category audio/library
  attribute library
  attribute unsafe
+ attribute broke
     source $SOURCEFORGE_URL id3lib/id3lib/$VERSION/id3lib-$VERSION.tar.gz
   homepage http://id3lib.sorceforge.net
-# case $VERSION in
-#  3.8.3) use_gcc gcc-v4.2 ;;
-# esac
-      opts --enable-static=no
   estimate 900
       desc 'MP3 ID3v1 & ID3v2 libs
 id3lib is a lib that is used my many mp3 programs
@@ -20,10 +18,7 @@ It suports all mp3 tags.'
 build(){
  case $VERSION in
   3.8.3) patch -p1 < $SCRIPT_DIR/id3lib-$VERSION.patch ;;
-#  3.8.3) sed -i "/iomanip\.h/d " configure
-#         sed -i "1i#include <string.h>" include/id3/id3lib_strings.h \
-#                                        include/id3/writers.h ;;
  esac
- export LDFLAGS+=' -lstdc++ -lz'
+ export LDFLAGS+=" -lstdc++ -lz $CFLAGS"
  default_build
 }

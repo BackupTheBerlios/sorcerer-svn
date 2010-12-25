@@ -27,27 +27,13 @@ using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
  rm -f CMakeLists.txt
+ sed -i 's:-L@libdir@$libR::' pcre-config.in
  default_build
 }
 
-build_old(){
- if   [ $HOSTTYPE == x86_64 ] && ! echo "$CFLAGS" | grep -q "\-m32"
- then OPTS+=" --libdir=/lib64"
- else OPTS+=" --libdir=/lib"
- fi
-
- ./configure \
-  --sysconfdir=/etc \
-  --localstatedir=/var \
-  --prefix=/usr \
- $OPTS &&
- make &&
- make install "DESTDIR=$DESTDIR"
-}
-
-current(){
- case $VERSION in
-  8.11) grep -l "/usr/lib/libpcre.la\|/usr/lib64/libpcre.la" /usr/lib{,64}/*.la 2>/dev/null |
-        show_from | cut -d : -f1 | pipe_queue $CAST_QUEUE com ;;
- esac
-}
+# current(){
+#  case $VERSION in
+#   8.11) grep -l "/usr/lib/libpcre.la\|/usr/lib64/libpcre.la" /usr/lib{,64}/*.la 2>/dev/null |
+#         show_from | cut -d : -f1 | pipe_queue $CAST_QUEUE com ;;
+#  esac
+# }

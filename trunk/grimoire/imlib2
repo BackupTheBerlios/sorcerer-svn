@@ -1,10 +1,10 @@
-    stable 1.4.4 1.4.3 1.4.2 1.4.1 1.4.0
+    stable 1.4.4 1.4.3 1.4.2
    require bzip2 freetype giflib libXext libid3tag libpng tiff
+      opts --enable-static=no
   category graphic
  attribute library x11
     source $SOURCEFORGE_URL enlightenment/imlib2-src/$VERSION/imlib2-$VERSION.tar.gz
   homepage http://enlightenment.org/Libraries/Imlib2/
-      opts --enable-static=no
   estimate 1200
       desc 'successor to imlib graphics library
 imlib2 is the successor to Imlib.
@@ -16,7 +16,16 @@ Please see the homepage for the
 long description of the differences.'
 
 build(){
-./configure --prefix=/usr --sysconfdir=/etc/imlib2 &&
-make &&
-make install DESTDIR=$DESTDIR
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then opts --x-libraries=/usr/lib    --host=${MACHTYPE/x86_64/i686} 
+  else opts --x-libraries=/usr/lib64
+  fi
+ else  opts --x-libraries=/usr/lib
+ fi
+
+ sed -i 's:$libdirs::' imlib2-config.in
+ ./configure --prefix=/usr --sysconfdir=/etc/imlib2 $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR
 }

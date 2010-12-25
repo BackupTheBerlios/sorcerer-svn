@@ -93,9 +93,9 @@ export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
 sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
 
 local LIBDIR=/usr/lib
-case $HOSTTYPE in
- x86_64) LIBDIR+=64 ;;
-esac
+if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+then LIBDIR+=64
+fi
 
 ./configure \
 --prefix=/usr \

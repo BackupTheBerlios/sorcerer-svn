@@ -1,16 +1,20 @@
 # pulseaudio 0.9.11 requires speex >= 1.2beta3
 # vlc 0.7.2 wants speex 1.1 libraries.
 
+# speex-1.2rc1.tar.gz 24-Jul-2008 00:42  1.0M
+
     stable 1.2rc1 1.1.12 1.0.5
   unstable 1.2rc1
    require libogg
+      opts --enable-static=no
   category audio/codec audio/library
  attribute library
+#attribute multilib-fail
+#attribute broke
     source http://downloads.xiph.org/releases/speex/speex-$VERSION.tar.gz
   homepage http://www.speex.org/
-      opts --enable-static=no
   estimate 800
-      desc 'speex is a library voice codec.
+      desc 'library voice codec
 
 speex is a patent-free, Open Source/Free Software voice codec.
 Unlike other codecs like MP3 and Ogg Vorbis,
@@ -23,3 +27,11 @@ Possible applications include:
   and audio books.
 In some sense, it is meant to be
 complementary to the Ogg Vorbis codec.'
+
+build(){
+ case $VERSION in
+  1.2rc1) sed -i 's:OGG_LIBS="-L$prefix/lib":OGG_LIBS=:' configure ;;
+ esac
+
+ default_build
+}

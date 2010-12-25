@@ -19,10 +19,11 @@ build(){
   echo "Now run /usr/bin/upek-NonGUI_Sample and enroll <username>.bir and copy it to /etc/bioapi/pam/$SERIAL"
  }
 
- OPTS+=' --libdir=/usr/lib'
- case $MACHTYPE in
-  x86_64*) OPTS+=64 ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64
+ else opts --libdir=/usr/lib
+ fi
+
  default_build &&
  install_serial
 }

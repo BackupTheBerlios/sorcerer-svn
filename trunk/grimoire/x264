@@ -7,27 +7,21 @@
  attribute library
     source ftp://ftp.videolan.org/pub/videolan/x264/snapshots/x264-$VERSION.tar.bz2
   homepage http://developers.videolan.org/x264.html
-case $HOSTTYPE in
- x86_64)
    require nasm
-  optional gtk+ --enable-gtk        --disable-gtk        for gtk+ interface
-  optional yasm --enable-asm        --disable-asm        for MMX/SSE optimized code
-  switch      --enable-visualize  ''                   to enable visualization
-      opts --enable-shared --enable-pic --disable-mp4-output ;;
- *)
-   require nasm
-  optional gpac --enable-mp4-output --disable-mp4-output for MPEG-4 output
-  optional gtk+ --enable-gtk        --disable-gtk        for gtk+ interface
-  optional yasm --enable-asm        --disable-asm        for MMX/SSE optimized code
-    switch      --enable-visualize  ''                   to enable visualization
-      opts --enable-shared --enable-pic ;;
-esac
+  optional gtk+                                        for gtk+ interface
+  optional yasm ''                  --disable-asm      for MMX/SSE optimized code
+    switch      --enable-visualize  ''                 to enable visualization
+     opts --enable-shared --enable-pic
     CFLAGS='-O3 -ffast-math'
    LDFLAGS='-Wl,-O1'
   estimate 300
       desc 'library for encoding H264/AVC video streams'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --host=${MACHTYPE/x86_64/i686}; opts --disable-asm
+ fi
+
  sed -i "s:-O4 -ffast-math:$CFLAGS:
          s:lgpac_static:lgpac:" configure
  ./configure \

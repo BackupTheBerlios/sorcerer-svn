@@ -1,17 +1,19 @@
 # Because Python has an optional on tk this can turn
 # into an unfortunate recursive requirement loop
 
-    stable 1.1.26 1.1.24 1.1.23 1.1.22 1.1.21 1.1.20
+# multilib-fail because Python is multilib-fail
+
+    stable 1.1.26 1.1.24 1.1.23
    require libxml2
   optional libgcrypt '' '' for encryption support
-  category development
- attribute library
-    source ftp://xmlsoft.org/libxslt/libxslt-$VERSION.tar.gz
-  homepage http://xmlsoft.org/XSLT/
       opts --enable-static=no
 #     opts --without-debug
 #     opts --without-debugger
 # debugger required for kdewebdev-v4
+  category development
+ attribute library multilib-fail
+    source ftp://xmlsoft.org/libxslt/libxslt-$VERSION.tar.gz
+  homepage http://xmlsoft.org/XSLT/
   estimate 900
       desc 'XSLT processing library
 It is based on libxml for XML parsing,
@@ -20,6 +22,7 @@ It is written in plain C, making as few assumptions as possible,
 and sticking closely to ANSI C/POSIX for easy embedding.'
 
 build(){
+ sed -i 's:@XSLT_LIBDIR@::' xslt-config.in
  default_build &&
  mkdir -p $DESTDIR/usr/lib &&
  mv $DESTDIR/usr/lib64/python* $DESTDIR/usr/lib/

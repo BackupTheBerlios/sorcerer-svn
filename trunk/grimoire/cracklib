@@ -16,10 +16,12 @@ choosing passwords that could be guessed by
 crack by filtering them out, at source.'
 
 build(){
- LIBDIR=/lib
- case $MACHTYPE in
-  x86_64*) LIBDIR+=64 ;;
- esac
+ local LIBDIR
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/lib64
+ else LIBDIR=/lib
+ fi
 
  LIB_DICT=$LIBDIR/cracklib
  OPTS+=" --with-default-dict=$LIB_DICT/pw_dict --libdir=$LIBDIR"

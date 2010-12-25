@@ -1,7 +1,7 @@
     stable 5.1.4 5.1.3 5.0.3
    require ncurses readline
   category development/interpreter
- attribute console library
+ attribute console library multilib-fail
     source http://www.lua.org/ftp/lua-$VERSION.tar.gz
   homepage http://www.lua.org/
       desc 'programming langauge
@@ -25,13 +25,13 @@ build(){
  LC_ALL=C grep -rl "\-O2 -Wall" * |
  xargs -r --max-lines=256 sed -i "s:-O2 -Wall:$CFLAGS -fPIC:"
  sed -i 's:/usr/local:/usr:' etc/lua.pc
- make    linux   &&
+ make    linux MYLDFLAGS="$LDFLAGS" &&
 
- make    install INSTALL_TOP=$DESTDIR/usr &&
- ld --whole-archive -share -ldl -soname \
+ make    install INSTALL_TOP=$DESTDIR/usr  &&
+ ld    --whole-archive -share -ldl -soname \
                         liblua.so.$VERSION \
     -o $DESTDIR/usr/lib/liblua.so.$VERSION \
-       $DESTDIR/usr/lib/liblua.a &&
+       $DESTDIR/usr/lib/liblua.a           &&
  ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
  ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
  ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
