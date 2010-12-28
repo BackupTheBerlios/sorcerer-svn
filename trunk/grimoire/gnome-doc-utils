@@ -1,7 +1,7 @@
     stable 0.20.2 0.20.1 0.20.0
    require Python docbook-xml-4.1.2 docbook-xml-4.3 rarian
   category development
- attribute gnome multilib-fail
+ attribute gnome library
     source $GNOME_URL sources/gnome-doc-utils/${VERSION:0:4}/gnome-doc-utils-$VERSION.tar.bz2
   homepage http://www.gnome.org
   estimate 1000
@@ -10,3 +10,14 @@ Notably, it contains utilities for building documentation and
 all auxiliary files in your source tree, and it contains the
 DocBook XSLT stylesheets that were once distributed with Yelp.
 Starting with Gnome 2.8, Yelp will require gnome-doc-utils for the XSLT.'
+
+build(){
+ default_build &&
+ mv $DESTDIR/usr/share/pkgconfig $DESTDIR/usr/lib/ &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+  elif [[ -f /lib/libc.so.6   ]]; then mv $DESTDIR/usr/lib{,64}
+                                       mv $DESTDIR/usr/lib{32,}
+  fi
+ fi
+}

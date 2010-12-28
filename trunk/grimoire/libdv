@@ -22,7 +22,9 @@ Libdv was developed according to the official standards for DV
 video: IEC 61834 and SMPTE 314M.'
 
 build(){
- if ! grep flags < /proc/cpuinfo | grep -q mmx
+ local SDL_CONFIG
+
+ if   ! grep flags /proc/cpuinfo | grep -q mmx
  then  patch -p1 < $SCRIPT_DIR/libdv-mmx.patch
  else  patch -p1 < $SCRIPT_DIR/libdv-no-mmx.patch
  fi
@@ -30,6 +32,16 @@ build(){
  # --disable-xv \
  # --disable-gtk \
  # --disable-gtktest \
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then opts --x-libraries=/usr/lib   --host=${MACHTYPE/x86_64/i686}; export SDL_CONFIG==/usr/bin32/sdl-config
+  else opts --x-libraries=/usr/lib64
+  fi
+ else  opts --x-libraries=/usr/lib
+ fi
+
+ sed -i 's,PATH="$prefix/bin:$prefix/usr/bin:$PATH",PATH="$PATH",' configure
 
  ./configure \
  --prefix=/usr \

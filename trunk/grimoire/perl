@@ -18,7 +18,8 @@
   optional db   '' '' for database support
  conflicts perl--File-Spec
   category development/interpreter
- attribute console library multilib-fail
+ attribute console library
+#attribute multilib-fail
     source http://www.cpan.org/src/perl-$VERSION.tar.gz
   homepage http://www.perl.org/
   estimate 10300
@@ -58,11 +59,11 @@ build(){
  else libpth='/lib /usr/lib'
  fi
 
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then export CC="gcc -m32"
- fi
+# if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
+#  opts --Dcc="gcc -m32"
+# fi
 
- ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth"
+ ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth" $OPTS &&
  make "OPTIMIZE=$CFLAGS" &&
  make install DESTDIR=$DESTDIR
 }

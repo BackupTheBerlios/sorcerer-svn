@@ -88,28 +88,26 @@ build(){
   true
  }
 
-export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+ export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
 
-sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
+ sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
 
-local LIBDIR=/usr/lib
-if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-then LIBDIR+=64
-fi
+ if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ fi
 
-./configure \
---prefix=/usr \
---sysconfdir=/etc \
---localstatedir=/var \
---libdir=$LIBDIR \
---enable-optimize="$CFLAGS" \
-$OPTS &&
-make  &&
-make install "DESTDIR=$DESTDIR" &&
-mkdir -p $DESTDIR/usr/lib &&
-ln -fs firefox-$VERSION $DESTDIR/$LIBDIR/mozilla &&
-rm -fr $LIBDIR/mozilla &&
-symlink_icons
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ --enable-optimize="$CFLAGS" \
+ $OPTS &&
+ make  &&
+ make install "DESTDIR=$DESTDIR" &&
+ mkdir -p $DESTDIR/usr/lib &&
+ ln -fs firefox-$VERSION $DESTDIR/$LIBDIR/mozilla &&
+ rm -fr $LIBDIR/mozilla &&
+ symlink_icons
 }
 
 post_install(){

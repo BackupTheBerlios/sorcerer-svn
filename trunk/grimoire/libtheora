@@ -1,11 +1,12 @@
-    stable 1.1.1 1.1.0 1.0 1.0beta3 1.0beta2 1.0beta1 1.0alpha8
+    stable 1.1.1 1.1.0 1.0 1.0beta3
   unstable 1.2.0alpha1
    require SDL libogg
+      opts --enable-static=no
   category video
  attribute library
+#attribute multilib-fail
     source http://downloads.xiph.org/releases/theora/libtheora-$VERSION.tar.bz2
   homepage http://www.theora.org/
-      opts --enable-static=no
  freshmeat ot
   estimate 600
       desc 'video codec
@@ -14,6 +15,14 @@ released video codec, intended for use within the
 Ogg project Ogg multimedia streaming system.
 Theora is derived directly from On2 VP3 codec
 and is a superset of VP3.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --host=${MACHTYPE/x86_64/i686}
+ fi
+ default_build
+}
+
 
 post_install(){
 # libtheora changed the name of it's installed library

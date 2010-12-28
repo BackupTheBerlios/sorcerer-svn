@@ -43,6 +43,7 @@ esac
   optional nasm      ''                  --disable-mmx   for MMX support
   category video
  attribute library
+#attribute multilib-fail
     source http://www.ffmpeg.org/releases/ffmpeg-$VERSION.tar.bz2
   homepage http://ffmpeg.mplayerhq.hu/
   estimate 1600
@@ -56,22 +57,37 @@ MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.'
 
 build(){
 
-export   CFLAGS="${CFLAGS//-funroll-loops/}"
-export CXXFLAGS="${CXXFLAGS//-funroll-loops/}"
-export   CFLAGS="${CFLAGS//pentium-m /i686 }"
-export CXXFLAGS="${CXXFLAGS//pentium-m /i686 }"
+ export   CFLAGS="${CFLAGS//-funroll-loops/}"
+ export CXXFLAGS="${CXXFLAGS//-funroll-loops/}"
+ export   CFLAGS="${CFLAGS//pentium-m /i686 }"
+ export CXXFLAGS="${CXXFLAGS//pentium-m /i686 }"
 
-export  LDFLAGS+=' -ldl'
+ export  LDFLAGS+=' -ldl'
 
-if   ! grep flags < /proc/cpuinfo | grep -q mmx
-then OPTS+=' --disable-mmx'
-fi
+ if   ! grep flags < /proc/cpuinfo | grep -q mmx
+ then OPTS+=' --disable-mmx'
+ fi
 
-./configure   \
---prefix=/usr \
-$OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
-make  &&
-make install "DESTDIR=$DESTDIR" &&
-mkdir -p "$DESTDIR/etc" &&
-install -m 644 doc/ffserver.conf "$DESTDIR/etc"
+# ffmpeg completely messes up on the installation of libraries
+# when given --libdir
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --disable-asm
+# then opts --libdir=/usr/lib64 --disable-asm
+# else opts --libdir=/usr/lib
+ fi
+
+ ./configure   \
+ --prefix=/usr \
+ $OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
+ make  &&
+ make install "DESTDIR=$DESTDIR" &&
+ mkdir -p "$DESTDIR/etc" &&
+ install -m 644 doc/ffserver.conf "$DESTDIR/etc" &&
+ sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]; then mv $DESTDIR/usr/lib{,32}
+  elif [[ -f /lib/libc.so.6   ]]; then mv $DESTDIR/usr/lib{,64}
+                                       mv $DESTDIR/usr/lib{32,}
+  fi
+ fi
 }

@@ -1,23 +1,13 @@
-# Python 2.6 only works properly with --libdir=/usr/lib
-# it will not work if installed with parts installed in /usr/lib64/
-
     stable 2.7.1 2.6.6
    require bzip2 db gdbm expat gmp ncurses readline zlib
   optional openssl '' '' for secure socket connections
   optional sqlite  '' '' for sqlite support
 
-case $VERSION in
- 2.7.1)
-      opts --libdir=/usr/lib ;;
- 2.6.6)
-      opts --libdir=/usr/lib ;;
-esac
-
 # Commenting out optional on tk to avoid recursive requirement loop
 # optional tk      '' '' to use tk for GUI and graphics
 
   category development/interpreter
- attribute console library multilib-fail x11
+ attribute console library x11
     source http://www.python.org/ftp/python/$VERSION/ \
             ftp://ftp.python.org/pub/python/$VERSION/ \
            Python-$VERSION.tar.bz2
@@ -38,22 +28,64 @@ Newbuilt-in modules are easily written in C or C++.
 Python is also usable as an extension language for
 applications that need a programmable interface.'
 
-build(){
- export LDFLAGS+=" $CFLAGS"
- ./configure \
- --prefix=/usr \
- --enable-shared \
- --enable-ipv6 \
- $OPTS &&
+build_usr32(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --prefix=/usr32 --libdir=/usr32/lib
+ else opts --prefix=/usr   --libdir=/usr/lib
+      mkdir -vpm 755                    $DESTDIR/usr/lib64 &&
+      ln -s ../lib/python${VERSION:0:3} $DESTDIR/usr/lib64/
+      if   ! [[ -h /usr/lib64/python${VERSION:0:3} ]]
+      then rm -fr  /usr/lib64/python${VERSION:0:3}
+      fi
+ fi
+
+ ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
  make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR"
 }
 
+
 post_install(){
  ( export LC_ALL=C
-   grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
-   grep -v ":/usr/lib/python${VERSION:0:3}/"    |
+   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
+   grep -v ":/lib/python${VERSION:0:3}/"    |
    cut  -d  : -f1       |
    sort -u  | basenames |
    grep -v   "^Python"  |
    pipe_queue "$CAST_QUEUE" com )
+}
+
+
+# Yes build_multlib works but
+# having multilib Python installed is more problematic
+# than having ELF32 Python installed --prefix=/usr32
+
+build(){
+ wrappers(){
+  install -m 644 $SCRIPT_DIR/pyconfig.h $DESTDIR/usr/include/python${VERSION:0:3}/
+  install -m 755 $SCRIPT_DIR/python     $DESTDIR/usr/bin/
+  install -m 755 $SCRIPT_DIR/python     $DESTDIR/usr/bin/python${VERSION:0:3}
+ }
+
+ bit_move(){
+  mv -v $DESTDIR/usr/bin/python{,-$1} &&
+  mv -v $DESTDIR/usr/bin/python${VERSION:0:3}{,-$1} &&
+  mv -v $DESTDIR/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  sed -i 's:/lib/python:/lib64/python:'     Lib/distutils/command/install.py
+  sed -i 's:"lib":"lib64":'                 Lib/site.py
+  sed -i 's:/lib/python:/lib64/python:'     Lib/sysconfig.py
+  sed -i 's:$(prefix)/lib:$(prefix)/lib64:' Makefile.pre.in
+  sed -i '/Py_ENABLE_SHARED/,+1d'           Misc/python-config.in
+  sed -i 's:lib/python:lib64/python:'       Modules/getpath.c
+ fi
+
+ ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
+ make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR" &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]; then bit_move 32
+  elif [[ -f /lib/libc.so.6   ]]; then bit_move 64; wrappers
+  fi
+ fi
 }

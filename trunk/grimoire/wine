@@ -16,10 +16,9 @@
       opts --disable-tests
  attribute makej solo x11
 
-case $HOSTTYPE in
- x86_64)
- attribute broke ;;
-esac
+if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+then attribute broke;
+fi
 
     source $SOURCEFORGE_URL wine/Source/wine-$VERSION.tar.bz2
   homepage http://www.winehq.com
@@ -54,6 +53,10 @@ build(){
  case $VERSION in
   1.0) patch -p0 < $SCRIPT_DIR/WINEFORCEMOUSEWARP.diff ;;
  esac
+
+if   [[ $HOSTTYPE == x86_64 ]]
+then CFLAGS+=" -m32"
+fi
 
 if [ -n "${SOURCE[1]}" ]; then
  case $HOSTTYPE in

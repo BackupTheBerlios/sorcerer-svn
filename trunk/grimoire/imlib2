@@ -24,8 +24,9 @@ build(){
  else  opts --x-libraries=/usr/lib
  fi
 
- sed -i 's:$libdirs::' imlib2-config.in
+# sed -i 's:$libdirs::;/-L@libdir@/d' imlib2-config.in
  ./configure --prefix=/usr --sysconfdir=/etc/imlib2 $OPTS &&
  make &&
- make install DESTDIR=$DESTDIR
+ make install DESTDIR=$DESTDIR &&
+ sed -i 's:-L/usr/lib64::;s:-L/usr/lib::' $DESTDIR/usr/bin/imlib2-config
 }

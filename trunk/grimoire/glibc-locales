@@ -1,7 +1,18 @@
+# With x86_64 multilib glibc uses only /usr/lib64/locale/locale-archive
+# with i686 glibc uses only /usr/lib/locale/locale-archive
+# with x86_64 glibc uses only /usr/lib/locale/locale-archive
+# Running /usr/bin32/locale -a confirms that only
+# one locale-archive is required for multilib
+# even when running ELF32 executables.
+# That seems unexpected.
+
 # Requirement on glibc added so that
 # glibc-locales always casts after glibc
 
-    stable 2.11.2 2.11.1 2.11 2.10.1 2.7
+# has attribute library so that it compiles twice and installs locales
+# for both ELF32 and ELF64 glibc
+
+    stable 2.11.2 2.11.1 2.11
   unstable 2.12.1
    require glibc
   category administration/spell documentation/i18n
@@ -168,10 +179,14 @@ query(){ query_dialog "$@"; }
 
 build(){
  locale_archive(){
-  local TMP=$DESTDIR/usr/lib/locale/
+
   local SUPPORTED="/usr/share/i18n/SUPPORTED"
 
-  mkdir -p $TMP
+  if    [[ $HOSTTYPE == x86_64 ]] && [[ -f /lib/libc.so.6   ]]
+  then mkdir -pm 755 {,$DESTDIR}/usr/lib{,64}/locale
+  else mkdir -pm 755 {,$DESTDIR}/usr/lib64/locale
+  fi
+
     if [ -n "$LOCALES" ]; then echo "$LOCALES"
   elif [ -f $SUPPORTED ]; then cat $SUPPORTED
   fi | grep / | cut -d ' ' -f1 |
@@ -179,8 +194,9 @@ build(){
    CHARMAP="${REPLY##*/}"
       NAME="${REPLY%/*}"
     SOURCE="${NAME%.*}"
-   echo -n "$NAME..."
-   localedef -i $SOURCE -c -f $CHARMAP --prefix=$DESTDIR $NAME
+   echo -n "$NAME... "
+   echo localedef -i $SOURCE -c -f $CHARMAP --prefix=$DESTDIR $NAME
+        localedef -i $SOURCE -c -f $CHARMAP --prefix=$DESTDIR $NAME
    echo " done"
   done
  }

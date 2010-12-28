@@ -2,12 +2,46 @@
    require automake cairo fontconfig freetype glib libffi libxml2
       opts --enable-static=no
   category development
- attribute gnome library multilib-fail
- attribute broke
+ attribute gnome library
+#attribute broke
     source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2
   homepage http://www.gnome.org
  conflicts gir-repository
   estimate 550
       desc 'document API'
+
+build_usr32(){
+echo "PATH=$PATH"
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --prefix=/usr32 --libdir=/usr32/lib
+ else opts --prefix=/usr   --libdir=/usr/lib
+ fi
+
+ default_build
+}
+
+build(){
+ wrappers(){
+  install -m 755 $SCRIPT_DIR/g-ir $DESTDIR/usr/bin/g-ir-annotation-tool
+  install -m 755 $SCRIPT_DIR/g-ir $DESTDIR/usr/bin/g-ir-compiler
+  install -m 755 $SCRIPT_DIR/g-ir $DESTDIR/usr/bin/g-ir-generate
+  install -m 755 $SCRIPT_DIR/g-ir $DESTDIR/usr/bin/g-ir-scanner
+ }
+
+ bit_move(){
+  mv -v $DESTDIR/usr/bin/g-ir-annotation-tool{,-$1}
+  mv -v $DESTDIR/usr/bin/g-ir-compiler{,-$1}
+  mv -v $DESTDIR/usr/bin/g-ir-generate{,-$1}
+  mv -v $DESTDIR/usr/bin/g-ir-scanner{,-$1}
+ }
+
+ default_build &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]; then bit_move 32
+  elif [[ -f /lib/libc.so.6   ]]; then bit_move 64; wrappers
+  fi
+ fi
+}
 
 current(){ echo gobject-introspection | pipe_queue $DISPEL_QUEUE; }
