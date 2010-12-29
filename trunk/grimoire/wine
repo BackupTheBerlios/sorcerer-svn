@@ -12,22 +12,11 @@
   optional openldap      '' '' for authentication using LDAP
   optional openssl       '' '' for secure socket connectios
   optional sane-backends '' '' for scanning support
+      opts --disable-tests --enable-opengl --enable-static=no
   category development/emulator
-      opts --disable-tests
  attribute makej solo x11
-
-if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
-then attribute broke;
-fi
-
     source $SOURCEFORGE_URL wine/Source/wine-$VERSION.tar.bz2
   homepage http://www.winehq.com
-# has requirement on libusb now, not sure why or if optional.
-      opts --enable-opengl --enable-static=no
-
-# On x86_64 architecture -O3 might produce crashy wine.
-#    CFLAGS='-O3'
-#   LDFLAGS='-Wl,-O1'
   estimate 10000
  freshmeat wine
       desc 'API for running some Windows 3.x 9x NT XP programs
@@ -49,14 +38,20 @@ Oblivion with full sound requires 1.0.1
 Oblivion with Midas Magic requires 1.2-rc2
 Oblivion with obse is not known to run in any versions of wine'
 
+if   [[ $HOSTTYPE == x86_64 ]] && 
+   ! [[ -f /lib/libc.so.6   ]]
+then attribute broke
+fi
+
 build(){
  case $VERSION in
   1.0) patch -p0 < $SCRIPT_DIR/WINEFORCEMOUSEWARP.diff ;;
  esac
 
-if   [[ $HOSTTYPE == x86_64 ]]
-then CFLAGS+=" -m32"
-fi
+# if   [[ $HOSTTYPE == x86_64 ]]
+# then  local  CC CXX
+#       export CC="gcc -m32" export CXX="g++ -m32"
+# fi
 
 if [ -n "${SOURCE[1]}" ]; then
  case $HOSTTYPE in

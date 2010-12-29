@@ -19,7 +19,7 @@
  conflicts perl--File-Spec
   category development/interpreter
  attribute console library
-#attribute multilib-fail
+ attribute multilib-fail
     source http://www.cpan.org/src/perl-$VERSION.tar.gz
   homepage http://www.perl.org/
   estimate 10300
@@ -54,13 +54,26 @@ build(){
 
  sed -i 's:-Wl,-rpath,$shrpdir::' Configure
 
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then libpth='/lib64 /lib /usr/lib64 /usr/lib'
+#if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then libpth='/lib64 /usr/lib64 /lib /usr/lib'
  else libpth='/lib /usr/lib'
  fi
 
-# if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
-#  opts --Dcc="gcc -m32"
+# if   [[ $HOSTTYPE == x86_64 ]]; then
+#  if [[ -f /lib/libc.so.6 ]]; then
+#   sed -i 's:lib/$package:lib64/$package:
+#           s:lib/site_$prog:lib64/site_$prog:
+#           s:lib/vendor_$prog:lib64/vendor_$prog:' Configure
+#  elif [[ $CFLAGS =~ -m32 ]]; then
+#   mkdir -pm 755 bin
+#   echo -e '#!/bin/bash\nexec gcc -m32 "$@"' > bin/gcc
+#   chmod 755 bin/gcc
+#   ln        bin/gcc bin/cc
+#   local  PATH_NEW=$PWD/bin:$PATH
+#   local  PATH
+#   export PATH=$PATH_NEW
+#  fi
 # fi
 
  ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth" $OPTS &&

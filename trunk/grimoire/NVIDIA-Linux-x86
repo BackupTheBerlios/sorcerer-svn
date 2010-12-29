@@ -7,12 +7,16 @@
 
     stable 260.19.29 260.19.21 260.19.12
    require MesaLib gtk+ libXvMC mktemp xorg-server
-   optional linux-kernel '' '' for kernel module
+  optional linux-kernel '' '' for kernel module
+ attribute multilib-fail
   category kernel
 case $HOSTTYPE in
  x86_64) attribute library linux-26-module solo x11 x86_64
-            source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run ;;
-#           source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-pkg2.run ;;
+  if [[ -f /lib/libc.so.6 ]]
+  then source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION.run
+  else source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
+  fi
+ ;;
 # http://us.download.nvidia.com/XFree86/Linux-x86_64/256.44/NVIDIA-Linux-x86_64-256.44.run
       *) attribute library linux-26-module solo x11 x86
             source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run ;;
@@ -49,17 +53,15 @@ build(){
   mkdir -p $DESTDIR/etc/opengl/
 
   if   [ -h $DESTDIR/usr/lib64/libGL.so.1 ]; then
-   mkdir -p                            $DESTDIR/usr/lib64/nvidia
-   mv       $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib64/nvidia/
-   echo        /usr/lib64/nvidia  >    $DESTDIR/etc/opengl/nvidia
-   echo          /usr/lib/nvidia >>    $DESTDIR/etc/opengl/nvidia
-   echo /opt/ia32/usr/lib/nvidia >>    $DESTDIR/etc/opengl/nvidia
-#  mv       $DESTDIR/usr/lib/*         $DESTDIR/usr/lib64/
-#  rmdir    $DESTDIR/usr/lib
-  elif [ -h $DESTDIR/usr/lib/libGL.so.1 ]; then
-   mkdir -p                            $DESTDIR/usr/lib/nvidia
-   mv       $DESTDIR/usr/lib/libGL.*   $DESTDIR/usr/lib/nvidia/
-   echo          /usr/lib/nvidia  >    $DESTDIR/etc/opengl/nvidia
+   mkdir -vpm 755                        $DESTDIR/usr/lib64/nvidia
+   mv    -v   $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib64/nvidia/
+   echo        /usr/lib64/nvidia  >      $DESTDIR/etc/opengl/nvidia
+   echo /opt/ia32/usr/lib/nvidia >>      $DESTDIR/etc/opengl/nvidia
+  fi
+  if [ -h $DESTDIR/usr/lib/libGL.so.1 ]; then
+   mkdir -vpm 755                        $DESTDIR/usr/lib/nvidia
+   mv    -v   $DESTDIR/usr/lib/libGL.*   $DESTDIR/usr/lib/nvidia/
+   echo          /usr/lib/nvidia  >>     $DESTDIR/etc/opengl/nvidia
   fi
 
 # NVIDIA's wfb library can not be used by xorg and must not be installed
