@@ -36,9 +36,13 @@ build(){
  export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
  case $MACHTYPE in
-  *-uclibc) OPTS+=" --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc" ;;
-  *-gnu)    OPTS+=" --enable-__cxa_atexit --enable-clocale=gnu" ;;
+  *-uclibc) opts --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
+  *-gnu)    opts --enable-__cxa_atexit --enable-clocale=gnu ;;
  esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+ then opts --disable-multilib
+ fi
 
    LCF="LIBCFLAGS=$CFLAGS"
   LCXF="LIBCXXFLAGS=$CXXFLAGS"
