@@ -4,13 +4,17 @@
 # Added -fPIC to CFLAGS and CXXFLAGS therefore ./configure --with-pic not required.
 # It will not compile with --disable-static
 
-    stable 5.1.53 5.1.52 5.1.51
-    secure 5.1.43
-  unstable 6.0.11 6.0.10 6.0.8
-    legacy 5.0.89
-    secure 5.0.51b
+    stable 5.5.8 5.1.53 5.1.52
+  unstable 6.0.11
    require db gcc-g++ init-functions ncurses openssl readline zlib
-      opts --without-readline --with-pthread --with-embedded-server
+#     opts --without-readline --with-pthread --with-embedded-server
+      opts CMAKE_BUILD_TYPE:STRING=Release
+      opts CMAKE_INSTALL_PREFIX:PATH=/usr
+      opts MYSQL_DATADIR:PATH=/usr/share
+      opts WITH_PIC:BOOL=TRUE
+      opts WITH_SSL:STRING=system
+# The following did not fix the header file installation location
+#     opts INSTALL_INCLUDEDIR:STRING=include/mysql
   sys_user mysql mysql /var/lib/mysql
   category db
  attribute console library
@@ -26,6 +30,20 @@ It is a client/server implementation that consists
 of a server daemon (mysqld) and client programs/libraries.'
 
 build(){
+ sed -i 's:"data":"/var/lib/mysql":' cmake/install_layout.cmake
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:"lib:"lib64:' cmake/install_layout.cmake
+ fi
+ default_build &&
+ if   [ -f      $DESTDIR/usr/include/mysql.h ]; then
+  mv            $DESTDIR/usr/include $DESTDIR/usr/mysql
+  mkdir -pm 755 $DESTDIR/usr/include
+  mv            $DESTDIR/usr/mysql   $DESTDIR/usr/include/
+ fi
+}
+
+
+build_old(){
  local pld
 
  # Added -fno-exceptions -felide-constructors -fno-rtti
@@ -67,7 +85,7 @@ install -m 700 support-files/my-medium.cnf $DESTDIR/etc/my.cnf
 }
 
 post_install(){
- mysql_install_db --user mysql
+ /usr/scripts/mysql_install_db --user mysql
  chown -R mysql:mysql /var/lib/mysql
  default_post_install
  mysql_upgrade --user mysql

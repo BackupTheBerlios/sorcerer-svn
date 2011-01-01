@@ -1,10 +1,22 @@
 # configure: error: Python module pysqlite2 >= 2.3.0 required to run BillReminder
-    stable 0.3.2
+# http://pysqlite.org/ website empty source download missing for
+# pysqlite or pysqlite2 or whatever it is called which is
+# required by billreminder.
+
+    stable 0.4.0 0.3.2
+  require pygobject
+      opts --enable-static=no
   category development
- attribute gnome library
+ attribute gnome
  attribute broke
     source $GNOME_URL sources/billreminder/${VERSION:0:3}/billreminder-$VERSION.tar.bz2
   homepage http://www.gnome.org
-      opts --enable-static=no
   estimate 7000
       desc 'a lightweight accounting application for tracking bills'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then sed -i 's:lib/python:lib64/python:' configure
+ fi
+ default_build
+}

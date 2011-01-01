@@ -75,6 +75,7 @@ build(){
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
   sed -i 's:/lib/python:/lib64/python:'     Lib/distutils/command/install.py
+  sed -i 's:lib", "py:lib64", "py:'         Lib/distutils/sysconfig.py
   sed -i 's:"lib":"lib64":'                 Lib/site.py
   sed -i 's:/lib/python:/lib64/python:'     Lib/sysconfig.py
   sed -i 's:$(prefix)/lib:$(prefix)/lib64:' Makefile.pre.in
@@ -89,4 +90,11 @@ build(){
   elif [[ -f /lib/libc.so.6   ]]; then bit_move 64; wrappers
   fi
  fi
+}
+
+
+current(){
+ case $VERSION in
+  2.7.1) [[ $HOSTTYPE == x86_64 ]] && grep -q 'lib64", "py' /usr/lib64/python2.7/distutils/sysconfig.py ;;
+ esac
 }
