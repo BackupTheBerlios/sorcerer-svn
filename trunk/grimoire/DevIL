@@ -16,8 +16,18 @@ DevIL the Developers Image Library is a cross-platform image library
 utilizing a simple syntax to load, save, convert, manipulate, filter,
 and display a variety of images with ease.'
 
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --x-libraries=/usr/lib64
+ else opts --x-libraries=/usr/lib
+ fi
+ LC_ALL=C grep -lr "/usr/bin:" * |
+ xargs sed -i 's,PATH="$prefix/bin:$prefix/usr/bin:$PATH",PATH="$PATH",'
+ default_build
+}
+
 current(){
-case $VERSION in
- 1.7.8) grep -q libILUT $INSTALL_LOGS/DevIL ;;
-esac
+ case $VERSION in
+  1.7.8) grep -q libILUT $INSTALL_LOGS/DevIL ;;
+ esac
 }

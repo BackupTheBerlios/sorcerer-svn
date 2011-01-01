@@ -12,3 +12,16 @@ formats into HTML, which can then be read with a browser.
 It also allows other programs access to word documents
 for the purpose of converting them to other formats and
 is currently being used by Abiword as its word importer.'
+
+build(){
+ fix_pc(){
+  if [[ -f $DESTDIR/usr/lib64/pkgconfig/wv-1.0.pc ]]
+  then sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/wv-1.0.pc
+  fi
+ }
+
+ default_build &&
+ case $VERSION in
+  1.2.4) fix_pc ;;
+ esac
+}

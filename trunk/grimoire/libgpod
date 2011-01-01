@@ -1,10 +1,17 @@
+# requires libplist which is multilib-fail
     stable 0.8.0 0.7.95 0.7.93
    require gtk+ hal libffi libmobiledevice sg3_utils sqlite
-  category audio/library
- attribute library
-    source $SOURCEFORGE_URL "gtkpod/libgpod/libgpod-${VERSION:0:3}/libgpod-$VERSION.tar.gz"
-#   source $SOURCEFORGE_URL "gtkpod/libgpod/libgpod-${VERSION:0:5}x/libgpod-$VERSION.tar.gz"
-  homepage http://www.gtkpod.org/libgpod.html
       opts --enable-static=no
+  category audio/library
+ attribute library multilib-fail
+    source $SOURCEFORGE_URL "gtkpod/libgpod/libgpod-${VERSION:0:3}/libgpod-$VERSION.tar.gz"
+  homepage http://www.gtkpod.org/libgpod.html
   estimate 550
       desc 'library for directly accessing iPod contents'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ fi
+ default_build
+}

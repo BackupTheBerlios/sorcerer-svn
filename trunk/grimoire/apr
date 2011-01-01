@@ -8,8 +8,11 @@
   estimate 700
       desc 'apache portable runtime'
 
-build_old(){
-default_build &&
-ln -s apr-1-config /usr/bin/apr-config &&
-ln -s apr-1.pc /usr/lib/pkgconfig/apr.pc
+build(){
+ # oddly it must explicitly be told this instead of using /usr/share/config.site
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64
+ else opts --libdir=/usr/lib
+ fi
+ default_build
 }

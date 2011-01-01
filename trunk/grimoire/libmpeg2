@@ -1,4 +1,4 @@
-    stable 0.5.1 0.4.1 0.4.0b 0.4.0
+    stable 0.5.1 0.4.1
    require SDL automake libtool libSM libXv
   category video/codec
  attribute library
@@ -17,13 +17,12 @@ This library is also known as mpeg2dec
 which is what the spell should have been named.'
 
 build(){
-export CFLAGS+=' -fPIC'
+ export CFLAGS+=' -fPIC'
 
-# sed -i "s:exit 1::
-#         s:aclocal\${amvers}:aclocal:
-#         s:autoconf\${acvers}:autoconf:
-#         s:autoheader\${acvers}:autoheader:
-#         s:automake\${amvers}:automake:" bootstrap
-# ./bootstrap &&
-default_build
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --x-libraries=/usr/lib64
+ else opts --x-libraries=/usr/lib
+ fi
+
+ default_build
 }

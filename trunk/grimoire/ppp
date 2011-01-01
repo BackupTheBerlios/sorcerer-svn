@@ -20,22 +20,34 @@ Works with chat, dip, and diald, among (many) others.
 Supports IP, TCP, UDP and (for Linux) IPX (Novell).'
 
 build(){
+ fix_install(){
+  mkdir -pm 755 $DESTDIR/usr
+  if   [ -d     $DESTDIR/include ]
+  then mv       $DESTDIR/include $DESTDIR/usr/
+  fi
+  if   [ -d     $DESTDIR/share ]
+  then mv       $DESTDIR/share   $DESTDIR/usr/
+  fi
+ }
+  
+
  grep  -rl                        "net/bpf.h" * |
  xargs -r --max-lines=64 sed -i "s:net/bpf.h:pcap-bpf.h:"
 
  sed -i "s:pppusers:ppp:" pppd/Makefile.linux
+
  sed -i "s:-O2:$CFLAGS:"  pppd/plugins/radius/Makefile.linux
- sed -i 's:$(DESTDIR)/sbin:/sbin:' */Makefile.* \
-               pppd/plugins/rp-pppoe/Makefile.linux
+# sed -i 's:$(DESTDIR)/sbin:/sbin:' */Makefile.* \
+#               pppd/plugins/rp-pppoe/Makefile.linux
 
- sed -i 's:$(DESTDIR)/lib/pppd:/lib/pppd:' \
-     pppd/plugins/Makefile.linux \
-     pppd/plugins/rp-pppoe/Makefile.linux \
-     pppd/plugins/radius/Makefile.linux \
-     pppd/plugins/pppoatm/Makefile.linux
+# sed -i 's:$(DESTDIR)/lib/pppd:/lib/pppd:' \
+#     pppd/plugins/Makefile.linux \
+#     pppd/plugins/rp-pppoe/Makefile.linux \
+#     pppd/plugins/radius/Makefile.linux \
+#     pppd/plugins/pppoatm/Makefile.linux
 
- sed -i 's:DESTDIR "/lib/pppd/":"/lib/pppd/":
-         s:/usr/lib/pppd:/lib/pppd:' pppd/pathnames.h
+# sed -i 's:DESTDIR "/lib/pppd/":"/lib/pppd/":
+#         s:/usr/lib/pppd:/lib/pppd:' pppd/pathnames.h
 
 ## --sbindir not supported in ppp version 2.4.4
 # --sbindir=/sbin      \
@@ -46,7 +58,8 @@ build(){
  --localstatedir=/var &&
  make $OPTS           \
       "Copts=$CFLAGS" &&
- make install $OPTS DESTDIR=$DESTDIR
+ make install $OPTS DESTDIR=$DESTDIR &&
+ fix_install
 }
 
 post_build(){

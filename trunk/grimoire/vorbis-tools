@@ -19,7 +19,11 @@ These are the tools that one needs to create and play Ogg Vorbis
 files on the commandline, as well as a simple commentor.'
 
 build(){
-grep  -rl                        CURLOPT_MUTE * |
-xargs -r --max-lines=64 sed -i '/CURLOPT_MUTE/d'
-default_build
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --with-curl-libraries=/usr/lib64 --with-ao-libraries=/usr/lib64
+ else opts --with-curl-libraries=/usr/lib   --with-ao-libraries=/usr/lib
+ fi
+ grep  -rl                        CURLOPT_MUTE * |
+ xargs -r --max-lines=64 sed -i '/CURLOPT_MUTE/d'
+ default_build
 }

@@ -1,4 +1,5 @@
 # 3.8.3 may be unsafe
+# id3lib-3.8.3.tar.gz 	2003-03-02 	950.7 KB
 
     stable 3.8.3 3.8.2 3.8.1
    require gcc-g++ zlib
@@ -6,16 +7,27 @@
   category audio/library
  attribute library
  attribute unsafe
- attribute broke
     source $SOURCEFORGE_URL id3lib/id3lib/$VERSION/id3lib-$VERSION.tar.gz
-  homepage http://id3lib.sorceforge.net
+  homepage http://id3lib.sourceforge.net/
   estimate 900
       desc 'MP3 ID3v1 & ID3v2 libs
 id3lib is a lib that is used my many mp3 programs
 to change the contence of the mp3 tags.
 It suports all mp3 tags.'
 
+case $VERSION in
+ 3.8.3)
+   require automake libtool ;;
+esac
+
 build(){
+ case $VERSION in
+  3.8.3) aclocal -I .
+         autoheader
+         libtoolize --automake
+         automake   --add-missing
+         autoconf ;;
+ esac
  case $VERSION in
   3.8.3) patch -p1 < $SCRIPT_DIR/id3lib-$VERSION.patch ;;
  esac

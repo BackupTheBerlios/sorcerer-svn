@@ -45,9 +45,14 @@ If it does not, please fix and report it
 or use pine SSL mail servers instead.'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64/mysql'
+ else export LDFLAGS+=' -L/usr/lib/mysql'
+ fi
+
    if grep -qx db   $OPT_ON_LOGS/mailutils; then OPTS+=' --with-db2'
  elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then OPTS+=' --with-gdbm'
  fi
  default_build &&
- ln -s mail $DESTDIR/usr/bin/mailx
+ ln -fs mail $DESTDIR/usr/bin/mailx
 }

@@ -20,17 +20,23 @@ variables, loops, procedures, namespaces, error
 handling, script packages, and dynamic loading of DLLs.'
 
 build(){
-make_shared_lib(){ ld --whole-archive -share -o $1.so $1.a; }
 
-cd unix &&
-./configure \
---prefix=/usr \
---sysconfdir=/etc \
---localstatedir=/var \
---enable-shared \
---enable-threads \
-$OPTS &&
-make &&
-make install DESTDIR=$DESTDIR &&
-ln -sf tclsh${VERSION:0:3} $DESTDIR/usr/bin/tclsh
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64
+ else opts --libdir=/usr/lib
+ fi
+
+ make_shared_lib(){ ld --whole-archive -share -o $1.so $1.a; }
+
+ cd unix &&
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ --enable-shared \
+ --enable-threads \
+ $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ ln -sf tclsh${VERSION:0:3} $DESTDIR/usr/bin/tclsh
 }
