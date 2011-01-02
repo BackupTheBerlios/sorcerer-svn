@@ -8,7 +8,7 @@
 # NSPR_VER='4.8'
   category network/web
  attribute library
- attribute multilib-fail
+#attribute multilib-fail
     source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
 #   source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION-with-nspr-$NSPR_VER.tar.gz
 case $VERSION in
@@ -21,33 +21,45 @@ esac
       desc 'mozilla network security service libraries'
 
 build(){
-make_install(){
- mkdir -p $DESTDIR/usr/{bin,include/nss,lib/pkgconfig}
-#install -vm755 -d /usr/include/nss /usr/lib/pkgconfig
- cd mozilla/dist
- chmod 644 {public,private}/nss/*
- cp -vRL   {public,private}/nss/* $DESTDIR/usr/include/nss
- cd Linux*
- install -vm755 lib/*.so              $DESTDIR/usr/lib
- install -vm644 lib/{*.chk,libcrmf.a} $DESTDIR/usr/lib
- install -vm755 bin/nss-config        $DESTDIR/usr/bin
- install -vm644 lib/pkgconfig/nss.pc  $DESTDIR/usr/lib/pkgconfig
-}
+ make_install(){
+  mkdir -p $DESTDIR/usr/{bin,include/nss,lib/pkgconfig}
+ #install -vm755 -d /usr/include/nss /usr/lib/pkgconfig
+  cd mozilla/dist
+  chmod 644 {public,private}/nss/*
+  cp -vRL   {public,private}/nss/* $DESTDIR/usr/include/nss
+  cd Linux*
+  install -vm755 lib/*.so              $DESTDIR/usr/lib
+  install -vm644 lib/{*.chk,libcrmf.a} $DESTDIR/usr/lib
+  install -vm755 bin/nss-config        $DESTDIR/usr/bin
+  install -vm644 lib/pkgconfig/nss.pc  $DESTDIR/usr/lib/pkgconfig
 
-(
+  if    [[ $HOSTTYPE == x86_64 ]]; then
+   if   [[ $CFLAGS =~ -m32     ]]; then
+    mv $DESTDIR/usr/lib   $DESTDIR/usr/lib32
+   else
+    mv $DESTDIR/usr/lib   $DESTDIR/usr/lib64
+    mv $DESTDIR/usr/lib32 $DESTDIR/lib
+    sed -i 's:${prefix}/lib$:${prefix}/lib64:
+            s:-L${prefix}/lib :-L${prefix}/lib64 :' \
+     $DESTDIR/usr/lib64/pkgconfig/nss.pc
+   fi
+  fi
+ }
 
-case $HOSTTYPE in
-x86_64) export USE_64=1 ;;
-esac
+ (
 
-patch -p1 < ${SOURCE[1]}
-export BUILD_OPT=1
-export NSS_USE_SYSTEM_SQLITE=1
-export NSPR_INCLUDE_DIR=/usr/include/nspr
-#export NSS_INCLUDE_DIR=/usr/include/nss
-export USE_SYSTEM_ZLIB=1
-export ZLIB_LIBS=-lz
-make -C mozilla/security/nss nss_build_all &&
-make_install
-)
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then export USE_64=1
+  fi
+
+  patch -p1 < ${SOURCE[1]}
+  export BUILD_OPT=1
+  export NSS_USE_SYSTEM_SQLITE=1
+  export NSPR_INCLUDE_DIR=/usr/include/nspr
+  #export NSS_INCLUDE_DIR=/usr/include/nss
+  export USE_SYSTEM_ZLIB=1
+  export ZLIB_LIBS=-lz
+  make -C mozilla/security/nss nss_build_all &&
+  make_install
+ )
 }

@@ -20,14 +20,13 @@ esac
 
    require alsa-lib avahi heimdal intltool libgdata libgnomeui libgweather libical libsoup nss openldap xcb-util
 #  require alsa-lib avahi firefox heimdal intltool libgnomeui libgweather libical libsoup openldap xcb-util
-      opts --disable-gtk-doc
+      opts --with-openldap=yes --disable-gtk-doc
 # optional gtk-doc --enable-gtk-doc --disable-gtk-doc
   category network/email
  attribute gnome library
  attribute multilib-fail
     source $GNOME_URL sources/evolution-data-server/${VERSION:0:4}/evolution-data-server-$VERSION.tar.bz2
   homepage http://gnome.org/projects/evolution/stable.shtml
-      opts --with-openldap=yes
   estimate 2800
       desc 'libraries needed by evolution'
 
@@ -37,5 +36,7 @@ build(){
  export   CFLAGS+=" $( pkg-config --cflags nspr )"
  export CXXFLAGS+=" $( pkg-config --cflags nspr )"
  #export  LDFLAGS+=" $( pkg-config --libs   nspr )"
+
+ sed -i 's:-L$libdb_prefix/lib::' configure
  default_build
 }
