@@ -9,3 +9,15 @@
   homepage http://libimobiledevice.org/
   estimate 100
       desc 'library to handle Apple Property List format'
+
+build(){
+ default_build &&
+ if [[ $HOSTTYPE == x86_64 ]]; then
+  mkdir -pm 755            $DESTDIR/usr/lib64
+  mv    $DESTDIR/usr/lib/* $DESTDIR/usr/lib64
+  rmdir $DESTDIR/usr/lib
+  sed -i 's:libdir=/usr/lib$:libdir=/usr/lib64:
+          s:-L/usr/lib :-L/usr/lib64 :' \
+   $DESTDIR/usr/lib64/pkgconfig/libplist{,++}.pc
+ fi
+}
