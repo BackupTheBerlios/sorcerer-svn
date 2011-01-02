@@ -1,14 +1,18 @@
-    stable 4.2.4 4.2.2 4.2.1
+# multilib-fail because qt-everywhere-opensource is multilib-fail
+# change source when changing version
+    stable 5.0.1 4.2.4 4.2.2 4.2.1
    require gwenhywfar gmp libofx
   optional ktoblzcheck  '' '' 'for the German bank account number checking'
   optional libchipcard '' '' 'for accessing chipcards via terminals/readers'
   optional Python  '' '--disable-python' 'for the python wrappers of aqbanking'
   optional libgail-gnome '' '' 'for g2banking frontend (GTK2)'
-  optional qt-everywhere-opensource '--prefix=/opt/kde4 --with-qt4-includes=/opt/kde4/include --with-qt4-libs=/opt/kde4/lib --with-qt4-moc=/opt/kde4/bin/moc --with-qt4-uic=/opt/kde4/bin/uic --enable-qt4' '--disable-qt4' 'for q4banking frontend (Qt4)'
+# optional qt-everywhere-opensource '--prefix=/opt/kde4 --with-qt4-includes=/opt/kde4/include --with-qt4-libs=/opt/kde4/lib --with-qt4-moc=/opt/kde4/bin/moc --with-qt4-uic=/opt/kde4/bin/uic --enable-qt4' '--disable-qt4' 'for q4banking frontend (Qt4)'
       opts --disable-debug --enable-release
   category utility/finance
- attribute library new
-    source "http://www.aquamaniac.de/sites/download/download.php?package=03&release=50&file=01&dummy=aqbanking-$VERSION.tar.gz"
+ attribute library
+#attribute multilib-fail
+    source "http://www.aquamaniac.de/sites/download/download.php?package=03&release=74&file=01&dummy=aqbanking-5.0.1.tar.gz"
+#   source "http://www.aquamaniac.de/sites/download/download.php?package=03&release=50&file=01&dummy=aqbanking-$VERSION.tar.gz"
       home http://www2.aquamaniac.de/sites/aqbanking/index.php
       vurl http://www.aquamaniac.de/sites/download/packages.php
   estimate 5000
@@ -18,6 +22,7 @@ build(){
  FRONT='cbanking'
  echo $OPTS | grep -q 'enable-qt3' && FRONT="$FRONT qbanking"
  echo $OPTS | grep -q 'enable-qt4' && FRONT="$FRONT q4banking"
+ sed -i 's:$gwenhywfar_dir/bin/::' configure
  ./configure          \
  --prefix=/usr        \
  --sysconfdir=/etc    \
