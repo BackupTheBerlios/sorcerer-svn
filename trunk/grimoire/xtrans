@@ -1,7 +1,20 @@
+# receiving the library attribute because it installes a pkgconfig/*.pc
+# and is required by other spells
+
     stable 1.2.5 1.2.4 1.2.1 1.0.4 X11R7.2-1.0.3
   unstable 1.2.6 1.2.5
     legacy 1.2.1
   category xorg/lib
- attribute X11R7 x11
+ attribute X11R7 library x11
     source $XORG_URL lib/xtrans-$VERSION.tar.bz2
       desc 'Header and C source $XORG_URL files for Xtrans'
+
+build(){
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]] &&
+      [[ -d     $DESTDIR/usr/share/pkgconfig ]]; then
+  mkdir -pm 755 $DESTDIR/usr/lib
+  mv            $DESTDIR/usr/{share/pkgconfig,lib/}
+ fi
+}
