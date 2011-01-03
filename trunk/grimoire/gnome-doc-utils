@@ -13,11 +13,16 @@ Starting with Gnome 2.8, Yelp will require gnome-doc-utils for the XSLT.'
 
 build(){
  default_build &&
- mv $DESTDIR/usr/share/pkgconfig $DESTDIR/usr/lib/ &&
  if    [[ $HOSTTYPE == x86_64 ]]; then
-  if   [[ $CFLAGS =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-  elif [[ -f /lib/libc.so.6   ]]; then mv $DESTDIR/usr/lib{,64}
-                                       mv $DESTDIR/usr/lib{32,}
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then mv $DESTDIR/usr/share/pkgconfig $DESTDIR/usr/lib/
+  else mv $DESTDIR/usr/share/pkgconfig $DESTDIR/usr/lib64/
   fi
  fi
+}
+
+current(){
+ case $VERSION in
+  0.20.3) if [[ $HOSTTYPE == x86_64 ]]; then [[ -f /usr/lib64/gnome-doc-utils.pc ]]; fi ;;
+ esac
 }
