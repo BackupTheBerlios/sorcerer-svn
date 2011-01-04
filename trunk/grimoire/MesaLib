@@ -33,10 +33,6 @@ build(){ (
 # linux-dri-x86 causes failed compilation on i586
 # due to use of compiler flags for non supported CPU instruction sets.
 
- case $MACHTYPE in
-  *-uclibc) patch -p1 < $SCRIPT_DIR/Mesa-7.8.1.uClibc.patch ;;
- esac
-
  echo "DRI_DRIVER_INSTALL_DIR = /usr/${LIB}/dri" >> configs/${CONFIG_NAME}
 
  sed -ri 's:/usr/local:/usr:g' configs/default*
@@ -45,16 +41,6 @@ build(){ (
  # MesaLib should be compiled with -fno-strict-aliasing added to CFLAGS
  # in order for OpenGL to work with xf86-video-intel drivers
  CFLAGS+=' -fno-strict-aliasing'
-
-# make "$CONFIG_NAME"           \
-#      "PIC_FLAGS=-fPIC"        \
-#      "OPT_FLAGS=$CFLAGS"      &&
-# cd   progs/xdemos             &&
-# make PROGS='glxinfo glxgears' &&
-# cd   ../..                    &&
-
-#  --enable-32-bit \
-#  --enable-64-bit \
 
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then opts --host="${MACHTYPE/x86_64/i686}"
