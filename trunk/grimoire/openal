@@ -3,7 +3,8 @@
     stable soft-1.12.854 soft-1.11.753 soft-1.6.372 soft-1.5.304
    require alsa-lib cmake
   category audio/library audio/mixer
- attribute library multilib-fail x11
+ attribute library x11
+#attribute multilib-fail
 #   source http://connect.creativelabs.com/openal/Downloads/openal-$VERSION.tar.bz2
 # homepage http://connect.creativelabs.com/openal/default.aspx
     source http://kcat.strangesoft.net/openal-releases/openal-$VERSION.tar.bz2
@@ -24,7 +25,19 @@ and desktop users that rely on portable standards like
 OpenGL for games and other multimedia applications.'
 
 build(){
- default_build
- mkdir -p $DESTDIR/usr/bin &&
- install -m 755 $SCRIPT_DIR/openal-config /usr/bin/
+# That did not work.
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then OPTS+=' LIBRARY_OUTPUT_PATH:PATH=/usr/lib64'
+# fi
+
+ default_build &&
+ mkdir  -pm 755 $DESTDIR/usr/bin &&
+ install -m 755 $SCRIPT_DIR/openal-config $DESTDIR/usr/bin/ &&
+ if   [[ $HOSTTYPE == x86_64    ]]; then
+  if  [[ $CFLAGS   =~ -m32      ]]; then mv $DESTDIR/usr/lib{,32}
+                                    else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR//usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+   sed -i 's:/lib:/lib64:' $DESTDIR/usr/lib64/pkgconfig/openal.pc
+  fi
+ fi
 }
