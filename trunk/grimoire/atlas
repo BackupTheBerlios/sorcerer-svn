@@ -4,7 +4,10 @@
    require gcc-fortran LAPACK
   category utility/math
  attribute new console
-#attribute broke
+ attribute broke
+# does not install libraries multilib but compiles that way fine.
+ attribute multilib-fail
+
 # Disable automatic detection if CPU throttling is enabled because if it is,
 # the cast would fail. Some computers (often laptops) have BIOS that does
 # not allow users to disable throttling. Of course if throttling is enabled,
@@ -22,14 +25,15 @@ esac
 
 build(){
 new_build(){
+ local B
  adjust_soname(){
   sed -i "s:-soname \$(LIBINSTdir)/\(lib[^ ]*\.so\):-soname \1.$VERSION:" lib/Makefile
  }
 
- case $HOSTTYPE in
-  x86_64) B='64' ;;
-       *) B='32' ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64; B=64
+ else B=32
+ fi
 
  mkdir build &&
  cd    build &&
@@ -49,6 +53,7 @@ new_build(){
 }
 
 old_build(){
+ local B
  make_shared(){
   case $VERSION in
    3.8.3) sed -i 's:\(-shared\):\1 --allow-multiple-definition:' lib/Makefile ;;
@@ -57,15 +62,20 @@ old_build(){
   cd lib  &&
   make shared  &&
   make ptshared  &&
-  mkdir -p $DESTDIR/usr/lib  &&
-  install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib  &&
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+   mkdir -pm 755 $DESTDIR/usr/lib64
+   install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib64
+  else
+   mkdir -pm 755 $DESTDIR/usr/lib
+   install -v -m 0755 -o root -g root *.so $DESTDIR/usr/lib
+  fi &&
   cd -
  }
 
- case $HOSTTYPE in
-  x86_64) B='64' ;;
-       *) B='32' ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64; B=64
+ else opts --libdir=/usr/lib;   B=32
+ fi
 
  mkdir build &&
  cd    build &&

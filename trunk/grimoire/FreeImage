@@ -10,9 +10,12 @@
       desc 'an image loading codecs library'
 
 build(){
-export LDFLAGS+=" $CFLAGS"
-make &&
-make         -f Makefile.fip &&
-make install                 "DESTDIR=$DESTDIR" &&
-make install -f Makefile.fip "DESTDIR=$DESTDIR"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:/usr/lib:/usr/lib64:' Makefile.*
+ fi
+ export LDFLAGS+=" $CFLAGS"
+ make &&
+ make         -f Makefile.fip &&
+ make install                 "DESTDIR=$DESTDIR" &&
+ make install -f Makefile.fip "DESTDIR=$DESTDIR"
 }
