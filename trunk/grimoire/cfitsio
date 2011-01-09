@@ -1,7 +1,15 @@
-    stable 3240 3181 3090 3080 3060
+    stable 3240 3181 3090
   category graphic/library
  attribute library
     source ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/cfitsio$VERSION.tar.gz
   homepage http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
   estimate 200
       desc 'library for the flexible image transport system formated files'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:exec_prefix)/lib:exec_prefix)/lib64:' Makefile.in
+      sed -i 's:exec_prefix}/lib:exec_prefix}/lib64:' cfitsio.pc.in
+ fi
+ default_build
+}
