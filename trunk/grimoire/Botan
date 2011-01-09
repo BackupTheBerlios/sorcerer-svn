@@ -1,8 +1,9 @@
     stable 1.8.10 1.8.9 1.8.8
-  unstable 1.9.12 1.9.11
+  unstable 1.9.12
    require bzip2 gcc-g++ perl zlib
   category security/encryption
  attribute library
+ attribute multilib-fail
     source http://files.randombit.net/botan/Botan-$VERSION.tgz
       vurl http://botan.randombit.net/download.php
       home http://botan.randombit.net
@@ -17,12 +18,11 @@ block and stream ciphers, public key algorithms,
 hash functions, and message authentication codes,
 plus a high level filter-based interface.'
 
-
 build(){
-case $HOSTTYPE in
- x86_64) export CFLAGS+=' -m64'; opts --cpu=amd64 ;;
-esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export CFLAGS+=' -m64'; opts --cpu=amd64
+ fi
 
-./configure.py --cc=gcc --os=linux --disable-debug --prefix=/usr $OPTS &&
-make install "DESTDIR=$DESTDIR/usr"
+ ./configure.py --cc=gcc --os=linux --disable-debug --prefix=/usr $OPTS &&
+ make install "DESTDIR=$DESTDIR/usr"
 }
