@@ -1,3 +1,5 @@
+# somehow strips off the -m32 therefore is multilib-fail
+
 # Do not try compiling 1_42_0, it is too old
 
     stable 1_45_0 1_42_0
@@ -8,7 +10,8 @@
 #      opts -DBUILD_STATIC:BOOL=FALSE
 #      opts -DBUILD_DEBUG:BOOL=FALSE
   category development
- attribute library attribute multilib-fail
+ attribute library attribute
+ attribute multilib-fail
     source $SOURCEFORGE_URL boost/boost/${VERSION//_/.}/boost_$VERSION.tar.bz2
       home http://www.boost.org/
       docs http://www.boost.org/doc/
@@ -42,12 +45,10 @@ build(){
  ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage -j${CAST_RATE:-2} &&
  ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install &&
 
- if   [[ $HOSTTYPE == x86_64 ]] &&   [[ $CFLAGS =~ -m32 ]]
- then mv $DESTDIR/usr/lib   $DESTDIR/usr/lib32
- elif [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then mv $DESTDIR/usr/lib   $DESTDIR/usr/lib64
-  if [[ -f /lib/libc.so.6 ]]
-  then mv $DESTDIR/usr/lib32 $DESTDIR/usr/lib
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
   fi
  fi
 }
