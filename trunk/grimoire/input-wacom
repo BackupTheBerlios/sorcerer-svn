@@ -1,0 +1,22 @@
+    stable 0.10.10-1
+   require linux-kernel
+      opts --enable-static=no
+  category input
+ attribute linux-26-module
+    source $SOURCEFORGE_URL linuxwacom/xf86-input-wacom/input-wacom/input-wacom-$VERSION.tar.bz2
+  homepage http://linuxwacom.sourceforge.net/
+  estimate 400
+      desc 'linux kernel module for Wacom tablets'
+
+build(){
+ make_install(){
+  local LVER=$( installed_version $( get_provider linux-kernel ) )
+  DEST=$DESTDIR/lib/modules/$LVER/kernel/drivers/input
+  mkdir -pm 755 $DEST/{tablet,touchscreen}
+  install -m 644 2.6.36/wacom.ko $DEST/tablet/
+  install -m 644 2.6.36/wacom_w8001.ko $DEST/touchscreen/
+ }
+
+ default_build &&
+ make_install
+}
