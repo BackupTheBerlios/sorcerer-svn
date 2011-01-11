@@ -1,29 +1,8 @@
-# do not update separately from kde-v4 updates
-
-# kdelibs-v4 version 4.4.0 require soprano 2.3.70
-# and do not detect version 2.4.0.1
-# because when soprano 2.4.0.1 compiles
-# -- Found Redland storage: /usr/lib/redland/librdf_storage_mysql.so;/usr/lib/redland/librdf_storage_sqlite.so;/usr/lib/redland/librdf_storage_virtuoso.so
-# -- /usr/lib/redland/librdf_storage_virtuoso.so: undefined symbol: librdf_new_uri
-# Looks like a problem with redland
-
-# during kdebase-runtime-4.4.0 compile with soprano 2.4.0.1 installed
-# [ 12%] Generating nie.h, nie.cpp
-# (Soprano::PluginManager) found no soprano plugin at  "/opt/kde4/lib/soprano/libsoprano_raptorparser.so"
-# (Soprano::PluginManager) found no soprano plugin at  "/opt/kde4/lib/soprano/libsoprano_nquadparser.so"
-# Could not find parser plugin for encoding trig
-
-# the above error happens when executing 
-# /opt/kde4/bin/onto2vocabularyclass
-# installed by soprano
-# soprano 2.4.0.1 unusable?
-
-# version 2.5.2 is available, but not yet tested
-
-    stable 2.5.2 2.5.0 2.4.64 2.4.63 2.3.73 2.3.1 2.3.0
+    stable 2.5.3 2.5.2 2.5.0
    require clucene-core qt-everywhere-opensource redland
   category db
- attribute kde4 library multilib-fail
+ attribute kde4 library
+ attribute multilib-fail
     source $SOURCEFORGE_URL soprano/Soprano/$VERSION/soprano-$VERSION.tar.bz2
   homepage http://soprano.sourceforge.net/
       opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
@@ -32,15 +11,17 @@
       opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
       opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
       opts -DCMAKE_BUILD_TYPE=Release
-# case $HOSTTYPE in
-#  x86_64) opts -DLIB_DESTINATION=lib64 ;;
-# esac
   estimate 510
       desc 'QT4 framework for RDF data'
 
 build(){
- local  RATH="/usr/kde4/bin:/opt/libiodbc/bin:$PATH"
+ local  RATH="/opt/kde4/bin:/opt/libiodbc/bin:$PATH"
  local  PATH
  export PATH=$RATH
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts -DLIB_DESTINATION:STRING=/opt/kde4/lib64
+ fi
+
  default_build
 }
