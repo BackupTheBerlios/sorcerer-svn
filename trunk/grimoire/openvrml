@@ -1,9 +1,12 @@
-    stable 0.18.6 0.18.5 0.18.3 0.18.2 0.18.1 0.18.0
+# multilib-fail because boost is multilib-fail
+
+    stable 0.18.6 0.18.5
    require MesaLib SDL boost curl gtkglext
   optional doxygen '' '--without-doxygen --disable-api-docs' for documentation generation
   optional firefox '' --disable-mozilla-plugin for mozilla openvrml plugin
   category graphic
  attribute gnome library solo
+ attribute multilib-fail
     source $SOURCEFORGE_URL openvrml/openvrml/$VERSION/openvrml-$VERSION.tar.gz
   homepage http://openvrml.sourceforge.net
 #            'jdk:--with-jdk=/opt/jdk/include --enable-script-node-java:--disable-script-node-javascript:to enable support for java in script node'
@@ -19,31 +22,39 @@ lookat, a basic Glut VRML viewer is included.'
 
 
 build(){
+ local MOZ_VER MOZ_INC MOZ_LIB JDK_INC JDK_LIB
 
-MOZ_INC='-I/usr/include/mozilla -I/usr/include/mozilla/nspr'
-MOZ_LIB='-L/usr/lib/mozilla'
+ MOZ_VER=$( installed_version $( get_provider firefox ) )
 
-JDK_INC='-I/opt/jdk/include  -I/opt/jdk/include/linux'
-JDK_LIB='-L/opt/jdk/jre/lib/i386/server'
+ MOZ_INC="-I/usr/include/firefox-$MOZ_VER -I/usr/include/firefox-$MOZ_VER/nspr"
 
-# BST_INC='-I/usr/include/boost'
-# export BOOST_LIB_SUFFIX="-gcc43-mt"
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then MOZ_LIB="-L/usr/lib64/firefox-$MOZ_VER"
+ else MOZ_LIB="-L/usr/lib/firefox-$MOZ_VER"
+ fi
 
-export   CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
-export CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
-export  LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
+ JDK_INC='-I/opt/jdk/include  -I/opt/jdk/include/linux'
+ JDK_LIB='-L/opt/jdk/jre/lib/i386/server'
 
-#            --without-jdk           \
-#            --without-spidermonkey  \
+ # BST_INC='-I/usr/include/boost'
+ # export BOOST_LIB_SUFFIX="-gcc43-mt"
 
-# sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
+ export   CFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+ export CXXFLAGS+=" $JDK_INC   $MOZ_INC  $BST_INC"
+ export  LDFLAGS+=" $JDK_LIB   $MOZ_LIB"
+#export  LDFLAGS+=" $JDK_LIB   $MOZ_LIB  -L/usr/X11R6/lib"
 
-# LC_ALL=C grep -rl boost_thread * |
-# xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43:g"
-#xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43-mt:g"
+ #            --without-jdk           \
+ #            --without-spidermonkey  \
 
-# LC_ALL=C grep -rl boost_filesystem-mt * |
-# xargs -r --max-lines=64 sed -i "s:boost_filesystem-mt:boost_filesystem-mt-gcc43:g"
+ # sed  -i  's:boost_unit_test_framework:boost_unit_test_framework-gcc-mt:'  tests/Makefile*
 
-default_build
+ # LC_ALL=C grep -rl boost_thread * |
+ # xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43:g"
+ #xargs -r --max-lines=64 sed -i "s:boost_thread:boost_thread-gcc43-mt:g"
+
+ # LC_ALL=C grep -rl boost_filesystem-mt * |
+ # xargs -r --max-lines=64 sed -i "s:boost_filesystem-mt:boost_filesystem-mt-gcc43:g"
+
+ default_build
 }
