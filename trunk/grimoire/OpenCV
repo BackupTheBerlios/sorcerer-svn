@@ -6,3 +6,14 @@
       home http://opencv.willowgarage.com/wiki/
   estimate 4000
       desc 'open source computer vision library'
+
+build(){
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+   sed -i 's:prefix}/lib$:prefix}/lib64:'  $DESTDIR/usr/lib64/pkgconfig/opencv.pc
+ fi
+ fi
+}
