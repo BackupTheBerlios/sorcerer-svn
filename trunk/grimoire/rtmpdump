@@ -2,11 +2,20 @@
    require openssl zlib
   category video
  attribute library
+ attribute multilib-fail
     source http://rtmpdump.mplayerhq.hu/download/rtmpdump-$VERSION.tgz
   homepage http://rtmpdump.mplayerhq.hu/
       desc 'toolkit for RTMP streams'
 
 build(){
  make prefix=/usr &&
- make prefix=$DESTDIR/usr install
+ make prefix=$DESTDIR/usr install &&
+ sed -i 's:/src/sorcery/.destdir/rtmpdump::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+ sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+ if    [[ $HOSTTYPE == x86_64   ]]; then
+  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                    else mv $DESTDIR/usr/lib{,64}
+    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

@@ -1,9 +1,19 @@
-    stable 0.4.6 0.4.5 0.4.4 0.4.3 0.4.2 0.4.1
+    stable 0.4.6
    require cmake openssl zlib
+      opts --enable-static=no
   category network/security
  attribute library
     source http://www.libssh.org/files/libssh-$VERSION.tar.gz
   homepage http://www.libssh.org/
-      opts --enable-static=no
   estimate 200
       desc 'library that implements the ssh2 protocol'
+
+build(){
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
+}

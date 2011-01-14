@@ -3,6 +3,7 @@
  conflicts indilib
 #  require cfitsio libnova libusb-compat zlib
    require cfitsio cmake gcc-g++ libnova zlib
+      opts --enable-static=no
   category science/astronomy
  attribute library
 case $VERSION in
@@ -12,6 +13,16 @@ case $VERSION in
     source $SOURCEFORGE_URL indi/indilib/$VERSION/libindi0_$VERSION.tar.gz ;;
 esac
   homepage http://www.indilib.org/
-      opts --enable-static=no
   estimate 300
       desc 'a protocol library for operating astronomical instrumentation'
+
+build(){
+ default_build &&
+ sed -i 's:-L/usr/lib::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+ if    [[ $HOSTTYPE == x86_64   ]]; then
+  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                    else mv $DESTDIR/usr/lib{,64}
+    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
+}

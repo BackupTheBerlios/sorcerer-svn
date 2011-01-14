@@ -2,20 +2,25 @@
    require gcc-g++
   category development
  attribute library
- attribute multilib-fail
     source $SOURCEFORGE_URL tinyxml/tinyxml/${VERSION//_/.}/tinyxml_$VERSION.tar.gz
   homepage http://www.grinninglizard.com/tinyxml/index.html
       desc 'simple, small, C++ XML parser'
 
 build(){
-g++ $CXXFLAGS -Wall -Wno-unknown-pragmas -DPIC -fPIC -shared \
--o libtinyxml.2.6.1 -Wl,-soname=libtinyxml.so.2 \
-tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+ g++ $CXXFLAGS $LDFLAGS -Wall -Wno-unknown-pragmas -DPIC -fPIC  \
+     -shared -o libtinyxml.2.6.1 -Wl,-soname=libtinyxml.so.2    \
+     tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp &&
 
-mkdir -p $DESTDIR/usr/{include,lib}
-install -m 644 tinystr.h $DESTDIR/usr/include
-install -m 644 tinyxml.h $DESTDIR/usr/include
-install -m 755 libtinyxml.2.6.1 $DESTDIR/usr/lib
-ln -fs libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so.2
-ln -fs libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so
+ mkdir -p $DESTDIR/usr/{include,lib} &&
+ install -m 644 tinystr.h $DESTDIR/usr/include &&
+ install -m 644 tinyxml.h $DESTDIR/usr/include &&
+ install -m 755 libtinyxml.2.6.1 $DESTDIR/usr/lib &&
+ ln -fs libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so.2 &&
+ ln -fs libtinyxml.2.6.1 $DESTDIR/usr/lib/libtinyxml.so &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

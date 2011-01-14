@@ -6,16 +6,23 @@
    LDFLAGS='-Wl,-O1'
   category video
  attribute library
+ attribute multilib-fail
     source http://webm.googlecode.com/files/libvpx-v$VERSION.tar.bz2
   homepage http://code.google.com/p/webm/
   estimate 360
       desc 'library for the VP8 Codec'
 
 build(){
-mkdir build
-cd build
-../configure $OPTS &&
-make &&
-make install DIST_DIR=$DESTDIR/usr &&
-rm -f $DESTDIR/usr/lib{,64}/libvpx.a 
+ mkdir -p build
+ cd build
+ ../configure $OPTS &&
+ make &&
+ make install DIST_DIR=$DESTDIR/usr &&
+ rm -f $DESTDIR/usr/lib{,64}/libvpx.a  &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

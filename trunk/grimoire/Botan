@@ -24,5 +24,12 @@ build(){
  fi
 
  ./configure.py --cc=gcc --os=linux --disable-debug --prefix=/usr $OPTS &&
- make install "DESTDIR=$DESTDIR/usr"
+ make install "DESTDIR=$DESTDIR/usr" &&
+ sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+ if    [[ $HOSTTYPE == x86_64   ]]; then
+  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                    else mv $DESTDIR/usr/lib{,64}
+    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

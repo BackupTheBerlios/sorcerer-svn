@@ -1,6 +1,7 @@
-    stable 0.9.1 0.9.0 0.8.10 0.8.9
+    stable 0.9.1
   category development
  attribute library
+ attribute multilib-fail
     source http://www.ioplex.com/~miallen/libmba/dl/libmba-$VERSION.tar.gz
   homepage http://www.ioplex.com/~miallen/libmba/
   estimate 80
@@ -12,8 +13,14 @@ I18N text abstraction, configuration file module,
 portable semaphores, condition variables, and more.'
 
 build(){
-sed -i "s:-O2:$CFLAGS:
-        s:/usr/local:$DESTDIR/usr:" Makefile
-make &&
-make install
+ sed -i "s:-O2:$CFLAGS:
+         s:/usr/local:$DESTDIR/usr:" Makefile
+ make &&
+ make install &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

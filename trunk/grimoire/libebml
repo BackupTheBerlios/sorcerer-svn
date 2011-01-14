@@ -10,7 +10,13 @@
       desc 'C++ libary to parse EBML files'
 
 build(){
-cd make/linux
-make     all prefix=/usr &&
-make install prefix=$DESTDIR/usr
+ cd make/linux
+ make     all prefix=/usr &&
+ make install prefix=$DESTDIR/usr &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

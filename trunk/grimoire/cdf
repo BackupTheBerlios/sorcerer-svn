@@ -11,12 +11,13 @@ CURL_PARAM=--disable-epsv
    require ncurses
   optional jdk      -java_api '' to make CDF Java API available
   optional xerces-j ''        '' to enable CDFML, i.e. dumping CDF to XML
-   category data science
-  attribute library new
-     source ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/cdf$VERSION/linux/cdf$VERSION-dist-all.tar.gz
-   homepage http://cdf.gsfc.nasa.gov/
-   estimate 200
-       desc 'library for CDF data format
+  category data science
+ attribute library new
+ attribute multilib-fail
+    source ftp://cdaweb.gsfc.nasa.gov/pub/cdf/dist/cdf$VERSION/linux/cdf$VERSION-dist-all.tar.gz
+  homepage http://cdf.gsfc.nasa.gov/
+  estimate 200
+      desc 'library for CDF data format
 cdf is a library for the Common Data Format (CDF)
 created by National Space Science Data Center (NSSDC).
 CDF is self-describing data abstraction for the storage
@@ -102,5 +103,11 @@ EOF
  make    test   &&
  make    install \
          INSTALLDIR=$DESTDIR/usr &&
- install_java_api
+ install_java_api &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }

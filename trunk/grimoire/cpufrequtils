@@ -1,4 +1,4 @@
-    stable 008 007 006 005 004 003 002 001 0.4 0.3
+    stable 008
    require sysfsutils
   category utility
  attribute console library
@@ -15,13 +15,13 @@ build(){
   done
  }
 
-make &&
-make install "DESTDIR=$DESTDIR" &&
-prog_install
-}
-
-current(){
- case $VERSION in
-  008) [ -f /etc/init.d/cpufreq ] ;;
- esac
+ make &&
+ make install "DESTDIR=$DESTDIR" &&
+ prog_install &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+  fi
+ fi
 }
