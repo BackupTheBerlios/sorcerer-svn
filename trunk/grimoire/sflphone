@@ -1,3 +1,6 @@
+# Their instructions in the INSTALL file
+# fails to compile and install sflphone.
+
 # Requires pjproject, although the library is included in the sflphone.
 # pjproject library has already been shown to do damage to a box by
 # replacing headers that it does not own, especially:
@@ -9,13 +12,11 @@
 # does not seem to be downloading.
 
     stable 0.9.12 0.9.8.4 0.9.7
-   require ccrtp libeXosip2 libsamplerate qt-x11-free
-#  require ccrtp libeXosip2 libsamplerate pa_snapshot qt-x11-free
-      opts --prefix=/opt/kde3 --with-qt-dir=/opt/kde3 --disable-debug --enable-final
+   require ccrtp gtk+ libeXosip2 libsamplerate
   category network/telephone
- attribute kde3
+ attribute gnome
  attribute broke
-    source http://projects.savoirfairelinux.com/attachments/download/1977/sflphone-$VERSION.tar.gz
+    source https://projects.savoirfairelinux.com/attachments/download/1977/sflphone-$VERSION.tar.gz
       home http://www.sflphone.org/
       vurl http://www.sflphone.org/download.php
 #     mail http://lists.savoirfairelinux.net/mailman/listinfo/sflphone
@@ -31,6 +32,17 @@ an enterprise desktop phone
 conference, voicemail support, etc.).'
 
 build(){
-export QTDIR=/opt/kde3
-default_build
+ cd sflphone-common/libs/pjproject &&
+ ./autogen.sh &&
+ ./configure &&
+ make dep && make &&
+ cd ../.. &&
+ ./autogen.sh --prefix=/usr &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ cd .. &&
+ cd sflphone-client-gnome &&
+ ./autogen.sh --prefix=/usr $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR
 }
