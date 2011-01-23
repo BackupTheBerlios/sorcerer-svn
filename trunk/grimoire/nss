@@ -35,14 +35,15 @@ build(){
 
   if    [[ $HOSTTYPE == x86_64 ]]; then
    if   [[ $CFLAGS =~ -m32     ]]; then
-    mv    $DESTDIR/usr/lib   $DESTDIR/usr/lib32
+    mv    $DESTDIR/usr/lib{,32}
    else
-    mv    $DESTDIR/usr/lib   $DESTDIR/usr/lib64
-    [[ -d $DESTDIR/usr/lib32 ]] &&
-    mv    $DESTDIR/usr/lib32 $DESTDIR/lib
+    mv    $DESTDIR/usr/lib{,64}
     sed -i 's:${prefix}/lib$:${prefix}/lib64:
             s:-L${prefix}/lib :-L${prefix}/lib64 :' \
-     $DESTDIR/usr/lib64/pkgconfig/nss.pc
+        $DESTDIR/usr/lib64/pkgconfig/nss.pc
+    if   [[ -d $DESTDIR/usr/lib32 ]]
+    then mv    $DESTDIR/usr/lib{32,}
+    fi
    fi
   fi
  }
