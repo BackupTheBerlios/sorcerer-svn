@@ -1,21 +1,27 @@
 # Has possible optionals on Linux-PAM and alsa-lib
 # but will double check before writing thme in.
 
-# Where is edb source?
-
-    stable 0.16.999.063 0.16.999.062
-   require e_dbus ecore edje efreet
+    stable 0.16.999.55225 0.16.999.063
+   require e_dbus edje eeze efreet
   optional Linux-PAM
+  optional alsa-lib
       opts --enable-static=no
   category window-manager
- attribute x11 broke
-  homepage http://www.enlightenment.org/
-    source http://download.enlightenment.org/snapshots/2009-12-02/enlightenment-$VERSION.tar.bz2
+ attribute x11
+    source http://download.enlightenment.org/snapshots/LATEST/enlightenment-$VERSION.tar.bz2
+      home http://www.enlightenment.org/
+      docs 'http://www.enlightenment.org/p.php?p=docs&l=en'
      wmbin /usr/bin/enlightenment_start
-  estimate 6200
+  estimate 3900
       desc 'themeable fast flexible X11 windows Manager
 It is configurable as possible in both look and feel.
 In addition, Enlightenment provides an applet API that 
 provides functionality somewhere between the GNOME 
 applet system and Dock Apps from Afterstep/WindowMaker.'
 
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --x-libraries=/usr/lib64
+ fi
+ default_build
+}

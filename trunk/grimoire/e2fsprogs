@@ -7,7 +7,8 @@
   category disk/file-system
  attribute console library
     source $SOURCEFORGE_URL e2fsprogs/e2fsprogs/$VERSION/e2fsprogs-$VERSION.tar.gz
-  homepage http://e2fsprogs.sourceforge.net
+      home http://e2fsprogs.sourceforge.net/
+      docs http://e2fsprogs.sourceforge.net/ext2.html
   estimate 1350
       desc 'required utilities for the EXT2 file system
 e2fsprogs - The EXT2 file system utilities and libraries.
@@ -22,30 +23,16 @@ and most of the other core ext2 filesystem utilities.'
 # While uClibc is using oldthreads instead of newthreads,
 # because gcc would not detect threads when newthreads was enabled
 # thread-local-storage must be disabled in order to compile e2fsprogs
-case $MACHTYPE in
- *-uclibc) opts --disable-tls ;;
-esac
 
 build(){
+ case $MACHTYPE in
+  *-uclibc) opts --disable-tls ;;
+ esac
+
  if   [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=" -m32"
-# OPTS+=" --host=${MACHTYPE/x86_64/i686}"
  fi
 
  default_build &&
  make install-{strip,libs} "DESTDIR=$DESTDIR"
-}
-
-build_old(){
-
- ./configure \
- --prefix=/usr \
- --with-root-prefix= \
- --enable-elf-shlibs \
- $OPTS &&
- make "LDFLAGS=$LDFLAGS" &&
- make install       "DESTDIR=$DESTDIR" &&
- make install-libs  "DESTDIR=$DESTDIR" &&
- make install-strip "DESTDIR=$DESTDIR" &&
- make install-libs  "DESTDIR=$DESTDIR"
 }

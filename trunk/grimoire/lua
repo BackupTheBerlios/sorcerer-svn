@@ -37,7 +37,16 @@ build(){
  ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
  mkdir  -pm 755            $DESTDIR/usr/lib/pkgconfig &&
  install -m 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
- if   [[ $HOSTTYPE == x86_64 ]]
- then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+ if   [[ $HOSTTYPE == x86_64 ]]; then
+   mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
+ fi
+}
+
+current(){
+ if [[ $HOSTTYPE == x86_64 ]]; then
+  case $VERSION in
+   5.1.4) grep -q lib64 /usr/lib64/pkgconfig/lua.pc ;;
+  esac
  fi
 }
