@@ -31,9 +31,12 @@ build(){
  else OPTS+=" --libdir=$DESTDIR/lib"
  fi
 
+ # VirtualBox requires static zlib libraries
+ ./configure --prefix=/usr $OPTS &&
+ make "CFLAGS=$CFLAGS" &&
+ make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR &&
  ./configure --prefix=/usr --shared $OPTS &&
  make "CFLAGS=$CFLAGS" &&
  strip -s libz.so* &&
- make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR &&
- rm -f $DESTDIR/lib{,64}libz.a
+ make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR
 }
