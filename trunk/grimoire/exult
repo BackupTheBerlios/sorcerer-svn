@@ -1,5 +1,8 @@
-    stable 1.4.9rc1 1.2 1.1.10rc2 1.1.9rc1 1.1beta3 1.1beta2 1.1Beta1 1.00
+    stable 1.4.9rc1
    require SDL_mixer flex unzip
+case $VERSION in
+ 1.2) use_gcc gcc-v3.4 ;;
+esac
   category game development/emulator
  attribute x11
     source $SOURCEFORGE_URL exult/exult-all-versions/$VERSION/exult-$VERSION.tar.gz
@@ -9,10 +12,9 @@
     source $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/sqsfxsi.zip
     source $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_1of2.zip
     source $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_2of2.zip
-  homepage http://exult.sourceforge.net
-case $VERSION in
- 1.2) use_gcc gcc-v3.4 ;;
-esac
+      home http://exult.sourceforge.net/
+      docs http://exult.sourceforge.net/docs.php
+#    forum 'http://exult.sourceforge.net/forum/list.php?f=1'
   estimate 700
       desc 'an open-source game engine for playing Ultima7
 If you do not own Ultima 7 this engine will be of no use to you.
@@ -21,34 +23,34 @@ shutdown all other sound servers
 and run esd before starting exult.'
 
 build(){
-echo "PWD=$PWD"
+ echo "PWD=$PWD"
 
-sed -i 's:"playmidi","-v","-v","-e":"playmus","playmus","-r","48000":' \
- audio/midi_drivers/forked_player.cc
+ sed -i 's:"playmidi","-v","-v","-e":"playmus","playmus","-r","48000":' \
+  audio/midi_drivers/forked_player.cc
 
-# sed -i 's:"playmidi","-v","-v","-e":"playmus","playmus","-r","44100":' \
-# audio/midi_drivers/forked_player.cc
+ # sed -i 's:"playmidi","-v","-v","-e":"playmus","playmus","-r","44100":' \
+ # audio/midi_drivers/forked_player.cc
 
-export LDFLAGS+=' -lX11'
+ export LDFLAGS+=' -lX11'
 
-# export CFLAGS="${CFLAGS/-march=native//}"
-# export CXXFLAGS="${CXXFLAGS/-march=native//}"
+ # export CFLAGS="${CFLAGS/-march=native//}"
+ # export CXXFLAGS="${CXXFLAGS/-march=native//}"
 
-export   CFLAGS="-Os"
-export CXXFLAGS="-Os"
+ export   CFLAGS="-Os"
+ export CXXFLAGS="-Os"
 
-./configure          \
---prefix=/usr        \
---sysconfdir=/etc    \
---localstatedir=/var \
---disable-timidity   \
-$OPTS &&
-make &&
-make install "DESTDIR=$DESTDIR" &&
-mkdir -pvm 755              $DESTDIR/usr/share/exult/music &&
-cp    $SCRIPT_DIR/exult.cfg $DESTDIR/usr/share/exult/ &&
-cp -av *.flx                $DESTDIR/usr/share/exult/ &&
-cp -av *.ogg                $DESTDIR/usr/share/exult/music/
+ ./configure           \
+  --prefix=/usr        \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --disable-timidity   \
+  $OPTS &&
+ make &&
+ make install "DESTDIR=$DESTDIR" &&
+ mkdir -pvm 755              $DESTDIR/usr/share/exult/music &&
+ cp    $SCRIPT_DIR/exult.cfg $DESTDIR/usr/share/exult/ &&
+ cp -av *.flx                $DESTDIR/usr/share/exult/ &&
+ cp -av *.ogg                $DESTDIR/usr/share/exult/music/
 }
 
 post_install(){
