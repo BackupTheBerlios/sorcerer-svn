@@ -21,11 +21,12 @@
 # has deprecated syntax in source and does not compile
 
 
-    stable 1.9.0rc4
+    stable 1.9.0 1.9.0rc4
    require SDL_gfx gtk+-v1.2 libdv libquicktime
       opts --enable-static=no
   category video
  attribute library x11
+#attribute multilib-fail
  attribute broke
     source $SOURCEFORGE_URL mjpeg/mjpegtools/$VERSION/mjpegtools-$VERSION.tar.gz
   homepage http://mjpeg.sourceforge.net
@@ -60,5 +61,9 @@ build(){
          sed -i '1i#include <cstring>' mplex/main.cpp
          ;;
  esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --x-libraries=/usr/lib64
+ else opts --x-libraries=/usr/lib
+ fi
  default_build
 }
