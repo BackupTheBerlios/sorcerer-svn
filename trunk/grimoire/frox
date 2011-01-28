@@ -1,8 +1,10 @@
-    stable 0.7.18 0.7.17 0.7.15 0.7.14 0.7.13
+    stable 0.7.18
   category network/ftp
  attribute server
     source $SOURCEFORGE_URL frox/frox/$VERSION/frox-$VERSION.tar.bz2
-  homepage http://frox.sourceforge.net
+      home http://frox.sourceforge.net/
+      docs http://frox.sourceforge.net/README
+#     mail 'http://sourceforge.net/mail/?group_id=26940'
   estimate 50
       desc 'transparent FTP proxy which requires ipfilter
 It requires ipfilter on a box acting as a firewall/nat.
@@ -21,19 +23,19 @@ and in the default setup runs as a non-root
 user in a chroot jail.'
 
 build(){
-sed -i "s:# WorkingDir /usr/local/lib/frox:WorkingDir /var/cache/frox:
-        s:Listen 192.168.2.1:# Listen 192.168.2.1:
-        s:# User nobody:User nobody:
-        s:# Group nogroup:Group nobody:" src/frox.conf
-./configure                         \
---prefix=/usr                       \
---sysconfdir=/etc                   \
---localstatedir=/var                \
---enable-local-cache                \
---enable-configfile=/etc/frox.conf  \
-$OPTS &&
-make  &&
-make install  "DESTDIR=$DESTDIR" &&
-mkdir -p     "$DESTDIR/var/cache/frox" &&
-chown nobody "$DESTDIR/var/cache/frox"
+ sed -i "s:# WorkingDir /usr/local/lib/frox:WorkingDir /var/cache/frox:
+         s:Listen 192.168.2.1:# Listen 192.168.2.1:
+         s:# User nobody:User nobody:
+         s:# Group nogroup:Group nobody:" src/frox.conf
+ ./configure                         \
+  --prefix=/usr                      \
+  --sysconfdir=/etc                  \
+  --localstatedir=/var               \
+  --enable-local-cache               \
+  --enable-configfile=/etc/frox.conf \
+  $OPTS &&
+ make   &&
+ make install   "DESTDIR=$DESTDIR" &&
+ mkdir -pvm 755 "$DESTDIR/var/cache/frox" &&
+ chown nobody   "$DESTDIR/var/cache/frox"
 }

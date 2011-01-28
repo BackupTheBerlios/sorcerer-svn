@@ -3,7 +3,8 @@
   category game
  attribute x11
     source http://www.frogatto.com/files/frogatto-$VERSION.tar.bz2
-  homepage http://www.frogatto.com/
+      home http://www.frogatto.com/
+#    forum http://www.frogatto.com/forum/
   estimate 150
       desc '2d side scrolling jump-and-run videogame
 
@@ -12,15 +13,15 @@ If connected to the Internet while playing
 then Frogatto automatically uploads anonymous usage data.'
 
 build(){
-DIRS="data images music sounds"
-sed -i 's:ccache::' Makefile &&
-make &&
-mkdir -p $DESTDIR/usr/{bin,libexec,share/frogatto} &&
-install -m 755 game $DESTDIR/usr/libexec/frogatto &&
-find $DIRS -type d | escape_qs | xargs --max-lines=64  chmod 755 &&
-find $DIRS -type f | escape_qs | xargs --max-lines=64  chmod 644 &&
-cp -a $DIRS $DESTDIR/usr/share/frogatto/ &&
-echo -e "#!/bin/bash\ncd /usr/share/frogatto\n/usr/libexec/frogatto" \
-        > $DESTDIR/usr/bin/frogatto &&
-chmod 755 $DESTDIR/usr/bin/frogatto
+ local DIRS="data images music sounds"
+ sed -i 's:ccache::' Makefile &&
+ make &&
+ mkdir  -pvm 755      $DESTDIR/usr/{bin,libexec,share/frogatto} &&
+ install -vm 755 game $DESTDIR/usr/libexec/frogatto &&
+ find $DIRS -type d | escape_qs | xargs --max-lines=64  chmod 755 &&
+ find $DIRS -type f | escape_qs | xargs --max-lines=64  chmod 644 &&
+ cp -a $DIRS $DESTDIR/usr/share/frogatto/ &&
+ echo -e "#!/bin/bash\ncd /usr/share/frogatto\n/usr/libexec/frogatto" \
+         > $DESTDIR/usr/bin/frogatto &&
+ chmod 755 $DESTDIR/usr/bin/frogatto
 }
