@@ -5,7 +5,8 @@
       opts --without-selinux
   optional prelink '' '' for faster loading ELFs
     source $GNU_URL glibc/glibc-$VERSION.tar.xz
-  homepage http://www.gnu.org/software/libc
+      home http://www.gnu.org/software/libc/
+      docs http://www.gnu.org/software/libc/manual/
    exclude /etc/ld.so.cache
    exclude /etc/ld.so.conf
    exclude /etc/localtime
@@ -34,8 +35,8 @@ build(){ (
 
  install_glibc(){
   install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
-  mkdir   -vp                       $DESTDIR/var/db
-  mkdir   -vm 700                   $DESTDIR/var/db/nscd
+  mkdir  -pvm 755                   $DESTDIR/var/db
+  mkdir  -pvm 700                   $DESTDIR/var/db/nscd
 
   cd    $DESTDIR
   rm -f $DESTDIR/etc/{localtime,ld.so.*}
@@ -61,7 +62,7 @@ build(){ (
 
 
  supported_locales(){
-  mkdir -p                      $DESTDIR/usr/share/i18n
+  mkdir -pvm 755                $DESTDIR/usr/share/i18n
   cp    ../localedata/SUPPORTED $DESTDIR/usr/share/i18n
  }
 
@@ -80,15 +81,15 @@ build(){ (
 
  export CFLAGS CXXFLAGS LDFLAGS LC_ALL
 
- mkdir -p $DESTDIR/etc
- touch    $DESTDIR/etc/ld.so.conf
+ mkdir -pvm 755 $DESTDIR/etc
+ touch          $DESTDIR/etc/ld.so.conf
 
  if   [ $HOSTTYPE == x86_64 ]
  then LD_SO="$DESTDIR/lib64/ld-linux-x86-64.so.2"; LLP="$DESTDIR/lib64:$DESTDIR/usr/lib64"
  else LD_SO="$DESTDIR/lib/ld-linux.so.2"         ; LLP="$DESTDIR/lib:$DESTDIR/usr/lib"
  fi
 
- mkdir -p $DESTDIR/usr/include/sys
+ mkdir -pvm 755 $DESTDIR/usr/include/sys
 
 #export PATH="/opt/binutils/2.18/bin:$PATH"
 #patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
