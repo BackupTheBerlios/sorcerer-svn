@@ -15,11 +15,20 @@ if [ "$1" = try-restart ]; then exit; fi
 
 NAME=initramfs
 
-
 allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 
 exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
+filter_elf(){
+ if [[ $HOSTTYPE == x86_64 ]] && [[ -f /lib/libc.so.6 ]]; then
+  xargs --max-lines=128 \
+  file -L -e encoding -e compress -e tar -e elf |
+  sed '/: *ELF 32-bit /d; s/: .*//' |
+  allpaths
+ else
+  allpaths
+ fi
+}
 
 mkinitrf(){
  cat $COMMON
@@ -115,7 +124,7 @@ initrf_update(){
 
  local       COMMON="$TEMPIF/common"
 
- every | allpaths | exists |
+ every | filter_elf | exists |
  cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
