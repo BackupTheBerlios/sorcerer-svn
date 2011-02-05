@@ -1,7 +1,5 @@
 # 1.0rc3 segfaults when run with mkv
-    stable 1.0rc2 1.0rc1
-    latest 1.0rc3 1.0rc2
-    secure 1.0rc2
+    stable 1.0rc4 1.0rc2 1.0rc1
 
 # mplayer 1.0rc2 will not compile with x264 snapshot-20081001-2245
 # nor with x264 version snapshot-20081202-2245
@@ -54,7 +52,7 @@ esac
  attribute x11
       home http://www.mplayerhq.hu
       docs http://www.mplayerhq.hu/design7/documentation.html
-  estimate 3100
+  estimate 3000
       desc 'movie and animation player
 MPlayer is a movie and animation player that supports a wide
 range of file formats, including ASF, Quicktime, and Vivo.
@@ -91,6 +89,14 @@ build(){
 
   unset CFLAGS CXXFLAGS
 
+#  --win32codecsdir=/usr/lib/win32 \
+#  --realcodecsdir=/usr/lib/win32  \
+#  --xanimcodecsdir=/usr/lib/win32 \
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then sed -i 's:${_xmmslibdir}/libxmms.so.1:-lxmms:' configure
+ fi
+
   echo                            |
   ./configure                     \
   --prefix=/usr                   \
@@ -98,9 +104,6 @@ build(){
   --confdir=/etc/mplayer          \
   --enable-menu                   \
   --enable-largefiles             \
-  --win32codecsdir=/usr/lib/win32 \
-  --realcodecsdir=/usr/lib/win32  \
-  --xanimcodecsdir=/usr/lib/win32 \
   --codecsdir=/usr/lib/win32      \
   $OPTS                           &&
   make    install prefix=/usr "DESTDIR=$DESTDIR" &&
