@@ -1,8 +1,9 @@
-    stable 6.5 6.4
+    stable 6.5
+#     last 20060305
    require imake libXaw
   category educational
  attribute x11
-  homepage http://www.bolthole.com/kdrill
+      home http://www.bolthole.com/kdrill/
     source http://www.bolthole.com/kdrill/kdrill$VERSION.tar.gz
     source ftp://ftp.monash.edu.au/pub/nihongo/kanjidic.gz
     source ftp://ftp.monash.edu.au/pub/nihongo/edict.gz
@@ -18,30 +19,29 @@ radical lookup, and English search.'
 
 
 build(){
-install_dics(){
+ install_dics(){
   local CX
 
-  mkdir -p $USK
-  mkdir -p dics
+  mkdir -pvm 755 $USK dics
   for ((CX=1;CX<3;CX++)); do
    decompress          ${SOURCE[$CX]} |
    gzip    -9 >   dics/${SOURCE[$CX]##*/}
    install -m 644 dics/${SOURCE[$CX]##*/} $USK
   done
-}
+ }
 
-A="CCXDEBUGFLAGS=$CXXFLAGS"
-B="CDEBUGFLAGS=$CXXFLAGS"
-C="CCOPTIONS=$CXXFLAGS"
-D="CCLINK=gcc $LDFLAGS"
-USK="$DESTDIR/usr/share/kdrill"
+ A="CCXDEBUGFLAGS=$CXXFLAGS"
+ B="CDEBUGFLAGS=$CXXFLAGS"
+ C="CCOPTIONS=$CXXFLAGS"
+ D="CCLINK=gcc $LDFLAGS"
+ USK="$DESTDIR/usr/share/kdrill"
 
-mkdir -p $USK
+ mkdir -pvm 755 $USK
 
-sed -i "s:/usr/local/lib:/usr/share/kdrill:" Imakefile
+ sed -i "s:/usr/local/lib:/usr/share/kdrill:" Imakefile
 
-xmkmf &&
-make "$A" "$B" "$C" "$D" &&
-make install install.man DESTDIR=$DESTDIR &&
-install_dics
+ xmkmf &&
+ make "$A" "$B" "$C" "$D" &&
+ make install install.man DESTDIR=$DESTDIR &&
+ install_dics
 }
