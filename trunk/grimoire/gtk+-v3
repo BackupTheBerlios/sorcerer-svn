@@ -1,0 +1,29 @@
+# /usr/bin/gtk-query-immodules-3.0
+
+
+    stable 3.0.0 
+   require atk gdk-pixbuf libXcomposite libXcursor libXinerama libXrandr pango
+  optional cups '' '' for optional cups print backend
+      opts --disable-gtk-doc --with-xinput=yes
+  category graphic/library
+ attribute gnome library makej
+    source $GNOME_URL sources/gtk+/${VERSION:0:3}/gtk+-$VERSION.tar.bz2
+      home http://www.gtk.org/
+      docs http://www.gtk.org/documentation.html
+# Xinput is needed for tablets and other extended input devices 
+# Can not add cups optional requirement which exists at this time
+# To avoid circuliar requirement loop with cups dbus gtk+
+# dbus's optional requirement on gtk+ was dropped
+  estimate 5100
+ freshmeat gtk
+      desc 'toolkit for creating GUIs'
+
+build(){
+ sed -i 's:demos tests::' Makefile.in
+ default_build
+}
+
+post_install(){
+ default_post_install
+ echo gtk-query-immodules-3.0  | pipe_queue $CAST_QUEUE com
+}
