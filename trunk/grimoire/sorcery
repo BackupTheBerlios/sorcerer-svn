@@ -1,4 +1,4 @@
-    stable event-20110214-1 event-20110212-0 event-20110123-0
+    stable event-20110214-4 event-20110212-0 event-20110123-0
    require grimoire
   category utility
  attribute archive_off solo sorcery
@@ -81,11 +81,34 @@ post_install(){
   fi
  }
 
+ upgrade_archive_cache(){
+  find $ARCHIVE_CACHE/ -maxdepth 1 -type f -printf "%P\n" |
+  sed "s:-$HOSTTYPE-:$TAB:
+       s:\.tar.xz$:$TAB.tar.xz:
+       s:\.tar$:$TAB.tar:" |
+  while read NAME VER EXT; do
+   mkdir -pm 700 $ARCHIVE_CACHE/$HOSTTYPE/$NAME/$VER
+   mv $ARCHIVE_CACHE/$NAME-$HOSTTYPE-$VER$EXT \
+      $ARCHIVE_CACHE/$HOSTTYPE/$NAME/$VER/$NAME-$VER$EXT
+  done
+ }
+
+ upgrade_ccache_cache(){
+  find $CCACHE_CACHE/ -maxdepth 1 -type f          |
+  sed -r "s:(.*)(\.ccache)(\..*):\1\2\3\t\1\3:p;d" |
+  while read OLD NEW
+  do    mv "$OLD" "$NEW"
+  done
+ }
+
+
  . /etc/sorcery/config
 
  fix_gconf
  add_config_site
  discard_old_index
  discard_obsolete_event_logs
+ upgrade_ccache_cache	# 20110214
+ upgrade_archive_cache	# 20110214
  default_post_install
 }

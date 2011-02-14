@@ -5,12 +5,10 @@
 . /etc/sorcery/config
 
 expire_logs(){
- local CE=${COMPILE_EXPIRE:-$EXPIRE}
  local EE=${EVENT_EXPIRE:-$EXPIRE}
  local LE=${LEECH_EXPIRE:-$EXPIRE}
 
- ( find "${COMPILE_LOGS:-/etc/sorcery/log/compile}/" -type f -mtime +$CE | sed -n "/\.bz2/p;/\.gz/p"
-   find "${EVENT_LOGS:-/var/log/sorcery/event}/"     -type f -mtime +$EE
+ ( find "${EVENT_LOGS:-/var/log/sorcery/event}/"     -type f -mtime +$EE
    find "${LEECH_LOGS:-/var/log/sorcery/leech}/"     -type f -mtime +$LE
  ) 2>/dev/null | escape_qs | xargs -r --max-lines=64 rm -f
 }
@@ -55,7 +53,7 @@ prune_common_cache(){
 prune_ccache_cache(){
  mkdir_p $CCACHE_CACHE
  prune_common_cache \
-  "$( show_installed | sed "s:^:$CCACHE_CACHE/:; s:$:.ccache.tar:" )" \
+  "$( show_installed | sed "s:^:$CCACHE_CACHE/:; s:$:.tar:" )" \
   "$( find $CCACHE_CACHE/ -type f )" \
   "$CCACHE_KEEP"
 }
@@ -68,10 +66,11 @@ prune_archive_cache(){
  mkdir_p $ARCHIVE_CACHE
  prune_common_cache \
   "$( snapshot | pipe view_index av | LC_ALL=C sort -u | 
-      sed "s:^:$ARCHIVE_CACHE/:
-           s:$TAB:-$HOSTTYPE-:
-           s:$:.tar:" )" \
+      sed -r "s:([^\t]*)\t(.*):$ARCHIVE_CACHE/$HOSTTYPE/\1/\2/\1-\2.tar:"
+    )" \
   "$( find $ARCHIVE_CACHE/ -type f )" "$ARCHIVE_KEEP"
+ find      $ARCHIVE_CACHE/ -type d -empty | xargs -r --max-lines=256 rmdir
+ find      $ARCHIVE_CACHE/ -type d -empty | xargs -r --max-lines=256 rmdir
 }
 
 
@@ -84,8 +83,8 @@ prune_source_cache(){
   "$( view_index src |
       sed "s:.*$TAB:$SOURCE_CACHE/:" | tarname )" \
   "$( find          $SOURCE_CACHE/ -type f | filter "$LOCAL_EXCLUDE" )" "$SOURCE_KEEP"
- find               $SOURCE_CACHE/ -type d -empty |
- xargs -r --max-lines=256 rmdir
+ find               $SOURCE_CACHE/ -type d -empty | xargs -r --max-lines=256 rmdir
+ find               $SOURCE_CACHE/ -type d -empty | xargs -r --max-lines=256 rmdir
 }
 
 prune_failed_cache(){
