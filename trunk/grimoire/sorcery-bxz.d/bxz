@@ -15,6 +15,7 @@ TGZ='/\.tar\.gz$/p;/\.tgz$/p'
 BZ2='/\.tar\.bz2$/p'
 FILES="$TAR;$TGZ;$BZ2"
 PIDF=/var/run/bxz.pid
+XZO="$1"
 
 declare -i NEXT=900
 declare -i LOW=2
@@ -65,7 +66,7 @@ recompress(){
 
  rtmp(){ rm -f "$TMP"; }
  uncompr(){         if ! decomp "$IN"; then rtmp; fi; }
- xz_it(){ uncompr | if ! xz  > "$TMP"; then rtmp; fi; }
+ xz_it(){ uncompr | if ! xz $XZO > "$TMP"; then rtmp; fi; }
 
  IN="$1"
 
@@ -88,7 +89,7 @@ recompress(){
 }
 
 ima(){ local REPLY; acad && ll; }
-pending(){ find $AC/ $CC/ $SC/ -maxdepth 3 -type f | sed -n "$FILES"; }
+pending(){ find $AC/ $CC/ $SC/ -maxdepth 4 -type f | sed -n "$FILES"; }
 owari(){ [[ -z $( pending ) ]]; }
 reduction(){ pending | while read && ima; do recompress "$REPLY"; done; }
 
