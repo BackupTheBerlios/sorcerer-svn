@@ -11,16 +11,18 @@ esac
 # optional libprelude ''             --disable-prelude  for prelude support
   optional libxcrypt '' '' for blowfish encrypted passwords
 # optional libxcrypt '' '' for passwords that blow fish
+      opts --enable-read-both-confs
+# prelude support seems to be broken
+      opts --disable-prelude
   sys_user auth
   category security/authentication
- attribute library solo
+ attribute library attribute makej multilib-concurrent
       vurl ftp://ftp.kernel.org/pub/linux/libs/pam/library/
     source $KERNEL_URL pub/linux/libs/pam/library/Linux-PAM-$VERSION.tar.bz2
       home http://www.kernel.org/pub/linux/libs/pam
 
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
-      opts --enable-read-both-confs
 
 # If the root filesystem can not be mounted
 # login must be possible from the initramfs
@@ -35,14 +37,9 @@ http://www.kernel.org/pub/linux/libs/pam/modules.html'
 
 build(){
  adjust_unix_chkpwd(){
-  chown root:auth /sbin/unix_chkpwd
-  chmod 2755      /sbin/unix_chkpwd
+  chown root:auth $DESTDIR/sbin/unix_chkpwd
+  chmod 2755      $DESTDIR/sbin/unix_chkpwd
  }
-
- case $MACHTYPE in
-  *-uclibc) patch -p1 < $SCRIPT_DIR/Linux-PAM-1.0.4-uclibc.patch
-            export LDFLAGS+=' -lintl ' ;;
- esac
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then opts --libdir=/lib64 --enable-securedir=/lib64/security

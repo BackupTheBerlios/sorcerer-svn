@@ -7,7 +7,7 @@
 # optional tk      '' '' to use tk for GUI and graphics
 
   category development/interpreter
- attribute console library x11
+ attribute console library makej x11
     source http://www.python.org/ftp/python/$VERSION/ \
             ftp://ftp.python.org/pub/python/$VERSION/ \
            Python-$VERSION.tar.bz2
@@ -27,37 +27,6 @@ windowing systems
 Newbuilt-in modules are easily written in C or C++.
 Python is also usable as an extension language for
 applications that need a programmable interface.'
-
-build_usr32(){
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --prefix=/usr32 --libdir=/usr32/lib
- else opts --prefix=/usr   --libdir=/usr/lib
-      mkdir -vpm 755                    $DESTDIR/usr/lib64 &&
-      ln -s ../lib/python${VERSION:0:3} $DESTDIR/usr/lib64/
-      if   ! [[ -h /usr/lib64/python${VERSION:0:3} ]]
-      then rm -fr  /usr/lib64/python${VERSION:0:3}
-      fi
- fi
-
- ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
- make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR"
-}
-
-
-post_install(){
- ( export LC_ALL=C
-   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
-   grep -v ":/lib/python${VERSION:0:3}/"    |
-   cut  -d  : -f1       |
-   sort -u  | basenames |
-   grep -v   "^Python"  |
-   pipe_queue "$CAST_QUEUE" com )
-}
-
-
-# Yes build_multlib works but
-# having multilib Python installed is more problematic
-# than having ELF32 Python installed --prefix=/usr32
 
 build(){
  wrappers(){
@@ -90,6 +59,17 @@ build(){
   elif [[ -f /lib/libc.so.6   ]]; then bit_move 64; wrappers
   fi
  fi
+}
+
+
+post_install(){
+ ( export LC_ALL=C
+   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
+   grep -v ":/lib/python${VERSION:0:3}/"    |
+   cut  -d  : -f1       |
+   sort -u  | basenames |
+   grep -v   "^Python"  |
+   pipe_queue "$CAST_QUEUE" com )
 }
 
 

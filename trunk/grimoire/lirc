@@ -5,12 +5,12 @@
   optional libSM     '' '' for x11 utilities
   optional libX11    '' '' for x11 utilities
   optional portaudio
+      opts --with-driver=userspace
   sys_user lirc
   category utility
- attribute library
+ attribute library makej multilib-dual
     source $SOURCEFORGE_URL lirc/LIRC/$VERSION/lirc-$VERSION.tar.bz2
     source http://www.lirc.org/remotes.tar.bz2
-      opts --with-driver=userspace
   homepage http://www.lirc.org
   estimate 3700
       desc 'Linux Infrared Remote Control
@@ -28,11 +28,11 @@ build(){
   cp -av remotes $DESTDIR/usr/share/lirc
  }
 
-KVER=$( installed_version $( get_provider linux-kernel ) )
-OPTS+=" --with-kerneldir=/usr/src/linux --with-moduledir=/lib/modules/$KVER/misc"
-if   [ -x autogen.sh ]
-then    ./autogen.sh
-fi &&
-default_build &&
-install_remotes
+ KVER=$( installed_version $( get_provider linux-kernel ) )
+ OPTS+=" --with-kerneldir=/usr/src/linux --with-moduledir=/lib/modules/$KVER/misc"
+ if   [ -x autogen.sh ]
+ then    ./autogen.sh
+ fi &&
+ default_build &&
+ install_remotes
 }
