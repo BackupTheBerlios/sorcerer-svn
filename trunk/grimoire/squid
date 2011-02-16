@@ -5,7 +5,7 @@
   optional openldap
   optional openssl --enable-ssl '' support SSL proxying
   category network/web network/ftp
- attribute server
+ attribute makej server
     source http://www.squid-cache.org/Versions/v${VERSION:0:1}/${VERSION:0:3}/squid-$VERSION.tar.bz2
   homepage http://www.squid-cache.org/
   estimate 4400
@@ -26,18 +26,18 @@ Squid supports...
   * caching of DNS lookups'
 
 build(){
-sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
+ sed -i "s:\$(localstatedir)/logs/squid\.pid:/var/run/squid\.pid:" src/Makefile.in
 
-./configure \
- --prefix=/usr \
- --sysconfdir=/etc/squid \
- --localstatedir=/var/cache/squid \
- --enable-async-io \
- --enable-snmp \
- --enable-linux-netfilter \
- $OPTS &&
-make &&
-make install DESTDIR=$DESTDIR &&
-mkdir -vpm 755          $DESTDIR/var/cache/squid &&
-chown -R nobody.nogroup $DESTDIR/var/cache/squid
+ ./configure \
+  --prefix=/usr \
+  --sysconfdir=/etc/squid \
+  --localstatedir=/var/cache/squid \
+  --enable-async-io \
+  --enable-snmp \
+  --enable-linux-netfilter \
+  $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ mkdir -vpm 755          $DESTDIR/var/cache/squid &&
+ chown -R nobody.nogroup $DESTDIR/var/cache/squid
 }
