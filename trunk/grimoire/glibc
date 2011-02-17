@@ -1,6 +1,6 @@
     stable 2.12.2 2.11.2 2.11.1
   category development
- attribute library makej solo
+ attribute library makej multilib-dual solo
    require perl linux-headers
       opts --without-selinux
   optional prelink '' '' for faster loading ELFs
@@ -40,13 +40,8 @@ build(){ (
 
   cd    $DESTDIR
   rm -f $DESTDIR/etc/{localtime,ld.so.*}
-
-  ## ELF32 utilities installed by glibc are not essential to keep.
-  # if   [[ $HOSTTYPE == x86_64 ]] && [[ $CC =~ -m32 ]]
-  # then mv $DESTDIR/usr/bin $DESTDIR/usr/bin32
-  # fi
+  true
  }
-
 
  quick_test(){
   if ! [[ $CC =~ -m32 ]]; then
@@ -60,63 +55,60 @@ build(){ (
   fi
  }
 
-
  supported_locales(){
   mkdir -pvm 755                $DESTDIR/usr/share/i18n
   cp    ../localedata/SUPPORTED $DESTDIR/usr/share/i18n
  }
 
-
- if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
-  export CC="gcc -m32"
-  opts --host=${MACHTYPE/x86_64/i686}
- fi
-
- unset LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
-
-    CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
-  CXXFLAGS="$CFLAGS"
-   LDFLAGS='-Wl,-s -Wl,-O1'
-    LC_ALL=C
-
- export CFLAGS CXXFLAGS LDFLAGS LC_ALL
-
- mkdir -pvm 755 $DESTDIR/etc
- touch          $DESTDIR/etc/ld.so.conf
-
- if   [ $HOSTTYPE == x86_64 ]
+ if   [ $HOSTTYPE == x86_64 ] && ! [[ $CFLAGS =~ -m32 ]]
  then LD_SO="$DESTDIR/lib64/ld-linux-x86-64.so.2"; LLP="$DESTDIR/lib64:$DESTDIR/usr/lib64"
  else LD_SO="$DESTDIR/lib/ld-linux.so.2"         ; LLP="$DESTDIR/lib:$DESTDIR/usr/lib"
  fi
 
- mkdir -pvm 755 $DESTDIR/usr/include/sys
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
+  export CC="gcc -m32"
+  opts --host=${MACHTYPE/x86_64/i686}
+  ARCH=i686
+ else
+  ARCH=x86_64
+ fi
 
-#export PATH="/opt/binutils/2.18/bin:$PATH"
-#patch -p1 < $SCRIPT_DIR/glibc-2.7.patch
-#patch -p1 < $SCRIPT_DIR/glibc-2.7-i586-memcpy_chk.patch
-#mv glibc-libidn-* libidn
+ unset LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
+
+   CFLAGS="-O2 $( echo "${CFLAGS// /$LF}" | grep march )"
+ CXXFLAGS="$CFLAGS"
+  LDFLAGS='-Wl,-s -Wl,-O1'
+   LC_ALL=C
+
+ export CFLAGS CXXFLAGS LDFLAGS LC_ALL
+
+ mkdir -pvm 755 $DESTDIR/usr/include/sys
+ mkdir -pvm 755 $DESTDIR/etc
+ touch          $DESTDIR/etc/ld.so.conf
+
  KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
  if (( KVER >= 2630 )); then opts --enable-kernel=2.6.30; fi
 
- LC_ALL=C grep -q /bin/pwd configure && sed -i 's:/bin/pwd:pwd:g' configure
+ sed -i 's:/bin/pwd:pwd:g' configure
 
  mkdir build
  cd    build
- ../configure      \
- --prefix=/usr     \
- --disable-profile \
- --with-tls        \
- --with-elf        \
- --without-gd      \
- --without-cvs     \
- --enable-shared   \
- --enable-add-ons  \
- --with-headers=/usr/include \
- $OPTS             &&
- make all          &&
- make install install_root=$DESTDIR &&
- supported_locales &&
+ setarch $ARCH \
+ ../configure       \
+  --prefix=/usr     \
+  --disable-profile \
+  --with-tls        \
+  --with-elf        \
+  --without-gd      \
+  --without-cvs     \
+  --enable-shared   \
+  --enable-add-ons  \
+  --with-headers=/usr/include \
+  $OPTS &&
+ setarch $ARCH make     all &&
+ setarch $ARCH make install install_root=$DESTDIR &&
  quick_test        &&
+ supported_locales &&
  install_glibc
  ) }
 
