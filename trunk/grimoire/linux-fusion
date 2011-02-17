@@ -1,22 +1,22 @@
 # 8.2.0 did not compile
 
-     stable 8.1.2 8.0.3
+     stable 8.2.1 8.1.2 8.0.3
    unstable 8.2.0 
    category graphic/library
-  attribute linux-26-module
+  attribute linux-26-module makej
      source http://www.directfb.org/downloads/Core/linux-fusion/linux-fusion-$VERSION.tar.gz
    homepage http://www.directfb.org/
    estimate 50
        desc 'kernel module for running multiple DirectFB programs'
 
 build(){
-LVER=$( installed_version $( get_provider linux-kernel ) )
-UDEV=$DESTDIR/lib/udev/rules.d/40-fusion.rules
+ local LVER=$( installed_version $( get_provider linux-kernel ) )
+ local UDEV=$DESTDIR/lib/udev/rules.d/40-fusion.rules
 
-sed -i "s:\$(shell uname -r):$LVER:" Makefile
-make &&
-make install DESTDIR=$DESTDIR &&
-mkdir -p $( dirname $UDEV ) &&
-echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV &&
-chmod 644 $UDEV
+ sed -i "s:\$(shell uname -r):$LVER:" Makefile
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ mkdir -pvm 755 $( dirname $UDEV ) &&
+ echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV &&
+ chmod 644 $UDEV
 }

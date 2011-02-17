@@ -1,6 +1,7 @@
     stable 3260 3240
   category graphic/library
  attribute library
+#attribute makej multilib-concurrent
     source ftp://heasarc.gsfc.nasa.gov/software/fitsio/c/cfitsio$VERSION.tar.gz
       home http://heasarc.gsfc.nasa.gov/docs/software/fitsio/fitsio.html
       docs http://heasarc.gsfc.nasa.gov/docs/software/fitsio/c/c_user/cfitsio.html
@@ -8,9 +9,12 @@
       desc 'library for the flexible image transport system formated files'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then sed -i 's:exec_prefix)/lib:exec_prefix)/lib64:' Makefile.in
-      sed -i 's:exec_prefix}/lib:exec_prefix}/lib64:' cfitsio.pc.in
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  mkdir break
+  cp Makefile.in cfitsio.pc.in break/
+  rm Makefile.in cfitsio.pc.in
+  cp break/* .
+  sed -i 's:exec_prefix)/lib:exec_prefix)/lib64:' Makefile.in cfitsio.pc.in
  fi
  default_build
 }
