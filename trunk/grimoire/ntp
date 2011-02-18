@@ -19,16 +19,11 @@
   optional net-snmp
   category utility/time
  attribute client server console
- attribute broke
     source http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-$VERSION.tar.gz
       vurl http://www.ntp.org/downloads.html
   homepage http://www.ntp.org/
   estimate 2200
       desc 'synchronizes system time with a network time protocol server'
-
-case $MACHTYPE in
- *-uclibc) attribute broke ;;
-esac
 
 build(){
 # patch does not fix all compile problems.
@@ -39,7 +34,7 @@ build(){
 # so that ntp writes a proper PID file
  sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
  default_build &&
- mkdir -p $DESTDIR/{etc,usr/doc/ntp} &&
- cp      -r html $DESTDIR/usr/doc/ntp &&
- install -m 640 $SCRIPT_DIR/ntp.conf $DESTDIR/etc
+ mkdir  -pvm 755 $DESTDIR/{etc,usr/doc/ntp} &&
+ cp     -r  html $DESTDIR/usr/doc/ntp/ &&
+ install -vm 640 $SCRIPT_DIR/ntp.conf $DESTDIR/etc
 }
