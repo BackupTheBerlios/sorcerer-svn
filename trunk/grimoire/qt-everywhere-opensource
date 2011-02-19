@@ -21,7 +21,7 @@
       opts -no-phonon -fontconfig -xmlpatterns -exceptions
   category graphic/library
  attribute kde4 library solo
- attribute multilib-fail
+#attribute multilib-fail
 #attribute makej
     source ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-$VERSION.tar.gz
   homepage http://www.trolltech.com/developer/downloads/qt/x11
@@ -30,6 +30,7 @@
       desc 'GUI toolkit'
 
 build(){
+ local ARCH PREFIX
 
  add_rpath_to_la(){
   sed -i  's:-L/opt/kde4/lib:-L/opt/kde4/lib -R/opt/kde4/lib:
@@ -61,6 +62,17 @@ build(){
 
  PREFIX=/opt/kde4
 
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
+# export CC="gcc -m32"
+  ARCH=i686
+ else
+  ARCH=$HOSTTYPE
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=$PREFIX/lib64
+ fi
+
  sed -i 's:/bin/pwd:pwd:g' configure
 
  local  RATH="/opt/libiodbc/bin:$PATH"
@@ -69,6 +81,7 @@ build(){
 
  mkdir -p lib
  echo -e "o\nyes" |
+ setarch $ARCH    \
  ./configure      \
  -v               \
  -fast            \
@@ -90,7 +103,9 @@ build(){
  -reduce-relocations \
  -no-separate-debug-info \
  $OPTS &&
+ setarch $ARCH \
  make &&
+ setarch $ARCH \
  make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR &&
  add_rpath_to_la
 }
