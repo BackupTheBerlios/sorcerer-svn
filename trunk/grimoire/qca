@@ -1,21 +1,38 @@
     stable 2.0.3 2.0.2 2.0.1
    require qt-everywhere-opensource
   category security/encryption
- attribute kde4 library makej
- attribute multilib-fail
+ attribute kde4 library makej multilib-dual
     source http://delta.affinix.com/download/qca/${VERSION:0:3}/qca-$VERSION.tar.bz2
   homepage http://delta.affinix.com/qca/
-  estimate 300
+  estimate 150
       desc 'QT cryptographic architecture'
 
 build(){ (
-export PATH="/opt/kde4/bin:$PATH"
+ fix_makefile(){
+  cd src
+  qmake -o Makefile src.pro
+  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+  then sed -i 's:-m64:-m32:' Makefile
+  fi
+  cd ..
+ }
 
-./configure \
- --prefix=/opt/kde4 \
- --qtdir=/opt/kde4  \
- --disable-tests    \
- --release &&
-make &&
-make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR
+ export PATH="/opt/kde4/bin:$PATH"
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then export PATH="/opt/kde4/bin32::$PATH"
+  else OPTS+=' --libdir=/opt/kde4/lib64'
+  fi
+ fi
+
+ ./configure         \
+  --prefix=/opt/kde4 \
+  --qtdir=/opt/kde4  \
+  --disable-tests    \
+  --release          \
+  $OPTS              &&
+ fix_makefile        &&
+ make  &&
+ make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR
 ) }
