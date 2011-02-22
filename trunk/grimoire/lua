@@ -44,12 +44,11 @@ build(){
  ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
  mkdir  -pvm 755            $DESTDIR/usr/lib/pkgconfig &&
  install -vm 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
- if    [[ $HOSTTYPE == x86_64 ]]; then
-  if   [[ $CFLAGS   =~ -m32   ]]
-  then mv $DESTDIR/usr/lib{,32}
-  else mv $DESTDIR/usr/lib{,64}
-       mv $DESTDIR/usr/lib{32,}
-       sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
   fi
  fi
 }

@@ -1,28 +1,22 @@
     stable 2.5.63 2.5.3 2.5.2 2.5.0
   unstable 2.6.0
+   inherit kde-v4
    require clucene-core qt-everywhere-opensource redland
   category db
  attribute kde4 library makej
- attribute multilib-fail
     source $SOURCEFORGE_URL soprano/Soprano/$VERSION/soprano-$VERSION.tar.bz2
   homepage http://soprano.sourceforge.net/
-      opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
-      opts -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
-      opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
-      opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
-      opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
-      opts -DCMAKE_BUILD_TYPE=Release
   estimate 500
       desc 'QT4 framework for RDF data'
 
 build(){
- local  RATH="/opt/kde4/bin:/opt/libiodbc/bin:$PATH"
- local  PATH
- export PATH=$RATH
-
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then opts -DLIB_DESTINATION:STRING=/opt/kde4/lib64
  fi
 
- default_build
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then unset JAVA_HOME
+ fi
+
+ kde_build
 }

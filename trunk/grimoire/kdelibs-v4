@@ -7,9 +7,17 @@
   optional openssl                 '' '' for secure socket layer support
   category development
  attribute library makej
-#attribute multilib-concurrent
+ attribute multilib-fail
   estimate 17000
       desc 'Base applications that form the core of KDE
 kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.'
+
+build(){
+ kde_build &&
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
+  mkdir -pvm 755 $DESTDIR/opt/kde4/bin32
+  mv     -v      $DESTDIR/opt/kde4/bin{,32}/kde4-config
+ fi
+}

@@ -87,14 +87,18 @@ interoperability of its components.' ;;
  kde*-v4) source $KDE_URL stable/$VERSION/src/${SPELL%-v4}-$VERSION.tar.bz2
 esac
 
-build(){ (
+kde_build(){ (
  if [ $HOSTTYPE == x86_64 ] && [[ $CFLAGS =~ -m32 ]];  then
   export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:/usr/lib/pkgconfig
   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib'
   export   CFLAGS+=" -I/opt/kde4/include32"
   export CXXFLAGS+=" -I/opt/kde4/include32"
   export      PATH="/opt/kde4/bin32:$PATH"
+  OPTS+=' -DKDE4_LIB_INSTALL_DIR:STRING=/opt/kde4/lib64'
+  OPTS+=' -DKDE4_IMPORTS_INSTALL_DIR:STRING=/opt/kde4/lib/kde4/imports'
+  OPTS+=' -DKDE4_LIBEXEC_INSTALL_DIR:STRING=/opt/kde4/lib/kde4/libexec'
  else
+  export      PATH="/opt/kde4/bin:$PATH"
   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib64'
   OPTS+=' -DLIB_SUFFIX:STRING=64'
   export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig:/usr/lib64/pkgconfig
@@ -110,6 +114,8 @@ build(){ (
   cd       build
  fi
 
-cmake $OPTS .. &&
-make V=1 install "DESTDIR=$DESTDIR"
+ cmake $OPTS .. &&
+ make V=1 install "DESTDIR=$DESTDIR"
 ) }
+
+build(){ kde_build; }

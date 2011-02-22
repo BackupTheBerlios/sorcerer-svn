@@ -2,7 +2,7 @@
 
 # Do not try compiling 1_42_0, it is too old
 
-    stable 1_45_0 1_42_0
+    stable 1_46_0 1_45_0 1_42_0
    require Python boost-jam bzip2 cmake icu4c zlib
 #      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
 #      opts -DBUILD_VERSIONED:BOOL=FALSE
@@ -11,8 +11,9 @@
 #      opts -DBUILD_DEBUG:BOOL=FALSE
   category development
  attribute library
- attribute multilib-fail
+#attribute multilib-fail
     source $SOURCEFORGE_URL boost/boost/${VERSION//_/.}/boost_$VERSION.tar.bz2
+      info last 20110221
       info home  http://www.boost.org/
       info docs  http://www.boost.org/doc/
   estimate 10000
@@ -32,7 +33,7 @@ algorithms and data structures created in the generic
 programming style of the Standard Template Library (STL).'
 
 build(){
- local LIBDIR
+ local LIBDIR ADDRESS_MODEL
  sed -i 's:-O3:-O2:' tools/jam/src/build.jam
  ./bootstrap.sh --prefix=/usr &&
 
@@ -42,8 +43,12 @@ build(){
 # else LIBDIR='--libdir=/usr/lib'
 # fi
 
- ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage -j${CAST_RATE:-2} &&
- ./bjam -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then ADDRESS_MODEL="address-model=32"
+ fi
+
+ ./bjam $ADDRESS_MODEL cflags="$CFLAGS" cxxflags="$CXXFLAGS" -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared stage -j${CAST_RATE:-2} &&
+ ./bjam $ADDRESS_MODEL cflags="$CFLAGS" cxxflags="$CXXFLAGS" -q $LIBDIR --layout=tagged variant=release link=shared threading=multi runtime-link=shared --prefix=$DESTDIR/usr install &&
 
  if   [[ $HOSTTYPE == x86_64   ]]; then
   if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}

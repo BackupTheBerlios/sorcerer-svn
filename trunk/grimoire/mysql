@@ -33,9 +33,16 @@ of a server daemon (mysqld) and client programs/libraries.'
 
 build(){
  sed -i 's:"data":"/var/lib/mysql":' cmake/install_layout.cmake
+
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then sed -i 's:"lib:"lib64:' cmake/install_layout.cmake
+# then opts -DLIB_DESTINATION:STRING=/opt/kde4/lib64
+# fi
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then sed -i 's:"lib:"lib64:' cmake/install_layout.cmake
+ then OPTS+=" -DINSTALL_LIBDIR:STRING=lib64"
  fi
+
  default_build &&
  if   [ -f      $DESTDIR/usr/include/mysql.h ]; then
   mv            $DESTDIR/usr/include $DESTDIR/usr/mysql

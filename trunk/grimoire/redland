@@ -47,7 +47,7 @@ esac
       opts --with-virtuoso=yes
       opts --enable-static=no
   category development
- attribute library makej multilib-fail
+ attribute library makej
     source http://download.librdf.org/source/redland-$VERSION.tar.gz
   homepage http://librdf.org/
   estimate 800
@@ -55,12 +55,20 @@ esac
 
 build(){
  case $VERSION in
+  1.0.12) export   CFLAGS+=' -I/usr/include/mysql'
+          export CXXFLAGS+=' -I/usr/include/mysql' ;;
   1.0.10) sed -i 's:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@ librdf.la:'  src/Makefile.am
           aclocal; automake
           sed -i 's:src examples utils:src utils:' Makefile.in ;;
  esac
- local  RATH="/opt/libiodbc/bin:$PATH"
+
+ local  RATH="$PATH"
  local  PATH
- export PATH=$RATH
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export PATH=/opt/kde4/bin32:$RATH
+ else export PATH=/opt/kde4/bin:$RATH
+ fi
+
  default_build
 }

@@ -6,24 +6,31 @@
   optional openldap
   optional openssl
       opts --enable-static=no --disable-all-vads --without-internal-zlib --with-pthreads
-      opts --with-iodbc=/opt/libiodbc
+#     opts --with-iodbc=/opt/libiodbc
   category db
- attribute console library makej multilib-fail
+ attribute console library makej
     source $SOURCEFORGE_URL virtuoso/virtuoso/$VERSION/virtuoso-opensource-$VERSION.tar.gz
   homepage http://virtuoso.openlinksw.com/dataspace/dav/wiki/Main/
   estimate 7000
       desc 'object-relational SQL database'
 
 build(){
- case $HOSTTYPE in
-  x86_64) export CFLAGS+=' -m64' ;;
- esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export CFLAGS+=' -m64'
+ fi
+
  case $VERSION in
   6.0.0) cp -v libsrc/zlib/zutil.h libsrc/Wi/ ;;
  #6.0.0) cp -v /usr/src/linux/include/linux/zutil.h libsrc/Wi/ ;;
  esac
- local  RATH="/opt/libiodbc/bin:$PATH"
+
+ local  RATH="$PATH"
  local  PATH
- export PATH=$RATH
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export PATH=/opt/kde4/bin32:$RATH
+ else export PATH=/opt/kde4/bin:$RATH
+ fi
+
  default_build
 }
