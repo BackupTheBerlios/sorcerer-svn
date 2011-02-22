@@ -17,8 +17,10 @@ case $VERSION in
 esac
    require avahi qt-everywhere-opensource 
       opts --disable-gtk --disable-gtk3 --disable-qt3 --with-distro=none --disable-mono --disable-python --disable-static --enable-compat-libdns_sd
+      opts --prefix=/opt/kde4
   category utility
- attribute kde4 library multilib-fail
+ attribute kde4 library
+#attribute multilib-fail
     source http://avahi.org/download/avahi-$VERSION.tar.gz
       info home  http://avahi.org/
       info docs  'http://avahi.org/wiki/Avah4users#Documentation'
@@ -26,12 +28,21 @@ esac
       desc 'qt-everywhere-opensource bindings for avahi'
 
 build(){
- export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
- ./configure           \
-  --sysconfdir=/etc    \
-  --localstatedir=/var \
-  --prefix=/opt/kde4   \
- $OPTS &&
- make  &&
- make install "DESTDIR=$DESTDIR"
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if    [[ $CFLAGS   =~   -m32 ]]
+  then  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+  else  export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig
+        OPTS+=' --libdir=/opt/kde4/lib64'
+  fi
+ else   export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+ fi
+
+ default_build
+# ./configure           \
+#  --sysconfdir=/etc    \
+#  --localstatedir=/var \
+#  --prefix=/opt/kde4   \
+# $OPTS &&
+# make  &&
+# make install "DESTDIR=$DESTDIR"
 }
