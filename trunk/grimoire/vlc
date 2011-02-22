@@ -50,7 +50,7 @@ esac
 # ffmpeg support disabled because ffmpeg is multilib-fail
      opts --disable-avcodec
  category video/dvd video/player
- attribute kde4 library makej x11
+ attribute kde4 library makej multilib-dual x11
     source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.bz2
       vurl http://www.videolan.org/vlc/download-sources.html
   homepage http://www.videolan.org/
@@ -65,20 +65,31 @@ QNX, audio support for OSS, Esound, ALSA, and
 GNOME, GTK+, Qt and KDE interfaces.'
 
 build(){ (
- unset CFLAGS
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then QT_PCP=/opt/kde4/lib/pkgconfig; OPTS+=' --libdir=/usr/lib'
+  else QT_PCP=/opt/kde4/lib64/pkgconfig
+  fi
+  else QT_PCP=/opt/kde4/lib/pkgconfig
+ fi
+
+ if   [ -n "$PKG_CONFIG_PATH" ]
+ then export PKG_CONFIG_PATH=$QT_PCP:$PKG_CONFIG_PATH
+ else export PKG_CONFIG_PATH=$QT_PCP
+ fi
+
+ unset   CFLAGS
  unset CXXFLAGS
  export LDFLAGS+=' -L/usr/lib/mozilla -Wl,-rpath,/usr/lib/mozilla'
  export QTDIR=/opt/kde4
- if   [ -n "$PKG_CONFIG_PATH" ]
- then export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:$PKG_CONFIG_PATH
- else export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
- fi
+
+#echo "PKG_CONFIG_PATH=.$PKG_CONFIG_PATH."
 
  ./configure \
   --sysconfdir=/etc \
   --localstatedir=/var \
   --prefix=/usr \
  $OPTS &&
- make &&
+ make V=1 &&
  make install DESTDIR=$DESTDIR
 ) }
