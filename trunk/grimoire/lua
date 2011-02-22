@@ -1,7 +1,8 @@
     stable 5.1.4 5.1.3 5.0.3
    require ncurses readline
   category development/interpreter
- attribute console library multilib-fail
+ attribute console library
+#attribute multilib-fail
     source http://www.lua.org/ftp/lua-$VERSION.tar.gz
   homepage http://www.lua.org/
       desc 'programming langauge
@@ -22,31 +23,33 @@ It has been used on games such as Grim Fandango,
 Escape from Monkey Island, and MDK2.'
 
 build(){
+ local FORMAT
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then FORMAT="-m elf_i386"
+ fi
+
  LC_ALL=C grep -rl "\-O2 -Wall" * |
  xargs -r --max-lines=256 sed -i "s:-O2 -Wall:$CFLAGS -fPIC:"
  sed -i 's:/usr/local:/usr:' etc/lua.pc
- make    linux MYLDFLAGS="$LDFLAGS" &&
 
- make    install INSTALL_TOP=$DESTDIR/usr  &&
- ld    --whole-archive -share -ldl -soname \
-                        liblua.so.$VERSION \
-    -o $DESTDIR/usr/lib/liblua.so.$VERSION \
-       $DESTDIR/usr/lib/liblua.a           &&
- ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
- ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
- ln -s liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
- mkdir  -pm 755            $DESTDIR/usr/lib/pkgconfig &&
- install -m 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
- if   [[ $HOSTTYPE == x86_64 ]]; then
-   mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
-   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
- fi
-}
-
-current(){
- if [[ $HOSTTYPE == x86_64 ]]; then
-  case $VERSION in
-   5.1.4) grep -q lib64 /usr/lib64/pkgconfig/lua.pc ;;
-  esac
+ make  linux   MYLDFLAGS="$LDFLAGS"          &&
+ make  install INSTALL_TOP=$DESTDIR/usr      &&
+ ld   $FORMAT --whole-archive -share -ldl    \
+       -soname            liblua.so.$VERSION \
+      -o $DESTDIR/usr/lib/liblua.so.$VERSION \
+         $DESTDIR/usr/lib/liblua.a           &&
+ ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
+ ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
+ ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
+ mkdir  -pvm 755            $DESTDIR/usr/lib/pkgconfig &&
+ install -vm 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then mv $DESTDIR/usr/lib{,32}
+  else mv $DESTDIR/usr/lib{,64}
+       mv $DESTDIR/usr/lib{32,}
+       sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
+  fi
  fi
 }

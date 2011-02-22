@@ -24,13 +24,11 @@ if [[ -z $VERSION ]]; then
 fi
 
       opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
-      opts -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib:/opt/kde4/lib64
       opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
       opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
       opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
       opts -DCMAKE_BUILD_TYPE=Release
-#     opts -DBoost_ADDITIONAL_VERSIONS=1.38
-# Change _ to . and drop any trailing .0 for boost version.
+      opts -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 
  attribute kde4 makej
       info home  http://www.kde.org
@@ -88,3 +86,30 @@ interoperability of its components.' ;;
 
  kde*-v4) source $KDE_URL stable/$VERSION/src/${SPELL%-v4}-$VERSION.tar.bz2
 esac
+
+build(){ (
+ if [ $HOSTTYPE == x86_64 ] && [[ $CFLAGS =~ -m32 ]];  then
+  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:/usr/lib/pkgconfig
+  OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib'
+  export   CFLAGS+=" -I/opt/kde4/include32"
+  export CXXFLAGS+=" -I/opt/kde4/include32"
+  export      PATH="/opt/kde4/bin32:$PATH"
+ else
+  OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib64'
+  OPTS+=' -DLIB_SUFFIX:STRING=64'
+  export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig:/usr/lib64/pkgconfig
+  ARCH=$HOSTTYPE
+ fi
+ if    [ ${ATTRIBUTE[multilib-concurrent]} ]; then
+  if   [ $m32 ]
+  then mkdir -p build.32; cd build.32
+  else mkdir -p build.64; cd build.64
+  fi
+ else
+  mkdir -p build
+  cd       build
+ fi
+
+cmake $OPTS .. &&
+make V=1 install "DESTDIR=$DESTDIR"
+) }

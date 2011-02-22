@@ -4,7 +4,8 @@
     stable 1.2.2 1.2.0 1.1.3
   unstable 1.3.0-rc1
   category video/codec video/library
- attribute library multilib-fail
+ attribute library
+#attribute multilib-fail
     source http://downloads.xvid.org/downloads/xvidcore-$VERSION.tar.gz
       vurl "http://www.xvid.org/Downloads.43.0.html"
       info home  http://www.xvid.org/
@@ -16,11 +17,18 @@ quality MPEG-4 video de-/encoding solution.'
 
 
 build(){
-cd build/generic
-./configure          \
---prefix=/usr        \
---sysconfdir=/etc    \
---localstatedir=/var &&
-make                 &&
-make install "DESTDIR=$DESTDIR"
+ local ARCH
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then ARCH=i686
+ else ARCH=$HOSTTYPE
+ fi
+
+ cd build/generic
+ setarch $ARCH         \
+ ./configure           \
+  --prefix=/usr        \
+  --sysconfdir=/etc    \
+  --localstatedir=/var &&
+ make &&
+ make install "DESTDIR=$DESTDIR"
 }

@@ -1,5 +1,3 @@
-# XviD is multilib-fail and therefore ffmpeg is also
-
 # to overcome the error:
 # /usr/include/libavutil/common.h:154: error: 'UINT64_C' was not declared in this scope
 # add a custom build to that spell such as:
@@ -46,7 +44,6 @@ esac
   optional nasm      ''                  --disable-mmx   for MMX support
   category video
  attribute library makej
- attribute multilib-fail
     source http://www.ffmpeg.org/releases/ffmpeg-$VERSION.tar.bz2
       info home  http://ffmpeg.mplayerhq.hu/
       info docs  http://ffmpeg.org/documentation.html
@@ -60,6 +57,7 @@ MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.'
 
 
 build(){
+ local ARCH
 
  export   CFLAGS="${CFLAGS//-funroll-loops/}"
  export CXXFLAGS="${CXXFLAGS//-funroll-loops/}"
@@ -72,20 +70,18 @@ build(){
  then OPTS+=' --disable-mmx'
  fi
 
-# ffmpeg completely messes up on the installation of libraries
-# when given --libdir
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --disable-asm
-# then opts --libdir=/usr/lib64 --disable-asm
-# else opts --libdir=/usr/lib
+ then ARCH=i686
+ else ARCH=$HOSTTYPE
  fi
 
+ setarch $ARCH \
  ./configure   \
  --prefix=/usr \
  $OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
- make  &&
- make install "DESTDIR=$DESTDIR" &&
- mkdir -p "$DESTDIR/etc" &&
+ setarch $ARCH  make  &&
+ setarch $ARCH  make install "DESTDIR=$DESTDIR"     &&
+ mkdir -pvm 755 "$DESTDIR/etc" &&
  install -m 644 doc/ffserver.conf "$DESTDIR/etc" &&
  sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
  if    [[ $HOSTTYPE == x86_64   ]]; then
