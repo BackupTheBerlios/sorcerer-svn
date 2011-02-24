@@ -5,6 +5,7 @@
     stable 4.4.2 4.4.1 4.4.0
     secure 4.4.0
   unstable 4.5.9 4.5.3
+    switch -static '' to make static linked find
   category utility
  attribute console makej solo
     source $GNU_URL findutils/findutils-$VERSION.tar.gz
@@ -21,8 +22,24 @@ locate	scans a database for file names that match a pattern
 xargs	applies a command to a list of files'
 
 build(){
+
+ make_static(){
+  if [ -n "$STATIC" ]; then
+   export LDFLAGS+=" $STATIC"
+   rm -f find/find
+   make "LDFLAGS=$LDFLAGS"
+   install -vm 755 find/find  $DESTDIR/usr/bin/
+  fi
+ }
+
+ if [[ $OPTS =~ -static ]]; then
+    OPTS=${OPTS/-static}
+        STATIC="-static"
+ fi
+
  sed -i 's:@bindir@:/bin:' locate/updatedb.sh
  default_build &&
+ make_static   &&
  mkdir -pvm 755                   $DESTDIR/bin &&
  mv $DESTDIR/usr/bin/{find,xargs} $DESTDIR/bin/
 }
