@@ -8,29 +8,29 @@
       desc 'QT cryptographic architecture'
 
 build(){ (
- fix_makefile(){
-  cd src
-  qmake -o Makefile src.pro
-  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
-  then sed -i 's:-m64:-m32:' Makefile
-  fi
-  cd ..
- }
 
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
-  then OPTS+=' --prefix=/opt/kde4/i686'; export PATH=/opt/kde4/i686/bin:$PATH
-  else OPTS+=' --libdir=/opt/kde4/lib64' export PATH=/opt/kde4/bin:$PATH
+  then
+   export QMAKESPEC=/opt/kde4/i686/mkspecs/linux-g++-32
+   export PATH=/opt/kde4/i686/bin:$PATH
+   export PKG_CONFIG_PATH=/opt/kde4/i686/lib/pkgconfig
+   OPTS+=' --prefix=/opt/kde4/i686 --qtdir=/opt/kde4/i686'
+  else
+   export PATH=/opt/kde4/bin:$PATH
+   export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig
+   OPTS+=' --prefix=/opt/kde4 --qtdir=/opt/kde4 --libdir=/opt/kde4/lib64'
   fi
+ else
+  export PATH=/opt/kde4/bin:$PATH
+  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+  OPTS+=' --prefix=/opt/kde4 --qtdir=/opt/kde4'
  fi
 
- ./configure         \
-  --prefix=/opt/kde4 \
-  --qtdir=/opt/kde4  \
-  --disable-tests    \
-  --release          \
-  $OPTS              &&
- fix_makefile        &&
+ ./configure      \
+  --disable-tests \
+  --release       \
+  $OPTS           &&
  make  &&
  make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR
 ) }
