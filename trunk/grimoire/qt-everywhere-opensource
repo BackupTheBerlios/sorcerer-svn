@@ -21,8 +21,6 @@
       opts -no-phonon -fontconfig -xmlpatterns -exceptions
   category graphic/library
  attribute kde4 library multilib-dual solo
-#attribute multilib-fail
-#attribute makej
     source ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-$VERSION.tar.gz
   homepage http://www.trolltech.com/developer/downloads/qt/x11
  freshmeat qt
@@ -40,18 +38,13 @@ build(){
    sed -i  's:-L/opt/kde4/lib:-L/opt/kde4/lib -R/opt/kde4/lib:' \
        $( find $DESTDIR/opt/kde4/lib/ -name libQt\*.la )
   fi
-
-  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
-   mkdir -pvm 755 $DESTDIR/opt/kde4/bin32
-   mv    -v       $DESTDIR/opt/kde4/bin{,32}/qmake
-  fi
  }
 
  rm -rf demos examples
 
 # qt-everywhere-opensource can not be told where
-# the mysql.h header file is nor does it run
-# mysql_config in order to find out!
+# the mysql.h header file is
+# nor does it run mysql_config in order to find out!
 # export   CFLAGS+=' -fPIC -I/usr/include/mysql'
 # export CXXFLAGS+=' -fPIC -I/usr/include/mysql'
  export   CFLAGS+=' -fPIC'
@@ -78,7 +71,7 @@ build(){
 
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
-  then ARCH=i686;      opts -headerdir $PREFIX/include32
+  then ARCH=i686;      PREFIX=/opt/kde4/i686
   else ARCH=$HOSTTYPE; opts -libdir $PREFIX/lib64
   fi
  else  ARCH=$HOSTTYPE

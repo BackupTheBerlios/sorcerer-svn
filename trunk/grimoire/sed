@@ -1,21 +1,21 @@
-    stable 4.2.1 4.2 4.1.5 4.1.4 4.1.3 4.1.2 4.1.1
+    stable 4.2.1 4.2 4.1.5
    require acl
-#   switch -static '' to make static linked sed
+    switch -static '' to make static linked sed
+      opts --bindir=/bin
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
   category utility/editor
  attribute console solo
     source $GNU_URL sed/sed-$VERSION.tar.gz
   homepage http://www.gnu.org/software/sed/sed.html
-      opts --bindir=/bin
-    CFLAGS='-O3'
-   LDFLAGS='-Wl,-O1'
    protect /bin/sed
   estimate 400
       desc 'stream-oriented non-interactive text editor'
 
 build(){
- if   echo "$OPTS" | grep -q "\-static"
- then LDFLAGS="$LDFLAGS -static"
-      opts ${OPTS/-static}
- fi
+ if   [[ $OPTS =~ -static ]]
+ then LDFLAGS+="  -static";
+      OPTS=${OPTS/-static}
+ fi   
  default_build
 }

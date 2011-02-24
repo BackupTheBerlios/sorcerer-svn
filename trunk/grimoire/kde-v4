@@ -23,7 +23,9 @@ if [[ -z $VERSION ]]; then
 # legacy versions for those missing pim components of kde.
 fi
 
+if [ -z "${ATTRIBUTE[library]}" ]; then
       opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+fi
       opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
       opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
       opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
@@ -88,22 +90,29 @@ interoperability of its components.' ;;
 esac
 
 kde_build(){ (
- if [ $HOSTTYPE == x86_64 ] && [[ $CFLAGS =~ -m32 ]];  then
-  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:/usr/lib/pkgconfig
-  OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib'
-  export   CFLAGS+=" -I/opt/kde4/include32"
-  export CXXFLAGS+=" -I/opt/kde4/include32"
-  export      PATH="/opt/kde4/bin32:$PATH"
-  OPTS+=' -DKDE4_LIB_INSTALL_DIR:STRING=/opt/kde4/lib64'
-  OPTS+=' -DKDE4_IMPORTS_INSTALL_DIR:STRING=/opt/kde4/lib/kde4/imports'
-  OPTS+=' -DKDE4_LIBEXEC_INSTALL_DIR:STRING=/opt/kde4/lib/kde4/libexec'
+ if  [[ $HOSTTYPE == x86_64 ]]; then
+  if [[ $CFLAGS   =~ -m32   ]]; then
+   export            PATH="/opt/kde4/i686/bin:$PATH"
+   export PKG_CONFIG_PATH=/opt/kde4/i686/lib/pkgconfig:/usr/lib/pkgconfig
+   export         KDEDIRS=/opt/kde4/i686
+   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4/i686'
+   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/i686/lib'
+   ARCH=i686
+  else
+   export            PATH="/opt/kde4/bin:$PATH"
+   export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig:/usr/lib64/pkgconfig
+   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4'
+   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib64'
+   OPTS+=' -DLIB_SUFFIX:STRING=64'
+   ARCH=$HOSTTYPE
+  fi
  else
   export      PATH="/opt/kde4/bin:$PATH"
-  OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib64'
-  OPTS+=' -DLIB_SUFFIX:STRING=64'
-  export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig:/usr/lib64/pkgconfig
+  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:/usr/lib/pkgconfig
+  OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4'
   ARCH=$HOSTTYPE
  fi
+
  if    [ ${ATTRIBUTE[multilib-concurrent]} ]; then
   if   [ $m32 ]
   then mkdir -p build.32; cd build.32
