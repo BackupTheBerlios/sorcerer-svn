@@ -31,11 +31,16 @@ build(){
  local ARCH PREFIX
 
  add_rpath_to_la(){
-  if [ $HOSTTYPE == x86_64 ] && ! [[ $CFLAGS =~ -m32 ]]; then
-   sed -i  's:-L/opt/kde4/lib64:-L/opt/kde4/lib64 -R/opt/kde4/lib64:' \
-       $( find $DESTDIR/opt/kde4/lib64/ -name libQt\*.la )
+  if  [[ $HOSTTYPE == x86_64 ]]; then
+   if [[ $CFLAGS   =~ -m32   ]]; then
+    sed -i 's:-L/opt/kde4/i686/lib:-L/opt/kde4/i686/lib -R/opt/kde4/i686/lib:' \
+        $( find $DESTDIR/opt/kde4/i686/lib/ -name libQt\*.la )
+   else
+    sed -i 's:-L/opt/kde4/lib64:-L/opt/kde4/lib64 -R/opt/kde4/lib64:' \
+        $( find $DESTDIR/opt/kde4/lib64/ -name libQt\*.la )
+   fi
   else
-   sed -i  's:-L/opt/kde4/lib:-L/opt/kde4/lib -R/opt/kde4/lib:' \
+   sed -i 's:-L/opt/kde4/lib:-L/opt/kde4/lib -R/opt/kde4/lib:' \
        $( find $DESTDIR/opt/kde4/lib/ -name libQt\*.la )
   fi
  }

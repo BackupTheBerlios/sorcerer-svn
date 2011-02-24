@@ -2,8 +2,9 @@
 
     stable 8.10 8.9 8.8 8.7 8.6
    require acl gmp libcap
+    switch -static '' to make static linked cut sort uniq
 #  require libselinux
-    CFLAGS='-O3'
+    CFLAGS='-O3 -fPIC'
    LDFLAGS='-Wl,-O1'
   category utility
  attribute console makej solo
@@ -128,12 +129,13 @@ uniq		remove duplicate lines from a sorted file
 wc		prints the number of bytes, words, and lines in files'
 
 build(){
+ local STATIC
 
  place_files(){
   echo 'Placing files'
   hash -r
   cd $DESTDIR
-  mkdir -p bin
+  mkdir -pvm 755 bin
 
   mv -fv usr/bin/cat		bin	# /etc/init.d/mount
   mv -fv usr/bin/chroot		bin	# /etc/init.d/mount
@@ -158,14 +160,30 @@ build(){
   hash -r
 }
 
+ make_static(){
+  if [ -n "$STATIC" ]; then
+   export LDFLAGS+=" $STATIC"
+   rm -f src/{cut,sort,uniq}
+   make "LDFLAGS=$LDFLAGS"
+   install -vm 755 src/cut  $DESTDIR/usr/bin/
+   install -vm 755 src/sort $DESTDIR/usr/bin/
+   install -vm 755 src/uniq $DESTDIR/usr/bin/
+  fi
+ }
 
-ac_cv_sys_xsi_stack_overflow_heuristic=no \
-default_build &&
-place_files   &&
-hash -r
+ if [[ $OPTS =~ -static ]]; then
+    OPTS=${OPTS/-static}
+        STATIC="-static"
+ fi
+
+ ac_cv_sys_xsi_stack_overflow_heuristic=no \
+ default_build &&
+ make_static   &&
+ place_files   &&
+ hash -r
 }
 
 post_remove(){
-hash -r
-default_post_remove
+ hash -r
+ default_post_remove
 }
