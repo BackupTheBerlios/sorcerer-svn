@@ -2,12 +2,17 @@
    inherit poppler
    require qt-everywhere-opensource
       opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4 -DENABLE_XPDF_HEADERS:BOOL=TRUE 
- attribute multilib-fail
+ attribute makej multilib-dual
   estimate 700
       desc 'PDF rendering library with qt-everywhere-opensource support'
 
 build(){ (
- export LDFLAGS+=' -Wl,-rpath,/opt/kde4/lib'
- export PATH+=:/opt/kde4/bin
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then  export LDFLAGS+=' -Wl,-rpath,/opt/kde4/lib'
+       export PATH+=:/opt/kde4/i686/bin
+ else  export LDFLAGS+=' -Wl,-rpath,/opt/kde4/lib64'
+       export PATH+=:/opt/kde4/bin
+ fi
  default_build
 ) }

@@ -12,6 +12,8 @@
 
     stable 0.6.28 0.6.27 0.6.25
 case $VERSION in
+ 0.6.28)
+      opts --disable-manpages ;;
  0.6.27)
       opts --enable-introspection=no ;;
 esac
@@ -19,8 +21,8 @@ esac
       opts --disable-gtk --disable-gtk3 --disable-qt3 --with-distro=none --disable-mono --disable-python --disable-static --enable-compat-libdns_sd
       opts --prefix=/opt/kde4
   category utility
- attribute kde4 library
-#attribute multilib-fail
+ attribute kde4 library makej multilib-dual
+#attribute multilib-concurrent
     source http://avahi.org/download/avahi-$VERSION.tar.gz
       info home  http://avahi.org/
       info docs  'http://avahi.org/wiki/Avah4users#Documentation'
@@ -31,17 +33,10 @@ build(){
  if     [[ $HOSTTYPE == x86_64 ]]; then
   if    [[ $CFLAGS   =~   -m32 ]]
   then  export PKG_CONFIG_PATH=/opt/kde4/i686/lib/pkgconfig; OPTS+=' --prefix=/opt/kde4/i686'
-  else  export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig;    OPTS+=' --libdir=/opt/kde4/lib64'
+  else  export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig;    OPTS+=' --prefix=/opt/kde4 --libdir=/opt/kde4/lib64'
   fi
- else   export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+ else   export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig;      OPTS+=' --prefix=/opt/kde4'
  fi
 
  default_build
-# ./configure           \
-#  --sysconfdir=/etc    \
-#  --localstatedir=/var \
-#  --prefix=/opt/kde4   \
-# $OPTS &&
-# make  &&
-# make install "DESTDIR=$DESTDIR"
 }
