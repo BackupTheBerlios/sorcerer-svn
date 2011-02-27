@@ -3,7 +3,7 @@
 
 # qimage and SDL support required for use of mlt with kdenlive
 
-    stable 0.6.2 0.6.0 0.5.10 0.5.6
+    stable 0.6.2 0.6.0
    require SDL_image ffmpeg libexif qt-everywhere-opensource subversion
   optional libdv          '' '--disable-dv'
   optional frei0r-plugins '' '--disable-frei0r'
@@ -20,28 +20,26 @@
       opts    --kde-includedir=/opt/kde4/include    --kde-libdir=/opt/kde4/lib
   category video
  attribute library makej
- attribute multilib-fail
     source $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
 #   source $SOURCEFORGE_URL mlt/mlt/$VERSION/mlt-$VERSION.tar.gz
   homepage http://www.mltframework.org/twiki/bin/view/MLT/
     CFLAGS='-O3 -ffast-math'
-   LDFLAGS='-Wl,-O1 -Wl,-rpath,/opt/kde4/lib -Wl,-rpath-link,/opt/kde4/lib'
+   LDFLAGS='-Wl,-O1'
   estimate 550
       desc 'media loving toolkit'
 
-build(){ (
- export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
- case $VERSION in
-  0.5.10) sed -i 's:CC:CXX:' src/modules/*/Makefile ;;
-  0.5.6)  sed -i 's:CC:CXX:' src/modules/*/Makefile ;;
-  0.4.10) sed -i 's:-lQtCore -lQtGui -lQtSvg:-lQtCore -lQtGui -lQtSvg -lQtXml:' src/modules/qimage/configure
-          sed -i 's:CC:CXX:' src/modules/*/Makefile ;;
-  0.4.6)  sed -i 's:-Wl,--no-undefined ::' configure ;;
- esac
+build(){
+ local PKG_CONFIG_PATH
 
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then OPTS+=' --libdir=/usr/lib64'
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS =~ -m32 ]]
+  then PKG_CONFIG_PATH=/opt/kde4/i686/lib/pkgconfig; LDFLAGS+=' -Wl,-rpath-link,/opt/kde4/i686/lib'
+  else PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig;    LDFLAGS+=' -Wl,-rpath-link,/opt/kde4/lib64'; OPTS+=' --libdir=/usr/lib64'
+  fi
+ else  PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig;    LDFLAGS+=' -Wl,-rpath-link,/opt/kde4/lib'
  fi
 
+ export PKG_CONFIG_PATH LDFLAGS
+
  default_build
-) }
+}

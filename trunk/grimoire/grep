@@ -1,5 +1,9 @@
+# no statically linked grep because it would lack pcre support
+# because pcre is not being allowed to install .a static link libraries.
+
     stable 2.7
    require gettext pcre
+#   switch -static '' to make static linked
       opts --bindir=/bin
   category utility
  attribute console makej solo
@@ -9,3 +13,14 @@
    protect /bin/grep
   estimate 800
       desc 'finds lines that match specified patterns'
+
+build_old(){
+
+ if [[ $OPTS =~     -static ]]; then
+        OPTS=${OPTS/-static}
+  export LDFLAGS+=" -static"
+#       STATIC="-static"
+ fi
+
+ default_build
+}
