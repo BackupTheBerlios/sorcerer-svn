@@ -3,8 +3,8 @@
 #     opts --enable-static=no
    require jpeg libXext libXft libXi libXinerama libpng
   category graphic
- attribute library makej x11
- attribute multilib-fail
+ attribute library makej setarch x11
+#attribute multilib-concurrent multilib-dual
     source http://ftp.easysw.com/pub/fltk/ \
            http://ftp2.easysw.com/pub/fltk/ \
            http://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/fltk/ \
@@ -18,6 +18,12 @@
       desc 'fast light graphical toolkit for X11'
 
 build(){
+ rm -f CMakeLists.txt
+ default_build &&
+ rm -f $DESTDIR/usr/lib{,64}/libfltk*.a
+}
+
+build_old(){
  sed -i 's:-Wl,-rpath,$libdir:-L$libdir:' configure
  ./configure             \
  --prefix=/usr           \
@@ -26,6 +32,6 @@ build(){
  --enable-shared         \
  $OPTS                   &&
  make            CXX=g++ &&
- make    install CXX=g++ "DESTDIr=$DESTDIR" &&
+ make    install CXX=g++ "DESTDIR=$DESTDIR" &&
  rm -f $DESTDIR/usr/lib{,64}/libfltk*.a
 }

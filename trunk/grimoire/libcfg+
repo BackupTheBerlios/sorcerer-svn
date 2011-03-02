@@ -2,7 +2,8 @@
   optional docbook2X
       opts --enable-static=no
   category development
- attribute library multilib-fail
+ attribute library setarch
+#attribute multilib-concurrent multilib-dual
     source "http://platon.sk/projects/download.php?id=57&force=1/libcfg+-$VERSION.tar.gz"
       info last  20040217
       info home  http://platon.sk/projects/libcfg+/
@@ -19,6 +20,7 @@ decimal numbers, strings with many additional data type flags
 (such as multiple values for a single option).'
 
 build(){
+ local LDEMULATION
 
 # if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
 # then export LDFLAGS="-b elf32-i386"
@@ -26,6 +28,11 @@ build(){
 # fi
 
  unset LDFLAGS
+
+ if   [[ $CFLAGS =~ -m32 ]]
+ then export LDEMULATION=elf_i386
+ fi
+
  export CFLAGS+=' -fPIC'
  default_build
 }
