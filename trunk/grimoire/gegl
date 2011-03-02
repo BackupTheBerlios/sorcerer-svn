@@ -1,10 +1,8 @@
-# multilib-fail because ffmpeg is also multilib-fail
-
-    stable 0.1.2 0.1.0 0.0.18
+    stable 0.1.2 0.1.0
    require babl ffmpeg librsvg openexr
       opts --disable-docs --disable-gtk-doc
   category graphic/library
- attribute library makej multilib-fail x11
+ attribute library makej multilib-concurrent setarch x11
     source ftp://ftp.gtk.org/pub/gegl/${VERSION:0:3}/gegl-$VERSION.tar.bz2
       info home  http://gegl.org/
       info docs  'http://gegl.org/#_documentation_2'
@@ -12,15 +10,9 @@
       desc 'generic graphics library
 gegl provides a framework for graph based image processing.'
 
-build(){
- case $VERSION in
-  0.0.18) sed -i 's:ffmpeg/avformat.h:libavformat/avformat.h:' \
-              operations/workshop/external/ff-save.c \
-              operations/external/ff-load.c ;;
- esac
+build_old(){
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then opts --host=${MACHTYPE/x86_64/i686}
-# --disable-asm
  fi
  default_build
 }

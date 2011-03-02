@@ -4,16 +4,19 @@
   optional openssl  '' '' for secure socket connections
       opts --prefix=/opt/kde4 --with-qt-dir=/opt/kde4 --disable-debug --enable-final
   category network
- attribute kde4 library makej multilib-fail
+ attribute kde4 library makej
+ attribute multilib-fail
     source $SOURCEFORGE_URL fwbuilder/Current_Packages/$VERSION/libfwbuilder-$VERSION.tar.gz
   homepage http://www.fwbuilder.org
   estimate 560
       desc 'libraries required by fwbuilder'
 
 build(){
- echo /opt/kde4 > qtdir
 (
- export PATH+=:/opt/kde4/bin
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export PATH+=:/opt/kde4/i686/bin; echo /opt/kde4/i686 > qtdir
+ else export PATH+=:/opt/kde4/bin;      echo /opt/kde4      > qtdir
+ fi
  ./autogen.sh &&
  INSTALL_ROOT=$DESTDIR default_build
 )
