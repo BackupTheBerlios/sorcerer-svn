@@ -1,26 +1,31 @@
 # vlc version 1.1.7 is not compatible with libmatroska version 1.1.0
 # However, libmatroska version 1.1.0 compiled and installed fine.
+# must be multilib-dual
 
     stable 1.0.0 0.9.0
   unstable 1.1.0
    require libebml
       opts --enable-static=no
   category video
- attribute library
- attribute multilib-fail
+ attribute library multilib-dual
+#attribute multilib-fail
     source http://dl.matroska.org/downloads/libmatroska/libmatroska-$VERSION.tar.bz2
   homepage http://dl.matroska.org/downloads/libmatroska/
   estimate 100
       desc 'C++ libary to parse Matroska files (.mkv and .mka)'
 
 build(){
+ local CC CXX
+ if   [[ $CFLAGS =~ -m32 ]]
+ then CC="gcc -m32"; CXX="g++ -m32"
+ else CC="gcc";      CXX="g++"
+ fi
+
  cd make/linux
- make     all prefix=/usr &&
- make install prefix=$DESTDIR/usr &&
- if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
+ make     all CXX="$CXX" prefix=/usr &&
+ make install CXX="$CXX" prefix=$DESTDIR/usr &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
  fi
 }

@@ -1,9 +1,10 @@
+# spell must be multilib-dual
+
     stable 1.2.0 1.0.0 0.8.0
    require gcc-g++
       opts --enable-static=no
   category video
- attribute library
- attribute multilib-fail
+ attribute library multilib-dual
     source http://dl.matroska.org/downloads/libebml/libebml-$VERSION.tar.bz2
       info home  http://dl.matroska.org/downloads/libebml/
       info last  20110130
@@ -11,13 +12,17 @@
       desc 'C++ libary to parse EBML files'
 
 build(){
+ local CC CXX
+ if   [[ $CFLAGS =~ -m32 ]]
+ then CC="gcc -m32"; CXX="g++ -m32"
+ else CC="gcc";      CXX="g++"
+ fi
+
  cd make/linux
- make     all prefix=/usr &&
- make install prefix=$DESTDIR/usr &&
- if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
+ make     all CXX="$CXX" prefix=/usr &&
+ make install CXX="$CXX" prefix=$DESTDIR/usr &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
  fi
 }

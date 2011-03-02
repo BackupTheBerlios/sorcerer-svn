@@ -1,8 +1,9 @@
+# must be multilib-dual
+
     stable 2.3
    require openssl zlib
   category video
- attribute library
- attribute multilib-fail
+ attribute library multilib-dual
     source http://rtmpdump.mplayerhq.hu/download/rtmpdump-$VERSION.tgz
   homepage http://rtmpdump.mplayerhq.hu/
       desc 'toolkit for RTMP streams'
@@ -12,10 +13,9 @@ build(){
  make prefix=$DESTDIR/usr install &&
  sed -i "s:$DESTDIR:/usr:" $DESTDIR/usr/lib/pkgconfig/*.pc &&
  sed -i 's:-L${libdir}::'  $DESTDIR/usr/lib/pkgconfig/*.pc &&
- if    [[ $HOSTTYPE == x86_64   ]]; then
-  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                    else mv $DESTDIR/usr/lib{,64}
-    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
+ if      [[ $HOSTTYPE == x86_64 ]] &&
+       ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
+      sed -i 's:prefix}/lib:prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
  fi
 }

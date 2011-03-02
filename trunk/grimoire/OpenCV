@@ -1,8 +1,9 @@
+# this spell must be multilib-dual
+
     stable 2.2.0 2.1.0
    require ffmpeg gst-plugins-base libdc1394 libv4l openexr
   category graphic
- attribute library
- attribute broke
+ attribute library multilib-dual
     source $SOURCEFORGE_URL opencvlibrary/opencv-unix/${VERSION:0:3}/OpenCV-$VERSION.tar.bz2
       info home  http://opencv.willowgarage.com/wiki/
   estimate 4000
@@ -10,11 +11,8 @@
 
 build(){
  default_build &&
- if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-   sed -i 's:prefix}/lib$:prefix}/lib64:'  $DESTDIR/usr/lib64/pkgconfig/opencv.pc
- fi
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
  fi
 }

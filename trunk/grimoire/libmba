@@ -1,10 +1,10 @@
+# spell must be multilib-dual
+
     stable 0.9.1
   category development
- attribute library
- attribute multilib-fail
+ attribute library multilib-dual
     source http://www.ioplex.com/~miallen/libmba/dl/libmba-$VERSION.tar.gz
   homepage http://www.ioplex.com/~miallen/libmba/
-  estimate 80
       desc 'collection of useful C modules
 There are the usual ADTs including a linkedlist, hashmap, 
 pool, stack, and varray, a flexible memory allocator, 
@@ -13,6 +13,17 @@ I18N text abstraction, configuration file module,
 portable semaphores, condition variables, and more.'
 
 build(){
+ sed -i "s:-O2:$CFLAGS:
+         s:/usr/local:$DESTDIR/usr:" Makefile
+ make &&
+ make install &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
+ fi
+}
+
+build_old(){
  sed -i "s:-O2:$CFLAGS:
          s:/usr/local:$DESTDIR/usr:" Makefile
  make &&

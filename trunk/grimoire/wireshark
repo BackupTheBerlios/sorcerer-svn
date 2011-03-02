@@ -1,7 +1,12 @@
 # wireshark wants to use libcap even when libcap is not installed
 # No luck compiling wireshark 1.4.3 1.4.2 1.4.1 and 1.4.0
+# 1.4.4 is a security bug fix release.
 
-    stable 1.2.12 1.2.11
+# wireshark source has -L$something/lib
+# hardcoded into configure in too many places.
+# compiles neither by ./configure nor cmake
+
+    stable 1.4.4 1.2.12 1.2.11
     secure 1.2.11
   unstable 1.5.0 1.4.3
    require GeoIP e2fsprogs gtk+ libpcap libsmi pcre
@@ -14,7 +19,8 @@
   optional portaudio ''          --without-portaudio for use with the rtp_player
       opts --enable-gtk2
   category network
- attribute broke x11
+ attribute x11
+ attribute broke
     source http://www.wireshark.org/download/src/wireshark-$VERSION.tar.bz2
   homepage http://www.wireshark.org/
   estimate 5800
@@ -28,6 +34,7 @@ a rich display filter language and the ability to
 view the reconstructed stream of a TCP session.'
 
 build(){
-echo "OPTS=[$OPTS]"
-default_build
+ rm -f CMakeLists.txt
+ echo "OPTS=[$OPTS]"
+ default_build
 }

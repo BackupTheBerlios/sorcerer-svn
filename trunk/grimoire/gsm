@@ -1,21 +1,28 @@
-# Where is this hosted now?
-# freshmeat does not know.
-# Uncertain if modified build() is DESTDIR compliant
+# spell must have attribute multilib-dual
 
     stable 1.0.13 1.0.12
   category audio/codec audio/library
- attribute library
- attribute multilib-fail
-     source http://www.quut.com/gsm/gsm-$VERSION.tar.gz
-       info home  http://www.quut.com/gsm/
+ attribute library multilib-dual
+    source http://www.quut.com/gsm/gsm-$VERSION.tar.gz
+      info home  http://www.quut.com/gsm/
   estimate 100
       desc 'audio codec library'
 
 build(){
+ local FORMAT
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then FORMAT="-m elf_i386"
+ fi
 
  install_libs(){
-  ld --whole-archive -shared -o $DESTDIR/usr/lib/libgsm.so.1 $DESTDIR/usr/lib/libgsm.a
-  ln -s libgsm.so.1 $DESTDIR/usr/lib/libgsm.so
+  ld $FORMAT --whole-archive -shared              \
+     -soname             libgsm.so.${VERSION:0:3} \
+     -o $DESTDIR/usr/lib/libgsm.so.${VERSION}     \
+        $DESTDIR/usr/lib/libgsm.a
+  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so.${VERSION:0:3}
+  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so.${VERSION:0:1}
+  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so
  }
 
  install_headers(){
@@ -26,17 +33,16 @@ build(){
   ln    -s  gsm/gsm.h $DESTDIR/usr/include/gsm.h
  }
 
- sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:" Makefile
+ sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:"     Makefile
+ sed -i "s:-pedantic:-pedantic $CFLAGS:" Makefile
 
  make &&
- mkdir -p $DESTDIR/usr/{bin,include,lib} &&
+ mkdir -pvm 755 $DESTDIR/usr/{bin,include,lib} &&
  make install INSTALL_ROOT=$DESTDIR/usr &&
       install_headers &&
       install_libs    &&
- if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
  fi
 }

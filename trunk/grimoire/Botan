@@ -1,8 +1,11 @@
+# Source does not compile how it is told.
+
     stable 1.8.10 1.8.9 1.8.8
-  unstable 1.9.13 1.9.12
+  unstable 1.9.14 1.9.13
    require bzip2 gcc-g++ perl zlib
   category security/encryption
  attribute library
+#attribute multilib-dual
  attribute multilib-fail
     source http://files.randombit.net/botan/Botan-$VERSION.tgz
       vurl http://botan.randombit.net/download.php
@@ -19,17 +22,26 @@ hash functions, and message authentication codes,
 plus a high level filter-based interface.'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export CFLAGS+=' -m64'; opts --cpu=amd64
- fi
+ local SETARCH
 
- ./configure.py --cc=gcc --os=linux --disable-debug --prefix=/usr $OPTS &&
- make install "DESTDIR=$DESTDIR/usr" &&
- sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
- if    [[ $HOSTTYPE == x86_64   ]]; then
-  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                    else mv $DESTDIR/usr/lib{,64}
-    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then export CFLAGS+=' -m32'; opts --cpu=i686;  SETARCH="setarch i686"
   fi
  fi
+
+ $SETARCH ./configure.py --cc=gcc --os=linux --disable-debug --prefix=/usr $OPTS &&
+ $SETARCH make install "DESTDIR=$DESTDIR/usr" &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/lib{,64}
+ fi
+
+# sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
+# if    [[ $HOSTTYPE == x86_64   ]]; then
+#  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+#                                    else mv $DESTDIR/usr/lib{,64}
+#    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+#  fi
+# fi
 }
