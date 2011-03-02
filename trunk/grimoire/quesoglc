@@ -4,8 +4,17 @@
    require MesaLib fontconfig fribidi
       opts --enable-static=no
   category font/library
- attribute library makej multilib-fail
-    source $SOURCEFORGE_URL quesoglc/QuesoGLC%20free/0.7.2/quesoglc-$VERSION.tar.bz2
+ attribute library makej multilib-dual
+#attribute multilib-fail
+    source $SOURCEFORGE_URL quesoglc/QuesoGLC%20free/${VERSION:0:5}/quesoglc-$VERSION.tar.bz2
   homepage http://quesoglc.sourceforge.net/
   estimate 400
       desc 'library for rendering fonts using OpenGL'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then opts --x-libraries=/usr/lib
+ fi
+ default_build
+}

@@ -3,8 +3,7 @@
    require libXaw
       opts --enable-static=no
   category font/library
- attribute library multilib-fail
-#attribute makej multilib-dual
+ attribute library multilib-dual
     source ftp://sunsite.unc.edu/pub/Linux/libs/graphics/t1lib-$VERSION.tar.gz
   homepage http://www.foolabs.com/xpdf/
   estimate 800
@@ -16,7 +15,11 @@ provided with X11R5 and newer but tries avoid the
 disadvantages known from that rasterizer.'
 
 build(){
- ./configure --prefix=/usr &&
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then OPTS+=" --x-libraries=/usr/lib"
+ fi
+ ./configure --prefix=/usr $OPTS &&
  make without_doc &&
  make install DESTDIR=$DESTDIR
 }
