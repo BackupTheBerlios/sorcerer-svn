@@ -1,10 +1,11 @@
-# uses cmake to compile and therefore is multilib-fail
+# must be multilib-dual
 
     stable 1.2
    require cmake gcc-g++ glib libxml2 pkgconfig
   optional Python '' '' for Python bindings
   category audio/library
- attribute library multilib-fail
+ attribute library multilib-dual
+#attribute multilib-fail
     source http://cloud.github.com/downloads/JonathanBeck/libplist/libplist-$VERSION.tar.bz2
   homepage http://libimobiledevice.org/
   estimate 100
@@ -12,8 +13,9 @@
 
 build(){
  default_build &&
- if [[ $HOSTTYPE == x86_64 ]]; then
-  mkdir -pm 755            $DESTDIR/usr/lib64
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+    ! [[ $CFLAGS   =~ -m32   ]]; then
+  mkdir -pvm 755           $DESTDIR/usr/lib64
   mv    $DESTDIR/usr/lib/* $DESTDIR/usr/lib64
   rmdir $DESTDIR/usr/lib
   sed -i 's:libdir=/usr/lib$:libdir=/usr/lib64:
