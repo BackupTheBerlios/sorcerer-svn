@@ -1,13 +1,19 @@
-# multilib-fail because gd is multilib-fail
     stable 0.7.6
    require OpenCV avahi ffmpeg gd libXpm libexif
   category video/library
- attribute library x11
- attribute multilib-fail
- attribute broke
-#attribute makej
+ attribute library makej x11
+#attribute multilib-concurrent multilib-dual
     source http://insitu.lri.fr/metisse/download/nucleo/nucleo-$VERSION.tar.bz2
   homepage http://insitu.lri.fr/~chapuis/metisse/index.html
   estimate 1600
       desc 'a toolkit for exploring new uses of video
 and human-computer interaction techniques'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then opts --x-libraries=/usr/lib
+ fi
+ default_build
+}
+

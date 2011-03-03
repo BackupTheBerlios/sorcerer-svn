@@ -16,8 +16,7 @@
 # NetworkManager does not compile.
       opts --disable-nm
   category network/chat
- attribute gnome library makej
- attribute multilib-fail
+ attribute gnome library makej multilib-dual
     source $SOURCEFORGE_URL pidgin/Pidgin/$VERSION/pidgin-$VERSION.tar.bz2
   homepage http://www.pidgin.im/
  conflicts gaim
@@ -28,9 +27,10 @@ for the AIM protocol but has plugin support for
 icq, irc, yahoo, and jabber all at once in one interface.'
 
 build(){
- if    [[ $HOSTTYPE == x86_64    ]]; then
-  if ! [[ $OPTS =~ --disable-tcl ]]; then opts --with-tclconfig=/usr/lib64; fi
-  if ! [[ $OPTS =~ --disable-tk  ]]; then opts --with-tkconfig=/usr/lib64; fi
+ if    [[ $HOSTTYPE == x86_64        ]]; then
+  if ! [[ $OPTS     =~ --disable-tcl ]]; then opts --with-tclconfig=/usr/lib64; fi
+  if ! [[ $OPTS     =~ --disable-tk  ]]; then opts --with-tkconfig=/usr/lib64; fi
+  if   [[ $CFLAGS   =~ -m32          ]]; then opts --disable-perl; fi
  fi
  default_build
 }
