@@ -1,8 +1,18 @@
+# does not do an ELF 32-bit compile.
+# reason is configure is broke
+# would require hours to trace it and find the exact location
+# and to fix it.
+# Since the source is from 2008 and will likely remain
+# without further releases
+# this spell will probably be forever broke
+# until removed from the grimoire.
+
     stable III-10.2.src
-      opts --prefix=$DEST_DIR/$SPELL/usr
   category audio/cd audio/recorder
- attribute console
+ attribute library makej multilib-dual setarch
+ attribute broke
     source http://downloads.xiph.org/releases/cdparanoia/cdparanoia-$VERSION.tgz
+      info last  20080911
       info home  http://www.xiph.org/paranoia/
       info docs  http://www.xiph.org/paranoia/doc.html
   estimate 150
@@ -31,8 +41,17 @@ build(){
           1i};' /usr/include/cdda_interface.h
  }
 
-case $VERSION in
- III-alpha9.8) sed -i '\,default:,abreak;' interface/utils.h ;;
-esac
-default_build
+ case $VERSION in
+  III-alpha9.8) sed -i '\,default:,abreak;' interface/utils.h ;;
+ esac
+
+ export   CFLAGS+=' -fPIC'
+ export CXXFLAGS+=' -fPIC'
+            OPTS+=" --prefix=$DESTDIR/$SPELL/usr"
+
+ default_build &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/$SPELL/usr/lib{,64}
+ fi
 }
