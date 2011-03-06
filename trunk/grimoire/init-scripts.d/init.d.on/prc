@@ -40,11 +40,15 @@ parallel(){
 ssp(){ parallel K stop; parallel S start; }
 ssl(){ linear   K stop; linear   S start; }
 log(){ $1; echo End runlevel $RL; }
-cap(){ if [ -c $RLC ]; then tee $RLL > $RLC; else tee $RLL; fi; }
 
  RL=$1
 RLL=/etc/init.d/log.d/runlevel.$RL
 RLC=/etc/init.d/dev.d/rl
+
+if   [ -c $RLC ] && echo > $RLC
+then cap(){ tee $RLL > $RLC; }
+else cap(){ tee $RLL; }
+fi
 
 case $RL in
    6|0) ssl ;;
