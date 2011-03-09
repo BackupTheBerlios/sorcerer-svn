@@ -11,25 +11,22 @@ disable scavenge
       desc 'translates the protocol numbers assigned by IANA to /etc/protocols'
 
 build(){
-local  LC_ALL=C
-export LC_ALL
+ local  LC_ALL=C
+ export LC_ALL
 
-[[ -f $SOURCE ]] || return 1
+ [[ -f $SOURCE ]] || return 1
 
-mkdir -p $DESTDIR/etc
-cat   $SOURCE  |
-tr -d '\r'     |
-tr    '\t' ' ' |
-tr -s  ' '     |
-tr -d  '\177-\377' |
-sed  "s:^ *::"     |
-grep "^[0-9]"      |
-grep -v "^ \|Unassigned\|experimentation\|Reserved\|1981" |
-while read NUMBER NAME DESCRIPTION; do
- echo -n       "$NAME"  | tr "[:upper:]" "[:lower:]"
- echo "|$NUMBER|$NAME"
-done             | 
-tr     -d '\r'   |
-column -s '|' -t >         protocols &&
-install -vm 644 -b -S .old protocols $DESTDIR/etc
+ mkdir -pvm 755 $DESTDIR/etc
+ cat $SOURCE      |
+ tr  -d  '\r'     |
+ tr  -s ' '       |
+ cut -d ' ' -f2,3 |
+ sed '/Use/d;
+      /Unassigned/d;
+      /Reserved/d;
+      /^[0-9] /p;
+      /^[0-9][0-9] /p;
+      /^[0-9][0-9][0-9] /p;d' |
+ sed -r 's:(.*) (.*):\2 \1:' > protocols &&
+ install -vm 644 protocols $DESTDIR/etc
 }
