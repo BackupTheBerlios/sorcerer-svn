@@ -6,7 +6,7 @@
 # Short-Description: initramfs creates boot filesystems
 ### END INIT INFO
 
-# Copyright 2007 through 2010 by Kyle Sallee, all rights reserved.
+# Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 if [ "$1" = try-restart ]; then exit; fi
@@ -73,6 +73,7 @@ every(){
 \,^/etc/init.d/log.d/,d
 \,^/etc/kde,d
 \,^/etc/lilo/,d
+\,^/etc/lilo.conf,d
 \,^/etc/logcheck,d
 \,^/etc/mono/,d
 \,^/etc/mplayer/,d
@@ -139,6 +140,7 @@ initrf_update(){
  cp -a     $TEMPIF/boot /
  rm -fr    $TEMPIF
  sync
+ /etc/init.d/lilo stop
  if ! [ -f /etc/init.d/find_ir ]
  then /sbin/lilo -P ignore -C /etc/lilo/conf
  fi
@@ -151,7 +153,7 @@ initrf_present(){
 
 initrf_current(){
  IRFL=/var/log/initramfs.log
- DIRS='/bin /etc/bash.d /etc/init.d /etc/lilo'
+ DIRS='/bin /etc/bash.d /etc/init.d'
  DIRS+=' /etc/modprobe.d /etc/networks.d /etc/rc.d /etc/udev /lib /sbin'
  [[ -d /etc/lvm ]] && DIRS+=' /etc/lvm'
  [[ -d /lib64   ]] && DIRS+=' /lib64'
