@@ -14,6 +14,7 @@ if [ "$1" = try-restart ]; then exit; fi
 . /lib/lsb/init-functions
 
 NAME=initramfs
+DONE=false
 
 allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 
@@ -124,6 +125,13 @@ initrf_update(){
  chmod 600  $TEMPIF
 
  local       COMMON="$TEMPIF/common"
+ local       LILO
+
+ if   [ -f /etc/init.d/lilo ] &&
+      [ -x /etc/init.d/lilo ]
+ then LILO=true
+ else LILO=false
+ fi
 
  every | filter_elf | exists |
  cpio -o -H newc --quiet > $COMMON
@@ -140,8 +148,12 @@ initrf_update(){
  cp -a     $TEMPIF/boot /
  rm -fr    $TEMPIF
  sync
- /etc/init.d/lilo stop
- if ! [ -f /etc/init.d/find_ir ]
+
+ if   $LILO && ! $DONE
+ then /etc/init.d/lilo reload
+ fi
+
+ if   ! [ -f /etc/init.d/find_ir ]
  then /sbin/lilo -P ignore -C /etc/lilo/conf
  fi
 }
@@ -196,7 +208,7 @@ status(){
  fi
 }
 
-help(){ echo "Usage: $0 {stop|status|force}"; }
+help(){ echo "Usage: $0 {stop|status|force|reload}"; }
 
 if ! [[ -d /boot ]] ||
      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
@@ -206,6 +218,8 @@ fi
 export LC_ALL=C
 case $1 in
    help) help             ;;
+ reload) DONE=true
+         status || stop   ;;
  status) status           ;;
   force)           stop   ;;
    stop) status || stop s ;;

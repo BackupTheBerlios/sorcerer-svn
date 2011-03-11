@@ -2,12 +2,16 @@
       info last  20100319
       opts --enable-static=no
   category security/encryption
- attribute console
+ attribute library multilib-dual
     source http://people.redhat.com/~dhowells/keyutils/keyutils-$VERSION.tar.bz2
   estimate 50
       desc 'for controlling the key management system built into linux'
 
 build(){
  make &&
- make install DESTDIR=$DESTDIR
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+    ! [[ $CFLAGS   =~ -m32   ]]
+ then make install DESTDIR=$DESTDIR LIBDIR=/lib64 USRLIBDIR=/usr/lib64
+ else make install DESTDIR=$DESTDIR
+ fi
 }
