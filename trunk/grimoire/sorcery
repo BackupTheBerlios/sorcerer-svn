@@ -1,4 +1,4 @@
-    stable event-20110312-0 event-20110311-0 event-20110309-0 event-20110308-0 event-20110301-0
+    stable event-20110313-0 event-20110312-0 event-20110311-0 event-20110309-0 event-20110308-0 event-20110301-0
    require grimoire
   category utility
  attribute archive_off solo sorcery
@@ -104,6 +104,15 @@ post_install(){
   fi
  }
 
+ fix_shells(){
+  if ! [ -d /etc/shells.d ]; then
+   find $GRIMOIRE -maxdepth 1 -type f |
+   xargs --max-lines=256 grep -li shbin |
+   basenames |
+   pipe_queue $CAST_QUEUE com
+  fi
+ }
+
  upgrade_feature        # 20110218
 
  . /etc/sorcery/config
@@ -112,6 +121,7 @@ post_install(){
  add_config_site
  discard_old_index
  discard_obsolete_event_logs
+ fix_shells             # 20110313
  upgrade_ccache_cache	# 20110214
  upgrade_archive_cache	# 20110214
  default_post_install
