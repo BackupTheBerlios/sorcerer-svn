@@ -1,4 +1,5 @@
-if   [[ $HOSTTYPE == x86_64 ]]
+if     [[ $HOSTTYPE == x86_64 ]] &&
+     ! [[ -f /lib/libc.so.6   ]]
 then attribute broke
 fi
 
@@ -9,7 +10,8 @@ CURL_PARAM=--disable-epsv
 # of versioning and directories for their releases.
 
 if [[ $SPELL == AdobeReader ]]; then
-    stable 9.4.1-1_i486linux_enu 9.4-1_i486linux_enu
+    stable 9.4.2-1_i486linux_enu 9.4.1-1_i486linux_enu 9.4-1_i486linux_enu
+   version secure 9.4.2-1_i486linux_enu
    require gtk+
 fi
 
@@ -45,23 +47,23 @@ build(){
  install_files(){
   local BASE=/usr/lib/acrobat/Adobe/Reader9
 
+  mkdir -vpm 755             $DESTDIR/usr/lib/acrobat   $DESTDIR/usr/bin
+  cp    -Rv *                $DESTDIR/usr/lib/acrobat/
   sed   -i 's:/bin/pwd:pwd:' $DESTDIR$BASE/bin/acroread
-
-  mkdir -vpm 755 $DESTDIR/usr/lib/acrobat
-  cp    -Rv *    $DESTDIR/usr/lib/acrobat/
+  chmod 755                  $DESTDIR$BASE/bin/acroread
+  ln    -fs                          $BASE/bin/acroread \
+                             $DESTDIR/usr/bin/
 
       PLUG=Browser/intellinux/nppdf.so
   PLUG_DIR=/usr/lib/mozilla/plugins
 
-  if [    -d                       $PLUG_DIR ]; then
-   mkdir  -p              $DESTDIR/$PLUG_DIR $DESTDIR/usr/bin
-   ln     -fs $BASE/$PLUG $DESTDIR/$PLUG_DIR
-   chmod 755  $DESTDIR/$BASE/bin/acroread
-   ln    -fs           $BASE/bin/acroread    $DESTDIR/usr/bin/
+  if [   -d                        $PLUG_DIR ]; then
+   mkdir -pvm 755         $DESTDIR/$PLUG_DIR
+   ln    -fs $BASE/$PLUG  $DESTDIR/$PLUG_DIR
   fi
  }
 
-unpack_tars(){
+ unpack_tars(){
   tar   -xf COMMON.TAR
   tar   -xf ILINXR.TAR  
   rm    -f  COMMON.TAR ILINXR.TAR

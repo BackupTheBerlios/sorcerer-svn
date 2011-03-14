@@ -30,15 +30,19 @@
 
 . /lib/lsb/init-functions
 
+for GOV in $GOVERNORS; do 
+ log_warning_msg "Running modprobe cpufreq_$GOV"
+                          modprobe cpufreq_$GOV
+done
+
 if [ -n "$USER" ]; then
  chmod 666 /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor \
            /sys/devices/system/cpu/cpu*/cpufreq/scaling_setspeed
 fi
 
-for GOV in $GOVERNORS; do 
- log_warning_msg "Running modprobe cpufreq_$GOV"
-                          modprobe cpufreq_$GOV
-done
+# Governors do not complete initalization before modprobe returns.
+# Therefore, sleeping for a short while.
+sleep 0.01
 
 if                       [ -x /bin/cpufreq_$DEFAULT ]
 then log_warning_msg "Running /bin/cpufreq_$DEFAULT"

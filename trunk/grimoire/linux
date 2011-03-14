@@ -1,4 +1,11 @@
-    stable 2.6.36.3 2.6.36.2 2.6.36.1 2.6.36
+   version stable	2.6.37.3	2.6.36.3	2.6.36.2	2.6.36.1
+   version 2.6.36.x	2.6.36.4	2.6.36.3	2.6.36.2	2.6.36.1 
+   version 2.6.35.x	2.6.35.11	2.6.35.10	2.6.35.7
+   version 2.6.34.x	2.6.34.8
+   version 2.6.32.x	2.6.32.28	2.6.32.24	2.6.32.21
+   version 2.6.30.x	2.6.30.10	2.6.30.9	2.6.30.8
+   version 2.6.27.x	2.6.27.58	2.6.27.57	2.6.27.54	2.6.27.53
+
    require initramfs lilo module-init-tools
   category kernel
  attribute console makej
@@ -30,56 +37,6 @@ and TCP/IP networking.'
 while read        CONF      SIZE  DESC
 do   switch OMIT_$CONF "" "$SIZE $DESC"
 done < $GRIMOIRE/linux.d/trim
-
-
-# Unsetting CONFIG_NETDEV_1000
-# makes no difference to the size nor number
-# of the installed kernel modules?
-# as compared to merely unsetting CONFIG_NETDEV_10000
-# Why is that?
-
-# Stuff that I might make optional...
-
-# CRYPTO Bolted down by something, AF_RXRPC, bolted downn by AFS
-# CONFIG_CRYPTO=y		600K	cryptographic API
-
-
-# NETDEV_1000 bolted down by the following
-# drivers/scsi/bnx2i/Kconfig:   select NETDEV_1000
-# drivers/staging/et131x/Kconfig:       depends on NETDEV_1000 && PCI
-# drivers/staging/slicoss/Kconfig:      depends on PCI && X86 && NETDEV_1000
-# definitely being held down by: CONFIG_SCSI_BNX2_ISCSI
-
-
-# CONFIG_INPUT_TABLET=y		100K	Tablet drivers
-# CONFIG_MFD_SUPPORT=y		150K	Multifunction devices found mostly on embedded platforms
-# CONFIG_REGULATOR=y		130K	Generic Voltage and Current regulator support
-# CONFIG_INPUT_TOUCHSCREEN=y	250K	Touchscreen drivers
-# CONFIG_WATCHDOG=y		400K	dead man switch which sometimes be used to reboot in critical situations 
-
-# CONFIG_ATM_DRIVERS=y		360K	Asynchronous Transfer Mode device drivers
-# CONFIG_WAN=y			400K	Wide Area Networks such as X.25, Frame Releay and leased lines
-# CONFIG_NET_ETHERNET=y 	????K	IEEE 802.3 ISO 802-2 LAN 10 Mpbs and 100 Mbps LAN drivers
-# CONFIG_NETDEV_1000=y	 	????K	IEEE 802.3 or ISO 8802-2 1000 Mpbs LAN drivers
-# CONFIG_NETDEV_10000=y 	????K	10 gigabit Ethernet drivers
-# CONFIG_WLAN=y			3300K	pre 802.11 and 802.11 wireless device drivers
-# CONFIG_INFINIBAND=m		1000K	Core supoort for InfiniBand (IB) drivers and protocols
-# CONFIG_ISDN=y			2300K	Integrated Services Digital Network or DNIS
-# CONFIG_NETFILTER=y		1200K	framework for filtering and mangling network packets
-
-# CONFIG_BTRFS_FS=m		550K	b tree reversible file system
-# CONFIG_XFS_FS=m		550K	journaling file system
-# CONFIG_NETWORK_FILESYSTEMS=y	1000K	NFS NFSD CODA CIFS AFS 9P file systems
-# CONFIG_OCFS2_FS=m		1000K	extent based shared disk cluster file system
-
-
-# CONFIG_PCMCIA=m		1600K	16 bit PCMCIA and 32 bit CardBus cards used on laptops
-# CONFIG_SND=m			5000K	Advanced Linux Sound Architecture drivers
-# CONFIG_RADIO_ADAPTERS=y	300K	AM/FM radio adapters
-## CONFIG_IR_CORE		450K	Infrared remote controller drivers for video capture drivers adpaters
-# CONFIG_VIDEO_CAPTURE_DRIVERS=y 4300K	webcams, analog TV, hybrid analog/digital TV, and FM radio
-# CONFIG_DVB_CAPTURE_DRIVERS=y	2300K	DVB/ATSC Digital TV adapters
-
 
 
 build(){
@@ -158,7 +115,6 @@ build(){
  }
 
 
-
  backup_modules(){
   if [ -d  /lib/modules/$VERSION ]; then
   rm   -rf /lib/modules/$VERSION.old
@@ -203,9 +159,9 @@ build(){
            fi ;;
   esac
 
-  if   [ -f            $SCRIPT_DIR/$NAME ]
-  then install -vm 600 $SCRIPT_DIR/$NAME    .config
-  else install -vm 600 $SCRIPT_DIR/ia32-smp .config
+  if   [ -f            $SCRIPT_DIR/$PROGRESS/$NAME ]
+  then install -vm 600 $SCRIPT_DIR/$PROGRESS/$NAME    .config
+  else install -vm 600 $SCRIPT_DIR/$PROGRESS/ia32-smp .config
   fi
 
   [ -d /boot/isolinux ] || get_cpu
