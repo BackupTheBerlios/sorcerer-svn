@@ -1,17 +1,19 @@
 # Version 5.4.1 keeps segfaulting (after couple minutes) so a newer version is needed
 # 5.4.1.1 complains about a perl module version mismatch.
 
+# multilib-fail because perl is also multilib-fail
+
     stable 5.6.1 5.6 5.5
 # unstable 5.6.1.rc2
    require automake init-functions libelf zlib
   optional openssl '' '' for secure socket connections
-# compiling with libnl support causes a compile error in net-snmp 5.5
+      opts --enable-static=no
+# compiling with libnl support causes a compile error in net-snmp 5.5 and 5.6.1
       opts --without-nl
   category network
- attribute console makej
+ attribute console library makej multilib-fail
     source $SOURCEFORGE_URL net-snmp/net-snmp/$VERSION/net-snmp-$VERSION.tar.gz
   homepage http://www.net-snmp.org
-      opts --enable-static=no
   estimate 3300
       desc 'simple network managment protocol agent, libraries and utilities
 net-snmp provides tools and libraries relating to
@@ -26,6 +28,11 @@ build(){
  SYS_CONTACT="--with-sys-contact=root@`hostname -f`"
   PERSISTENT="--with-persistent-directory=/var/state/ucd-snmp"
     DEFAULTS="--with-defaults"
+
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then OPTS+=' --disable-embedded-perl'
+ fi
 
  ./configure          \
  --prefix=/usr        \

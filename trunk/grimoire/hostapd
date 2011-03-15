@@ -2,7 +2,7 @@
 # stable versions are 0.5.x
 # developmental versions are 0.6.x
 
-    stable 0.5.11
+    stable 0.7.3 0.5.11
   unstable 0.7.3
    require openssl
   category network
@@ -17,14 +17,25 @@ RADIUS Authentication client
 RADIUS Accounting client'
 
 build(){
- sed -i "s:-O2:$CFLAGS:" Makefile
+ build_old(){
+  sed -i "s:-O2:$CFLAGS:" Makefile
+  [ -f .config ] || cp defconfig .config
+  make &&
+  mkdir -p $DESTDIR/usr/bin &&
+  for FILE in *; do
+   if   [ -f $FILE ] &&
+        [ -x $FILE ]
+   then cp   $FILE $DESTDIR/usr/sbin
+   fi
+  done
+ }
+
+ sed -i "s:-O2 -Wall -g:$CFLAGS:"        src/lib.rules
+ sed -i "s:/usr/local:$DESTDIR/usr:" hostapd/Makefile
+
+ cd hostapd
  [ -f .config ] || cp defconfig .config
+ mkdir -pvm 755 $DESTDIR/usr/bin
  make &&
- mkdir -p $DESTDIR/usr/bin &&
- for FILE in *; do
-  if   [ -f $FILE ] &&
-       [ -x $FILE ]
-  then cp   $FILE $DESTDIR/usr/sbin
-  fi
- done
+ make install
 }
