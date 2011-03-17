@@ -6,7 +6,8 @@
 
 case $HOSTTYPE in
   x86_64) RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
-    stable 7-ea-bin-b132-linux-x64-03_mar_2011 \
+    stable 7-ea-bin-b133-linux-x64-10_mar_2011 \
+           7-ea-bin-b132-linux-x64-03_mar_2011 \
            7-ea-bin-b131-linux-x64-24_feb_2011 \
            7-ea-bin-b129-linux-x64-10_feb_2011 \
            7-ea-bin-b128-linux-x64-03_feb_2011 \
@@ -14,7 +15,8 @@ case $HOSTTYPE in
            7-ea-bin-b123-linux-x64-22_dec_2010 \
            7-ea-bin-b122-linux-x64-16_dec_2010 ;;
        *)
-    stable 7-ea-bin-b132-linux-i586-03_mar_2011 \
+    stable 7-ea-bin-b133-linux-i586-10_mar_2011 \
+           7-ea-bin-b132-linux-i586-03_mar_2011 \
            7-ea-bin-b131-linux-i586-24_feb_2011 \
            7-ea-bin-b129-linux-i586-10_feb_2011 \
            7-ea-bin-b128-linux-i586-03_feb_2011 \
@@ -25,7 +27,7 @@ case $HOSTTYPE in
 esac
   category development/interpreter
  attribute archive_off seamonkey-plugin x11 x86
-    source http://download.java.net/jdk7/archive/${VERSION:9:4}/binaries/jdk-$VERSION.bin
+    source http://download.java.net/jdk7/archive/${VERSION:9:4}/binaries/jdk-$VERSION.tar.gz
 #   source http://download.java.net/jdk7/binaries/jdk-$VERSION.bin
 #    source http://dlc-cdn.sun.com/jdk7/binaries/jdk-$VERSION.bin
       info home  http://openjdk.java.net
@@ -43,64 +45,48 @@ install_jdk(){
     x86_64) ADIR=amd64 ;;
          *) ADIR=i386  ;;
  esac  
- set -x
  case $VERSION in
   7*) DIR='jdk1.7.0' ;;
  esac
 
- mkdir -p $DESTDIR/{opt,usr/bin}
-
- # /opt/jdk should be a symbolic link to the current version and NOT a directory
- cd $DESTDIR/opt
- if   unzip $SOURCE
-      [[ -f ${DIR}/man/ja_JP.eucJP/man1/xjc.1 ]]
+ # Test that the package was really JDK, not only some HTTP response:
+ if [[ -f COPYRIGHT ]]
  then
-  ln -fs $DIR $DESTDIR/opt/jdk	
- 
-  for         FILE in $DESTDIR/opt/jdk/bin/*
-  do  ln -fs /opt/jdk/bin/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
-  done
+   set -x
+   mkdir -p           $DESTDIR/{opt/$DIR,usr/bin}
+   # Copy the untarred package to the destination
+   cp -ax *           $DESTDIR/opt/$DIR
+   chown -R root.root $DESTDIR/opt/$DIR
+   # /opt/jdk should be a symbolic link to the current version and NOT a directory
+   ln -fs $DIR        $DESTDIR/opt/jdk	
+   # Make links to the binaries
+   for        FILE in $DESTDIR/opt/jdk/bin/*
+   do  ln -fs /opt/jdk/bin/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
+   done
 
-  if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
-  then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
-  fi 
+   if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
+   then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
+   fi 
 
-# no libjavaplugin_oji.so for x86_64 ?
+   local PD
+   # Some pages say that only libnpjp2.so plugin is needed for Firefox
+   if   [ -d   /usr/lib64/mozilla/plugins ]; then
+    PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
+    #ln -fs /opt/jdk/lib/amd64/libjavaplugin_jni.so       $PD/
+    ln -fs /opt/jdk/lib/amd64/libnpjp2.so                $PD/
+   elif [ -d         /usr/lib/mozilla/plugins ]; then
+    PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
+    #ln -fs /opt/jdk/lib/i386/libjavaplugin_oji.so        $PD/
+    #ln -fs /opt/jdk/lib/i386/libjavaplugin_jni.so        $PD/
+    ln -fs /opt/jdk/lib/i386/libnpjp2.so                 $PD/
+   fi
 
-  local PD
-  if   [ -d   /usr/lib64/mozilla/plugins ]; then
-   PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
-   ln -fs /opt/jdk/jre/lib/amd64/libjavaplugin_jni.so       $PD/
-   ln -fs /opt/jdk/jre/lib/amd64/libnpjp2.so                $PD/
-  elif [ -d         /usr/lib/mozilla/plugins ]; then
-   PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
-#  ln -fs /opt/jdk/jre/plugin/i386/ns7/libjavaplugin_oji.so $PD/
-   ln -fs /opt/jdk/jre/lib/i386/libjavaplugin_oji.so        $PD/
-   ln -fs /opt/jdk/jre/lib/i386/libjavaplugin_jni.so        $PD/
-   ln -fs /opt/jdk/jre/lib/i386/libnpjp2.so                 $PD/
-  fi
+   set +x
 
-  mkdir -p  $DESTDIR/etc/.java/.systemPrefs
-  touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
-  touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
-  chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
-
-  find . -name \*.pack |
-  while read; do
-   $DESTDIR/opt/jdk/bin/unpack200 $REPLY ${REPLY/.pack/.jar}
-   rm -f     $REPLY
-  done
-
-  if   uname -m |
-       grep  -q "[[:digit:]]86"
-  then $DESTDIR/opt/jdk/bin/java -client -Xshare:dump
-  fi
-  true
-  set +x
- else
-  rm -fr $DESTDIR/opt/$DIR
-  set +x
-  false
+   #mkdir -p  $DESTDIR/etc/.java/.systemPrefs
+   #touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
+   #touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
+   #chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
  fi
 }
 
@@ -121,6 +107,7 @@ install_jdk(){
 # Make sure the source downloaded is really a shell script
 # test broke with file version 5.05
 #file $SOURCE | grep -q 'shell script' && 
- install_jdk &&
- xcb_error_fix
+ install_jdk
+ # Let's see if the fix can be dropped
+ #xcb_error_fix
 }
