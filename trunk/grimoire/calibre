@@ -1,10 +1,9 @@
-    stable 0.7.48 0.7.45 0.7.44
+   version stable 0.7.49 0.7.48 0.7.45 0.7.44
    require BeautifulSoup ImageMagick Imaging PyQt4 chmlib cssutils dbus-python lxml mechanize  podofo poppler-qt-x11-opensource python-dateutil setuptools xdg-utils
   optional icu4c
   optional unrar '' '' to support rar archives
   category documentation
  attribute python-module
-#attribute broke
     source $SOURCEFORGE_URL calibre/$VERSION/calibre-$VERSION.tar.gz
       info home  http://calibre-ebook.com/
   estimate 380
@@ -21,6 +20,12 @@ build(){ (
  export POPPLER_INC_DIR=$QTDIR/include/poppler:$QTDIR/include
  export POPPLER_LIB_DIR=$QTDIR/lib
  export PATH="/opt/kde4/bin:$PATH"
+
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+    ! [[ $CFLAGS   =~ -m32   ]]
+ then mkdir -pm 755 $DESTDIR/usr/lib64/python2.7/site-packages
+ else mkdir -pm 755 $DESTDIR/usr/lib/python2.7/site-packages
+ fi
 
 #default_build &&
  python setup.py build   $OPTS &&

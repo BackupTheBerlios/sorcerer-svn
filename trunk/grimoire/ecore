@@ -1,13 +1,14 @@
 # not certain if multilib-fail or not because ecore is broke
+# not multilib due to curl's x86_64 headers
+# being improper for IA32 compilation.
 
-    stable 1.0.0.beta3 0.9.9.063
+   version stable 1.0.0 1.0.0.beta3 0.9.9.063
    require curl evas libXp libXScrnSaver libXtst openldap
   optional SDL '--enable-ecore-sdl --enable-ecore-evas-opengl-sdl'
       opts --enable-openssl --enable-ecore-evas-opengl-x11 --enable-ecore-evas-opengl-glew
   category development
  attribute library makej
  attribute multilib-fail
- attribute broke
 #attribute multilib-concurrent multilib-dual
     source http://download.enlightenment.org/releases/ecore-$VERSION.tar.bz2
       info home  http://www.enlightenment.org/
@@ -16,8 +17,11 @@
       desc 'core functions for e17'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --x-libraries=/usr/lib
+ if   [[ $HOSTTYPE == x86_64 ]]; then
+  if  [[ $CFLAGS =~ -m32 ]]
+  then OPTS+=' --x-libraries=/usr/lib'
+  else OPTS+=' --x-libraries=/usr/lib64'
+  fi
  fi
  default_build
 }

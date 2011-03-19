@@ -1,11 +1,19 @@
-# 0.9.3 has compile error
-
-    stable 0.9.3 0.9.1 0.9 0.8
+   version stable 0.10 0.9.3 0.9.1 0.9 0.8
+      opts --enable-static=no
    require cmake zlib
   category archive
- attribute library broke
+ attribute library multilib-dual
+      info last 20110318
     source http://www.nih.at/libzip/libzip-$VERSION.tar.gz
   homepage http://www.nih.at/libzip/
-      opts --enable-static=no
   estimate 500
       desc 'zip archive file library'
+
+build(){
+ default_build &&
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if ! [[ $CFLAGS   =~ -m32   ]]
+  then mv $DESTDIR/usr/lib{,64}
+  fi
+ fi
+}

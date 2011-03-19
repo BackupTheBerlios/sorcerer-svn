@@ -1,6 +1,6 @@
 # perl--Net_SSLeay.pm was replaced by perl--Net-SSLeay
 
-    stable 1.30 1.25
+   version stable 1.30 1.25
    require openssl perl--ExtUtils-ParseXS
   category perl security/encryption
  attribute perl-module deprecated
