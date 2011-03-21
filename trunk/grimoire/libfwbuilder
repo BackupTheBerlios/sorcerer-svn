@@ -7,16 +7,21 @@
  attribute kde4 library makej
  attribute multilib-fail
     source $SOURCEFORGE_URL fwbuilder/Current_Packages/$VERSION/libfwbuilder-$VERSION.tar.gz
-  homepage http://www.fwbuilder.org
+      info home  http://www.fwbuilder.org/
+      info docs  http://www.fwbuilder.org/4.0/documentation.html
   estimate 560
       desc 'libraries required by fwbuilder'
 
 build(){
 (
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export PATH+=:/opt/kde4/i686/bin; echo /opt/kde4/i686 > qtdir
- else export PATH+=:/opt/kde4/bin;      echo /opt/kde4      > qtdir
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then export PATH+=:/opt/kde4/i686/bin; echo /opt/kde4/i686 > qtdir
+  else export PATH+=:/opt/kde4/bin;      echo /opt/kde4      > qtdir
+  fi
+ else  export PATH+=:/opt/kde4/bin;      echo /opt/kde4      > qtdir
  fi
+
  ./autogen.sh &&
  INSTALL_ROOT=$DESTDIR default_build
 )
