@@ -34,5 +34,13 @@ for Dylan, Java, Perl, PHP, Python, Rexx, Ruby, and Tcl.'
 
 build(){
  rm -f CMakeLists.txt
- default_build
+ default_build &&
+ if  [[ $HOSTTYPE == x86_64 ]] &&
+     [[ -f /lib/libc.so.6   ]]; then
+  if [[ $CFLAGS =~ -m32     ]]
+  then mv -v $DESTDIR/usr/include/curl/curlbuild{,-32}.h
+  else mv -v $DESTDIR/usr/include/curl/curlbuild{,-64}.h
+       install -vm 644 {$SCRIPT_DIR,$DESTDIR/usr/include/curl}/curlbuild.h
+  fi
+ fi
 }
