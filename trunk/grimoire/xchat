@@ -5,10 +5,20 @@
   optional openssl --enable-openssl       --disable-openssl for secure connections
   optional perl    ''                     --disable-perl    to run xchat perl scripts
   optional tcl     --enable-tcl           --disable-tcl     to enable use of tcl scripting
+      opts --disable-zvt
   category network/chat
- attribute console x11
+ attribute console makej x11
     source http://www.xchat.org/files/source/${VERSION:0:3}/xchat-$VERSION.tar.bz2
   homepage http://www.xchat.org/
-      opts --disable-zvt
   estimate 900
       desc 'IRC client'
+
+build(){
+ if  [[ $HOSTTYPE == x86_64 ]]; then
+  if [[ $CFLAGS   =~ -m32   ]]
+  then OPTS+=' --enable-tcl=/usr/lib'
+  else OPTS+=' --enable-tcl=/usr/lib64'
+  fi
+ fi
+ default_build
+}
