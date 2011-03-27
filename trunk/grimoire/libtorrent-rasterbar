@@ -1,19 +1,37 @@
-   version stable 0.14.8 0.14.7 0.14.6
+   version stable 0.15.5 0.14.8
    require boost openssl
       opts --enable-static=no
+case $VERSION in
+ 0.15.5)
+   require boost-v1_45_0
+#      opts -DBoost_INCLUDE_DIR:PATH=/opt/boost/1_45_0/include
+# if [[ $HOSTTYPE == x86_64 ]]
+# then opts -DBoost_LIBRARY_DIRS:FILEPATH=/opt/boost/1_45_0/lib64
+# else opts -DBoost_LIBRARY_DIRS:FILEPATH=/opt/boost/1_45_0/lib
+# fi
+ ;;
+esac
   category network/file-share
- attribute library
- attribute multilib-fail
-#   source $SOURCEFORGE_URL libtorrent/libtorrent/libtorrent-$VERSION/libtorrent-rasterbar-$VERSION.tar.gz
+ attribute library makej multilib-fail
     source http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$VERSION.tar.gz
-  homepage http://www.rasterbar.com/products/libtorrent
+      info home  http://www.rasterbar.com/products/libtorrent
+      info last  20110106
+      info docs  http://www.rasterbar.com/products/libtorrent/manual.html
+      info mail  https://lists.sourceforge.net/lists/listinfo/libtorrent-discuss
+      vurl http://code.google.com/p/libtorrent/downloads/list
   estimate 400
       desc 'c++ BitTorrent library'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --with-boost-libdir=/usr/lib64
- else opts --with-boost-libdir=/usr/lib
+ rm -f CMakeLists.txt
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+#  export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64 -Wl,-rpath-link,/opt/boost/1_45_0/lib64"
+   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64"
+   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
+ else
+#  export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib -Wl,-rpath-link,/opt/boost/1_45_0/lib"
+   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
+   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
  fi
  default_build
 }
