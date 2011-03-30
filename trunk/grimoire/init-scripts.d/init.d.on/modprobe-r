@@ -11,7 +11,11 @@ if [ "$1" = try-restart ] || ! [ -f /etc/modules.rm ] || ! [ -x /sbin/modprobe ]
 
 . /lib/lsb/init-functions
 
-rmp(){ modprobe -r $( sed 's:#.*::;/^ *$/d' /etc/modules.rm ); }
+rmp(){
+ [ -f /etc/modules.rm ] &&
+ sed 's:#.*::;/^ *$/d' /etc/modules.rm |
+ xargs -r --max-lines=64 modprobe -r
+}
 
 log_warning_msg 'Modules unloading'; rmp
 log_success_msg 'Modules unloaded'
