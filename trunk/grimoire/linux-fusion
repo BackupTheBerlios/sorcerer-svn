@@ -1,6 +1,6 @@
 # 8.2.0 did not compile
 
-    version stable 8.2.1 8.1.2 8.0.3
+    version stable 8.3.0 8.2.1 8.1.2 8.0.3
    category graphic/library
   attribute linux-26-module makej
      source http://www.directfb.org/downloads/Core/linux-fusion/linux-fusion-$VERSION.tar.gz
@@ -12,9 +12,8 @@ build(){
  local LVER=$( installed_version $( get_provider linux-kernel ) )
  local UDEV=$DESTDIR/lib/udev/rules.d/40-fusion.rules
 
- sed -i "s:\$(shell uname -r):$LVER:" Makefile
- make &&
- make install DESTDIR=$DESTDIR &&
+ make KERNELDIR=/usr/src/linux KERNEL_VERSION=$LVER INSTALL_MOD_PATH=$DESTDIR &&
+ make KERNELDIR=/usr/src/linux KERNEL_VERSION=$LVER INSTALL_MOD_PATH=$DESTDIR install &&
  mkdir -pvm 755 $( dirname $UDEV ) &&
  echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV &&
  chmod 644 $UDEV
