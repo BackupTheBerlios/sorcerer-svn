@@ -183,16 +183,9 @@ build(){
 
   local SUPPORTED="/usr/share/i18n/SUPPORTED"
 
-#  if  [[ $HOSTTYPE == x86_64 ]]; then
-#   if [[ -f /lib/libc.so.6   ]]
-#   then mkdir -pm 755 {,$DESTDIR}/usr/lib{,64}/locale
-#   else mkdir -pm 755 {,$DESTDIR}/usr/lib64/locale
-#   fi
-#   else mkdir -pm 755 {,$DESTDIR}/usr/lib/locale
-#  fi
-
-  if   [[ $HOSTTYPE == x86_64 ]]
-  then mkdir -pm 755 {,$DESTDIR}/usr/lib64/locale
+  if   [[ $HOSTTYPE == x86_64 ]] &&
+       [[ -f /lib/libc.so.6   ]]
+  then mkdir -pm 755 {,$DESTDIR}/usr/lib{,64}/locale
   else mkdir -pm 755 {,$DESTDIR}/usr/lib/locale
   fi
 
@@ -208,6 +201,11 @@ build(){
         localedef -i $SOURCE -c -f $CHARMAP --prefix=$DESTDIR $NAME
    echo " done"
   done
+
+  if   [[ $HOSTTYPE == x86_64 ]] &&
+       [[ -f /lib/libc.so.6   ]]
+  then cp -a $DESTDIR/lib{64,}/locale/locale-archive
+  fi
  }
 
  locale_archive &&
