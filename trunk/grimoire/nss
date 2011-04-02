@@ -7,8 +7,8 @@
    require nspr sqlite zlib
 # NSPR_VER='4.8.7'
   category network/web
- attribute library
- attribute multilib-fail
+# must be multilib-dual
+ attribute library multilib-dual
     source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
 #   source ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION-with-nspr-$NSPR_VER.tar.gz
 case $VERSION in
@@ -36,16 +36,11 @@ build(){
   install -vm 644 lib/pkgconfig/nss.pc  $DESTDIR/usr/lib/pkgconfig
 
   if    [[ $HOSTTYPE == x86_64 ]]; then
-   if   [[ $CFLAGS =~ -m32     ]]; then
-    mv    $DESTDIR/usr/lib{,32}
-   else
+   if ! [[ $CFLAGS =~ -m32     ]]; then
     mv    $DESTDIR/usr/lib{,64}
     sed -i 's:${prefix}/lib$:${prefix}/lib64:
             s:-L${prefix}/lib :-L${prefix}/lib64 :' \
         $DESTDIR/usr/lib64/pkgconfig/nss.pc
-    if   [[ -d $DESTDIR/usr/lib32 ]]
-    then mv    $DESTDIR/usr/lib{32,}
-    fi
    fi
   fi
  }

@@ -24,19 +24,20 @@ esac
 # optional gtk-doc --enable-gtk-doc --disable-gtk-doc
   category network/email
  attribute gnome library
- attribute broke
- attribute multilib-fail
+#attribute multilib-fail
     source $GNOME_URL sources/evolution-data-server/${VERSION:0:4}/evolution-data-server-$VERSION.tar.bz2
   homepage http://gnome.org/projects/evolution/stable.shtml
   estimate 2800
       desc 'libraries needed by evolution'
 
 build(){
- # export pkg-config info instead of using configure switches
- # --with-nspr-includes
- export   CFLAGS+=" $( pkg-config --cflags nspr )"
- export CXXFLAGS+=" $( pkg-config --cflags nspr )"
+ # export pkg-config info instead of using configure switch --with-nspr-includes
+ # export   CFLAGS+=" $( pkg-config --cflags nspr )"
+ # export CXXFLAGS+=" $( pkg-config --cflags nspr )"
  #export  LDFLAGS+=" $( pkg-config --libs   nspr )"
+
+ export   CFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
+ export CXXFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
 
  sed -i 's:-L$libdb_prefix/lib::' configure
  default_build
