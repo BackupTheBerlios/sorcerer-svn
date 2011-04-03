@@ -2,8 +2,7 @@
    require Python lv2core redland
   optional jackit '' --no-jack
   category audio/library
- attribute library
- attribute multilib-fail
+ attribute library makej multilib-dual
     source http://download.drobilla.net/slv2-$VERSION.tar.bz2
   homepage http://drobilla.net/blog/software/slv2/
   estimate 100
@@ -14,10 +13,8 @@ build(){
  ./waf -j1 &&
  DESTDIR=$DESTDIR ./waf install &&
  sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
- if    [[ $HOSTTYPE == x86_64   ]]; then
-  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                    else mv $DESTDIR/usr/lib{,64}
-    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
+ if   [[ $HOSTTYPE == x86_64   ]] &&
+    ! [[ $CFLAGS   =~ -m32     ]]
+ then mv $DESTDIR/usr/lib{,64}
  fi
 }
