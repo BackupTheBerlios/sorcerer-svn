@@ -17,3 +17,18 @@ It offers SAX or DOM tree generation interfaces.
 It supports XML and HTML (real world ones) parsing,
 flexible DTD validation, XPath, XPointer-XInclude,
 and pull and push modes with FTP and HTTP modules.'
+
+build(){
+ local RECAST=false
+ if   [[ $VERSION == 2.7.8 ]] &&
+      [[ $( installed_version libxml2 ) != 2.7.8 ]]
+ then RECAST=true
+ fi
+ default_build &&
+ if   $RECAST; then
+  if   (( $( cat /usr/sbin/cast | wc -l ) == 2 ))
+  then echo libxml2 | elfon | pipe_queue $CAST_QUEUE com
+  else echo libxml2 | elfon | pipe_queue $CAST_QUEUE
+  fi
+ fi
+}
