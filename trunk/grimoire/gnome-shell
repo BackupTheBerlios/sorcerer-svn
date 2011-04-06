@@ -1,19 +1,40 @@
-# for use with gnome 3.0?
+# Not certain about requirements.
 
-# 2.31.5: No package 'gtk+-3.0' found
-# 2.31.5 not for 2.32.x gnome release?
-
-   version stable 2.31.5
-   version unstable 3.92.5 2.91.3
-  category development
+   version stable 3.0.0 2.91.93 2.31.5
+   require evolution-data-server gjs gnome-bluetooth mutter
+  category utility utility/terminal-emulator
  attribute gnome new
-#attribute broke
-    source $GNOME_URL sources/gnome-shell/${VERSION:0:4}/gnome-shell-$VERSION.tar.bz2
+    source $GNOME_URL sources/gnome-shell/${VERSION:0:3}/gnome-shell-$VERSION.tar.bz2
   homepage http://www.gnome.org
-  estimate 100
       desc 'core user interface functions for the GNOME 3 desktop,
 like switching to windows and launching applications.
 GNOME Shell takes advantage of the capabilities of
 modern graphics hardware and introduces
 innovative user interface concepts
 to provide a visually attractive and easy to use experience.'
+
+
+# LD_RUN_PATH and LD_LIBRARY_PATH did not work around:
+# /usr/src/sorcery/compile/gnome-shell/gnome-shell-3.0.0/src/tmp-introspectPcQBYA/.libs/lt-Shell-0.1: 
+# error while loading shared libraries: libmozjs.so: cannot open shared 
+# object file: No such file or directory
+
+build_old(){
+build_older(){
+ local XULVER="$( installed_version $( get_provider xulrunner ) )"
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+    ! [[ $CFLAGS   =~ -m32   ]]
+ then export LDFLAGS+=" -L/usr/lib64/xulrunner-$XULVER/"
+ else export LDFLAGS+=" -L/usr/lib/xulrunner-$XULVER/"
+ fi
+ default_build
+}
+ local LD_LIBRARY_PATH
+ local XULVER="$( installed_version $( get_provider xulrunner ) )"
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then export LD_LIBRARY_PATH=/usr/lib64/xulrunner-$VERSION
+ else export LD_LIBRARY_PATH=/usr/lib/xulrunner-$VERSION
+ fi
+ default_build
+}

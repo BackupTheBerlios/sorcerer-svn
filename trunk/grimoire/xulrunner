@@ -1,4 +1,6 @@
-   version stable 2.0 1.9.2.10 1.9.2.9 1.9.2.8
+# gjs version 0.7.14 can not digest xulrunner 2.0
+
+   version stable 1.9.2.16 2.0 1.9.2.10 1.9.2.9 1.9.2.8
 # Using internal mng
    require GConf jdk libIDL libnotify nss sqlite startup-notification zip
 #  require GConf-dbus jdk libIDL libnotify nss sqlite startup-notification zip
@@ -6,10 +8,9 @@
   optional libgnomeui '' --disable-gnomeui  for libgnomeui support
 #   switch --enable-glitz --disable-glitz 'enable glitz for use with cairo'
   category network/web
- attribute client library solo x11
-#attribute multilib-fail
+ attribute client library makej multilib-dual solo x11
     source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-      info last  20110323
+      info last  20110320
   homepage http://developer.mozilla.org/en/XULRunner
       vurl http://developer.mozilla.org/en/XULRunner
       opts --with-system-jpeg
@@ -50,7 +51,18 @@
 
 build(){
  add_symlinks(){
-  ln -s xulrunner-$VERSION $DESTDIR/usr/lib/xulrunner
+  # symbolic links to libmozjs.so help gnome-shell to compile
+
+  if   [[ -d                            $DESTDIR/usr/lib/xulrunner-$VERSION ]]; then
+   ln -s xulrunner-$VERSION             $DESTDIR/usr/lib/xulrunner
+   ln -s xulrunner-$VERSION/libmozjs.so $DESTDIR/usr/lib/libmozjs.so
+  fi
+
+  if   [[ -d                            $DESTDIR/usr/lib64/xulrunner-$VERSION ]]; then
+   ln -s xulrunner-$VERSION             $DESTDIR/usr/lib64/xulrunner
+   ln -s xulrunner-$VERSION/libmozjs.so $DESTDIR/usr/lib64/libmozjs.so
+  fi
+
   ln -s xulrunner-$VERSION $DESTDIR/usr/include/xulrunner
  }
 
