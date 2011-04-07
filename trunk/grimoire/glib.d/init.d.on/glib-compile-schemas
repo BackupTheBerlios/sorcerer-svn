@@ -1,0 +1,29 @@
+#!/bin/dash
+### BEGIN INIT INFO
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
+# Default-Stop: 0 6
+# Short-Description: updates gschemas.compiled
+### END INIT INFO
+
+# Copyright 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if [ "$1" = try-restart ]; then exit; fi
+
+. /lib/lsb/init-functions
+
+DIR=/usr/share/glib-2.0/schemas/
+COM=$DIR/gschemas.compiled
+
+check(){
+ if ! [ -f $COM ]; then return; fi
+ find $DIR -type f -cnewer $COM | grep -q .
+}
+
+update(){ glib-compile-schemas $DIR; }
+
+if   log_warning_msg "$COM checking"; check
+then log_warning_msg "$COM updating"; update
+     log_success_msg "$COM updated"
+fi;  log_success_msg "$COM checked"

@@ -1,0 +1,37 @@
+#!/bin/dash
+### BEGIN INIT INFO
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
+# Default-Stop: 0 6
+# Short-Description: updates giomodule.cache
+### END INIT INFO
+
+# Copyright 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if [ "$1" = try-restart ]; then exit; fi
+
+. /lib/lsb/init-functions
+
+DIR0=/usr/lib/gio/modules/
+DIR1=/usr/lib64/gio/modules/
+CAC0=$DIR0/giomodule.cache
+CAC1=$DIR1/giomodule.cache
+
+check(){
+ if [ -d $DIR0 ] && ! [ -f $CAC0 ]; then return; fi
+ if [ -d $DIR1 ] && ! [ -f $CAC1 ]; then return; fi
+ if find $DIR0 -type f -cnewer $CAC0 | grep -q .; then return; fi
+ if find $DIR1 -type f -cnewer $CAC1 | grep -q .; then return; fi
+ return 1
+}
+
+update(){
+ if [ -d $DIR0 ]; then gio-querymodules $DIR0; fi
+ if [ -d $DIR1 ]; then gio-querymodules $DIR1; fi
+}
+
+if   log_warning_msg "$CAC0 checking"; check
+then log_warning_msg "$CAC0 updating"; update
+     log_success_msg "$CAC0 updated"
+fi;  log_success_msg "$CAC0 checked"
