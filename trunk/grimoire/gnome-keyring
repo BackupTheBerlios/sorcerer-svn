@@ -12,3 +12,21 @@ and other applications can locate it by an environment variable.
 The program can manage several keyrings, each with its own master
 password, and there is also a session keyring which is never
 stored to disk, but forgotten when the session ends.'
+
+build(){
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then OPTS+=' --with-pam-dir=/lib/security'
+  else OPTS+=' --with-pam-dir=/lib64/security'
+  fi
+ else  OPTS+=' --with-pam-dir=/lib/security'
+ fi
+ default_build
+}
+
+current(){
+ case $VERSION in
+  3.0.0) [ -f   /lib/security/pam_gnome_keyring.so ] ||
+         [ -f /lib64/security/pam_gnome_keyring.so ] ;;
+ esac
+}
