@@ -1,27 +1,20 @@
    version stable 7.10.2 7.8.2 7.8.1 7.7.1
    version unstable 7.10.2 7.9
-   require dri2proto expat gcc-g++ glproto libXdamage libXi libXmu libXxf86vm libdrm makedepend
+   require dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm makedepend udev
+#  require gcc-g++
   category graphic/library
  attribute X11R7 hidden library makej multilib-dual x11
 #attribute multilib-concurrent
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaGLUT-$VERSION.tar.bz2
-#   source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaDemos-$VERSION.tar.bz2
       info last  20110406
       info home  http://www.mesa3d.org
-  estimate 2700
       desc '3-D graphics library with an API similar to OpenGL'
 
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
 
-build(){ (
-
-# install_demos(){
-#  mkdir -pvm 755 $DESTDIR/usr/bin
-#  install -vm 755 progs/xdemos/{glxgears,glxinfo} $DESTDIR/usr/bin
-# }
-
+build(){
  install_drirc(){
   mkdir  -pvm 755                   $DESTDIR/etc
   install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
@@ -42,10 +35,10 @@ build(){ (
  # According to Evert Vorster
  # MesaLib should be compiled with -fno-strict-aliasing added to CFLAGS
  # in order for OpenGL to work with xf86-video-intel drivers
- CFLAGS+=' -fno-strict-aliasing'
+ export CFLAGS+=' -fno-strict-aliasing'
 
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --host="${MACHTYPE/x86_64/i686}"
+ then OPTS+=" ${MACHTYPE/x86_64/i686}"
  fi
 
  ./configure \
@@ -57,9 +50,8 @@ build(){ (
   $OPTS &&
  make   &&
  make install "DESTDIR=$DESTDIR" &&
-#     install_demos &&
       install_drirc
-) }
+}
 
 
 post_install(){
