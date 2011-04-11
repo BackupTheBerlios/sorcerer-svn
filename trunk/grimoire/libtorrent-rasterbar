@@ -1,15 +1,9 @@
-   version stable 0.15.5 0.14.8
+   version stable 0.15.6 0.15.5 0.14.8
    require boost openssl
       opts --enable-static=no
 case $VERSION in
- 0.15.5)
-   require boost-v1_45_0
-#      opts -DBoost_INCLUDE_DIR:PATH=/opt/boost/1_45_0/include
-# if [[ $HOSTTYPE == x86_64 ]]
-# then opts -DBoost_LIBRARY_DIRS:FILEPATH=/opt/boost/1_45_0/lib64
-# else opts -DBoost_LIBRARY_DIRS:FILEPATH=/opt/boost/1_45_0/lib
-# fi
- ;;
+ 0.15.[5-6])
+   require boost-v1_45_0 ;;
 esac
   category network/file-share
  attribute library makej multilib-fail
@@ -22,14 +16,29 @@ esac
   estimate 400
       desc 'c++ BitTorrent library'
 
+build_new(){
+ rm -f CMakeLists.txt
+ if   [[ $HOSTTYPE == x86_64 ]]; then
+  if  [[ $CFLAGS =~ -m32 ]]; then
+   opts --with-boost=/usr --with-boost-libdir=/usr/lib
+  else
+   opts --with-boost=/usr --with-boost-libdir=/usr/lib64
+  fi
+ fi
+ default_build
+}
+
 build(){
  rm -f CMakeLists.txt
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
-#  export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64 -Wl,-rpath-link,/opt/boost/1_45_0/lib64"
+ if  [[ $HOSTTYPE == x86_64 ]]; then
+  if [[ $CFLAGS   =~ -m32   ]]; then
+   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
+   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+  else
    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64"
    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
+  fi
  else
-#  export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib -Wl,-rpath-link,/opt/boost/1_45_0/lib"
    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
  fi

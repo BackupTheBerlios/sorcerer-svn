@@ -8,9 +8,17 @@
    require gcc-g++
       opts -DCMAKE_BUILD_TYPE=RELEASE
   category development/emulator
- attribute console
+ attribute console library makej multilib-concurrent
     source http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tgz
 #   source http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
   homepage http://www.llvm.org
   estimate 1800
       desc 'low level virtual machine'
+
+build(){
+ default_build &&
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then mv -v $DESTDIR/usr/lib{,64}
+ fi
+}
