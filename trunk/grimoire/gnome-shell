@@ -13,6 +13,20 @@ modern graphics hardware and introduces
 innovative user interface concepts
 to provide a visually attractive and easy to use experience.'
 
+build(){
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  if [ -d /usr/lib64/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/nvidia"; fi
+  if [ -d /usr/lib64/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/ati"; fi
+ else
+  if [ -d /usr/lib/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/nvidia"; fi
+  if [ -d /usr/lib/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/ati"; fi
+ fi
+
+ default_build
+}
+
+
 
 # LD_RUN_PATH and LD_LIBRARY_PATH did not work around:
 # /usr/src/sorcery/compile/gnome-shell/gnome-shell-3.0.0/src/tmp-introspectPcQBYA/.libs/lt-Shell-0.1: 

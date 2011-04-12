@@ -1,7 +1,11 @@
 # libgnutls-config removed used pkg-config instead to check for gnutls
 
    version stable 2.10.4 2.10.3
-   require libcfg+ libgcrypt libtasn1 ncurses pkgconfig readline zlib
+case $VERSION in
+ 2.10.*)
+      opts --disable-guile ;;
+esac
+   require guile libcfg+ libgcrypt libtasn1 ncurses pkgconfig readline zlib
   optional gcc-g++
   optional lzo2 --with-lzo
       opts --enable-static=no --disable-rpath
@@ -17,3 +21,8 @@ gnutls is the GNU Transport Layer Security Library
 is a library which implements a secure layer over
 a reliable transport layer such as TCP/IP.
 It implements the TLS 1.0 and SSL 3.0 protocols'
+
+build(){
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ default_build
+}

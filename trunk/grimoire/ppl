@@ -6,9 +6,10 @@
    require gmp
 # requirement on gcc-g++ creates circuliar requirement loop
 #  require gcc-g++ gmp
-      opts --enable-static=no
+      opts --enable-static=no --disable-rpath --disable-debugging
   category development/compiler
- attribute library makej multilib-concurrent
+ attribute library makej multilib-dual
+#attribute multilib-concurrent
     source http://www.cs.unipr.it/ppl/Download/ftp/releases/$VERSION/ppl-$VERSION.tar.bz2
   homepage http://www.cs.unipr.it/ppl
       vurl http://www.cs.unipr.it/ppl/Download/
@@ -21,6 +22,13 @@ build(){ (
   export   CFLAGS+=' -I/usr/include32'
   export CXXFLAGS+=' -I/usr/include32'
  fi
+
+ # to rid the rpath
+ # yet not entirely successful
+ aclocal; automake -acf; libtoolize -cf; autoreconf -fi
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ sed -i 's:hardcode_automatic=yes:hardcode_automatic=no:' configure
+ sed -i 's:hardcode_automatic_CXX=yes:hardcode_automatic_CXX=no:' configure
 
  export ac_preproc_ok=yes
  default_build
