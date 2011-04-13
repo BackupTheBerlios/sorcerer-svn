@@ -1,10 +1,14 @@
+# Version 4.0 of enblend-enfuse compiles only with legacy libpng
+# and therefore compiles static libpng and links with it
+# instead of using libpng installed in /usr/
+ 
    version stable 4.0 3.2
       info last  20091213
-   require boost glew lcms libpng libxmi openexr tiff
+   require boost glew lcms libxmi openexr tiff
   category graphic/utility
  attribute console makej
- attribute broke
     source $SOURCEFORGE_URL enblend/enblend-enfuse/enblend-enfuse-$VERSION/enblend-enfuse-$VERSION.tar.gz
+    source $SOURCEFORGE_URL libpng/libpng12/1.2.44/libpng-1.2.44.tar.xz
       info home  http://enblend.sourceforge.net/
       info last  20091213
   estimate 600
@@ -14,3 +18,14 @@ Enblend overlays them in such a way that the seam between the images
 is invisible or at least very difficult to see.
 Enblend does not line up the images for you.
 Use a tool like Hugin to do that.'
+
+build(){
+ cd libpng-1.2.44 &&
+ ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
+ make install &&
+ export  LDFLAGS+=" -L$PWD/install/lib" &&
+ export   CFLAGS+=" -I$PWD/install/include" &&
+ export CXXFLAGS+=" -I$PWD/install/include" &&
+ cd .. &&
+ default_build
+}
