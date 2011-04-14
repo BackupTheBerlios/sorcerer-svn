@@ -1,0 +1,62 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
+# Default-Stop: 0 6
+# Short-Description: updates giomodule.cache
+### END INIT INFO
+
+# Copyright 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+. /lib/lsb/init-functions
+
+if   [ -f  /usr/bin32/gdk-pixbuf-query-loaders ]
+then BIN32=/usr/bin32/
+else BIN32=
+fi
+
+if [ -d   /usr/lib/gdk-pixbuf-2.0 ]; then DIR=/usr/lib/gdk-pixbuf-2.0; fi
+if [ -d /usr/lib64/gdk-pixbuf-2.0 ]; then DIR+=" /usr/lib64/gdk-pixbuf-2.0"; fi
+
+LOADERS=( $( find $DIR -type d -name loaders     ) )
+LCACHES=( $( printf "%s.cache\n" "${LOADERS[@]}" ) )
+
+check(){
+ if ! [ -f "${LCACHES[0]}" ]; then return; fi
+ if find   "${LOADERS[0]}" -type f -cnewer "${LCACHES[0]}" | grep -q .; then return; fi
+ if [ -z   "${LOADERS[1]}" ]; then return 1; fi
+ if ! [ -f "${LCACHES[1]}" ]; then return; fi
+ if find   "${LOADERS[1]}" -type f -cnewer "${LCACHES[1]}" | grep -q .; then return; fi
+ return 1
+}
+
+update(){
+ local BIN
+
+ if [ -n "$BIN32" ]; then
+  if   find "${LOADERS[0]}" -type f -name \*.so |
+       head -n 1 | xargs file -b | grep -q "ELF 32-bit"
+  then BIN[0]="$BIN32"
+  fi
+  if   find "${LOADERS[1]}" -type f -name \*.so |
+       head -n 1 | xargs file -b | grep -q "ELF 32-bit"
+  then BIN[1]="$BIN32"
+  fi
+ fi
+
+ GDK_PIXBUF_MODULE_FILE="${LCACHES[0]}" \
+ GDK_PIXBUF_MODULEDIR="${LOADERS[0]}"   \
+ ${BIN[0]}gdk-pixbuf-query-loaders --update-cache
+
+ if [ -z "${LOADERS[1]}" ]; then return; fi
+
+ GDK_PIXBUF_MODULE_FILE="${LCACHES[1]}" \
+ GDK_PIXBUF_MODULEDIR="${LOADERS[1]}"   \
+ ${BIN[1]}gdk-pixbuf-query-loaders --update-cache
+}
+
+if   log_warning_msg "loaders.cache checking"; check
+then log_warning_msg "loaders.cache updating"; update
+     log_success_msg "loaders.cache updated"
+fi;  log_success_msg "loaders.cache checked"

@@ -7,7 +7,16 @@
   estimate 800
       desc 'graphic library used by gtk+'
 
-post_install(){
- default_post_install
- echo gdk-pixbuf-query-loaders | pipe_queue $CAST_QUEUE
+build(){
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+      [[ $CFLAGS   =~ -m32   ]]
+ then mv $DESTDIR/usr/bin{,32}
+ fi
+}
+
+current(){
+ case $VERSION in
+  2.23.3) [ -f /etc/init.d/gdk-pixbuf-query-loaders ] ;;
+ esac
 }

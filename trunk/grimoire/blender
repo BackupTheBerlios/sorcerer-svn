@@ -1,4 +1,6 @@
-   version stable 2.49b 2.49 2.48a
+# to fix ogg and vorbis are really required if compiled in
+
+   version stable 2.57 2.49b 2.49 2.48a
    version beta 2.56-beta 2.56a
    require Python alsa-lib freealut freetype jpeg libvorbis firefox scons
   optional yasm '' '' for fast x264 encoding
@@ -7,9 +9,9 @@
 #conflicts freealut
     source http://download.blender.org/source/blender-$VERSION.tar.gz
       vurl http://www.blender.org/download/get-blender
+      info last  20110414
       info home  http://www.blender.org/
       info docs  http://www.blender.org/education-help/
-	#to fix ogg and vorbis are really required if compiled in
   estimate 3800
       desc 'a 3d modeling environement
 Blender is a fully integrated 3D graphics creation suite allowing
@@ -18,17 +20,17 @@ modeling, animation, rendering, post-production, real-time interactive
 
 
 build(){
-fix_nasm_inc(){
-cd extern/xvidcore/src/
-find . -type d -exec cp -v nasm.inc '{}' \;
-cd ../../..
-}
+ fix_nasm_inc(){
+  cd extern/xvidcore/src/
+  find . -type d -exec cp -v nasm.inc '{}' \;
+  cd ../../..
+ }
 
-case $VERSION in
-2.49b) fix_nasm_inc ;;
-esac
+ case $VERSION in
+ 2.49b) fix_nasm_inc ;;
+ esac
  
-export  LDFLAGS+=' -lalut'
-scons &&
-scons install BF_INSTALLDIR=$DESTDIR/opt/blender
+ export  LDFLAGS+=' -lalut'
+ scons &&
+ scons install BF_INSTALLDIR=$DESTDIR/opt/blender
 }

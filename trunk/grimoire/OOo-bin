@@ -51,15 +51,22 @@ build(){
  }
 
  add_mailcap(){
-  mkdir -p $DESTDIR/etc
+  mkdir -pvm 755 $DESTDIR/etc
   sed "s:^:application/:
        s:$:; openoffice.org -view %s:" $SCRIPT_DIR/mailcap |
   sort -u > $DESTDIR/etc/mailcap.OOo-bin
  }
 
+ disable_init_script(){
+  if   [ -f      "$DESTDIR/etc/init.d/jexec" ]
+  then chmod 600 "$DESTDIR/etc/init.d/jexec"
+  fi
+ }
+
  [[ -d RPMS ]]   &&
  install_rpms    &&
- add_mailcap
+ add_mailcap     &&
+ disable_init_script
 }
 
 post_install(){
