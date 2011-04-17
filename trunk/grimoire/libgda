@@ -1,4 +1,4 @@
-   version stable 4.99.0 4.2.0 4.0.7
+   version stable 4.2.5 4.2.0 4.0.7
 #  version unstable 4.99.0
 case $VERSION in
  4.2.0)
@@ -13,14 +13,11 @@ esac
   optional openldap '' --without-ldap   for LDAP databases
   optional sqlite   '' --without-sqlite to retreive data from sqlite database
   optional unixODBC '' --without-odbc   to support windows databases
-      opts --with-jni=/opt/jdk/include
-      opts --enable-static=no
-# The following is probably only correct on IA32 architecture
-      opts --with-java=/opt/jdk/jre/lib/i386/client
+      opts --enable-static=no --with-jni=/opt/jdk/include
   category db
- attribute gnome library
- attribute broke
-    source $GNOME_URL sources/libgda/${VERSION:0:4}/libgda-$VERSION.tar.bz2
+ attribute gnome library makej multilib-concurrent
+    source   stable $GNOME_URL sources/libgda/${VERSION:0:3}/libgda-$VERSION.tar.bz2
+    source unstable $GNOME_URL sources/libgda/${VERSION:0:4}/libgda-$VERSION.tar.bz2
   homepage http://www.gnome.org
 # glom 1.6.10 requires libgda-postgres-3.0
 #            'postgresql::--without-postgres:to retrieve data from postgresql database'
@@ -33,5 +30,15 @@ build(){
   4.*) export   CFLAGS+=' -I/usr/include/mysql'
        export CXXFLAGS+=' -I/usr/include/mysql' ;;
  esac
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then OPTS+=' --with-bdb-libdir-name=/usr/lib';   OPTS+=' --with-java=/opt/jdk/jre/lib/i386'
+  else OPTS+=' --with-bdb-libdir-name=/usr/lib64'; OPTS+=' --with-java=/opt/jdk/jre/lib/amd64'
+  fi
+ else
+ OPTS+=' --with-java=/opt/jdk/jre/lib/i386'
+ fi
+
  default_build
 }

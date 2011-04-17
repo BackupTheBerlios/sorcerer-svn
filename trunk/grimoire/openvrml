@@ -1,12 +1,19 @@
-   version stable 0.18.6 0.18.5
+   version stable 0.18.7 0.18.6 0.18.5
+# case $VERSION in
+#  0.18.7)
+#  conflicts gtkglext
+#       opts --disable-xembed ;;
+# esac
    require MesaLib SDL boost curl gtkglext
   optional doxygen '' '--without-doxygen --disable-api-docs' for documentation generation
   optional firefox '' --disable-mozilla-plugin for mozilla openvrml plugin
       opts --disable-script-node-javascript --disable-script-node-java
   category graphic
- attribute gnome library makej multilib-concurrent solo
+ attribute gnome library makej multilib-fail solo
  attribute broke
     source $SOURCEFORGE_URL openvrml/openvrml/$VERSION/openvrml-$VERSION.tar.gz
+    source $SOURCEFORGE_URL libpng/libpng12/1.2.44/libpng-1.2.44.tar.xz
+      info last  20110417
   homepage http://openvrml.sourceforge.net
   estimate 2000
       desc 'library and program for reading and displaying VRML97
@@ -18,6 +25,16 @@ lookat, a basic Glut VRML viewer is included.'
 
 
 build(){
+ echo "OPTS=[$OPTS]"
+
+ cd libpng-1.2.44 &&
+ ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
+ make install &&
+ export  LDFLAGS+=" -L$PWD/install/lib" &&
+ export   CFLAGS+=" -I$PWD/install/include" &&
+ export CXXFLAGS+=" -I$PWD/install/include" &&
+ cd .. &&
+
  local MOZ_VER MOZ_INC MOZ_LIB JDK_INC JDK_LIB
 
  MOZ_VER=$( installed_version $( get_provider firefox ) )
@@ -52,5 +69,7 @@ build(){
  # LC_ALL=C grep -rl boost_filesystem-mt * |
  # xargs -r --max-lines=64 sed -i "s:boost_filesystem-mt:boost_filesystem-mt-gcc43:g"
 
+ export   CFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
+ export CXXFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
  default_build
 }
