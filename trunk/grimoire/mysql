@@ -1,14 +1,10 @@
 # akonadi requires qt-everywhere-opensource with mysql server support.
 # mysql server must be running for akonadi to use.
 
-# Added -fPIC to CFLAGS and CXXFLAGS therefore ./configure --with-pic not required.
-# It will not compile with --disable-static
-
    version stable 5.5.11 5.5.10 5.5.9 5.5.8
    version legacy 5.1.55
    version unstable 6.0.11
    require db cmake gcc-g++ init-functions ncurses openssl readline zlib
-#     opts --without-readline --with-pthread --with-embedded-server
       opts -DCMAKE_BUILD_TYPE:STRING=Release
       opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
 #     opts -DMYSQL_DATADIR:PATH=/usr/share
@@ -36,11 +32,6 @@ of a server daemon (mysqld) and client programs/libraries.'
 build(){
  sed -i 's:"data":"/var/lib/mysql":' cmake/install_layout.cmake
 
-# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-# then sed -i 's:"lib:"lib64:' cmake/install_layout.cmake
-# then opts -DLIB_DESTINATION:STRING=/opt/kde4/lib64
-# fi
-
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then OPTS+=" -DINSTALL_LIBDIR:STRING=lib64"
  fi
@@ -51,6 +42,50 @@ build(){
   mkdir -pm 755 $DESTDIR/usr/include
   mv            $DESTDIR/usr/mysql   $DESTDIR/usr/include/
  fi
+}
+
+build_legacy(){
+ # It will not compile with --disable-static
+
+ local LIBDIR=/usr/lib
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR+=64
+ fi
+
+ OPTS="--without-readline --with-pthread --with-embedded-server"
+
+ # Added -fno-exceptions -felide-constructors -fno-rtti
+ # From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
+
+ export   CFLAGS+=' -fPIC -fno-exceptions'
+ export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
+
+ ./configure                     \
+  --prefix=/usr                  \
+  --with-pic                     \
+  --enable-assembler             \
+  --enable-thread-safe-client    \
+  --localstatedir=/var/lib/mysql \
+  --enable-shared                \
+  --with-mysqld-user=mysql       \
+  --with-extra-charsets=complex  \
+  --exec-prefix=/usr             \
+  --libexecdir=/usr/sbin         \
+  --sysconfdir=/etc              \
+  --datadir=/usr/share           \
+  --infodir=/usr/info            \
+  --includedir=/usr/include      \
+  --mandir=/usr/man              \
+  --with-server-suffix='-Max'    \
+  --with-plugins=all             \
+  --with-comment="MySQL-MAX-$VERSION " \
+  --with-unix-socket-path=/var/lib/mysql/mysql.sock \
+  $OPTS &&
+  make pkglibdir=$LIBDIR &&
+  make pkglibdir=$LIBDIR install DESTDIR=$DESTDIR &&
+  mkdir  -pvm 755 $DESTDIR/etc &&
+  install -vm 700 support-files/my-medium.cnf $DESTDIR/etc/my.cnf
 }
 
 post_install(){
