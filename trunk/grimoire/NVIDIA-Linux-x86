@@ -1,3 +1,7 @@
+# Not using the multilib installer because
+# it sneakily installs ELF32 portions while entirely avoiding tracking
+# and therefore corrupting files installed by MesaLib
+
 # xorg-server requirement added purely for ordering.
 # With NVIDIA-Linux-x86 version 173.14.12
 # installed ontop of MesaLib version 7.2
@@ -7,24 +11,18 @@
 
 # 260.19.44 does not support xorg-server 1.10.0
 
-   version stable 260.19.44 260.19.29 260.19.21 260.19.12
+   version stable 270.41.06 260.19.44 260.19.29 260.19.21 260.19.12
    require MesaLib gtk+ libXvMC xorg-server
   optional linux-kernel '' '' for kernel module
- attribute multilib-fail
   category kernel
-case $HOSTTYPE in
- x86_64) attribute library linux-26-module solo x11 x86_64
-  if   [[ -f /lib/libc.so.6 ]]
-  then source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION.run
-  else source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
-  fi
- ;;
-# http://us.download.nvidia.com/XFree86/Linux-x86_64/256.44/NVIDIA-Linux-x86_64-256.44.run
-      *) attribute library linux-26-module solo x11 x86
-            source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run ;;
-#           source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION-pkg1.run ;;
-# http://us.download.nvidia.com/XFree86/Linux-x86/256.44/NVIDIA-Linux-x86-256.44.run
-esac
+ attribute library multilib-dual linux-26-module solo x11
+if [[ $HOSTTYPE == x86_64 ]]; then
+ attribute x86_64
+    source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
+else
+ attribute x86
+fi
+    source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run
       vurl http://www.nvidia.com/object/unix.html
   homepage http://www.nvidia.com
  freshmeat nvidiaxfree86_40drivers
@@ -48,17 +46,17 @@ Included is a sample config file that works with 2 monitors.
 
 build(){
  fix_install(){
-  mv       $DESTDIR/usr/include        $DESTDIR/usr/nvidia
-  mkdir -p $DESTDIR/usr/include
-  mv       $DESTDIR/usr/nvidia/vdpau   $DESTDIR/usr/include
-  mv       $DESTDIR/usr/nvidia         $DESTDIR/usr/include
-  mkdir -p $DESTDIR/etc/opengl/
+  mv             $DESTDIR/usr/include        $DESTDIR/usr/nvidia
+  mkdir -pvm 755 $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia/vdpau   $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia         $DESTDIR/usr/include
+  mkdir -pvm 755 $DESTDIR/etc/opengl/
 
-  if   [ -h $DESTDIR/usr/lib64/libGL.so.1 ]; then
+  if [ -h  $DESTDIR/usr/lib64/libGL.so.1 ]; then
    mkdir -vpm 755                        $DESTDIR/usr/lib64/nvidia
    mv    -v   $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib64/nvidia/
-   echo        /usr/lib64/nvidia  >      $DESTDIR/etc/opengl/nvidia
-   echo /opt/ia32/usr/lib/nvidia >>      $DESTDIR/etc/opengl/nvidia
+   echo       /usr/lib64/nvidia  >       $DESTDIR/etc/opengl/nvidia
+   echo       /usr/lib/nvidia   >>       $DESTDIR/etc/opengl/nvidia
   fi
   if [ -h $DESTDIR/usr/lib/libGL.so.1 ]; then
    mkdir -vpm 755                        $DESTDIR/usr/lib/nvidia
@@ -117,19 +115,22 @@ echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUI
 chmod a+x $BUILD_DIR/lsmod
 export PATH=$BUILD_DIR:$PATH
 
-if   ! [ "$( uname -m )" == "$HOSTTYPE" ]; then
- echo "Assuming compiling on x86_64 architecture while chrooted into"
- echo "/opt/ia32 onto a Sorcerer IA32 installation."
- echo    "Therefore, trying to compile and install without kernel module."
- PARAMETERS+=" --no-kernel-module"
-elif ! [ -d /usr/src/linux ]; then
+if ! [ -d /usr/src/linux ]; then
  echo    "/usr/src/linux is missing."
  echo    "Therefore, trying to compile and install without kernel module."
  PARAMETERS+=" --no-kernel-module"
 fi
 
-mkdir -p $DESTDIR/lib/modules/$LVER/kernel/drivers/video
-mkdir -p $DESTDIR/usr/{include,lib}
-bash $SOURCE $PARAMETERS &&
+mkdir -pvm 755 $DESTDIR/lib/modules/$LVER/kernel/drivers/video
+mkdir -pvm 755 $DESTDIR/usr/{include,lib}
+
+if    [[ $HOSTTYPE == x86_64 ]]; then mkdir -pvm 755 $DESTDIR/usr/lib64
+ if   [[ $CFLAGS   =~ -m32   ]]
+ then setarch i686 sh "${SOURCE[1]}" $PARAMETERS --no-kernel-module
+ else              sh "${SOURCE[0]}" $PARAMETERS
+ fi
+else               sh "${SOURCE[0]}" $PARAMETERS
+fi &&
+
 fix_install
 }
