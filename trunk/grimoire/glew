@@ -11,8 +11,11 @@
       desc 'an OpenGL extension wrangler library'
 
 build(){
- make &&
- mkdir -pvm 755 $DESTDIR/usr/lib/pkgconfig &&
- make install GLEW_DEST=$DESTDIR/usr &&
- rm -f $DESTDIR/usr/lib/libGLEW.a
+ sed -i "s:-O2:$CFLAGS:" config/Makefile.linux
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:-shared:-m32 -shared:' config/Makefile.linux; setarch i686 \
+      make install GLEW_DEST=$DESTDIR/usr
+ else make install GLEW_DEST=$DESTDIR/usr
+ fi &&
+ rm -f $DESTDIR/usr/lib*/libGLEW.a
 }

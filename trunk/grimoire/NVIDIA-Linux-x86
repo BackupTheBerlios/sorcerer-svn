@@ -1,83 +1,49 @@
-# Not using the multilib installer because
-# it sneakily installs ELF32 portions while entirely avoiding tracking
-# and therefore corrupting files installed by MesaLib
-
-# xorg-server requirement added purely for ordering.
-# With NVIDIA-Linux-x86 version 173.14.12
-# installed ontop of MesaLib version 7.2
-# xorg-server version 1.5.1 will fail to compile
-# Due to the NVIDIA-Linux-x86 header files not providing
-# what xorg-server expects.
-
 # 260.19.44 does not support xorg-server 1.10.0
 
    version stable 270.41.06 260.19.44 260.19.29 260.19.21 260.19.12
    require MesaLib gtk+ libXvMC xorg-server
   optional linux-kernel '' '' for kernel module
   category kernel
- attribute library multilib-dual linux-26-module solo x11
-if [[ $HOSTTYPE == x86_64 ]]; then
- attribute x86_64
-    source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
-else
- attribute x86
-fi
+ attribute library linux-26-module multilib-fail x11 x86
     source http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run
-      vurl http://www.nvidia.com/object/unix.html
-  homepage http://www.nvidia.com
+      info home  http://www.nvidia.com
+      info vurl  http://www.nvidia.com/object/unix.html
  freshmeat nvidiaxfree86_40drivers
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
   estimate 200
-      desc 'drivers provided by NVIDIA for NVIDIA GPUs
-NVIDIA-Linux-x86 contains both
-the nvidia provided binary xorg drivers
-and the linux kernel module.
+      desc 'ELF 32-bit drivers and kernel module provided by NVIDIA for NVIDIA GPUs'
 
-In order for this to work remember to edit Section "Files"
-of /etc/X11/xorg.conf and add:
-
-    ModulePath      "/usr/lib/modules"
-    ModulePath      "/usr/lib/xorg/modules"
-
-Included is a sample config file that works with 2 monitors.
-/root/.sorcery/grimoire/NVIDIA-Linux-x86.d/xorg.conf'
-
+if   [[ $HOSTTYPE == x86_64 ]] &&
+   ! [[ -f /lib/libc.so.6   ]]; then
+ attribute broke
+fi
 
 build(){
  fix_install(){
-  mv             $DESTDIR/usr/include        $DESTDIR/usr/nvidia
+  mv             $DESTDIR/usr/include      $DESTDIR/usr/nvidia
   mkdir -pvm 755 $DESTDIR/usr/include
-  mv             $DESTDIR/usr/nvidia/vdpau   $DESTDIR/usr/include
-  mv             $DESTDIR/usr/nvidia         $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia/vdpau $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia       $DESTDIR/usr/include
   mkdir -pvm 755 $DESTDIR/etc/opengl/
+  mkdir -vpm 755                           $DESTDIR/usr/lib/nvidia
+  mv    -v       $DESTDIR/usr/lib/libGL.*  $DESTDIR/usr/lib/nvidia/
 
-  if [ -h  $DESTDIR/usr/lib64/libGL.so.1 ]; then
-   mkdir -vpm 755                        $DESTDIR/usr/lib64/nvidia
-   mv    -v   $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib64/nvidia/
-   echo       /usr/lib64/nvidia  >       $DESTDIR/etc/opengl/nvidia
-   echo       /usr/lib/nvidia   >>       $DESTDIR/etc/opengl/nvidia
-  fi
-  if [ -h $DESTDIR/usr/lib/libGL.so.1 ]; then
-   mkdir -vpm 755                        $DESTDIR/usr/lib/nvidia
-   mv    -v   $DESTDIR/usr/lib/libGL.*   $DESTDIR/usr/lib/nvidia/
-   echo          /usr/lib/nvidia  >>     $DESTDIR/etc/opengl/nvidia
+  if   [[ $HOSTTYPE == x86_64 ]]
+  then rm -fr $DESTDIR/usr/{bin,include,man,share}
+  else echo /usr/lib/nvidia  >>            $DESTDIR/etc/opengl/nvidia
   fi
 
 # NVIDIA's wfb library can not be used by xorg and must not be installed
-  rm -f $DESTDIR/usr/lib{,64}/xorg/modules/*wfb*
+  rm -f $DESTDIR/usr/lib/xorg/modules/*wfb*
 
 ## libglx extension should be installed over xorg-server's libglx
-# rm -f $DESTDIR/usr/lib{,64}/xorg/modules/extensions/libglx.*
+# rm -f $DESTDIR/usr/lib/xorg/modules/extensions/libglx.*
 
   return 0
  }
 
- case $HOSTTYPE in
-  x86_64) MOD_PATH=/usr/lib64/xorg/modules ;;
-       *) MOD_PATH=/usr/lib/xorg/modules   ;;
-  esac
-
+ MOD_PATH=/usr/lib/xorg/modules
  PRO="$( get_provider linux-kernel )"
  if   spell_installed $PRO
  then LVER="$( installed_version $PRO  )"
@@ -108,6 +74,12 @@ build(){
 --no-cc-version-check
 --no-distro-scripts"
 
+if     [[ $HOSTTYPE == x86_64 ]]; then PARAMETERS+=" --no-kernel-module"
+elif ! [ -d /usr/src/linux     ]; then PARAMETERS+=" --no-kernel-module"
+ echo      "/usr/src/linux is missing."
+ echo "Therefore, required kernel module will not be installed."
+fi
+
 local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
 mkdir -p $BUILD_DIR
 cd       $BUILD_DIR
@@ -115,22 +87,29 @@ echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUI
 chmod a+x $BUILD_DIR/lsmod
 export PATH=$BUILD_DIR:$PATH
 
-if ! [ -d /usr/src/linux ]; then
- echo    "/usr/src/linux is missing."
- echo    "Therefore, trying to compile and install without kernel module."
- PARAMETERS+=" --no-kernel-module"
-fi
-
 mkdir -pvm 755 $DESTDIR/lib/modules/$LVER/kernel/drivers/video
 mkdir -pvm 755 $DESTDIR/usr/{include,lib}
 
-if    [[ $HOSTTYPE == x86_64 ]]; then mkdir -pvm 755 $DESTDIR/usr/lib64
- if   [[ $CFLAGS   =~ -m32   ]]
- then setarch i686 sh "${SOURCE[1]}" $PARAMETERS --no-kernel-module
- else              sh "${SOURCE[0]}" $PARAMETERS
- fi
-else               sh "${SOURCE[0]}" $PARAMETERS
+if   [[ $HOSTTYPE == x86_64 ]]
+then setarch i686 sh "${SOURCE[0]}" $PARAMETERS --no-kernel-module
+else              sh "${SOURCE[0]}" $PARAMETERS
 fi &&
 
 fix_install
 }
+
+current(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f $INSTALL_LOGS/NVIDIA-Linux-x86_64 ]]
+ then echo NVIDIA-Linux-x86_64 | pipe_queue $CAST_QUEUE
+ fi
+}
+
+# When using the dual architecture binary
+# then some files install without tracking.
+# When using a multilib spell for NVIDIA-Linux-x86
+# then some files like /usr/lib/libnvidia-tls mysterious vanish
+# prior to installation.
+# Probably NVIDIA's installer deletes them.
+# Attempted with both multilib-dual and without.
+# Only means for flawless installation is to use 2 spells.
+
