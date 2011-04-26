@@ -1,32 +1,18 @@
+# version 3.12 does not support loading of xz compressed modules
+
 # version 3.4 exists in a user's directory, but is an official release?
 # 3.4 does not compile due to complications created by using
 # docbook2man from docbook2X and docbook2man does not work properly.
 
-   version stable 3.12 3.11.1 3.11 3.10 3.9 3.8 3.7 3.6 3.5 3.4.1 3.2.2 3.2.1 3.1 3.0
-   version unstable 3.4.1 3.4 3.2.2
+   version stable 3.12 3.11.1 3.11 3.10
    require bison flex init-functions zlib
 #  require bison docbook2X flex init-functions zlib
+      opts --enable-zlib --enable-zlib-dynamic --disable-static-utils
   category kernel
  attribute console
     source $KERNEL_URL pub/linux/utils/kernel/module-init-tools/module-init-tools-$VERSION.tar.bz2
-  homepage ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ
-      opts --enable-zlib --enable-zlib-dynamic --disable-static-utils
-# Odd documentation building requirements for version 3.4
-# case  $VERSION  in
-#   3.[0-2])  :  ;;
-#   3.[4-9])  require docbook2X docbook-sgml-4.2 ;;
-# esac
-## Unfortunately, with requirements installed it still errors:
-## docbook2man doc/modprobe.conf.sgml
-## I/O error : Attempt to load network entity http://docbook2x.sf.net/latest/xslt/man/docbook.xsl
-## warning: failed to load external entity "http://docbook2x.sf.net/latest/xslt/man/docbook.xsl"
-## cannot parse http://docbook2x.sf.net/latest/xslt/man/docbook.xsl
-## Unable to recognise encoding of this document at 
-## /usr/lib/perl5/site_perl/5.8.8/XML/SAX/PurePerl/EncodingDetect.pm line 100.
-## Document requires an element [Ln: 1, Col: 0]
-
-## docbook2X really aught to install any xsl sheets it requires.
-
+      info last  20100607
+      info home  ftp://ftp.kernel.org/pub/linux/kernel/people/rusty/modules/FAQ
    exclude /etc/modules.conf
    protect /etc/modules
    protect /etc/modules.rm
@@ -36,15 +22,15 @@
 
 build(){
 conf_install(){
- mkdir -p $DESTDIR/etc/modules.d
- cp -av $SCRIPT_DIR/modules    $DESTDIR/etc
- cp -av $SCRIPT_DIR/modules.rm $DESTDIR/etc
+ mkdir -pvm 755 $DESTDIR/etc/modules.d
+ cp    -av       $SCRIPT_DIR/modules    $DESTDIR/etc
+ cp    -av       $SCRIPT_DIR/modules.rm $DESTDIR/etc
 }
 
 wrap_install(){
- mkdir -p $DESTDIR/usr/sbin
- install -m 700 $SCRIPT_DIR/modprobe $DESTDIR/usr/sbin/
- install -m 700 $SCRIPT_DIR/rmmod    $DESTDIR/usr/sbin/
+ mkdir  -pvm 755                      $DESTDIR/usr/sbin
+ install -vm 700 $SCRIPT_DIR/modprobe $DESTDIR/usr/sbin/
+ install -vm 700 $SCRIPT_DIR/rmmod    $DESTDIR/usr/sbin/
 }
 
 # sed -i 's:-Wl,-Bdynamic::
