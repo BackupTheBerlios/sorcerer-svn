@@ -1,0 +1,90 @@
+   version stable 4.4.6 4.4.5 4.4.3
+   require binutils cloog-ppl mpfr multiprecision
+# requiring coreutils creates recursive requirement loop
+#  require binutils cloog-ppl coreutils mpfr
+      opts --with-ppl --with-cloog
+  category development/compiler
+ attribute console library makej multilib-fail
+    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+      info home  http://gcc.gnu.org/
+      info docs  http://gcc.gnu.org/onlinedocs/
+      info mail  http://gcc.gnu.org/lists.html
+      desc 'gcc version 4.4.6 for compiling glibc version 2.13'
+
+build(){
+
+ finish_install(){
+  local STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
+
+  if   [[ -f           $STRSTREAM   ]] &&
+     ! [[ -f           $STRSTREAM.h ]]
+  then ln -s strstream $STRSTREAM.h
+  fi
+
+  rm -f  $DESTDIR/opt/gcc/$VERSION/info/dir
+ }
+
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export CCACHE_DISABLE=1
+ export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+
+ case $MACHTYPE in
+  *-uclibc) opts --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
+  *-gnu)    opts --enable-__cxa_atexit --enable-clocale=gnu ;;
+ esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+ then opts --disable-multilib
+ fi
+
+   LCF="LIBCFLAGS=$CFLAGS"
+  LCXF="LIBCXXFLAGS=$CXXFLAGS"
+    BF="BOOT_CFLAGS=$CFLAGS"
+  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+   LDF="LDFLAGS=$LDFLAGS -Wl,-R/opt/gcc/$VERSION/lib64 -Wl,-R/opt/gcc/$VERSION/lib"
+
+ OPTS+="
+  --prefix=/opt/gcc/$VERSION
+  --enable-shared
+  --infodir=/usr/info
+  --mandir=/usr/man
+  --datadir=/usr/share
+  --enable-long-long
+  --enable-threads
+  --enable-tls
+  --with-system-zlib
+  --disable-bootstrap"
+
+ OPTS+=" --enable-libstdcxx-pch=no"
+ OPTS+=" --enable-languages=c,c++"
+
+ mkdir BUILD
+ cd    BUILD
+ ../configure $OPTS             &&
+ make "$BF"                     \
+      "$LCF"  "$LCXF"  "$LDF"   \
+      "$LJCF" "$LJCXF"          &&
+ make  install DESTDIR=$DESTDIR &&
+ finish_install
+}
+
+
+post_install(){
+ get_provider libtool | pipe_queue $CAST_QUEUE
+
+ if   [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]
+ then rm -f ${CCACHE_CACHE}/*
+ fi
+
+ cast_if_needed(){
+  if ! spell_installed $1 &&
+       grep -lr $2 $ELF_LOGS |
+       grep -v  gcc          |
+       grep -q .
+  then echo $1 | pipe_queue "$CAST_QUEUE"
+  fi
+ }
+}

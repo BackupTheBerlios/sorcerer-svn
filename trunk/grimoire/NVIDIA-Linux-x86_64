@@ -1,0 +1,96 @@
+# 260.19.44 does not support xorg-server 1.10.0
+
+   version stable 270.41.06 260.19.44 260.19.29 260.19.21 260.19.12
+   require MesaLib gtk+ libXvMC xorg-server
+  category kernel
+ attribute library linux-26-module multilib-fail x86_64 x11
+    source http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
+      info home  http://www.nvidia.com
+      info vurl  http://www.nvidia.com/object/unix.html
+ freshmeat nvidiaxfree86_40drivers
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
+  estimate 200
+      desc 'ELF 64-bit drivers and kernel module provided by NVIDIA for NVIDIA GPUs'
+
+if   ! [[ $HOSTTYPE == x86_64 ]]; then
+ attribute broke
+elif ! [[ -f /lib/libc.so.6   ]]; then
+  optional NVIDIA-Linux-x86
+fi
+
+build(){
+ fix_install(){
+  mv             $DESTDIR/usr/include        $DESTDIR/usr/nvidia
+  mkdir -pvm 755 $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia/vdpau   $DESTDIR/usr/include
+  mv             $DESTDIR/usr/nvidia         $DESTDIR/usr/include
+  mkdir -pvm 755 $DESTDIR/etc/opengl/
+
+  if [ -h  $DESTDIR/usr/lib64/libGL.so.1 ]; then
+   mkdir -vpm 755                        $DESTDIR/usr/lib64/nvidia
+   mv    -v   $DESTDIR/usr/lib64/libGL.* $DESTDIR/usr/lib64/nvidia/
+   echo       /usr/lib64/nvidia  >       $DESTDIR/etc/opengl/nvidia
+   echo       /usr/lib/nvidia   >>       $DESTDIR/etc/opengl/nvidia
+  fi
+
+# NVIDIA's wfb library can not be used by xorg and must not be installed
+  rm -f $DESTDIR/usr/lib64/xorg/modules/*wfb*
+
+## libglx extension should be installed over xorg-server's libglx
+# rm -f $DESTDIR/usr/lib64/xorg/modules/extensions/libglx.*
+
+  return 0
+ }
+
+ MOD_PATH=/usr/lib64/xorg/modules
+ PRO="$( get_provider linux-kernel )"
+ if   spell_installed $PRO
+ then LVER="$( installed_version $PRO  )"
+ else LVER="$( available_version linux )"
+ fi
+
+ PARAMETERS="
+--accept-license
+--no-questions
+--ui=none
+--x-prefix=$DESTDIR/usr
+--x-module-path=$DESTDIR/$MOD_PATH
+--x-library-path=$DESTDIR/usr/lib64
+--opengl-prefix=$DESTDIR/usr
+--installer-prefix=$DESTDIR/usr
+--utility-prefix=$DESTDIR/usr
+--documentation-prefix=$DESTDIR/usr
+--kernel-source-path=/usr/src/linux
+--kernel-install-path=$DESTDIR/lib/modules/$LVER/kernel/drivers/video
+--kernel-name=$LVER
+--no-runlevel-check
+--no-abi-note
+--no-rpms
+--no-backup 
+--no-network
+--no-recursion
+--no-x-check
+--no-cc-version-check
+--no-distro-scripts"
+
+if ! [ -d /usr/src/linux ]; then
+ echo    "/usr/src/linux is missing."
+ echo    "Therefore, trying to compile and install without kernel module."
+ PARAMETERS+=" --no-kernel-module"
+fi
+
+local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
+mkdir -p $BUILD_DIR
+cd       $BUILD_DIR
+echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUILD_DIR/lsmod
+chmod a+x $BUILD_DIR/lsmod
+export PATH=$BUILD_DIR:$PATH
+
+mkdir -pvm 755 $DESTDIR/lib/modules/$LVER/kernel/drivers/video
+mkdir -pvm 755 $DESTDIR/usr/{include,lib64}
+
+sh "${SOURCE[0]}" $PARAMETERS &&
+
+fix_install
+}
