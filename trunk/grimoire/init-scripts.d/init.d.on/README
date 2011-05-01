@@ -16,10 +16,9 @@ Section 1.1 POST
 Following power on the Power On Self Test, or POST begins.
 Following a successful POST the BIOS, basic input output,
 attempts to load an operating system.
-Depending on how the capability of the BIOS and
-how the BIOS is configured in the BIOS/CMOS configuration menu
-the BIOS will attempted to load an operating system from CDROM, fixed 
-disks, floppy disks, network, or removeable drives.
+Depending on the capability and configuration
+the BIOS will attempt to load an operating system from CDROM,
+fixed disks, floppy disks, network, or removeable drives.
 When loading an operating system from fixed disk BIOS
 first loads and runs the content of the MBR, master boot record,
 of the primary fixed disk.
@@ -29,64 +28,84 @@ Section 1.2 lilo
 If the MBR contains a boot loader program such as lilo, the linux loader,
 then lilo is run, otherwise the MBR will usually contain code
 that causes it to load and run the content from
-the boot block of the first partition marked as bootable in
-the partition table.
+the boot block of the first partition marked as bootable
+in the partition table.
 Most Sorcerer boxes have lilo installed
 to the boot block of the /boot partition.
 However, if no /boot partition was defined
 then the boot block of the / partition will contain lilo.
-The bootloader load into memory a kernel image
-and also an initramfs image.
-Initramfs is the initialization random access
-memory file system.
-Initramfs exists entirely in RAM and is not backed by swap.
+The bootloader load into memory
+a kernel image and also an initramfs image.
+Initramfs is the initialization random access memory file system.
 
 Section 1.3 linux kernel
 
-Soon after the kernel begins running
-the kernel initializes important
-hardware devices such as the screen and keyboard.
-Then the kernel decompresses the initramfs image if necessary.
-It mounts the initramfs image as / , the root filesystem.
+The linux kernel begins.
+It initializes hardware devices
+such as the screen and keyboard.
+Then the kernel decompresses, if necessary, and
+extracts the cpio initramfs image to the rootfs.
+The rootfs is automatically mounted on /
 Finally, the kernel begins execution of the file /init as process 1.
-Using the kernel paramter rdinit=/bin/bash
+
+However, using the kernel paramter rdinit=/bin/bash
 the kernel can be instructed to execute a shell instead of /init.
 Executing a shell instead of the normal /init is useful
 when the SA wants to debug problems that occur during sysinit.
 
 Section 1.4 sysinit
 
-Sysinit which is run from entirely from the initramfs.
-Sysinit is the second stage of the boot process.
-During sysinit udev is re-triggers cold plug events
-to load kernel driver modules and firmware into memory
-for all detected installed hardare.
-Also kernel modules are loaded for filesystems and other
-commonly used protocols and methods
-such as FUSE, file system in user space, and networking protocols.
+Sysinit runs from entirely from the initramfs.
+Sysinit is the third stage of the boot process.
+During sysinit udev automatically loads
+kernel drivers, modules, firmware for installed hardware.
+Udev also creates device nodes in /dev with permission
+and ownership as specified by udev rule files.
+As sysinit progress
+kernel modules are loaded for filesystems
+and other commonly used protocols and methods such as FUSE,
+file system in user space, and networking protocols.
 The purpose of the sysinit is to complete required preparations
-for being able to successfully mount the real filesystems
-such as the real / /boot and /home file systems.
+for being able to successfully mount filesystems provided
+on disk, by network, or by memory storage devices.
 
-Section 1.5 runlevel
+Section 1.5 the end of sysinit
 
-Following the successful completion of sysinit
-the real root filesystem is mounted as /media/root/
-Virtual file systems such as /dev and /proc are moved
-from / to /media/root/dev and /media/root/proc, respectively.
-Using a chroot execute into /media/root/
-process 1 is passed from /init on the initramfs
-to /sbin/init on the real root filesystem.
-At this point runlevel initialization begins.
+The end portion of sysinit
+mounts the real root filesystem on /media/root/
+Additional filesystems specified in /etc/fstab
+are mounted under /media/root
+Then, virtual file systems such as /dev and /proc
+that mounted during sysinit
+are bound to /media/root/dev and /media/root/proc, respectively.
+Now that sysinit is complete
+runlevel execution begins
+within a chroot to /media/root/
 
-For a description of runlevels and to be able to change the
-selected default runlevel please see the file /etc/inittab
-Although only one of 5 possible runlevels is started
-the purpose of runlevels 1 through 5
-are to to start useful installed services
+Section 1.6 gettys
+
+Following the completion of sysinit
+agetty is started on virtual consoles.
+Runlevels 1 2 3 provides agetty on virtual consoles 1 through 7.
+Runlevels 4 5   provides agetty on virtual consoles 1 through 3 and 7.
+agetty, except on virtual console #7, log in chrooted to /media/root/
+Virtual console #7 logs into /
+Virtual console #7 is provided for the SA
+in order to diagnose and repair problems on a box
+without having to reboot using an Install/Rescue disk
+and without having to reboot using the rescue label.
+
+Section 1.7 runlevel
+
+/etc/inittab contains a description of runlevels.
+And the default runlevel can be changed by editing /etc/inittab
+Run levels 1 through 5 are valid for init default.
+However, runlevels 3 through 5 are most popular.
+The purpose of a runlevel is to start services
 such as webservers, secure socket shell server,
 system logger, cron, X server and other services
-that make computers friendly and useful to uesrs.
+that make computers friendly and useful.
+
 
 
 Section 2.0 Customization
@@ -168,22 +187,22 @@ Section 3.0 Logs
 
 Section 3.1 log names
 
-Output from kernel ring buffer is written to /etc/init.d/log.d/dmesg
-Output from sysinit            is written to /etc/init.d/log.d/sysinit
-Output from runlevel           is written to e/tc/init.d/log.d/runlevel.$RUNLEVEL
+Output from kernel ring buffer is written to /var/log/boot/dmesg
+Output from sysinit            is written to /var/log/boot/sysinit
+Output from runlevel           is written to /var/log/boot/runlevel.$RL
+Output from runlevel 0 and 6   is written to /var/log/runlevel.$RL
 
-
-Section 3.2 /etc/init.d/log.d/
+Section 3.2 /var/log/boot/
 
 Because the real only the initrf is mounted as the root filesystem
 during startup the real /var/log/ is unavailable at the time that
 init-script execution begins.
-Consequently, a tmpfs, temporary filesystem, is mounted on /etc/init.d/log.d/
-The tmpfs on /etc/init.d/log.d/ is initially mounted on the initrf.
-Later as a box progress to runlevels the /etc/init.d/log.d/ temporary file system
-is moved onto the real root filesystem as /etc/init.d/log.d/
+Consequently, a tmpfs, temporary filesystem, is mounted on /var/log/boot/
+The tmpfs on /var/log/boot/ is initially mounted on the initrf.
+Later as a box progress to runlevels the /var/log/boot/ temporary file system
+is moved onto the real root filesystem as /var/log/boot/
 Therefore, when information about what happened during boot is desired
-then the place to look is always /etc/init.d/log.d/
+then the place to look is always /var/log/boot/
 regardless of whether the boot stage is sysinit or runlevel execution.
 
 
@@ -213,7 +232,7 @@ nearly any available character device can be selected.
 Execution of some programs cause uncategorized messags to be printed.
 However, messages printed by init-scripts fall into 3 categories:
 white [ warning ]; green [ success ]; and red [ failure ].
-If the logs in /etc/init.d/log.d/ are cat
+If the logs in /var/log/boot/ are cat
 then holding SHIFT while pressing PAGE UP
 can be used to scroll up while looking for red [ failure ] messages.
 A failure message is not necessarily bad,
