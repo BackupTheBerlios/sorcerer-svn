@@ -1,12 +1,38 @@
-#!/bin/dash
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee
+# All Rights Reserved
+# For use on Sorcerer only
 
 ### BEGIN INIT INFO
 # Default-Stop: 6
-# Short-Description: reboot kills lingering processes and reboots the box
+# Short-Description: reboots the box
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
+rebound(){
+ find /var/log/boot/ -type f | while read; do mv $REPLY{,.old}; done
+ /etc/init.d/rcS
+ telinit $REPLY
+ exit
+}
+
+count_down(){
+ local CX=10
+ echo -n "(p)ause; (s)ulogin; (#)runlevel; $1 in"
+ while (( CX-- > 0 )); do
+  if read -p " $CX" -n 1 -t 1; then
+   echo
+   case $REPLY in
+    p) read -n 1 -t 300 ;;
+    s) sulogin   -t 300 ;;
+    [1-7]) rebound      ;;
+    *) CX=0             ;;
+   esac
+  fi
+ done
+}
+
 case $1 in
-stop) log_success_msg Rebooting; reboot -d -f -i  ;;
+stop) count_down Rebooting; log_success_msg Rebooting; reboot -d -f -i  ;;
 esac

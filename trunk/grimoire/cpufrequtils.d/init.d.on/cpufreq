@@ -1,50 +1,42 @@
-#!/bin/dash
+#!/bin/bash
 
 ### BEGIN INIT INFO
 # Required-Start: proc sys
 # Should-Start: udev
 # Default-Start: 1 2 3 4 5
-# Short-Description: Loads modules for governors and sets scaling_governor
+# Short-Description: Sets scaling_governor
 # Configuration file is /etc/init.d/conf.d/cpufreq
 # Define variables in configuration file.
+# Available governors:
+#   conservative ondemand performance powersave userspace
 # Examples:
-# GOVERNORS="conservative ondemand performance powersave userspace"
 # DEFAULT="performance"
 # USER="Yes"
 
-# Modules for any or all governors can be loaded.
+# Modules for governors must load first.
 
-# However, DEFAULT specifies only the governor
-# for all CPU cores to use during boot until the SA or user changes it.
-# Providing additional governors are listed in the $GOVERNOR variable
-# the invoking cpufreq_$GOVERNOR will switch all cores
-# to the specified governor for example:
+# DEFAULT specifies the governor
+# for all CPU cores to use during boot
+# until the SA or user changes it.
+# To switch governors type the module's name on a command line.
+# Example:
 # cpufreq_performance  # Maximum speed on all cores
 # cpufreq_powersave    # Minimum speed on all cores
 
-# If $USER is specified set to anything
-# then users also will be able to change the governor
-# and CPU core frequencies instead of just root
+# If variable $USER is set
+# then users also will be able to switch CPU frequency governors.
 
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
-for GOV in $GOVERNORS; do 
- log_warning_msg "Running modprobe cpufreq_$GOV"
-                          modprobe cpufreq_$GOV
-done
-
-if [ -n "$USER" ]; then
- chmod 666 /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor \
-           /sys/devices/system/cpu/cpu*/cpufreq/scaling_setspeed
+if   [ -n "$USER" ]
+then chmod 666 /sys/devices/system/cpu/cpu*/cpufreq/scaling_{governor,setspeed}
 fi
 
-# Governors do not complete initalization before modprobe returns.
-# Therefore, sleeping for a short while.
-sleep 0.1
-
-if                       [ -x /bin/cpufreq_$DEFAULT ]
-then log_warning_msg "Running /bin/cpufreq_$DEFAULT"
-                              /bin/cpufreq_$DEFAULT
+if   [ -x             /bin/cpufreq_$DEFAULT ] &&
+     log_warning_msg "/bin/cpufreq_$DEFAULT starting" &&
+                      /bin/cpufreq_$DEFAULT
+then log_success_msg "/bin/cpufreq_$DEFAULT started"
+else log_failure_msg "/bin/cpufreq_$DEFAULT failed"
 fi

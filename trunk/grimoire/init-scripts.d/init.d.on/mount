@@ -1,8 +1,8 @@
-#!/bin/dash
+#!/bin/bash
 
 ### BEGIN INIT INFO
 # Provides: $local_fs
-# Required-Start: mtab root-rw move_dev
+# Required-Start: mtab root-rw bind_dev
 # Required-Stop: cryptmount cryptsetup halt mdadm reboot reboot-kexec root-ro
 # Default-Start: S
 # Default-Stop: 0 6
@@ -30,13 +30,17 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-   mount -o remount,ro /
    cut -d ' ' -f2 /proc/mounts |
-   LC_ALL=C sort -ur | xargs -r --max-lines=1024 umount -lr
+   LC_ALL=C sort -r |
+   if   [ -d /media/root/proc ]
+   then grep /media/root
+   else grep -vx / ; mount -o remount,ro /
+   fi |
+   xargs -r --max-lines=1024 umount -lr
  }
 
- log_warning_msg 'Filesystems in /proc/mounts unmounting or remounting read-only'; run
- log_success_msg 'Filesystems in /proc/mounts unmounted  or remounted  read-only'
+ log_warning_msg 'Filesystems unmounting'; run
+ log_success_msg 'Filesystems unmounted'
 }
 
 try_restart(){ :; }

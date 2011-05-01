@@ -1,29 +1,21 @@
-#!/bin/dash
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee
+# All Rights Reserved
+# For use on Sorcerer only
+
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
-CYAN="[36m"
-NORM="[0m"
-
-if   [ "$BASH_VERSION" ]
-then BE=-e
-fi
-
-info(){ echo $BE "$CYAN * $NORM$1\r" 1>&2; }
-
 run(){
- for S in /etc/rc.d/rcS.d/*
-#do info "Run $S start"; $S start; info "Ran $S start"
- do $S start
- done
+ for S in /etc/rc.d/rcS.d/*; do $S start; done
  echo End sysinit
 }
 
 md(){ [ -d $1 ] || mkdir -p $1; }
 
 I=/etc/init.d
-L=$I/log.d
+L=/var/log/boot
 D=$I/dev.d
 
 [ -f $L/sysinit ] && return
@@ -35,5 +27,8 @@ fi
 
 md $L
 md $D
-mount -o size=1m,nr_inodes=8 -t tmpfs tmpfs $L
+if   ! [    -f               /proc/mounts ] ||
+     ! grep -q /var/log/boot /proc/mounts
+then mount -o size=1m,nr_inodes=8,mode=700 -t tmpfs tmpfs $L
+fi
 run 2>&1 | cap
