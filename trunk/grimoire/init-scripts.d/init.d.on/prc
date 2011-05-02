@@ -48,7 +48,18 @@ ssp(){ parallel K stop; parallel S start; }
 ssl(){ linear   K stop; linear   S start; }
 log(){ $1; echo End runlevel $RL; }
 rcl(){ find /etc/rc.d/rc${RL}.d/ -type l; }
-ssm(){ while [ -n "$1" ]; do [ -f $1 ] && $1 stop; shift; done; }
+
+ssm(){
+ while  [ -n "$1" ]; do
+  if    [ -f "$1" ]; then
+   if   [[ $1 =~ d/K ]]
+   then $1 stop
+   else $1 start
+   fi
+  fi
+  shift
+ done
+}
 
 try_chroot(){
  if   [ -f /media/root/etc/init.d/prc ]
