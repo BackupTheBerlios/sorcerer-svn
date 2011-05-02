@@ -1,45 +1,11 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee
-# All Rights Reserved
-# For use on Sorcerer only
-
 ### BEGIN INIT INFO
 # Default-Stop: 0
 # Short-Description: powers down the box
 ### END INIT INFO
 
-# To disable rebound or countdown
-# then edit /etc/init.d/conf.d/halt
-# and add function declarations:
-# rebound(){ :; }
-# count_down(){ :; }
-
 . /lib/lsb/init-functions
 
-rebound(){
- find /var/log/boot/ -type f | while read; do mv $REPLY{,.old}; done
- /etc/init.d/rcS
- telinit $REPLY
- exit
-}
-
-count_down(){
- [ -f /proc/mounts ] || return
- local CX=10
- echo -n "(p)ause; (s)ulogin; (#)runlevel; $1 in"
- while (( CX-- > 0 )); do
-  if read -p " $CX" -n 1 -t 1; then
-   echo
-   case $REPLY in
-    p) read -n 1 -t 300 ;;
-    s) sulogin   -t 300 ;;
-    [0-7]) rebound      ;;
-    *) CX=0             ;;
-   esac
-  fi
- done
-}
-
 case $1 in
-stop) count_down Halting; log_success_msg Halting; halt -d -f -i -p ;;
+stop) log_success_msg Halting; halt -d -f -i -p ;;
 esac
