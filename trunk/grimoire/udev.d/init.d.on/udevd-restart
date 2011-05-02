@@ -14,11 +14,16 @@
 
 start(){
  run(){
-  kill -s 15 $( /bin/pidof udevd )
+  kill -s 15 $( /bin/pidof udevd ); sleep 0.1
+  kill -s  9 $( /bin/pidof udevd ) 2>/dev/null
   /sbin/udevd --daemon
  }
- log_warning_msg "udevd restarting"; run
- log_success_msg "udevd restarted"
+ if   read < /proc/cmdline && [[ $REPLY =~ boot=IR ]]
+ then log_success_msg "udevd does not require restart"
+ elif log_warning_msg "udevd restarting"; run
+ then log_success_msg "udevd restarted"
+ else log_failure_msg "udevd failed to restart"
+ fi
 }
 stop(){ :; }
 
