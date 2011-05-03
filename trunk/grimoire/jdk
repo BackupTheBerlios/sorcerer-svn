@@ -44,65 +44,45 @@ install_jdk(){
   7*) DIR='jdk1.7.0' ;;
  esac
 
- # Test that the package was really JDK, not only some HTTP response:
- if [[ -f COPYRIGHT ]]
- then
-   set -x
-   mkdir -p           $DESTDIR/{opt/$DIR,usr/bin}
-   # Copy the untarred package to the destination
-   cp -ax *           $DESTDIR/opt/$DIR
-   chown -R root.root $DESTDIR/opt/$DIR
-   # /opt/jdk should be a symbolic link to the current version and NOT a directory
-   ln -fs $DIR        $DESTDIR/opt/jdk	
-   # Make links to the binaries
-   for        FILE in $DESTDIR/opt/jdk/bin/*
-   do  ln -fs /opt/jdk/bin/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
-   done
+ set -x
+ mkdir -pvm 755           $DESTDIR/{opt/$DIR,usr/bin}
+ # Copy the untarred package to the destination
+ cp -ax *           $DESTDIR/opt/$DIR
+ chown -R root.root $DESTDIR/opt/$DIR
+ # /opt/jdk should be a symbolic link to the current version and NOT a directory
+ ln -fs $DIR        $DESTDIR/opt/jdk	
+ # Make links to the binaries
+ for        FILE in $DESTDIR/opt/jdk/bin/*
+ do  ln -fs /opt/jdk/bin/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
+ done
 
-   if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
-   then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
-   fi 
+ if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
+ then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
+ fi 
 
-   local PD
-   # Some pages say that only libnpjp2.so plugin is needed for Firefox
-   if   [ -d   /usr/lib64/mozilla/plugins ]; then
-    PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
-    #ln -fs /opt/jdk/lib/amd64/libjavaplugin_jni.so       $PD/
-    ln -fs /opt/jdk/lib/amd64/libnpjp2.so                $PD/
-   elif [ -d         /usr/lib/mozilla/plugins ]; then
-    PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
-    #ln -fs /opt/jdk/lib/i386/libjavaplugin_oji.so        $PD/
-    #ln -fs /opt/jdk/lib/i386/libjavaplugin_jni.so        $PD/
-    ln -fs /opt/jdk/lib/i386/libnpjp2.so                 $PD/
-   fi
-
-   set +x
-
-   #mkdir -p  $DESTDIR/etc/.java/.systemPrefs
-   #touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
-   #touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
-   #chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
+ local PD
+ # Some pages say that only libnpjp2.so plugin is needed for Firefox
+ if   [ -d   /usr/lib64/mozilla/plugins ]; then
+  PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
+  ln -fs /opt/jdk/jre/lib/amd64/libnpjp2.so                $PD/
+ elif [ -d         /usr/lib/mozilla/plugins ]; then
+  PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
+  ln -fs /opt/jdk/jre/lib/i386/libnpjp2.so                 $PD/
  fi
+
+ set +x
+
+ #mkdir -p  $DESTDIR/etc/.java/.systemPrefs
+ #touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
+ #touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
+ #chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
 }
 
- xcb_error_fix(){
-# http://bugs.sun.com/bugdatabase/view_bug.do?bug_id=6532373
-#  xcb_xlib.c:52: xcb_xlib_unlock: Assertion `c->xlib.lock' failed.
-# Many jdk binary versions exhibit this bug. Furthermore it is
-# triggered depending on libX11 and libxcb version. It only
-# occurs if Java finds the Xinerama extension, at which point 
-# it does something broken with locking and triggers the assertion.  
-# If Java never finds the Xinerama extension, it doesn't trigger 
-# the assertion for broken locking.
+ # Make sure the source downloaded is really a shell script
+ # test broke with file version 5.05
+ #file $SOURCE | grep -q 'shell script' && 
 
-# This fix should be eventually dropped (once JDK is fixed)
-  find $DESTDIR/opt/jdk/ -name libmawt.so -exec sed -i 's/XINERAMA/FAKEEXTN/g' '{}' \; 
- }
-
-# Make sure the source downloaded is really a shell script
-# test broke with file version 5.05
-#file $SOURCE | grep -q 'shell script' && 
+ # Test that the package was really JDK, not only some HTTP response:
+ [[ -f COPYRIGHT ]] &&
  install_jdk
- # Let's see if the fix can be dropped
- #xcb_error_fix
 }
