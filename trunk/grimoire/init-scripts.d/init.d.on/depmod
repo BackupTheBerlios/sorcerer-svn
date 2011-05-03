@@ -1,36 +1,13 @@
-#!/bin/dash
+#!/bin/bash
 ### BEGIN INIT INFO
-# Required-Stop: $local_fs udev
-# Should-Stop: initramfs
-# Default-Stop: 0 6
-# Short-Description: runs depmod as required
+# Required-Start: proc
+# Default-Start: S 1 2 3 4 5
+# Short-Description: runs depmod during boot
 ### END INIT INFO
-
-# Copyright 2008 through 2010 by Kyle Sallee, all rights reserved.
-# for use with Sorcerer only
 
 if [ "$1" = try-restart ] || ! [ -s /sbin/depmod ]; then exit; fi
 
 . /lib/lsb/init-functions
 
-if   [ -d /etc/modprobe.d ]
-then  MPD=/etc/modprobe.d
-fi
-LM=/lib/modules
-
-find $LM -maxdepth 2 -mindepth 2 -name kernel -printf '%P\n' |
-sed 's:/.*::' |
-while read REPLY; do
- log_warning_msg "depmod checking $LM/$REPLY/modules.dep"
- if   ! [ -f $LM/$REPLY/modules.dep ];               then echo "$REPLY"
- elif find   $LM/$REPLY/kernel $MPD -type f -newer \
-             $LM/$REPLY/modules.dep | grep -q .;     then echo "$REPLY"
- fi
- log_success_msg "depmod checked  $LM/$REPLY/modules.dep"
-done |
-while read REPLY; do
- if   log_warning_msg "depmod updating $LM/$REPLY/modules.dep"; depmod -a $REPLY
- then log_success_msg "depmod updated  $LM/$REPLY/modules.dep"
- else log_failure_msg "depmod failed   $LM/$REPLY/modules.dep"
- fi
-done
+log_warning_msg "depmod -A"; depmod -A
+log_success_msg "depmod -A complete"
