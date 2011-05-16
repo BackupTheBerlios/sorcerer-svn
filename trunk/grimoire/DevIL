@@ -4,31 +4,41 @@
   optional SDL     '' --disable-sdl   for SDL support
       opts --enable-ILU=yes --enable-ILUT=yes --enable-static=no
   category graphic
- attribute library makej multilib-concurrent x11
- attribute broke
-#   source openil/devil-$VERSION.tar.gz
+ attribute library makej multilib-dual x11
+#attribute library makej multilib-concurrent x11
+# Not multilib-concurrent while compiling libpng
+#attribute broke
     source $SOURCEFORGE_URL openil/DevIL/$VERSION/DevIL-$VERSION.tar.gz
+    source $SOURCEFORGE_URL libpng/libpng12/1.2.44/libpng-1.2.44.tar.xz
       info home  http://openil.sourceforge.net
       info docs  http://openil.sourceforge.net/docs/index.php
  freshmeat devil
-  estimate 700
       desc 'developers Image Library
 DevIL the Developers Image Library is a cross-platform image library
 utilizing a simple syntax to load, save, convert, manipulate, filter,
 and display a variety of images with ease.'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --x-libraries=/usr/lib64
- else opts --x-libraries=/usr/lib
- fi
- LC_ALL=C grep -lr "/usr/bin:" * |
- xargs sed -i 's,PATH="$prefix/bin:$prefix/usr/bin:$PATH",PATH="$PATH",'
- default_build
-}
+ add_static_libpng(){
+  cd libpng-1.2.44 &&
+  ./configure --prefix=$PWD/install \
+              --disable-shared \
+              --enable-static \
+              --with-pic &&
+  make install &&
+  cd .. &&
+  export   CFLAGS+=" -I$PWD/libpng-1.2.44/install/include" &&
+  export CXXFLAGS+=" -I$PWD/libpng-1.2.44/install/include" &&
+  export  LDFLAGS+=" -L$PWD/libpng-1.2.44/install/lib"
+ }
 
-current(){
- case $VERSION in
-  1.7.8) grep -q libILUT $INSTALL_LOGS/DevIL ;;
- esac
+ if add_static_libpng; then
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then opts --x-libraries=/usr/lib64
+  else opts --x-libraries=/usr/lib
+  fi
+  LC_ALL=C grep -lr "/usr/bin:" * |
+  xargs sed -i 's,PATH="$prefix/bin:$prefix/usr/bin:$PATH",PATH="$PATH",'
+  default_build
+ fi
 }
