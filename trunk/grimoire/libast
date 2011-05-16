@@ -1,11 +1,23 @@
    version stable 0.7 0.6.1
    version secure 0.7
-   require imlib2 libSM pcre
+   require pcre imlib2 libSM
+      opts --enable-static=no
   category development
- attribute library x11
- attribute broke
+ attribute library makej multilib-dual x11
     source http://www.eterm.org/download/libast-$VERSION.tar.gz
+      info last  20060123
   homepage http://www.eterm.org/
-  estimate 450
       desc 'library of Assorted Spiffy Things
 It contains functions formally in Eterm.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] &&
+    ! [[ $CFLAGS =~ -m32     ]]
+ then OPTS+=' --x-libraries=/usr/lib64'
+ else OPTS+=' --x-libraries=/usr/lib'
+ fi
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+#sed -i '\,withval}/lib,d' configure
+ sed -i 's:-L$prefix/lib::' configure
+ default_build
+}
