@@ -54,9 +54,10 @@ build(){
 
  ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
  make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR" &&
- if    [[ $HOSTTYPE == x86_64 ]]; then
-  if   [[ $CFLAGS   =~ -m32   ]]; then bit_move 32
-  elif [[ -f /lib/libc.so.6   ]]; then bit_move 64; wrappers
+ if    [[ $HOSTTYPE == x86_64      ]] &&
+     ! [[ -n ${ATTRIBUTE[monolib]} ]]; then
+  if   [[ $CFLAGS   =~ -m32        ]]; then bit_move 32
+  elif [[ -f /lib/libc.so.6        ]]; then bit_move 64; wrappers
   fi
  fi
 }

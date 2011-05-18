@@ -4,36 +4,11 @@
 # but libindicate does not compile
 # temporarily removing it from requirements.
 
-   version stable 4.4.5 4.4.4 4.4.3 4.4.2 4.4.1 4.4.0
-   version unstable 4.5.94.1 4.5.93
+   version stable 4.4.11.1 4.4.10 4.4.5
    inherit kde-v4
    require kdepim-runtime-v4 libXScrnSaver
-#  require kdepim-runtime-v4 libindicate-qt libXScrnSaver
-
-case $VERSION in
- 4.5.93)   source ftp://ftp.kde.org/pub/kde/unstable/kdepim/$VERSION/${SPELL%-v4}-4.6beta3.tar.bz2 ;;
- 4.5.94*)  source ftp://ftp.kde.org/pub/kde/unstable/kdepim/$VERSION/src/${SPELL%-v4}-$VERSION.tar.bz2 ;;
-esac
-
-    switch '' --exclude-kaddressbook for addressbook appliction
-    switch '' --exclude-kmail           the KDE mail client
-    switch '' --exclude-kmailcvt        tool for importing mail related data from other programs
-# knode required
-#   switch '' --exclude-knode           UseNet client
-# korganizer required
-#   switch '' --exclude-korganizer      a calendar-of-events, todo-list manager, journal 
-    switch '' --exclude-kalarm          gui for setting up personal alarm messages, emails and commands
-    switch '' --exclude-kontact         Integrated PIM application
-    switch '' --exclude-ksendemail      commandline email tool
-    switch '' --exclude-ktimetracker    Time tracker
-    switch '' --exclude-knotes          yellow notes application
-    switch '' --exclude-console         Command line tool for accessing calendar files and addressbook KABC
-    switch '' --exclude-akregator       Feed reader
-    switch '' --exclude-kjots           manager for several books with a subject and notes
-    switch '' --exclude-blogilo         The KDE blogging client
-
   category utility/office
-  estimate 10500
+    source ftp://ftp.kde.org/pub/kde/stable/kdepim-$VERSION/src/kdepim-$VERSION.tar.bz2
       desc 'Personal information management programs
 kaddressbook    The KDE addressbook application
 kmail           the KDE mail client
@@ -51,19 +26,3 @@ konsolekalendar Command line tool for accessing calendar files
 akregator       Feed reader
 kjots           manager for several books with a subject and notes
 blogilo         The KDE blogging client'
-
-
-build(){
- for    DIR in $OPTS; do
-  case $DIR in
-   --exclude-*) rm -frv "${DIR/--exclude-/}" ;;
-  esac
- done
-
- case $VERSION in
-   4.4.5) patch -p1 < $SCRIPT_DIR/mem_fn.patch || return 1 ;;
- esac
-
- default_build
-}
-
