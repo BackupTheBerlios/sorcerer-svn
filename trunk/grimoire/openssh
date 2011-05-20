@@ -9,6 +9,7 @@
    require Linux-PAM init-functions openssl zlib
 # libselinux
   optional tcp_wrappers --with-tcp-wrappers '' for an optional method of controlling ssh access
+      opts --bindir=/bin --sbindir=/sbin
   sys_user sshd
   category network/security
  attribute client console server
@@ -162,33 +163,30 @@ implementation and includes sftp client and server support.'
 
 build(){
 
-if   spell_installed libselinux
-then OPTS+=' --with-selinux'
-fi
+ keep_config(){
+  cp  -a $DESTDIR/etc/ssh/sshd_config{,_keep}
+  sed -i 's:#PidFile /var/run/sshd.pid:PidFile /var/run/sshd_keep.pid:
+          s:#Port 22:Port 30:' $DESTDIR/etc/ssh/sshd_config_keep
+ }
 
-if   spell_installed Linux-PAM
-then OPTS+=' --with-pam'
-fi
+ if spell_installed libselinux; then OPTS+=' --with-selinux'; fi
+ if spell_installed Linux-PAM;  then OPTS+=' --with-pam'; fi
 
-# I have no idea how long this may be required.
-# it probably will not be fixed by the openssh team
-# it may be a bug caused by uClibc?
-case $MACHTYPE in
- *-uclibc) sed -i '1i#define _PTHREAD_H' auth-pam.c ;;
-esac
-
-./configure           \
---prefix=/usr         \
---sysconfdir=/etc/ssh \
---with-md5-passwords  \
-$OPTS &&
-make  &&
-make install DESTDIR=$DESTDIR
-}
-
-current(){
- case $VERSION in
-  5.0p1) [ -f /etc/init.d/ssh-keygen ] ;;
-  4.7p1) ! grep -q SERV /etc/init.d/empty ;;
+ # I have no idea how long this may be required.
+ # it probably will not be fixed by the openssh team
+ # it may be a bug caused by uClibc?
+ case $MACHTYPE in
+  *-uclibc) sed -i '1i#define _PTHREAD_H' auth-pam.c ;;
  esac
+
+ ./configure           \
+ --prefix=/usr         \
+ --bindir=/bin         \
+ --sbindir=/sbin       \
+ --sysconfdir=/etc/ssh \
+ --with-md5-passwords  \
+ $OPTS &&
+ make  &&
+ make install DESTDIR=$DESTDIR &&
+ keep_config
 }
