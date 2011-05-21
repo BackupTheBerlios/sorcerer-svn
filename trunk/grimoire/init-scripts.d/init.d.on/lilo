@@ -14,7 +14,6 @@
 LILO=/etc/lilo.conf
 NAME=/etc/lilo/conf
 CONF=/etc/lilo/conf
-FAST=/etc/lilo/fast
 HEAD=/etc/lilo/head
 TAIL=/etc/lilo/tail
 DONE=false
@@ -56,10 +55,7 @@ lilo_conf_update(){
 
  if ! [ -f $HEAD ]; then exit 1; fi
 
- cp $HEAD $CONF
- cp $HEAD $FAST
-
- REPLY=fast img restricted >> $FAST
+ cp $HEAD $CONF.$$
 
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
  sort -gr |
@@ -71,15 +67,17 @@ lilo_conf_update(){
   else rm -fr /boot/$REPLY /lib{,.sav}/modules/$REPLY{,.old}
   fi
   (( ICX++ ))
- done | tee -a $FAST >> $CONF
+ done >> $CONF.$$
 
  if   [ -f /boot/rescue/initrf ]
- then REPLY=rescue img mandatory | tee -a $FAST >> $CONF
+ then REPLY=rescue img mandatory >> $CONF.$$
  fi
 
  if   [ -f $TAIL ]
- then cat  $TAIL | tee -a $FAST >> $CONF
+ then cat  $TAIL >> $CONF.$$
  fi
+
+ mv $CONF.$$ $CONF
 
  if ! [ -h  $LILO ] ||
     ! [ -f  $LILO ]
@@ -100,22 +98,24 @@ both(){
  sed 's:#.*::;s: ::g;s:\t::g;s:image=/boot/::p;d' $CONF
 }
 
+boot_labels(){ ! both | sort | uniq -u | grep -q .; }
+
+previously_passed(){ ! [ -f /var/log/init/failed/lilo ]; }
+
 current(){ 
  [       -h  $LILO ] &&
  [       -f  $LILO ] &&
  [       -f  $CONF ] &&
  [ $CONF -nt $HEAD ] &&
  [ $CONF -nt $TAIL ] &&
- ! both | sed '\,fast/linux,d' | sort | uniq -u | grep -q .
+ previously_passed   &&
+ boot_labels
 }
 
 stop(){
  if   log_warning_msg "$NAME updating"; lilo_conf_update
  then log_success_msg "$NAME updated"
- else log_failure_msg "$NAME failed"
-  if   [ -n $1 ]
-  then sulogin -t 300 1>/dev/console 2>&1 0</dev/console
-  fi
+ else log_failure_msg "$NAME failed"; false
  fi
 }
 

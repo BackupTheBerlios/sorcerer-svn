@@ -17,7 +17,8 @@
 
 rebound(){
  [ -f /proc/mounts ] || return
- find /var/log/boot/ -type f | while read; do mv $REPLY{,.old}; done
+ find /var/log/init/ -maxdepth 1 -type f |
+ while read; do mv $REPLY{,.old}; done
  /etc/init.d/rcS
  telinit $REPLY
  exit
@@ -35,17 +36,16 @@ critical(){
   S; O; S; echo; sleep 1; S; O; S;
  }
 
- warning(){
-  echo "/etc/init.d/lilo reported an error"
+ warn(){
+  echo "/etc/init.d/$1 reported an error"
   echo "reboot/shutdown request denied"
   echo "Rebounded to runlevel 3"
  }
 
- if grep lilo /var/log/finale | grep -q failed; then
-  warning | tee -a /etc/issue.rootfs  
-  alert
-  REPLY=3
-  rebound
+ deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
+
+   if [ -f /var/log/init/failed/lilo      ]; then deny lilo
+ elif [ -f /var/log/init/failed/initramfs ]; then deny initramfs
  fi
 }
 

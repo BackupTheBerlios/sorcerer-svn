@@ -163,6 +163,9 @@ initrf_present(){
 }
 
 initrf_current(){
+
+ if [ -f /var/log/init/failed/initramfs ]; then return 1; fi
+
  IRFL=/var/log/initramfs.log
  DIRS='/bin /etc/bash.d /etc/init.d'
  DIRS+=' /etc/modprobe.d /etc/networks.d /etc/rc.d /etc/udev /lib /sbin'
@@ -193,10 +196,7 @@ initrf_current(){
 stop(){
  if   log_warning_msg "$NAME updating"; initrf_update
  then log_success_msg "$NAME updated"
- else log_failure_msg "$NAME failed"
-  if   [[ -n $1 ]]
-  then sulogin -t 300 &>/dev/console 0</dev/console
-  fi
+ else log_failure_msg "$NAME failed"; false
  fi
 }
 

@@ -8,14 +8,32 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 run(){
- for S in /etc/rc.d/rcS.d/*; do $S start; done
+ local s="${1##*/}"; s=${s:3:256}
+ local f=/var/log/init/failed/$s
+ local p=/var/log/init/passed/$s
+ local t=/var/log/init/$s
+
+ if         $1 $2 2>&1
+ then echo "$1 $2" > $t.p
+ else echo "$1 $2" > $t.f
+ fi | tee -a $t
+
+ if   [ -f $p ]; then rm $p
+ elif [ -f $f ]; then rm $f; fi
+
+   if [ -f $t.p ]; then cat $t.p $t >> $p; rm $t.p $t
+ elif [ -f $t.f ]; then cat $t.f $t >> $f; rm $t.f $t; fi
+}
+
+series(){
+ for S in /etc/rc.d/rcS.d/*; do run $S start; done
  echo End sysinit
 }
 
 md(){ [ -d $1 ] || mkdir -p $1; }
 
 I=/etc/init.d
-L=/var/log/boot
+L=/var/log/init
 D=$I/dev.d
 
 [ -f $L/sysinit ] && return
@@ -28,7 +46,8 @@ fi
 md $L
 md $D
 if   ! [    -f               /proc/mounts ] ||
-     ! grep -q /var/log/boot /proc/mounts
-then mount -o size=1m,nr_inodes=8,mode=700 -t tmpfs tmpfs $L
+     ! grep -q /var/log/init /proc/mounts; then
+ mount -o size=4m,nr_inodes=1k,mode=700 -t tmpfs tmpfs $L
+ mkdir -p /var/log/init/{fail,pass}ed
 fi
-run 2>&1 | cap
+series 2>&1 | cap

@@ -7,6 +7,24 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+run(){
+ local s="${1##*/}"; s=${s:3:256}
+ local f=/var/log/init/failed/$s
+ local p=/var/log/init/passed/$s
+ local t=/var/log/init/$s
+
+ if         $1 $2 2>&1
+ then echo "$1 $2" > $t.p
+ else echo "$1 $2" > $t.f
+ fi | tee -a $t
+
+ if   [ -f $p ]; then rm $p
+ elif [ -f $f ]; then rm $f; fi
+
+   if [ -f $t.p ]; then cat $t.p $t >> $p; rm $t.p $t
+ elif [ -f $t.f ]; then cat $t.f $t >> $f; rm $t.f $t; fi
+}
+
 load_newer(){
  rm -rf           /etc/{init.d,rc.d}
  cp -a /media/root/etc/{init.d,rc.d} /etc/
@@ -25,7 +43,7 @@ current(){
 
 linear(){
  for F in /etc/rc.d/rc${RL}.d/${1}*;
- do if [ -f $F ]; then $F $2;  fi
+ do if [ -f $F ]; then run $F $2;  fi
  done
 }
 
@@ -36,7 +54,7 @@ parallel(){
  while [ $SEQ -lt 100 ]; do
   if   [ $SEQ -lt 10  ]; then NOW="0$SEQ"; else NOW="$SEQ"; fi
   for F in /etc/rc.d/rc${RL}.d/$1${NOW}*
-  do if [ -f $F ]; then $F $2 & else break 2; fi
+  do if [ -f $F ]; then run $F $2 & else break 2; fi
   done
   wait
   SEQ=$(($SEQ+1))
@@ -53,8 +71,8 @@ ssm(){
  while  [ -n "$1" ]; do
   if    [ -f "$1" ]; then
    if   [[ $1 =~ d/K ]]
-   then $1 stop
-   else $1 start
+   then run $1 stop
+   else run $1 start
    fi
   fi
   shift
@@ -75,8 +93,7 @@ par_chroot(){
   exit
  else
   ssm $( rcl | LC_ALL=C sort | sed '0,/mount/p;d' | sed '/mount/d' ) 2>&1 |
-  tee /var/log/runlevel.$RL |
-  tee /var/boot/finale
+  tee /var/log/runlevel.$RL
   if   [ -z "$2" ]
   then ssm $( rcl | LC_ALL=C sort | sed '/mount/,999p;d' )
   fi
@@ -85,7 +102,7 @@ par_chroot(){
 }
 
  RL=$1
-RLL=/var/log/boot/runlevel.$RL
+RLL=/var/log/init/runlevel.$RL
 RLC=/etc/init.d/dev.d/rl
 
 if   [ -c "$RLC" ] && echo > $RLC
