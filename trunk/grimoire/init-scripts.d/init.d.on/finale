@@ -15,17 +15,6 @@
 
 . /lib/lsb/init-functions
 
-alert(){
- short(){ echo -en "\a"; }
-  long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
- pause(){ sleep 0.5; }
-
- S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
- O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
-
- S; O; S; echo; sleep 1; S; O; S;
-}
-
 rebound(){
  [ -f /proc/mounts ] || return
  find /var/log/boot/ -type f | while read; do mv $REPLY{,.old}; done
@@ -34,7 +23,34 @@ rebound(){
  exit
 }
 
+critical(){
+ alert(){
+  short(){ echo -en "\a"; }
+   long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
+  pause(){ sleep 0.5; }
+
+  S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
+  O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
+
+  S; O; S; echo; sleep 1; S; O; S;
+ }
+
+ warning(){
+  echo "/etc/init.d/lilo reported an error"
+  echo "reboot/shutdown request denied"
+  echo "Rebounded to runlevel 3"
+ }
+
+ if grep lilo /var/log/finale | grep -q failed; then
+  warning | tee -a /etc/issue.rootfs  
+  alert
+  REPLY=3
+  rebound
+ fi
+}
+
 count_down(){
+ critical
  local CX=10
  echo -n "(p)ause; (s)ulogin; (#)runlevel"
  while (( CX-- > 0 )); do
