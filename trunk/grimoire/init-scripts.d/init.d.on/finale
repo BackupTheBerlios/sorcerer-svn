@@ -1,0 +1,55 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee
+# All Rights Reserved
+# For use on Sorcerer only
+
+### BEGIN INIT INFO
+# Default-Start: 0 6
+# Short-Description: final pause, login, and rebound before the halt or reboot
+### END INIT INFO
+
+# To disable rebound
+# then edit /etc/init.d/conf.d/halt
+# and add function declarations:
+# rebound(){ :; }
+
+. /lib/lsb/init-functions
+
+alert(){
+ short(){ echo -en "\a"; }
+  long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
+ pause(){ sleep 0.5; }
+
+ S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
+ O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
+
+ S; O; S; echo; sleep 1; S; O; S;
+}
+
+rebound(){
+ [ -f /proc/mounts ] || return
+ find /var/log/boot/ -type f | while read; do mv $REPLY{,.old}; done
+ /etc/init.d/rcS
+ telinit $REPLY
+ exit
+}
+
+count_down(){
+ local CX=10
+ echo -n "(p)ause; (s)ulogin; (#)runlevel"
+ while (( CX-- > 0 )); do
+  if read -p " $CX" -n 1 -t 1; then
+   echo
+   case $REPLY in
+    p) read -n 1 -t 300 ;;
+    s) sulogin   -t 300 ;;
+    [0-7]) rebound      ;;
+    *) CX=0             ;;
+   esac
+  fi
+ done
+}
+
+case $1 in
+start) log_warning_msg "Finale begins"; count_down ;;
+esac
