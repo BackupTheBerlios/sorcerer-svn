@@ -2,8 +2,9 @@
 # Copyright 2008-2011 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
-# bxz recompresses tarballs using xz in the background,
-# during periods of low loadavg, to conserve disk space
+# bxz recompresses tarballs using xz in the background
+# while consuming near minimal resources
+# when a box is under heavy load.
 
 VC=/var/cache
 AC=$VC/archive
@@ -17,20 +18,11 @@ FILES="$TAR;$TGZ;$BZ2"
 PIDF=/var/run/bxz.pid
 XZO="$1"
 
-declare -i NEXT=900
-declare -i LOW=2
 LC_ALL=C
 TERM="dumb"
 IFS=" 	
 "
 export IFS LC_ALL TERM
-
-ll(){
- read < /proc/loadavg
- REPLY=${REPLY%% *}
- REPLY=${REPLY%%.*}
- (( LOW > REPLY ))
-}
 
 decomp(){
  local REPLY
@@ -88,10 +80,8 @@ recompress(){
  fi
 }
 
-ima(){ local REPLY; acad && ll; }
 pending(){ find $AC/ $CC/ $SC/ -maxdepth 4 -type f | sed -n "$FILES"; }
-owari(){ [[ -z $( pending ) ]]; }
-reduction(){ pending | while read && ima; do recompress "$REPLY"; done; }
+reduction(){ pending | while read; do recompress "$REPLY"; done; }
 
 locked(){
  local LEN STATUS LINE LPID
@@ -107,28 +97,27 @@ locked(){
 
 lock_bxz(){
  locked       $PIDF bxz &&
- kill -15 $(< $PIDF ); sleep 0.1
- echo  $!   > $PIDF
- disown
+ kill -15 $(< $PIDF )
+ echo $BASHPID > $PIDF
 }
 
 acad(){
- if [ -f /proc/acpi/ac_adapter/*/state ]; then
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
   read < /proc/acpi/ac_adapter/*/state
-  [[ ${REPLY// /} == state:on-line ]]
+  [[ $REPLY =~ on-line ]]
  fi
 }
 
 idle_cgroup_join(){
  local DC=/dev/cgroup
  local CI=$DC/idle
- if ! [ -d  $CI ]; then
-  mkdir -p  $CI
-  cat       $DC/cpuset.cpus > $CI/cpuset.cpus
-  cat       $DC/cpuset.mems > $CI/cpuset.mems
-  echo 1  > $CI/cpu.shares
-  echo 1  > $CI/blkio.weight
-  echo 99 > $CI/memory.swappiness
+ if ! [ -d   $CI ]; then
+  mkdir -p   $CI
+  cat        $DC/cpuset.cpus > $CI/cpuset.cpus
+  cat        $DC/cpuset.mems > $CI/cpuset.mems
+  echo 1   > $CI/cpu.shares
+  echo 100 > $CI/blkio.weight
+  echo 100 > $CI/memory.swappiness
  fi
 
  echo $BASHPID > $CI/tasks
@@ -136,17 +125,19 @@ idle_cgroup_join(){
 
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
- while sleep 600; do if owari; then rm -f $PIDF; exit 0; elif ima; then reduction; fi; done
+ lock_bxz
+ sleep 120
+ idle_cgroup_join
+ reduction
+ rm -f $PIDF
 }
 
-if   [ -f /etc/init.d/find_ir ] || grep -q "boot=IR" /proc/cmdline
-then exit 1
+if   [ -f /etc/init.d/find_ir ]      ||
+     grep -q "boot=IR" /proc/cmdline ||
+     ! acad
+then exit 0
 fi
 
-idle_cgroup_join
-
-[[ -f     /usr/libexec/bash/sleep ]] &&
-enable -f /usr/libexec/bash/sleep sleep
-
 main 1>>/var/log/bxz 2>&1 &
-lock_bxz
+disown
+exit 0
