@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2008-2010 by Kyle Sallee,
+# Copyright 2008-2011 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 # bxz recompresses tarballs using xz in the background,
@@ -119,6 +119,21 @@ acad(){
  fi
 }
 
+idle_cgroup_join(){
+ local DC=/dev/cgroup
+ local CI=$DC/idle
+ if ! [ -d  $CI ]; then
+  mkdir -p  $CI
+  cat       $DC/cpuset.cpus > $CI/cpuset.cpus
+  cat       $DC/cpuset.mems > $CI/cpuset.mems
+  echo 1  > $CI/cpu.shares
+  echo 1  > $CI/blkio.weight
+  echo 99 > $CI/memory.swappiness
+ fi
+
+ echo $BASHPID > $CI/tasks
+}
+
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  while sleep 600; do if owari; then rm -f $PIDF; exit 0; elif ima; then reduction; fi; done
@@ -128,8 +143,8 @@ if   [ -f /etc/init.d/find_ir ] || grep -q "boot=IR" /proc/cmdline
 then exit 1
 fi
 
-[[ -x /usr/bin/nice   ]] && renice  19 -p $$ &>/dev/null
-[[ -x /usr/bin/ionice ]] && ionice -c3 -p $$ &>/dev/null
+idle_cgroup_join
+
 [[ -f     /usr/libexec/bash/sleep ]] &&
 enable -f /usr/libexec/bash/sleep sleep
 
