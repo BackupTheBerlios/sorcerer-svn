@@ -1,11 +1,12 @@
+# Making this multilib is not worth the required effort.
+
    version stable 2.5
    require pkgconfig
   category graphic/library
- attribute library makej multilib-dual
+ attribute library makej multilib-fail
     source http://www.antigrain.com/agg-$VERSION.tar.gz
       info home  http://www.antigrain.com/
       info docs  http://www.antigrain.com/doc/index.html
-  estimate 120
       desc 'The antigrain C++ high fidelity 2D graphics rendering engine'
 
 build(){
@@ -24,13 +25,15 @@ build(){
           s:@libdir@:\${exec_prefix}/lib$EXT:
           s:@includedir@:\${prefix}/include:
           s:@VERSION@:$VERSION:" libagg.pc.in
-  mkdir   -vpm 755              $DESTDIR/usr/lib/pkgconfig
-  install -vm  644 libagg.pc.in $DESTDIR/usr/lib/pkgconfig/libagg.pc
+  mkdir   -vpm 755              $DESTDIR/usr/lib$EXT/pkgconfig
+  install -vm  644 libagg.pc.in $DESTDIR/usr/lib$EXT/pkgconfig/libagg.pc
  }
 
  ## That does not work.
  # autoconf
  # automake -afc
+
+ sed -i "s:-O3:$CFLAGS -fPIC:" Makefile.in.Linux*
 
  make &&
  make_install

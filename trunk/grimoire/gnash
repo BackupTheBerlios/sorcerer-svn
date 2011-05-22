@@ -3,20 +3,24 @@
 # /usr/lib/libgtkglext-x11-1.0.so: undefined reference to `GTK_WIDGET_REALIZED'
 # /usr/lib/libgtkglext-x11-1.0.so: undefined reference to `GTK_WIDGET_NO_WINDOW'
 
-   version stable 0.8.8
+# Does not compile using cmake, uses configure instead
+
+   version stable 0.8.9 0.8.8
    require SDL agg boost curl kdelibs-v4 speex
-      opts --with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/ --enable-gui=kde4
+#     opts ---enable-gui=kde4
+#     opts --with-kde4-prefix=/opt/kde4 --with-qt4-incl=/opt/kde4/include/ --with-qt4-lib=/opt/kde4/lib/
 # --with-kde4-plugindir=/opt/kde4/lib//kde4/plugins
-      opts --with-plugins-install=system --with-npapi-install=system --with-npapi-plugindir=/usr/lib/mozilla/plugins/
+      opts --with-plugins-install=system --with-npapi-install=system
+#     opts --with-npapi-plugindir=/usr/lib/mozilla/plugins/
 # optional firefox
   category utility/editor
  attribute kde4
-#attribute broke
+ attribute broke
     source $GNU_URL gnash/$VERSION/gnash-$VERSION.tar.bz2
+      info last  20110522
       info home  http://www.gnashdev.org/
       info docs  'http://www.gnashdev.org/?q=node/26'
       info mail  'https://savannah.gnu.org/mail/?group=gnash'
-  estimate 2100
       desc 'Free flash player'
 
 build(){ (
@@ -24,15 +28,14 @@ build(){ (
  # export   CFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
  # export CXXFLAGS+=" -UGTK_DISABLE_DEPRECATED -UGDK_PIXBUF_DISABLE_DEPRECATED"
 
- export PATH="/opt/kde4/bin:$PATH"
- export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+#  export PATH="/opt/kde4/bin:$PATH"
+#  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig
+#  default_build &&
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --with-kde4-prefix=/opt/kde4/i686
+ else opts --with-kde4-prefix=/opt/kde4
+ fi
  default_build &&
  make install-plugins DESTDIR=$DESTDIR
 ) }
-
-
-current(){
- case $VERSION in
-  0.8.8) [ -f /usr/lib/mozilla/plugins/libgnashplugin.so ] ;;
- esac
-}
