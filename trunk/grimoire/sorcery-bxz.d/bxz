@@ -108,27 +108,28 @@ acad(){
  fi
 }
 
-idle_cgroup_join(){
- local DC=/dev/cgroup
- local CI=$DC/idle
- if ! [ -d   $CI ]; then
-  mkdir -p   $CI
-  cat        $DC/cpuset.cpus > $CI/cpuset.cpus
-  cat        $DC/cpuset.mems > $CI/cpuset.mems
-  echo 1   > $CI/cpu.shares
-  echo 100 > $CI/blkio.weight
-  echo 100 > $CI/memory.swappiness
- fi
+cgroup_join(){
+ mkdir -p        /dev/cgroup/idle/bxz
+ echo $BASHPID > /dev/cgroup/idle/bxz/tasks
+ echo   1 >      /dev/cgroup/idle/bxz/cpu.shares
+ echo 100 >      /dev/cgroup/idle/bxz/blkio.weight
+ echo 100 >      /dev/cgroup/idle/bxz/memory.swappiness
+}
 
- echo $BASHPID > $CI/tasks
+cgroup_exit(){
+ echo $BASHPID > /dev/cgroup/tasks
+ rmdir           /dev/cgroup/idle/bxz
+ rmdir           /dev/cgroup/idle
+ return 0
 }
 
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  lock_bxz
- sleep 120
- idle_cgroup_join
+ sleep 60
+ cgroup_join
  reduction
+ cgroup_exit
  rm -f $PIDF
 }
 
