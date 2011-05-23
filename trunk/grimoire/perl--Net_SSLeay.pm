@@ -6,5 +6,4 @@
  attribute perl-module deprecated
     source http://www.cpan.org/authors/id/F/FL/FLORA/Net_SSLeay.pm-$VERSION.tar.gz
   homepage http://search.cpan.org/search?dist=Net_SSLeay.pm
-  estimate 100
       desc 'perl--Net_SSLeay.pm was replaced by perl--Net-SSLeay'
