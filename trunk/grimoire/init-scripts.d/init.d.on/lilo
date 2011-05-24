@@ -69,9 +69,17 @@ lilo_conf_update(){
   (( ICX++ ))
  done >> $CONF.$$
 
- if   [ -f /boot/rescue/initrf ]
- then REPLY=rescue img mandatory >> $CONF.$$
- fi
+# if   [ -f /boot/rescue/initrf ]
+# then REPLY=rescue img mandatory >> $CONF.$$
+# fi
+
+ find /boot -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+ grep rescue |
+ while read; do
+  if   [ -f /boot/$REPLY/linux ]
+  then img mandatory >> $CONF.$$
+  fi
+ done
 
  if   [ -f $TAIL ]
  then cat  $TAIL >> $CONF.$$
