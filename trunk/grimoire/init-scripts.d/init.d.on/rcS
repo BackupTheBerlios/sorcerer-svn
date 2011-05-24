@@ -8,16 +8,25 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 run(){
+ if ! [ -f $1 ]; then return 1; fi
+ if ! [ -x $1 ]; then return 1; fi
+
  local n="${1##*/}"; n=${n:3:256}
  local f=/var/log/init/failed/$n
  local p=/var/log/init/passed/$n
  local s=/var/log/init/$n
 
- echo "$1 $2"  > $s
-       $1 $2 &>> $s
+ echo "$1 $2"
+ echo "$1 $2" > $s
+
+ if   grep -q "dialog\|fsck\|sulogin\|omit log" $1
+ then $1 $2
+ else $1 $2 &>> $s
+ fi
+
  if   [ $? == 0 ]
- then cat $s; mv $s $p
- else cat $s; mv $s $f
+ then sed 1d $s; mv $s $p
+ else sed 1d $s; mv $s $f
  fi
 }
 

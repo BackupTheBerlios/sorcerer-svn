@@ -8,16 +8,25 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 run(){
+ if ! [ -f $1 ]; then return 1; fi
+ if ! [ -x $1 ]; then return 1; fi
+
  local n="${1##*/}"; n=${n:3:256}
  local f=/var/log/init/failed/$n
  local p=/var/log/init/passed/$n
  local s=/var/log/init/$n
 
- echo "$1 $2"  > $s
-       $1 $2 &>> $s
+ echo "$1 $2"
+ echo "$1 $2" > $s
+
+ if   grep -q "dialog\|fsck\|sulogin\|omit log" $1
+ then $1 $2
+ else $1 $2 &>> $s
+ fi
+
  if   [ $? == 0 ]
- then cat $s; mv $s $p
- else cat $s; mv $s $f
+ then sed 1d $s; mv $s $p
+ else sed 1d $s; mv $s $f
  fi
 }
 
@@ -37,11 +46,7 @@ current(){
  fi
 }
 
-linear(){
- for F in /etc/rc.d/rc${RL}.d/${1}*;
- do if [ -f $F ]; then run $F $2; fi
- done
-}
+linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2;  done; }
 
 # Breaking out of the loop early might cause a bug.
 
@@ -49,13 +54,10 @@ parallel(){
  SEQ=0
  while [ $SEQ -lt 100 ]; do
   if   [ $SEQ -lt 10  ]; then NOW="0$SEQ"; else NOW="$SEQ"; fi
-  for F in /etc/rc.d/rc${RL}.d/$1${NOW}*
-  do if [ -f $F ]; then run $F $2 & else break 2; fi
-  done
+  for F in /etc/rc.d/rc${RL}.d/$1${NOW}*; do run $F $2; done
   wait
   SEQ=$(($SEQ+1))
  done
- wait
 }
 
 ssp(){ parallel K stop; parallel S start; }
@@ -64,12 +66,10 @@ log(){ $1; echo End runlevel $RL; }
 rcl(){ find /etc/rc.d/rc${RL}.d/ -type l; }
 
 ssm(){
- while  [ -n "$1" ]; do
-  if    [ -f "$1" ]; then
-   if   [[ $1 =~ d/K ]]
-   then run $1 stop
-   else run $1 start
-   fi
+ while [ -n "$1" ]; do
+  if   [[  $1 =~ d/K ]]
+  then run $1 stop
+  else run $1 start
   fi
   shift
  done
