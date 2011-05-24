@@ -8,21 +8,17 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
 run(){
- local s="${1##*/}"; s=${s:3:256}
- local f=/var/log/init/failed/$s
- local p=/var/log/init/passed/$s
- local t=/var/log/init/$s
+ local n="${1##*/}"; n=${n:3:256}
+ local f=/var/log/init/failed/$n
+ local p=/var/log/init/passed/$n
+ local s=/var/log/init/$n
 
- if         $1 $2 2>&1
- then echo "$1 $2" > $t.p
- else echo "$1 $2" > $t.f
- fi | tee -a $t
-
- if   [ -f $p ]; then rm $p
- elif [ -f $f ]; then rm $f; fi
-
-   if [ -f $t.p ]; then cat $t.p $t >> $p; rm $t.p $t
- elif [ -f $t.f ]; then cat $t.f $t >> $f; rm $t.f $t; fi
+ echo "$1 $2"  > $s
+       $1 $2 &>> $s
+ if   [ $? == 0 ]
+ then cat $s; mv $s $p
+ else cat $s; mv $s $f
+ fi
 }
 
 series(){
