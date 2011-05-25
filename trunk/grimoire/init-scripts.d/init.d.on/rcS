@@ -41,7 +41,9 @@ I=/etc/init.d
 L=/var/log/init
 D=$I/dev.d
 
-[ -f $L/sysinit ] && return
+[ -f $L/sysinit ] && exit
+
+/sbin/agetty -f /etc/issue.rootfs /dev/tty7 9600 &
 
 if   [ -c $D/si ] &&  echo > $D/si
 then cap(){ tee $L/sysinit > $D/si; }
@@ -56,3 +58,5 @@ if   ! [    -f               /proc/mounts ] ||
  mkdir -p /var/log/init/{fail,pass}ed
 fi
 series 2>&1 | cap
+
+if [ -f /proc/$!/cmdline ]; then kill $!; fi

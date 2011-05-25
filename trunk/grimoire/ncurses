@@ -21,23 +21,17 @@ a decompiler infocmp, clear, tput, tset,
 and a termcap conversion tool captoinfo.'
 
 build(){
-# Other sources configure scripts check only for 
-# the location of ar libraries.
-# Therefore, symbolic links to ELF libraries
-# must exist in the same directory as the ar libraries
-  move_ar_libs(){
-   mv -v        $DESTDIR/$LIBDIR/lib{curses,form,formw,menu,menuw,ncurses++,ncurses++w,ncurses,ncursesw,panel,panelw}.a $DESTDIR/usr$LIBDIR
-   for REPLY in $LIBDIR/lib{curses,form,formw,menu,menuw,ncurses,ncursesw,panel,panelw}.so*
-   do  ln -fs ../..$LIBDIR/${REPLY##*/} $DESTDIR/usr$LIBDIR
-   done
-  }
+ move_clear_tput(){
+  mkdir -pvm 755 $DESTDIR/bin
+  mv     -v      $DESTDIR/{usr/bin/{clear,tput},bin/}
+ }
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then  LIBDIR=/lib64
  else  LIBDIR=/lib
  fi
 
- mkdir -p $DESTDIR/usr/{lib,share/tabset}
+ mkdir -pvm 755 $DESTDIR/usr/{lib,share/tabset}
 
 # sed -i 's:-L${exec_prefix}/lib::' misc/ncurses-config.in
 
@@ -65,5 +59,12 @@ build(){
  make   &&
  make install DESTDIR=$DESTDIR &&
  cd ..  &&
- make install DESTDIR=$DESTDIR
+ make install DESTDIR=$DESTDIR &&
+ move_clear_tput
+}
+
+current(){
+ case $VERSION in
+  5.9) grep -q "^/bin/clear" $INSTALL_LOGS/ncurses ;;
+ esac
 }
