@@ -10,9 +10,9 @@
 
       opts --disable-syslogd --disable-ifconfig --disable-whois --disable-logger
 
-    switch '' --disable-ftp     Compile and install ftp
-    switch '' --disable-ping    Compile and install ping
-    switch '' --disable-ping6   Compile and install ping6
+#   switch '' --disable-ftp     Compile and install ftp
+#   switch '' --disable-ping    Compile and install ping
+#   switch '' --disable-ping6   Compile and install ping6
     switch '' --disable-rcp     Compile and install rcp
     switch '' --disable-rlogin  Compile and install rlogin
     switch '' --disable-rsh     Compile and install rsh
@@ -49,3 +49,19 @@ any of the servers automatically from xinetd.
 SA would likely run any of these servers
 within a chrooted or caged file system
 rather than allowing full access to the box.'
+
+build(){
+ mv_to_bin(){
+  mkdir -pvm 755 $DESTDIR/bin
+  mv     -v      $DESTDIR/{usr/bin/{ftp,ping,ping6,traceroute},bin/}
+ }
+
+ default_build &&
+ mv_to_bin
+}
+
+current(){
+ case $VERISON in
+  1.8) [ -f /bin/ping ] ;;
+ esac
+}

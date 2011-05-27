@@ -18,9 +18,21 @@ including the states of running processes, amount of memory available and
 currently logged in users.'
 
 build(){
+ mv_to_bin(){
+  mkdir -pvm 755 $DESTDIR/bin
+  mv     -v      $DESTDIR/{usr/bin/{pkill,top},bin/}
+ }
+
  LD='-Wl,-warn-common'
  sed -i "s:-O2 -g3:$CFLAGS:
          s:$LD:$LD $LDFLAGS:" Makefile
  make &&
- make install -e XSCPT='' DESTDIR=$DESTDIR
+ make install -e XSCPT='' DESTDIR=$DESTDIR &&
+ mv_to_bin
+}
+
+current(){
+ case $VERSION in
+  3.2.8) [ -f /bin/top ] ;;
+ esac
 }
