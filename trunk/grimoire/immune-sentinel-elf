@@ -1,0 +1,57 @@
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+   version stable 20110529
+  category administration/spell
+ attribute archive_off console
+      info home  http://sorcerer.silverice.org/
+      desc "monitor and fix essential ELF library problems
+
+immune-sentinel-elf is part of the Sorcerer immune system.
+It runs on the Sorcerer's keep.
+It periodically checks the viability
+of essential libraries that
+are located in the real root file system.
+If a problem is detected
+then a previously created backup
+of the library directory is restored.
+This restores a computer to functioning condition
+even after something wrecks glibc, ncurses, readline,
+or other sufficiently important libraries.
+
+immune-sentinel-elf refuses to run
+on boxes that boot without using an initramfs.
+Booting without an initramfs
+is not tested and not recommended."
+
+build(){
+ libs(){
+  LIBDIR=/lib
+  if   [[ $HOSTTYPE == x86_64 ]]
+  then LIBDIR+=64
+  fi
+
+  find $LIBDIR -maxdepth 1 -type l |
+  sed "s:^$LIBDIR/lib:-l:
+       s:\.so.*::p;d" |
+  sort -u |
+  while read; do
+   if   gcc -o elfchain{,.c} "$REPLY" 2>/dev/null &&
+        ! ldd  elfchain | grep -q /usr/lib
+   then echo "$REPLY"
+   else echo "$REPLY rejected" 1>&2
+   fi
+  done
+ }
+
+ mkdir -pv $BUILD_DIR
+ cd        $BUILD_DIR
+ cp $SCRIPT_DIR/elfchain.c .
+ gcc $LDFLAGS -o elfchain{,.c} $( libs )
+
+ mkdir  -pvm 755                          $DESTDIR/sbin
+ install -vm 700 $SCRIPT_DIR/sentinel-elf $DESTDIR/sbin
+ mkdir  -pvm 755                          $DESTDIR/usr/sbin
+ install -vm 700 elfchain                 $DESTDIR/usr/sbin
+}
