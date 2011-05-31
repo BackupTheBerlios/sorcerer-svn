@@ -1,0 +1,46 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+
+# sentinel-resume periodically checks and resumes processing 
+# of delayed or paused spells to avert intentional and unintentional stalls.
+
+thaw(){
+ if ! [ -d /dev/cgroup/sorcery/cast ]; then return 0; fi
+ find $( grep -l FROZEN /dev/cgroup/sorcery/cast/*/freezer.state ) -mmin +480 |
+ while read; do echo THAWED > $REPLY; done
+}
+
+stalled(){
+ if   [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +10 )" ]
+ then ! pgrep -u root "^$1$"
+ fi
+}
+
+scan(){
+ thaw
+ if   stalled leech; then leech
+ elif stalled cast;  then cast
+ fi
+}
+
+lock(){
+ [ -s            /var/run/sentinel-resume.pid ] &&
+ kill -15    $(< /var/run/sentinel-resume.pid )
+ echo $BASHPID > /var/run/sentinel-resume.pid
+}
+
+end(){ rm -f /var/run/sentinel-resume.pid; exit 0; }
+
+main(){
+ lock
+ trap end EXIT
+ if   [[     -x /usr/libexec/bash/sleep ]]
+ then enable -f /usr/libexec/bash/sleep sleep
+ fi
+ while sleep 3600; do scan; done
+}
+
+main &>/dev/null &
+exit 0

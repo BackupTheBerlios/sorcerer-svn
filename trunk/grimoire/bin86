@@ -1,15 +1,8 @@
-# website unavailable on Wed Dec 15 03:13:40 UTC 2010
-
-case $HOSTTYPE in
- x86_64)
- attribute broke ;;
-esac
-
-   version stable 0.16.17 0.16.0
+   version stable 0.16.18 0.16.17 0.16.0
   category development/assembler
  attribute console
-    source http://homepage.ntlworld.com/robert.debath/dev86/bin86-$VERSION.tar.gz
-  homepage http://www.cix.co.uk/~mayday
+    source http://www.debath.co.uk/dev86/bin86-$VERSION.tar.gz
+      info home  http://www.debath.co.uk/
       desc 'a86 and ld86 provide a complete 8086/80386 assembler and loader.
 as86 and ld86 provide a complete 8086 assembler and loader
 which can generate 32-bit code for the 386+ processors.
@@ -18,7 +11,9 @@ bootsector and setup binaries for linux.
 The syntax is not compatible with the GNU assembler.'
 
 build(){
-make PREFIX=/usr &&
-mkdir -p $DESTDIR/usr/{bin,man/man1} &&
-make PREFIX=$DESTDIR/usr install
+mkdir -pvm 755 $DESTDIR/usr/{bin,man/man1}
+make -C as as86 &&
+make -C ld ld86 &&
+install -vm 755 as/as86 ld/ld86 $DESTDIR/usr/bin/ &&
+install -vm 644 man/*.1         $DESTDIR/usr/man/man1/
 }

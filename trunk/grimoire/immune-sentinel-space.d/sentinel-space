@@ -1,0 +1,89 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+
+# sentinel-space periodically checks availability of space
+# and removes or compresses directories to avert a crisis.
+
+LOW=268435456
+MIN=134217728
+
+free_bytes(){ stat -f -c '%a*%s' $1 | bc; }
+
+full(){
+ if   [ -d $1 ] && (( $( free_bytes $1 ) < $2 ))
+ then logger -p syslog.crit -s -t sentinel-space -- $"Low space on $1"
+ else return 1
+ fi
+}
+
+waste_locales(){
+ ( locale -a |
+   cut -d . -f1 |
+   sort -u |
+   sed 's:^:/usr/share/locale/:p' |
+   sed -r 's:(.*)(_.*):\1\2\n\1:'
+   find /usr/share/locale -maxdepth 1 -mindepth 1 -type d
+ ) | sort | uniq -u | xargs -r --max-lines=256 rm -r
+}
+
+remove_file(){
+ while read
+ do if (( $( free_bytes $1 ) < $2 )); then rm -f $REPLY; fi
+ done
+}
+
+compress_dir(){
+ local TMP
+ while read; do
+  if (( $( free_bytes $1 ) < $2 )); then
+   TMP=/tmp/$REPLY.tar.xz.$$.$RANDOM$RANDOM$RANDOM$RANDOM
+   if   tar -c $REPLY | xz > $TMP
+   then rm -fr $REPLY;  mv   $TMP $REPLY.tar.xz
+   else rm -f  $TMP
+   fi
+  fi
+ done
+}
+
+inside(){
+ find $1 -maxdepth 1 -mindepth 1 -type $2 -printf '%T@\t%p\n' |
+ sort -gr |
+ cut -f2
+}
+
+shrink_dir(){ [ -d $1 ] && inside $1 d | oldest | compress_dir "$@"; }
+waste_file(){ [ -d $1 ] && inside $1 f | oldest | remove_file  "$@"; }
+
+scan(){
+ # Compression tactics
+ if full /usr/doc          $LOW; then shrink_dir /usr/doc          $LOW; fi
+ if full /usr/share/doc    $LOW; then shrink_dir /usr/share/doc    $LOW; fi
+
+ # Removal tactics
+ if full /usr/share/locale $LOW; then waste_locales; fi
+ if full /var/cache/ccache $LOW; then waste_file /var/cache/ccache $LOW; fi
+ if full /usr/share/doc    $MIN; then waste_file /usr/share/doc    $MIN; fi
+ if full /usr/doc          $MIN; then waste_file /usr/doc          $MIN; fi
+}
+
+lock(){
+ [ -s            /var/run/sentinel-space.pid ] &&
+ kill -15    $(< /var/run/sentinel-space.pid )
+ echo $BASHPID > /var/run/sentinel-space.pid
+}
+
+end(){ rm -f /var/run/sentinel-space.pid; exit 0; }
+
+main(){
+ lock
+ trap end EXIT
+ if   [[     -x /media/root/usr/libexec/bash/sleep ]]
+ then enable -f /media/root/usr/libexec/bash/sleep sleep
+ fi
+ while sleep 900; do scan; done
+}
+
+main &>/dev/null &
+exit 0

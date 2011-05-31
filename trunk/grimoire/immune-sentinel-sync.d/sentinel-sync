@@ -1,0 +1,32 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+
+# sentinel-sync periodically synchronizes installed software
+
+neglected(){ [ -n "$( find /etc/sorcery/log/version/grimoire -mtime +DAYS )" ]; }
+scan(){ if neglected; then augur sync; fi; }
+
+lock(){
+ [ -s            /var/run/sentinel-sync.pid ] &&
+ kill -15    $(< /var/run/sentinel-sync.pid )
+ echo $BASHPID > /var/run/sentinel-sync.pid
+}
+
+end(){ rm -f /var/run/sentinel-sync.pid; exit 0; }
+
+main(){
+ lock
+ trap end EXIT
+ if   [[     -x /usr/libexec/bash/sleep ]]
+ then enable -f /usr/libexec/bash/sleep sleep
+ fi
+ while sleep 21600; do scan; done
+}
+
+DAYS="${1:-7}
+if (( DAYS > 2 )); then (( DAYS-- )); fi
+
+main &>/dev/null &
+exit 0
