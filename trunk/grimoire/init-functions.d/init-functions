@@ -39,6 +39,13 @@ session(){
  ps --no-heading -o comm -s $REPLY | grep -qx "$2" 
 }
 
+pids_from_cgroup(){
+ if   find_cgroup && [ -f $CGDNT ] && read REPLY < $CGDNT
+ then grep -q . $CGDNT && cat $CGDNT
+ else return 1
+ fi
+}
+
 pidofproc(){
 
  local PIDS
@@ -54,9 +61,9 @@ pidofproc(){
  BASE=${1##*/}
 
  if    [ -z "$PIDF" ]; then
-  if   [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
+  if   pids_from_cgroup;             then return
+  elif [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
   elif [ -f "/var/run/$BASE"      ]; then PIDF=/var/run/$BASE
-  elif find_cgroup && [ -f $CGDNT ]; then PIDF=$CGDNT
   else PIDS=$( /bin/pidof -o %PPID $BASE )
   fi
  fi
@@ -87,6 +94,13 @@ find_cgroup(){
  return 1
 }
 
+cgroup_root(){
+ if find_cgroup; then
+  while [ -n "$1" ]; do echo "$1" > $CG/tasks; shift; done
+  if [ -d $CGDN ]; then rmdir --ignore-fail-on-non-empty $CGDN; fi
+ fi
+}
+
 killproc(){
  local PIDF PID BASE PIDS SIGL
 
@@ -103,19 +117,14 @@ killproc(){
  SIGL=$2
  PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
- if    [      "$PIDS" ]; then
+ if    [      "$PIDS" ]; then cgroup_root     $PIDS
   if   [      "$SIGL" ]
   then pkill "-$SIGL" -s $PIDS; kill "-$SIGL" $PIDS
   else pkill -15      -s $PIDS; kill -15      $PIDS; sleep 3
        pkill -9       -s $PIDS; kill -9       $PIDS
-  fi
+  fi 2>/dev/null
   if   [  -f "$PIDF" ]
   then rm -f "$PIDF"
-  fi
-  if    find_cgroup && [ -f $CGDNT ]; then
-   if   read < $CGDNT; [ -z "$REPLY" ]
-   then rmdir  $CGDN; true
-   fi
   fi
  else return 1
  fi
@@ -318,6 +327,7 @@ server()  { SERV=$1; }
 config()  { CONF=$1; }
 name()    { NAME=$1; }
 options() { OPTS=$1; }
+log_file(){ LOGF=$1; }
 
 if [ -z "$NAME" ]
 then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
