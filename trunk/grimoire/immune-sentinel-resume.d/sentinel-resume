@@ -6,9 +6,20 @@
 # sentinel-resume periodically checks and resumes processing 
 # of delayed or paused spells to avert intentional and unintentional stalls.
 
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
 thaw(){
- if ! [ -d /dev/cgroup/sorcery/cast ]; then return 0; fi
- find $( grep -l FROZEN /dev/cgroup/sorcery/cast/*/freezer.state ) -mmin +480 |
+ if ! [ -d $CG/sorcery/cast ]; then return 0; fi
+ find $( grep -l FROZEN $CG/sorcery/cast/*/freezer.state ) -mmin +480 |
  while read; do echo THAWED > $REPLY; done
 }
 
@@ -39,6 +50,7 @@ main(){
  if   [[     -x /usr/libexec/bash/sleep ]]
  then enable -f /usr/libexec/bash/sleep sleep
  fi
+ find_cgroup
  while sleep 3600; do scan; done
 }
 

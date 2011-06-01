@@ -108,18 +108,29 @@ acad(){
  fi
 }
 
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
 cgroup_join(){
- mkdir -p        /dev/cgroup/idle/bxz
- echo $BASHPID > /dev/cgroup/idle/bxz/tasks
- echo   1 >      /dev/cgroup/idle/bxz/cpu.shares
- echo 100 >      /dev/cgroup/idle/bxz/blkio.weight
- echo 100 >      /dev/cgroup/idle/bxz/memory.swappiness
+ mkdir -p        $CG/idle/bxz
+ echo $BASHPID > $CG/idle/bxz/tasks
+ echo   1 >      $CG/idle/bxz/cpu.shares
+ echo 100 >      $CG/idle/bxz/blkio.weight
+ echo 100 >      $CG/idle/bxz/memory.swappiness
 }
 
 cgroup_exit(){
- echo $BASHPID > /dev/cgroup/tasks
- rmdir           /dev/cgroup/idle/bxz
- rmdir           /dev/cgroup/idle
+ echo $BASHPID > $CG/tasks
+ rmdir           $CG/idle/bxz
+ rmdir           $CG/idle
  return 0
 }
 
@@ -127,6 +138,7 @@ main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  lock_bxz
  sleep 60
+ find_cgroup
  cgroup_join
  reduction
  cgroup_exit

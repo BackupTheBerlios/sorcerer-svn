@@ -35,6 +35,8 @@ that are not provided with Linux-PAM please see:
 http://www.kernel.org/pub/linux/libs/pam/modules.html'
 
 build(){
+ cgroup_session(){ install -vm 744 $SCRIPT_DIR/cgroup_session $DESTDIR/sbin; }
+
  adjust_unix_chkpwd(){
   chown root:auth $DESTDIR/sbin/unix_chkpwd
   chmod 2755      $DESTDIR/sbin/unix_chkpwd
@@ -50,7 +52,8 @@ build(){
 
  sed -i '1i#define HAVE_DBM' modules/pam_userdb/pam_userdb.c
  default_build &&
- adjust_unix_chkpwd
+ adjust_unix_chkpwd &&
+ cgroup_session
 }
 
 post_install(){
@@ -59,4 +62,10 @@ post_install(){
  pipe     show_installed        |
  LC_ALL=C sort | uniq -d        |
           pipe_queue $CAST_QUEUE
+}
+
+current(){
+ case $VERSION in
+  1.1.3) [ -f /sbin/cgroup_session ] ;;
+ esac
 }

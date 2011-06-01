@@ -1,0 +1,23 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Should-Start: proc
+# Default-Start: 1 2 3 4 5
+# Short-Description: Enables alt-SysRq-k to kill all process on current virtual console
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+config /proc/sys/kernel/sysrq
+
+start(){
+ run(){ read S < $CONF; (( S &= 255 )); (( S |= 4 )); echo $S > $CONF; }
+
+ if   log_warning_msg "SAK Enabling"; run
+ then log_success_msg "SAK Enabled"
+ else log_failure_msg "SAK Unavailable"
+ fi
+}
+
+try_restart(){ :; }
+parse "$@"

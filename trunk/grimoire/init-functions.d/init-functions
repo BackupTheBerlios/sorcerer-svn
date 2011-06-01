@@ -23,7 +23,7 @@ log_failure_msg(){ log_line "$1" "$RED failed ";}
 log_warning_msg(){ log_line "$1" "$WHITE warning";}
 
 locked(){
- local L S P REPLY
+ local S P REPLY
 
  [ "$2" ] && L=${#2} &&
  [ "$1" ] && [ -f "$1" ] &&
@@ -32,7 +32,6 @@ locked(){
  [ -f  "$S" ] &&
  read REPLY < $S &&
  [ ${REPLY##*	} = "$2" ]
-#[ ${REPLY:6:$L} = "$2" ]
 }
 
 session(){
@@ -55,8 +54,9 @@ pidofproc(){
  BASE=${1##*/}
 
  if    [ -z "$PIDF" ]; then
-  if   [ -f "/var/run/$BASE.pid" ]; then PIDF=/var/run/$BASE.pid
-  elif [ -f "/var/run/$BASE"     ]; then PIDF=/var/run/$BASE
+  if   [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
+  elif [ -f "/var/run/$BASE"      ]; then PIDF=/var/run/$BASE
+  elif find_cgroup && [ -f $CGDNT ]; then PIDF=$CGDNT
   else PIDS=$( /bin/pidof -o %PPID $BASE )
   fi
  fi
@@ -71,6 +71,20 @@ pidofproc(){
  then echo "$PIDS"
  else return 1
  fi
+}
+
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   CGD=$CG/daemon
+   CGDN=$CGD/$NAME; 
+   CGDNT=$CGDN/tasks
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
 }
 
 killproc(){
@@ -95,9 +109,13 @@ killproc(){
   else pkill -15      -s $PIDS; kill -15      $PIDS; sleep 3
        pkill -9       -s $PIDS; kill -9       $PIDS
   fi
-  if   [  -n "$PIDF" ] &&
-       [  -f "$PIDF" ]
+  if   [  -f "$PIDF" ]
   then rm -f "$PIDF"
+  fi
+  if    find_cgroup && [ -f $CGDNT ]; then
+   if   read < $CGDNT; [ -z "$REPLY" ]
+   then rmdir  $CGDN; true
+   fi
   fi
  else return 1
  fi
@@ -105,6 +123,10 @@ killproc(){
 
 start_daemon(){
  run(){
+  if   find_cgroup
+  then mkdir -p $CGDN; echo $BASHPID > $CGDNT
+  fi
+
   if   [ "$BACK" ]
   then setsid /lib/lsb/pidf "$PIDF" "$@" &
   else "$@"
@@ -165,9 +187,7 @@ status(){
  }
 
  statk(){
-  local WILD="^$( echo $NAME | tr - . )"
-# if   lsmod | LC_ALL=C grep -qws "^${NAME//-/_}"
-  if   lsmod | LC_ALL=C grep -qws "WILD"
+  if   lsmod | LC_ALL=C grep -qws "${NAME//-/.}"
   then log_warning_msg "$NAME module is loaded"; return 0
   else log_warning_msg "$NAME module is not loaded"; return 3
   fi
@@ -224,7 +244,6 @@ mnt(){
 
 start(){
  conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
-#miss(){ [ ${SERV:0:1} = / ] && ! [ -f "$SERV" ]; }
  miss(){ ! [ -f "$SERV" ]; }
 
  starts(){
@@ -246,10 +265,6 @@ start(){
    then mkdir -p "$NAME"; fi &&
    mount $OPTS   "$NAME"
   }
-
-  if   [ -n "$ROOT_PREFIX" ]
-  then NAME="$ROOT_PREFIX$NAME"
-  fi
 
   if mnt; then return; fi
   if   conf

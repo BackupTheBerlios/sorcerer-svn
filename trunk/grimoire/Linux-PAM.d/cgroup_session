@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+# A cgroup with a sub-cgroup can not be removed.
+# That could be useful when wanting modifications
+# for a user's provisioning to remain until reboot.
+
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   CU=$CG/user/$PAM_USER
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
+open(){
+ [     -d     $CU ] ||
+ mkdir -p     $CU
+ echo $PPID > $CU/tasks
+}
+
+close(){
+ echo $$    > $CG/tasks
+ echo $PPID > $CG/tasks
+ read       < $CU/tasks
+ [ -n "$REPLY" ] || rmdir $CU
+ return 0
+}
+
+find_cgroup || exit 0
+
+case $PAM_TYPE in
+  open_session) open  ;;
+ close_session) close ;;
+esac
