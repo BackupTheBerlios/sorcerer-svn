@@ -114,9 +114,25 @@ every(){
 1i/usr/share/terminfo/l/linux"
 }
 
+locked(){
+ [[ -f  /boot/initramfs ]] &&
+ read < /boot/initramfs    &&
+ [[ -f  /proc/$REPLY/status ]] &&
+ read < /proc/$REPLY/status    &&
+ [[ ${REPLY##*	} == initramfs ]]
+}
+
+lock_initramfs(){
+ local REPLY
+ while locked && (( 300 > SECONDS )); do sleep 1; done
+ echo $$ > /boot/initramfs
+}
+
 initrf_update(){
  [ -d /boot/fast  ] && rm -rf /boot/fast
  [ -d /media/root ] || mkdir -pm 755 /media/root
+
+ lock_initramfs
 
  local       TEMPIF=/tmp/initramfs.$RANDOM$RANDOM
  rm    -rf  $TEMPIF
@@ -132,29 +148,37 @@ initrf_update(){
  else LILO=false
  fi
 
- every | filter_elf | exists |
- cpio -o -H newc --quiet > $COMMON
+ every | filter_elf | exists | cpio -o -H newc --quiet > $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- cut -d / -f3 |
- sed '\,rescue,d' |
+ cut -d / -f3 | sed '\,rescue,d' |
  while read; do
   mkdir             $TEMPIF/boot/$REPLY
   mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
  done
 
- chmod 600 $TEMPIF/boot/*/initrf
- cp -a     $TEMPIF/boot /
- rm -fr    $TEMPIF
+ find /boot -maxdepth 2 -mindepth 2 -type f -name initrf -printf '%h\n' |
+ cut -d / -f3 | sed '\,rescue,d' |
+ while read
+ do    mv /boot/$REPLY/initrf{,.old}
+ done
+
+ chmod 600  $TEMPIF/boot/*/initrf
+ if ! cp -a $TEMPIF/boot /; then rm /boot/*/initrf/.old
+      cp -a $TEMPIF/boot /; fi
+ rm -fr     $TEMPIF
  sync
 
  if   $LILO && ! $DONE
  then /etc/init.d/lilo reload
  fi
 
- if   ! [ -f /etc/init.d/find_ir ]
- then /sbin/lilo -P ignore -C /etc/lilo/conf
+ if   ! [ -f /etc/init.d/find_ir ]; then
+  /sbin/lilo -P ignore -C /etc/lilo/conf ||
+  /sbin/lilo -P ignore -C /etc/lilo/conf
  fi
+
+ rm -f /boot/initramfs
 }
 
 initrf_present(){
