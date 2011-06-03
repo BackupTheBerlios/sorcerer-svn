@@ -1,13 +1,20 @@
 # 1.6.0 and 1.5.3 did not compile
-   version stable 1.6.0 1.4.6 1.4.5
-   version unstable 1.5.3 
+   version stable 2.0.0 1.6.0 1.4.6 1.4.5
    require ccrtp
       opts --enable-static=no
   category audio/codec audio/library
- attribute library
- attribute multilib-fail
- attribute broke
+ attribute library setarch
+#attribute multilib-fail
+#attribute broke
     source $GNU_URL ccrtp/libzrtpcpp-$VERSION.tar.gz
-      info last  20110522
+      info last  20110603
   homepage http://www.twinklephone.com/
       desc 'secure voice communication library'
+
+build(){
+ default_build &&
+ if   [ -f $DESTDIR/usr/lib64/pkgconfig/libzrtpcpp.pc ]
+ then sed -i 's:/usr/lib$:libdir=/usr/lib64:' \
+           $DESTDIR/usr/lib64/pkgconfig/libzrtpcpp.pc
+ fi
+}

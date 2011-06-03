@@ -125,6 +125,8 @@ get_def_prmount(){
  fi
 }
 
+get_def_size(){ PSIZE[$1]=$( sfdisk -s ${PDEVICE[$1] ); }
+
 get_filesystem_assumptions(){
  get_puuid       $1
  get_mkfs        $1
@@ -134,6 +136,7 @@ get_filesystem_assumptions(){
  get_def_mount   $1
  get_def_feature $1
  get_def_prmount $1
+ get_def_size    $1
 }
 
 
@@ -148,6 +151,11 @@ boot_dev_check(){
   PFILESYSTEM[$1]=ext2
   get_filesystem_assumptions $1
   $DIALOG --msgbox $"/boot must be ext2" 8 50
+ fi
+
+ if (( 2000000 > ${PSIZE[$1]} )); then
+  $DIALOG --msgbox $"/boot must be at least 2G in size." 8 50
+  empty_entry $1
  fi
 }
 
@@ -1030,7 +1038,7 @@ get_mk_command(){
  file_or_part(){
   case ${PDEVICE[$1]:0:5} in
    /dev/) echo "mkswap	${PCHECK[$1]}	$DEV" ;;
-       *) echo "dd	of=$TARGET$DEV	if=/dev/zero	bs=1M	count=${PSIZE[$1]}	&&${LF}mkswap	$TARGET$DEV	&&${LF}chmod	0	$TARGET$DEV" ;;
+       *) echo "fallocate	-l${PSIZE[$1]}m	$TARGET$DEV&&${LF}mkswap	$TARGET$DEV	&&${LF}chmod	0	$TARGET$DEV" ;;
   esac
  }
 

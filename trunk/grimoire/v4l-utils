@@ -1,17 +1,13 @@
-# This does not seem to compile or install properly.
-# Please corect the spell if possible.
-
-   version stable 0.8.3
+   version stable 0.8.4 0.8.3
   category graphic
- attribute kde4 x11
- attribute broke
+ attribute library makej multilib-dual x11
     source http://linuxtv.org/downloads/v4l-utils/v4l-utils-$VERSION.tar.bz2
       info home  http://linuxtv.org
       desc 'utilities for video for linux'
 
 build(){
- local  RATH=$PATH
- local  PATH=/opt/kde4/bin:$RATH
- export PATH
- default_build
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then make install PREFIX=/usr LIBDIR=/usr/lib64 "DESTDIR=$DESTDIR"
+ else make install PREFIX=/usr LIBDIR=/usr/lib   "DESTDIR=$DESTDIR"
+ fi
 }
