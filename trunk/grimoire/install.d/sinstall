@@ -11,8 +11,71 @@
 ############################################################
 
 
-inputbox(){ $DIALOG --no-collapse --nocancel --inputbox "$1" 0 0 "$2"; }
+run_auto(){
 
+ local BOOTLOADER BL_CONF GL MBR MIRD SILENCE
+
+ part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n\na\n1\nw"; }
+
+ if   [ -b /dev/sdb ] || [ -b /dev/sdc ] || [ -b /dev/sdd ]
+ then DISK=$( get_disk )
+ else DISK=/dev/sda
+ fi
+
+ if   ! confirm "All partitions on $DISK will be lost?" --defaultno
+ then return
+ fi
+
+ SILENCE=golden
+ MBR=true
+ ms-sys -s $DISK
+
+ part_keys | fdisk $DISK &>/dev/null
+ filesystem_table_load
+
+ MEM=$( sed -r "s/MemTotal: *(.*) kB/\1/p;d" /proc/meminfo )
+ if   (( 1048576 > MEM )); then PSIZE[0]=4096
+ elif (( 2097152 > MEM )); then PSIZE[0]=3072
+ elif (( 3145728 > MEM )); then PSIZE[0]=2048
+                           else PSIZE[0]=1024
+ fi
+
+ PFILESYSTEM[1]=ext4
+ PMOUNT[1]=/
+ get_filesystem_assumptions 1
+ make_fstab > /tmp/fstab
+ mkfs.ext4	${PFEATURE[1]}	${PDEVICE[1]}
+ filesystem_mount
+ transfer_arch
+
+ if   [ -f $TARGET/etc/lilo/head ]
+ then BOOTLOADER=lilo
+ else BOOTLOADER=yaboot
+ fi
+
+ BL_CONF="$TARGET/etc/$BOOTLOADER/head"
+
+ make_bootloader_conf
+ GL=$TARGET/etc/sorcery/log/config/glibc-locales
+ mkdir -p $GL
+ echo 'LOCALES=""'             > $GL/sorcery
+ echo 'DLOCALE="en_US.UTF-8"' >> $GL/sorcery
+
+ chroot_silent
+
+ grep /media/root /proc/mounts |
+ cut -d ' ' -f2 |
+ sort -r |
+ xargs -r --max-lines=1024 umount
+
+ MIRD=$( grep /media/IR /proc/mounts | cut -d ' ' -f1 )
+ umount $MIR
+ eject  $MIRD
+ reboot -d -f -i
+}
+
+
+inputbox(){ $DIALOG --no-collapse --nocancel --inputbox "$1" 0 0 "$2"; }
 
 chroot_run(){
  echo    $"Chrooting to $TARGET"
@@ -40,6 +103,46 @@ chroot_run(){
  pause
 }
 
+
+chroot_silent(){
+ wait_finish(){
+  while pgrep cast | grep -q .
+  do    sleep 5
+  done
+ }
+
+ echo    $"Chrooting to $TARGET"
+
+ mkdir  -p                       $TARGET/{usr/src/sorcery,var/lock}
+ mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
+ mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
+ mkdir  -p                       $TARGET/tmp/.sorcery
+ mount  --bind  /dev             $TARGET/dev
+ mount  --bind  /dev/pts         $TARGET/dev/pts
+ mount  --bind  /proc            $TARGET/proc
+ mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
+ mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
+ mount  --bind  /var/lock        $TARGET/var/lock
+ chroot $TARGET swapon -a
+ chroot $TARGET /usr/sbin/augur queue dispel/install cast/glibc-locales
+ chroot $TARGET /usr/sbin/dispel
+ chroot $TARGET /usr/sbin/cast
+ chroot $TARGET /usr/sbin/augur scry glibc-locales
+ wait_finish
+ chroot $TARGET /etc/init.d/depmod
+ chroot $TARGET /etc/init.d/rc.d
+ chroot $TARGET /etc/init.d/services
+ chroot $TARGET /etc/init.d/lilo
+ chroot $TARGET /etc/init.d/initramfs
+ chroot $TARGET swapoff -a
+ umount                          $TARGET/var/lock
+ umount                          $TARGET/usr/src/sorcery
+ umount                          $TARGET/root/.sorcery
+ umount                          $TARGET/proc
+ umount                          $TARGET/dev/pts
+ umount                          $TARGET/dev
+ umount                          $TARGET/$TARGET/dev # avoids bug in linux?
+}
 
 chroot_build(){
  scry_finish(){
@@ -80,8 +183,8 @@ chroot_build(){
  pause
 }
 
-msgbox(){  $DIALOG --no-collapse --msgbox "$1" 0 0; }
-confirm(){ $DIALOG $2 --yesno "$1" 8 50; }
+msgbox(){  [ -n "$SILENCE" ] || $DIALOG --no-collapse --msgbox "$1" 0 0; }
+confirm(){ [ -n "$SILENCE" ] || $DIALOG $2 --yesno "$1" 8 50; }
 
 offer_man(){
  local   VIEW=$"View manual page"
@@ -125,7 +228,7 @@ get_def_prmount(){
  fi
 }
 
-get_def_size(){ PSIZE[$1]=$( sfdisk -s ${PDEVICE[$1] ); }
+get_def_size(){ PSIZE[$1]=$( sfdisk -s ${PDEVICE[$1]} ); }
 
 get_filesystem_assumptions(){
  get_puuid       $1
@@ -241,7 +344,7 @@ get_def_mount(){
  local CX
 
  for ((CX=0; CX<$MP; CX++)); do
-  case "${PMOUNT[$CX]}" in
+  case  "${PMOUNT[$CX]}" in
    /boot) BOOTDEV=$CX ;;
    /)     ROOTDEV=$CX ;;
    /home) HOMEDEV=$CX ;;
@@ -360,6 +463,7 @@ make_bootloader_conf(){
  BBDEV=${PDEVICE[$BB]}
 
  MESSAGE="${BOOTLOADER} will be installed to boot block: $BBDEV"
+ [ -n "$SILENCE" ] ||
  $DIALOG --msgbox "$MESSAGE" 8 50
 
  sfdisk ${BBDEV:0:8} -A ${BBDEV:8:2}
@@ -383,8 +487,8 @@ terror_retry(){
  done
 
  if ! [ -f /tmp/terror ]; then
-  read -n 1 -t 900 -p "Press space to continue."
-  $DIALOG --msgbox $"Files transferred." 8 50
+  pause
+  msgbox $"Files transferred."
  else
   $DIALOG --textbox /tmp/terror 20 70
  fi
@@ -394,7 +498,7 @@ terror_retry(){
 transfer_arch(){
  local NOT_MOUNT=$"Not detecting file system mounted on $TARGET"
 
- if   ! grep -q $TARGET /proc/mounts
+ if   ! mounted
  then msgbox "$NOT_MOUNT"; allow || return 1
  fi
 
@@ -437,8 +541,8 @@ transfer_arch(){
  if ! tar -C $TARGET -ixvpf -; then echo "$ET" >> /tmp/terror; fi
 
  if ! [ -f /tmp/terror ]; then
-  read -n 1 -t 900 -p "Press space to continue."
-  $DIALOG --msgbox $"Files transferred." 8 50
+  pause
+  msgbox $"Files transferred."
  else terror_retry
  fi
 
@@ -777,8 +881,8 @@ empty_entry(){
       PCHECK[$1]=
    PPASSWORD[$1]=
 
- if [ /swap ==     "${PDEVICE[$1]}" ] &&
-    [  swap == "${PFILESYSTEM[$1]}" ]; then
+ if [ /swap/0 ==     "${PDEVICE[$1]}" ] &&
+    [  swap   == "${PFILESYSTEM[$1]}" ]; then
       PDEVICE[$1]=
   PFILESYSTEM[$1]=
  fi
@@ -995,9 +1099,9 @@ ppv(){
 
 
 filesystem_table_load(){
- local CX PART
+ local CX PART MEM
 
-     PDEVICE[0]=/swap
+     PDEVICE[0]=/swap/0
  PFILESYSTEM[0]=swap
     POPTIONS[0]=defaults
        PDUMP[0]=0
@@ -1081,8 +1185,8 @@ initialize(){
                   COMMAND="$( get_mk_command "$1" )"
   if   confirm  "$COMMAND" --defaultno &&
        log_eval "$COMMAND"
-  then pause; $DIALOG --msgbox "$SUCCESS" 8 50
-  else pause; $DIALOG --msgbox "$FAILURE" 8 50; return 1
+  then pause; msgbox "$SUCCESS"
+  else pause; msgbox "$FAILURE"; return 1
   fi
   PUUID[$1]=""; get_puuid $1
   make_fstab > /tmp/fstab
@@ -1103,10 +1207,13 @@ filesystem_initialize(){
 swapfile_initialize(){
  local SWAP
 
- [ -n "${PDEVICE[1]}" ] &&
- for SWAP in $( select_swapfile_to_initialize )
- do  initialize $( get_pcx "$SWAP" )
- done
+ mkdir -pvm 700 $TARGET/swap
+ if [ -n "$SILENCE" ]; then initialize 0; else
+  [ -n "${PDEVICE[1]}" ] &&
+  for SWAP in $( select_swapfile_to_initialize )
+  do  initialize $( get_pcx "$SWAP" )
+  done
+ fi
 }
 
 
@@ -1325,7 +1432,7 @@ run_vgremove(){ rvg; vgchange -ay; filesystem_table_load; }
 run_lvremove(){ rlv; vgchange -ay; filesystem_table_load; }
 
 
-pause(){ read -n 1 -t 900 -p "Press space to continue."; }
+pause(){ [ -n "$SILENCE" ] || read -n 1 -t 900 -p "Press space to continue."; }
 
 name_raid(){
  local CX
@@ -1527,7 +1634,7 @@ run_modprobe(){
       PARAM="$( para "$MODULE" )"
  then
   modprobe $MODULE $PARAMETERS
-  read -n 1 -t 900 -p "Press space to continue."
+  pause
  fi
 }
 
@@ -1585,6 +1692,7 @@ run_umount(){ if   mounted; then filesystem_unmount; fi; }
     rdy_lvremove(){ echo optional; }
        rdy_mdadm(){ echo optional; }
   rdy_mdadm_stop(){ echo optional; }
+        rdy_auto(){ echo optional; }
 
 rdy_mbr(){
  if   [ "$MBR" ]
@@ -1673,6 +1781,7 @@ Press the Enter key to make a selection."
 
  $DIALOG --item-help --nocancel --default-item "$MAIN" --menu "$HELP" 0 60 10 \
   skill        "$SKILL"                "Select novice or expert menus" \
+  auto         "$( rdy_auto         )" "automatically install Sorcerer" \
   mbr          "$( rdy_mbr          )" "write bootable master boot record" \
   partition    "$( rdy_partition    )" "create partition on a block device" \
   modify_fstab "$( rdy_modify_fstab )" "modify     file system table" \
@@ -1722,7 +1831,8 @@ main_menu(){
 
  while MAIN=$( main_menu_$SKILL ); do
   case $MAIN in
-   skill)               run_skill ;;
+   auto)		run_auto ;;
+   skill)		run_skill ;;
    lsmod)		run_lsmod ;;
    modprobe)		run_modprobe ;;
    rmmod)		run_rmmod ;;
@@ -1788,4 +1898,5 @@ cause and solution please to kyle.sallee@gmail.com" 15 70
 exit 1
 fi
 
+run_skill
 main_menu
