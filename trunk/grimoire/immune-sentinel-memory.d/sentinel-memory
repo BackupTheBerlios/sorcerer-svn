@@ -1,0 +1,65 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
+pawn(){
+ # 10M worked in trials.
+ echo 1000 > /proc/$BASHPID/oom_score_adj
+ echo 0    > $CG/daemon/sentinel-memory/memory.oom_control
+ RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
+ while sleep 86400; do :; done
+}
+
+oom_control(){
+ find $CG -mindepth 2 -name memory.oom_control |
+ grep -v sentinel-memory |
+ while read; do echo $1 > $REPLY; done
+}
+
+main(){
+ local PASS=0
+ echo -1000 > /proc/$BASHPID/oom_score_adj
+
+ while
+  (( PASS++ ))
+  SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&
+  fallocate "-l$SIZE" "$SWAP" &&
+  mkswap  "$SWAP" &&
+  chmod 0 "$SWAP" &&
+  coproc pawn
+ do
+  read <& ${COPROC[0]}
+  [ -f   "$SWAP" ] &&
+  swapon "$SWAP"
+ done
+ oom_control 0
+ exit 0
+}
+
+find_cgroup || exit 0
+
+if   [[     -x /usr/libexec/bash/sleep ]]
+then enable -f /usr/libexec/bash/sleep sleep
+fi
+
+SDIR=$1
+SIZE=$2
+if   [     -d      $SDIR ]
+then rm    -f      $SDIR/* &>/dev/null
+else mkdir -pm 700 $SDIR
+fi
+oom_control 1
+main &>/dev/null &
+exit 0

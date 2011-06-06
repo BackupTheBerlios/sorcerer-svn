@@ -195,7 +195,15 @@ build(){
   xargs --max-lines=256 strip --strip-unneeded
  }
 
+ tame_oom_killer(){
+  if [ -f mm/oom_kill.c ] && grep -q "force_sig(SIGKILL" mm/oom_kill.c; then
+   echo "Adjusting oom-killer from SIGKILL to SIGTERM"
+   sed -i "s:force_sig(SIGKILL:force_sig(SIGTERM:" mm/oom_kill.c
+  fi
+ }
+
  compile_and_install(){
+# tame_oom_killer
   restore_linux_configs
   trim_config
   yes "" | make oldconfig
