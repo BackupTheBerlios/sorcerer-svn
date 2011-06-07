@@ -3,11 +3,86 @@
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
-# sentinel-space periodically checks availability of space
-# and removes or compresses directories to avert a crisis.
+# sentinel-space attempts to maintain free space
 
 LOW=268435456
 MIN=134217728
+
+VC=/var/cache
+AC=$VC/archive
+CC=$VC/ccache
+SC=$VC/sources
+
+TAR='/\.tar$/p'
+TGZ='/\.tar\.gz$/p;/\.tgz$/p'
+BZ2='/\.tar\.bz2$/p'
+FILES="$TAR;$TGZ;$BZ2"
+XZO="$1"
+
+LC_ALL=C
+TERM="dumb"
+IFS=" 	
+"
+export IFS LC_ALL TERM
+
+decomp(){
+ local REPLY
+ compressor "$1"
+ case "$REPLY" in
+  bzip2) bzip2 -cd $1 ;;
+   gzip) gzip  -cd $1 ;;
+      *) cat       $1 ;;
+ esac
+}
+
+found(){ while read; do return ; done; return 1; }
+
+compressor(){
+        REPLY="$( file -bk $1 )"
+ case "$REPLY" in
+      gzip*) REPLY=gzip  ;;
+     bzip2*) REPLY=bzip2 ;;
+  compress*) REPLY=gzip  ;;
+      *tar*) REPLY=tar   ;;
+ esac
+}
+
+rootname(){
+ REPLY="${1%.bz2}"
+ REPLY="${REPLY%.gz}"
+ REPLY="${REPLY%.tar}"
+ REPLY="${REPLY%.tgz}"
+}
+
+recompress(){
+ local IN OUT TMP REPLY
+
+ rtmp(){ rm -f "$TMP"; }
+ uncompr(){         if ! decomp "$IN"; then rtmp; fi; }
+ xz_it(){ uncompr | if ! xz $XZO > "$TMP"; then rtmp; fi; }
+
+ IN="$1"
+
+ rootname "$1"
+ OUT="$REPLY.tar.xz"
+ TMP="$OUT.new"
+
+ rm -f "$OUT" "$TMP"
+ umask 0077
+ xz_it
+ umask 0022
+
+ if [[ -f $TMP ]]; then
+  mv "$TMP" "$OUT"
+  chmod $( stat -c "%a" "$IN" ) "$OUT"
+  touch -r "$IN" "$OUT"
+  rm    -f "$IN"
+ else false
+ fi
+}
+
+pending(){ find $AC/ $CC/ $SC/ -maxdepth 4 -type f | sed -n "$FILES"; }
+reduction(){ pending | while read; do recompress "$REPLY"; done; }
 
 free_bytes(){ stat -f -c '%a*%s' $1 | bc; }
 
@@ -56,7 +131,20 @@ inside(){
 shrink_dir(){ [ -d $1 ] && inside $1 d | oldest | compress_dir "$@"; }
 waste_file(){ [ -d $1 ] && inside $1 f | oldest | remove_file  "$@"; }
 
+acad(){
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
+  read < /proc/acpi/ac_adapter/*/state
+  [[ $REPLY =~ on-line ]]
+ fi
+}
+
 scan(){
+ if   [ -f /etc/init.d/find_ir ]      ||
+      grep -q "boot=IR" /proc/cmdline ||
+      ! acad
+ then return 0
+ fi
+
  # Compression tactics
  if full /usr/doc          $LOW; then shrink_dir /usr/doc          $LOW; fi
  if full /usr/share/doc    $LOW; then shrink_dir /usr/share/doc    $LOW; fi
@@ -66,21 +154,30 @@ scan(){
  if full /var/cache/ccache $LOW; then waste_file /var/cache/ccache $LOW; fi
  if full /usr/share/doc    $MIN; then waste_file /usr/share/doc    $MIN; fi
  if full /usr/doc          $MIN; then waste_file /usr/doc          $MIN; fi
+
+ reduction
 }
 
-lock(){
- [ -s            /var/run/sentinel-space.pid ] &&
- kill -15    $(< /var/run/sentinel-space.pid )
- echo $BASHPID > /var/run/sentinel-space.pid
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
 }
-
-end(){ rm -f /var/run/sentinel-space.pid; exit 0; }
 
 main(){
- # lock
- trap end EXIT
+ trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
  if   [[     -x /usr/libexec/bash/sleep ]]
  then enable -f /usr/libexec/bash/sleep sleep
+ fi
+ if   find_cgroup; then
+  echo 100 > $CG/daemon/sentinel-space/blkio.weight
+  echo 100 > $CG/daemon/sentinel-space/memory.swappiness
+  echo   1 > $CG/daemon/sentinel-space/cpu.shares
  fi
  while sleep 900; do scan; done
 }
