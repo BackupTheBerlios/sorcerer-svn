@@ -1,8 +1,8 @@
 #!/bin/bash
-# Copyright 2007, 2008 by Kyle Sallee,
+# Copyright 2007, 2008, 2011 by Kyle Sallee,
 # All rights reserved.
 # For use with the distribution Sorcerer only.
-# bootblaze accelerates boot speed
+# boot-blaze accelerates booting
 
 load(){ /usr/bin/cut -f2- $CFG | /bin/tar --no-recursion -chPT - | /bin/cat; }
 load(){ /usr/bin/cut -f2- $CFG | /usr/bin/xargs  -r --max-lines=256 /bin/cat; }
@@ -17,7 +17,7 @@ remo(){
 }
 
 base(){
- declare -i  SEC    ORI=$(  head  -n 1  $1  |  cut  -f1  )
+ declare -i  SEC    ORI=$( head -n 1 $1 | cut -f1 )
  while read  SEC         WHT
  do    ((    SEC -= ORI ))
        echo "$SEC	$WHT"
@@ -41,18 +41,36 @@ watch(){
   rm   -f $TMP $RAW
 }
 
-main()  {
-[[ -x /usr/bin/nice   ]] && /usr/bin/renice  19     -p $$ &>/dev/null
-[[ -x /usr/bin/ionice ]] && /usr/bin/ionice -c2 -n7 -p $$ &>/dev/null
-[[ -f $CFG            ]] && load                          &>/dev/null & disown
-                            watch                         &>/dev/null & disown
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
+main(){
+ watch &>/dev/null & disown
+ if   find_cgroup; then
+  echo 100 > $CG/daemon/boot-blaze/blkio.weight
+  echo   8 > $CG/daemon/boot-blaze/cpu.shares
+ fi
+ if [[ -f $CFG ]]; then
+  load  &>/dev/null & disown
+ fi
 }
 
 trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP
 umask 077
 EXT="$$.$RANDOM$RANDOM"
-TMP=/tmp/bootblaze.tmp.$EXT
-RAW=/tmp/bootblaze.raw.$EXT
-CFG=/etc/bootblaze.conf
+TMP=/tmp/boot-blaze.tmp.$EXT
+RAW=/tmp/boot-blaze.raw.$EXT
+CFG=/etc/boot-blaze
 export LC_ALL=C
+if   [[     -x /usr/libexec/bash/sleep ]]
+then enable -f /usr/libexec/bash/sleep sleep
+fi
 main &>/dev/null

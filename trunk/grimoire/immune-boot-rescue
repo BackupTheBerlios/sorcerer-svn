@@ -1,0 +1,28 @@
+   version stable 20110501
+   require uniso
+  category immune-system
+ attribute archive_off
+ conflicts sorcerer-rescue
+case $HOSTTYPE in
+ x86_64)
+    source http://sorcerer.silverice.org/download/iso9660/${VERSION:0:4}/sorcerer-x86_64-$VERSION.iso ;;
+      *)
+    source http://sorcerer.silverice.org/download/iso9660/${VERSION:0:4}/sorcerer-i686-SMP-$VERSION.iso ;;
+esac
+      desc "faulty initramfs protection
+
+If recently generated initramfs become unusable for booting
+then the rescue label can be booted instead.
+The rescue label is created from
+the linux and initramfs that are provided
+on a Sorcerer Install/Rescue CD."
+
+build(){
+ isoinfo -l -R -i $SOURCE |
+ uniso      -R -i $SOURCE
+ mkdir -p $DESTDIR/boot/rescue
+ cp boot/*/{System.map,initrf,linux} $DESTDIR/boot/rescue/
+ [ -f $DESTDIR/boot/rescue/System.map ] &&
+ [ -f $DESTDIR/boot/rescue/initrf ] &&
+ [ -f $DESTDIR/boot/rescue/linux ]
+}
