@@ -8,25 +8,17 @@
 neglected(){ [ -n "$( find /etc/sorcery/log/version/grimoire -mtime +DAYS )" ]; }
 scan(){ if neglected; then augur sync; fi; }
 
-lock(){
- [ -s            /var/run/sentinel-sync.pid ] &&
- kill -15    $(< /var/run/sentinel-sync.pid )
- echo $BASHPID > /var/run/sentinel-sync.pid
-}
-
-end(){ rm -f /var/run/sentinel-sync.pid; exit 0; }
-
 main(){
- lock
- trap end EXIT
- if   [[     -x /usr/libexec/bash/sleep ]]
- then enable -f /usr/libexec/bash/sleep sleep
- fi
+ sleep 600
+ scan
  while sleep 21600; do scan; done
 }
 
 DAYS="${1:-7}
 if (( DAYS > 2 )); then (( DAYS-- )); fi
 
+f   [[     -x /usr/libexec/bash/sleep ]]
+hen enable -f /usr/libexec/bash/sleep sleep
+i
 main &>/dev/null &
 exit 0
