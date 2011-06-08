@@ -63,6 +63,12 @@ run_auto(){
 
  chroot_silent
 
+ mkdir -vm 755             $TARGET/var/log/sorcery/resume
+ touch -t 20010101         $TARGET/var/log/sorcery/resume/sorcerer-simian
+ touch -t 20010101         $TARGET/etc/sorcery/log/version/grimoire
+ sed   -i 's/id:3:/id:5:/' $TARGET/etc/inittab
+ sync
+
  grep /media/root /proc/mounts |
  cut -d ' ' -f2 |
  sort -r |
@@ -124,7 +130,8 @@ chroot_silent(){
  mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
  mount  --bind  /var/lock        $TARGET/var/lock
  chroot $TARGET swapon -a
- chroot $TARGET /usr/sbin/augur queue dispel/install cast/glibc-locales
+ chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer
+ chroot $TARGET /usr/sbin/augur queue cast/glibc-locales
  chroot $TARGET /usr/sbin/dispel
  chroot $TARGET /usr/sbin/cast
  chroot $TARGET /usr/sbin/augur scry glibc-locales
@@ -164,7 +171,7 @@ chroot_build(){
  mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
  mount  --bind  /var/lock        $TARGET/var/lock
  chroot $TARGET swapon -a
- chroot $TARGET dispel install
+ chroot $TARGET dispel sorcerer-installer
  chroot $TARGET cast "$@"
  scry_finish
  chroot $TARGET /etc/init.d/depmod

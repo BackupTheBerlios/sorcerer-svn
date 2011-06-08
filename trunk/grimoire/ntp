@@ -2,18 +2,7 @@
 
 # 4.2.7p?? are developmental
 
-# 4.2.6p1 4.2.6p2 does not compile
-
-# Both 4.2.4p7 and 4.2.5p204 have compile error
-# The VURL often shows the RC version without the RC.
-# 4.2.4p5 may not yet be stable.
-# 4.2.4p8 has compile error
-# 4.2.4p8 is a security fix, too bad it does not compile.
-# p versions are automated development snapshot releases?
-# 4.2.6p1 does not compile
-
    version stable 4.2.6p3 4.2.6p2 4.2.6
-   version secure 4.2.6
    version snapshot 4.2.7p181 4.2.7p180
    version beta 4.2.6p4-beta2 4.2.6p4-beta1
    require init-functions libcap libelf linux-headers ncurses openssl readline w3c-libwww
@@ -21,20 +10,22 @@
   category utility/time
  attribute client server console
     source http://www.eecis.udel.edu/~ntp/ntp_spool/ntp4/ntp-$VERSION.tar.gz
+      info last  20110103
       vurl http://www.ntp.org/downloads.html
   homepage http://www.ntp.org/
       desc 'synchronizes system time with a network time protocol server'
 
 build(){
-# patch does not fix all compile problems.
-# case $MACHTYPE in
-#  *-uclibc) attribute patch -p1 < $SCRIPT_DIR/ntp-4.2.6.uClibc.patch ;;
-# esac
-
-# so that ntp writes a proper PID file
- sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
+# using cgroup instead of ntp's broke PID file.
+#sed -i 's:fprintf(fp, "%d", (int) getpid());:fprintf(fp, "%d\\n", (int) getpid());:'  ntpd/ntp_util.c
  default_build &&
  mkdir  -pvm 755 $DESTDIR/{etc,usr/doc/ntp} &&
  cp     -r  html $DESTDIR/usr/doc/ntp/ &&
  install -vm 640 $SCRIPT_DIR/ntp.conf $DESTDIR/etc
+}
+
+current(){
+ case $VERSION in
+  4.2.6p3) grep -q "\-g" /etc/init.d/ntpd ;;
+ esac
 }
