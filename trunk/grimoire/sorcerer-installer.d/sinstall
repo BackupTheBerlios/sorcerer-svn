@@ -14,6 +14,7 @@
 run_auto(){
 
  local BOOTLOADER BL_CONF GL MBR MIRD SILENCE
+ local ROOT_PASS USER_PASS USER_NAME
 
  part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n\na\n1\nw"; }
 
@@ -21,6 +22,16 @@ run_auto(){
  then DISK=$( get_disk )
  else DISK=/dev/sda
  fi
+
+ while [ -z "$USER_NAME" ]; do
+  USER_NAME="$( inputbox "Please type the primary user name." )"
+  if   echo "$USER_NAME" | tr -d 'A-Za-z' | grep -q '.'
+  then msgbox "One word with characters from A-Z and a-z, please."; USER_NAME=
+  fi
+ fi
+
+ USER_PASS="$( inputbox "Please type the user password." )"
+ ROOT_PASS="$( inputbox "Please type the root password." )"
 
  if   ! confirm "All partitions on $DISK will be lost?" --defaultno
  then return
@@ -132,6 +143,7 @@ chroot_silent(){
  chroot $TARGET swapon -a
  chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer
  chroot $TARGET /usr/sbin/augur queue cast/glibc-locales
+ chroot $TARGET /usr/sbin/augur queue cast/grimoire-simian
  chroot $TARGET /usr/sbin/dispel
  chroot $TARGET /usr/sbin/cast
  chroot $TARGET /usr/sbin/augur scry glibc-locales
