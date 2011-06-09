@@ -36,23 +36,21 @@ scan(){
  fi
 }
 
-lock(){
- [ -s            /var/run/sentinel-resume.pid ] &&
- kill -15    $(< /var/run/sentinel-resume.pid )
- echo $BASHPID > /var/run/sentinel-resume.pid
-}
-
-end(){ rm -f /var/run/sentinel-resume.pid; exit 0; }
 
 main(){
- lock
- trap end EXIT
- if   [[     -x /usr/libexec/bash/sleep ]]
- then enable -f /usr/libexec/bash/sleep sleep
+ if   [ -d          /var/log/sorcery/resume ] &&
+      [ -n "$( find /var/log/sorcery/resume/ -type f )" ]
+ then sleep 120; scan
  fi
- find_cgroup
+
  while sleep 3600; do scan; done
 }
+
+find_cgroup
+
+if   [[     -x /usr/libexec/bash/sleep ]]
+then enable -f /usr/libexec/bash/sleep sleep
+fi
 
 main &>/dev/null &
 exit 0
