@@ -10,7 +10,7 @@ version_year_week
  conflicts sorcery-alien
       desc "alien file identification
 
-Files with unknown origin gain symbolic links in /var/cache/alien/
+Files with unknown origin gain an entry in /var/log/sorcery/aliens.txt
 This exam runs automatically with a frequency no greater than weekly.
 
 Alien files can cause problems.
@@ -20,20 +20,10 @@ alien files should be moved to a directory such as /root/alien/
 If removal of the alien file causes problems
 then the the alien file can be restored to it's former location."
 
-
 build(){
  [[     -x /usr/libexec/bash/ln ]] &&
  enable -f /usr/libexec/bash/ln ln
 
- mkdir -pvm 755           $DESTDIR/var/cache
- mkdir -pvm 700           $DESTDIR/var/cache/alien
- bash $SCRIPT_DIR/alien > $DESTDIR/var/cache/alien/aliens.txt
- dirnames               < $DESTDIR/var/cache/alien/aliens.txt |
- sed                 "s:^:$DESTDIR/var/cache/alien:" |
- escape_qs |
- xargs -r --max-lines=256 mkdir -p
-
- while read
- do ln -s "$REPLY"       "$DESTDIR/var/cache/alien/$REPLY"
- done                   < $DESTDIR/var/cache/alien/aliens.txt
+ mkdir -pvm 700           $DESTDIR/var/log/sorcery
+ bash $SCRIPT_DIR/alien > $DESTDIR/var/log/sorcery/aliens.txt
 }
