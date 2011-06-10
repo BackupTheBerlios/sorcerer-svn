@@ -72,6 +72,11 @@ run_auto(){
  echo 'LOCALES=""'             > $GL/sorcery
  echo 'DLOCALE="en_US.UTF-8"' >> $GL/sorcery
 
+ echo    "$USER_NAME"             | chroot $TARGET /usr/sbin/adduser
+ echo -e "$USER_PASS\n$USER_PASS" | chroot $TARGET /usr/bin/passwd "$USER_NAME"
+ echo -e "$ROOT_PASS\n$ROOT_PASS" | chroot $TARGET /usr/bin/passwd root 
+ chroot $TARGET /usr/sbin/usermod -G audio,cdrom,lp,video -a "$USER_NAME"
+
  chroot_silent
 
  mkdir -vm 755             $TARGET/var/log/sorcery/resume
@@ -79,11 +84,6 @@ run_auto(){
  touch -t 200101010000     $TARGET/var/log/sorcery/resume/sorcerer-simian
  sed   -i 's/id:3:/id:5:/' $TARGET/etc/inittab
  sync
-
- echo    "$USER_NAME"             | chroot $TARGET /usr/sbin/adduser
- echo -e "$USER_PASS\n$USER_PASS" | chroot $TARGET /usr/bin/passwd "$USER_NAME"
- echo -e "$ROOT_PASS\n$ROOT_PASS" | chroot $TARGET /usr/bin/passwd root 
- chroot $TARGET /usr/sbin/usermod -G audio,cdrom,lp,video -a "$USER_NAME"
 
  grep /media/root /proc/mounts |
  cut -d ' ' -f2 |
