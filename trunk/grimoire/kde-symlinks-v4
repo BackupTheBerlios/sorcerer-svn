@@ -4,7 +4,15 @@
       desc 'Redirects kde configuration into /etc'
 
 build(){
- link(){ mkdir -pvm 755 $DESTDIR/$2; ln -s $2 $DESTDIR/$1; }
+ link(){
+  if   [ -d $1 ] && ! [ -h $1 ]; then
+   mkdir    $2
+   mv       $1/* $2
+   rmdir    $1
+  fi
+  mkdir -pvm 755 $DESTDIR/$2
+  ln -s $2 $DESTDIR/$1
+ }
 
  mkdir -pvm 755 $DESTDIR/opt/kde4/{share,lib,lib64}
  link /opt/kde4/share/config      /etc/kde4.config
