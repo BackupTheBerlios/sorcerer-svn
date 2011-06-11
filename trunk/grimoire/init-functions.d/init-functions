@@ -40,10 +40,17 @@ session(){
 }
 
 pids_from_cgroup(){
- if   find_cgroup && [ -f $CGDNT ] && read REPLY < $CGDNT
- then grep -q . $CGDNT && cat $CGDNT
- else return 1
+ if ! find_cgroup; then return 1; fi
+
+ if [ -f $CGINT ] && read REPLY < $CGINT
+ then grep -q . $CGINT && cat $CGINT && return 0
  fi
+
+ if [ -f $CGDNT ] && read REPLY < $CGDNT
+ then grep -q . $CGDNT && cat $CGDNT && return 0
+ fi
+
+ return 1
 }
 
 pidofproc(){
@@ -86,8 +93,11 @@ find_cgroup(){
   if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
    CG=$DIR
    CGD=$CG/daemon
-   CGDN=$CGD/$NAME; 
+   CGDN=$CGD/$NAME
    CGDNT=$CGDN/tasks
+   CGI=$CG/idle
+   CGIN=$CGI/$NAME
+   CGINT=$CGIN/tasks
    return 0
   fi
  done < /proc/mounts
