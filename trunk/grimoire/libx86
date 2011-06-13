@@ -1,0 +1,36 @@
+   version stable 1.1
+  category utility
+ attribute library multilib-fail x86 x86_64
+    source http://www.codon.org.uk/~mjg59/libx86/downloads/libx86-$VERSION.tar.gz
+      info last  20080519
+      info home  http://www.codon.org.uk/~mjg59/libx86/
+      desc 'library for making real-mode x86 BIOS calls from userland'
+
+build(){
+ case $VERSION in
+  1.1) sed -i '1i#include <asm/processor-flags.h>
+               s:IF_MASK:X86_EFLAGS_IF:g
+               s:IOPL_MASK:X86_EFLAGS_IOPL:g
+               s:VIF_MASK:X86_EFLAGS_VIF:g
+               s:TF_MASK:X86_EFLAGS_TF:g' lrmi.c
+       sed -i 's:VX86_EFLAGS_IF:X86_EFLAGS_VIF:g' lrmi.c ;;
+      #sed -i 's:VX86_EFLAGS_IF:X86_EFLAGS_IF:g'  lrmi.c ;;
+      ## Not absolutely sure, but probably X86_EFLAGS_VIF
+ esac
+
+ make_install(){
+  mkdir  -pvm 755             $DESTDIR/usr/include
+  install -vm 644 lrmi.h      $DESTDIR/usr/include/libx86.h
+  mkdir  -pvm 755             $DESTDIR/$LIBDIR
+  install -vm 755 libx86.so.1 $DESTDIR/$LIBDIR/
+  ln      -vs     libx86.so.1 $DESTDIR/$LIBDIR/libx86.so
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/lib64; BEX="BACKEND=x86emu"
+ else LIBDIR=/lib
+ fi
+
+ make shared $BEX CFLAGS="-fPIC $CFLAGS" &&
+ make_install
+}

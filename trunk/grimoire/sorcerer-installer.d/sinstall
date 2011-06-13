@@ -16,7 +16,8 @@ run_auto(){
  local BOOTLOADER BL_CONF GL MBR MIRD SILENCE
  local ROOT_PASS USER_PASS USER_NAME
 
- part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n\na\n1\nw"; }
+  part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n+4G\nt\n82\nn\np\n2\n\n\na\n2\nw"; }
+# part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n\na\n1\nw"; }
 
  if   [ -b /dev/sdb ] || [ -b /dev/sdc ] || [ -b /dev/sdd ]
  then DISK=$( get_disk )
@@ -39,23 +40,30 @@ run_auto(){
 
  SILENCE=golden
  MBR=true
+
+ part_keys |
+ fdisk     $DISK &>/dev/null
  ms-sys -s $DISK
 
- part_keys | fdisk $DISK &>/dev/null
  filesystem_table_load
 
- MEM=$( sed -r "s/MemTotal: *(.*) kB/\1/p;d" /proc/meminfo )
- if   (( 1048576 > MEM )); then PSIZE[0]=4096
- elif (( 2097152 > MEM )); then PSIZE[0]=3072
- elif (( 3145728 > MEM )); then PSIZE[0]=2048
-                           else PSIZE[0]=1024
- fi
+ empty_entry 0
+     PDEVICE[0]=
+ PFILESYSTEM[0]=
 
- PFILESYSTEM[1]=ext4
- PMOUNT[1]=/
+ PFILESYSTEM[1]=swap
+      PMOUNT[1]=none
+
+      PMOUNT[2]=/
+ PFILESYSTEM[2]=ext4
+
  get_filesystem_assumptions 1
+ get_filesystem_assumptions 2
+
  make_fstab > /tmp/fstab
- mkfs.ext4	${PFEATURE[1]}	${PDEVICE[1]}
+ mkswap		${PFEATURE[1]}	${PDEVICE[1]}
+ mkfs.ext4	${PFEATURE[2]}	${PDEVICE[2]}
+
  filesystem_mount
  transfer_arch
 
@@ -1889,6 +1897,9 @@ main_menu(){
 # Max Partitions
 MP=64
 TARGET="/media/root"
+
+# Total kilobytes
+RAM=$( sed -r "s/MemTotal: *(.*) kB/\1/p;d" /proc/meminfo )
 
 TAB="	"
 LF="
