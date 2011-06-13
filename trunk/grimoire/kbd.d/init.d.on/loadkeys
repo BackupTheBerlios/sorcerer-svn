@@ -28,15 +28,16 @@ start(){
 
  log_warning_msg "keymap loading"
 
- local       KEYMAP=ask
-
  if   [ -f          /etc/keymap.conf ]
  then read KEYMAP < /etc/keymap.conf
  fi
 
- if   [ -z "$KEYMAP"        ] ||
-      [    "$KEYMAP" == ask ]
- then        KEYMAP=$( keymap_menu )
+ if [ -z "$KEYMAP" ]; then
+           KEYMAP=$( keymap_menu )
+  [     -d /etc/init.d/conf.d ] ||
+  mkdir -p /etc/init.d/conf.d
+  echo "KEYMAP=$KEYMAP" /etc/init.d/conf.d/loadkeys
+  chmod 600             /etc/init.d/conf.d/loadkeys
  fi
 
  if   [ -n "$KEYMAP" ] && loadkeys $KEYMAP
@@ -45,9 +46,7 @@ start(){
  fi
 }
 
-
 help(){ echo "Usage: $0 {start}" 1>&2; }
-
 
 case $1 in
  start) start ;;
