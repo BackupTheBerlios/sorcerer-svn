@@ -24,7 +24,7 @@ start(){
 
  if   log_warning_msg "/etc/init.d/conf.d checking"; run
  then log_success_msg "/etc/init.d/conf.d checked"
- else log_success_msg "/etc/init.d/conf.d failed"
+ else log_failure_msg "/etc/init.d/conf.d failed"
  fi
 }
 

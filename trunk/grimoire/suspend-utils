@@ -3,8 +3,8 @@
 # I am still thinking about it.
 
    version stable 1.0
-   require pciutils
-# Has difficult locating installed libgcrypt
+   require libx86 pciutils
+# it was unable to locate installed libgcrypt
 # optional libgcrypt --enable-encrypt
       opts --with-initramfsdir=/sbin --disable-resume-static
   category utility
@@ -13,3 +13,21 @@
       info last  20110306
       info home  http://suspend.sourceforge.net
       desc 'tools that concurrently suspend to RAM and disk.'
+
+build(){
+ modify_config(){
+  local OFFSET
+  local DEVICE="$( tr -s ' ' < /proc/swaps | cut -f1 | cut -d ' ' -f1 | sed "2p;d" )"
+  local   TYPE="$( tr -s ' ' < /proc/swaps | cut -f1 | cut -d ' ' -f2 | sed "2p;d" )"
+  if [ "$TYPE" == file ]; then
+   OFFSET=$( swap-offset $DEV )
+#  DEVICE=   How to discover this?
+   sed -i "1iresume offset = $OFFSET" $DESTDIR/etc/suspend.conf
+  else
+   sed -i "s:<path_to_resume_device_file>:$DEVICE:" $DESTDIR/etc/suspend.conf
+  fi
+ } 
+
+ default_build &&
+ modify_config
+}
