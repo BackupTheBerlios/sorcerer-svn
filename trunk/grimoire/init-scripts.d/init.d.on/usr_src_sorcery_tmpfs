@@ -9,7 +9,11 @@
 # Short-Description: mounts 3G tmpfs on /usr/src/sorcery
 ### END INIT INFO
 
+RAM=$( sed -r "s/MemTotal: *(.*) kB/\1/p;d" /proc/meminfo )
+if (( 1048576 > RAM )); then exit 0 ; fi
+
 . /lib/lsb/init-functions
+
 
 NAME=/usr/src/sorcery
 OPTS='-o defaults,size=4g,nr_inodes=1m,mode=700 -t tmpfs tmpfs'
