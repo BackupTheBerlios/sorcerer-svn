@@ -18,43 +18,18 @@
       desc 'keytable files and keyboard utilities
 Configuration file is /etc/keymap.conf'
 
-configure(){
- get(){
-  menu_list(){ sed "1iask	$2
-                    s:$:	$2:" < $SCRIPT_DIR/$3; }
-
-  WHAT=$( dialog --stdout                        \
-                 --timeout  ${PROMPT_DELAY:-120} \
-                 --title "$2 Menu"               \
-                 --default-item "$4"             \
-                 --menu  ""  0 0 0               \
-                 $( menu_list "$@" )
-        )  &&
-  if [ -n      "$WHAT" ]
-  then echo "$1=$WHAT" >> $SPELL_CONFIG
-  fi
- }
-
- if   [ -d /boot/isolinux ]
- then KEYMAP=ask
- fi
-
- if [ -z "$KEYMAP" ]; then get "KEYMAP" "Keymap" "keymaps.txt" "us"; fi
-#if [ -z "$FONT"   ]; then get "FONT"   "Font"   "fonts.txt"   "default8x16"; fi
-}
-
 build(){
  rm  -f /etc/keymap.conf
  [   -n  "$KEYMAP" ] &&
  sed -i "s:KEYMAP=[^$]*$:KEYMAP=$KEYMAP:" $SCRIPT_DIR/init.d.on/loadkeys
 
  default_build &&
- mkdir -p                     $DESTDIR/bin &&
- mv $DESTDIR/usr/bin/loadkeys $DESTDIR/bin/
+ mkdir -pvm 755                  $DESTDIR/bin &&
+ mv -v $DESTDIR/usr/bin/loadkeys $DESTDIR/bin/
 }
 
 current(){
  case $VERSION in
-  1.15.2) [ -f /bin/loadkeys ] ;;
+  1.15.2) grep -q "conf.d" /etc/init.d/loadkeys ;;
  esac
 }
