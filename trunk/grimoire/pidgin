@@ -1,6 +1,6 @@
 # online-desktop uses pidgin's libpurple library
 
-   version stable 2.7.11 2.7.10 2.7.9 2.7.7 2.7.5
+   version stable 2.8.0 2.7.11 2.7.10 2.7.9 2.7.7 2.7.5
    require avahi farsight2 gtk+ libXScrnSaver nss startup-notification
   optional doxygen               ''                  ''                   for building pidgin documentation
   optional evolution-data-server ''                  --disable-gevolution for evolution plugin
@@ -18,7 +18,7 @@
   category network/chat
  attribute gnome library makej multilib-dual
     source $SOURCEFORGE_URL pidgin/Pidgin/$VERSION/pidgin-$VERSION.tar.bz2
-      info last  20110313
+      info last  20110613
   homepage http://www.pidgin.im/
  conflicts gaim
       desc 'instant messanger client for several protocols
@@ -27,10 +27,15 @@ for the AIM protocol but has plugin support for
 icq, irc, yahoo, and jabber all at once in one interface.'
 
 build(){
- if    [[ $HOSTTYPE == x86_64        ]]; then
-  if ! [[ $OPTS     =~ --disable-tcl ]]; then opts --with-tclconfig=/usr/lib64; fi
-  if ! [[ $OPTS     =~ --disable-tk  ]]; then opts --with-tkconfig=/usr/lib64; fi
-  if   [[ $CFLAGS   =~ -m32          ]]; then opts --disable-perl; fi
+ if     [[ $HOSTTYPE == x86_64        ]]; then
+  if  ! [[ $CFLAGS   =~ -m32          ]]; then
+   if ! [[ $OPTS     =~ --disable-tcl ]]; then opts --with-tclconfig=/usr/lib64; fi
+   if ! [[ $OPTS     =~ --disable-tk  ]]; then opts --with-tkconfig=/usr/lib64; fi
+  else
+   if ! [[ $OPTS     =~ --disable-tcl ]]; then opts --with-tclconfig=/usr/lib; fi
+   if ! [[ $OPTS     =~ --disable-tk  ]]; then opts --with-tkconfig=/usr/lib; fi
+   if   [[ $CFLAGS   =~ -m32          ]]; then opts --disable-perl; fi
+  fi
  fi
  export   CFLAGS+=" -I/usr/include/nss -I/usr/include/nspr"
  export CXXFLAGS+=" -I/usr/include/nss -I/usr/include/nspr"
