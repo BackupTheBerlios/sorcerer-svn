@@ -7,7 +7,7 @@
 # 4.02 failed compilation
 
    version stable 4.04 4.03 4.01
-   version pre 4.10-pre14
+#  version pre 4.10-pre14
    require nasm perl
   optional mtools '' '' for creating msdos filesystems
   category administration/bootloader
@@ -18,27 +18,25 @@
       desc 'bootloader for Linux that works on FAT and ISO9660 filesystems'
 
 build(){
- case $VERSION in
-  4.04) unset LDFLAGS ;;
-  4.03) unset LDFLAGS ;;
-  4.01) unset LDFLAGS ;;
- esac
+ install_menu(){
+  mkdir -pvm 700 $DESTDIR/boot/extlinux
+  cp     -av     $DESTDIR/{usr/share/syslinux/*menu.c32,boot/extlinux/}
+ }
 
-# The following sed statement allows syslinux to compile on x86_64
-# sed -i 's:dos/syslinux.com::
-#         s:dos::
-#         s:com32::
-#         s:memdisk/memdisk::
-#         s:memdisk::
-#         s:win32/syslinux.exe::
-#         s:win32::
-#         s:/sbin:/usr/sbin:
-#         /INSTALL_AUX_OPT/d
-#         /-C  install/d' Makefile
+ case $VERSION in
+  4.*) unset LDFLAGS ;;
+ esac
 
  sed -i '/INSTALL_AUX_OPT/d
          s:win32/syslinux.exe::' Makefile
 
  make &&
- make install INSTALLROOT=$DESTDIR DESTDIR=$DESTDIR
+ make install INSTALLROOT=$DESTDIR DESTDIR=$DESTDIR &&
+ install_menu
+}
+
+current(){
+ case $VERSION in
+  4.04) [ -f /boot/extlinux/menu.c32 ] ;;
+ esac
 }
