@@ -148,11 +148,12 @@ initrf_update(){
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 | sed '\,rescue,d' |
  while read; do
-  mkdir                   $TEMPIF/boot/$REPLY
+  mkdir                  $TEMPIF/boot/$REPLY
   if   $LILO
-  then mkinitrf $REPLY  > $TEMPIF/boot/$REPLY/initrf
-  else mkinitrf $REPLY  > $TEMPIF/boot/$REPLY/modules
-       ln -s ../filesys   $TEMPIF/boot/$REPLY/filesys
+  then mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
+  else mkinitrf $REPLY |
+       gzip -1         > $TEMPIF/boot/$REPLY/modules
+       ln -s ../filesys  $TEMPIF/boot/$REPLY/filesys
   fi
  done
 
