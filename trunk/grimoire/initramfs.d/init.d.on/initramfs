@@ -140,9 +140,9 @@ initrf_update(){
  rm    -rf     $TEMPIF
  mkdir -pm 600 $TEMPIF/boot
 
- local       COMMON="$TEMPIF/boot/filesys"
+ local COMMON="$TEMPIF/boot/filesys"
 
- every | filter_elf | exists | cpio -o -H newc --quiet > $COMMON
+ every | filter_elf | exists | cpio -o -H newc --quiet | gzip -1 > $COMMON
  chmod 600 $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
@@ -151,8 +151,7 @@ initrf_update(){
   mkdir                  $TEMPIF/boot/$REPLY
   if   $LILO
   then mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
-  else mkinitrf $REPLY |
-       gzip -1         > $TEMPIF/boot/$REPLY/modules
+  else mkinitrf $REPLY > $TEMPIF/boot/$REPLY/modules
        ln -s ../filesys  $TEMPIF/boot/$REPLY/filesys
   fi
  done
