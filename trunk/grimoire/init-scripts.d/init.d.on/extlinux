@@ -37,9 +37,12 @@ extlinux_conf_update(){
  }
 
  img(){
+  local INITRF
+  if [ -f /boot/$REPLY/modules ]; then INITRF="../$REPLY/modules";   fi
+  if [ -f /boot/$REPLY/filesys ]; then INITRF+=",../$REPLY/filesys"; fi
   echo "LABEL	$REPLY"
-  echo "	KERNEL	../$REPLY/linux"
-  echo "	INITRD	../$REPLY/initrf"; [ -n "$1" ] &&
+  echo "	KERNEL	../$REPLY/linux"; [ -n "$INITRF" ] &&
+  echo "	INITRD	$INITRF";         [ -n "$1"      ] &&
   echo "$1"
   echo
  }
@@ -64,7 +67,7 @@ extlinux_conf_update(){
  reorder |
  while read REPLY; do
   if   (( 4 > ICX ))
-  then img restricted
+  then img
   else rm -fr /boot/$REPLY /lib{,.sav}/modules/$REPLY{,.old}
   fi
   (( ICX++ ))

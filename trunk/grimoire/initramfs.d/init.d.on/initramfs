@@ -32,10 +32,12 @@ filter_elf(){
 }
 
 mkinitrf(){
- cat $COMMON
- find /lib/modules/$1 |
- LC_ALL=C sort -u |
- cpio -o -H newc --quiet
+ $EXTL || cat $COMMON
+
+ ( echo -e "/lib\n/lib/modules\n/lib/modules/$1"
+   find /lib/modules/$1 |
+   LC_ALL=C sort -u
+ ) | cpio -o -H newc --quiet
 }
 
 every(){
@@ -134,50 +136,48 @@ initrf_update(){
 
  lock_initramfs
 
- local       TEMPIF=/tmp/initramfs.$RANDOM$RANDOM
- rm    -rf  $TEMPIF
- mkdir -p   $TEMPIF/boot
- chmod 600  $TEMPIF
+ local          TEMPIF=/tmp/initramfs.$RANDOM$RANDOM
+ rm    -rf     $TEMPIF
+ mkdir -pm 600 $TEMPIF/boot
 
- local       COMMON="$TEMPIF/common"
- local       LILO
-
- if   [ -f /etc/init.d/lilo ] &&
-      [ -x /etc/init.d/lilo ]
- then LILO=true
- else LILO=false
- fi
+ local       COMMON="$TEMPIF/boot/filesys"
 
  every | filter_elf | exists | cpio -o -H newc --quiet > $COMMON
+ chmod 600 $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 | sed '\,rescue,d' |
  while read; do
-  mkdir             $TEMPIF/boot/$REPLY
-  mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
+  mkdir                   $TEMPIF/boot/$REPLY
+  if   $LILO
+  then mkinitrf $REPLY  > $TEMPIF/boot/$REPLY/initrf
+  else mkinitrf $REPLY  > $TEMPIF/boot/$REPLY/modules
+       ln -s ../filesys   $TEMPIF/boot/$REPLY/filesys
+  fi
  done
 
- find /boot -maxdepth 2 -mindepth 2 -type f -name initrf -printf '%h\n' |
- cut -d / -f3 | sed '\,rescue,d' |
- while read
- do    mv /boot/$REPLY/initrf{,.old}
- done
+ if $LILO; then
+  rm -f $COMMON
+  find /boot -maxdepth 2 -mindepth 2 -type f -name initrf -printf '%h\n' |
+  cut -d / -f3 | sed '\,rescue,d' |
+  while read
+  do    mv /boot/$REPLY/initrf{,.old}
+  done
+  chmod 600 $TEMPIF/boot/*/initrf
+ fi
 
- chmod 600  $TEMPIF/boot/*/initrf
  if ! cp -a $TEMPIF/boot /; then rm /boot/*/initrf/.old
       cp -a $TEMPIF/boot /; fi
  rm -fr     $TEMPIF
  sync
 
- if   $LILO && ! $DONE
- then /etc/init.d/lilo reload
- fi
-
- if   ! [ -f /etc/init.d/find_ir ]; then
-  if   [ -f /boot/extlinux/menu.c32 ]; then
+ if ! [ -f /etc/init.d/find_ir ]; then
+  if $EXTL; then
+   if ! $DONE; then /etc/init.d/extlinux reload; fi
    /sbin/extlinux -U /boot/extlinux ||
    /sbin/extlinux -i /boot/extlinux
-  else
+  elif $LILO; then
+   if ! $DONE; then /etc/init.d/lilo reload; fi
    /sbin/lilo -P ignore -C /etc/lilo/conf ||
    /sbin/lilo -P ignore -C /etc/lilo/conf
   fi
@@ -187,8 +187,14 @@ initrf_update(){
 }
 
 initrf_present(){
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- while read; do [[ -f $REPLY/initrf ]] || return 1; done
+ if $EXTL then
+  [ -f /boot/filesys ] || return 1
+  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+  while read; do [[ -f $REPLY/modules ]] || return 1; done
+ else
+  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+  while read; do [[ -f $REPLY/initrf ]] || return 1; done
+ fi
 }
 
 initrf_current(){
@@ -208,7 +214,12 @@ initrf_current(){
  [[ -f /etc/mdadm.conf ]] && FILES+=' /etc/mdadm.conf'
  [[ -f /etc/multipath.conf ]] && FILES+=' /etc/multipath.conf'
 
- IRF=$( find /boot -type f -name initrf -printf '%T@\t%p\n' | 
+ IRF=$( ( if   $EXTL
+          then find /boot -type f -name modules -printf '%T@\t%p\n'
+               find /boot -type f -name filesys -printf '%T@\t%p\n'
+          else find /boot -type f -name initrf  -printf '%T@\t%p\n'
+          fi
+        ) | 
         sed '\,/boot/fast,d
              \,/boot/rescue,d' |
         sort -g | head -n1 | cut -f2 )
@@ -241,6 +252,20 @@ help(){ echo "Usage: $0 {stop|status|force|reload}"; }
 if ! [[ -d /boot ]] ||
      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
 then log_failure_msg "$NAME unknown boot method"; exit 1
+fi
+
+LILO=false
+EXTL=false
+
+if   [ -f /etc/init.d/lilo ] &&
+     [ -x /etc/init.d/lilo ]
+then LILO=true
+fi
+
+if   [ -f /etc/init.d/extlinux    ] &&
+     [ -x /etc/init.d/extlinux    ] &&
+     [ -f /boot/extlinux/menu.c32 ]
+then EXTL=true; LILO=false
 fi
 
 export LC_ALL=C
