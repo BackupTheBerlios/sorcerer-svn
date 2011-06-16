@@ -91,13 +91,6 @@ run_auto(){
  filesystem_mount
  transfer_arch
 
- if   [ -f $TARGET/etc/lilo/head ]
- then BOOTLOADER=lilo
- else BOOTLOADER=yaboot
- fi
-
- BL_CONF="$TARGET/etc/$BOOTLOADER/head"
-
  make_bootloader_conf
  GL=$TARGET/etc/sorcery/log/config/glibc-locales
  mkdir -p $GL
@@ -513,17 +506,7 @@ make_bootloader_conf(){
 
  get_puuid $BB
 
- echo "boot${TAB}${TAB}${TAB}=${TAB}/dev/disk/by-uuid/${PUUID[$BB]}" >> $BL_CONF
-
-# The UUID= notation works on lilo 22.8's command line
-# but when properly written in lilo's configuration file.
-#echo "boot${TAB}${TAB}${TAB}=${TAB}\"UUID=${PUUID[$BB]}\"" >> $BL_CONF
-
  BBDEV=${PDEVICE[$BB]}
-
- MESSAGE="${BOOTLOADER} will be installed to boot block: $BBDEV"
- [ -n "$SILENCE" ] ||
- $DIALOG --msgbox "$MESSAGE" 8 50
 
  sfdisk ${BBDEV:0:8} -A ${BBDEV:8:2}
  mbr_check
@@ -1348,7 +1331,7 @@ confirm_unmount(){
  local NOT_YET="
 Until the install image is transfered,
 initramfs images created,
-and lilo is installed to a boot block
+and extlinux is installed to a boot block
 the file systems should remain mounted.
 
 However to modify the file system table, create,
@@ -1552,13 +1535,6 @@ compile_menu(){
  local EXTRA_SPELLS REQUIRED_SPELLS="\
 etc
 glibc-locales"
-
- if   [ -f $TARGET/etc/lilo/head ]
- then BOOTLOADER=lilo
- else BOOTLOADER=yaboot
- fi
-
- BL_CONF="$TARGET/etc/$BOOTLOADER/head"
 
  make_bootloader_conf
 

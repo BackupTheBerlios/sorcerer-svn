@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Start: 1 2 3 4 5
+# Short-Description: checks and sets symbolic link /etc/localtime
+### END INIT INFO
+
+[ -d /usr/share/zoneinfo ] || exit 0
+
+. /lib/lsb/init-functions
+
+name	/etc/localtime
+
+run(){
+
+ tz_menulist(){ find /usr/share/zoneinfo -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
+
+ tz_menu(){
+  BACKTITLE=$"Timezone Configuration Menu"
+      TITLE=$"Timezone Selection"
+       HELP=$"Please select the computer's location within 60 seconds."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --menu "$HELP" 0 0 0      \
+   $( tz_menulist )
+ }
+
+ LOCALTIME="$( tz_menu )"
+ if [ "$LOCALTIME" ]; then
+  rm -f  $NAME
+  ln -sv /usr/share/zoneinfo/$LOCALTIME $NAME
+ fi
+}
+
+status(){
+ symlinkedfile(){ [ -h $1 ] && [ -f $1 ]; }
+
+ if   log_warning_msg "$NAME checking"; symlinkedfile $NAME
+ then log_success_msg "$NAME checked"
+ else log_warning_msg "$NAME missing"; return 1
+ fi
+}
+
+start(){ if ! status; then run; fi; }
+
+       stop(){ :; }
+     reload(){ rm -f $NAME; start; }
+    restart(){ :; }
+try_restart(){ :; }
+parse "$@"
