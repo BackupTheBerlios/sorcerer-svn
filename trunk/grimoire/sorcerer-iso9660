@@ -13,10 +13,10 @@ post_install(){
 
  default_post_install
 
- run_init_d services.d
+ run_init_d services
  run_init_d depmod
  run_init_d rc.d
- run_init_d lilo.conf
+ run_init_d extlinux
  run_init_d initramfs
 
  [[ -d $ARCHIVE_CACHE ]] || return
@@ -41,19 +41,16 @@ post_install(){
  mkdir -p  $ISO/var/cache
  cp    -al /var/cache/{archive,sources} $ISO/var/cache/
  cp    -a  /boot                        $ISO/
- rm    -f                               $ISO/boot/*/initrf.old
  rm    -f                               $ISO/var/cache/archive/sorcerer-*
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
- find $ISO/boot -name initrf |
+ find $ISO/boot -type f -name modules filesys |
  while read
  do    xz --check=crc32 --x86 --lzma2=dict=32MiB $REPLY && mv $REPLY.xz $REPLY
-#do    bzip2 -9 $REPLY && mv $REPLY.bz2 $REPLY
-#do    gzip  -9 $REPLY && mv $REPLY.gz  $REPLY
  done
 
  DATE=$VERSION
  case $HOSTTYPE in
-  x86_64) DEST=/var/cache/sorcerer-${HOSTTYPE/i586/ia32}-$DATE.iso ;;
+  x86_64) DEST=/var/cache/sorcerer-$HOSTTYPE-$DATE.iso ;;
     i*86) gzip -cd /boot/isolinux/config.gz |
           grep -q CONFIG_SMP=y &&
           DEST=/var/cache/sorcerer-i686-SMP-$DATE.iso ||

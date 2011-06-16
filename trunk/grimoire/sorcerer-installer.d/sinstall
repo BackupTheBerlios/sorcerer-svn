@@ -10,13 +10,34 @@
 # installing the Sorcerer Install/Rescue ISO               #
 ############################################################
 
+sane_pass(){
+ if   [ -z "$1" ]
+ then msgbox "Please type something before pressing enter."; return 1
+ fi
+ local PASS="$1"
+ shift 1
+ while [ -n "$1" ]; do
+  if   [    "$1" == "$PASS" ]
+  then msgbox "Password must not match previously entered password."
+       return 1
+  else shift  1
+  fi
+ done
+}
+
+ask_pass(){
+ local ASK="$1"; shift 1
+ while REPLY="$( inputbox "$ASK" )"
+       sane_pass "$REPLY" "$USER_PASS" "$ROOT_PASS"
+ do :;
+ done
+}
 
 run_auto(){
 
  local BOOTLOADER BL_CONF GL MBR MIRD SILENCE
- local ROOT_PASS USER_PASS USER_NAME
+ local BOOT_PASS ROOT_PASS USER_PASS USER_NAME
 
-# swap set to 4G because SA might increase installed RAM later
   part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n+4G\nt\n82\nn\np\n2\n\n\na\n2\nw"; }
 # part_keys(){ echo -e "\nd\n4\nd\n3\nd\n2\nd\n1\nn\np\n1\n\n\na\n1\nw"; }
 
@@ -32,8 +53,10 @@ run_auto(){
   fi
  done
 
- USER_PASS="$( inputbox "Please type the user password." )"
- ROOT_PASS="$( inputbox "Please type the root password." )"
+ ask_pass "Please type the user password."; USER_PASS="$REPLY"
+ ask_pass "Please type the root password."; ROOT_PASS="$REPLY"
+ ask_pass "Please type the boot password."
+ BOOT_PASS="$( md5crypt <<< "$REPLY" )"
 
  if   ! confirm "All partitions on $DISK will be lost?" --defaultno
  then return
@@ -85,6 +108,7 @@ run_auto(){
  echo -e "$USER_PASS\n$USER_PASS" | chroot $TARGET /usr/bin/passwd "$USER_NAME"
  echo -e "$ROOT_PASS\n$ROOT_PASS" | chroot $TARGET /usr/bin/passwd root 
  chroot $TARGET /usr/sbin/usermod -G audio,cdrom,lp,video -a "$USER_NAME"
+ sed -i "s|sorcerer|$BOOT_PASS|" /etc/extlinux/head
 
  sed   -i 's/id:3:/id:5:/' $TARGET/etc/inittab
 
@@ -167,7 +191,7 @@ chroot_silent(){
  chroot $TARGET /etc/init.d/depmod
  chroot $TARGET /etc/init.d/rc.d
  chroot $TARGET /etc/init.d/services
- chroot $TARGET /etc/init.d/lilo
+ chroot $TARGET /etc/init.d/extlinux
  chroot $TARGET /etc/init.d/initramfs
  chroot $TARGET swapoff -a
  umount                          $TARGET/var/lock
@@ -205,7 +229,7 @@ chroot_build(){
  chroot $TARGET /etc/init.d/depmod
  chroot $TARGET /etc/init.d/rc.d
  chroot $TARGET /etc/init.d/services
- chroot $TARGET /etc/init.d/lilo
+ chroot $TARGET /etc/init.d/extlinux
  chroot $TARGET /etc/init.d/initramfs
  chroot $TARGET swapoff -a
  umount                          $TARGET/var/lock
