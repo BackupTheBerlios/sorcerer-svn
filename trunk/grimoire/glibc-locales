@@ -160,8 +160,7 @@ query(){ query_dialog "$@"; }
          $( locales_menulist )
  }
 
- if ! grep -q "LOCALES=" $SPELL_CONFIG 2>/dev/null ||
-    ! grep -q "DLOCALE=" $SPELL_CONFIG 2>/dev/null
+ if ! grep -q "LOCALES=" $SPELL_CONFIG 2>/dev/null
  then (
   export IFS=$'	\n'
   if   query "Select individual locales?" n
@@ -169,11 +168,6 @@ query(){ query_dialog "$@"; }
   else unset LOCALES
   fi
   echo "LOCALES=\"$LOCALES\"" >> $SPELL_CONFIG
-  if   query "Select default locale for LANG environment variable?" n
-  then       DLOCALE="$( locale_menu )"
-  else unset DLOCALE
-  fi
-  echo "DLOCALE=\"$DLOCALE\"" >> $SPELL_CONFIG
   ) fi
 }
 
@@ -209,10 +203,5 @@ build(){
   fi
  }
 
- locale_archive &&
- if [ -n           "$DLOCALE" ]; then
-  mkdir -vpm 755                $DESTDIR/etc/bash.d/noninteractive
-  echo "export LANG=$DLOCALE" > $DESTDIR/etc/bash.d/noninteractive/LANG
-  chmod 755                     $DESTDIR/etc/bash.d/noninteractive/LANG
- fi
+ locale_archive
 }
