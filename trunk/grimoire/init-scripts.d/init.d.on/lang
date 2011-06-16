@@ -5,16 +5,28 @@
 # For use with the distribution sorcerer only!
 
 ### BEGIN INIT INFO
-# Default-Start: 1 2 3 4 5
+# Required-Start: $local_fs
+# Default-Start: S
 # Short-Description: checks and sets LANG in /etc/bash.d/noninteractive/LANG
 ### END INIT INFO
 
-[ -f /usr/lib64/locale/locale-archive ] ||
-[ -f   /usr/lib/locale/locale-archive ] ||  exit 0
+# omit log
 
 . /lib/lsb/init-functions
 
-name	/etc/bash.d/noninteractive/LANG
+if   [ -f   /media/root/usr/lib64/locale/locale-archive ] 
+then config /media/root/usr/lib64/locale/locale-archive 
+     name   /media/root/etc/bash.d/noninteractive/LANG
+elif [ -f   /media/root/usr/lib/locale/locale-archive ] 
+then config /media/root/usr/lib/locale/locale-archive 
+     name   /media/root/etc/bash.d/noninteractive/LANG
+elif [ -f   /usr/lib64/locale/locale-archive ] 
+then config /usr/lib64/locale/locale-archive 
+     name   /etc/bash.d/noninteractive/LANG
+elif [ -f   /usr/lib/locale/locale-archive ] 
+then config /usr/lib/locale/locale-archive 
+     name   /etc/bash.d/noninteractive/LANG
+fi
 
 run(){
 
@@ -37,7 +49,7 @@ run(){
  LANG="$( lang_menu )"
  if [ "$LANG" ]; then
   rm -f  $NAME
-  mkdir -vpm 755 /etc/bash.d/noninteractive
+  mkdir -vpm 755 ${NAME%/*}"
   echo "export LANG=$LANG" > $NAME
   chmod 755 $NAME
  fi
