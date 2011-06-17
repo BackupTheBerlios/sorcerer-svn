@@ -14,11 +14,13 @@
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
 
-applypatch(){
-   [[ $HOSTTYPE == x86_64 ]] && [[ $VERSION == 7.10.2 ]]  && patch -p1 -R < ${SCRIPT_DIR}/Mesa-7.10.2-r200fix.patch
-}
-
 build(){
+ applypatch(){
+  if   [[ $HOSTTYPE == x86_64 ]] && [[ $VERSION == 7.10.2 ]]
+  then patch -p1 -R < ${SCRIPT_DIR}/Mesa-7.10.2-r200fix.patch
+  fi
+ }
+
  install_drirc(){
   mkdir  -pvm 755                   $DESTDIR/etc
   install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
