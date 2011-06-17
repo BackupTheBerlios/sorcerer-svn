@@ -9,6 +9,32 @@
       desc 'rolls the Sorcerer Install/Rescue CDROM images'
 
 post_install(){
+ install_isolinux(){
+  lver83(){
+   LAST="$1"
+    NOW="$1"
+   while [[ $NOW =~ \. ]]
+   do LAST="$NOW"
+      NOW="${NOW/\./_}"
+   done
+   LVER83="$LAST"
+  }
+
+  LVER="$( installed_version linux )"
+  lver83 $LVER
+  YEAR="$( date +%Y )"
+
+  mkdir -vp $ISO/boot/isolinux
+  cp    -va /usr/share/syslinux/isolinux.bin \
+            $SCRIPT_DIR/isolinux/*   $ISO/boot/isolinux/
+  sed   -i "s:\$HOSTTYPE:$HOSTTYPE:
+            s:\$LVERSION:$LVER:
+            s:\$VERSION:$VERSION:"   $ISO/boot/isolinux/sorcerer.txt
+  sed   -i "s:\$LVER83:$LVER83:g"    $ISO/boot/isolinux/isolinux.cfg
+  sed   -i "s:\$YEAR:$YEAR:"         $ISO/boot/isolinux/sorcerer.txt
+  gzip  -c9 /usr/src/linux/.config > $ISO/boot/isolinux/config.gz
+ }
+
  run_init_d(){ [ -x /etc/init.d/$1 ] && /etc/init.d/$1 ; }
 
  default_post_install
@@ -41,7 +67,11 @@ post_install(){
  mkdir -p  $ISO/var/cache
  cp    -al /var/cache/{archive,sources} $ISO/var/cache/
  cp    -a  /boot                        $ISO/
- rm    -f                               $ISO/var/cache/archive/sorcerer-*
+ install_isolinux
+ for       REPLY  in $ISO/boot/*/filesys;
+ do rm -f $REPLY; mv $ISO/boot/filesys $REPLY
+ done
+ rm    -f $ISO/var/cache/archive/sorcerer-*
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
  ( find $ISO/boot -type f -name modules
    find $ISO/boot -type f -name filesys
@@ -62,8 +92,7 @@ post_install(){
           DEST=/var/cache/sorcerer-i686-SMP-$DATE.iso ||
           DEST=/var/cache/sorcerer-i686-UP-$DATE.iso  ;;
  esac
- rm -f                                  $ISO/boot/isolinux/boot.cat
- cp -a /usr/share/syslinux/isolinux.bin $ISO/boot/isolinux
+ rm -f $ISO/boot/isolinux/boot.cat
  rm -f $DEST
  mkisofs \
   -o $DEST -A "${DEST##*/}"     \

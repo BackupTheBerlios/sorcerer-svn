@@ -36,51 +36,10 @@
       desc 'the menu driven installer for Sorcerer'
 
 build(){
- on_iso(){
-  if   ! [[ -d /boot/isolinux ]]
-  then echo $"install only installs on the Sorcerer IR"; false
-  fi
- }
-
- install_isolinux(){
-  lver83(){
-   LAST="$1"
-    NOW="$1"
-   while [[ $NOW =~ \. ]]
-   do LAST="$NOW"
-      NOW="${NOW/\./_}"
-   done
-   LVER83="$LAST"
-  }
-
-  LVER="$( installed_version linux )"
-  lver83 $LVER
-  YEAR="$( date +%Y )"
-
-  mkdir -vp $DESTDIR/boot/isolinux
-  cp    -va /usr/share/syslinux/isolinux.bin \
-            $SCRIPT_DIR/isolinux/* $DESTDIR/boot/isolinux/
-  sed   -i "s:\$HOSTTYPE:$HOSTTYPE:
-            s:\$LVERSION:$LVER:
-            s:\$VERSION:$VERSION:"   $DESTDIR/boot/isolinux/sorcerer.txt
-  sed   -i "s:\$LVER83:$LVER83:g"    $DESTDIR/boot/isolinux/isolinux.cfg
-  sed   -i "s:\$YEAR:$YEAR:"         $DESTDIR/boot/isolinux/sorcerer.txt
-  gzip  -c9 /usr/src/linux/.config > $DESTDIR/boot/isolinux/config.gz
- }
-
- # on_iso        &&
- mkdir -p $DESTDIR/sbin
+ mkdir  -pvm 755 $DESTDIR/sbin
  install -vm 700 $SCRIPT_DIR/sinstall $DESTDIR/sbin/
  install -vm 700 $SCRIPT_DIR/dt       $DESTDIR/sbin/
- install_isolinux
 }
-
-
-post_remove(){
- rm -fr /sbin/install /boot/isolinux
- default_post_remove
-}
-
 
 post_install(){
  view_index av |
@@ -96,8 +55,4 @@ post_install(){
  default_post_install
 }
 
-current(){
- if   ! [ -d /boot/isolinux ]
- then echo install | pipe_queue "$DISPEL_QUEUE"
- fi
-}
+current(){ echo sorcerer-installer | pipe_queue "$DISPEL_QUEUE"; }
