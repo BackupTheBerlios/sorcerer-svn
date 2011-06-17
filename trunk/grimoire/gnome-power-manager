@@ -1,10 +1,15 @@
 # uncertain if xmlto is actually used.
 
    version stable 3.0.0 2.91.93 2.32.0
+## The case statement did not fix the problem
+# case $VERSION in
+#  3.0.0)
+#       opts --enable-docbook-docs ;;
+# esac
       opts --enable-compile-warnings=yes --disable-docbook-docs
    require GConf libcanberra libgnome-keyring libnotify upower
 #  require upower gnome-panel gstreamer libcanberra libnotify libunique
-  optional docbook2X '' '' for generating manual pages and also requires Internet connection during compilation
+  optional docbook2X '' --enable-docbook-docs  for generating manual pages and also requires Internet connection during compilation
 # optional xmlto
   category utility
  attribute daemon gnome
@@ -15,6 +20,7 @@ Currently it supports UPSs, notebook batteries and AC adapters.'
 
 build(){
 case $VERSION in
+ 3.*)        sed -i '/	man	/d' Makefile.in ;;
  2.30.*)     sed -i 's:docs man data:docs data:' Makefile.in ;;
  2.2[6-8].*) sed -i 's:docs man data:docs data:' Makefile.in ;;
 esac
