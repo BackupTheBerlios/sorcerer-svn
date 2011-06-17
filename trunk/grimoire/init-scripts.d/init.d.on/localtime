@@ -12,16 +12,18 @@
 
 # omit log
 
+if   [ -d        /media/root/usr/share/zoneinfo ]
+then exec chroot /media/root $0 "$@"
+fi
+
 . /lib/lsb/init-functions
 
-if   [ -d   /media/root/usr/share/zoneinfo ]
-then config /media/root/usr/share/zoneinfo; name /media/root/etc/localtime
-else config            /usr/share/zoneinfo; name            /etc/localtime
-fi
+config	/usr/share/zoneinfo
+name	/etc/localtime
 
 run(){
 
- tz_menulist(){ find /usr/share/zoneinfo -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
+ tz_menulist(){ find $CONFIG -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
 
  tz_menu(){
   BACKTITLE=$"Timezone Configuration Menu"
@@ -40,7 +42,7 @@ run(){
  LOCALTIME="$( tz_menu )"
  if [ "$LOCALTIME" ]; then
   rm -f  $NAME
-  ln -sv /usr/share/zoneinfo/$LOCALTIME $NAME
+  ln -sv $CONFIG/$LOCALTIME $NAME
  fi
 }
 
