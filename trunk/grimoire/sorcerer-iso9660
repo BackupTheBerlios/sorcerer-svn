@@ -43,9 +43,15 @@ post_install(){
  cp    -a  /boot                        $ISO/
  rm    -f                               $ISO/var/cache/archive/sorcerer-*
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
- find $ISO/boot -type f -name modules filesys |
- while read
- do    xz --check=crc32 --x86 --lzma2=dict=32MiB $REPLY && mv $REPLY.xz $REPLY
+ ( find $ISO/boot -type f -name modules
+   find $ISO/boot -type f -name filesys
+ ) |
+ while read; do
+  if   file -b $REPLY | grep "gzip compressed data"; then
+   mv $REPLY{,.gz}
+   gunzip  $REPLY.gz
+  fi
+  xz --check=crc32 --x86 --lzma2=dict=32MiB $REPLY && mv $REPLY.xz $REPLY
  done
 
  DATE=$VERSION
