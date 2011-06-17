@@ -14,11 +14,16 @@
     CFLAGS='-O3'
    LDFLAGS='-Wl,-O1'
 
+applypatch(){
+   [[ $HOSTTYPE == x86_64 ]] && [[ $VERSION == 7.10.2 ]]  && patch -p1 -R < ${SCRIPT_DIR}/Mesa-7.10.2-r200fix.patch
+}
+
 build(){
  install_drirc(){
   mkdir  -pvm 755                   $DESTDIR/etc
   install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
  }
+ 
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64
@@ -41,6 +46,7 @@ build(){
  then OPTS+=" ${MACHTYPE/x86_64/i686}"
  fi
 
+ applypatch &&
  ./configure \
   --prefix=/usr \
   --enable-shared \
