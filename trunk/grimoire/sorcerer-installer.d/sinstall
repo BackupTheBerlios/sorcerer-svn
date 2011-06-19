@@ -70,11 +70,13 @@ run_auto(){
  fdisk     $DISK &>/dev/null
  ms-sys -s $DISK
 
- filesystem_table_load
+ # filesystem_table_load
 
- empty_entry 0
-     PDEVICE[0]=
- PFILESYSTEM[0]=
+ for (( CX=0; CX<MP; CX++ )); do
+  PFILESYSTEM[$CX]= 
+      PDEVICE[$CX]=
+  empty_entry "$CX"
+ done
 
      PDEVICE[1]=${DISK}1
  PFILESYSTEM[1]=swap
@@ -87,14 +89,9 @@ run_auto(){
  get_filesystem_assumptions 1
  get_filesystem_assumptions 2
 
- for (( CX=3; CX<MP; CX++ )); do PDEVICE[$CX]=; empty_entry "$CX"; done
-
  make_fstab > /tmp/fstab
-# Why does running mkswap sometimes fail?
- echo mkswap	${PFEATURE[1]}	${PDEVICE[1]}
-      mkswap	${PFEATURE[1]}	${PDEVICE[1]}
- echo mkfs.ext4	${PFEATURE[2]}	${PDEVICE[2]}
-      mkfs.ext4	${PFEATURE[2]}	${PDEVICE[2]}
+ mkswap		${PDEVICE[1]}
+ mkfs.ext4	${PFEATURE[2]}	${PDEVICE[2]}
 
  filesystem_mount
  transfer_arch
