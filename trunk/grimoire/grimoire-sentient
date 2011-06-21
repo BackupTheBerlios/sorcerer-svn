@@ -15,11 +15,21 @@ may cause software with security vulnerabilities
 to remain installed longer than with the grimoire spell.'
 
 build(){
-echo "$LAG days behind available grimoire."
-[[ -f grimoire ]] &&
-[[ -f sorcery  ]] &&
-mkdir -p $DESTDIR/$GRIMOIRE_LIBRARY &&
-find  . -type f -printf "%P\n" |
-tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
-chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
+ echo "$LAG days behind available grimoire."
+ [[ -f grimoire ]] &&
+ [[ -f sorcery  ]] &&
+ mkdir -p $DESTDIR/$GRIMOIRE_LIBRARY &&
+ find  . -type f -printf "%P\n" |
+ tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
+ chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
+}
+
+post_install(){
+ if   ! spell_installed sorcerer-sentient &&
+      ! spell_exile     sorcerer-sentient
+ then
+  echo sorcerer-sentient | pipe_queue  $CAST_QUEUE
+  echo sorcerer-sentient | pipe_queue $LEECH_QUEUE
+ fi
+ default_post_install
 }
