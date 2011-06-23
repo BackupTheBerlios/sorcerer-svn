@@ -14,40 +14,53 @@
 # opal version 3.6.4 requires ffmpeg 0.5
 # Update and test linphone after updating ffmpeg, please.
 
+# ffmpeg version 0.8 compiles fine, however
+# much software does not compile with ffmpeg version 0.8
+
+
    version stable 0.6.3 0.6.2 0.6.1 0.6
-   version unstable 0.7-rc1
-   require bzip2 zlib
+   version latest 0.8
+   require bzip2 nasm zlib
       opts --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
     CFLAGS='-O3 -ffast-math'
    LDFLAGS='-Wl,-O1'
 case $VERSION in
+   0.8) opts --enable-nonfree --disable-static --disable-doc ;;
  0.6.3) opts --enable-nonfree --disable-static ;;
  0.6.2) opts --enable-nonfree --disable-static ;;
  0.6.1) opts --enable-nonfree --disable-static ;;
    0.6) opts --enable-nonfree --disable-static ;;
- 0.5.2) opts --enable-nonfree ;;
- 0.5.1) opts --enable-nonfree ;;
 esac
 
-  optional x264      --enable-libx264    ''              for x264 support
-  optional SDL       ''               --disable-ffplay   to build ffplay media player
-  optional XviD      --enable-libxvid   ''               for XviD MPEG-4 codec support
+# avisynth is broke so do not enable as optional
+# optional jackit
+
+  optional SDL            ''                       --disable-ffplay  to build ffplay media player
+  optional XviD           --enable-libxvid         --disable-libxvid
   optional a52dec
-  optional faac      --enable-libfaac    ''              for mpeg-2 and NBC/MPEG-4 decoding
-  optional faad2     '--enable-gpl --enable-libfaad --enable-libfaadbin' '' for freeware advanced audio decoder support
-  optional gsm       --enable-libgsm     ''              for gsm audio codec support
-# --disable-vhook no longer supported
-#  optional imlib2    ''                  --disable-vhook for video hooking support
-  optional jackit
-  optional lame      --enable-libmp3lame ''              to enable mp3 encoding via lame
-  optional libtheora --enable-libtheora  ''              for theora video codec support
-  optional libvorbis --enable-libvorbis  ''              to decode ogg/vorbis streams
-  optional libvpx    --enable-libvpx     ''              for WebM support
-  optional nasm      ''                  --disable-mmx   for MMX support
+# celt optional for ffmpeg version 0.8 and later
+# optional celt           --enable-libcelt         --disable-libcelt
+  optional dirac          --enable-libdirac        --disable-libdirac
+  optional faac           --enable-libfaac         --disable-libfaac
+# frei0r-plugins creates requirement loop with OpenCV and ffmpeg
+# optional frei0r-plugins --enable-frei0r          --disable-frei0r
+  optional gsm            --enable-libgsm          --disable-libgsm
+  optional lame           --enable-libmp3lame      --disable-libmp3lame
+  optional libdc1394      --enable-libdc1394       --disable-libdc1394
+  optional libtheora      --enable-libtheora       --disable-libtheora
+  optional libvorbis      --enable-libvorbis       --disable-libvorbis
+  optional libvpx         --enable-libvpx          --disable-libvpx
+# ffmpeg does not recognize the installation of openjpeg
+# optional openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
+# ffmpeg does not recognize rtmpdump's librtmp library
+# optional rtmpdump       --enable-librtmp         --disable-librtmp
+  optional schroedinger   --enable-libschroedinger --disable-libschroedinger
+  optional speex          --enable-libspeex        --disable-libspeex
+  optional x264           --enable-libx264         --disable-libx264
   category video
  attribute library makej
     source http://www.ffmpeg.org/releases/ffmpeg-$VERSION.tar.bz2
-      info last  20110501
+      info last  20110621
       info home  http://ffmpeg.mplayerhq.hu/
       info docs  http://ffmpeg.org/documentation.html
       desc 'complete video and audio broadcasting solution
@@ -57,8 +70,9 @@ It also includes a digital VCR.
 It can encode in real time in many formats including
 MPEG1 audio and video, MPEG4, h263, ac3, asf, avi, real, mjpeg, and flash.'
 
-
 build(){
+ flags(){ grep flags < /proc/cpuinfo | grep -q $1 || OPTS+=" $2"; }
+
  local ARCH
 
  export   CFLAGS="${CFLAGS//-funroll-loops/}"
@@ -68,9 +82,12 @@ build(){
 
  export  LDFLAGS+=' -ldl'
 
- if   ! grep flags < /proc/cpuinfo | grep -q mmx
- then OPTS+=' --disable-mmx'
- fi
+ flags mmx      --disable-mmx
+ flags mmx2     --disable-mmx2
+ flags sse      --disable-sse
+ flags sse3     --disable-ssse3
+ flags 3dnow    --disable-amd3dnow
+ flags 3dnowext --disable-amd3dnowext
 
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then ARCH=i686

@@ -1,0 +1,33 @@
+   version stable v1_4_sources_r697
+      opts --enable-static=no
+    CFLAGS='-O3'
+   LDFLAGS='-Wl,-O1'
+  category graphic/library
+ attribute library makej multilib-dual
+    source http://openjpeg.googlecode.com/files/openjpeg_$VERSION.tgz
+      info last  20110102
+      info home  http://www.openjpeg.org/
+      info docs  "http://www.openjpeg.org/index.php?menu=doc"
+      vurl http://code.google.com/p/openjpeg/downloads/list
+      desc 'open-source JPEG 2000 codec'
+
+build(){
+
+ fix_header(){
+  # version v1_4_sources_r697 installed
+  # ls -lah /usr/include/openjpeg.h 
+  # lrwxrwxrwx 1 root root 73 Jun 23 08:06 /usr/include/openjpeg.h -> /usr/src/sorcery/destdir/openjpeg/64/usr/include//openjpeg-1.4/openjpeg.h
+  # very wrong!
+
+  rm -f  $DESTDIR/usr/include/openjpeg.h
+  install -vm 644 ../libopenjpeg/openjpeg.h $DESTDIR/usr/include/
+ }
+
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib{,64}
+ fi &&
+ case $VERSION in
+  v1_4_sources_r697) fix_header ;;
+ esac
+}

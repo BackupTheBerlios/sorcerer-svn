@@ -1,4 +1,9 @@
    version stable 2.8.5 2.8.4 2.8.3 2.8.2 2.8.1
+#case $VERSION in
+# 2.8.5)
+#      opts -DFFMPEG_ROOT:PATH=/opt/ffmpeg/usr
+#   require ffmpeg-v0.6 ;;
+#esac
    require LibVNCServer curl giflib librsvg openexr poppler xine-lib
   category graphic
  attribute library x11
@@ -10,6 +15,15 @@
       desc '3D graphics toolkit'
 
 build(){
+ fix_find_ffmpeg(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then sed -i 's:${FFMPEG_ROOT}/lib:${FFMPEG_ROOT}/lib64:' CMakeModules/FindFFmpeg.cmake
+  fi
+ }
+
+# case $VERSION in
+#  2.8.5) fix_find_ffmpeg ;;
+# esac
  export CXXFLAGS+=' -D__STDC_CONSTANT_MACROS'
  default_build
 }
