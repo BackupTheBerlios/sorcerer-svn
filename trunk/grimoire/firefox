@@ -109,6 +109,14 @@ build(){
  then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
  fi
 
+ # case statement to remove references to curl's deprecated header
+ # that was removed from curl during version 7.21.7.
+
+ case $VERSION in
+  5.0) sed -i '\,curl/types\.h,d' js/src/config/system-headers \
+           toolkit/crashreporter/google-breakpad/src/common/linux/{http_upload.cc,libcurl_wrapper.cc} ;;
+ esac
+
  ./configure \
  --prefix=/usr \
  --sysconfdir=/etc \
