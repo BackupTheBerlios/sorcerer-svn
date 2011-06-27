@@ -1,5 +1,4 @@
    version stable 0.99.6 0.99.5 0.99.4
-   version secure 0.99.5
    require hicolor-icon-theme libXtst ncurses readline xine-lib
       opts --disable-lirc
   optional curl  '' ''              for downloading skins
@@ -11,6 +10,13 @@
       desc 'interface to xine, a free video player'
 
 build(){
+ # case statement to remove references to curl's deprecated header
+ # that was removed from curl during version 7.21.7.
+
+ case $VERSION in
+  0.99.6) sed -i '\,curl/types\.h,d' src/xitk/download.c ;;
+ esac
+
  default_build &&
  install -vdm 755 $DESTDIR/usr/share/applications &&
  ln -s /usr/share/xine/desktop/xine.desktop $DESTDIR/usr/share/applications/
