@@ -1,16 +1,28 @@
 # 3.1.11 failed compilation
 
-   version stable 3.1.10 3.1.9 3.1.7 3.1.6 3.1.5
+   version stable 5.0 3.1.10 3.1.9 3.1.7 3.1.6 3.1.5
    require gss gtk+ heimdal libmng nss sqlite zip
   optional libgnomeui '' '' may use libgnome if you have it installed
       opts --enable-application=mail
-      opts --enable-static --disable-libxul
+#     opts --disable-libxul
 # LDFLAGS="-Wl,-rpath,/usr/lib/thunderbird-$VERSION"
 # Adding an rpath might not be necessary
   category network/email
  attribute client huge library makej multilib-dual setarch x11
     source ftp://ftp.mozilla.org/pub/mozilla.org/thunderbird/releases/$VERSION/source/thunderbird-${VERSION}.source.tar.bz2
       vurl http://www.mozilla.com/en-US/thunderbird/
-      info last  20110621
+      info last  20110630
   homepage http://www.mozilla.org/products/thunderbird/
       desc 'new UI to gecko the mozilla mail client engine'
+
+build(){
+ # case statement to remove references to curl's deprecated header
+ # that was removed from curl during version 7.21.7.
+
+ case $VERSION in
+  5.0) sed -i '\,curl/types\.h,d' js/src/config/system-headers \
+           toolkit/crashreporter/google-breakpad/src/common/linux/{http_upload.cc,libcurl_wrapper.cc} ;;
+ esac
+
+ default_build
+}

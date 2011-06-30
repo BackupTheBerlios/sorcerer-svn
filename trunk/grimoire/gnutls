@@ -27,5 +27,17 @@ It implements the TLS 1.0 and SSL 3.0 protocols'
 
 build(){
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
- default_build
+ default_build &&
+ sed -i 's:, zlib::; s:-lgmp:-lgmp -lz:' $DESTDIR/usr/lib*/pkgconfig/gnutls.pc
+}
+
+current(){
+ case $VERSION in
+  2.12.7)
+   if             [ -f /usr/lib64/pkgconfig/gnutls.pc ]
+   then ! grep -q zlib /usr/lib64/pkgconfig/gnutls.pc
+   elif           [ -f   /usr/lib/pkgconfig/gnutls.pc ]
+   then ! grep -q zlib   /usr/lib/pkgconfig/gnutls.pc
+   fi ;;
+ esac
 }
