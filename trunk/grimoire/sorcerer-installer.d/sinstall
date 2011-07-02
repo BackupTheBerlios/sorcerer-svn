@@ -134,7 +134,7 @@ inputbox(){ $DIALOG --no-collapse --nocancel --inputbox "$1" 0 0 "$2"; }
 chroot_run(){
  echo    $"Chrooting to $TARGET"
 
- mkdir  -p                       $TARGET/{usr/src/sorcery,var/lock}
+ mkdir  -p                       $TARGET/{usr/src/sorcery,run}
  mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
  mkdir  -p                       $TARGET/tmp/.sorcery
@@ -143,11 +143,12 @@ chroot_run(){
  mount  --bind  /proc            $TARGET/proc
  mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
  mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
- mount  --bind  /var/lock        $TARGET/var/lock
+ mount  --bind  /run             $TARGET/run
+ chroot $TARGET /etc/init.d/var_lock_run start
  chroot $TARGET swapon  -a
  chroot $TARGET "$@"
  chroot $TARGET swapoff -a
- umount                          $TARGET/var/lock
+ umount                          $TARGET/run
  umount                          $TARGET/usr/src/sorcery
  umount                          $TARGET/root/.sorcery
  umount                          $TARGET/proc
@@ -167,7 +168,7 @@ chroot_silent(){
 
  echo    $"Chrooting to $TARGET"
 
- mkdir  -p                       $TARGET/{usr/src/sorcery,var/lock}
+ mkdir  -p                       $TARGET/{usr/src/sorcery,run}
  mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
  mkdir  -p                       $TARGET/tmp/.sorcery
@@ -176,7 +177,8 @@ chroot_silent(){
  mount  --bind  /proc            $TARGET/proc
  mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
  mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
- mount  --bind  /var/lock        $TARGET/var/lock
+ mount  --bind  /run             $TARGET/run
+ chroot $TARGET /etc/init.d/var_lock_run start
  chroot $TARGET swapon -a
  chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer
  chroot $TARGET /usr/sbin/augur queue cast/glibc-locales
@@ -191,7 +193,7 @@ chroot_silent(){
  chroot $TARGET /etc/init.d/extlinux
  chroot $TARGET /etc/init.d/initramfs
  chroot $TARGET swapoff -a
- umount                          $TARGET/var/lock
+ umount                          $TARGET/run
  umount                          $TARGET/usr/src/sorcery
  umount                          $TARGET/root/.sorcery
  umount                          $TARGET/proc
@@ -209,7 +211,7 @@ chroot_build(){
 
  echo    $"Chrooting to $TARGET"
 
- mkdir  -p                       $TARGET/{usr/src/sorcery,var/lock}
+ mkdir  -p                       $TARGET/{usr/src/sorcery,run}
  mkdir  -p                       $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev             $TARGET/$TARGET/dev # avoids bug in linux?
  mkdir  -p                       $TARGET/tmp/.sorcery
@@ -218,7 +220,8 @@ chroot_build(){
  mount  --bind  /proc            $TARGET/proc
  mount  --bind  /root/.sorcery   $TARGET/root/.sorcery
  mount  --bind  /usr/src/sorcery $TARGET/usr/src/sorcery
- mount  --bind  /var/lock        $TARGET/var/lock
+ mount  --bind  /run             $TARGET/run
+ chroot $TARGET /etc/init.d/var_lock_run start
  chroot $TARGET swapon -a
  chroot $TARGET dispel sorcerer-installer
  chroot $TARGET cast "$@"
@@ -229,7 +232,7 @@ chroot_build(){
  chroot $TARGET /etc/init.d/extlinux
  chroot $TARGET /etc/init.d/initramfs
  chroot $TARGET swapoff -a
- umount                          $TARGET/var/lock
+ umount                          $TARGET/run
  umount                          $TARGET/usr/src/sorcery
  umount                          $TARGET/root/.sorcery
  umount                          $TARGET/proc
