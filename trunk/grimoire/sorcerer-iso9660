@@ -27,6 +27,10 @@ post_install(){
   mkdir -vp $ISO/boot/isolinux
   cp    -va /usr/share/syslinux/isolinux.bin \
             $SCRIPT_DIR/isolinux/*   $ISO/boot/isolinux/
+  if   [[ $HOSTTYPE == x86_64 ]]
+  then rm -f $ISO/boot/isolinux/isolinux.cfg.ia32
+  else mv    $ISO/boot/isolinux/isolinux.cfg{.ia32,}
+  fi
   sed   -i "s:\$HOSTTYPE:$HOSTTYPE:
             s:\$LVERSION:$LVER:
             s:\$VERSION:$VERSION:"   $ISO/boot/isolinux/sorcerer.txt
