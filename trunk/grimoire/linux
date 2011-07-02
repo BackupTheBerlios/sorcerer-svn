@@ -151,13 +151,12 @@ build(){
   local NAME CZ
   case $HOSTTYPE in
    x86_64) NAME=x86_64 ;;
-        *) if   [ -f /boot/isolinux/config.gz ]
-           then   CZ=/boot/isolinux/config.gz
-           else   CZ=/proc/config.gz
-           fi
-           if gzip -cd $CZ | grep -q CONFIG_SMP=y
-           then NAME="ia32-smp"
-           else NAME="ia32-up"
+        *) if   [ -f /sbin/sinstall ]; then
+            if   grep -q CONFIG_SMP=y /usr/src/linux/.config
+            then NAME="ia32-smp"
+            else NAME="ia32-up"
+            fi
+           else CZ=/proc/config.gz
            fi ;;
   esac
 
@@ -166,7 +165,7 @@ build(){
   else install -vm 600 $SCRIPT_DIR/$PROGRESS/ia32-smp .config
   fi
 
-  [ -d /boot/isolinux ] || get_cpu
+  [ -f /sbin/sinstall ] || get_cpu
  }
 
  trim_config(){
@@ -181,7 +180,7 @@ build(){
  }
 
  gzip_modules(){
-  if ! [ -d /boot/isolinux ]; then
+  if ! [ -f /sbin/sinstall ]; then
    local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
  # find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
    find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
