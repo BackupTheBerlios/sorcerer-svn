@@ -151,7 +151,7 @@ build(){
   local NAME CZ
   case $HOSTTYPE in
    x86_64) NAME=x86_64 ;;
-        *) if   [ -f /sbin/sinstall ]; then
+        *) if   spell_installed sorcerer-installer; then
             if   grep -q CONFIG_SMP=y /usr/src/linux/.config
             then NAME="ia32-smp"
             else NAME="ia32-up"
@@ -165,7 +165,7 @@ build(){
   else install -vm 600 $SCRIPT_DIR/$PROGRESS/ia32-smp .config
   fi
 
-  [ -f /sbin/sinstall ] || get_cpu
+  spell_installed sorcerer-installer || get_cpu
  }
 
  trim_config(){
@@ -180,7 +180,7 @@ build(){
  }
 
  gzip_modules(){
-  if ! [ -f /sbin/sinstall ]; then
+  if ! spell_installed sorcerer-installer; then
    local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
  # find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
    find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
