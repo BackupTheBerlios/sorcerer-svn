@@ -1,0 +1,86 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Required-Stop: kexec $local_fs root-ro udev
+# Should-Stop: tmp
+# Default-Stop:
+# Short-Description: creates boot filesystems
+### END INIT INFO
+
+# Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if [ "$1" = try-restart ]; then exit; fi
+
+. /lib/lsb/init-functions
+
+NAME=initramfs-modules
+INIT=initramfs-modules
+SKIP="[32G"
+
+allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+
+exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
+
+mkinitrf(){
+ ( echo -e "/lib\n/lib/modules\n/lib/modules/$1"
+   find /lib/modules/$1 |
+   LC_ALL=C sort -u
+ ) | cpio -o -H newc --quiet | gzip -1
+}
+
+initrf_update(){
+
+ local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ rm    -rf     $TEMPIF
+ mkdir -pm 600 $TEMPIF/boot
+
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+ cut -d / -f3 | sed '\,rescue,d' |
+ while read; do
+  if   [ -n "$1" ] || ! [ -f /boot/$REPLY/modules ] ||
+       find /lib/modules/${REPLY##*/} -newer /boot/$REPLY/modules | grep -q .
+  then
+   log_warning_msg "$REPLY/modules $SKIP updating"
+   mkdir             $TEMPIF/boot/$REPLY
+   mkinitrf $REPLY > $TEMPIF/boot/$REPLY/modules
+   chmod 600         $TEMPIF/boot/$REPLY/modules
+   log_success_msg "$REPLY/modules $SKIP updated"
+  fi
+ done
+
+ cp -a  $TEMPIF/boot /
+ rm -fr $TEMPIF
+ sync
+}
+
+initrf_current(){
+ if [ -f /var/log/init/failed/$INIT ]; then return 1; fi
+
+ find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+ sed '\,/boot/rescue,d' |
+ while read; do
+  if   log_warning_msg "$REPLY/modules $SKIP checking";
+       [[ -f $REPLY/modules ]] &&
+       ! find /lib/modules/${REPLY##*/} -newer $REPLY/modules | grep -q .
+  then log_success_msg "$REPLY/modules $SKIP checked; status:     current"
+  else log_warning_msg "$REPLY/modules $SKIP checked; status: not current"
+       return 1
+  fi
+ done
+}
+
+stop(){ initrf_update $1; }
+
+status(){ initrf_current; }
+
+help(){ echo "Usage: $0 {stop|status|force|reload}"; }
+
+export LC_ALL=C
+case $1 in
+   help) help             ;;
+ reload) status || stop   ;;
+ status) status           ;;
+  force)           stop f ;;
+   stop) status || stop   ;;
+      *) status || stop   ;;
+esac

@@ -3,7 +3,7 @@
 # Required-Stop: kexec $local_fs root-ro udev
 # Should-Stop: tmp
 # Default-Stop: 0 6
-# Short-Description: initramfs creates boot filesystems
+# Short-Description: creates boot filesystems
 ### END INIT INFO
 
 # Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
@@ -15,138 +15,19 @@ if [ "$1" = try-restart ]; then exit; fi
 
 NAME=initramfs
 DONE=false
+SKIP="[32G"
 
-allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
-
-exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
-
-filter_elf(){
- if [[ $HOSTTYPE == x86_64 ]] && [[ -f /lib/libc.so.6 ]]; then
-  xargs --max-lines=128 \
-  file -L -e encoding -e compress -e tar -e elf |
-  sed '/: *ELF 32-bit /d; s/: .*//' |
-  allpaths
- else
-  allpaths
- fi
-}
-
-mkinitrf(){
- # compressed cpio must load after regular cpio
-
- ( echo -e "/lib\n/lib/modules\n/lib/modules/$1"
-   find /lib/modules/$1 |
-   LC_ALL=C sort -u
- ) | cpio -o -H newc --quiet
-
- $EXTL || cat $COMMON
-}
-
-every(){
- local KBD L64
-
- if [[ -d  /usr/share/consolefonts ]]
- then KBD="/usr/share/consolefonts /usr/share/consoletrans /usr/share/keymaps /usr/share/unimaps"
- fi
-
- if [[ -d /lib64 ]]; then L64=/lib64; fi
-
- find /bin /dev /etc /lib $L64 /sbin $KBD |
- sed "\
-\,^/dev/pts/,d
-\,^/dev/.udev,d
-\,^/dev/dm-0/,d
-\,^/dev/mapper/,d
-\,^/dev/rtc0/,d
-\,^/dev/shm/,d
-\,^/etc/[^/]*\.old$,d
-\,^/etc/X11,d
-\,^/etc/sorcery/,d
-\,^/etc/selinux/,d
-\,^/etc/asciidoc/,d
-\,^/etc/avahi/,d
-\,^/etc/chipcard,d
-\,^/etc/courier/,d
-\,^/etc/cups/,d
-\,^/etc/elvis.default/stubs/,d
-\,^/etc/extlinux/,d
-\,^/etc/fonts/,d
-\,^/etc/gconf/,d
-\,^/etc/gdm/,d
-\,^/etc/gimp/,d
-\,^/etc/gtk/,d
-\,^/etc/httpd/,d
-\,^/etc/init.d/log.d/,d
-\,^/etc/kde,d
-\,^/etc/lilo/,d
-\,^/etc/lilo.conf,d
-\,^/etc/logcheck,d
-\,^/etc/mono/,d
-\,^/etc/mplayer/,d
-\,^/etc/mtab,d
-\,^/etc/openldap/,d
-\,^/etc/php.ini$,d
-\,^/etc/prelink,d
-\,^/etc/sane\.d/,d
-\,^/etc/services\.d/,d
-\,^/etc/sound/,d
-\,^/etc/squid/,d
-\,^/etc/xdg/,d
-\,^/etc/boot-blaze,d
-\,^/etc/xml,d
-\,^/lib/modules/,d
-\,^/lib.*\.la$,d
-\,^/lib.*lib.*\.a$,d
-\,^/bin/7zCon\.sfx$,d
-\,^/bin/bashbug$,d
-\,^/sbin/dhcpd$,d
-\,^/sbin/dhcrelay$,d
-\,^/sbin/mount\.ecryptfs$,d
-\,^/sbin/mount\.smbfs$,d
-\,^/sbin/sln$,d
-1i/init
-1i/media
-1i/media/root
-1i/proc
-1i/sys
-1i/tmp
-1i/usr
-1i/usr/share
-1i/usr/share/pci.ids
-1i/usr/share/usb.ids
-1i/usr/share/terminfo
-1i/usr/share/terminfo/l
-1i/usr/share/terminfo/l/linux"
-}
-
-locked(){
- [[ -f  /boot/initramfs ]] &&
- read < /boot/initramfs    &&
- [[ -f  /proc/$REPLY/status ]] &&
- read < /proc/$REPLY/status    &&
- [[ ${REPLY##*	} == initramfs ]]
-}
-
-lock_initramfs(){
- local REPLY
- while locked && (( 300 > SECONDS )); do sleep 1; done
- echo $$ > /boot/initramfs
-}
+mkinitrf(){ cat /boot/$1/modules /boot/initrf/*; }
 
 initrf_update(){
- [ -d /boot/fast  ] && rm -rf /boot/fast
- [ -d /media/root ] || mkdir -pm 755 /media/root
 
- lock_initramfs
+ for REPLY in /etc/init.d/initramfs-*
+ do  bash $REPLY stop
+ done
 
- local          TEMPIF=/tmp/initramfs.$RANDOM$RANDOM
+ local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
  rm    -rf     $TEMPIF
  mkdir -pm 600 $TEMPIF/boot
-
- local COMMON="$TEMPIF/boot/filesys"
-
- every | filter_elf | exists | cpio -o -H newc --quiet | gzip -1 > $COMMON
- chmod 600 $COMMON
 
  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
  cut -d / -f3 | sed '\,rescue,d' |
@@ -154,14 +35,11 @@ initrf_update(){
   mkdir                  $TEMPIF/boot/$REPLY
   if   $LILO
   then mkinitrf $REPLY > $TEMPIF/boot/$REPLY/initrf
-  else mkinitrf $REPLY > $TEMPIF/boot/$REPLY/modules
-       chmod 600         $TEMPIF/boot/$REPLY/modules
-       ln -s ../filesys  $TEMPIF/boot/$REPLY/filesys
+  else ln -s ../initrf   $TEMPIF/boot/$REPLY/initrf
   fi
  done
 
  if $LILO; then
-  rm -f $COMMON
   find /boot -maxdepth 2 -mindepth 2 -type f -name initrf -printf '%h\n' |
   cut -d / -f3 | sed '\,rescue,d' |
   while read
@@ -170,7 +48,7 @@ initrf_update(){
   chmod 600 $TEMPIF/boot/*/initrf
  fi
 
- if ! cp -a $TEMPIF/boot /; then rm /boot/*/initrf/.old
+ if ! cp -a $TEMPIF/boot /; then rm -f /boot/*/initrf.old
       cp -a $TEMPIF/boot /; fi
  rm -fr     $TEMPIF
  sync
@@ -186,69 +64,19 @@ initrf_update(){
    /sbin/lilo -P ignore -C /etc/lilo/conf
   fi
  fi
-
- rm -f /boot/initramfs
 }
-
-initrf_present(){
- if $EXTL; then
-  [ -f /boot/filesys ] || return 1
-  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
-  while read; do [[ -f $REPLY/modules ]] || return 1; done
- else
-  find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
-  while read; do [[ -f $REPLY/initrf ]] || return 1; done
- fi
-}
-
-initrf_current(){
-
- if [ -f /var/log/init/failed/initramfs ]; then return 1; fi
-
- IRFL=/var/log/initramfs.log
- DIRS='/bin /etc/bash.d /etc/init.d'
- DIRS+=' /etc/modprobe.d /etc/networks.d /etc/rc.d /etc/udev /lib /sbin'
- [[ -d /etc/lvm ]] && DIRS+=' /etc/lvm'
- [[ -d /lib64   ]] && DIRS+=' /lib64'
-
- FILES='/init /etc/fstab /etc/hostname /etc/inittab'
- FILES+=' /etc/passwd /etc/shadow'
-
- [[ -f /etc/exports    ]] && FILES+=' /etc/exports'
- [[ -f /etc/mdadm.conf ]] && FILES+=' /etc/mdadm.conf'
- [[ -f /etc/multipath.conf ]] && FILES+=' /etc/multipath.conf'
-
- IRF=$( ( if   $EXTL
-          then find /boot -type f -name modules -printf '%T@\t%p\n'
-               find /boot -type f -name filesys -printf '%T@\t%p\n'
-          else find /boot -type f -name initrf  -printf '%T@\t%p\n'
-          fi
-        ) | 
-        sed '\,/boot/fast,d
-             \,/boot/rescue,d' |
-        sort -g | head -n1 | cut -f2 )
- if [[ -z $IRF ]]; then return 1; fi
- OLD="$( find $DIRS $FILES -type f -newer $IRF | sed '\,/log.d/,d' )"
- if [[ -n $OLD ]]; then
-  echo   "$OLD" > $IRFL
-  return 1
- else rm -f $IRFL
- fi
-}
-
 
 stop(){
- if   log_warning_msg "$NAME updating"; initrf_update
- then log_success_msg "$NAME updated"
- else log_failure_msg "$NAME failed"; false
+ if   log_warning_msg "$NAME $SKIP updating"; initrf_update $1
+ then log_success_msg "$NAME $SKIP updated"
+ else log_failure_msg "$NAME $SKIP failed"; false
  fi
 }
 
 status(){
- if   log_warning_msg "$NAME checking"; initrf_present && initrf_current
- then log_success_msg "$NAME checked; status:     current"
- else log_warning_msg "$NAME checked; status: not current"; return 1
- fi
+ for REPLY in /etc/init.d/initramfs-*
+ do  bash $REPLY status || return 1
+ done
 }
 
 help(){ echo "Usage: $0 {stop|status|force|reload}"; }
@@ -274,11 +102,11 @@ fi
 
 export LC_ALL=C
 case $1 in
-   help) help             ;;
+   help) help ;;
  reload) DONE=true
-         status || stop   ;;
- status) status           ;;
-  force)           stop   ;;
-   stop) status || stop s ;;
-      *) status || stop   ;;
+         status || stop stop  ;;
+ status) status               ;;
+  force)           stop force ;;
+   stop) status || stop stop  ;;
+      *) status || stop stop  ;;
 esac

@@ -1,0 +1,127 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Required-Stop: kexec $local_fs root-ro udev
+# Should-Stop: tmp
+# Default-Stop:
+# Short-Description: creates boot filesystems
+### END INIT INFO
+
+# Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if [ "$1" = try-restart ]; then exit; fi
+
+. /lib/lsb/init-functions
+
+NAME=/boot/initrf/etc
+INIT=initramfs-etc
+SKIP="[32G"
+
+allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+
+exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
+
+every(){
+ find ${NAME/\/boot\/initrf/} |
+ sed "\
+\,^/etc/[^/]*\.old$,d
+\,^/etc/X11,d
+\,^/etc/sorcery/,d
+\,^/etc/selinux/,d
+\,^/etc/asciidoc/,d
+\,^/etc/avahi/,d
+\,^/etc/chipcard,d
+\,^/etc/courier/,d
+\,^/etc/cups/,d
+\,^/etc/elvis.default/stubs/,d
+\,^/etc/extlinux/,d
+\,^/etc/fonts/,d
+\,^/etc/gconf/,d
+\,^/etc/gdm/,d
+\,^/etc/gimp/,d
+\,^/etc/gtk/,d
+\,^/etc/httpd/,d
+\,^/etc/kde,d
+\,^/etc/lilo/,d
+\,^/etc/lilo.conf,d
+\,^/etc/logcheck,d
+\,^/etc/mono/,d
+\,^/etc/mplayer/,d
+\,^/etc/mtab,d
+\,^/etc/openldap/,d
+\,^/etc/php.ini$,d
+\,^/etc/prelink,d
+\,^/etc/sane\.d/,d
+\,^/etc/services\.d/,d
+\,^/etc/sound/,d
+\,^/etc/squid/,d
+\,^/etc/xdg/,d
+\,^/etc/boot-blaze,d
+\,^/etc/xml,d"
+}
+
+initrf_update(){
+
+ local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ rm    -rf     $TEMPIF
+ mkdir -pm 700 $TEMPIF/boot/initrf
+
+ local  COMMON="$TEMPIF/$NAME"
+
+ every | allpaths | exists | cpio -o -H newc --quiet | gzip -1 > $COMMON
+ chmod 600 $COMMON
+
+ [  -f /boot/initrf ] &&
+ rm -f /boot/initrf
+
+ cp -a  $TEMPIF/boot /
+ rm -fr $TEMPIF
+ sync
+}
+
+initrf_present(){ [ -f $NAME ] || return 1; }
+
+initrf_current(){
+ local DIRS FILES
+
+ DIRS='/etc/bash.d /etc/init.d /etc/modprobe.d /etc/networks.d /etc/rc.d /etc/udev'
+ [ -d /etc/lvm ] && DIRS+=' /etc/lvm'
+
+ FILES='/etc/fstab /etc/hostname /etc/inittab /etc/passwd /etc/shadow'
+
+ [ -f /etc/exports        ] && FILES+=' /etc/exports'
+ [ -f /etc/mdadm.conf     ] && FILES+=' /etc/mdadm.conf'
+ [ -f /etc/multipath.conf ] && FILES+=' /etc/multipath.conf'
+
+ if   find $DIRS $FILES -newer $NAME | grep -q .
+ then return 1
+ fi
+
+ if [ -f /var/log/init/failed/$INIT ]; then return 1; fi
+} 
+
+stop(){
+ if   log_warning_msg "$NAME $SKIP updating"; initrf_update
+ then log_success_msg "$NAME $SKIP updated"
+ else log_failure_msg "$NAME $SKIP failed"; false
+ fi
+}
+
+status(){
+ if   log_warning_msg "$NAME $SKIP checking"; initrf_present && initrf_current
+ then log_success_msg "$NAME $SKIP checked; status:     current"
+ else log_warning_msg "$NAME $SKIP checked; status: not current"; return 1
+ fi
+}
+
+help(){ echo "Usage: $0 {stop|status|force|reload}"; }
+
+export LC_ALL=C
+case $1 in
+   help) help           ;;
+ reload) status || stop ;;
+ status) status         ;;
+  force)           stop ;;
+   stop) status || stop ;;
+      *) status || stop ;;
+esac

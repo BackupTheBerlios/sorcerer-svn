@@ -40,6 +40,13 @@ extlinux_conf_update(){
   local INITRF
   if [ -f /boot/$REPLY/modules ]; then INITRF="../$REPLY/modules";   fi
   if [ -f /boot/$REPLY/filesys ]; then INITRF+=",../$REPLY/filesys"; fi
+  if [ -f /boot/$REPLY/initrf  ]; then INITRF+=",../$REPLY/initrf"; fi
+  if [ -h /boot/$REPLY/initrf  ]; then
+   local FILE
+   for   FILE in /boot/$REPLY/initrf/*
+   do  INITRF+=",../$REPLY/initrf/${FILE##*/}"
+   done
+  fi
   echo "LABEL	$REPLY"
   echo "	KERNEL	../$REPLY/linux"; [ -n "$INITRF" ] &&
   echo "	INITRD	$INITRF";         [ -n "$1"      ] &&
@@ -63,7 +70,7 @@ extlinux_conf_update(){
 
  find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
  sort -gr |
- sed '\,/boot/fast,d; \,/boot/rescue,d; s:.*/::' |
+ sed '\,/boot/rescue,d; s:.*/::' |
  reorder |
  while read REPLY; do
   if   (( 4 > ICX ))
