@@ -110,14 +110,14 @@ run_auto(){
  sed -i 's/id:3:/id:5:/'         $TARGET/etc/inittab
 #sed -i "s:<path_to_resume_device_file>:${DISK}1:" $TARGET/etc/suspend.conf
 
+ chmod 700 $TARGET/etc/init.d/boot-sentient
  chroot_silent
-
  sync
 
  grep /media/root /proc/mounts |
  cut -d ' ' -f2 |
  sort -r |
- xargs -r --max-lines=1024 umount
+ xargs -r umount
 
  MIRD=$( grep /media/IR /proc/mounts | cut -d ' ' -f1 )
  umount $MIR
@@ -180,7 +180,6 @@ chroot_silent(){
  chroot $TARGET swapon -a
  chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer
  chroot $TARGET /usr/sbin/augur queue cast/glibc-locales
- chroot $TARGET /usr/sbin/augur queue cast/immune-boot-sentient
  chroot $TARGET /usr/sbin/augur queue cast/suspend-utils
  chroot $TARGET /usr/sbin/dispel
  chroot $TARGET /usr/sbin/cast
