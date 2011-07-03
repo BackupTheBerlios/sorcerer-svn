@@ -203,7 +203,7 @@ chroot_silent(){
 chroot_build(){
  scry_finish(){
   while pgrep cast | grep -q .
-  do    chroot $TARGET augur scry
+  do    chroot $TARGET /usr/sbin/augur scry
   done
  }
 
@@ -221,8 +221,10 @@ chroot_build(){
  mount  --bind  /run             $TARGET/run
  chroot $TARGET /etc/init.d/var_lock_run start
  chroot $TARGET swapon -a
- chroot $TARGET dispel sorcerer-installer
- chroot $TARGET cast "$@"
+ chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer 
+ chroot $TARGET /usr/sbin/augur queue dispel/immune-boot-sentient
+ chroot $TARGET /usr/sbin/dispel
+ chroot $TARGET /usr/sbin/cast "$@"
  scry_finish
  chroot $TARGET /etc/init.d/depmod
  chroot $TARGET /etc/init.d/rc.d
