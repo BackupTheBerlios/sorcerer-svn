@@ -65,7 +65,14 @@ build(){
 post_install(){
  ( export LC_ALL=C
    grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
-   grep -v ":/lib/python${VERSION:0:3}/"    |
+   grep -v ":/lib/python${VERSION:0:3}/" |
+   cut  -d  : -f1       |
+   sort -u  | basenames |
+   grep -v   "^Python"  |
+   pipe_queue "$LEECH_QUEUE"
+   leech
+   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
+   grep -v ":/lib/python${VERSION:0:3}/" |
    cut  -d  : -f1       |
    sort -u  | basenames |
    grep -v   "^Python"  |
