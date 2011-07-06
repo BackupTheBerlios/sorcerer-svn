@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Default-Mode: 700
+# Default-Mode: 500
 # Required-Start: $local_fs
 # Default-Start: S
 # Short-Description: saves configuration files that were modified during sysinit

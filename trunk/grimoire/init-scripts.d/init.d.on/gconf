@@ -1,6 +1,6 @@
 #!/bin/bash
 ### BEGIN INIT INFO
-# Default-Mode: 700
+# Default-Mode: 500
 # Required-Stop: $local_fs
 # Should-Stop: initramfs tmp
 # Default-Stop: 0 6
