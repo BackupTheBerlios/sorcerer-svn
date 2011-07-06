@@ -118,6 +118,14 @@ post_install(){
   fi
  }
 
+ mod_mode(){
+  inits(){ find /etc/init.d -mindepth 1 -maxdepth 1 -type f "$@"; }
+  if   [ -z "$( inits -perm 710 )" ]; then
+   inits -perm 700 | xargs -r --max-lines=256 chmod 710
+   inits -perm 740 | xargs -r --max-lines=256 chmod 700
+  fi
+ }
+
  discard_old_index		# Always run this function
 
  # Temporary fixes to provide for 6 months.
@@ -129,5 +137,6 @@ post_install(){
  fix_shells			#     20110313
  upgrade_ccache_cache		#     20110214
  upgrade_archive_cache		#     20110214
+ mod_mode			#     20110706
  default_post_install
 }
