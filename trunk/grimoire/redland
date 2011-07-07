@@ -1,6 +1,7 @@
 # do not update separately from kde-v4 updates
 
 # The x.y.z version of redland and redland-bindings must agree
+# not using redland-bindings anymore?
 
 # 1.0.12 failed compilation
 # 1.0.11 failed compilation
@@ -23,15 +24,16 @@
 # maybe some wrote a fix patch for redland,
 # but redland authors should instead have released a fixed version 1.0.11
 
-# 1.0.12 and 1.0.11 failed compilation
-
-   version stable 1.0.12 1.0.11 1.0.10 1.0.9
+   version stable 1.0.13 1.0.12 1.0.11 1.0.10 1.0.9
    version unstable 1.0.13
    require libiodbc mysql rasqal sqlite virtuoso-opensource
 # optional mysql      '' '' for mysql support
   optional postgresql '' '--with-postgresql=no' for postgresql support
 
 case $VERSION in
+ 1.0.13)
+      opts --disable-modular
+      opts --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
  1.0.12)
       opts --disable-modular
       opts --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
@@ -54,6 +56,8 @@ esac
 
 build(){
  case $VERSION in
+  1.0.13) export   CFLAGS+=' -I/usr/include/mysql'
+          export CXXFLAGS+=' -I/usr/include/mysql' ;;
   1.0.12) export   CFLAGS+=' -I/usr/include/mysql'
           export CXXFLAGS+=' -I/usr/include/mysql' ;;
   1.0.10) sed -i 's:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@ librdf.la:'  src/Makefile.am
