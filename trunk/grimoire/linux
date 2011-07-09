@@ -148,15 +148,14 @@ build(){
 
  restore_linux_configs(){
 
-  local NAME CZ
+  local NAME
   case $HOSTTYPE in
    x86_64) NAME=x86_64 ;;
-        *) if    spell_installed sorcerer-installer; then
-            if   [ -f /root/smp ]
-            then NAME="ia32-smp"
-            else NAME="ia32-up"
-            fi
-           else CZ=/proc/config.gz
+        *) if   [ -f /root/linux-smp ]; then NAME="ia32-smp"
+           elif [ -f /root/linux-up  ]; then NAME="ia32-up"
+           elif gzip -cd /proc/config.gz | grep CONFIG_SMP=y
+           then NAME="ia32-smp"
+           else NAME="ia32-up"
            fi ;;
   esac
 
@@ -165,7 +164,7 @@ build(){
   else install -vm 600 $SCRIPT_DIR/$PROGRESS/ia32-smp .config
   fi
 
-  spell_installed sorcerer-installer || get_cpu
+  [ -n "${FEATURE[base]}" ] || get_cpu
  }
 
  trim_config(){
