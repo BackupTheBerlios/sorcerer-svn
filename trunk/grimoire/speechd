@@ -1,13 +1,19 @@
    version stable 0.7.1 0.6.7
    version unstable 0.7.1-beta2
+case $VERSION in
+ 0.7.1)
+   require libtool ;;
+esac
   category network/chat
- attribute library multilib-concurrent
+ attribute library makej
+#attribute multilib-concurrent multilib-dual
    require alsa-lib dotconf glib libsndfile
   optional libao
   optional nas
   optional pulseaudio
 # No optional on speak while speak is broke
 # optional speak
+      opts --enable-static=no
     source http://www.freebsoft.org/pub/projects/speechd/speech-dispatcher-$VERSION.tar.gz
       info home  http://www.freebsoft.org/speechd
       info last  20100913
@@ -17,7 +23,8 @@ The goal of speech dispatcher is to make speech synthesis easier.'
 
 build(){
  case $VERSION in
-  0.7.1) grep -lr "\-L/usr/X11R6/lib" * |
+  0.7.1) libtoolize -cf
+         grep -lr "\-L/usr/X11R6/lib" * |
          xargs -r sed -i 's:-L/usr/X11R6/lib::' ;;
  esac
  default_build
