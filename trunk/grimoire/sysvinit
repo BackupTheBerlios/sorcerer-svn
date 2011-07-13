@@ -5,6 +5,7 @@
   category utility
  attribute console
     source http://download.savannah.gnu.org/releases/sysvinit/sysvinit-$VERSION.tar.bz2
+      info last  20100414
       info home  http://savannah.nongnu.org/projects/sysvinit
 
 #   source ftp://ftp.cistron.nl/pub/people/miquels/sysvinit/sysvinit-$VERSION.tar.gz
@@ -46,51 +47,14 @@ Runlevels 2 3 4 5 can be used while updating.
 More information about sysvinit is available at:
 http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html'
 
-
-configure(){
-
- char_dev_menu(){ find /dev -type c | sed 'acharacter device'; }
-
- select_char_dev(){
-  BACKTITLE='sysvinit Configuration'
-      TITLE='Character Device Selection Menu'
-
-  dialog \
-   --stdout --title "$TITLE" --timeout "$PROMPT_DELAY" \
-   --backtitle "$BACKTITLE" --default-item "$2" \
-   --no-cancel --menu  "$1" 0 0 0 $( char_dev_menu )
- }
-
- if ! grep -qs SI_DEV= $SPELL_CONFIG ||
-    ! grep -qs RL_DEV= $SPELL_CONFIG
- then
-  ( FOR='Please select the device to display the scroll from programs started during'
-    export  IFS=$'	\n'
-    SI_DEV="$( select_char_dev "$FOR sysinit."   '/dev/console'  )"
-    RL_DEV="$( select_char_dev "$FOR runlevels." '/dev/console' )"
-#   SI_DEV="$( select_char_dev "$FOR sysinit."   '/dev/tty9'  )"
-#   RL_DEV="$( select_char_dev "$FOR runlevels." '/dev/tty10' )"
-    if  [ -n "$SI_DEV"  ]; then echo "SI_DEV=$SI_DEV" >  $SPELL_CONFIG; fi
-    if  [ -n "$RL_DEV"  ]; then echo "RL_DEV=$RL_DEV" >> $SPELL_CONFIG; fi
-  )
- fi
-}
-
-
 build(){
  install_init(){
-  cpc(){ if [ -n "$1" ] && ! [ /dev/console == "$1" ]; then cp -afv $1 $2; fi; }
-
   mkdir -pvm 700 $DESTDIR/etc/init.d/dev.d
 
   sed     -i      "s:ulimit :# ulimit :" \
                   src/initscript.sample
-  install -vm 700 src/initscript.sample $DESTDIR/etc
-
-  install -vm 600 $SCRIPT_DIR/inittab $DESTDIR/etc
-
-  cpc "$SI_DEV" $DESTDIR/etc/init.d/dev.d/si
-  cpc "$RL_DEV" $DESTDIR/etc/init.d/dev.d/rl
+  install -vm 700 src/initscript.sample $DESTDIR/etc/
+  install -vm 600 $SCRIPT_DIR/inittab   $DESTDIR/etc/
 
   return
  }
@@ -101,20 +65,12 @@ build(){
 
  sed   -i "s:-O2 -fomit-frame-pointer:${CFLAGS}:" src/Makefile
 
-# case $VERSION in
-#  2.86) patch -p1 < $SCRIPT_DIR/sysvinit-2.86-selinux.patch ;;
-# esac
-
-# Can probably start selinux from init-scripts.
-# mount /selinux and then load policy
-# and finally enable enforcing if desired.
-
  if   spell_installed libselinux
  then export CFLAGS+=' -DWITH_SELINUX' SEL='WITH_SELINUX=1'
  fi
 
  make -C src $SEL &&
- mkdir -p $DESTDIR/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}} &&
+ mkdir -pvm 755 $DESTDIR/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}} &&
  make -C src $SEL install ROOT=$DESTDIR &&
  install_init
 }
@@ -133,11 +89,4 @@ post_install(){
  fi
 
  default_post_install
-}
-
-current(){
- case $VERSION in
-  2.88) grep -q '^l7:' /etc/inittab ;;
-  2.86) grep -q '^l7:' /etc/inittab ;;
- esac
 }

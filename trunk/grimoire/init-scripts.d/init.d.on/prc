@@ -62,8 +62,9 @@ parallel(){
 
 ssp(){ parallel K stop; parallel S start; }
 ssl(){ linear   K stop; linear   S start; }
-log(){ $1; echo End runlevel $RL; }
 rcl(){ find /etc/rc.d/rc${RL}.d/ -type l; }
+log(){ echo "Runlevel $RL begin"; $1
+       echo "Runlevel $RL end"; }
 
 ssm(){
  while [ -n "$1" ]; do
@@ -114,7 +115,13 @@ case $RL in
 esac
 
 case $RL in
- 3|5|1) log ssl 2>&1 | cap ;;
-   2|4) log ssp 2>&1 | cap ;;
+ 3|5|1) log ssl ;;
+   2|4) log ssp ;;
      7) ssl ;;
 esac
+
+# case $RL in
+#  3|5|1) log ssl 2>&1 | cap ;;
+#    2|4) log ssp 2>&1 | cap ;;
+#      7) ssl ;;
+# esac
