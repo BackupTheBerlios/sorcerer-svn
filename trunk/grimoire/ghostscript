@@ -6,7 +6,7 @@
   optional libXt      --with-x --without-x for x11 support
   optional libXext    --with-x --without-x for x11 support
   optional libXt      --with-x --without-x for x11 support
-  category printer
+ category printer
  attribute console library multilib-dual x11
 # failed a parallel make
 #attribute console library makej multilib-dual x11
@@ -28,6 +28,17 @@ ghostscript is the name of a set of software that provides:
   printers.'
 
 build(){
+ export CFLAGS+=' -fPIC'
+ ./configure \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+  --prefix=/usr \
+  --enable-dynamic &&
+ make so &&
+ make soinstall install "DESTDIR=$DESTDIR"
+}
+
+build_old(){
  export CFLAGS+=' -fPIC'
 # ./configure           \
 #  --prefix=/usr        \
