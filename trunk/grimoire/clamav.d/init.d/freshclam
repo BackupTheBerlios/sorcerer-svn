@@ -11,11 +11,11 @@
 
 . /lib/lsb/init-functions
 
-#PIDF=/var/run/freshclam.pid
-SERV=/usr/bin/freshclam
- LOG=/var/log/freshclam
-NAME=freshclam
-OPTS="-d -c 4 --log $LOG"
+LOG=/var/log/freshclam
+
+server /usr/bin/freshclam
+name freshclam
+options "-d -c 4 --log $LOG"
 
 start(){
  run(){
@@ -24,7 +24,7 @@ start(){
    chown clamav:clamav $LOG
    chmod 600           $LOG
   fi
-  start_daemon -p $PIDF $SERV $OPTS
+  start_daemon $SERV $OPTS
  }
 
  if   log_warning_msg "$NAME starting"
@@ -32,5 +32,3 @@ start(){
  else log_failure_msg "$NAME not started"; status
  fi  
 }
-
-parse "$@"

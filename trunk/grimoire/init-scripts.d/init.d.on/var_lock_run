@@ -7,11 +7,13 @@
 # Short-Description: creates symbolic links /var/{lock,run}
 ### END INIT INFO
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
-if ! [ -d /run/lock ]; then mkdir -p /run/lock; fi
-if ! [ -d /var      ]; then mkdir    /var; fi
-if ! [ -h /var/lock ]; then rm -fr /var/lock; ln -s /run/lock /var/lock; fi
-if ! [ -h /var/run  ]; then rm -fr /var/run;  ln -s /run      /var/run; fi
+start(){
+ if ! [ -d /run/lock ]; then mkdir -p /run/lock; fi
+ if ! [ -d /var      ]; then mkdir    /var; fi
+ if ! [ -h /var/lock ]; then rm -fr /var/lock; ln -s /run/lock /var/lock; fi
+ if ! [ -h /var/run  ]; then rm -fr /var/run;  ln -s /run      /var/run; fi
+}

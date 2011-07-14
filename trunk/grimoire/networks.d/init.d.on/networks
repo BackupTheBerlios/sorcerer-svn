@@ -12,7 +12,7 @@
 # Short-Description: networks raises and lowers network connections
 ### END INIT INFO
 
-[ "$1" == try-restart ] && exit 0
+[ "$1" == try-restart ] && exit 5
 
 . /lib/lsb/init-functions
 
@@ -44,7 +44,6 @@ start(){
  log_failure_msg "$NAME not started"
 }
 
-
 stop(){
  log_warning_msg "$NAME stopping"
  rm -f $LOCK
@@ -55,10 +54,4 @@ stop(){
  log_success_msg "$NAME has stopped"
 }
 
-case $1 in
- start) start ;;
- stop) stop ;;
- restart) stop; sleep 3; start ;;
- status) status ;;
- *) echo "Usage: $0 {start|stop|restart|status}" ;;
-esac
+restart(){ stop; sleep 3; start; }

@@ -1,29 +1,26 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Default-Mode: 510
+# Default-Mode: 500
 # Required-Start: $local_fs
 # Default-Start: 1 2 3 4 5
 # Short-Description: ossdetect detects soundcards and writes coinfig to  /etc/oss/installed_drivers
 ### END INIT INFO
 
+if [ "$1" == try-restart ]; then exit 5; fi
+if [ -f /etc/oss/installed_drivers ]; then exit 0; fi
+
 . /lib/lsb/init-functions
 
-NAME=ossdetect
-SERV=/usr/sbin/ossdetect
-OPTS=-i
+name ossdetect
+server /usr/sbin/ossdetect
+options -i
 
 start(){
- if ! [ -f /etc/oss/installed_drivers ]
- then
-  log_warning_msg "About to run $SERV to detect audio devices."
-  if   $SERV $OPTS
-  then log_success_msg "$SERV exited successfully"
-  else log_failure_msg "$SERV exited with an error"
-  fi
+ if   log_warning_msg "About to run $SERV to detect audio devices."; $SERV $OPTS
+ then log_success_msg "$SERV exited successfully"
+ else log_failure_msg "$SERV exited with an error"
  fi
 }
-       stop(){ :; }
-    restart(){ start; }
-try_restart(){ start; }
-parse "$@"
+
+stop(){ :; }

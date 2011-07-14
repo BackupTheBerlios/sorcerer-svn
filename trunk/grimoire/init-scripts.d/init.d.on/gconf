@@ -10,7 +10,7 @@
 # Copyright 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
@@ -36,7 +36,9 @@ update(){
  chmod 755 $DEF
 }
 
-if   log_warning_msg '/etc/gconf/schemas checking'; check
-then log_warning_msg '/etc/gconf/gconf.xml.defaults updating'; update
-     log_success_msg '/etc/gconf/gconf.xml.defaults updated'
-fi;  log_success_msg '/etc/gconf/schemas checked'
+stop(){
+ if   log_warning_msg '/etc/gconf/schemas checking'; check
+ then log_warning_msg '/etc/gconf/gconf.xml.defaults updating'; update
+      log_success_msg '/etc/gconf/gconf.xml.defaults updated'
+ fi;  log_success_msg '/etc/gconf/schemas checked'
+}

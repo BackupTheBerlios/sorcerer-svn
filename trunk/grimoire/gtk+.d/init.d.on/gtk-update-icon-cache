@@ -11,23 +11,25 @@
 
 . /lib/lsb/init-functions
 
-IC=icon-theme.cache
+stop(){
+ IC=icon-theme.cache
 
-find /usr/share/icons -mindepth 2 -maxdepth 2 \
-     -name index.theme -printf '%h\n' |
-while read REPLY; do
- log_warning_msg "$IC in $REPLY checking"
- if ! [ -f $REPLY/$IC ] ||
-    find   $REPLY -type f -newer \
-           $REPLY/$IC | grep -q .
- then log_warning_msg "$IC in $REPLY not current"; echo "$REPLY"
- else log_warning_msg "$IC in $REPLY current"
- fi
-done |
-while read REPLY; do
- if   log_warning_msg "$IC in $REPLY Updating"; 
-      gtk-update-icon-cache -f $REPLY
- then log_success_msg "$IC in $REPLY Updated"
- else log_failure_msg "$IC in $REPLY Update failed"
- fi
-done
+ find /usr/share/icons -mindepth 2 -maxdepth 2 \
+      -name index.theme -printf '%h\n' |
+ while read REPLY; do
+  log_warning_msg "$IC in $REPLY checking"
+  if ! [ -f $REPLY/$IC ] ||
+     find   $REPLY -type f -newer \
+            $REPLY/$IC | grep -q .
+  then log_warning_msg "$IC in $REPLY not current"; echo "$REPLY"
+  else log_warning_msg "$IC in $REPLY current"
+  fi
+ done |
+ while read REPLY; do
+  if   log_warning_msg "$IC in $REPLY Updating"; 
+       gtk-update-icon-cache -f $REPLY
+  then log_success_msg "$IC in $REPLY Updated"
+  else log_failure_msg "$IC in $REPLY Update failed"
+  fi
+ done
+}

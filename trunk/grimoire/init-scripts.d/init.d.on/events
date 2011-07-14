@@ -7,13 +7,15 @@
 # Short-Description: eliminates slugish keyboard pointer event handling during high load
 ### END INIT INFO
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
-pgrep -u root events/0  | grep -q . &&
-if   log_warning_msg "renice -19 \$( pgrep -u root events/0 ) executing"
-                      renice -19  $( pgrep -u root events/0 ) &>/dev/null
-then log_success_msg "renice -19 \$( pgrep -u root events/0 ) executed"
-else log_failure_msg "renice -19 \$( pgrep -u root events/0 ) failed"
-fi
+start(){
+ pgrep -u root events/0  | grep -q . &&
+ if   log_warning_msg "renice -19 \$( pgrep -u root events/0 ) executing"
+                       renice -19  $( pgrep -u root events/0 ) &>/dev/null
+ then log_success_msg "renice -19 \$( pgrep -u root events/0 ) executed"
+ else log_failure_msg "renice -19 \$( pgrep -u root events/0 ) failed"
+ fi
+}

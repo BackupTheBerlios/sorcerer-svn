@@ -11,10 +11,10 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/shishid.pid
-SERV=/usr/sbin/shishid
-NAME=shishid
-OPTS='-u shishi'
+pid_file /var/run/shishid.pid
+server /usr/sbin/shishid
+name shishid
+options '-u shishi'
 
 start(){
  run(){ start_daemon -b -p "$PIDF" $SERV $OPTS &>/var/log/shishid; }
@@ -24,7 +24,6 @@ start(){
  fi
 }
 
-
 reload(){
  PIDS="$( pidofproc -p $PIDF $SERV )"
  if   [ -n          "$PIDS" ]
@@ -32,5 +31,3 @@ reload(){
       log_success_msg "$NAME configuration reloaded"
  fi
 }
-
-parse "$@"

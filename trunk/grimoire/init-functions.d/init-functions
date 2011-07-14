@@ -332,16 +332,28 @@ parse(){
  esac
 }
 
+ARGS=( "$@" )
+
 pid_file(){ PIDF=$1; }
 server()  { SERV=$1; }
 config()  { CONF=$1; }
 name()    { NAME=$1; }
 log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
+fast()    { FAST=1; }
 
 if [ -z "$NAME" ]
 then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
 fi
+
+on_exit(){
+ if   [ -n "$FAST" ]
+ then parse "${ARGS[*]}" &
+ else parse "${ARGS[*]}"
+ fi
+}
+
+trap on_exit EXIT
 
 if   [ -f /etc/init.d/conf.d/$NAME ]
 then .    /etc/init.d/conf.d/$NAME

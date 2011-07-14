@@ -8,11 +8,13 @@
 # Short-Description: vgscan scan all disks for volume groups and rebuild caches
 ### END INIT INFO
 
+if [ "$1" == try-restart ]; then exit 5; fi
+
 . /lib/lsb/init-functions
 
-NAME=vgscan
-OPTS='--ignorelockingfailure --mknodes'
-SERV=/sbin/vgscan
+name vgscan
+options '--ignorelockingfailure --mknodes'
+server /sbin/vgscan
 
 start(){
  if   log_warning_msg "$NAME $OPTS"; $SERV $OPTS
@@ -22,9 +24,3 @@ start(){
 }
 
 help(){ echo "Usage: $0 {start}" 1>&2; }
-
-case $1 in
-       start) start ;;
- try-restart) : ;;
-           *) help  ;;
-esac

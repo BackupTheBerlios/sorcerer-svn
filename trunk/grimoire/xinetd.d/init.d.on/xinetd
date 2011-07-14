@@ -13,11 +13,11 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/xinetd.pid
-SERV=/usr/sbin/xinetd
-CONF=/etc/xinetd.d
-NAME=xinetd
-OPTS="-reuse -pidfile $PIDF"
+pid_file /var/run/xinetd.pid
+server /usr/sbin/xinetd
+config /etc/xinetd.d
+name xinetd
+options "-reuse -pidfile $PIDF"
 
 reload(){
  PIDS="$( pidofproc -p $PIDF $SERV )"
@@ -27,12 +27,4 @@ reload(){
  fi
 }
 
-help(){
- echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-case $1 in
-       reload) reload ;;
- force-reload) reload ;;
- *) parse "$@" ;;
-esac
+help(){ echo "Usage: $0 {restart|try-restart|reload|start|status|stop}" 1>&2; }

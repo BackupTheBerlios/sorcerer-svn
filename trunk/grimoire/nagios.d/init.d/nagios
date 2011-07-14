@@ -13,47 +13,34 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/nagios.pid
-SERV=/usr/sbin/nagios
-NAME=nagios
-CONF=/etc/nagios/nagios.cfg
+pid_file /var/run/nagios.pid
+server /usr/sbin/nagios
+name nagios
+config /etc/nagios/nagios.cfg
 
-start()  {
-  log_warning_msg  "$NAME starting"
-  if  $SERV -v $CONF;  then
-    touch                 /var/nagios/{nagios.log,retention.dat}  $PIDF  /var/lock/subsys/nagios
-    chown  nagios:nagios  /var/nagios/{nagios.log,retention.dat}  $PIDF
-    rm     -f             /var/nagios/rw/nagios.cmd
-    if    start_daemon     -p $PIDF $SERV -d $CONF
-    then  log_success_msg  "$NAME started"
-    else  log_failure_msg  "$NAME not started"
-          status
-    fi
-  else
-    log_failure_msg  "$NAME not started - configuration file error"
-    status
+start(){
+ log_warning_msg  "$NAME starting"
+ if  $SERV -v $CONF; then
+  touch               /var/nagios/{nagios.log,retention.dat} $PIDF /var/lock/subsys/nagios
+  chown nagios:nagios /var/nagios/{nagios.log,retention.dat} $PIDF
+  rm    -f            /var/nagios/rw/nagios.cmd
+  if   start_daemon    -p $PIDF $SERV -d $CONF
+  then log_success_msg "$NAME started"
+  else log_failure_msg "$NAME not started"
+       status
   fi
+ else
+  log_failure_msg  "$NAME not started - configuration file error"
+  status
+ fi
 }
 
-reload()  {
-  PIDS="$( pidofproc -p $PIDF $SERV )"
-  if    [ -n            "$PIDS" ]
-  then  kill  -s SIGHUP  $PIDS  &&
-        log_success_msg "$NAME configuration reloaded"
-  fi
+reload(){
+ PIDS="$( pidofproc -p $PIDF $SERV )"
+ if   [ -n            "$PIDS" ]
+ then kill -s SIGHUP   $PIDS  &&
+      log_success_msg "$NAME configuration reloaded"
+ fi
 }
 
-help()  {
-  echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2
-}
-
-case  $1  in
-       restart)      restart  ;;
-   try-restart)  try_restart  ;;
-        reload)  try_restart  ;;
-  force-reload)  try_restart  ;;
-         start)  start        ;;
-        status)  status       ;;
-          stop)  stop         ;;
-             *)  help         ;;
-esac
+help(){ echo "Usage: $0 {restart|try-restart|reload|force-reload|start|status|stop}" 1>&2; }

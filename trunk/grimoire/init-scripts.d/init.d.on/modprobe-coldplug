@@ -10,19 +10,21 @@
 # have this start after udevd instead of dev-cp because
 # udev rules could modify the name of the network interface
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
-if [ -x /sbin/modprobe        ] &&
-   [ -f /tmp/coldplug         ] &&
-   [ -f /etc/coldplug/modules ] &&
-   [ -d /etc/coldplug/dev     ]
-then
- while read REPLY; do
-  if   log_warning_msg "Module $REPLY loading" && modprobe $REPLY
-  then log_success_msg "Module $REPLY loaded"
-  else log_failure_msg "Module $REPLY not loaded"
-  fi
- done < /etc/coldplug/modules
-fi
+start(){
+ if [ -x /sbin/modprobe        ] &&
+    [ -f /tmp/coldplug         ] &&
+    [ -f /etc/coldplug/modules ] &&
+    [ -d /etc/coldplug/dev     ]
+ then
+  while read REPLY; do
+   if   log_warning_msg "Module $REPLY loading" && modprobe $REPLY
+   then log_success_msg "Module $REPLY loaded"
+   else log_failure_msg "Module $REPLY not loaded"
+   fi
+  done < /etc/coldplug/modules
+ fi
+}

@@ -1,7 +1,7 @@
 #!/bin/bash
 # must be /bin/bash for $RANDOM
 ### BEGIN INIT INFO
-# Default-Mode: 510
+# Default-Mode: 500
 # Required-Start: dmsetup
 # Should-Start: loadkeys mdadm udev vgchange
 # Required-Stop: finale halt reboot reboot-kexec vgchange
@@ -19,9 +19,11 @@
 # Use a custom script if using luks on a loop device.
 ### END INIT INFO
 
+if [ "$1" == try-restart ]; then exit 5; fi
+
 . /lib/lsb/init-functions
 
-NAME=cryptsetup
+name cryptsetup
 
 start(){
  ldev(){
@@ -83,7 +85,3 @@ stop(){
  log_success_msg "$NAME luks devices closed."      ||
  log_failure_msg "$NAME luks devices not closed."
 }
-
-try_restart(){ :; }
-
-parse "$@"

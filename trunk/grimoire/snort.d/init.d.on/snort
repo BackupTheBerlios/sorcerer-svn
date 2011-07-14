@@ -16,10 +16,9 @@
 
 . /lib/lsb/init-functions
 
-#PIDF=/var/run/snort.pid
-CONF=/etc/snort/snort.conf
-SERV=/usr/bin/snort
-NAME=snort
+config /etc/snort/snort.conf
+server /usr/bin/snort
+name snort
 
 start(){
  if   log_warning_msg "$NAME starting"; start_daemon -p "$PIDF" $SERV -D --pid-path=/var/run -R .pid
@@ -36,9 +35,5 @@ stop(){
 }
 
 reload(){ $SERV -k reconfigure; }
-
 restart(){ stop && sleep 2; start; }
-
 try_restart(){ status && restart; return 0; }
-
-parse "$@"

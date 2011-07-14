@@ -10,11 +10,11 @@
 # Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
-NAME=/boot/initrf/etc
+name /boot/initrf/etc
 INIT=initramfs-etc
 SKIP="[32G"
 
@@ -118,11 +118,14 @@ status(){
 help(){ echo "Usage: $0 {stop|status|force|reload}"; }
 
 export LC_ALL=C
-case $1 in
-   help) help           ;;
- reload) status || stop ;;
- status) status         ;;
-  force)           stop ;;
-   stop) status || stop ;;
-      *) status || stop ;;
-esac
+
+parse(){
+ case $1 in
+    help) help           ;;
+  reload) status || stop ;;
+  status) status         ;;
+   force)           stop ;;
+    stop) status || stop ;;
+       *) status || stop ;;
+ esac
+}

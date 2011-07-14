@@ -1,4 +1,6 @@
-#!/bin/sh
+#!/bin/bash
+
+# This script could use a better revision
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
@@ -11,56 +13,44 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/apcupsd.pid
-SERV=/sbin/apcupsd
+pid_file /var/run/apcupsd.pid
+server /sbin/apcupsd
 LOCK=/var/lock/subsys/apcupsd
 
-case "$1" in
-  start)
-	# House keeping if this were a restart from powerfail
-        rm -f /etc/apcupsd/powerfail
-        rm -f /etc/nologin
-        # Is apcupsd running?
-	if [ -f $PIDF ]; then
-	  log_success_msg  "apcupsd is already running"
- 	else 
-	  # Start apcupsd
-          MSG="Starting apcupsd power management"
-          $SERV  &&
-	  log_success_msg  "$MSG"  ||  log_failure_msg  "$MSG"
- 	  touch ${LOCK}
-        fi      
-	;;
+start(){
+ # House keeping if this were a restart from powerfail
+ rm -f /etc/apcupsd/powerfail
+ rm -f /etc/nologin
+ # Is apcupsd running?
+ if   [ -f $PIDF ]
+ then log_success_msg "apcupsd is already running"
+ else 
+  # Start apcupsd
+  MSG="Starting apcupsd power management"
+  $SERV  &&
+  log_success_msg "$MSG" || log_failure_msg "$MSG"
+  touch ${LOCK}
+ fi      
+}
 
-  stop)
-	MSG="Stopping apcupsd power management"
-  	if [ -f $PIDF ]; then 
-	  killproc  -p $PIDF -s 15  $SERV	&&
-	  log_success_msg  "$MSG"  ||  log_failure_msg  "$MSG"
-	  rm -f ${LOCK}
-        else
-	  log_success_msg  "$MSG"
-  	fi
-        ;;
+stop(){
+ MSG="Stopping apcupsd power management"
+ if [ -f $PIDF ]; then 
+  killproc -p $PIDF -s 15 $SERV &&
+  log_success_msg "$MSG" || log_failure_msg "$MSG"
+  rm -f ${LOCK}
+ else
+  log_success_msg "$MSG"
+ fi
+}
 
-  restart)
-        $0 stop
-        $0 start
-        ;;
+status(){
+ if [ -f $PIDF ]; then 
+  /sbin/apcaccess status
+  log_success_msg "apcupsd status"
+ else
+  log_success_msg "apcupsd is not running"
+ fi
+}
 
-  status)
-  	if [ -f $PIDF ]; then 
-          /sbin/apcaccess status
-	  log_success_msg  "apcupsd status"
-        else
-	  log_success_msg  "apcupsd is not running"
-        fi
-        ;;
-
-  *)
-        echo "Usage: $0 {start|stop|restart|status}"
-        ;;
-
-esac
-
-exit 0
+help(){ echo "Usage: $0 {start|stop|restart|status}"; }

@@ -10,11 +10,11 @@
 # Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
-NAME=initramfs
+name initramfs
 DONE=false
 SKIP="[32G"
 
@@ -102,12 +102,15 @@ then EXTL=true; LILO=false
 fi
 
 export LC_ALL=C
-case $1 in
-   help) help ;;
- reload) DONE=true
-         status || stop stop  ;;
- status) status               ;;
-  force)           stop force ;;
-   stop) status || stop stop  ;;
-      *) status || stop stop  ;;
-esac
+
+parse(){
+ case $1 in
+    help) help ;;
+  reload) DONE=true
+          status || stop stop  ;;
+  status) status               ;;
+   force)           stop force ;;
+    stop) status || stop stop  ;;
+       *) status || stop stop  ;;
+ esac
+}

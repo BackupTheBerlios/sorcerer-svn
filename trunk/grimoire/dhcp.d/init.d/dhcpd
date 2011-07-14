@@ -11,20 +11,20 @@
 
 . /lib/lsb/init-functions
 
-PIDF=/var/run/dhcpd.pid
-SERV=/sbin/dhcpd
-CONF=/etc/dhcpd.conf
+pid_file /var/run/dhcpd.pid
+server /sbin/dhcpd
+config /etc/dhcpd.conf
 IF=eth0
-OPTS=" -q $IF"
+options " -q $IF"
 
-case "$1" in
-	start) 
-		route add -host 255.255.255.255 dev $IF
-		mkdir -p /var/db/
-		rm /var/db/dhcpd.leases
-		touch /var/db/dhcpd.leases;;
-	stop)route del -host 255.255.255.255 dev $IF 
-		rm /var/db/dhcpd.leases;;
-esac
+start(){
+ route add -host 255.255.255.255 dev $IF
+ mkdir -p /var/db/
+ rm /var/db/dhcpd.leases
+ touch /var/db/dhcpd.leases
+}
 
-parse "$@"
+stop(){
+ route del -host 255.255.255.255 dev $IF
+ rm /var/db/dhcpd.leases
+}

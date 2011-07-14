@@ -12,16 +12,16 @@
 
 . /lib/lsb/init-functions
 
-SERV=/usr/sbin/slmodemd
-PIDF=/var/run/slmodemd.pid
-NAME=slmodemd
+server /usr/sbin/slmodemd
+pid_file /var/run/slmodemd.pid
+name slmodemd
 MODULE=slamr
-OPTS='-c USA /dev/slamr0'
+options '-c USA /dev/slamr0'
 
 start(){
  run(){
   modprobe $MODULE
-  start_daemon -b -n -20 $SERV $OPTS
+  start_daemon -b $SERV $OPTS
  }
 
  if   log_warning_msg "$NAME starting"; run
@@ -29,5 +29,3 @@ start(){
  else log_failure_msg "$NAME not started"
  fi
 }
-
-parse "$@"

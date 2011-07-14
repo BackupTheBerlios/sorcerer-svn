@@ -10,11 +10,13 @@
 # Short-Description: vgchange activates logical volumes
 ### END INIT INFO
 
+if [ "$1" == try-restart ]; then exit 5; fi
+
 . /lib/lsb/init-functions
 
-NAME=vgchange
-OPTS='--ignorelockingfailure -ay'
-SERV=/sbin/vgchange
+name vgchange
+options '--ignorelockingfailure -ay'
+server /sbin/vgchange
 
 start(){
  if   log_warning_msg "$NAME $OPTS"; $SERV $OPTS
@@ -33,10 +35,3 @@ stop(){
 }
 
 help(){ echo "Usage: $0 {start}" 1>&2; }
-
-case $1 in
-       start) start ;;
-        stop) stop  ;;
- try-restart) :     ;;
-           *) help  ;;
-esac

@@ -8,13 +8,14 @@
 # Short-Description: soundon loads OSS modules
 ### END INIT INFO
 
+if [ "$1" == try-restart ]; then exit 5; fi
+
 . /lib/lsb/init-functions
 
 start(){
  NAME=soundon
  SERV=/usr/sbin/soundon
- log_warning_msg "About to run $SERV to load OSS modules"
- if $SERV
+ if   log_warning_msg "About to run $SERV to load OSS modules"; $SERV
  then log_success_msg "$SERV exited successfully"
  else log_failure_msg "$SERV exited with an error"
  fi
@@ -23,13 +24,8 @@ start(){
 stop(){
  NAME=soundoff
  SERV=/usr/sbin/soundoff
- log_warning_msg "About to unload OSS modules"
- if $SERV
+ if   log_warning_msg "About to unload OSS modules";  $SERV
  then log_success_msg "$SERV excited successfully"
  else log_failure_msg "$SERV exited with an error"
  fi
 }
-
-    restart(){ stop; start; }
-try_restart(){ restart; }
-parse "$@"

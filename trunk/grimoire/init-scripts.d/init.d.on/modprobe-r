@@ -8,7 +8,7 @@
 # Short-Description: modprobe-r unloads modules specified in /etc/modules.rm during boot
 ### END INIT INFO
 
-if [ "$1" == try-restart ] || ! [ -f /etc/modules.rm ] || ! [ -x /sbin/modprobe ]; then exit; fi
+if [ "$1" == try-restart ] || ! [ -f /etc/modules.rm ] || ! [ -x /sbin/modprobe ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
@@ -18,5 +18,7 @@ rmp(){
  xargs -r --max-lines=64 modprobe -r
 }
 
-log_warning_msg 'Modules unloading'; rmp
-log_success_msg 'Modules unloaded'
+start(){
+ log_warning_msg 'Modules unloading'; rmp
+ log_success_msg 'Modules unloaded'
+}

@@ -10,7 +10,7 @@
 # Copyright 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
@@ -23,7 +23,9 @@ update(){
  find /etc/shells.d/ -type l -printf "%l\n" > /etc/shells
 }
 
-if   log_warning_msg '/etc/shells.d checking'; check
-then log_warning_msg '/etc/shells   updating'; update
-     log_success_msg '/etc/shells   updated'
-fi;  log_success_msg '/etc/shells.d checked'
+stop(){
+ if   log_warning_msg '/etc/shells.d checking'; check
+ then log_warning_msg '/etc/shells   updating'; update
+      log_success_msg '/etc/shells   updated'
+ fi;  log_success_msg '/etc/shells.d checked'
+}

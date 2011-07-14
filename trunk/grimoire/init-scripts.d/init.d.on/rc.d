@@ -10,14 +10,16 @@
 # Copyright 2008-2009 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit; fi
+if [ "$1" == try-restart ]; then exit 5; fi
 
 . /lib/lsb/init-functions
 
 check(){ find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d | grep -q . || ! [ -d /etc/rc.d ]; }
 update(){ /lib/lsb/install_initd; }
 
-if   log_warning_msg '/etc/rc.d checking'; check
-then log_warning_msg '/etc/rc.d updating'; update
-     log_success_msg '/etc/rc.d updated'
-fi;  log_success_msg '/etc/rc.d checked'
+stop(){
+ if   log_warning_msg '/etc/rc.d checking'; check
+ then log_warning_msg '/etc/rc.d updating'; update
+      log_success_msg '/etc/rc.d updated'
+ fi;  log_success_msg '/etc/rc.d checked'
+}
