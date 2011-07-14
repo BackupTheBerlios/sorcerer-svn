@@ -14,26 +14,13 @@ run(){
  local n="${1##*/}"; n=${n:3:256}
  local f=/var/log/init/failed/$n
  local p=/var/log/init/passed/$n
- local s=/var/log/init/$n
-
-# echo "$1 $2"
-# echo "$1 $2" > $s
-
-# if   grep -q "dialog\|fsck\|sulogin\|omit log" $1
-# then $1 $2
-# else $1 $2 &>> $s
-# fi
 
  $1 $2
+
  if   [ $? == 0 ]
  then echo -n > $p
  else echo -n > $f
  fi
-
-# if   [ $? == 0 ]
-# then sed 1d $s; mv $s $p
-# else sed 1d $s; mv $s $f
-# fi
 }
 
 load_newer(){
@@ -104,16 +91,9 @@ par_chroot(){
  fi
 }
 
- RL=$1
-RLL=/var/log/init/runlevel.$RL
-RLC=/etc/init.d/dev.d/rl
+RL=$1
 
 mkdir -p /var/log/init/{fail,pass}ed
-
-if   [ -c "$RLC" ] && echo > $RLC
-then cap(){ tee $RLL > $RLC; }
-else cap(){ tee $RLL; }
-fi
 
 case $RL in
  1|2|3|4|5|7) try_chroot "$@" ;;
@@ -125,9 +105,3 @@ case $RL in
    2|4) log ssp ;;
      7) ssl ;;
 esac
-
-# case $RL in
-#  3|5|1) log ssl 2>&1 | cap ;;
-#    2|4) log ssp 2>&1 | cap ;;
-#      7) ssl ;;
-# esac
