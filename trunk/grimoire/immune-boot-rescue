@@ -21,8 +21,16 @@ on a Sorcerer Install/Rescue CD."
 build(){
  isoinfo -l -R -i $SOURCE |
  uniso      -R -i $SOURCE
- mkdir -pvm 700                               $DESTDIR/boot/rescue
- cp boot/*/{System.map,filesys,linux,modules} $DESTDIR/boot/rescue/ ||
- cp boot/*/{System.map,initrf,linux}          $DESTDIR/boot/rescue/
+ mkdir -pvm 700 $DESTDIR/boot/rescue
+ if   [ -f /etc/init.d/extlinux    ] &&
+      [ -x /etc/init.d/extlinux    ] &&
+      [ -f /boot/extlinux/menu.c32 ]
+ then cp -a boot/*/{System.map,initrf,linux,modules} $DESTDIR/boot/rescue/
+ elif [  -d boot/*/initrf ]
+      cp -a boot/*/{System.map,linux,modules}        $DESTDIR/boot/rescue/
+      cat   boot/*/initrf                          > $DESTDIR/boot/rescue/initrf
+ else cp -a boot/*/{System.map,initrf,linux,modules} $DESTDIR/boot/rescue/
+ fi
+
  [ -f $DESTDIR/boot/rescue/linux ]
 }
