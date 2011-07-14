@@ -10,19 +10,18 @@
 . /lib/lsb/init-functions
 
 run(){
- if   [ -f /boot/fast/initrf ]
- then
-  I='--initrd=/boot/fast/initrf'
-  L='-l /boot/fast/linux'
- else
-  V="$( find /boot -maxdepth 2 -mindepth 2 -name linux -printf '%T@\t%h\n' |
-        sort -gr | head -n 1 | sed 's:.*/::' )"
-  [ -f /boot/$V/initrf ] &&
-  I="--initrd=/boot/$V/initrf"
-  L="-l /boot/$V/linux"
+ V="$( find /boot -maxdepth 2 -mindepth 2 -name linux -printf '%T@\t%h\n' |
+       sort -gr | head -n 1 | sed 's:.*/::' )"
+ if   [ -f   /boot/$V/initrf ]; then I="--initrd=/boot/$V/initrf"
+ elif [ -d   /boot/$V/initrf ]; then
+  I="$( find /boot/$V/initrf/ -type f -printf "--initrd=%p\n" )"
  fi
+ L="-l /boot/$V/linux"
 
- log_warning_msg "kexec $L $I"; kexec $L $I
+ if   log_warning_msg "kexec $L $I run"; kexec $L $I
+ then log_success_msg "kexec $L $I ran"
+ else log_success_msg "kexec $L $I failed"
+ fi
 }
 
 case $1 in
