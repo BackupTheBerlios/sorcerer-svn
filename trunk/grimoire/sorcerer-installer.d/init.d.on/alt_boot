@@ -24,77 +24,18 @@ start(){
 
  root(){ echo "$( root_menu ) /media/root auto defaults 0 0" >> /etc/fstab; }
 
-
- boot_menu(){
-  dialog --backtitle alt_boot --stdout --no-cancel --title "Root Device Menu" \
-         --menu "Please select device to scan for kernel to load" 0 0 0 $BM
- }
-
- load(){
-  local DEV KER
-
-  DEV=${1%%:*}
-  KER=${1##*:}
-
-  mount -n -o ro $DEV /media/root
-  if   [     -f /media/root/$KER/initrf ]
-  then kexec -l /media/root/$KER/linux --initrd=/media/root/$KER/initrf
-  else kexec -l /media/root/$KER/linux
-  fi
-
-  umount -n /media/root
-  kexec  -e
- }
-
- scan(){
-  if mount -n -o ro $1 /media/root; then
-  BM="$( echo "$BM" | sed "\|$1\t|d"
-   if   [ -d /media/root/boot ] &&
-      ! [ -h /media/root/boot ]
-   then find /media/root/boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n'
-   else find /media/root      -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n'
-   fi 2>/dev/null | sed "s|^/media/root|$1:|; s|$|\tkernel|"
-  )"
-   umount -n /media/root
-  else
-   dialog --msgbox "Unable to mount $1" 0 0
-   false
-  fi
- }
-
-
- boot(){
-  local REPLY
-  local BM="$( block )"
-
-  while [ -n "$BM" ]  &&
-        ! echo "$REPLY" | grep -q :; do
-
-   REPLY=$( boot_menu )
-
-   case $REPLY in
-    *:*) load $REPLY ;;
-      *) scan $REPLY ;;
-   esac
-  done
- }
-
-
  main_menu(){
   dialog --backtitle alt_boot --item-help --stdout --no-cancel --timeout 60 \
          --title "Boot Options Menu" \
          --menu  "Please select an option within 60 seconds" 0 0 0 \
          "IR"    "Continue booting Install Rescue and mount the Install Rescue initramfs as /" \
          "Select for installation or manual rescue" \
-         "Boot"  "Warm reboot into a previously installed linux kernel and initramfs?" \
-         "Select to boot while avoid LiLo errors" \
          "Root"   "Continue booting Install Rescue however mount an alternate /" \
          "Select to boot while avoid LiLo errors and initramfs errors"
  }
 
  main(){
   case $( main_menu ) in
-   Boot) boot ;;
    Root) root ;;
    *)  return ;;
   esac
