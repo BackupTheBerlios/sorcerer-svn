@@ -18,7 +18,7 @@
 
 rebound(){
  [ -f /proc/mounts ] || return
- find /var/log/init/ -maxdepth 1 -type f |
+ find /var/log/init/ -mindepth 1 -maxdepth 1 |
  while read; do mv $REPLY{,.old}; done
  /etc/init.d/rcS
  telinit $REPLY
@@ -45,8 +45,9 @@ critical(){
 
  deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
 
-   if [ -f /var/log/init/failed/lilo      ]; then deny lilo
- elif [ -f /var/log/init/failed/initramfs ]; then deny initramfs
+   if [ -d /var/log/init/failed/lilo      ]; then deny lilo
+ elif [ -d /var/log/init/failed/extlinux  ]; then deny extlinux
+ elif [ -d /var/log/init/failed/initramfs ]; then deny initramfs
  fi
 }
 

@@ -320,21 +320,50 @@ help(){ echo "Usage: $0 {start|stop|status|reload|restart}";}
 
 reload(){ try_restart; }
 
-inside(){
- local R=$1
- while shift; [  -n "$1" ]
- do    if [ "$R" == "$1" ]; then return 0; fi
- done
- return 1
-}
-
-permit(){
- if   [ -n "$only" ]; then if ! inside "$1" $only; then return 3; fi
- elif [ -n "$deny" ]; then if   inside "$1" $deny; then return 3; fi
- fi
-}
-
 parse(){
+ permit(){
+  inside(){
+   local R=$1
+   while shift; [  -n "$1" ]
+   do    if [ "$R" == "$1" ]; then return 0; fi
+   done
+   return 1
+  }
+
+  if   [ -n "$only" ]; then if ! inside "$1" $only; then return 3; fi
+  elif [ -n "$deny" ]; then if   inside "$1" $deny; then return 3; fi
+  fi
+ }
+
+ event(){
+  E=$?
+  if ! [ -d /var/log/init ]; then exit $E; fi
+
+  S=${SELF##*/}
+  S=${S#[SK][0-9][0-9]} 
+  P=/var/log/init/passed/$S
+  F=/var/log/init/failed/$S
+
+  if [ $E == 0 ]; then
+   [     -d   $P ] ||
+   mkdir -p   $P
+   echo  -n > $P/$1
+   if [ -f    $F/$1 ]; then
+    rm  -f    $F/$1
+    rmdir --ignore-fail-on-non-empty $F
+   fi
+  else
+   [     -d   $F ] ||
+   mkdir -p   $F
+   echo  $E > $F/$1
+   if [ -f    $P/$1 ]; then
+    rm  -f    $P/$1
+    rmdir --ignore-fail-on-non-empty $P
+   fi
+  fi
+  exit $E
+ }
+
  permit $1 &&
  case $1 in
   start) start ;;
@@ -345,9 +374,8 @@ parse(){
   reload) reload ;;
   *) help ;;
  esac
+ event "$1"
 }
-
-ARGS=( "$@" )
 
     only(){ only="$@"; }
     deny(){ deny="$@"; }
@@ -359,23 +387,25 @@ log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
 fast()    { FAST=1; }
 
-if [ -z "$NAME" ]
-then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
-fi
-
 on_exit(){
- local         VAL=$?
- if ! [ 0 == "$VAL" ]
- then return  $VAL
+ local         E=$?
+ if ! [ 0 == "$E" ]
+ then return  $E
  fi
  if   [ -n "$FAST" ]
  then parse ${ARGS[*]} &
- else parse ${ARGS[*]}; exit $?
+ else parse ${ARGS[*]}
  fi
 }
-
-trap on_exit EXIT
 
 if   [ -f /etc/init.d/conf.d/$NAME ]
 then .    /etc/init.d/conf.d/$NAME
 fi
+
+if [ -z "$NAME" ]
+then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
+fi
+
+ARGS=( "$@" )
+SELF="$0"
+trap on_exit EXIT

@@ -10,17 +10,7 @@ umask 022
 run(){
  if ! [ -f $1 ]; then return 1; fi
  if ! [ -x $1 ]; then return 1; fi
-
- local n="${1##*/}"; n=${n:3:256}
- local f=/var/log/init/failed/$n
- local p=/var/log/init/passed/$n
-
  $1 $2
-
- if   [ $? == 0 ]
- then echo -n > $p
- else echo -n > $f
- fi
 }
 
 series(){
@@ -31,13 +21,10 @@ series(){
 
 /sbin/agetty -f /etc/issue.rootfs /dev/tty7 9600 &
 
-[ -f /var/log/init/sysinit ] && exit
-
 if   ! [    -f               /proc/mounts ] ||
      ! grep -q /var/log/init /proc/mounts; then
- mkdir -p /var/log/init
+ mkdir -pm 700 /var/log/init
  mount -o size=4m,nr_inodes=1k,mode=700 -t tmpfs tmpfs /var/log/init
- mkdir -p /var/log/init/{fail,pass}ed
 fi
 
 series
