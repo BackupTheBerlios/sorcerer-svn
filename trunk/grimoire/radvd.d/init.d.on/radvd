@@ -10,27 +10,11 @@
 # Short-Description: radvd ipv6 statless advertisement deamon
 ### END INIT INFO
 
+. /lib/lsb/init-functions
 
+only start stop restart try-restart reload status
 name radvd
 server /usr/sbin/$NAME
 pid_file /var/run/radvd.pid
 config /etc/radvd.conf
 options "-p $PIDF $SERV -C $CONF"
-ENABLE_FORWARD=true
-
-# Options
-OPTIONS=""
-
-. /lib/lsb/init-functions
-
-verify(){
-    # Verify that the configuration file exists
-    if [ ! -f /etc/radvd.conf ]; then
-    	echo "RADVD Configuration file /etc/radvd.conf doesn't exist"
-    	exit 1;
-    fi
-		if $ENABLE_FORWARD; then
-			echo 1 > /proc/sys/net/ipv6/conf/all/forwarding
-			echo 1 > /proc/sys/net/ipv6/conf/default/forwarding
-		fi
-}

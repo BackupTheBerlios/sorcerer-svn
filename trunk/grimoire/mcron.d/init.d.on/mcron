@@ -12,20 +12,20 @@
 
 . /lib/lsb/init-functions
 
-SOCK=/var/cron/socket
+only start stop restart try-restart status
 pid_file /var/run/cron.pid
 server /usr/sbin/cron
 config /var/cron/tabs
 name mcron
 options -n
 
-export TERM=dumb
+SOCK=/var/cron/socket
 
 start(){
  clear_socket(){ if ! status &>/dev/null; then rm -f $SOCK; fi; }
 
- if ! [ -d $CONF ]; then
-      log_warning_msg "$NAME not started; $CONF does not exist"; return; fi
+ export TERM=dumb
+
  if   log_warning_msg "$NAME starting"; clear_socket; start_daemon -p $PIDF $SERV $OPTS &>/dev/null
  then log_success_msg "$NAME started"
  else log_failure_msg "$NAME not started"; status
