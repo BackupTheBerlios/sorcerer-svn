@@ -268,10 +268,10 @@ start(){
  starts(){
   if   conf
   then log_warning_msg "$NAME not started"
-       log_warning_msg "$NAME missing $CONF"
+       log_warning_msg "$NAME missing $CONF"; return 6
   elif miss
   then log_warning_msg "$NAME not started"
-       log_warning_msg "$NAME missing $SERV"
+       log_warning_msg "$NAME missing $SERV"; return 5
   elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
   then log_success_msg "$NAME started"
   else log_failure_msg "$NAME not started"; status
@@ -320,7 +320,22 @@ help(){ echo "Usage: $0 {start|stop|status|reload|restart}";}
 
 reload(){ try_restart; }
 
+inside(){
+ local R=$1
+ while shift; [  -n "$1" ]
+ do    if [ "$R" == "$1" ]; then return 0; fi
+ done
+ return 1
+}
+
+permit(){
+ if   [ -n "$only" ]; then if ! inside "$1" $only; then return 3; fi
+ elif [ -n "$deny" ]; then if   inside "$1" $deny; then return 3; fi
+ fi
+}
+
 parse(){
+ permit $1 &&
  case $1 in
   start) start ;;
   stop) stop ;;
@@ -334,6 +349,8 @@ parse(){
 
 ARGS=( "$@" )
 
+    only(){ only="$@"; }
+    deny(){ deny="$@"; }
 pid_file(){ PIDF=$1; }
 server()  { SERV=$1; }
 config()  { CONF=$1; }

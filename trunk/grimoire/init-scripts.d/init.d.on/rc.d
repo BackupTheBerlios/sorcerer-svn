@@ -10,9 +10,11 @@
 # Copyright 2008-2009 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-if [ "$1" == try-restart ]; then exit 5; fi
+# if [ "$1" == try-restart ]; then exit 2; fi
 
 . /lib/lsb/init-functions
+
+deny try-restart
 
 check(){ find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d | grep -q . || ! [ -d /etc/rc.d ]; }
 update(){ /lib/lsb/install_initd; }
