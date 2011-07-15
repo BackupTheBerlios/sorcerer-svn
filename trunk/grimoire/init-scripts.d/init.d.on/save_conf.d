@@ -7,13 +7,14 @@
 # Short-Description: saves configuration files that were modified during sysinit
 ### END INIT INFO
 
-[ "$1" == try-restart ]              && exit 2
 [ -d            /etc/init.d/conf.d ] || exit 0
 [ -d /media/root/etc/init.d        ] || exit 0
 [ -d /media/root/etc/init.d/conf.d ] || mkdir -m 700 \
      /media/root/etc/init.d/conf.d
 
 . /lib/lsb/init-functions
+
+deny try-restart
 
 start(){
  run(){

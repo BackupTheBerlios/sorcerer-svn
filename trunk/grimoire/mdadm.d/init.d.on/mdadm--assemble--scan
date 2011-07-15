@@ -15,18 +15,16 @@
 # Shutting down RAIDS during shutdown is probably not required.
 ### END INIT INFO
 
-if [ "$1" == try-restart ]; then exit 2; fi
-
 . /lib/lsb/init-functions
 
-SERV=/sbin/mdadm
-CONF=/etc/mdadm.conf
-  ON='--assemble --scan'
- OFF='--stop --scan'
+deny try-restart
+server /sbin/mdadm
+config /etc/mdadm.conf
+
+case $1 in
+ start) options '--assemble --scan' ;;
+ stop)  options '--stop --scan' ;;
+esac
 
 help(){ echo "Usage: $0 {start|stop}" 1>&2; }
 
-case $1 in
- start) OPTS=$ON ;;
- stop)  OPTS=$OFF ;;
-esac
