@@ -8,12 +8,13 @@
 # Description: fstab checks for / in /etc/fstab and rewrites it to /media/root
 ### END INIT INFO
 
-if   [ "$1" == try-restart ] || [ -d /home ] ||
-     grep -q boot=IR /proc/cmdline
-then exit
+if   [ -d /home ] || grep -q boot=IR /proc/cmdline
+then exit 0
 fi
 
 . /lib/lsb/init-functions
+
+only start
 
 start(){
  root_menu(){
@@ -43,5 +44,3 @@ start(){
  else log_failure_msg '/ not in /etc/fstab'; interact
  fi
 }
-
-try_restart(){ :; }

@@ -7,19 +7,26 @@
 # Short-Description: rc.d updates symbolic links in /etc/rc.d
 ### END INIT INFO
 
-# Copyright 2008-2009 by Kyle Sallee, all rights reserved.
+# Copyright 2008-2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 . /lib/lsb/init-functions
 
-deny try-restart
+only stop status
 
 check(){ find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d | grep -q . || ! [ -d /etc/rc.d ]; }
 update(){ /lib/lsb/install_initd; }
 
-stop(){
+status(){
  if   log_warning_msg '/etc/rc.d checking'; check
- then log_warning_msg '/etc/rc.d updating'; update
-      log_success_msg '/etc/rc.d updated'
- fi;  log_success_msg '/etc/rc.d checked'
+ then log_warning_msg '/etc/rc.d checked; status not current'; return 1
+ else log_success_msg '/etc/rc.d checked; status     current'
+ fi
+}
+
+stop(){
+ if ! status; then
+  log_warning_msg '/etc/rc.d updating'; update
+  log_success_msg '/etc/rc.d updated'
+ fi
 }

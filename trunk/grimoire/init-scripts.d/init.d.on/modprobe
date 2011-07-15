@@ -9,16 +9,18 @@
 
 . /lib/lsb/init-functions
 
-deny try-restart
+only start
 
-if [ -x /sbin/modprobe ] &&
-   [ -f /etc/modules   ]
-then
- sed 's:#.*::;/^ *$/d' /etc/modules |
- while read REPLY; do
-  if   log_warning_msg "Module $REPLY loading" && modprobe $REPLY
-  then log_success_msg "Module $REPLY loaded"
-  else log_failure_msg "Module $REPLY not loaded"
-  fi
- done
-fi
+start(){
+ if [ -x /sbin/modprobe ] &&
+    [ -f /etc/modules   ]
+ then
+  sed 's:#.*::;/^ *$/d' /etc/modules |
+  while read REPLY; do
+   if   log_warning_msg "Module $REPLY loading" && modprobe $REPLY
+   then log_success_msg "Module $REPLY loaded"
+   else log_failure_msg "Module $REPLY not loaded"
+   fi
+  done
+ fi
+}

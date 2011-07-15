@@ -12,7 +12,7 @@
 
 . /lib/lsb/init-functions
 
-deny try-restart
+only stop reload force-reload status
 name initramfs-modules
 INIT=initramfs-modules
 SKIP="[32G"
@@ -69,21 +69,10 @@ initrf_current(){
  done
 }
 
-stop(){ initrf_update $1; }
-
+run(){ initrf_update $1; }
 status(){ initrf_current; }
-
-help(){ echo "Usage: $0 {stop|status|force|reload}"; }
+stop(){ status || run stop; }
+force_reload(){ run force; }
+reload(){ DONE=true; stop; }
 
 export LC_ALL=C
-
-parse(){
- case $1 in
-    help) help             ;;
-  reload) status || stop   ;;
-  status) status           ;;
-   force)           stop f ;;
-    stop) status || stop   ;;
-       *) status || stop   ;;
- esac
-}

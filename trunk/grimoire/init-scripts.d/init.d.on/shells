@@ -12,20 +12,25 @@
 
 . /lib/lsb/init-functions
 
-deny try-restart
+only stop status
 
 check(){
  ! [ -f /etc/shells ] ||
  find /etc/shells.d -cnewer /etc/shells | grep -q .
 }
 
-update(){
- find /etc/shells.d/ -type l -printf "%l\n" > /etc/shells
+update(){ find /etc/shells.d/ -type l -printf "%l\n" > /etc/shells; }
+
+status(){
+ if   log_warning_msg '/etc/shells.d checking'; check
+ then log_warning_msg '/etc/shells.d checked; status: not current'; return 1
+ else log_success_msg '/etc/shells.d checked; status:     current'
+ fi
 }
 
 stop(){
- if   log_warning_msg '/etc/shells.d checking'; check
- then log_warning_msg '/etc/shells   updating'; update
-      log_success_msg '/etc/shells   updated'
- fi;  log_success_msg '/etc/shells.d checked'
+ if ! status; then
+  log_warning_msg '/etc/shells updating'; update
+  log_success_msg '/etc/shells updated'
+ fi
 }

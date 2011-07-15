@@ -12,8 +12,7 @@
 
 . /lib/lsb/init-functions
 
-deny try-restart
-
+only stop reload force-reload status
 name initramfs
 DONE=false
 SKIP="[32G"
@@ -67,7 +66,7 @@ initrf_update(){
  fi
 }
 
-stop(){
+run(){
  if   log_warning_msg "$NAME $SKIP updating"; initrf_update $1
  then log_success_msg "$NAME $SKIP updated"
  else log_failure_msg "$NAME $SKIP failed"; false
@@ -80,7 +79,9 @@ status(){
  done
 }
 
-help(){ echo "Usage: $0 {stop|status|force|reload}"; }
+stop(){ status || run stop; }
+force_reload(){ run force; }
+reload(){ DONE=true; stop; }
 
 if ! [[ -d /boot ]] ||
      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
@@ -102,15 +103,3 @@ then EXTL=true; LILO=false
 fi
 
 export LC_ALL=C
-
-parse(){
- case $1 in
-    help) help ;;
-  reload) DONE=true
-          status || stop stop  ;;
-  status) status               ;;
-   force)           stop force ;;
-    stop) status || stop stop  ;;
-       *) status || stop stop  ;;
- esac
-}

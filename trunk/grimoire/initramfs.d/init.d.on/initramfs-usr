@@ -14,6 +14,7 @@ if [ "$1" == try-restart ]; then exit; fi
 
 . /lib/lsb/init-functions
 
+only stop reload force-reload status
 name /boot/initrf/usr
 INIT=initramfs-usr
 SKIP="[32G"
@@ -77,7 +78,7 @@ initrf_current(){
 
 } 
 
-stop(){
+run(){
  if   log_warning_msg "$NAME $SKIP updating"; initrf_update
  then log_success_msg "$NAME $SKIP updated"
  else log_failure_msg "$NAME $SKIP failed"; false
@@ -91,17 +92,8 @@ status(){
  fi
 }
 
-help(){ echo "Usage: $0 {stop|status|force|reload}"; }
+stop(){ status || run stop; }
+force_reload(){ run force; }
+reload(){ DONE=true; stop; }
 
 export LC_ALL=C
-
-parse(){
- case $1 in
-    help) help           ;;
-  reload) status || stop ;;
-  status) status         ;;
-   force)           stop ;;
-    stop) status || stop ;;
-       *) status || stop ;;
- esac
-}

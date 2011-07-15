@@ -313,12 +313,24 @@ start(){
  fi
 }
 
-    restart(){ stop && sleep 1; start;}
-try_restart(){ [ "$SERV" ] && status 2>/dev/null && restart; return 0;}
+    restart(){ stop && sleep 1; start; }
+try_restart(){ [ "$SERV" ] && status 2>/dev/null && restart; return 0; }
 
-help(){ echo "Usage: $0 {start|stop|status|reload|restart}";}
+help(){
+ local keep="start stop restart try-restart reload force-reload status"
+ if   [ -n "$only" ]; then keep="$only"
+ elif [ -n "$deny" ]; then
+  for omit in $deny; do
+   keep="${keep// $omit / }"
+   keep="${keep#$omit }"
+   keep="${keep% $omit}"
+  done
+ fi
+ echo "Usage: $SELF {${keep// /|}}"
+}
 
-reload(){ try_restart; }
+      reload(){ try_restart; }
+force_reload(){ restart; }
 
 parse(){
  permit(){
@@ -330,8 +342,8 @@ parse(){
    return 1
   }
 
-  if   [ -n "$only" ]; then if ! inside "$1" $only; then return 3; fi
-  elif [ -n "$deny" ]; then if   inside "$1" $deny; then return 3; fi
+  if   [ -n "$only" ]; then if ! inside "$1" $only help; then help; return 3; fi
+  elif [ -n "$deny" ]; then if   inside "$1" $deny;      then help; return 3; fi
   fi
  }
 
@@ -366,13 +378,15 @@ parse(){
 
  permit $1 &&
  case $1 in
-  start) start ;;
-  stop) stop ;;
-  try-restart) try_restart ;;
-  status) status ;;
-  restart) restart ;;
-  reload) reload ;;
-  *) help ;;
+  start)	start ;;
+  stop)		stop ;;
+  restart)	restart ;;
+  try-restart)	try_restart ;;
+  reload)	reload ;;
+  force-reload)	force_reload ;;
+  status)	status ;;
+  help)		help; exit 0 ;;
+  *)		help; exit 3 ;;
  esac
  event "$1"
 }

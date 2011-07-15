@@ -14,7 +14,7 @@
 
 . /lib/lsb/init-functions
 
-deny try-restart
+only start
 
 start(){
  run(){

@@ -14,6 +14,8 @@
 
 . /lib/lsb/init-functions
 
+only stop reload force-reload status
+
 EXTL=/boot/extlinux/extlinux.conf
 NAME=/boot/extlinux/extlinux.conf
 CONF=/etc/extlinux/conf
@@ -125,7 +127,7 @@ current(){
  boot_labels
 }
 
-stop(){
+run(){
  if   log_warning_msg "$NAME updating"; extlinux_conf_update
  then log_success_msg "$NAME updated"
  else log_failure_msg "$NAME failed"; false
@@ -139,20 +141,13 @@ status(){
  fi
 }
 
+stop(){ status || run; }
+reload(){ DONE=true; stop; }
+force_reload(){ run; }
+
 export LC_ALL=C
 
 if ! [ -d /boot ] ||
      [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
 then exit 1
 fi
-
-parse(){
- case $1 in
-  reload) DONE=true
-          status || stop   ;;
-  status) status ;;
-   force)           stop   ;;
-    stop) status || stop s ;;
-       *) status || stop   ;;
- esac
-}
