@@ -7,25 +7,17 @@
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: sensord is lm_sensors hardware health monitoring daemon
+# new values for SCAN and LAG can be specified in /etc/init.d/conf.d/sensord
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
+SCAN=${SCAN:=1m}	# interval between scanning for sensor alarms
+LAG=${LAG:=24h}		# interval between logging  all sensor readings
+
+fast
 only start stop restart try-restart status
 pid_file /var/run/sensord.pid
 server /usr/bin/sensord
 config /usr/bin/sensord
-
-# Configuration of sensord
-
-SCAN=1m		# interval between scanning for sensor alarms
-LAG=24h		# interval between logging  all sensor readings
-
-# new values for SCAN and LAG can be specified in 
-#    /etc/sensord.conf
-
-if   [ -f /etc/sensord.conf ]
-then    . /etc/sensord.conf
-fi
-
-OPTS="-i $SCAN -l $LAG"
+options "-i $SCAN -l $LAG"

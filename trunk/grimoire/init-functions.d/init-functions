@@ -407,9 +407,12 @@ on_exit(){
  if ! [ 0 == "$E" ]
  then return  $E
  fi
- if   [ -n "$FAST" ]
- then parse ${ARGS[*]} &
- else parse ${ARGS[*]}
+ if [ -n "$FAST" ]; then
+  case $RUNLEVEL in
+   2|4) parse ${ARGS[*]} & ;;
+     *) parse ${ARGS[*]}   ;;
+  esac
+ else   parse ${ARGS[*]}
  fi
 }
 
