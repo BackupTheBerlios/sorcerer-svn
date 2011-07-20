@@ -1,0 +1,61 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
+# Default-Stop: 0 6
+# Short-Description: updates giomodule.cache
+### END INIT INFO
+
+# Copyright 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if ! [ $HOSTTYPE == x86_64 ]; then return; fi
+
+. /lib/lsb/init-functions
+
+only stop force-reload status
+
+server /usr/bin/gdk-pixbuf-query-loaders
+
+    dir=/usr/lib64/gdk-pixbuf-2.0
+loaders=$dir/2.10.0/loaders
+cache=$loaders.cache
+
+check(){
+ if ! [ -f $cache ]; then return; fi
+ if find $loaders -type f -cnewer $cache | grep -q .; then return; fi
+ return 1
+}
+
+status(){
+ if   log_warning_msg "$cache checking"; check
+ then log_warning_msg "$cache checked"
+      log_warning_msg "loaders.cache status: not current"; return 1
+ else log_success_msg "$cache checked"
+      log_success_msg "loaders.cache status: current" 
+ fi
+}
+
+run(){
+ if   log_warning_msg "$cache     updating"; update
+ then log_success_msg "$cache     updated"
+ else log_failure_msg "$cache not updated"
+ fi
+}
+
+update(){
+ local new $cache.$$.$RANDOM$RANDOM
+ local ret
+
+ mkdir -pm 755 $loaders
+ if   GDK_PIXBUF_MODULE_FILE="$new" \
+      GDK_PIXBUF_MODULEDIR="$loaders" \
+      $server --update-cache
+ then mv $new $cache
+ else ret=$? rm $new; return $ret
+ fi
+}
+
+stop(){ status || run; }
+force_reload(){ run; }
