@@ -6,28 +6,29 @@
 # Required-Stop:  $local_fs kill
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 6
-# Short-Description: synchronizes installed software on boxes weekly
-# To modify DAYS set DAYS in /etc/init.d/conf.d/sentinel-sync
+# Short-Description: retries previously failed compilation
 ### END INIT INFO
 
 if read < /proc/cmdline; [[ $REPLY =~ boot=IR ]]; then exit 0; fi
 
-DAYS=7
+DELAY=30	# minutes
+TRIES=1
 
 . /lib/lsb/init-functions
 
 fast
 only start stop restart try-restart status configure
-server  /usr/sbin/sentinel-sync
-options $DAYS
+server /usr/sbin/sentinel-retry
+options DELAY TRIES
 
 configure(){
  input(){ dialog --stdout --no-cancel --timeout 60  --title $"$NAME configuration menu" --inputbox "$1" 10 50 $2; }
 
- DAYS=$( input $"Days between synchronization?" ${DAYS:=1} )
+ DELAY=$( input $"Minutes before retrying failed compile?" ${DELAY:=1} )
+ TRIES=$( input $"Retry attempts?" ${TRIES:=1} )
 
- if   (( DAYS > 0 ))
- then echo "DAYS=$DAYS" > /etc/init.d/conf.d/$NAME
+ if   (( DELAY > 0 )) && (( TRIES > 0 ))
+ then echo "TRIES=$TRIES; DELAY=$DELAY" > /etc/init.d/conf.d/$NAME
  fi
  try_restart
 }

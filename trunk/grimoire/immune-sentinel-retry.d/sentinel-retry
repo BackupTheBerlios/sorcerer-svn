@@ -1,0 +1,40 @@
+#!/bin/bash
+# Copyright 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the Sorcerer distribution only.
+
+# sentinel-retry periodically checks and retrys failed compilation attempts.
+
+find_cgroup(){
+ local JUNK DIR TYPE
+ while read JUNK DIR TYPE JUNK; do
+  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
+   CG=$DIR
+   return 0
+  fi
+ done < /proc/mounts
+ return 1
+}
+
+failed(){ find $EVENT -type f -perm -0040 -name \*Fail\ Cast -printf "%f\n"; }
+times(){ failed | LC_ALL=C grep "^$1" | wc -l; }
+limit(){ (( $( times $1 ) > $TRIES )); }
+retry(){ mv "$FAIL/$1" "$CAST/$1" }
+fail(){ [ -d $FAIL ] && find $FAIL -type f -mmin +$DELAY -printf "%f\n"; }
+scan(){ fail | while read; limit "$REPLY" || retry "$REPLY"; }
+main(){ while sleep 900; do scan; done; }
+
+find_cgroup
+
+if   [[     -x /usr/libexec/bash/sleep ]]
+then enable -f /usr/libexec/bash/sleep sleep
+fi
+
+DELAY=${1:-30} TRIES=${2-1}
+
+FAIL=/root/.sorcery/queue/fail
+CAST=/root/.sorcery/queue/cast
+EVENT=/var/log/sorcery/event
+
+main &>/dev/null &
+exit 0

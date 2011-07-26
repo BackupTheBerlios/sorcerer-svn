@@ -377,19 +377,10 @@ parse(){
   exit $E
  }
 
- permit $1 &&
- case $1 in
-  start)	start ;;
-  stop)		stop ;;
-  restart)	restart ;;
-  try-restart)	try_restart ;;
-  reload)	reload ;;
-  force-reload)	force_reload ;;
-  status)	status ;;
-  help)		help; exit 0 ;;
-  *)		help; exit 3 ;;
- esac
- event "$1"
+ local p=$1 f=${1//-/_}
+ shift 1
+ permit "$p" && "$f" "$@"
+ event  "$p"
 }
 
     only(){ only="$@"; }
