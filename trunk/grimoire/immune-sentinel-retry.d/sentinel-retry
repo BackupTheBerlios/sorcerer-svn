@@ -21,7 +21,7 @@ times(){ failed | LC_ALL=C grep "^$1" | wc -l; }
 limit(){ (( $( times $1 ) > $TRIES )); }
 retry(){ mv "$FAIL/$1" "$CAST/$1" }
 fail(){ [ -d $FAIL ] && find $FAIL -type f -mmin +$DELAY -printf "%f\n"; }
-scan(){ fail | while read; limit "$REPLY" || retry "$REPLY"; }
+scan(){ fail | while read; do limit "$REPLY" || retry "$REPLY"; done; }
 main(){ while sleep 900; do scan; done; }
 
 find_cgroup
