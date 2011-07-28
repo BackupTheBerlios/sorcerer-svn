@@ -1,44 +1,17 @@
-# gcc-v3.3 is needed only for libdeploy.so (as of jdk 1.7.0) but nothing from jdk
-# requires it so it seems safe to not install gcc-v3.3
-
-# Interesting method for dynamically constructing the version
-# however, it must rely upon something such as UTC time
-# or a time fixed to a specific time zone.
-# Otherwise it can not be accurate for boxes located
-# in all other time zones.
-
-# Initial build version and date
-v0=147
-t0="27 June 2011"
-# Number of builds since the initial build
-#n=$(( ($(date -u +%s) -  $(date -u -d "$t0" +%s))/86400/7 ))
-n=0
-# Current build version and release date
-v=$(( $v0 + $n ))
-t=$(date -u -d "$t0 + $(( $n * 7 )) days"  +%d_%b_%Y)
-t=$( echo $t | tr '[:upper:]' '[:lower:]')
-
+version stable 7
    require alsa-lib libXi libXp libXrender libXtst unixODBC
 
 case $HOSTTYPE in
   x86_64) RPATH="/opt/jdk/jre/lib/amd64${LF}/opt/jdk/jre/lib/amd64/jli${LF}/opt/jdk/jre/lib/amd64/client${LF}/opt/jdk/jre/lib/amd64/server${LF}/opt/jdk/jre/lib/amd64/headless${LF}/opt/jdk/jre/lib/amd64/motif21${LF}/opt/jdk/jre/lib/amd64/xawt"
-    version stable 7-fcs-bin-b${v}-linux-x64-${t} ;;
-       *)
-    version stable 7-fcs-bin-b${v}-linux-i586-${t}
-          RPATH="/opt/jdk/jre/lib/i386${LF}/opt/jdk/jre/lib/i386/jli${LF}/opt/jdk/jre/lib/i386/client${LF}/opt/jdk/jre/lib/i386/server${LF}/opt/jdk/jre/lib/i386/headless${LF}/opt/jdk/jre/lib/i386/motif21${LF}/opt/jdk/jre/lib/i386/xawt" ;;
+    source http://download.oracle.com/otn-pub/java/jdk/$VERSION/jdk-$VERSION-linux-i586.tar.gz ;;
+       *) RPATH="/opt/jdk/jre/lib/i386${LF}/opt/jdk/jre/lib/i386/jli${LF}/opt/jdk/jre/lib/i386/client${LF}/opt/jdk/jre/lib/i386/server${LF}/opt/jdk/jre/lib/i386/headless${LF}/opt/jdk/jre/lib/i386/motif21${LF}/opt/jdk/jre/lib/i386/xawt"
+    source http://download.oracle.com/otn-pub/java/jdk/$VERSION/jdk-$VERSION-linux-x64.tar.gz ;;
 esac
   category development/interpreter
  attribute archive_off seamonkey-plugin x11 x86
-    source http://download.java.net/jdk7/archive/${VERSION:10:4}/binaries/jdk-$VERSION.tar.gz
-#   source http://download.java.net/jdk7/archive/${VERSION:9:4}/binaries/jdk-$VERSION.tar.gz
-#   source http://download.java.net/jdk7/binaries/jdk-$VERSION.bin
-#    source http://dlc-cdn.sun.com/jdk7/binaries/jdk-$VERSION.bin
       info home  http://openjdk.java.net
-#     vurl http://download.java.net/openjdk/jdk7/
-#     vurl http://download.java.net/jdk7/binaries/
-      vurl http://jdk7.java.net/download.html
+      vurl http://www.oracle.com/technetwork/java/javase/downloads/index.html
   eprovide java
-   disable sdelta
       desc 'open-source JDK (Java Platform SE)'
 
 build(){
