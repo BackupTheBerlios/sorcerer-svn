@@ -1,12 +1,19 @@
-# libzip not currently compiling
-# so ebook-tools is also broke
-
    version stable 0.2.1 0.2.0 0.1.1
    require libxml2 libzip
   category documentation
- attribute x11
- attribute broke
+ attribute library makej multilib-dual x11
     source $SOURCEFORGE_URL ebook-tools/ebook-tools/$VERSION/ebook-tools-$VERSION.tar.gz
+      info last 20100914
       info home  http://sourceforge.net/projects/ebook-tools/
       desc 'tool for accessing and converting various ebook file formats'
 
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export CFLAGS+=" -I/usr/lib64/libzip/include/"
+ else export CFLAGS+=" -I/usr/lib/libzip/include/"
+ fi
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib{,64}
+ fi
+}
