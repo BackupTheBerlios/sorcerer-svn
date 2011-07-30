@@ -1,35 +1,36 @@
-# still working on init scripts and installation method.
-# It does not compile.
-# http://www.virtualbox.org/wiki/Linux%20build%20instructions
+# Use qemu-kvm instead.
+# qemu-kvm is better.
 
-   version stable 4.0.6 4.0.4 4.0.2
+# still working on init scripts and installation method.
+# http://www.virtualbox.org/wiki/Linux%20build%20instructions
+# It compiles when configured without java head and qt
+# but installation method is not apparent.
+
+   version stable 4.1.0 4.0.6 4.0.4 4.0.2
    require Dev86 Python SDL acpica makeself pulseaudio
 #  require Dev86 Python SDL acpica hal pulseaudio
   optional curl
-      opts --disable-qt4
+#     opts --with-qt-dir=/opt/kde4
+      opts --disable-hardening --disable-qt4 --disable-java --build-headless --disable-docs
   category development/emulator
-# It compiles with a super high load.
  attribute solo x11
  attribute broke
     source http://download.virtualbox.org/virtualbox/$VERSION/VirtualBox-$VERSION.tar.bz2
       vurl http://www.virtualbox.org/wiki/Downloads/
-      info last  20110421
+      info last  20110719
       info home  http://www.virtualbox.org/
       info docs  http://www.virtualbox.org/wiki/Documentation
       desc 'a computer emulator'
 
 build(){
- case $VERSION in
-  4.0.2) sed -i 's:LIBX11=.*:LIBX11="-lXext -lX11":' configure
-         opts --disable-xpcom ;;
- esac
+ sed -i 's:LIBX11=.*:LIBX11="-lXext -lX11":' configure
 
- ./configure --disable-hardening $OPTS &&
+ ./configure $OPTS &&
  . ./env.sh      &&
  kmk         all &&
- cd out/linux.x86/release/bin/src &&
+ cd out/*/release/bin/src &&
  make    install "DESTDIR=$DESTDIR" &&
  cd      ../../ &&
- mkdir -p   $DESTDIR/opt &&
- cp -av bin $DESTDIR/opt/VirtualBox
+ mkdir -pvm 755 $DESTDIR/opt &&
+ cp -av bin     $DESTDIR/opt/VirtualBox
 }

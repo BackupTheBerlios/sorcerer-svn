@@ -1,14 +1,15 @@
-# Use the patch file to set the DESTDIR
+# The patch file sets the DESTDIR and configuration
 
 case $SPELL in
  uqm) 
-   version stable 0.6.2 0.6.1 0.6.0
+   version stable 0.7.0 0.6.2 0.6.1 0.6.0
    require MesaLib SDL_image audiofile libmikmod libvorbis uqm-content
   optional uqm-3domusic '' '' for excellent but large music files
   optional uqm-remix    '' '' for remixed music instead of original music
   optional uqm-voice    '' '' for excellent but large voice files
-    source $SOURCEFORGE_URL sc2/UQM/$VERSION/uqm-$VERSION-source.tgz ;;
+    source $SOURCEFORGE_URL sc2/UQM/${VERSION:0:3}/uqm-$VERSION-source.tgz ;;
    *)
+ attribute archive_off
   pre_build(){ :; } ;;
 esac
   category game
@@ -18,17 +19,12 @@ esac
 
 build(){
  install_source(){
-  patch -p1 < $SCRIPT_DIR/uqm-0.6.2.patch
-
-  [ -d sc2 ] &&
-  cd   sc2
-
-  mkdir -p content
+  mkdir -pvm 755 content
   echo |
  ./build.sh uqm depend  &&
  ./build.sh uqm         &&
  ./build.sh uqm install &&
-  mkdir -p          $DESTDIR/usr/share/uqm/content &&
+  mkdir -pvm 755    $DESTDIR/usr/share/uqm/content &&
   echo "$VERSION" > $DESTDIR/usr/share/uqm/content/version
  }
 
@@ -58,10 +54,10 @@ build(){
        [[ -f $CONTENT3 ]]
   then
    set     -x          &&
-   mkdir   -p $PACKAGE &&
-   install -vm 644 -o root -g root $CONTENT1 $PACKAGE &&
-   install -vm 644 -o root -g root $CONTENT2 $PACKAGE &&
-   install -vm 644 -o root -g root $CONTENT3 $PACKAGE &&
+   mkdir   -pvm 755 $PACKAGE &&
+   install  -vm 644 -o root -g root $CONTENT1 $PACKAGE &&
+   install  -vm 644 -o root -g root $CONTENT2 $PACKAGE &&
+   install  -vm 644 -o root -g root $CONTENT3 $PACKAGE &&
    set     +x
   else
    echo "Not all remixes tarballs found."
