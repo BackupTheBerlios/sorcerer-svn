@@ -59,11 +59,10 @@ post_install(){
  find $SOURCE_CACHE -type f -name \*.tar.gz  | xargs -r gzip  -d
  find $SOURCE_CACHE -type f -name \*.tgz     | xargs -r gzip  -d
  find $SOURCE_CACHE -type f -name \*.tar.bz2 | xargs -r bzip2 -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar |
- while read; do
-  cd "${REPLY%/*}"
-  rm -f  "${REPLY##*/}.xz"
-  xz -9e "${REPLY##*/}"
+ find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar -printf "%p %s\n" |
+ while read FILE SIZE; do
+  rm -f  "$FILE.xz"
+  xz -k --lzma2=dict=$SIZE,mf=bt4,nice=273 -v -v $FILE
  done
 
             ISO=/var/cache/iso
@@ -74,15 +73,16 @@ post_install(){
  install_isolinux
  rm    -f $ISO/var/cache/archive/sorcerer-*
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
- ( find $ISO/boot        -type f -name modules
-   find $ISO/boot/initrf -type f
+ ( find $ISO/boot        -type f -name modules -printf "%p %s\n"
+   find $ISO/boot/initrf -type f               -printf "%p %s\n"
  ) |
- while read; do
-  if   file -b $REPLY | grep -q "gzip compressed data"; then
-   cp $REPLY{,.gz}; rm $REPLY
-   gunzip $REPLY.gz
+ while read FILE SIZE; do
+  if   file -b $FILE | grep -q "gzip compressed data"; then
+   mv     $FILE{,.gz}
+   gunzip $FILE.gz
   fi
-  xz --check=crc32 --x86 --lzma2=dict=32MiB $REPLY && mv $REPLY.xz $REPLY
+  xz --check=crc32 --x86 --lzma2=dict=$SIZE $FILE &&
+  mv $FILE.xz $FILE
  done
 
  DATE=$VERSION
