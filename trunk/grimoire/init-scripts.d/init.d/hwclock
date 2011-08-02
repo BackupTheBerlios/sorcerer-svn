@@ -6,7 +6,7 @@
 # Required-Start: udev
 # Should-Start: rtc-cmos
 # Required-Stop:  $local_fs
-# Default-Start: S 1 2 3 4 5
+# Default-Start: S
 # Default-Stop: 0 6
 # Short-Description: loads and saves system time; hardware clock uses UTC
 ### END INIT INFO
@@ -18,19 +18,42 @@
 
 . /lib/lsb/init-functions
 
-only start stop restart
+only start stop restart configure
 name 'System clock from hardware clock time restoring'
 server /sbin/hwclock
 
+configure(){
+ mode_menu(){
+  BACKTITLE=$"hwclock configuration menu"
+      TITLE=$"Mode Selection"
+       HELP=$"POSIX/Unix/Linux boxes store time internally using UTC.
+Do not select localtime unless certain it is required.
+Please select either UTC or localtime."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --menu "$HELP" 0 0 0      \
+   UTC Normal localtime Strange
+ }
+
+ case $( mode_menu ) in
+  UTC)       echo "MODE=--utc" ;;
+  localtime) echo "MODE=--localtime" ;;
+ esac > /etc/init.d/conf.d/hwclock
+}
+
 start(){
- if   log_warning_msg 'System clock from hardware clock'; /sbin/hwclock -s
+ if   log_warning_msg 'System clock from hardware clock'; /sbin/hwclock -s ${MODE:---utc}
  then log_success_msg 'System clock set'
  else log_failure_msg 'System clock not set'
  fi
 }
 
 stop(){
- if   log_warning_msg 'Hardware clock from system clock'; /sbin/hwclock -w
+ if   log_warning_msg 'Hardware clock from system clock'; /sbin/hwclock -w ${MODE:---utc}
  then log_success_msg 'Hardware clock set'
  else log_failure_msg 'Hardware clock not set'
  fi

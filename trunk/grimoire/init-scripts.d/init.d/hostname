@@ -1,0 +1,44 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc
+# Default-Start: S
+# Short-Description: hostname sets the box's name
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure
+
+configure(){
+ hostname_dialog(){
+  BACKTITLE=$"hostname configuration menu"
+      TITLE=$"hostname input"
+       HELP=$"Boxes typically have names like rainbow.home or www.ekrondo.com
+Please input a name for this box"
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --inputbox "$HELP" 0 0
+ }
+
+ confirm_it(){ dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
+
+ local NAME=$( hostname_dialog )
+ if   echo "$NAME" | grep -q "\." || confirm_it
+ then echo "$NAME" > /etc/hostname
+ fi
+}
+
+
+start(){
+ log_warning_msg "hostname setting"
+ [ -f           /etc/hostname ] &&
+ read   REPLY < /etc/hostname
+ echo ${REPLY:-noname} > /proc/sys/kernel/hostname
+ log_success_msg "hostname is now $REPLY"
+}
