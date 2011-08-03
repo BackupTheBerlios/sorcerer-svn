@@ -27,9 +27,11 @@ status(){
  else LA=/usr/lib/locale/locale-archive
  fi
 
- if   log_warning_msg "$LA checking"; [ -f $LA ]
- then log_success_msg "$LA checked"
- else log_warning_msg "$LA missing"; return 1
+ if   log_warning_msg "$LA checking"; ! [ -f $LA ]
+ then log_warning_msg "$LA missing"; return 1
+ elif [ /usr/bin/localedef -nt $LA ]
+ then log_warning_msg "$LA obsolete"; return 1
+ else log_success_msg "$LA checked"
  fi
 }
 
