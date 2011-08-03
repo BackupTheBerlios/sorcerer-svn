@@ -11,8 +11,121 @@
 
 . /lib/lsb/init-functions
 
-only start stop
+only start stop configure status
 fast
+
+configure_run(){
+
+confirm(){ dialog --nocancel --yesno "$1" 0 0; }
+
+show_swapfiles(){
+ sed "s:#.*::" /etc/fstab |
+ sed "s:\t: :g" |
+ tr -s ' ' |
+ sed "s:^ ::" |
+ sed "\,^/dev/,d" |
+ sed "s: none swap defaults 0 0: swapfile:p;d"
+}
+
+
+create_swapfile(){
+
+swapfile_name_dialog(){
+ BACKTITLE=$"swapfile configuration menu"
+     TITLE=$"swapfile name input"
+      HELP=$"Please provide the absolute directory name for holding swapfiles."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --inputbox "$HELP" 0 0    \
+  /swap
+}
+
+swapfile_size_dialog(){
+ BACKTITLE=$"swapfile configuration menu"
+     TITLE=$"swapfile size selection"
+      HELP=$"Please select a predetermined size in gigabytes for the swapfile."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item 2G         \
+  --menu   "$HELP" 0 0 0    \
+  4G "" 3G "" 2G "" 1G ""
+}
+
+ SIZE=$( swapfile_size_dialog )
+ NAME=$( swapfile_name_dialog )
+ UNIQ=0
+
+ while [ -f $NAME/swap$UNIQ.$SIZE ]; do (( UNIQ++ )); done
+ SWAP=$NAME/swap$UNIQ.$SIZE  
+
+ if confirm "Create $SWAP?"; then
+  mkdir -pm 755    "${SWAP%/*}"
+  chmod 700        "${SWAP%/*}"
+  fallocate -l$SIZE "$SWAP"
+  chmod 0           "$SWAP"
+  mkswap            "$SWAP"
+  echo "$SWAP	none	swap	defaults	0 0" >> /etc/fstab
+ fi
+}
+
+delete_swapfile(){
+
+swapfile_selection_dialog(){
+ BACKTITLE=$"swapfile configuration menu"
+     TITLE=$"swapfile selection"
+      HELP=$"Please select an existing swapfile to deactivate and delete."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item 2G         \
+  --menu   "$HELP" 0 0 0    \
+  $( show_swapfiles )
+}
+
+ SWAP=$( swapfile_selection_dialog )
+ if   confirm "Deactivate and Delete $SWAP?"; then
+  sync
+  swapoff  "$SWAP"
+  rm -f    "$SWAP"
+  sed -i "\,$SWAP.*none.*swap.*defaults.*0 0,d" /etc/fstab
+ fi
+
+}
+
+swapfile_command_dialog(){
+ BACKTITLE=$"swapfile configuration menu"
+     TITLE=$"swapfile command selection"
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item Create     \
+  --menu   "$HELP" 0 0 0    \
+  Create Swapfile Delete Swapfile
+}
+
+ if [ -n "$( show_swapfiles )" ]; then
+  case $( swapfile_command_dialog ) in
+   Create) create_swapfile ;;
+   Delete) delete_swapfile ;;
+  esac
+ else create_swapfile
+ fi
+}
+
 
 start(){
  if   log_warning_msg "swap starting"; swapon -a
@@ -25,5 +138,14 @@ stop(){
  if   log_warning_msg "swap stopping"; swapoff -a
  then log_success_msg "swap stopped"
  else log_failure_msg "swap not stopped"
+ fi
+}
+
+configure(){ configure_run; start; }
+
+status(){
+ if   (( $( wc -l < /proc/swaps ) > 1 ))
+ then log_success_msg "swap is active"
+ else log_warning_msg "swap is not active"; return 1
  fi
 }
