@@ -1,0 +1,171 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Default-Start: 2 3 4 5
+# Short-Description: generates locales databases
+### END INIT INFO
+
+if   grep -q boot=IR /proc/cmdline || ! [ -d /home ]
+then exit
+fi
+
+. /lib/lsb/init-functions
+
+only start configure status reload
+config /usr/share/i18n/SUPPORTED
+
+status(){
+ local LA
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then LA=/usr/lib64/locale/locale-archive
+ else LA=/usr/lib/locale/locale-archive
+ fi
+
+ if   log_warning_msg "$LA checking"; [ -f $LA ]
+ then log_success_msg "$LA checked"
+ else log_warning_msg "$LA missing"; return 1
+ fi
+}
+
+choices(){
+ local CX=$( locale -a 2>/dev/null | wc -l )
+ (( CX > 2 ))
+}
+
+configure(){
+ locales_checklist(){
+  sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED |
+  while read; do
+     NAME="${REPLY%/*}"
+   SOURCE="${NAME%.*}"
+
+   echo "$REPLY"
+   sed  -nr 's:title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
+   echo "off"
+  done
+ }
+
+ locales_menulist(){ 
+  if   [   -n "$LOCALES" ]
+  then echo   "$LOCALES" |
+       sed -n 's: .*::;/\//p'
+  else sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED
+  fi |
+  while read; do
+     NAME="${REPLY%/*}"
+    SOURCE="${NAME%.*}"
+
+   echo "$NAME"
+   sed -nr 's:^title[^"]*"([^"]*)".*:\1:p' /usr/share/i18n/locales/$SOURCE
+  done
+ }
+
+ select_locales(){
+  BACKTITLE=$"Glibc Locale Configuration Menu"
+      TITLE=$"Locale Selection"
+       HELP=$"Please select available language locales."
+
+  dialog --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --separate-output          \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --checklist  "$HELP"       \
+         0 0 0                      \
+         $( locales_checklist )
+ }
+
+ locale_menu(){
+  BACKTITLE=$"Glibc Locale Configuration Menu"
+      TITLE=$"Locale Selection"
+       HELP=$"Please select the default locale"
+
+  dialog --backtitle  "$BACKTITLE"  \
+         --title      "$TITLE"      \
+         --stdout                   \
+         --timeout  "$PROMPT_DELAY" \
+         --no-cancel                \
+         --menu  "$HELP"            \
+         0 0 0                      \
+         $( locales_menulist )
+ }
+
+ local  IFS
+ export IFS=$'	\n'
+ if   dialog --title "locale-archive configuration" \
+             --defaultno --yesno \
+             "Select individual locales?" 0 0
+ then       LOCALES="$( select_locales )"
+ else unset LOCALES
+ fi
+ echo "LOCALES=\"$LOCALES\"" > /etc/init.d/conf.d/locale-archive
+ reload
+}
+
+delay(){ while (( $( pgrep -u root localedef | wc -l ) > LOAD )); do sleep 0.1; done; }
+
+generate_locales(){
+ if   [      -f /usr/libexec/bash/sleep ]
+ then enable -f /usr/libexec/bash/sleep sleep
+ fi
+
+ LOAD=$( sed "/^processor/p;d"  /proc/cpuinfo | wc -l )
+
+ local SUPPORTED="/usr/share/i18n/SUPPORTED"
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then mkdir -pm 755 /usr/lib{,64}/locale
+ else mkdir -pm 755 /usr/lib/locale
+ fi
+
+   if [ -n "$LOCALES" ]; then echo "$LOCALES"
+ elif [ -f $SUPPORTED ]; then cat $SUPPORTED
+ fi | grep / | cut -d ' ' -f1 |
+ while read; do
+  CHARMAP="${REPLY##*/}"
+     NAME="${REPLY%/*}"
+   SOURCE="${NAME%.*}"
+  echo localedef --no-archive -i $SOURCE -c -f $CHARMAP $NAME
+       localedef --no-archive -i $SOURCE -c -f $CHARMAP $NAME &
+  delay
+ done
+
+ wait
+ LOAD=0
+ delay
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then find /usr/lib64/locale -maxdepth 1 -mindepth 1 -type d
+ else find /usr/lib/locale   -maxdepth 1 -mindepth 1 -type d
+ fi | xargs --max-lines=1024 echo localedef --add-to-archive
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then find /usr/lib64/locale -maxdepth 1 -mindepth 1 -type d
+ else find /usr/lib/locale   -maxdepth 1 -mindepth 1 -type d
+ fi | xargs --max-lines=1024      localedef --add-to-archive
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then find /usr/lib64/locale -maxdepth 1 -mindepth 1 -type d
+ else find /usr/lib/locale   -maxdepth 1 -mindepth 1 -type d
+ fi | xargs --max-lines=1024 rm -fr
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then cp -a /usr/lib{64,}/locale/locale-archive
+ fi
+}
+
+start(){
+ if ! status; then
+  log_success_msg "locale-archive generating background"
+  generate_locales &>/var/log/locale-archive &
+ fi
+}
+
+reload(){ rm -f /usr/lib{,64}/locale/locale-archive; start; }
