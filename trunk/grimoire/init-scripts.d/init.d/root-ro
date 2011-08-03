@@ -1,0 +1,34 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: cryptsetup fstab proc sys
+# Should-Start: cryptmount-early cryptsetup dmsetup fstab mapper mdadm $network udev vgchange
+# Should-Stop: cryptmount cryptsetup
+# Required-Stop: halt finale mdadm reboot reboot-kexec vgchange
+# Required-Stop:
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: During non initramfs booting root-ro re-mounts / read-only
+### END INIT INFO
+
+if ! [ -d /home ]; then exit 0; fi
+
+. /lib/lsb/init-functions
+
+only start stop
+deny control
+
+start(){
+ if   log_warning_msg 'root mounting read only'; mount -n -o remount,ro /
+ then log_success_msg 'root mounted  read only'
+ else log_failure_msg 'root not mounted'
+ fi
+}
+
+stop(){
+ if   log_warning_msg '/ remounting  read only'; mount -o remount,ro /
+ then log_success_msg '/ remounted   read only'
+ else log_failure_msg '/ not mounted read only'
+ fi
+}

@@ -1,0 +1,26 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc
+# Should-Start: dev
+# Default-Start: S 1 2 3 4 5
+# Short-Description: pts mounts devpts on /dev/pts
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop restart status
+deny control
+name /dev/pts
+options '-t devpts devpts'
+
+cat_config(){
+  if [ -f /proc/config.gz ]; then gzip -cd /proc/config.gz
+elif [ -f /proc/config    ]; then cat      /proc/config
+fi
+}
+
+if   cat_config | grep -q CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
+then OPTS="-t devpts -o newinstance -o ptmxmode=0666 devpts"
+fi

@@ -1,0 +1,95 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Short-Description: Mass init-script auditing/control
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only configure
+
+configure(){
+
+ init_scripts(){ grep -ilr "BEGIN INIT INFO" /etc/init.d | sort; }
+ add_mode(){
+  while read; do find $REPLY -maxdepth 0 -printf "%p\t%m\n"; done |
+  sed "s:\t510$:\tAuto Updates:
+       s:\t500$:\tAuto        :
+       s:\t400$:\tManual      :
+       s:\t...$:\tCustom      :"
+ }
+
+ add_when(){
+  while read NAME MORE; do
+   START=$( sed "s/# Default-Start://p;d" $NAME | tr -s ' ' | sed "s/ / S/g" )
+    STOP=$( sed "s/# Default-Stop://p;d"  $NAME | tr -s ' ' | sed "s/ / K/g" )
+   echo "$NAME	$MORE $START$STOP"
+  done
+ }
+
+ add_configure(){
+  while read NAME MORE; do
+   if   grep -q "only .*configure" $NAME
+   then echo "$NAME	C $MORE"
+   else echo "$NAME	  $MORE"
+   fi
+  done
+ }
+
+ init_list(){
+  init_scripts |
+  add_mode |
+  add_configure |
+  add_when |
+  sed "s:.*/::"
+ }
+
+what(){
+ choices(){
+  /etc/init.d/$1 help 2>&1 |
+  sed "s:.*{::; s:|:\n:g; s:}::" |
+  sed "s:$:\tChoice:"
+ }
+
+ confirm_it(){ [ -n "$1" ] && [ -n "$2" ] && dialog --nocancel --yesno "Run /etc/init.d/$1 $2" 0 0; }
+
+ CHOICE=$(
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout                  \
+   --cancel-label "Cancel"   \
+   --menu "$HELP" 0 0 0      \
+   $( choices "$1" )
+ ) &&
+ confirm_it $1 $CHOICE &&
+ /etc/init.d/$1 $CHOICE
+}
+
+ init_script_menu(){
+  BACKTITLE=$"Init-Script Menu"
+      TITLE=$"Init-Script Selection"
+       HELP=$"Please select an init-script."
+
+  local IFS="	
+"
+  export IFS
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout                  \
+   --cancel-label "Done"     \
+   --menu "$HELP" 0 0 0      \
+   $( init_list )
+ }
+
+ while IS=$( init_script_menu ); do what "$IS"; done
+}

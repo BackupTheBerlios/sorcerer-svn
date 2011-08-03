@@ -1,0 +1,37 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Stop: $local_fs
+# Should-Stop: initramfs tmp
+# Default-Stop: 0 6
+# Short-Description: shells updates /etc/shells based upon the content of /etc/shells.d/
+### END INIT INFO
+
+# Copyright 2011 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+. /lib/lsb/init-functions
+
+only stop status
+deny control
+
+check(){
+ ! [ -f /etc/shells ] ||
+ find /etc/shells.d -cnewer /etc/shells | grep -q .
+}
+
+update(){ find /etc/shells.d/ -type l -printf "%l\n" > /etc/shells; }
+
+status(){
+ if   log_warning_msg '/etc/shells.d checking'; check
+ then log_warning_msg '/etc/shells.d checked; status: not current'; return 1
+ else log_success_msg '/etc/shells.d checked; status:     current'
+ fi
+}
+
+stop(){
+ if ! status; then
+  log_warning_msg '/etc/shells updating'; update
+  log_success_msg '/etc/shells updated'
+ fi
+}
