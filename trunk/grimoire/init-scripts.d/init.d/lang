@@ -19,7 +19,7 @@ fi
 
 . /lib/lsb/init-functions
 
-only start reload status
+only start configure status
 name /etc/bash.d/noninteractive/LANG
 
 if   [ -f   /usr/lib64/locale/locale-archive ] 
@@ -27,7 +27,7 @@ then config /usr/lib64/locale/locale-archive
 else config   /usr/lib/locale/locale-archive 
 fi
 
-run(){
+configure_run(){
 
  lang_list(){ locale -a | sed "s:$:	locale:"; }
 
@@ -61,10 +61,33 @@ status(){
  fi
 }
 
-choices(){
- local CX=$( locale -a 2>/dev/null | wc -l )
- (( CX > 2 ))
+choices(){ (( $( locale -a 2>/dev/null | wc -l ) > 2 )); }
+extreme(){ (( $( locale -a 2>/dev/null | wc -l ) > 9 )); }
+
+trim_locale_archive(){
+ if   extreme &&
+      dialog --title "Want to trim locale-archive of unsused locales?" \
+             --defaultno --yesno \
+             "Run /etc/init.d/locale-archive configure?" 0 0
+ then /etc/init.d/locale-archive configure
+ fi
 }
 
-start(){ if choices && ! status; then run; fi; }
-reload(){ rm -f $NAME; start; }
+make_locale_archive(){
+ if ! choices; then
+  /etc/init.d/locale-archive configure
+  echo "Please be patient while locale-archive is generated."
+  if   [      -f /usr/libexec/bash/sleep ]
+  then enable -f /usr/libexec/bash/sleep sleep
+  fi
+  while (( $( pgrep -u root locale-archive | wc -l ) > 1 )); do sleep 1; done
+ fi
+}
+
+start(){ if choices && ! status; then configure_run; fi; }
+configure(){
+ rm -f $NAME
+ make_locale_archive
+ configure_run
+ trim_locale_archive
+}
