@@ -1,24 +1,16 @@
    version stable 008
-      info last  20100705
    require sysfsutils
   category utility
  attribute console library
     source http://kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils-$VERSION.tar.bz2
+      info last  20100705
       info home  http://kernel.org/pub/linux/utils/kernel/cpufreq/cpufrequtils.html
       info mail  'http://vger.kernel.org/vger-lists.html#cpufreq'
       desc 'library for accessing CPU throttling'
 
 build(){
- prog_install(){
-  mkdir -p 755 $DESTDIR/bin
-  for REPLY in $SCRIPT_DIR/bin/*
-  do  install -m 755 $REPLY $DESTDIR/bin
-  done
- }
-
  make &&
  make install "DESTDIR=$DESTDIR" &&
- prog_install &&
  if   [[ $HOSTTYPE == x86_64   ]]; then
   if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
                                    else mv $DESTDIR/usr/lib{,64}
@@ -26,6 +18,3 @@ build(){
   fi
  fi
 }
-
-current(){ [ -f /etc/init.d/cpufreq_powersave ]; }
-

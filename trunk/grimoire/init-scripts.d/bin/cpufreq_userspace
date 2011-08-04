@@ -1,6 +1,10 @@
 #!/bin/bash
 # Set all CPU cores to specified frequency
 
+if   (( UID == 0 )) && ! lsmod | grep -q cpufreq_userspace
+then modprobe cpufreq_userspace
+fi
+
 for CPU in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 do echo userspace > $CPU
 done

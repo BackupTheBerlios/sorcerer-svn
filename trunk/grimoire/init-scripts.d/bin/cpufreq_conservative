@@ -5,10 +5,16 @@
 # how a process jumps from processor to processor.
 # Ondemand performance will probably be less than
 # the performance governor when compiling software
-# Performance will suffer when using cpufreq_ondemand
+# Unlike cpufreq_ondemand
+# cpufreq_conservative gradually increases and decreases CPU frequency
+# instead of jumping from one extreme to the other.
+# Performance will suffer when using cpufreq_conservative
 # on SMP boxes when less than full load.
 
+if   (( UID == 0 )) && ! lsmod | grep -q cpufreq_conservative
+then modprobe cpufreq_conservative
+fi
 
 for CPU in /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
-do echo ondemand > $CPU
+do echo conservative > $CPU
 done

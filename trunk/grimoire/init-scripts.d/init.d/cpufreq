@@ -1,0 +1,129 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc sys
+# Should-Start: udev cpufreq_conservative cpufreq_ondemand cpufreq_performance cpufreq_powersave cpufreq_userspace
+# Default-Start: 1 2 3 4 5
+# Short-Description: set scaling_governor
+
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure status
+
+configure_run(){
+
+confirm(){ dialog --nocancel --yesno "$1" 0 0; }
+
+default_scaling_governor_dialog(){
+
+ BACKTITLE=$"cpufreq configuration menu"
+     TITLE=$"Instructions"
+
+ HELP=$"The ondemand and conservative scaling governors
+do not perform as expected on SMP boxes.
+The governors raise and lower frequency
+independently for each CPU/core.
+Frequently, the kernel resumes processes
+on a slower frequency CPU/core.
+Consequently, at a low loadavg
+the ondemand and scaling governors
+produce terrible performance.
+taskset or cgroup can be used
+to set CPU/core affinity for a process.
+An equally easy solution is to change
+the scaling governor by running:
+cpufreq_performance; cpufreq_powersave;
+cpufreq_conservative; cpufreq_ondemand;
+or cpufreq_userspace."
+
+ dialog \
+  --backtitle "$BACKTITLE"   \
+  --title     "$TITLE"       \
+  --timeout 60               \
+  --stdout --no-cancel       \
+  --default-item performance \
+  --msgbox   "$HELP" 0 0
+
+ TITLE=$"default scaling governor selection"
+ HELP=$"Please select the default scaling governor."
+
+ pp="process have predictable performance"
+ ap="only CPU affine process have predictable performance"
+
+ dialog \
+  --backtitle "$BACKTITLE"   \
+  --title     "$TITLE"       \
+  --timeout 60 --item-help   \
+  --stdout --no-cancel       \
+  --default-item performance \
+  --menu   "$HELP" 0 0 0     \
+  performance  "max speed; max heat; max power consumption; max fan noise" "$pp" \
+  powersave    "min speed; min heat; min power consumption; min fan noise" "$pp" \
+  conservative "scales frequency gradually" "$ap" \
+  ondemand     "changes from min to max to min frequency abruptly" "$ap" \
+  userspace    "set a custom frequency" "$pp"
+}
+
+ DEFAULT=$( default_scaling_governor_dialog )
+
+ if   confirm "Allow user accounts to change the scaling governor and to set speed?"
+ then USERS=yes
+ else USERS=
+ fi
+
+ if   [ -n "$DEFAULT" ]
+ then echo "USERS=$USERS; DEFAULT=$DEFAULT" > /etc/init.d/conf.d/cpufreq
+ fi
+
+  if confirm "Adjust which scaling governor modules are loaded during boot?"; then
+  bash /etc/init.d/cpufreq_conservative control
+  bash /etc/init.d/cpufreq_ondemand control
+  bash /etc/init.d/cpufreq_performance control
+  bash /etc/init.d/cpufreq_powersave control
+  bash /etc/init.d/cpufreq_userspace control
+ fi
+}
+
+
+start(){
+ if   [ -n "$USERS" ]
+ then chmod 666 /sys/devices/system/cpu/cpu*/cpufreq/scaling_{governor,setspeed}
+ fi
+
+ if   [ -x             /bin/cpufreq_${DEFAULT:=performance} ] &&
+      log_warning_msg "/bin/cpufreq_$DEFAULT starting" &&
+                       /bin/cpufreq_$DEFAULT
+ then log_success_msg "/bin/cpufreq_$DEFAULT started"
+ else log_failure_msg "/bin/cpufreq_$DEFAULT failed"
+ fi
+}
+
+status(){
+ local sdc=/sys/devices/system/cpu
+ local csg=cpufreq/scaling_governor
+ local cscf=cpufreq/scaling_cur_freq
+ local c f g
+
+ if    ! [ -f $sdc/cpu0/$csg ]
+ then  log_warning_msg "$sdc/cpu0/$csg unavailable"; return 1
+ else
+  c=0
+  while [ -f $sdc/cpu$c/$csg ]; do
+   read g <  $sdc/cpu$c/$csg
+   read f <  $sdc/cpu$c/$cscf
+   (( f /= 1000 ))
+   log_success_msg "cpu$c/$csg $g"
+   log_success_msg "cpu$c/$cscf $f MHz"
+   (( c++ ))
+  done
+ fi
+}
+
+configure(){ configure_run; start; }
