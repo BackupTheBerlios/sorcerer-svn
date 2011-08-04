@@ -17,6 +17,7 @@ deny control
 configure(){
 
  init_scripts(){ grep -ilr "BEGIN INIT INFO" /etc/init.d | grep -vx "/etc/init.d/Menu" | sort; }
+
  add_mode(){
   while read; do find $REPLY -maxdepth 0 -printf "%p\t%m\n"; done |
   sed "s:\t510$:\tAuto Updates:
@@ -42,12 +43,24 @@ configure(){
   done
  }
 
+ add_item_help(){
+  while read NAME REST; do
+   echo "$NAME"
+   echo "$REST"
+   DESC="$( sed 's/.*Short-Description: //p;d' /etc/init.d/$NAME )"
+   echo "${DESC:-no short description}"
+  done
+ }
+
  init_list(){
+  export IFS=" 	
+"
   init_scripts |
   add_mode |
   add_configure |
   add_when |
-  sed "s:.*/::"
+  sed "s:.*/::" |
+  add_item_help
  }
 
 what(){
@@ -78,7 +91,7 @@ what(){
       TITLE=$"Init-Script Selection"
        HELP=$"Please select an init-script."
 
-  local IFS="	
+  local IFS="
 "
   export IFS
 
@@ -86,7 +99,7 @@ what(){
    --backtitle "$BACKTITLE"  \
    --title     "$TITLE"      \
    --timeout 60              \
-   --stdout                  \
+   --stdout --item-help      \
    --cancel-label "Done"     \
    --menu "$HELP" 0 0 0      \
    $( init_list )
