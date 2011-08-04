@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: $local_fs
@@ -11,6 +15,49 @@
 
 . /lib/lsb/init-functions
 
-only start stop restart status
+only start stop restart status configure
 name /tmp
-options '-o defaults,size=3g,nr_inodes=1m,mode=1777 -t tmpfs tmpfs'
+options '-o defaults,size=${SIZE:-3}g,nr_inodes=1m,mode=1777 -t tmpfs tmpfs'
+
+configure(){
+
+tmp_size_dialog(){
+ BACKTITLE=$"/tmp tmpfs configuration menu"
+     TITLE=$"Instructions"
+      HELP=$"A RAM disk is a virtual mass storage device that exists only in RAM.
+tmpfs is similar to and yet better than a RAM disk.
+tmpfs allocates memory proportional to the size of files stored on it.
+tmpfs content is swappable when RAM is required.
+tmpfs entirely avoids file system fragmentation.
+tmpfs frequently avoids disk access.
+Consequently, tmpfs provides an ideal location
+for reasonably sized temporary files."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item 3          \
+  --msgbox "$HELP" 0 0
+ 
+
+     TITLE=$"/tmp tmpfs size selection"
+      HELP=$"Please select a reasonably sized tmpfs to mount on /tmp"
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item 3          \
+  --menu   "$HELP" 0 0 0    \
+  1 gigabyte 2 gigabytes 3 gigabytes  4 gigabytes  5 gigabytes  6 gigabytes \
+  7 gigabyte 8 gigabytes 9 gigabytes 10 gigabytes 11 gigabytes 12 gigabytes
+}
+
+ SIZE=$( tmp_size_dialog )
+ if   [ -n "$SIZE" ]
+ then echo "SIZE=$SIZE" > /etc/init.d/conf.d/tmp
+ fi
+}

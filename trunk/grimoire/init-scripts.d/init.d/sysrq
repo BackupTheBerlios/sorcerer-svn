@@ -1,0 +1,119 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Should-Start: proc
+# Default-Start: 1 2 3 4 5
+# Short-Description: configuration and setting of sysrq mode
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure status
+config /proc/sys/kernel/sysrq
+
+LOG_LEVEL=2
+SAK_UNRAW=4
+DEBUG=8
+SYNC=16
+REMOUNT=32
+SIGNALS=64
+POWER=128
+NICE=256
+
+SYSRQ=${SYSRQ:-5}
+
+start(){
+ run(){ echo "$SYSRQ" > /proc/sys/kernel/sysrq; }
+
+ if   log_warning_msg "sysrq mode ${SYSRQ:=5} setting"; run
+ then log_success_msg "sysrq mode set"
+ else log_failure_msg "sysrq mode set failed"
+ fi
+}
+
+on_or_off(){
+ if (( SYSRQ & $1 ))
+ then echo enabled
+ else echo disabled
+ fi
+}
+
+status(){
+ log_warning_msg "sysrq LOG_LEVEL $( on_or_off $LOG_LEVEL )"
+ log_warning_msg "sysrq SAK_UNRAW $( on_or_off $SAK_UNRAW )"
+ log_warning_msg "sysrq DEBUG     $( on_or_off $DEBUG     )"
+ log_warning_msg "sysrq SYNC      $( on_or_off $SYNC      )"
+ log_warning_msg "sysrq REMOUNT   $( on_or_off $REMOUNT   )"
+ log_warning_msg "sysrq SIGNALS   $( on_or_off $SIGNALS   )"
+ log_warning_msg "sysrq POWER     $( on_or_off $POWER     )"
+ log_warning_msg "sysrq NICE      $( on_or_off $NICE      )"
+}
+
+
+configure_run(){
+
+confirm(){ dialog --nocancel --yesno "$1" 0 0; }
+
+sysreq_docs(){
+ BACKTITLE=$"sysreq configuration menu"
+     TITLE=$"Instructions"
+      HELP=$"After linux compiles on a box
+then sysrq documentation becomes available at
+/usr/src/linux/Documentation/sysrq.txt
+View the file?"
+
+ if   [ -f /usr/src/linux/Documentation/sysrq.txt ] && confirm "$HELP"; then
+  dialog \
+   --backtitle "$BACKTITLE" \
+   --title     "$TITLE"     \
+   --timeout 60             \
+   --textbox /usr/src/linux/Documentation/sysrq.txt 0 0
+ fi
+}
+
+sysreq_dialog(){
+ BACKTITLE=$"sysreq configuration menu"
+     TITLE=$"sysreq mode selection"
+      HELP=$"Please select menu items to adjust SYSRQ mode."
+
+ dialog \
+  --backtitle "$BACKTITLE"     \
+  --title     "$TITLE"         \
+  --timeout 60 --item-help     \
+  --stdout --cancel-label Done \
+  --ok-label Toggle            \
+  --menu   "$HELP" 0 0 0       \
+  LOG_LEVEL $( on_or_off $LOG_LEVEL ) "enable control of console logging level" \
+  SAK_UNRAW $( on_or_off $SAK_UNRAW ) "enable control of keyboard (SAK, unraw)" \
+  DEBUG     $( on_or_off $DEBUG     ) "enable debugging dumps of processes etc" \
+  SYNC      $( on_or_off $SYNC      ) "enable sync command" \
+  REMOUNT   $( on_or_off $REMOUNT   ) "enable remount read-only" \
+  SIGNALS   $( on_or_off $SIGNALS   ) "enable signalling of processes (term, kill, oom-kill)" \
+  POWER     $( on_or_off $POWER     ) "allow reboot/poweroff" \
+  NICE      $( on_or_off $NICE      ) "allow nicing of all RT tasks"
+}
+
+ sysreq_docs
+
+ while  REPLY=$( sysreq_dialog ); [ -n "$REPLY" ]; do
+  case $REPLY in
+   LOG_LEVEL) (( SYSRQ ^= LOG_LEVEL )) ;;
+   SAK_UNRAW) (( SYSRQ ^= SAK_UNRAW )) ;;
+   DEBUG)     (( SYSRQ ^= DEBUG     )) ;;
+   SYNC)      (( SYSRQ ^= SYNC      )) ;;
+   REMOUNT)   (( SYSRQ ^= REMOUNT   )) ;;
+   SIGNALS)   (( SYSRQ ^= SIGNALS   )) ;;
+   POWER)     (( SYSRQ ^= POWER     )) ;;
+   NICE)      (( SYSRQ ^= NICE      )) ;;
+  esac
+ done
+
+ echo "SYSRQ=$SYSRQ" > /etc/init.d/conf.d/sysrq
+}
+
+configure(){ configure_run; start; }

@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Short-Description: Menu for changing sysinit's default runlevel
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only configure status
+deny control
+
+ID=$( sed -r "s/^id:([^:]*):initdefault:.*/\1/p;d" /etc/inittab )
+
+status(){ log_warning_msg "initdefault $ID"; }
+
+configure(){
+
+initdefault_dialog(){
+ BACKTITLE=$"initdefault configuration menu"
+     TITLE=$"initdefault selection"
+      HELP=$"initdefault provides a method for selecting
+the set of init-scripts that runs when a box boots.
+Available runlevels are 1 through 5.
+
+Please carefully select an initdefault."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60 --item-help  \
+  --stdout --no-cancel      \
+  --default-item 4          \
+  --menu   "$HELP" 0 0 0    \
+  1 "sequential init-script execution" \
+    "Used for debugging; alternately enabled with kernel parameter 1" \
+  2 "parallel   init-script execution, networking" \
+    "popular choice for fast booting servers" \
+  3 "sequential init-script execution, networking" \
+    "starts slower than runlevel 2, but is easier to debug" \
+  4 "parallel   init-script execution, networking, GUI login" \
+    "popular choice for fast booting workstations" \
+  5 "sequential init-script execution, networking, GUI login" \
+    "starts slower than runlevel 4, but is easier to debug"
+}
+
+ NID=$( initdefault_dialog )
+ if   [ -n "$NID" ]
+ then sed -i "s/^id:$ID:initdefault:/id:$NID:initdefault:/" /etc/inittab
+ fi
+}
