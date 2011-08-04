@@ -4,7 +4,7 @@
 # Required-Stop: $local_fs
 # Should-Stop: initramfs tmp
 # Default-Stop: 0 6
-# Short-Description: rc.d updates symbolic links in /etc/rc.d
+# Short-Description: updates symbolic links in /etc/rc.d/rc*.d/
 ### END INIT INFO
 
 # Copyright 2008-2011 by Kyle Sallee, all rights reserved.
