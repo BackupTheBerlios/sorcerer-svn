@@ -6,13 +6,14 @@
 # sentinel-retry periodically checks and retrys failed compilation attempts.
 
 find_cgroup(){
- local JUNK DIR TYPE
- while read JUNK DIR TYPE JUNK; do
-  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
-   CG=$DIR
-   return 0
+ if [ -n "$CG" ]; then return 0; fi
+ local DEV JUNK TYPE
+ while read DEV CG TYPE JUNK; do
+  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
+  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
   fi
  done < /proc/mounts
+ unset CG
  return 1
 }
 
