@@ -108,7 +108,7 @@ cgroup_root(){
    echo "$1" > $CG/memory/tasks
    shift
   done &>/dev/null
-  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null
+  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
  fi
 }
 
@@ -150,7 +150,7 @@ killproc(){
  SIGL=$2
  PIDS="$( pidofproc -p "$PIDF" "$1" )"
 
- if    [     "$PIDS" ]; then # cgroup_root $PIDS
+ if    [     "$PIDS" ]; then
   if   [     "$SIGL" ]
   then kill "-$SIGL" $PIDS
   else kill -15      $PIDS; sleep 3
@@ -160,7 +160,7 @@ killproc(){
   then rm -f "$PIDF"
   fi
   find_cgroup &&
-  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null
+  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
   return 0
  else return 1
  fi
