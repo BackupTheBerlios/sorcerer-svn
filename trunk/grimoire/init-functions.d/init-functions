@@ -98,39 +98,14 @@ find_cgroup(){
  return 1
 }
 
-cgroup_root(){
- if find_cgroup; then
-  while [ -n "$1" ]; do
-   echo "$1" > $CG/blkio/tasks
-   echo "$1" > $CG/cpu/tasks
-   echo "$1" > $CG/cpuset/tasks
-   echo "$1" > $CG/freezer/tasks
-   echo "$1" > $CG/memory/tasks
-   shift
-  done &>/dev/null
-  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
- fi
-}
-
-cgroup_daemon(){
+cgroup_join(){
   if find_cgroup; then
-   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/daemon/$NAME
-   echo $BASHPID > $CG/blkio/daemon/$NAME/tasks
-   echo $BASHPID > $CG/cpu/daemon/$NAME/tasks
-   echo $BASHPID > $CG/cpuset/daemon/$NAME/tasks
-   echo $BASHPID > $CG/freezer/daemon/$NAME/tasks
-   echo $BASHPID > $CG/memory/daemon/$NAME/tasks
-  fi
-}
-
-cgroup_idle(){
-  if find_cgroup; then
-   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/idle/$NAME
-   echo $BASHPID > $CG/blkio/idle/$NAME/tasks
-   echo $BASHPID > $CG/cpu/idle/$NAME/tasks
-   echo $BASHPID > $CG/cpuset/idle/$NAME/tasks
-   echo $BASHPID > $CG/freezer/idle/$NAME/tasks
-   echo $BASHPID > $CG/memory/idle/$NAME/tasks
+   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/$1/$NAME
+   echo $BASHPID > $CG/blkio/$1/$NAME/tasks
+   echo $BASHPID > $CG/cpu/$1/$NAME/tasks
+   echo $BASHPID > $CG/cpuset/$1/$NAME/tasks
+   echo $BASHPID > $CG/freezer/$1/$NAME/tasks
+   echo $BASHPID > $CG/memory/$1/$NAME/tasks
   fi
 }
 
@@ -168,10 +143,11 @@ killproc(){
 
 start_daemon(){
  run(){
-  if   [ "$CGROUP" == idle ]
-  then cgroup_idle
-  else cgroup_daemon
-  fi
+  case $CGROUP in
+   idle) cgroup_join idle ;;
+   none) : ;;
+      *) cgroup_join daemon ;;
+  esac
 
   if   [ "$BACK" ]
   then setsid /lib/lsb/pidf "$PIDF" "$@" &
