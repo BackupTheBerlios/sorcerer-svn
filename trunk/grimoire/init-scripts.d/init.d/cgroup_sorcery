@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc sys
+# Default-Start: S 1 2 3 4 5
+# Short-Description: set performance parameters for sorcery cgroup
+# Long-Description: Read /usr/src/linux/Documentation/cgroups/cgroups.txt
+### END INIT INFO
+
+BLKIO_WEIGHT_DEFAULT=200
+MEMORY_SWAPPINESS_DEFAULT=80
+CPU_SHARES_DEFAULT=16
+
+. /lib/lsb/init-functions
+
+only start restart configure status
+deny control
+GROUP=sorcery
+
+start(){
+ find_cgroup
+ mkdir -p $CG/{blkio,cpu,memory}/$GROUP
+ echo ${BLKIO_WEIGHT:-$BLKIO_WEIGHT_DEFAULT}           > $CG/blkio/$GROUP/blkio.weight
+ echo ${MEMORY_SWAPPINESS:-$MEMORY_SWAPPINESS_DEFAULT} > $CG/memory/$GROUP/memory.swappiness
+ echo ${CPU_SHARES:-$CPU_SHARES_DEFAULT}               > $CG/cpu/$GROUP/cpu.shares
+}
+
+configure(){
+
+blkio_weight_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"blkio.weight configuraiton"
+      HELP=$"Please select a predetermined blkio.weight."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --default-item $BLKIO_WEIGHT_DEFAULT \
+  --menu   "$HELP" 0 0 0 \
+  100 "" 200 "" 300 "" 400 "" 500 "" 600 "" 700 "" 800 "" 900 "" 1000 ""
+}
+
+memory_swappiness_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"memory.swappiness configuraiton"
+      HELP=$"Please select a predetermined memory.swappiness."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --default-item $MEMORY_SWAPPINESS_DEFAULT \
+  --menu   "$HELP" 0 0 0 \
+  10 "" 20 "" 30 "" 40 "" 50 "" 60 "" 70 "" 80 "" 90 "" 100 ""
+}
+
+cpu_shares_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"cpu.shares configuraiton"
+      HELP=$"Please enter a value [2-8192]"
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --inputbox "$HELP" 0 0 $CPU_SHARES_DEFAULT
+}
+
+ BLKIO_WEIGHT=$( blkio_weight_dialog )
+ MEMORY_SWAPPINESS=$( memory_swappiness_dialog )
+ CPU_SHARES=$( cpu_shares_dialog )
+
+ if [ -n "$BLKIO_WEIGHT " ] &&
+    [ -n "$MEMORY_SWAPPINESS" ] &&
+    [ -n "$CPU_SHARES" ] &&
+    (( CPU_SHARES > 1 )) &&
+    (( CPU_SHARES < 8193 ))
+ then echo "BLKIO_WEIGHT=$BLKIO_WEIGHT; MEMORY_SWAPPINESS=$MEMORY_SWAPPINESS; CPU_SHARES=$CPU_SHARES" > /etc/init.d/conf.d/$NAME
+ fi
+ start
+}
+
+status(){
+ echo "$NAME default    blkio.weight      $BLKIO_WEIGHT_DEFAULT"
+ echo "$NAME configured blkio.weight      $BLKIO_WEIGHT"
+ if [ -f       $CG/blkio/$GROUP/blkio.weight ]; then
+  read REPLY < $CG/blkio/$GROUP/blkio.weight
+  echo "$NAME current    blkio.weight      $REPLY"
+ fi
+
+ echo "$NAME default    memory.swappiness $MEMORY_SWAPPINESS_DEFAULT"
+ echo "$NAME configured memory.swappiness $MEMORY_SWAPPINESS"
+ if [ -f       $CG/memory/$GROUP/memory.swappiness ]; then
+  read REPLY < $CG/memory/$GROUP/memory.swappiness
+  echo "$NAME current    memory.swappiness $REPLY"
+ fi
+
+ echo "$NAME default    cpu.shares        $CPU_SHARES_DEFAULT"
+ echo "$NAME configured cpu.shares        $CPU_SHARES"
+ if [ -f       $CG/cpu/$GROUP/cpu.shares ]; then
+  read REPLY < $CG/cpu/$GROUP/cpu.shares
+  echo "$NAME current    cpu.shares        $REPLY"
+ fi
+}

@@ -17,21 +17,14 @@ only start
 deny control
 
 start(){
- find_cgroup(){
-  local JUNK DIR TYPE
-  while read JUNK DIR TYPE JUNK; do
-   if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
-    CG=$DIR
-    return 0
-   fi
-  done < /proc/mounts
-  return 1
- }
-
  join(){
   find_cgroup &&
-  mkdir -p $CG/daemon/init &&
-  echo 1 > $CG/daemon/init/tasks
+  mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/daemon/init &&
+  echo 1 > $CG/blkio/daemon/init/tasks &&
+  echo 1 > $CG/cpu/daemon/init/tasks &&
+  echo 1 > $CG/cpuset/daemon/init/tasks &&
+  echo 1 > $CG/freezer/daemon/init/tasks &&
+  echo 1 > $CG/memory/daemon/init/tasks &&
  }
 
  if   log_warning_msg "init joining cgroup"; join

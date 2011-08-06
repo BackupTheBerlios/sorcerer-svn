@@ -11,10 +11,7 @@ WHITE="[37m"
 OVER="[65G"
 NORM="[0m"
 
-if   [ "$BASH_VERSION" ]
-then SO='+B -f'; BE=-e;
-else SO=-f
-fi
+if [ "$BASH_VERSION" ]; then BE=-e; fi
 
 log_line(){ echo $BE "$GREEN * $NORM$1$OVER$BLUE[$2 $BLUE]$NORM\r" 1>&2; }
 
@@ -42,12 +39,14 @@ session(){
 pids_from_cgroup(){
  if ! find_cgroup; then return 1; fi
 
- if [ -f $CGINT ] && read REPLY < $CGINT
- then grep -q . $CGINT && cat $CGINT && return 0
+ if [ -f $CG/cpu/daemon/$NAME/tasks ]; then
+  cat    $CG/cpu/daemon/$NAME/tasks
+  return 0
  fi
 
- if [ -f $CGDNT ] && read REPLY < $CGDNT
- then grep -q . $CGDNT && cat $CGDNT && return 0
+ if [ -f $CG/cpu/idle/$NAME/tasks ]; then
+  cat    $CG/cpu/idle/$NAME/tasks
+  return 0
  fi
 
  return 1
@@ -88,27 +87,51 @@ pidofproc(){
 }
 
 find_cgroup(){
- local JUNK DIR TYPE
- while read JUNK DIR TYPE JUNK; do
-  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
-   CG=$DIR
-   CGD=$CG/daemon
-   CGDN=$CGD/$NAME
-   CGDNT=$CGDN/tasks
-   CGI=$CG/idle
-   CGIN=$CGI/$NAME
-   CGINT=$CGIN/tasks
-   return 0
+ if [ -n "$CG" ]; then return 0; fi
+ local DEV JUNK TYPE
+ while read DEV CG TYPE JUNK; do
+  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
+  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
   fi
  done < /proc/mounts
+ unset CG
  return 1
 }
 
 cgroup_root(){
  if find_cgroup; then
-  while [ -n "$1" ]; do echo "$1" > $CG/tasks; shift; done
-  if [ -d $CGDN ]; then rmdir --ignore-fail-on-non-empty $CGDN; fi
+  while [ -n "$1" ]; do
+   echo "$1" > $CG/blkio/tasks
+   echo "$1" > $CG/cpu/tasks
+   echo "$1" > $CG/cpuset/tasks
+   echo "$1" > $CG/freezer/tasks
+   echo "$1" > $CG/memory/tasks
+   shift
+  done &>/dev/null
+  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null
  fi
+}
+
+cgroup_daemon(){
+  if find_cgroup; then
+   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/daemon/$NAME
+   echo $BASHPID > $CG/blkio/daemon/$NAME/tasks
+   echo $BASHPID > $CG/cpu/daemon/$NAME/tasks
+   echo $BASHPID > $CG/cpuset/daemon/$NAME/tasks
+   echo $BASHPID > $CG/freezer/daemon/$NAME/tasks
+   echo $BASHPID > $CG/memory/daemon/$NAME/tasks
+  fi
+}
+
+cgroup_idle(){
+  if find_cgroup; then
+   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/idle/$NAME
+   echo $BASHPID > $CG/blkio/idle/$NAME/tasks
+   echo $BASHPID > $CG/cpu/idle/$NAME/tasks
+   echo $BASHPID > $CG/cpuset/idle/$NAME/tasks
+   echo $BASHPID > $CG/freezer/idle/$NAME/tasks
+   echo $BASHPID > $CG/memory/idle/$NAME/tasks
+  fi
 }
 
 killproc(){
@@ -142,8 +165,9 @@ killproc(){
 
 start_daemon(){
  run(){
-  if   find_cgroup
-  then mkdir -p $CGDN; echo $BASHPID > $CGDNT
+  if   [ "$CGROUP" == idle ]
+  then cgroup_idle
+  else cgroup_daemon
   fi
 
   if   [ "$BACK" ]
@@ -240,8 +264,6 @@ stop(){
   fi
  }
 
- set $SO
-
  if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then stopm
  elif [ "$SERV" ]
@@ -300,8 +322,6 @@ start(){
   else log_failure_msg "$NAME not loaded"
   fi
  }
-
- set $SO
 
  if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then startm
@@ -424,6 +444,7 @@ name()    { NAME=$1; }
 log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
 fast()    { FAST=1; }
+cgroup()  { CGROUP=${1:-daemon}; }
 
 on_exit(){
  local         E=$?
