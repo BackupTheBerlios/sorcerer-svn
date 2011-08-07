@@ -5,6 +5,8 @@
 
 # 3.12.10 did not compile
 
+# upgrading to linux 3.0.x breaks nss compilation
+
    version stable 3.12.9 3.12.8 3.12.7 3.12.6
    version latest 3.12.10
    require nspr sqlite zlib
@@ -54,6 +56,11 @@ build(){
   fi
 
   patch -p1 < ${SOURCE[1]}
+
+  case $VERSION in
+   3.12.9) cp mozilla/security/coreconf/Linux{2.6,3.0}.mk ;;
+  esac
+
   export BUILD_OPT=1
   export NSS_USE_SYSTEM_SQLITE=1
   export NSPR_INCLUDE_DIR=/usr/include/nspr
