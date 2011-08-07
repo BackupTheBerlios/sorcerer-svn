@@ -6,18 +6,16 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Default-Start: 0 6
+# Required-Start: final_check
 # Short-Description: final pause, login, and rebound before the halt or reboot
 ### END INIT INFO
-
-# To disable rebound
-# then edit /etc/init.d/conf.d/halt
-# and add function declarations:
-# rebound(){ :; }
 
 . /lib/lsb/init-functions
 
 only start
 deny control
+
+start(){
 
 rebound(){
  [ -f /proc/mounts ] || return
@@ -28,34 +26,7 @@ rebound(){
  exit
 }
 
-critical(){
- alert(){
-  short(){ echo -en "\a"; }
-   long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
-  pause(){ sleep 0.5; }
-
-  S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
-  O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
-
-  S; O; S; echo; sleep 1; S; O; S;
- }
-
- warn(){
-  echo "/etc/init.d/$1 reported an error"
-  echo "reboot/shutdown request denied"
-  echo "Rebounded to runlevel 3"
- }
-
- deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
-
-   if [ -d /var/log/init/failed/lilo      ]; then deny lilo
- elif [ -d /var/log/init/failed/extlinux  ]; then deny extlinux
- elif [ -d /var/log/init/failed/initramfs ]; then deny initramfs
- fi
-}
-
 count_down(){
- critical
  local CX=10
  echo -n "(p)ause; (s)ulogin; (#)runlevel"
  while (( CX-- > 0 )); do
@@ -72,4 +43,9 @@ count_down(){
  echo
 }
 
-start(){ log_warning_msg "Finale begins"; count_down; }
+ if   log_warning_msg "Finale begins"; count_down
+ then log_success_msg "Finale complete"
+ else log_failure_msg "Finale error"
+ fi
+
+}

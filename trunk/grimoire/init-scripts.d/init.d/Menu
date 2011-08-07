@@ -16,6 +16,34 @@ deny control
 
 configure(){
 
+init_commands(){
+ local  LC_ALL=C
+ export LC_ALL
+
+ grep -ilr "BEGIN INIT INFO" /etc/init.d |
+ xargs --max-lines=256 cat |
+ sed 's/^only//p;d' |
+ tr '\t' '\n' |
+ tr ' '  '\n' |
+ sed '/^$/d'  |
+ sort -u      |
+ sed 's:$:\t Command:'
+}
+
+command_menu(){
+ TITLE=$"Init-Script Selection"
+ HELP=$"Please select an init-script command"
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout                  \
+   --cancel-label "Cancel"   \
+   --menu "$HELP" 0 0 0      \
+   $( init_commands )
+}
+
+
  init_scripts(){ grep -ilr "BEGIN INIT INFO" /etc/init.d | grep -vx "/etc/init.d/Menu" | sort; }
 
  add_mode(){
@@ -47,6 +75,7 @@ configure(){
   while read NAME REST; do
    echo "$NAME"
    echo "$REST"
+   echo "off"
    DESC="$( sed 's/.*Short-Description: //p;d' /etc/init.d/$NAME )"
    echo "${DESC:-no short description}"
   done
@@ -59,37 +88,21 @@ configure(){
   add_mode |
   add_configure |
   add_when |
-  sed "s:.*/::" |
+  sed 's:.*/::' |
   add_item_help
  }
 
-what(){
- choices(){
-  /etc/init.d/$1 help 2>&1 |
-  sed "s:.*{::; s:|:\n:g; s:}::" |
-  sed "s:$:\tChoice:"
- }
-
- confirm_it(){ [ -n "$1" ] && [ -n "$2" ] && dialog --nocancel --yesno "Run $1 $2" 0 0; }
-
- CHOICE=$(
-  dialog \
-   --backtitle "$BACKTITLE"  \
-   --title     "$TITLE"      \
-   --timeout 60              \
-   --stdout                  \
-   --cancel-label "Cancel"   \
-   --menu "$HELP" 0 0 0      \
-   $( choices "$1" )
- ) &&
- confirm_it /etc/init.d/$1 $CHOICE &&
- bash       /etc/init.d/$1 $CHOICE
+choices(){
+ /etc/init.d/$1 help 2>&1 |
+ sed "s:.*{::; s:|:\n:g; s:}::" |
+ sed "s:$:\tChoice:"
 }
 
- init_script_menu(){
-  BACKTITLE=$"Init-Script Menu"
-      TITLE=$"Init-Script Selection"
-       HELP=$"Please select an init-script."
+confirm(){ dialog --cr-wrap --nocancel --yesno "$1" 0 0; }
+
+init_script_checklist(){
+ TITLE=$"Init-Script Selection"
+ HELP=$"Please select init-scripts"
 
   local IFS="
 "
@@ -100,10 +113,22 @@ what(){
    --title     "$TITLE"      \
    --timeout 60              \
    --stdout --item-help      \
-   --cancel-label "Done"     \
-   --menu "$HELP" 0 0 0      \
+   --separate-output         \
+   --ok-label "Done"         \
+   --cancel-label "Abort"    \
+   --checklist "$HELP" 0 0 0 \
    $( init_list )
  }
 
- while IS=$( init_script_menu ); do what "$IS"; done
+ BACKTITLE=$"Init-Script Menu"
+ if CMD=$( command_menu ) && clear &&
+     ISC=$( init_script_checklist ) &&
+    ASK="$( echo "$ISC" | sed "s:^:/etc/init.d/:; s:$: $CMD:" )" &&
+    confirm "Execute:\n$ASK"
+ then
+  clear
+  for IS in $ISC
+  do  bash /etc/init.d/$IS $CMD
+  done
+ fi
 }
