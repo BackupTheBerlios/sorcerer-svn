@@ -1,0 +1,25 @@
+   version stable 0.7.2
+   require curl enet fribidi irrlicht libvorbis openal
+  category game
+ attribute x11
+     opts --bindir=/usr/bin
+    source $SOURCEFORGE_URL supertuxkart/SuperTuxKart/$VERSION/supertuxkart-$VERSION-src.tar.bz2
+      info last  20110715
+      info addons http://stkaddons.net/
+      info faq    http://supertuxkart.sourceforge.net/FAQ
+      info home   http://supertuxkart.sourceforge.net/
+      desc '3D kart racing game, with many tracks, characters and items'
+
+build(){
+# Ignoring the version requirement does not make it compile.
+# case $VERSION in
+#   0.7.2) sed -i 's:irrlicht_min_version_met="false":irrlicht_min_version_met="true":' configure ;;
+# esac
+
+ case $VERSION in
+   0.7.2) if [[ $HOSTTYPE == x86_64 ]]; then sed -i 's:with_irrlicht/lib:with_irrlicht/lib64:g' configure; fi
+ esac
+
+ sed -i 's:/games$:/bin:' src/Makefile.in
+ default_build
+}

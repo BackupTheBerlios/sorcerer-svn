@@ -2,8 +2,11 @@
 # from the odd installation of xterm.
 
    version stable 4.2.010 4.2.008
-#  version latest 4.2.008
    require readline
+## --enable-static-linking not working at the moment
+## Also the inclusion of --with-bash-malloc does not make it work
+#   switch --enable-static-link '' to make static linked bash
+      opts --without-libiconv-prefix --without-libintl-prefix
   category development/interpreter utility/shell
  attribute console makej solo
     source ftp://ftp.cwru.edu/pub/bash/ ftp://ftp.gnu.org/pub/gnu/bash/ bash-${VERSION:0:3}.tar.gz
@@ -91,6 +94,10 @@ build(){
  case $BUILD in
   *-uclibc) grep -q        uclibc    support/config.sub ||
             sed  -i "s:gnu:uclibc:g" support/config.sub ;;
+ esac
+
+ case $HOSTTYPE in
+  x86_64) sed -i 's:rl_prefix}/lib$:rl_prefix}/lib64:' configure ;;
  esac
 
  ./configure               \

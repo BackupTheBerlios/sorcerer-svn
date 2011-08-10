@@ -1,0 +1,38 @@
+   version stable 1.7.2
+   require MesaLib
+  category game
+ attribute library makej multilib-dual setarch
+    source $SOURCEFORGE_URL irrlicht/Irrlicht%20SDK/${VERSION:0:3}/$VERSION/irrlicht-$VERSION.zip
+    source sources.silverice.org/irrlicht/1.7.2/irrlicht-1.7.2-3843.patch.xz
+      info last  20101115
+      info home     http://irrlicht.sourceforge.net/
+      info faq      http://irrlicht.sourceforge.net/faq.html
+      info api      http://irrlicht.sourceforge.net/docu/index.html
+      info tutorial http://irrlicht.sourceforge.net/tutorials.html
+      info license  http://irrlicht.sourceforge.net/license.html
+      info news     http://irrlicht.sourceforge.net/newsarchive.html
+      info wiki     http://www.irrlicht3d.org/wiki/
+      desc '3D engine written and usable in C++ and also available for .NET languages'
+
+build(){
+ symlink_lib(){
+  if   [ -f $DESTDIR/usr/lib64/libIrrlicht.so.1.8.0-SVN ]; then
+   ln -sf libIrrlicht.so.1.8.0-SVN $DESTDIR/usr/lib64/libIrrlicht.so.1
+   ln -sf libIrrlicht.so.1.8.0-SVN $DESTDIR/usr/lib64/libIrrlicht.so
+  fi
+  if   [ -f $DESTDIR/usr/lib/libIrrlicht.so.1.8.0-SVN ]; then
+   ln -sf libIrrlicht.so.1.8.0-SVN $DESTDIR/usr/lib/libIrrlicht.so.1
+   ln -sf libIrrlicht.so.1.8.0-SVN $DESTDIR/usr/lib/libIrrlicht.so
+  fi
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then INSTALL_DIR=$DESTDIR/usr/lib64
+ else INSTALL_DIR=$DESTDIR/usr/lib
+ fi
+
+ cd source/Irrlicht
+ make sharedlib &&
+ make install INSTALL_DIR=$INSTALL_DIR &&
+ symlink_lib
+}
