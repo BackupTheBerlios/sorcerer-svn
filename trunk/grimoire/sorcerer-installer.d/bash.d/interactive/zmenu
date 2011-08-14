@@ -1,21 +1,22 @@
-guest_menu(){
+ir_menu(){
  show_menu(){
-  dialog \
-  --backtitle "Sorcerer Install/Rescue"  \
-  --title     "Task Menu" \
-  --stdout                \
-  --cancel-label Shell    \
-  --menu "$HELP" 0 0 0    \
-  Dialog Tutorial Installer "Menu Driven"
+  dialog --backtitle "Sorcerer Install/Rescue" --title "Task Menu" \
+  --stdout --cancel-label Shell --menu "$HELP" 0 0 0 \
+  Dialog   "Tutorial" \
+  Sentient "Automatic installation of KDE + firefox + xorg" \
+  Sorcerer "Menu driven installation"
  }
 
  while REPLY=$( show_menu ); do
- case $REPLY in
-  Dialog) /sbin/dt ;;
-  Installer) /sbin/sinstall ;;
- esac
+  case $REPLY in
+   Dialog)   /sbin/dt ;;
+   Sentient) /sbin/sinstall Sentient ;;
+   Sorcerer) /sbin/sinstall ;;
+  esac
+ done
 }
 
 if   (( UID == 0 )) && ! pgrep sinstall >/dev/null
-then guest_menu
+then ir_menu
+else unset ir_menu
 fi
