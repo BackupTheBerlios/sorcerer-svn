@@ -1,9 +1,15 @@
 #!/bin/bash
-if   [ -f /media/root/sbin/agetty ] &&
-     read < /proc/cmdline           &&
-     ! [[ $REPLY =~ boot=IR ]]
+
+if   read < /proc/cmdline;
+     [[ $REPLY =~ boot=IR ]] &&
+     ! grep -q /media/root /etc/fstab
+then
+ if   [[ $@ =~ tty1 ]] && [ -f /bin/login_root ]
+ then exec  /sbin/agetty -n -l /bin/login_root "$@"
+ else exec  /sbin/agetty "$@"
+ fi
+elif [ -f /media/root/sbin/agetty ]
 then exec /bin/chroot /media/root /sbin/agetty "$@"
-elif [[ $@ =~ tty1 ]] && [ -f /bin/login_root ]
-then exec  /sbin/agetty -n -l /bin/login_root "$@"
-else exec  /sbin/agetty "$@"
+else                              /sbin/agetty "$@"
 fi
+
