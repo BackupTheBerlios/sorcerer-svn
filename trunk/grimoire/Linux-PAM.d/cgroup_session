@@ -9,28 +9,37 @@
 # for a user's provisioning to remain until reboot.
 
 find_cgroup(){
- local JUNK DIR TYPE
- while read JUNK DIR TYPE JUNK; do
-  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
-   CG=$DIR
-   CU=$CG/user/$PAM_USER
-   return 0
+ if [ -n "$CG" ]; then return 0; fi
+ local DEV JUNK TYPE
+ while read DEV CG TYPE JUNK; do
+  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
+  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
   fi
  done < /proc/mounts
+ unset CG
  return 1
 }
 
+task(){ while echo $PPID > $CG/$1/user/$PAM_USER/tasks; [ -n "$2" ]; do shift; done; }
+
 open(){
- [     -d     $CU ] ||
- mkdir -p     $CU
- echo $PPID > $CU/tasks
+ mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/user/$PAM_USER
+ task blkio cpu cpuset freezer memory
+}
+
+untask(){
+ while
+  echo $$    > $CG/$1/tasks
+  echo $PPID > $CG/$1/tasks
+  read       < $CG/$1/user/$PAM_USER/tasks
+  [ -n "$REPLY" ] || rmdir $CU
+  [ -n "$2" ]; do
+  shift
+ done
 }
 
 close(){
- echo $$    > $CG/tasks
- echo $PPID > $CG/tasks
- read       < $CU/tasks
- [ -n "$REPLY" ] || rmdir $CU
+ untask blkio cpu cpuset freezer memory
  return 0
 }
 
