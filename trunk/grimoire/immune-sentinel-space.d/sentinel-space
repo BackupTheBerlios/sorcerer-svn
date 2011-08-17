@@ -17,7 +17,7 @@ TAR='/\.tar$/p'
 TGZ='/\.tar\.gz$/p;/\.tgz$/p'
 BZ2='/\.tar\.bz2$/p'
 FILES="$TAR;$TGZ;$BZ2"
-XZO="$1"
+LIM="${1:-10%}"
 
 LC_ALL=C
 TERM="dumb"
@@ -25,27 +25,25 @@ IFS="
 "
 export IFS LC_ALL TERM
 
+compressor(){
+ case "$( file -bk "$1" )" in
+      gzip*) echo gzip  ;;
+     bzip2*) echo bzip2 ;;
+  compress*) echo gzip  ;;
+      *tar*) echo tar   ;;
+ esac
+}
+
 decomp(){
- local REPLY
- compressor "$1"
- case "$REPLY" in
-  bzip2) bzip2 -cd $1 ;;
-   gzip) gzip  -cd $1 ;;
-      *) cat       $1 ;;
+ case $( compressor "$IN" ) in
+  bzip2) bzip2 -cd  "$IN" > "$TMP" ;;
+   gzip) gzip  -cd  "$IN" > "$TMP" ;;
+    tar) ln         "$IN"   "$TMP" ;;
+      *) false ;;
  esac
 }
 
 found(){ while read; do return ; done; return 1; }
-
-compressor(){
-        REPLY="$( file -bk $1 )"
- case "$REPLY" in
-      gzip*) REPLY=gzip  ;;
-     bzip2*) REPLY=bzip2 ;;
-  compress*) REPLY=gzip  ;;
-      *tar*) REPLY=tar   ;;
- esac
-}
 
 rootname(){
  REPLY="${1%.bz2}"
@@ -54,29 +52,32 @@ rootname(){
  REPLY="${REPLY%.tgz}"
 }
 
-recompress(){
- local IN OUT TMP REPLY
+size(){ [ -f "$TMP" ] && stat -c "%s" $TMP ; }
+doxz(){ xz -f -M $LIM --lzma2=dict=$( size ),mf=bt4,nice=273 "$TMP" ; }
+rtmp(){ rm -f "$TMP" "$NEW"; false; }
 
- rtmp(){ rm -f "$TMP"; }
- uncompr(){         if ! decomp "$IN"; then rtmp; fi; }
- xz_it(){ uncompr | if ! xz $XZO > "$TMP"; then rtmp; fi; }
+recompress(){
+ local IN OUT NEW TMP REPLY
 
  IN="$1"
 
  rootname "$1"
+ TMP="$REPLY.tar.tmp"
+ NEW="$REPLY.tar.tmp.xz"
  OUT="$REPLY.tar.xz"
- TMP="$OUT.new"
 
- rm -f "$OUT" "$TMP"
+ rm -f "$NEW" "$OUT" "$TMP"
  umask 0077
- xz_it
+ decomp  &&
+ doxz    ||
+ rtmp
  umask 0022
 
- if [[ -f $TMP ]]; then
-  mv "$TMP" "$OUT"
+ if [ -f "$NEW" ]; then
+  mv "$NEW" "$OUT"
   chmod $( stat -c "%a" "$IN" ) "$OUT"
   touch -r "$IN" "$OUT"
-  rm    -f "$IN"
+  rm    -f "$IN" "$TMP" "$NEW"
  else false
  fi
 }
@@ -110,13 +111,14 @@ remove_file(){
 }
 
 compress_dir(){
- local TMP
+ local TMP NEW
  while read; do
   if (( $( free_bytes $1 ) < $2 )); then
-   TMP=/tmp/$REPLY.tar.xz.$$.$RANDOM$RANDOM$RANDOM$RANDOM
-   if   tar -c $REPLY | xz > $TMP
-   then rm -fr $REPLY;  mv   $TMP $REPLY.tar.xz
-   else rm -f  $TMP
+   TMP=$REPLY.tar
+   NEW=$REPLY.tar.xz
+   if   tar -c "$REPLY" > "$TMP" && doxz
+   then rm -fr "$REPLY"   "$TMP"
+   else rm -f  "$NEW"     "$TMP"
    fi
   fi
  done

@@ -11,9 +11,31 @@
 
 if read < /proc/cmdline; [[ $REPLY =~ boot=IR ]]; then exit 0; fi
 
+MEMLIMIT=25%
+
 . /lib/lsb/init-functions
 
 fast
 cgroup idle
-only start stop restart try-restart status
+only start stop restart try-restart status configure
 server /usr/sbin/sentinel-space
+options $MEMLIMIT
+
+configure(){
+ input(){
+  dialog --stdout --no-cancel --timeout 60 \
+         --title $"$NAME configuration menu" \
+         --default-item "${MEMLIMIT:-10%}" \
+         --menu "Percent of RAM to allow for xz compression?" 0 0 0 \
+         90% '' 85% '' 80% '' 75% '' 70% '' 65% '' 60% '' 55% '' \
+         50% '' 45% '' 40% '' 35% '' 30% '' 25% '' 20% '' 15% '' \
+         10% ''  5% ''
+ }
+
+ MEMLIMIT=$( input )
+
+ if   [ -n "$MEMLIMIT" ]
+ then echo "MEMLIMIT=$MEMLIMIT" > /etc/init.d/conf.d/$NAME
+ fi
+ try_restart
+}
