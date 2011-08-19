@@ -8,6 +8,16 @@
 # That could be useful when wanting modifications
 # for a user's provisioning to remain until reboot.
 
+# Users can make their own sub cgroup
+# in order to control some aspects such as
+# CPU core affinity.
+# However, users may not modify settings
+# that of their main user cgroup.
+# And user sub cgroups are still bound by the constraints
+# of the cgroups that contain it such as the user cgroup.
+
+
+
 find_cgroup(){
  if [ -n "$CG" ]; then return 0; fi
  local DEV JUNK TYPE
@@ -23,7 +33,9 @@ find_cgroup(){
 task(){ while echo $PPID > $CG/$1/user/$PAM_USER/tasks; [ -n "$2" ]; do shift; done; }
 
 open(){
- mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/user/$PAM_USER
+ mkdir -pm 755   $CG/{blkio,cpu,cpuset,freezer,memory}/user
+ mkdir  -m 700   $CG/{blkio,cpu,cpuset,freezer,memory}/user/$PAM_USER
+ chown $PAM_USER $CG/{blkio,cpu,cpuset,freezer,memory}/user/$PAM_USER
  task blkio cpu cpuset freezer memory
 }
 
