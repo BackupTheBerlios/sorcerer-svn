@@ -6,14 +6,29 @@
 # sentinel-sync periodically synchronizes installed software
 
 neglected(){
- [ -n "$( find /etc/sorcery/log/version/ -name grimoire\* -mtime +$DAYS )" ]
+ ! find /var/log/sorcery/event -type f -mtime -$DAYS |
+   grep -q "immune-sentinel-sync.*Auto Sync$"
 }
 
-scan(){ if neglected; then augur sync < /dev/null; fi; }
+acad(){
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
+  read < /proc/acpi/ac_adapter/*/state
+  [[ $REPLY =~ on-line ]]
+ fi
+}
+
+scan(){
+ if neglected && acad; then
+  ( . /etc/sorcery/config
+    event immune-sentinel-sync "$( date +%Y%m%d )" "Auto Sync"
+  )
+  augur sync < /dev/null
+ fi
+}
 
 main(){
-       sleep   900;    scan
- while sleep 21600; do scan; done
+       sleep  900;    scan
+ while sleep 3600; do scan; done
 }
 
 DAYS="${1:-7}"
