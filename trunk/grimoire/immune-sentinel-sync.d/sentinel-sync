@@ -5,6 +5,11 @@
 
 # sentinel-sync periodically synchronizes installed software
 
+busy(){
+ pgrep -u root "^xz$" ||
+ pgrep -u root "^cast$"
+}
+
 neglected(){
  ! find /var/log/sorcery/event -type f -mtime -$DAYS |
    grep -q "immune-sentinel-sync.*Auto Sync$"
@@ -18,7 +23,7 @@ acad(){
 }
 
 scan(){
- if neglected && acad; then
+ if neglected && acad && ! busy; then
   ( . /etc/sorcery/config
     event immune-sentinel-sync "$( date +%Y%m%d )" "Auto Sync"
   )
