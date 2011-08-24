@@ -42,24 +42,25 @@ watch(){
 }
 
 find_cgroup(){
- local JUNK DIR TYPE
- while read JUNK DIR TYPE JUNK; do
-  if [ "$TYPE" == cgroup ] && [ -f $DIR/tasks ]; then
-   CG=$DIR
-   return 0
+ if [ -n "$CG" ]; then return 0; fi
+ local DEV JUNK TYPE
+ while read DEV CG TYPE JUNK; do
+  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
+  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
   fi
  done < /proc/mounts
+ unset CG
  return 1
 }
 
 main(){
  watch &>/dev/null & disown
- if   find_cgroup; then
-  echo 100 > $CG/daemon/boot-blaze/blkio.weight
-  echo   8 > $CG/daemon/boot-blaze/cpu.shares
+ if find_cgroup; then
+  echo 100 > $CG/blkio/daemon/boot-blaze/blkio.weight
+  echo   8 > $CG/cpu/daemon/boot-blaze/cpu.shares
  fi
  if [[ -f $CFG ]]; then
-  load  &>/dev/null & disown
+  load &>/dev/null & disown
  fi
 }
 
