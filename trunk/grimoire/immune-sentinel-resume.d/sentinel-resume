@@ -18,13 +18,11 @@ find_cgroup(){
 }
 
 thaw(){
- if ! [ -d $CG/sorcery/cast ]; then return 0; fi
- find $( grep -l FROZEN $CG/sorcery/cast/*/freezer.state ) -mmin +480 |
- while read           FILE; do
-       read        < $FILE
-  if   [[ $REPLY =~ FROZEN ]]
-  then echo THAWED > $FILE
-  fi
+ if ! [ -d $CG/freezer/sorcery/cast ]; then return 0; fi
+ find      $CG/freezer/sorcery/cast -type f -name freezer.state -mmin +480 |
+ xargs -r --max-lines=64 grep -l FROZEN |
+ while read
+ do    echo THAWED > $REPLY
  done
 }
 

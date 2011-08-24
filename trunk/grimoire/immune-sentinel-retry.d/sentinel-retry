@@ -5,18 +5,6 @@
 
 # sentinel-retry periodically checks and retrys failed compilation attempts.
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
-}
-
 failed(){ find $EVENT -type f -perm -0040 -name \*Fail\ Cast -printf "%f\n"; }
 times(){ failed | LC_ALL=C grep "^$1" | wc -l; }
 limit(){ (( $( times $1 ) > $TRIES )); }
@@ -24,8 +12,6 @@ retry(){ mv "$FAIL/$1" "$CAST/$1"; }
 fail(){ [ -d $FAIL ] && find $FAIL -type f -mmin +$DELAY -printf "%f\n"; }
 scan(){ fail | while read; do limit "$REPLY" || retry "$REPLY"; done; }
 main(){ while sleep 900; do scan; done; }
-
-find_cgroup
 
 if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
