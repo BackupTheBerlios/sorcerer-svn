@@ -17,13 +17,13 @@ find_cgroup(){
 pawn(){
  # 10M worked in trials.
  echo 1000 > /proc/$BASHPID/oom_score_adj
- echo 0    > $CG/daemon/sentinel-memory/memory.oom_control
+ echo 0    > $CG/memory/daemon/sentinel-memory/memory.oom_control
  RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
  while sleep 86400; do :; done
 }
 
 oom_control(){
- find $CG -mindepth 2 -name memory.oom_control |
+ find $CG -mindepth 2 -type f -name memory.oom_control |
  grep -v sentinel-memory |
  while read; do echo $1 > $REPLY; done
 }
