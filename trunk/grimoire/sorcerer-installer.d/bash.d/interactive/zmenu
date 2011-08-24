@@ -1,10 +1,13 @@
 ir_menu(){
  show_menu(){
-  dialog --backtitle "Sorcerer Install/Rescue" --title "Task Menu" \
-  --stdout --ok-label Select --cancel-label Shell --menu "$HELP" 0 0 0 \
+  dialog --backtitle "Sorcerer Install/Rescue" --title "Task Menu" --stdout \
+         --ok-label Select --cancel-label Shell --item-help --menu "$HELP" 0 0 0 \
   Dialog   "Tutorial" \
+           "Dialog skill is a must have" \
   Sentient "Automatic installation of KDE + firefox + xorg" \
-  Sorcerer "Menu driven installation"
+           "Few questions asked and installs Sorcerer Sentient to a block device" \
+  Sorcerer "Menu driven installation" \
+           "Install Sorcerer Modern Magic for experienced SAs"
  }
 
  while REPLY=$( show_menu ); do
@@ -16,12 +19,13 @@ ir_menu(){
  done
 }
 
+
 wait_for_prc(){
- while ps   -C prc --no-headers -o fname |
-       grep -q prc
- do    sleep 1
- done
- sleep 5
+        running(){ ps -C prc --no-headers -o fname | grep -q prc; }
+ if     running; then
+  while running; do sleep 1; done
+  read -n 1 -t 60 -p "Wait 60 seconds or press space to continue"
+ fi
 }
 
 if   (( UID == 0 )) && ! pgrep sinstall >/dev/null
