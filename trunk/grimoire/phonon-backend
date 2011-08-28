@@ -1,0 +1,21 @@
+   version stable 4.4.4
+  optional phonon-backend-gstreamer
+  optional phonon-backend-vlc
+  optional phonon-backend-xine
+  category audio
+ attribute profile
+    source $KDE_URL stable/phonon/phonon-backend-xine/$VERSION/src/phonon-backend-xine-$VERSION.tar.bz2
+      info home http://phonon.kde.org/
+      desc 'selects a backend for phonon based on xine'
+
+post_install(){
+ if   ! [ -f $OPT_ON_LOGS/phonon-backend ] ||
+      ! grep -q phonon-backend $OPT_ON_LOGS/phonon-backend; then
+  mkdir -p 755                 $OPT_ON_LOGS
+  echo phonon-backend-xine >   $OPT_ON_LOGS/phonon-backend
+  if   [ -f                   $OPT_OFF_LOGS/phonon-backend ]
+  then sed -i '/xine/d'       $OPT_OFF_LOGS/phonon-backend
+  fi
+  generate_index
+ fi
+}
