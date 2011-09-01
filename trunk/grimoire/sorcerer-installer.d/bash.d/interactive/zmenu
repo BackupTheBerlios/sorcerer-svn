@@ -1,3 +1,11 @@
+wait_for_prc(){
+        running(){ ps -C prc --no-headers -o fname | grep -q prc; }
+ if     running; then
+  while running; do sleep 1; done
+  read -n 1 -t 60 -p "Wait 60 seconds or press space to continue"
+ fi
+}
+
 ir_menu(){
  show_menu(){
   dialog --backtitle "Sorcerer Install/Rescue" --title "Task Menu" --stdout \
@@ -19,16 +27,9 @@ ir_menu(){
  done
 }
 
-
-wait_for_prc(){
-        running(){ ps -C prc --no-headers -o fname | grep -q prc; }
- if     running; then
-  while running; do sleep 1; done
-  read -n 1 -t 60 -p "Wait 60 seconds or press space to continue"
+if read < /proc/cmdline; [[ $REPLY =~ boot=IR ]]; then
+ if   (( UID == 0 )) && ! pgrep sinstall >/dev/null
+ then wait_for_prc; ir_menu
+ else unset ir_menu wait_for_prc sentient_menu
  fi
-}
-
-if   (( UID == 0 )) && ! pgrep sinstall >/dev/null
-then wait_for_prc; ir_menu
-else unset ir_menu
 fi
