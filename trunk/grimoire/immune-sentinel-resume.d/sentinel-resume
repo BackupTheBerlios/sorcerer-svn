@@ -28,22 +28,21 @@ thaw(){
 }
 
 stalled(){
- if   [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +10 )" ]
+ if   [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
  then ! pgrep -u root "^$1$"
  fi
 }
 
 scan(){
  thaw
- if   stalled leech; then leech
- elif stalled cast;  then cast
- fi
+ if stalled leech; then leech; fi
+ if stalled cast;  then cast;  fi
 }
 
 
 main(){
  sleep 120; scan
- while sleep 900; do scan; done
+ while sleep 300; do scan; done
 }
 
 find_cgroup
