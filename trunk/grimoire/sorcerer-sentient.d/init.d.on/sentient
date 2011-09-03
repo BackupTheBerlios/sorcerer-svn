@@ -10,8 +10,20 @@
 only try-restart
 
 try_restart(){
- augur queue dispel/immune-boot-sentient
- dispel
- /etc/init.d/kdm status &>/dev/null ||
- shutdown -r +1
+ dispel_restart(){
+  while pgrep -u root "^cast$"
+  do    sleep 30
+  done
+  augur queue dispel/immune-boot-sentient
+  dispel
+  while pgrep -u root "^dispel$"
+  do    sleep 15
+  done
+  /etc/init.d/kdm status &>/dev/null ||
+  shutdown -r now
+ }
+
+ if [ -f /etc/sorcery/log/version/immune-boot-sentient ]
+ then dispel_restart &
+ fi
 }
