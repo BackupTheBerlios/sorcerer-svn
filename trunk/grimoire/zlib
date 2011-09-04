@@ -7,11 +7,12 @@
 # Version 1.2.5 has bugs that segfault /usr/bin/xsltproc
 # Version 1.2.4 makes programs crash happy, especially firefox.
 
-   version stable 1.2.3
+   version stable 1.2.5 1.2.3
   category archive
  attribute library solo
     source $SOURCEFORGE_URL libpng/zlib/$VERSION/zlib-$VERSION.tar.bz2
 #   source http://www.zlib.net/ http://www.gzip.org/zlib/ zlib-$VERSION.tar.gz
+      info last 20100419
   homepage http://www.zlib.net/
     CFLAGS='-O2'
    LDFLAGS='-Wl,-O1'
@@ -23,6 +24,17 @@ for use on virtually any computer hardware and operating system.
 The zlib data format is portable across platforms.'
 
 build(){
+ mvpc(){
+  if   [ -d $DESTDIR/lib64/pkgconfig ]
+  then mkdir -pvm 755 $DESTDIR/usr/lib64/
+       mv     -v      $DESTDIR/{lib64/pkgconfig,usr/lib64/}
+  fi
+  if   [ -d $DESTDIR/lib/pkgconfig ]
+  then mkdir -pvm 755 $DESTDIR/usr/lib/
+       mv     -v      $DESTDIR/{lib/pkgconfig,usr/lib/}
+  fi
+ }
+
  export    CFLAGS+=' -fPIC'
  export  CXXFLAGS+=' -fPIC'
 
@@ -38,5 +50,6 @@ build(){
  ./configure --prefix=/usr --shared $OPTS &&
  make "CFLAGS=$CFLAGS" &&
  strip -s libz.so* &&
- make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR
+ make install prefix=$DESTDIR/usr exec_prefix=$DESTDIR &&
+ mvpc
 }
