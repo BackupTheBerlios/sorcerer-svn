@@ -15,24 +15,27 @@ find_cgroup(){
  return 1
 }
 
+# 10M worked in trials.
+
 pawn(){
- # 10M worked in trials.
- echo 1000 > /proc/$BASHPID/oom_score_adj
- echo 0    > $CG/memory/daemon/sentinel-memory/memory.oom_control
+ mkdir -p        $CG/memory/daemon/sentinel-memory/pawn
+ echo $BASHPID > $CG/memory/daemon/sentinel-memory/pawn/tasks
+ echo 0        > $CG/memory/daemon/sentinel-memory/pawn/memory.oom_control
+ echo 1000     > /proc/$BASHPID/oom_score_adj
  RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
  while sleep 86400; do :; done
 }
 
 oom_control(){
- find $CG/memory -mindepth 2 -type f -name memory.oom_control |
- grep -v sentinel-memory |
+ find $CG/memory -type f -name memory.oom_control |
+ grep -v sentinel-memory/pawn |
  while read; do echo $1 > $REPLY; done
 }
 
 main(){
  local PASS=0
- echo -1000 > /proc/$BASHPID/oom_score_adj
-
+ echo -1000    > /proc/$BASHPID/oom_score_adj
+ echo 262144   > $CG/cpu/daemon/sentinel-memory/cpu.shares
  while
   (( PASS++ ))
   SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&
@@ -42,7 +45,6 @@ main(){
   coproc pawn
  do
   read <& ${COPROC[0]}
-  [ -f   "$SWAP" ] &&
   swapon "$SWAP"
  done
  oom_control 0
@@ -58,7 +60,7 @@ fi
 SDIR=$1
 SIZE=$2
 if   [     -d      $SDIR ]
-then rm    -f      $SDIR/* &>/dev/null
+then rm    -f      $SDIR/swap* &>/dev/null
 else mkdir -pm 700 $SDIR
 fi
 oom_control 1
