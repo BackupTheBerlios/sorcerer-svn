@@ -1,0 +1,108 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Required-Stop: proc swap
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: Creates swap partition on virtual zram device.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop restart status configure display
+name zram_swap
+DEFAULT_DISKSIZE=131072
+
+display(){ echo "Size ${DISKSIZE:-$DEFAULT_DISKSIZE} kilobytes"; }
+
+status(){
+ if   grep -q /dev/zram0 /proc/swaps
+ then log_warning_msg "$NAME is active"; return 0
+ else log_warning_msg "$NAME is not active"; return 7
+ fi
+}
+
+start(){
+ run(){
+  /sbin/modprobe zram &&
+  echo $DISKSIZE > /sys/block/zram0/disksize &&
+  mkswap /dev/zram0 &&
+  swapon -p 256 /dev/zram0
+ }
+
+ DISKSIZE=${DISKSIZE:-$DEFAULT_DISKSIZE}
+ if (( DISKSIZE > 0 )) && ! grep -q /dev/zram0 /proc/swaps; then
+  if   log_warning_msg "$NAME starting"; run &>/dev/null
+  then log_success_msg "$NAME started"
+  else log_failure_msg "$NAME not started"; return 1
+  fi
+ fi
+}
+
+stop(){
+ run(){
+  swapoff /dev/zram0 &&
+  sleep 2
+  while grep -q /dev/zram0 /proc/swaps && (( 60 > SECONDS ))
+  do    sleep 1
+  done &&
+  /sbin/rmmod zram
+ }
+
+ if grep -q /dev/zram0 /proc/swaps; then
+  if   log_warning_msg "$NAME stopping"; run
+  then log_success_msg "$NAME stopped"
+  else log_failure_msg "$NAME not stopped"; return 1
+  fi
+ fi
+}
+
+configure(){
+
+tmp_size_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"Instructions"
+      HELP=$"zram reserves a non swappable portion of RAM
+for the purpose of creating a RAM disk
+that can compress the pages that it holds.
+zram_swap activates the zram device,
+makes a swap partition on it,
+and activates the swap partition at a high priority.
+This might help reduce swapping."
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --msgbox "$HELP" 0 0
+ 
+
+     TITLE=$"disksize selection"
+      HELP=$"Please select a size no greater than 1/4th total RAM"
+
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --default-item 3          \
+  --menu   "$HELP" 0 0 0    \
+  0   megabytes  64 megabytes 128 megabytes 256  megabytes \
+  384 megabytes 512 megabytes 768 megabytes 1024 megabytes
+}
+
+ DISKSIZE=$( tmp_size_dialog )
+ if   [ -n "$DISKSIZE" ]; then
+  (( DISKSIZE *= 1048576 ))
+  echo "DISKSIZE=$DISKSIZE" > /etc/init.d/conf.d/zram_swap
+ fi
+}
+
+restart(){ stop; sleep 1; start; }
