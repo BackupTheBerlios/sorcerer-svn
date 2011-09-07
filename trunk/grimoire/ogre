@@ -1,21 +1,16 @@
-# ogre version linux_osx-v1-2-5 can not compile with CEGUI version 0.5.0
-# ember will not allow ogre with FreeImage Support
-# broke source as usual.
-
-   version stable v1-6-4 v1-6-2 0.10.0 v1-4-9 v1-4-8 linux_osx-v1-4-7 linux_osx-v1-4-4
-   require FreeImage gtk+ libXaw zziplib
+   version stable v1-7-3 v1-6-4
+   require FreeImage MesaLib boost freetype libXaw libXrandr zziplib
+      opts --disable-cg
+# --disable-freeimage
   optional CEGUI
   category graphic
  attribute library makej multilib-concurrent
-#attribute broke
-    source $SOURCEFORGE_URL ogre/ogre/1.6.4/ogre-$VERSION.tar.bz2
-  homepage http://www.ogre3d.org
-      opts --disable-cg
-# --disable-freeimage
-# However it does not compile with include DevIL
-case $VERSION in
- linux_osx-v1-4-7) use_gcc gcc-v4.2 ;;
-esac
+    source $SOURCEFORGE_URL ogre/ogre/${VERSION:1:1}.${VERSION:3:1}/ogre_src_$VERSION.tar.bz2
+      info last 20110408
+  homepage http://www.ogre3d.org/
+    CFLAGS='-O2'
+  CXXFLAGS='-O2'
+   LDFLAGS='-Wl,-O1'
       desc 'ogre is the object oriented graphic rendering engine.
 ogre is the (Object-Oriented Graphics Rendering Engine)
 is a class library written in C++ designed to
@@ -28,12 +23,9 @@ unnecessary complexities of the underlying system
 libraries like Direct3D and OpenGL.'
 
 
-build_old(){
- ./configure          \
- --prefix=/usr        \
- --sysconfdir=/etc    \
- --localstatedir=/var \
- $OPTS &&
- make  &&
- make install DESTDIR=$DESTDIR
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then OPTS+=" -DLIB_SUFFIX=64"
+ fi
+ default_build
 }
