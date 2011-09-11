@@ -60,70 +60,11 @@ build(){ DESTDIR=$DESTDIR ./install $VERSION; }
 
 post_install(){
 
- fix_gconf(){
-  if   [ -f                $PROVIDE_LOGS/GConf ] &&
-       grep -qx GConf-dbus $PROVIDE_LOGS/GConf
-  then rm   -f             $PROVIDE_LOGS/GConf
-  fi
- }
-
  discard_old_index(){
   merge_grimoires
   generate_index   
   . /etc/sorcery/config
   run_details
- }
-
- discard_obsolete_event_logs(){
-  case $VERSION in
-   event*) find ${EVENT_LOGS:-/var/log/sorcery/event} -mindepth 1 -type d |
-           escape_qs | xargs -r --max-lines=16 rm -r ;;
-  esac
- }
-
- add_config_site(){
-  if   ! spell_installed config.site
-  then echo config.site | pipe_queue $CAST_QUEUE
-  fi
- }
-
- upgrade_archive_cache(){
-  find $ARCHIVE_CACHE/ -maxdepth 1 -type f -printf "%P\n" |
-  sed "s:-$HOSTTYPE-:$TAB:
-       s:\.tar.xz$:$TAB.tar.xz:
-       s:\.tar$:$TAB.tar:" |
-  while read NAME VER EXT; do
-   mkdir -pm 700 $ARCHIVE_CACHE/$HOSTTYPE/$NAME/$VER
-   mv $ARCHIVE_CACHE/$NAME-$HOSTTYPE-$VER$EXT \
-      $ARCHIVE_CACHE/$HOSTTYPE/$NAME/$VER/$NAME-$VER$EXT
-  done
- }
-
- upgrade_ccache_cache(){
-  find $CCACHE_CACHE/ -maxdepth 1 -type f          |
-  sed -r "s:(.*)(\.ccache)(\..*):\1\2\3\t\1\3:p;d" |
-  while read OLD NEW
-  do    mv "$OLD" "$NEW"
-  done
- }
-
- upgrade_feature(){
-  if [ -n "$FEATURE" ]; then
-   sed -i '/FEATURE=/d' $LOCAL_CONFIG
-   local REPLY
-   for   REPLY in $FEATURE
-   do    echo "FEATURE[$REPLY]=1" >> $LOCAL_CONFIG
-   done
-  fi
- }
-
- fix_shells(){
-  if ! [ -d /etc/shells.d ]; then
-   find $GRIMOIRE -maxdepth 1 -type f |
-   xargs --max-lines=256 grep -li shbin |
-   basenames |
-   pipe_queue $CAST_QUEUE
-  fi
  }
 
  mod_mode(){
@@ -135,17 +76,16 @@ post_install(){
   fi
  }
 
+ pkgconfig_fixes(){
+  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue $LEECH_QUEUE
+  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue $CAST_QUEUE
+ }
+
  discard_old_index		# Always run this function
 
  # Temporary fixes to provide for 6 months.
 
- upgrade_feature		#     20110218
- fix_gconf			# pre 20110214
- add_config_site		# pre 20110214
- discard_obsolete_event_logs	# pre 20110313
- fix_shells			#     20110313
- upgrade_ccache_cache		#     20110214
- upgrade_archive_cache		#     20110214
  mod_mode			#     20110706
+ pkgconfig_fixes		#     20110911
  default_post_install
 }
