@@ -19,12 +19,18 @@ find_cgroup(){
 }
 
 thaw(){
- if ! [ -d $CG/freezer/sorcery/cast ]; then return 0; fi
- find      $CG/freezer/sorcery/cast -type f -name freezer.state -mmin +480 |
- xargs -r --max-lines=64 grep -l FROZEN |
- while read
- do    echo THAWED > $REPLY
- done
+ if [ -d /root/.sorcery/queue/cast ]; then
+  find   /root/.sorcery/queue/cast/ -not -empty -mmin +480 -type f -printf "%f\n" |
+  while read SPELL; do
+   if   [ -f   $CG/freezer/sorcery/cast/$SPELL ] &&
+        find   $CG/freezer/sorcery/cast/$SPELL -mmin +480 | grep -q .
+   then read < $CG/freezer/sorcery/cast/$SPELL
+    if   [[   FROZEN == $REPLY ]]
+    then echo THAWED > $CG/freezer/sorcery/cast/$SPELL
+    fi
+   fi
+  done
+ fi
 }
 
 stalled(){
@@ -34,14 +40,11 @@ stalled(){
 }
 
 scan(){
+ # cast might be waiting for a source to download.
  thaw
- if   stalled leech ||
-      stalled cast
+ if   stalled leech || stalled cast
  then augur begin </dev/null &
  fi
-
- # if stalled leech; then leech; fi
- # if stalled cast;  then cast;  fi
 }
 
 
@@ -56,5 +59,5 @@ if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
 fi
 
-main &>/dev/null &
+main </dev/null &>/dev/null &
 exit 0
