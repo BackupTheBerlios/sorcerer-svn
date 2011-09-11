@@ -34,8 +34,10 @@ thaw(){
 }
 
 stalled(){
- if   [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
+ if   [ -d          /root/.sorcery/queue/$1 ] &&
+      [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
  then ! pgrep -u root "^$1$"
+ else return 1
  fi
 }
 
@@ -46,7 +48,6 @@ scan(){
  then augur begin </dev/null &
  fi
 }
-
 
 main(){
  sleep 120; scan
