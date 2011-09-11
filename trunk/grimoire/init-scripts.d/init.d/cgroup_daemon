@@ -7,33 +7,121 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: cgroup_blkio cgroup_cpu cgroup_cpuset cgroup_freezer
-# Default-Start: S 1 2 3 4 5
-# Short-Description: set performance parameters for daemon cgroup
+# Default-Start: S
+# Short-Description: set performance and resource limits for a global control group
 # Long-Description: Read /usr/src/linux/Documentation/cgroups/cgroups.txt
 ### END INIT INFO
 
+GROUP=daemon
 BLKIO_WEIGHT_DEFAULT=500
 MEMORY_SWAPPINESS_DEFAULT=60
 CPU_SHARES_DEFAULT=512
+SWAP_PERCENT_DEFAULT=90
+RAM_PERCENT_DEFAULT=90
+RAM_SOFT_PERCENT_DEFAULT=40
 
 . /lib/lsb/init-functions
 
-only start restart configure status display
+only start restart configure status display reset
 deny control
-GROUP=daemon
 
-display(){
- echo "blkio.weight ${BLKIO_WEIGHT:-$BLKIO_WEIGHT_DEFAULT}"
- echo "memory.swappiness ${MEMORY_SWAPPINESS:-$MEMORY_SWAPPINESS_DEFAULT}"
- echo "cpu.shares ${CPU_SHARES:-$CPU_SHARES_DEFAULT}"
+reset(){
+ if [ -f /etc/init.d/conf.d/$NAME ]; then
+  mv  -v /etc/init.d/conf.d/$NAME{,.old}
+  echo "Reset to default values completed."
+ fi
 }
 
+init(){
+        CPU_SHARES=${CPU_SHARES:-$CPU_SHARES_DEFAULT}
+      BLKIO_WEIGHT=${BLKIO_WEIGHT:-$BLKIO_WEIGHT_DEFAULT}
+ MEMORY_SWAPPINESS=${MEMORY_SWAPPINESS:-$MEMORY_SWAPPINESS_DEFAULT}
+      SWAP_PERCENT=${SWAP_PERCENT:-$SWAP_PERCENT_DEFAULT}
+       RAM_PERCENT=${RAM_PERCENT:-$RAM_PERCENT_DEFAULT}
+  RAM_SOFT_PERCENT=${RAM_SOFT_PERCENT:-$RAM_SOFT_PERCENT_DEFAULT}
+  
+ local MemTotal SwapTotal
+
+  MemTotal=$( sed -r  "s/MemTotal: *([^ ]*) kB/\1/p;d" /proc/meminfo )
+ SwapTotal=$( sed -r "s/SwapTotal: *([^ ]*) kB/\1/p;d" /proc/meminfo )
+ ((       MEMORY_LIMIT_IN_BYTES =  MemTotal  *      RAM_PERCENT / 102400 ))
+ ((  MEMORY_SOFT_LIMIT_IN_BYTES =  MemTotal  * RAM_SOFT_PERCENT / 102400 ))
+ (( MEMORY_MEMSW_LIMIT_IN_BYTES =  SwapTotal *     SWAP_PERCENT / 102400 ))
+ (( MEMORY_MEMSW_LIMIT_IN_BYTES += MEMORY_LIMIT_IN_BYTES                 ))
+}
+
+values(){
+ init
+ echo "cpu.shares	$CPU_SHARES"
+ echo "blkio.weight	$BLKIO_WEIGHT"
+ echo "memory.swappiness	$MEMORY_SWAPPINESS"
+ echo "memory.soft_limit_in_bytes	${MEMORY_SOFT_LIMIT_IN_BYTES}M"
+ echo "memory.limit_in_bytes	${MEMORY_LIMIT_IN_BYTES}M"
+ echo "memory.memsw.limit_in_bytes	${MEMORY_MEMSW_LIMIT_IN_BYTES}M"
+}
+
+values_default(){ (
+        CPU_SHARES=$CPU_SHARES_DEFAULT
+      BLKIO_WEIGHT=$BLKIO_WEIGHT_DEFAULT
+ MEMORY_SWAPPINESS=$MEMORY_SWAPPINESS_DEFAULT
+      SWAP_PERCENT=$SWAP_PERCENT_DEFAULT
+       RAM_PERCENT=$RAM_PERCENT_DEFAULT
+  RAM_SOFT_PERCENT=$RAM_SOFT_PERCENT_DEFAULT
+ 
+ values
+) }
+
+
+values_current(){
+ find_cgroup
+
+ if [ -f       $CG/cpu/$GROUP/cpu.shares ]; then
+  read REPLY < $CG/cpu/$GROUP/cpu.shares
+  echo "cpu.shares	$REPLY"
+ fi
+
+ if [ -f       $CG/blkio/$GROUP/blkio.weight ]; then
+  read REPLY < $CG/blkio/$GROUP/blkio.weight
+  echo "blkio.weight	$REPLY"
+ fi
+
+ if [ -f       $CG/memory/$GROUP/memory.swappiness ]; then
+  read REPLY < $CG/memory/$GROUP/memory.swappiness
+  echo "memory.swappiness	$REPLY"
+ fi
+
+ if [ -f       $CG/memory/$GROUP/memory.soft_limit_in_bytes ]; then
+  read REPLY < $CG/memory/$GROUP/memory.soft_limit_in_bytes
+  (( REPLY /= 1048576 ))
+  echo "memory.soft_limit_in_bytes	${REPLY}M"
+ fi
+
+ if [ -f       $CG/memory/$GROUP/memory.limit_in_bytes ]; then
+  read REPLY < $CG/memory/$GROUP/memory.limit_in_bytes
+  (( REPLY /= 1048576 ))
+  echo "memory.limit_in_bytes	${REPLY}M"
+ fi
+
+ if [ -f       $CG/memory/$GROUP/memory.memsw.limit_in_bytes ]; then
+  read REPLY < $CG/memory/$GROUP/memory.memsw.limit_in_bytes
+  (( REPLY /= 1048576 ))
+  echo "memory.memsw.limit_in_bytes	${REPLY}M"
+ fi
+}
+
+display(){ init; values | column -t; }
+
 start(){
+ init
  find_cgroup
  mkdir -p $CG/{blkio,cpu,memory}/$GROUP
- echo ${BLKIO_WEIGHT:-$BLKIO_WEIGHT_DEFAULT}           > $CG/blkio/$GROUP/blkio.weight
- echo ${MEMORY_SWAPPINESS:-$MEMORY_SWAPPINESS_DEFAULT} > $CG/memory/$GROUP/memory.swappiness
- echo ${CPU_SHARES:-$CPU_SHARES_DEFAULT}               > $CG/cpu/$GROUP/cpu.shares
+ echo $CPU_SHARES                     > $CG/cpu/$GROUP/cpu.shares
+ echo $BLKIO_WEIGHT                   > $CG/blkio/$GROUP/blkio.weight
+ echo $MEMORY_SWAPPINESS              > $CG/memory/$GROUP/memory.swappiness
+ echo ${MEMORY_SOFT_LIMIT_IN_BYTES}M  > $CG/memory/$GROUP/memory.soft_limit_in_bytes
+ echo ${MEMORY_LIMIT_IN_BYTES}M       > $CG/memory/$GROUP/memory.limit_in_bytes
+ echo ${MEMORY_MEMSW_LIMIT_IN_BYTES}M > $CG/memory/$GROUP/memory.memsw.limit_in_bytes
+ echo 1                               > $CG/memory/$GROUP/memory.use_hierarchy
 }
 
 configure(){
@@ -48,14 +136,14 @@ blkio_weight_dialog(){
   --title     "$TITLE" \
   --timeout 60 \
   --stdout --no-cancel \
-  --default-item $BLKIO_WEIGHT_DEFAULT \
+  --default-item $BLKIO_WEIGHT \
   --menu   "$HELP" 0 0 0 \
   100 "" 200 "" 300 "" 400 "" 500 "" 600 "" 700 "" 800 "" 900 "" 1000 ""
 }
 
 memory_swappiness_dialog(){
  BACKTITLE=$"$NAME configuration menu"
-     TITLE=$"memory.swappiness configuraiton"
+     TITLE=$"memory.swappiness configuration"
       HELP=$"Please select a predetermined memory.swappiness."
 
  dialog \
@@ -63,7 +151,7 @@ memory_swappiness_dialog(){
   --title     "$TITLE" \
   --timeout 60 \
   --stdout --no-cancel \
-  --default-item $MEMORY_SWAPPINESS_DEFAULT \
+  --default-item $MEMORY_SWAPPINESS \
   --menu   "$HELP" 0 0 0 \
   10 "" 20 "" 30 "" 40 "" 50 "" 60 "" 70 "" 80 "" 90 "" 100 ""
 }
@@ -78,42 +166,115 @@ cpu_shares_dialog(){
   --title     "$TITLE" \
   --timeout 60 \
   --stdout --no-cancel \
-  --inputbox "$HELP" 0 0 $CPU_SHARES_DEFAULT
+  --inputbox "$HELP" 0 0 $CPU_SHARES
 }
 
- BLKIO_WEIGHT=$( blkio_weight_dialog )
- MEMORY_SWAPPINESS=$( memory_swappiness_dialog )
- CPU_SHARES=$( cpu_shares_dialog )
+swap_percent_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"swap percent configuraiton"
+      HELP=$"Please select the percent of swap usage to allow.\nThis is a hard limit."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --default-item $SWAP_PERCENT \
+  --menu   "$HELP" 0 0 0 \
+   0 ""  5 "" 10 "" 15 "" 20 "" 25 "" 30 "" 35 "" 40 "" 45 "" \
+  50 "" 55 "" 60 "" 65 "" 70 "" 75 "" 80 "" 85 "" 90 "" 95 "" 100 ""
+}
+
+ram_percent_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"RAM percent configuraiton"
+      HELP=$"Please select the percent of RAM usage to allow.\nThis is a hard limit."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --default-item $RAM_PERCENT \
+  --menu   "$HELP" 0 0 0 \
+   0 ""  5 "" 10 "" 15 "" 20 "" 25 "" 30 "" 35 "" 40 "" 45 "" \
+  50 "" 55 "" 60 "" 65 "" 70 "" 75 "" 80 "" 85 "" 90 "" 95 "" 100 ""
+}
+
+ram_soft_percent_dialog(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"RAM soft percent configuraiton"
+      HELP=$"Please select the percent of RAM usage to allow.\nThis is a soft limit.\nTherefore, it should be smaller than the hard limit."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --no-cancel \
+  --default-item $RAM_SOFT_PERCENT \
+  --menu   "$HELP" 0 0 0 \
+   0 ""  5 "" 10 "" 15 "" 20 "" 25 "" 30 "" 35 "" 40 "" 45 "" \
+  50 "" 55 "" 60 "" 65 "" 70 "" 75 "" 80 "" 85 "" 90 "" 95 "" 100 ""
+}
+
+limiter_menu(){
+ BACKTITLE=$"$NAME configuration menu"
+     TITLE=$"Limiter selection menu"
+      HELP=$"Please select a limiter."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE" \
+  --timeout 60 \
+  --stdout --cr-wrap \
+  --cancel-label "Done" \
+  --ok-label "Select" \
+  --default-item "$REPLY" \
+  --menu   "$HELP" 0 0 0 \
+  cpu.shares		"$CPU_SHARES" \
+  blkio.weight		"$BLKIO_WEIGHT" \
+  memory.swappiness	"$MEMORY_SWAPPINESS" \
+  swap.percent		"$SWAP_PERCENT" \
+  ram.percent		"$RAM_PERCENT" \
+  ram.soft.percent	"$RAM_SOFT_PERCENT"
+}
+
+ init
+ REPLY=cpu.shares
+ while REPLY=$( limiter_menu ); do
+  case $REPLY in
+   cpu.shares)		CPU_SHARES=$( cpu_shares_dialog ) ;;
+   blkio.weight)	BLKIO_WEIGHT=$( blkio_weight_dialog ) ;;
+   memory.swappiness)	MEMORY_SWAPPINESS=$( memory_swappiness_dialog ) ;;
+   swap.percent)	SWAP_PERCENT=$( swap_percent_dialog ) ;;
+   ram.percent)		RAM_PERCENT=$( ram_percent_dialog ) ;;
+   ram.soft.percent)	RAM_SOFT_PERCENT=$( ram_soft_percent_dialog ) ;;
+  esac
+ done
 
  if [ -n "$BLKIO_WEIGHT " ] &&
     [ -n "$MEMORY_SWAPPINESS" ] &&
     [ -n "$CPU_SHARES" ] &&
+    [ -n "$RAM_PERCENT" ] &&
+    [ -n "$RAM_SOFT_PERCENT" ] &&
+    [ -n "$SWAP_PERCENT" ]
     (( CPU_SHARES > 1 )) &&
     (( CPU_SHARES < 8193 ))
- then echo "BLKIO_WEIGHT=$BLKIO_WEIGHT; MEMORY_SWAPPINESS=$MEMORY_SWAPPINESS; CPU_SHARES=$CPU_SHARES" > /etc/init.d/conf.d/$NAME
- fi
+ then
+  echo "       CPU_SHARES=$CPU_SHARES"
+  echo "     BLKIO_WEIGHT=$BLKIO_WEIGHT"
+  echo "MEMORY_SWAPPINESS=$MEMORY_SWAPPINESS"
+  echo "     SWAP_PERCENT=$SWAP_PERCENT"
+  echo "      RAM_PERCENT=$RAM_PERCENT"
+  echo " RAM_SOFT_PERCENT=$RAM_SOFT_PERCENT"
+ fi > /etc/init.d/conf.d/$NAME
+
  start
 }
 
 status(){
- echo "$NAME default    blkio.weight      $BLKIO_WEIGHT_DEFAULT"
- echo "$NAME configured blkio.weight      $BLKIO_WEIGHT"
- if [ -f       $CG/blkio/$GROUP/blkio.weight ]; then
-  read REPLY < $CG/blkio/$GROUP/blkio.weight
-  echo "$NAME current    blkio.weight      $REPLY"
- fi
-
- echo "$NAME default    memory.swappiness $MEMORY_SWAPPINESS_DEFAULT"
- echo "$NAME configured memory.swappiness $MEMORY_SWAPPINESS"
- if [ -f       $CG/memory/$GROUP/memory.swappiness ]; then
-  read REPLY < $CG/memory/$GROUP/memory.swappiness
-  echo "$NAME current    memory.swappiness $REPLY"
- fi
-
- echo "$NAME default    cpu.shares        $CPU_SHARES_DEFAULT"
- echo "$NAME configured cpu.shares        $CPU_SHARES"
- if [ -f       $CG/cpu/$GROUP/cpu.shares ]; then
-  read REPLY < $CG/cpu/$GROUP/cpu.shares
-  echo "$NAME current    cpu.shares        $REPLY"
- fi
+ ( values_default | sed 's:	:	Default	:'
+   values         | sed 's:	:	Configured	:'
+   values_current | sed 's:	:	Current	:'
+ ) | sort -u | column -t
 }
