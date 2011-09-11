@@ -28,10 +28,12 @@ using the same syntax and semantics as Perl 5, with just a few differences.'
 build(){
  rm -f CMakeLists.txt
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
- default_build &&
- if   [ -d $DESTDIR/lib64/pkgconfig ]
- then mv   $DESTDIR/{,usr/}lib64/pkgconfig
- elif [ -d $DESTDIR/lib/pkgconfig ]
- then mv   $DESTDIR/{,usr/}lib/pkgconfig
- fi
+ default_build
+}
+
+current(){
+ case $VERSION in
+  8.13) [ -f /usr/lib64/pkgconfig/libpcre.pc ] ||
+        [ -f   /usr/lib/pkgconfig/libpcre.pc ] ;;
+ esac
 }
