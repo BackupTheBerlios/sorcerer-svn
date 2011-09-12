@@ -153,7 +153,14 @@ generate_locales(){
 }
 
 start(){
- if ! status; then
+ acad(){
+  if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
+   read < /proc/acpi/ac_adapter/*/state
+   [[ $REPLY =~ on-line ]]
+  fi
+ }
+
+ if ! status && acad; then
   log_success_msg "locale-archive generating background"
   generate_locales &>/var/log/locale-archive &
  fi

@@ -81,11 +81,18 @@ post_install(){
   grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue $CAST_QUEUE
  }
 
+ fix_inittab(){
+  if   grep -q   /dev/tty       /etc/inittab
+  then sed -i 's:/dev/tty:tty:' /etc/inittab
+  fi
+ }
+
  discard_old_index		# Always run this function
 
  # Temporary fixes to provide for 6 months.
 
  mod_mode			#     20110706
  pkgconfig_fixes		#     20110911
+ fix_inittab			#     20110912
  default_post_install
 }
