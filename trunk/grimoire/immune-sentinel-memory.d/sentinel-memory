@@ -33,13 +33,18 @@ oom_control(){
 }
 
 main(){
+ allocate(){
+  fallocate "-l$SIZE" "$SWAP" ||
+  dd if=/dev/zero  of="$SWAP" bs=1M count=${SIZE%M}
+ }
+
  local PASS=0
  echo -1000    > /proc/$BASHPID/oom_score_adj
  echo 262144   > $CG/cpu/daemon/sentinel-memory/cpu.shares
  while
   (( PASS++ ))
   SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&
-  fallocate "-l$SIZE" "$SWAP" &&
+  allocate &&
   mkswap  "$SWAP" &&
   chmod 0 "$SWAP" &&
   coproc pawn
