@@ -31,20 +31,27 @@ timeout_dialog(){
  BACKTITLE=$"udevsettle Configuration Menu"
      TITLE=$"Timeout Selection"
       HELP=$"udevsettle terminates after udevd completes queued events.
-udevsettle requires less than 10 seconds.
+udevsettle should require less than 10 seconds.
 Running longer hints at the potential of a problem.
-The timeout can be set for less than 60 seconds
-when udev processing hangs or lingers
-and yet causes no adverse effect upon booting.
+The timeout can be set for less than 60 seconds.
+A lower timeout may be convenient when udev processing
+hangs or lingers and yet causes no adverse effect upon booting.
 If lowering the timeout causes file systems
 to not fsck or to not mount
 then the timeout was set too low.
 
-Most SAs never change the udevsettle timeout value.
+Few SAs change the udevsettle timeout value.
 Change this only when one already possesses the knowledge
-required for fixing the problem if the box fails to boot.
+required for fixing the problem if the box fails to boot."
 
-Please select the amount of seconds for timeout duration."
+ dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --msgbox "$HELP" 0 0
+
+HELP=$"Please select the amount of seconds for timeout duration."
 
  dialog \
   --backtitle "$BACKTITLE"  \
@@ -53,7 +60,8 @@ Please select the amount of seconds for timeout duration."
   --stdout --no-cancel      \
   --default-item 60         \
   --menu   "$HELP" 0 0 0    \
-  300 seconds 240 seconds 180 seconds 90 seconds 60 seconds 30 seconds 15 seconds
+  300 seconds 240 seconds 180 seconds 90 seconds \
+   60 seconds  30 seconds  15 seconds 10 seconds 5 seconds
 }
 
  TIMEOUT=$( timeout_dialog )
