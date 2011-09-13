@@ -18,17 +18,17 @@ find_cgroup(){
 # 10M worked in trials.
 
 pawn(){
- mkdir -p        $CG/memory/daemon/sentinel-memory/pawn
- echo $BASHPID > $CG/memory/daemon/sentinel-memory/pawn/tasks
- echo 0        > $CG/memory/daemon/sentinel-memory/pawn/memory.oom_control
+ mkdir -p        $CG/memory/pawn
+ echo $BASHPID > $CG/memory/pawn/tasks
+ echo 0        > $CG/memory/pawn/memory.oom_control
  echo 1000     > /proc/$BASHPID/oom_score_adj
- RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
+ local RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
  while sleep 86400; do :; done
 }
 
 oom_control(){
- find $CG/memory -mindepth 2 -type f -name memory.oom_control |
- grep -v sentinel-memory/pawn |
+ find $CG/memory -mindepth 2 -maxdepth 2 -type f -name memory.oom_control |
+ grep -v memory/pawn/memory |
  while read; do echo $1 > $REPLY; done
 }
 
