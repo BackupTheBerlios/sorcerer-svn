@@ -1,0 +1,111 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Required-Stop:  $local_fs
+# Default-Start: 2 3 4 5
+# Short-Description: discovers and deports alien files
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop status deport
+deny control
+server /usr/sbin/find-aliens
+fast
+
+status(){
+ if [ -s /var/log/alien/aliens.txt ]
+ then log_success_msg "aliens discovered. Please run /etc/init.d/alien deport"
+ else log_success_msg "aliens not discovered."
+ fi
+}
+
+deport(){
+
+ action_menu(){
+  BACKTITLE='alien disposition menu'
+      TITLE='action selection'
+       HELP='Please select the action'
+
+  [ -s /var/log/alien/aliens.txt ] &&
+  dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --stdout                  \
+  --timeout "$PROMPT_DELAY" \
+  --no-cancel               \
+  --menu "$HELP" 0 0 0      \
+  "Visa"   "Allows alien to remain without future consideration" \
+  "View"   "Views file with less" \
+  "Deport" "Moves file to directory under /var/log/alien/deported/" \
+  "Quit"   "Leave disposition of further aliens to future run"
+ }
+
+ show_aliens(){
+  while read; do
+   echo "$REPLY"
+   echo "alien"
+   ls -ahl "$REPLY"
+  done < /var/log/alien/aliens.txt
+ }
+
+ alien_menu(){ 
+  BACKTITLE='alien disposition menu'
+      TITLE='alien selection'
+       HELP="Current action: $ACTION\n
+Please select an alien file."
+
+  export IFS="
+"
+  [ -s /var/log/alien/aliens.txt ] &&
+  dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout "$PROMPT_DELAY" \
+  --stdout --item-help      \
+  --ok-label     "Select Alien" \
+  --cancel-label "Select Action" \
+  --menu "$HELP" 0 0 0 $( show_aliens )
+ }
+
+ get_action(){ ACTION="$( action_menu )"; }
+ get_alien(){   ALIEN="$( alien_menu )"; }
+
+ visa(){
+  sed -i "\,^$1$,d" /var/log/alien/aliens.txt
+  echo "$1" >>      /var/log/alien/visa.txt
+ }
+
+ deport(){
+  sed -i "\,^$1$,d" /var/log/alien/aliens.txt
+  mkdir -pm 700    "/var/log/alien/deported/${1%/*}"
+  mv    -v "$1"    "/var/log/alien/deported/${1%/*}"
+  chmod     400    "/var/log/alien/deported/${1%/*}"
+ }
+
+ control_menu(){
+  ACTION="Visa"
+  while [ -s /var/log/alien/aliens.txt ] && ! [ "$ACTION" == "Quit" ]
+  do
+   while get_alien
+   do
+    case $ACTION in
+     View) clear; less "$ALIEN" ;;
+     Visa) visa "$ALIEN" ;;
+     Deport) deport "$ALIEN" ;;
+    esac
+   done
+   get_action
+  done
+ }
+
+ if   [ -s /var/log/alien/aliens.txt ]
+ then control_menu
+ fi
+}

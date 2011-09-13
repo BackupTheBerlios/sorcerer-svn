@@ -1,0 +1,114 @@
+#!/bin/bash
+# Copyright 2000 through 2011 by Kyle Sallee,
+# All rights reserved.
+# For use with the distribution Sorcerer only.
+# alien examines parts of the filesystem
+# where the installed files are expected
+# to belong to installed spells.
+# Then, it reports files that are found which
+# no installed spell claims ownership.
+
+acad(){
+ if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
+  read < /proc/acpi/ac_adapter/*/state
+  [[ $REPLY =~ on-line ]]
+ fi
+}
+
+allow(){
+ if   [ -f /var/log/alien/visa.txt ]
+ then find /var/log/alien/visa.txt /etc/sorcery/log/install -type f
+ else find                         /etc/sorcery/log/install -type f
+ fi | xargs -r --max-lines=64 cat
+}
+
+all(){
+ allow | sed p
+ local DIRS='/bin /boot /etc /lib /sbin /usr /var'
+ [[ -d /lib64 ]] && DIRS+=' /lib64'
+ [[ -d /opt   ]] && DIRS+=' /opt'
+ find $DIRS -type f
+}
+
+not(){
+ sed '\,^/boot/.*/modules$,d
+      \,^/boot/extlinux/extlinux.conf$,d
+      \,^/boot/extlinux/ldlinux.sys$,d
+      \,^/boot/initrf/bin$,d
+      \,^/boot/initrf/etc$,d
+      \,^/boot/initrf/lib$,d
+      \,^/boot/initrf/lib64$,d
+      \,^/boot/initrf/sbin$,d
+      \,^/boot/initrf/usr$,d
+      \,^/etc/\.pwd\.lock$,d
+      \,^/etc/aliases.db$,d
+      \,^/etc/bash\.d/noninteractive/LANG$,d
+      \,^/etc/bind/named.conf$,d
+      \,^/etc/bind/rndc.key$,d
+      \,^/etc/extlinux/conf$,d
+      \,^/etc/fstab$,d
+      \,^/etc/gconf/,d
+      \,^/etc/group$,d
+      \,^/etc/group-$,d
+      \,^/etc/gtk-2.0/gdk-pixbuf.loaders$,d
+      \,^/etc/gtk-2.0/gtk.immodules$,d
+      \,^/etc/gtk-2.0/im-multipress.conf$,d
+      \,^/etc/gtk-3.0/gtk.immodules$,d
+      \,^/etc/gtk-3.0/im-multipress.conf$,d
+      \,^/etc/host\.conf$,d
+      \,^/etc/hostname$,d
+      \,^/etc/hosts$,d
+      \,^/etc/init.d/bootmisc$,d
+      \,^/etc/ld.so.cache$,d
+      \,^/etc/ld.so.conf$,d
+      \,^/etc/lvm/,d
+      \,^/etc/modules\.asked$,d
+      \,^/etc/modules.conf$,d
+      \,^/etc/mtab$,d
+      \,^/etc/networks$,d
+      \,^/etc/nsswitch\.conf$,d
+      \,^/etc/passwd$,d
+      \,^/etc/passwd-$,d
+      \,^/etc/printcap$,d
+      \,^/etc/protocols$,d
+      \,^/etc/resolv\.conf$,d
+      \,^/etc/services$,d
+      \,^/etc/shadow$,d
+      \,^/etc/shadow-$,d
+      \,^/etc/shells$,d
+      \,^/etc/sorcery/,d
+      \,^/etc/ssh/ssh_host_,d
+      \,^/etc/tomoyo/,d
+      \,^/etc/xml/catalog$,d
+      \,^/etc/xml/docbook$,d
+      \,^/lib/modules/,d
+      \,^/usr/src/,d
+      \,^/usr/lib64/gio/modules/giomodule\.cache$,d
+      \,^/usr/lib/gio/modules/giomodule\.cache$,d
+      \,^/usr/lib64/locale/locale-archive,d
+      \,^/usr/lib/locale/locale-archive,d
+      \,^/usr/share/glib-2.0/schemas/gschemas\.compiled$,d
+      \,^/usr/share/icons/.*/icon-theme\.cache$,d
+      \,^/var/cache/,d
+      \,^/var/db/,d
+      \,^/var/lib/dbus/machine-id,d
+      \,^/var/log/,d
+      \,^/var/openldap-data,d
+      \,^/var/spool/,d
+      \,^/var/tmp/,d
+      \,/gdk-pixbuf.*/loaders.cache$,d
+      \,/mime/.*\.xml$,d'
+}
+
+files(){ while read; do [[ -f $REPLY ]] && echo "$REPLY"; done; }
+
+run(){
+ export LC_ALL=C
+ [     -d      /var/log/alien ] ||
+ mkdir -pm 700 /var/log/alien
+ all | not | sort | uniq -u | files > /var/log/alien/aliens.txt
+}
+
+if   acad
+then run
+fi   &>/dev/null &
