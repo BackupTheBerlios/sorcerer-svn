@@ -7,6 +7,12 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+allow_sulogin(){
+ if   LC_ALL=C setleds       2>/dev/null | LC_ALL=C grep -q "Current flags:.*CapsLock on"
+ then LC_ALL=C setleds -caps &>/dev/null; sulogin -t 10; echo
+ fi
+}
+
 run(){
  if ! [ -f $1 ]; then return 1; fi
  if ! [ -x $1 ]; then return 1; fi
@@ -15,7 +21,7 @@ run(){
 
 series(){
  echo "Sysinit Begin"
- for S in /etc/rc.d/rcS.d/*; do run $S start; done
+ for S in /etc/rc.d/rcS.d/*; do run $S start; allow_sulogin; done
  echo "Sysinit End"
 }
 

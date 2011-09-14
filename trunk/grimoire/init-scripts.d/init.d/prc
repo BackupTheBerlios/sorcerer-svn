@@ -7,6 +7,12 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+allow_sulogin(){
+ if   LC_ALL=C setleds       2>/dev/null | LC_ALL=C grep -q "Current flags:.*CapsLock on"
+ then LC_ALL=C setleds -caps &>/dev/null; sulogin -t 10; echo
+ fi
+}
+
 run(){
  if ! [ -f $1 ]; then return 1; fi
  if ! [ -x $1 ]; then return 1; fi
@@ -29,7 +35,7 @@ current(){
  fi
 }
 
-linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2;  done; }
+linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2; allow_sulogin; done; }
 
 # Breaking out of the loop early might cause a bug.
 
@@ -40,6 +46,7 @@ parallel(){
   for F in /etc/rc.d/rc${RL}.d/$1${NOW}*; do run $F $2 & done
   wait
   SEQ=$(($SEQ+1))
+  allow_sulogin
  done
 }
 

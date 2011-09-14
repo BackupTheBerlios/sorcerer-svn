@@ -329,6 +329,9 @@ help(){
 force_reload(){ restart; }
 
 parse(){
+ numlock_on(){  setleds +num &>/dev/null; return 0; }
+ numlock_off(){ setleds -num &>/dev/null; return 0; }
+
  permit(){
   inside(){
    local R=$1
@@ -369,12 +372,15 @@ parse(){
     rmdir --ignore-fail-on-non-empty $P
    fi
   fi
+  numlock_off
   exit $E
  }
 
  local p=$1 f=${1//-/_}
  shift 1
- permit "$p" && "$f" "$@"
+ permit "$p" &&
+ numlock_on  &&
+ "$f" "$@"
  event  "$p"
 }
 
