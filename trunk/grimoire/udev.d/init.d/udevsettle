@@ -10,15 +10,32 @@
 
 . /lib/lsb/init-functions
 
+TIMEOUT=${TIMEOUT:-60}
+
 only start configure status display
 cgroup none
 server /sbin/udevadm
-options "settle --timeout ${TIMEOUT:-60}"
+options "settle --timeout $TIMEOUT"
 
-display(){ echo "Timeout ${TIMEOUT:-60}"; }
+
+# Running udevadm trigger can cause /dev/ptmx to become a device node
+# when /dev/ptmx aught to be a symbolic link pointing to pts/ptmx
+# Running /etc/init.d/ptmx start
+# fixes the problem.
+# Using an init-script for proper notification.
+
+start(){
+ if   log_warning_msg "$NAME starting";
+      $SERV $OPTS
+ then log_success_msg "$NAME started";     [ -h /dev/ptmx ] || /etc/init.d/ptmx start; true
+ else log_failure_msg "$NAME not started"; [ -h /dev/ptmx ] || /etc/init.d/ptmx start; status
+ fi
+}
+
+display(){ echo "Timeout $TIMEOUT"; }
 
 status(){
- log_warning_msg "udevsettle timeout set for ${TIMEOUT:-60} seconds";
+ log_warning_msg "udevsettle timeout set for $TIMEOUT seconds";
 # if   [ -n "$( pidofproc /sbin/udevadm )" ]
 # then log_warning_msg "udevsettle is running"
 # else log_warning_msg "udevsettle is not running"

@@ -149,9 +149,13 @@ start_daemon(){
       *) cgroup_join daemon ;;
   esac
 
+  local TKILL
+  local TOUT=${TOUT:-3600}	# maximum timeout 1 hour
+  (( TKILL = TOUT + 15 ))
+
   if   [ "$BACK" ]
-  then setsid /lib/lsb/pidf "$PIDF" "$@" &
-  else "$@"
+  then /lib/lsb/pidf "$PIDF" "$@" &
+  else /bin/timeout -k $TKILL --foreground $TOUT "$@"
   fi
  }
 
@@ -429,6 +433,7 @@ log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
 fast()    { FAST=1; }
 cgroup()  { CGROUP=${1:-daemon}; }
+timeout() { TOUT=$1; }
 
 on_exit(){
  local         E=$?
@@ -443,6 +448,7 @@ on_exit(){
  else   parse ${ARGS[*]}
  fi
 }
+
 
 if [ -z "$NAME" ]
 then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
