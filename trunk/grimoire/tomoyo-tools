@@ -1,9 +1,11 @@
+# The 2.3.0 version is for linux kernels 3.0.x
 # The 2.4.0 version is for linux kernels 3.1.x
-# This might not be useful yet, see ccs-tools instead
+# The 2.5.0 version is for linux kernels 3.2.x
 
    version stable 2.3.0-20110511
    version unstable 2.4.0-20110820
-   require ccs-tools ncurses
+   require ncurses
+ conflicts ccs-tools
   category administration
  attribute console
       vurl http://sourceforge.jp/projects/tomoyo/releases/
@@ -21,41 +23,84 @@
            tomoyo/52848/tomoyo-tools-$VERSION.tar.gz
       desc 'tools for tomoyo mandatory access control
 
+Not ready for use on production Sorcerer boxes, but soon will be.
+
 Definitely read the documentation.
-tomoyo 2.4.x releases are for use with linux version 3.1.x.y kernels.
 tomoyo 2.3.x releases are for use with linux version 3.0.x.y kernels.
+tomoyo 2.4.x releases are for use with linux version 3.1.x.y kernels.
+tomoyo 2.5.x releases are for use with linux version 3.2.x.y kernels.
 tomoyo security model is not enabled automatically.
 It must be enabled using a kernel parameter.
-For juicy examples of how tomoyo can be used
-for more than merely to control access to and execution of files
-the website below shows examples of how a secondary authentication
-method can be required after successfully sshing into a box.
 
-http://tomoyo.sourceforge.jp/2.3/chapter-10.html.en
+Please read tomoyo documentation.
 
-tomyo has a method for learning and editing access lists.
-However, setting up access lists can be arduous labor
-and the quality of the policy determines the enhanced
-quality of protection.
-In other words enhancing security with tomoyo
-is more a work of art than science.
+Tomoyo on Sorcerer has 3 generally used domain
+<kernel> /sbin/init
+<kernel> /media/root/domain/freedom
+<kernel> /media/root/domain/limited
 
-When comparing examples
-with actual output from a Sorcerer box
-then please be aware that the real root file system
-is mounted as /media/root/
-Therefore, /usr/sbin/httpd will appear to run as
-/media/root/usr/sbin/httpd
-'
+The first two domains provide no restrictions.
+The third domain restricts file modification
+to areas that users normally have access.
+Transitioning from
+<kernel> /media/root/domain/limited
+to 
+<kernel> /media/root/domain/freedom
+is accomplished by running
+# /domain/freedom
+or
+$ /usr/bin/sulogin
+
+Transitioning to domain
+<kernel> /media/root/domain/freedom
+requires authentication with the root password
+in order to verify that those who achieve root UID
+are rightfully entitled to the privilege of root
+rather than having acquired root by exploiting a bug
+in a process already running as root
+or by exploiting a bug in a SUID 0 executable file.
+
+Those in domain
+<kernel> /media/root/domain/limited
+will be unable to modify files in
+/bin /boot /etc /home /lib /lib64 /opt /usr /var/log/
+Also mounting will not work.
+This is entirely intended to limit the damage
+that can be done when someone acquires UID 0
+without proper authentication.
+
+tomyo can still be configured to provide
+mandatory access control lists specific
+to the program begin run
+exactly as described in the tomoyo documentations.
+The default configuration of tomoyo on Sorcerer
+is designed not to modify nor replace traditional security,
+but rather to enforce traditional security by ensuring
+that those who become root can also provide the root password
+before being allowed to make potentially unwanted modifications.'
 
 build(){
-make &&
-make install "INSTALLDIR=$DESTDIR"
+ make_install(){
+  mkdir   -pvm 755                     $DESTDIR/{etc,/usr/bin}
+  install -pvm 755 $SCRIPT_DIR/sulogin $DESTDIR/usr/bin/
+  cp -av $SCRIPT_DIR/tomoyo            $DESTDIR/etc/
+  find  $DESTDIR/etc/tomoyo -type d -name \.svn | xargs -r rm -rv
+ }
+
+ make &&
+ make install "INSTALLDIR=$DESTDIR" &&
+ make_install
 }
 
-post_install(){
- if ! [ -d /etc/tomoyo ]; then
-  /usr/lib/tomoyo/init_policy
-  sed -i -i '/.*/p;s:^:/media/root:' /etc/tomoyo/manager.conf
- fi
+# post_install(){
+#  if ! [ -d /etc/tomoyo ]; then
+#   /usr/lib/tomoyo/init_policy
+#   sed -i -i '/.*/p;s:^:/media/root:' /etc/tomoyo/manager.conf
+#  fi
+# }
+
+current(){
+ case $VERSION in
+  2.3.0-20110511) [ -d /etc/tomoyo/sorcerer ] ;;
+ esac
 }

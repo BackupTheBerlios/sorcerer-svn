@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: tomoyo-domain
+# Default-Start: 2 3 4 5
+# Short-Description: loads Sorcerer specific policies for Tomoyo
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start
+
+start(){
+ content(){ find $1 -type f | grep -v "\.svn" | xargs -r --max-lines=64 cat; }
+
+ load_policies(){
+  content /etc/tomoyo/sorcerer/exception | tomoyo-loadpolicy -ef &&
+  content /etc/tomoyo/sorcerer/domain    | tomoyo-loadpolicy -df
+ }
+
+ if   log_warning_msg "Sorcerer specific tomoyo policies loading"; load_policies
+ then log_success_msg "Sorcerer specific tomoyo policies loaded"
+ else log_failure_msg "Sorcerer specific tomoyo policies not loaded"; return 1
+ fi
+}

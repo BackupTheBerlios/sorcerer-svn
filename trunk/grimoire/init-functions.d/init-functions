@@ -143,7 +143,7 @@ killproc(){
 
 start_daemon(){
  run(){
-  case $CGROUP in
+  case $CGRP in
    idle) cgroup_join idle ;;
    none) : ;;
       *) cgroup_join daemon ;;
@@ -154,8 +154,8 @@ start_daemon(){
   (( TKILL = TOUT + 15 ))
 
   if   [ "$BACK" ]
-  then /lib/lsb/pidf "$PIDF" "$@" &
-  else /bin/timeout -k $TKILL --foreground $TOUT "$@"
+  then $TDOM /lib/lsb/pidf "$PIDF" "$@" &
+  else $TDOM /bin/timeout -k $TKILL --foreground $TOUT "$@"
   fi
  }
 
@@ -432,8 +432,9 @@ name()    { NAME=$1; }
 log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
 fast()    { FAST=1; }
-cgroup()  { CGROUP=${1:-daemon}; }
+cgroup()  { CGRP=${1:-daemon}; }
 timeout() { TOUT=$1; }
+domain()  { if [ -f /domain/$1 ]; then TDOM=/domain/$1; fi; }
 
 on_exit(){
  local         E=$?

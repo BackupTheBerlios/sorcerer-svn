@@ -1,0 +1,18 @@
+# Entry into
+# <kernel> /domain/limited
+# <kernel> /media/root/domain/limited
+# permitted from
+# <kernel> /sbin/init
+
+confirm(){
+ [ -n "$(
+  /usr/sbin/tomoyo-pstree |
+  /bin/sed "\,($PPID) <kernel> /sbin/init$,p;d" )" ]
+}
+
+if   confirm; then
+ if   [ -n "$1" ]
+ then PROG="$1"; shift 1; exec $REPLY "$@"
+ else exec /bin/bash -
+ fi
+fi
