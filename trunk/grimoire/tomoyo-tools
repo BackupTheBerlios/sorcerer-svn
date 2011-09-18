@@ -83,25 +83,20 @@ build(){
  make_install(){
   mkdir   -pvm 755                     $DESTDIR/{etc,/usr/bin}
   install -pvm 755 $SCRIPT_DIR/sulogin $DESTDIR/usr/bin/
-## auto installed by cast
-# cp -av $SCRIPT_DIR/tomoyo            $DESTDIR/etc/
-# find  $DESTDIR/etc/tomoyo -type d -name \.svn | xargs -r rm -rv
  }
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then sed -i 's:/usr/sbin:/sbin:; s:/usr/lib:/lib64:' usr_{lib_tomoyo,sbin}/Makefile
+ else sed -i 's:/usr/sbin:/sbin:; s:/usr/lib:/lib:'   usr_{lib_tomoyo,sbin}/Makefile
+ fi
 
  make &&
  make install "INSTALLDIR=$DESTDIR" &&
  make_install
 }
 
-# post_install(){
-#  if ! [ -d /etc/tomoyo ]; then
-#   /usr/lib/tomoyo/init_policy
-#   sed -i -i '/.*/p;s:^:/media/root:' /etc/tomoyo/manager.conf
-#  fi
-# }
-
 current(){
  case $VERSION in
-  2.3.0-20110511) [ -d /etc/tomoyo/sorcerer ] ;;
+  2.3.0-20110511) [ -d /etc/init.d/tomoyo-loadpolicy-sorcerer ] ;;
  esac
 }
