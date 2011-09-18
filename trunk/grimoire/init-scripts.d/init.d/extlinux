@@ -54,7 +54,8 @@ extlinux_conf_update(){
   fi
   echo "LABEL	$REPLY"
   echo "	KERNEL	../$REPLY/linux"; [ -n "$INITRF" ] &&
-  echo "	INITRD	$INITRF";         [ -n "$1"      ] &&
+  echo "	INITRD	$INITRF";         [ -f /sbin/tomoyo-init ] &&
+  echo "	APPEND	security=tomoyo"; [ -n "$1" ] &&
   echo "$1"
   echo
  }
@@ -120,11 +121,18 @@ boot_labels(){ ! both | sort | uniq -u | grep -q .; }
 
 previously_passed(){ ! [ -d /var/log/init/failed/extlinux ]; }
 
+tomoyo_enabled(){
+ if   [    -f    /sbin/tomoyo-init ]
+ then grep -q security=tomoyo $CONF
+ fi
+}
+
 current(){ 
  [       -f  $EXTL ] &&
  [       -f  $CONF ] &&
  [ $CONF -nt $HEAD ] &&
  [ $CONF -nt $TAIL ] &&
+ tomoyo_enabled      &&
  previously_passed   &&
  boot_labels
 }
