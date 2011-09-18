@@ -32,71 +32,14 @@ tomoyo 2.5.x releases are for use with linux version 3.2.x.y kernels.
 tomoyo security model is not enabled automatically.
 It must be enabled using a kernel parameter.
 
-Please read tomoyo documentation.
-
-Tomoyo on Sorcerer has 3 generally used domain
-<kernel> /sbin/init
-<kernel> /media/root/domain/freedom
-<kernel> /media/root/domain/limited
-
-The first two domains provide no restrictions.
-The third domain restricts file modification
-to areas that users normally have access.
-Transitioning from
-<kernel> /media/root/domain/limited
-to 
-<kernel> /media/root/domain/freedom
-is accomplished by running
-# /domain/freedom
-or
-$ /usr/bin/sulogin
-
-Transitioning to domain
-<kernel> /media/root/domain/freedom
-requires authentication with the root password
-in order to verify that those who achieve root UID
-are rightfully entitled to the privilege of root
-rather than having acquired root by exploiting a bug
-in a process already running as root
-or by exploiting a bug in a SUID 0 executable file.
-
-Those in domain
-<kernel> /media/root/domain/limited
-will be unable to modify files in
-/bin /boot /etc /home /lib /lib64 /opt /usr /var/log/
-Also mounting will not work.
-This is entirely intended to limit the damage
-that can be done when someone acquires UID 0
-without proper authentication.
-
-tomyo can still be configured to provide
-mandatory access control lists specific
-to the program begin run
-exactly as described in the tomoyo documentations.
-The default configuration of tomoyo on Sorcerer
-is designed not to modify nor replace traditional security,
-but rather to enforce traditional security by ensuring
-that those who become root can also provide the root password
-before being allowed to make potentially unwanted modifications.'
+Please read tomoyo documentation.'
 
 build(){
- make_install(){
-  mkdir   -pvm 755                     $DESTDIR/{etc,/usr/bin}
-  install -pvm 755 $SCRIPT_DIR/sulogin $DESTDIR/usr/bin/
- }
-
  if   [[ $HOSTTYPE == x86_64 ]]
  then sed -i 's:/usr/sbin:/sbin:; s:/usr/lib:/lib64:' usr_{lib_tomoyo,sbin}/Makefile
  else sed -i 's:/usr/sbin:/sbin:; s:/usr/lib:/lib:'   usr_{lib_tomoyo,sbin}/Makefile
  fi
 
  make &&
- make install "INSTALLDIR=$DESTDIR" &&
- make_install
-}
-
-current(){
- case $VERSION in
-  2.3.0-20110511) [ -d /etc/init.d/tomoyo-loadpolicy-sorcerer ] ;;
- esac
+ make install "INSTALLDIR=$DESTDIR"
 }

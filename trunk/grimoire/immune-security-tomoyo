@@ -1,0 +1,69 @@
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+   version stable 20110918
+   require tomoyo-tools
+  category immune-system
+ attribute archive_off solo stale
+      info home  http://sorcerer.silverice.org/
+      desc 'enhanced security
+
+Tomoyo on Sorcerer has 3 generally used domain
+<kernel> /sbin/init
+<kernel> /media/root/domain/limited
+<kernel> /media/root/domain/freedom
+
+The first domain is a default domain and provides no restrictions.
+The second domain provides restrictions.
+The third domain provides no resctrictions.
+
+Transitioning from
+<kernel> /media/root/domain/limited
+to 
+<kernel> /media/root/domain/freedom
+is accomplished by running
+
+# /domain/freedom
+or
+# /usr/bin/sulogin
+or
+# sulogin
+
+Transitioning to domain
+<kernel> /media/root/domain/freedom
+requires authentication with the root password.
+Authentication ensures that those who achieve root UID
+are rightfully entitled to the privilege of root
+rather than having acquired root by exploiting a bug
+in a process already running as root
+or by exploiting a bug in a SUID 0 executable file.
+
+Those in domain
+<kernel> /media/root/domain/limited
+will be unable to modify files in
+/bin /boot /etc /home /lib /lib64 /opt /usr /var/log/
+Mounting also is disabled.
+This limits the damage that can be done
+when someone acquires UID 0 without authentication.
+
+tomyo can still be configured to provide
+mandatory access control lists specific to programs
+exactly as described in the tomoyo documentations.
+Write the new domain files in /etc/tomoyo/sorcerer/domain/
+Write the new exception files in /etc/tomoyo/sorcerer/exception/
+That way the modifications are merged with Sorcerer defaults
+and loaded into the kernel.
+
+Tomoyo on Sorcerer is not intended to replace traditional security.
+Rather the security model is enforced by ensuring that those
+who become root can also provide the root password
+before gaining privilege to make potentially unwated modifications.
+
+Note that some services will acquire custom domains
+that that are far more restrictive than the limited domain.'
+
+build(){
+ mkdir   -pvm 755                     $DESTDIR/usr/bin/
+ install -pvm 755 $SCRIPT_DIR/sulogin $DESTDIR/usr/bin/
+}
