@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if   [ -f   /domain/limited ]
+then DOMAIN=/domain/limited
+else DOMAIN=
+fi
+
 if   read < /proc/cmdline;
      [[ $REPLY =~ boot=IR ]] &&
      ! grep -q /media/root /etc/fstab
@@ -14,6 +19,6 @@ elif [ -x /media/root/etc/init.d/boot-sentient ] &&
      [[ $@ =~ tty1 ]]
 then exec /bin/chroot /media/root /sbin/agetty -n -l /bin/login_root "$@"
 elif [ -f /media/root/sbin/agetty ]
-then exec /bin/chroot /media/root /sbin/agetty "$@"
-else                              /sbin/agetty "$@"
+then exec /bin/chroot /media/root $DOMAIN /sbin/agetty "$@"
+else exec                         $DOMAIN /sbin/agetty "$@"
 fi
