@@ -18,8 +18,10 @@ start(){
   /etc/init.d/udevd restart
   udevadm trigger
   udevadm settle
-  [ -h /dev/ptmx ] ||
-  /etc/init.d/ptmx start
+  if ! [   -h          /dev/ptmx ]
+  then  rm -f          /dev/ptmx
+        ln -s pts/ptmx /dev/ptmx
+  fi
  }
 
  run &>/dev/null &
