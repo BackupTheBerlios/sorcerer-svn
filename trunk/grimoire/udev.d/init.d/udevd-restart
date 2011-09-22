@@ -13,7 +13,15 @@ only start
 fast
 
 start(){
- /etc/init.d/udevd restart
- /etc/init.d/udevtrigger start
- /etc/init.d/udevsettle start
+ run (){
+  udevadm settle
+  /etc/init.d/udevd restart
+  udevadm trigger
+  udevadm settle
+  [ -h /dev/ptmx ] ||
+  /etc/init.d/ptmx start
+ }
+
+ run &>/dev/null &
+ disown
 }
