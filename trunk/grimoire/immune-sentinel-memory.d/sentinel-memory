@@ -18,16 +18,16 @@ find_cgroup(){
 # 10M worked in trials.
 
 pawn(){
- mkdir -p        $CG/memory/pawn
- echo $BASHPID > $CG/memory/pawn/tasks
- echo 0        > $CG/memory/pawn/memory.oom_control
+ mkdir -p        $CG/pawn
+ echo $BASHPID > $CG/pawn/tasks
+ echo 0        > $CG/pawn/memory.oom_control
  echo 1000     > /proc/$BASHPID/oom_score_adj
  local RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
  while sleep 86400; do :; done
 }
 
 oom_control(){
- find $CG/memory -mindepth 2 -maxdepth 2 -type f -name memory.oom_control |
+ find $CG -mindepth 2 -maxdepth 2 -type f -name memory.oom_control |
  grep -v memory/pawn/memory |
  while read; do echo $1 > $REPLY; done
 }
@@ -40,7 +40,6 @@ main(){
 
  local PASS=0
  echo -1000    > /proc/$BASHPID/oom_score_adj
- echo 262144   > $CG/cpu/daemon/sentinel-memory/cpu.shares
  while
   (( PASS++ ))
   SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&

@@ -39,14 +39,14 @@ session(){
 pids_from_cgroup(){
  if ! find_cgroup; then return 1; fi
 
- if   [    -f   $CG/cpu/daemon/$NAME/tasks ] &&
-      grep -q . $CG/cpu/daemon/$NAME/tasks
- then cat       $CG/cpu/daemon/$NAME/tasks; return 0
+ if   [    -f   $CG/daemon/$NAME/tasks ] &&
+      grep -q . $CG/daemon/$NAME/tasks
+ then cat       $CG/daemon/$NAME/tasks; return 0
  fi
 
- if   [    -f   $CG/cpu/idle/$NAME/tasks ] &&
-      grep -q . $CG/cpu/idle/$NAME/tasks
- then cat       $CG/cpu/idle/$NAME/tasks; return 0
+ if   [    -f   $CG/idle/$NAME/tasks ] &&
+      grep -q . $CG/idle/$NAME/tasks
+ then cat       $CG/idle/$NAME/tasks; return 0
  fi
 
  return 1
@@ -99,14 +99,10 @@ find_cgroup(){
 }
 
 cgroup_join(){
-  if find_cgroup; then
-   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/$1/$NAME
-   echo $BASHPID > $CG/blkio/$1/$NAME/tasks
-   echo $BASHPID > $CG/cpu/$1/$NAME/tasks
-   echo $BASHPID > $CG/cpuset/$1/$NAME/tasks
-   echo $BASHPID > $CG/freezer/$1/$NAME/tasks
-   echo $BASHPID > $CG/memory/$1/$NAME/tasks
-  fi
+ if find_cgroup; then
+  mkdir -pm 700   $CG/$1/$NAME
+  echo $BASHPID > $CG/$1/$NAME/tasks
+ fi
 }
 
 killproc(){
@@ -135,7 +131,7 @@ killproc(){
   then rm -f "$PIDF"
   fi
   find_cgroup &&
-  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
+  rmdir --ignore-fail-on-non-empty $CG/{daemon,idle}/$NAME 2>/dev/null &
   return 0
  else return 1
  fi

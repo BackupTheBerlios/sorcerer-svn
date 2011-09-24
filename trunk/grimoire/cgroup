@@ -1,0 +1,30 @@
+# Copyright Kyle Sallee 2011.
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+   version stable 20110923
+   require init-functions
+  category administration/boot
+ attribute archive_off console
+      info home  http://sorcerer.silverice.org
+      desc 'cgroup setup utility
+cgroup provides init-script /etc/init.d/cgroup
+that mounts a cgroup file system on /sys/fs/cgroup
+It also creates the top level cgroup directories.
+And it sets values within those cgroups which
+may be default or SA defined.'
+
+build(){
+ mkdir -pm 700 $DESTDIR/etc/cgroup
+ find       $SCRIPT_DIR/etc -mindepth 1 -printf "%P\n" |
+ tar  -C    $SCRIPT_DIR/etc --exclude-vcs --no-recursion -cPT - |
+ tar  -C    $DESTDIR/etc -pxf -
+ find       $DESTDIR/etc -type f | xargs -r --max-lines=64 chmod 0644
+ find       $DESTDIR/etc -type d | xargs -r --max-lines=64 chmod 0755
+ chmod 0700 $DESTDIR/etc/cgroup
+
+ mkdir -pvm 755             $DESTDIR/sbin
+ for REPLY in            $SCRIPT_DIR/sbin/*
+ do  install -vm 755 $REPLY $DESTDIR/sbin/
+ done
+}

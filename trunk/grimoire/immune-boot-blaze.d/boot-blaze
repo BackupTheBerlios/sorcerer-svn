@@ -41,24 +41,8 @@ watch(){
   rm   -f $TMP $RAW
 }
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
-}
-
 main(){
  watch &>/dev/null & disown
- if find_cgroup; then
-  echo 100 > $CG/blkio/daemon/boot-blaze/blkio.weight
-  echo   8 > $CG/cpu/daemon/boot-blaze/cpu.shares
- fi
  if [[ -f $CFG ]]; then
   load &>/dev/null & disown
  fi
