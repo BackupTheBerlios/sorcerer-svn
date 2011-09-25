@@ -146,12 +146,15 @@ start_daemon(){
   esac
 
   local TKILL
-  local TOUT=${TOUT:-3600}	# maximum timeout 1 hour
-  (( TKILL = TOUT + 15 ))
+  if [ -n "$TOUT" ]
+  then (( TKILL = TOUT + 15 ))
 
   if   [ "$BACK" ]
   then $TDOM /lib/lsb/pidf "$PIDF" "$@" &
-  else $TDOM /bin/timeout -k $TKILL --foreground $TOUT "$@"
+  elif [ "$TOUT" ]
+  then (( TKILL = TOUT + 15 ))
+       $TDOM /bin/timeout -k $TKILL --foreground $TOUT "$@"
+  else $TDOM "$@"
   fi
  }
 
