@@ -1,0 +1,55 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+help(){
+ if [ -z "$1" ]; then
+  echo "affine runs a process on a single CPU or core"
+  echo "If the first parameter beings with -
+  echo "then that specifies the CPU or core to use."
+  echo "Otherwise the core selected is 0"
+  echo "The second parameter specifies a PID."
+  echo "Otherwise specific a program to execute."
+  echo "Additional parameters can be specified as the program's parameters."
+  return 1
+ fi 1>&2
+}
+
+find_cgroup(){
+ if [ -n "$CG" ]; then return 0; fi
+ local DEV JUNK TYPE
+ while read DEV CG TYPE JUNK; do
+  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
+  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
+  fi
+ done < /proc/mounts
+ unset CG
+ return 1
+}
+
+select_cpu(){
+ if   ! find_cgroup;  then echo "Error: Unable to locate cgroup filesystem." 1>&2; return 1
+ elif [ -z "$USER" ]; then echo "Error: Unknown user." 1>&2; return 1; fi
+
+ if   [   "${1:1}" == "-" ]
+ then CPU="${1:1:8}"
+ else CPU=0
+ fi
+
+ mkdir -pm 700 $CG/user/$USER/affine/$CPU
+ echo "$CPU" > $CG/user/$USER/affine/$CPU/cpuset.cpus
+ echo $$     > $CG/user/$USER/affine/$CPU/tasks
+}
+
+execute(){
+ if   grep -qx "$1"   $CG/user/$USER/tasks
+ then echo     "$1" > $CG/user/$USER/affine/$CPU/tasks
+ else RUN=$1; shift 1; exec $RUN "$@"
+ fi
+}
+
+help &&
+select_cpu "$1" &&
+execute "$@"
