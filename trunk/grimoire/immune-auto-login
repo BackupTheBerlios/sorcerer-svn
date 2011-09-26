@@ -1,0 +1,23 @@
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+   version stable 20110925
+   require kde-v4 xinit xsetroot xterm
+  category immune-system
+ attribute archive_off console
+      info home  http://sorcerer.silverice.org/
+      desc "automatic kiosk style login to KDE"
+
+pre_build(){
+# This is a normal user account and not a system use account
+KG=kguest
+groupadd -K GID_MIN=1024 -K GID_MAX=60000       $KG                  2>/dev/null
+useradd  -K UID_MIN=1024 -K UID_MAX=60000 -m -g $KG -d /home/$KG $KG 2>/dev/null
+default_pre_build
+}
+
+build(){
+ mkdir  -pvm 755                        $DESTDIR/usr/sbin
+ install -vm 700 $SCRIPT_DIR/auto-login $DESTDIR/usr/sbin
+}

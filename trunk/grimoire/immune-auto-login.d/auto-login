@@ -1,0 +1,16 @@
+#!/bin/bash
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+stop_dm(){
+ while [ -n "$1" ]; do
+  if   [ -f "$1" ] && [ -x "$1" ] && $1 status &>/dev/null
+  then $1 stop; sleep 3
+  fi
+}
+
+while :; do
+ stop_dm /etc/init.d/{gdm,kdm,xdm}
+ /bin/su - kguest -c /usr/bin/startx /opt/kde4/bin/startkde
+done &>/dev/null &
