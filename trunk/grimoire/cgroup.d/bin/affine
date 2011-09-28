@@ -33,7 +33,7 @@ select_cpu(){
  if   ! find_cgroup;  then echo "Error: Unable to locate cgroup filesystem." 1>&2; return 1
  elif [ -z "$USER" ]; then echo "Error: Unknown user." 1>&2; return 1; fi
 
- if   [   "${1:1}" == "-" ]
+ if   [   "${0:1}" == "-" ]
  then CPU="${1:1:8}"
  else CPU=0
  fi
@@ -44,7 +44,10 @@ select_cpu(){
 }
 
 execute(){
- if   grep -qx "$1"   $CG/user/$USER/tasks
+ if   [   "${0:1}" == "-" ]
+ then grep -qx "$2"   $CG/user/$USER/tasks
+ then echo     "$2" > $CG/user/$USER/affine/$CPU/tasks
+ elif grep -qx "$1"   $CG/user/$USER/tasks
  then echo     "$1" > $CG/user/$USER/affine/$CPU/tasks
  else RUN=$1; shift 1; exec $RUN "$@"
  fi
