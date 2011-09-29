@@ -99,14 +99,13 @@ find_cgroup(){
 }
 
 cgroup_join(){
-  if find_cgroup; then
-   mkdir -p $CG/{blkio,cpu,cpuset,freezer,memory}/$1/$NAME
-   echo $BASHPID > $CG/blkio/$1/$NAME/tasks
-   echo $BASHPID > $CG/cpu/$1/$NAME/tasks
-   echo $BASHPID > $CG/cpuset/$1/$NAME/tasks
-   echo $BASHPID > $CG/freezer/$1/$NAME/tasks
-   echo $BASHPID > $CG/memory/$1/$NAME/tasks
+ if find_cgroup; then
+  mkdir -pm 770   $CG/$1/$NAME
+  echo $BASHPID > $CG/$1/$NAME/tasks
+  if   [ -n "$AFFINE" ]
+  then echo "$AFFINE" > $CG/$1/$NAME/cpuset.cpu
   fi
+ fi
 }
 
 killproc(){
@@ -429,6 +428,7 @@ control(){
 
     only(){ only="$@ control"; }
     deny(){ deny="$@"; }
+affine()  { AFFINE=${1:-0}; }
 pid_file(){ PIDF=$1; }
 server()  { SERV=$1; }
 config()  { CONF=$1; }
