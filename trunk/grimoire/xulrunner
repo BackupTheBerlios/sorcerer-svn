@@ -1,6 +1,11 @@
-# gjs version 0.7.14 can not digest xulrunner 2.0
+# gjs and gnome-shell will break when xulrunner updates
+# Therefore, update and test those also.
 
-   version stable 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
+# gjs version 1.30.0 can not digest xulrunner 2.0
+# gjs version 1.30.0 is definitely not written to support xulrunner version 7.0.1
+
+   version stable 3.6.23 1.9.1.19 1.9.0.11 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
+   version unstable 8.0b1 7.0.1 7.0 6.0.2
 # Using internal mng
    require GConf jdk libIDL libnotify nss sqlite startup-notification zip
 #  require GConf-dbus jdk libIDL libnotify nss sqlite startup-notification zip
@@ -10,7 +15,7 @@
   category network/web
  attribute client library makej multilib-dual solo x11
     source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-      info last  20110420
+      info last  20110924
   homepage http://developer.mozilla.org/en/XULRunner
       vurl http://developer.mozilla.org/en/XULRunner
       opts --with-system-jpeg
@@ -24,8 +29,8 @@
       opts --enable-libxul
       opts --with-java-include-path=/opt/jdk/include
       opts --with-java-bin-path=/opt/jdk/bin
-      opts --with-system-nspr
-      opts --with-system-nss
+#     opts --with-system-nspr
+#     opts --with-system-nss
       opts --enable-strip
       opts --enable-default-toolkit=cairo-gtk2
       opts --disable-mochitest
@@ -70,6 +75,21 @@ build(){
  if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
  fi
+
+ case $VERSION in
+  7.0.1) grep -rl "curl/types\.h" * |
+         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+         cp security/coreconf/Linux{2.6,3.0}.mk ;;
+    7.0) grep -rl "curl/types\.h" * |
+         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+         cp security/coreconf/Linux{2.6,3.0}.mk ;;
+  6.0.2) grep -rl "curl/types\.h" * |
+         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+         cp security/coreconf/Linux{2.6,3.0}.mk ;;
+ 3.6.23) grep -rl "curl/types\.h" * |
+         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+         cp security/coreconf/Linux{2.6,3.0}.mk ;;
+ esac
 
  ./configure \
  --prefix=/usr \

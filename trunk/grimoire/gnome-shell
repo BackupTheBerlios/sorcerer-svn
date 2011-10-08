@@ -1,12 +1,15 @@
 # Not certain about requirements.
+# 3.2.0 requires an upgrade of glib to a version that causes
+# compile problems with other software
 
-   version stable 3.0.2 3.0.0.1 3.0.0
-   version unstable 3.1.91.1
-   require evolution-data-server gjs gnome-bluetooth mutter telepathy-logger
+   version stable 3.2.0 3.0.2 3.0.0.1 3.0.0
+   require evolution-data-server folks gjs gnome-bluetooth mutter telepathy-logger
+      opts --without-ca-certificates
+#     opts --with-ca-certificates=/etc/ssl/certs/ca-certificates.crt
   category utility utility/terminal-emulator
  attribute gnome new
-    source $GNOME_URL sources/gnome-shell/${VERSION:0:3}/gnome-shell-$VERSION.tar.bz2
-      info last  20110707
+    source $GNOME_URL sources/gnome-shell/${VERSION:0:3}/gnome-shell-$VERSION.tar.xz
+      info last 20111006
   homepage http://www.gnome.org
     CFLAGS='-O2'
    LDFLAGS='-Wl,-O1'
@@ -18,13 +21,16 @@ innovative user interface concepts
 to provide a visually attractive and easy to use experience.'
 
 build(){
+ local LD_LIBRARY_PATH
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+ if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
   if [ -d /usr/lib64/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/nvidia"; fi
   if [ -d /usr/lib64/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/ati"; fi
+  export LD_LIBRARY_PATH="/usr/lib64/xulrunner-1.9.2.23"
  else
   if [ -d /usr/lib/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/nvidia"; fi
   if [ -d /usr/lib/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/ati"; fi
+  export LD_LIBRARY_PATH="/usr/lib/xulrunner-1.9.2.23"
  fi
 
  default_build

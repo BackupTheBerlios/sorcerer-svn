@@ -1,22 +1,31 @@
-   version stable 0.7.14 0.7.13 0.7.11 0.7.10
-   version unstable 1.29.18 1.29.17 1.29.16 1.29.0
+# ./.libs/libgjs.so: undefined reference to `JS_updateMallocCounter'
+# 1.30.0 does not compile.
+
+   version stable 1.30.0 0.7.14 0.7.13 0.7.11 0.7.10
+   version unstable 1.30.0 1.29.18 1.29.17 1.29.16 1.29.0
    require gobject-introspection xulrunner
   category development
- attribute gnome library
-#attribute makej multilib-concurrent
-    source $GNOME_URL sources/gjs/${VERSION:0:3}/gjs-$VERSION.tar.bz2
-      info last  20110405
+ attribute gnome library makej multilib-concurrent
+    source $GNOME_URL sources/gjs/${VERSION:0:4}/gjs-$VERSION.tar.xz
+#   source $GNOME_URL sources/gjs/${VERSION:0:3}/gjs-$VERSION.tar.xz
+      info last  20111006
   homepage http://www.gnome.org
       desc 'JavaScript bindings based on gobject-introspection'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+ if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
   if [ -d /usr/lib64/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/nvidia"; fi
   if [ -d /usr/lib64/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/ati"; fi
+  export LDFLAGS+=" -Wl,-rpath,/usr/lib64/xulrunner-1.9.2.23"
  else
   if [ -d /usr/lib/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/nvidia"; fi
   if [ -d /usr/lib/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/ati"; fi
+  export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-1.9.2.23"
  fi
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ case $VERSION in
+# 1.30.0) sed -i 's/JS_updateMallocCounter/updateMallocCounter/' gi/object.c ;;
+  1.30.0) sed -i '/JS_updateMallocCounter/d' gi/object.c ;;
+ esac
  default_build
 }
