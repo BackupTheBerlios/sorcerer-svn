@@ -4,8 +4,12 @@
 # gjs version 1.30.0 can not digest xulrunner 2.0
 # gjs version 1.30.0 is definitely not written to support xulrunner version 7.0.1
 
-   version stable 3.6.23 1.9.1.19 1.9.0.11 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
-   version unstable 8.0b1 7.0.1 7.0 6.0.2
+# gjs might not run properly with xulrunner 3.6.23
+# gjs does not indicate which version of xulrunner is desired and compatible
+# gjs definitely requires xulrunner 1.9.2
+
+   version stable 3.6.21 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
+   version unstable 8.0b1 7.0.1 7.0 6.0.2 3.6.23
 # Using internal mng
    require GConf jdk libIDL libnotify nss sqlite startup-notification zip
 #  require GConf-dbus jdk libIDL libnotify nss sqlite startup-notification zip
@@ -77,18 +81,25 @@ build(){
  fi
 
  case $VERSION in
-  7.0.1) grep -rl "curl/types\.h" * |
-         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-         cp security/coreconf/Linux{2.6,3.0}.mk ;;
-    7.0) grep -rl "curl/types\.h" * |
-         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-         cp security/coreconf/Linux{2.6,3.0}.mk ;;
-  6.0.2) grep -rl "curl/types\.h" * |
-         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-         cp security/coreconf/Linux{2.6,3.0}.mk ;;
- 3.6.23) grep -rl "curl/types\.h" * |
-         xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-         cp security/coreconf/Linux{2.6,3.0}.mk ;;
+     7.0.1) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+       7.0) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+     6.0.2) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+    3.6.23) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+    3.6.21) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+  1.9.1.19) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.0}.mk
+            opts --disable-crashreporter ;;
  esac
 
  ./configure \
