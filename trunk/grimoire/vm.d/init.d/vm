@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc
+# Default-Start: S
+# Short-Description: sets values in /proc/sys/vm/
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start reset
+name /proc/sys/vm
+deny control
+
+reset(){
+ if   [ -d /etc.ori/vm ]; then
+  rm -fr   /etc/vm.old
+  mv       /etc/vm     /etc/vm.old
+  cp -a    /etc.ori/vm /etc/
+  echo "Current configuration moved  from /etc/vm     to /etc/vm.old"
+  echo "Default configuration copied from /etc.ori/vm to /etc/vm"
+ fi
+}
+
+init_vm(){
+ catlines(){ while read; do echo "$REPLY" > $1; done; }
+
+ find /etc/vm -type f -not -empty -printf "%P\n" |
+ while read; do
+  if   [ -f     /proc/sys/vm/$REPLY ]
+  then catlines /proc/sys/vm/$REPLY < /etc/vm/$REPLY
+  fi
+ done
+}
+
+start(){
+ if   log_warning_msg "/proc/sys/vm initializing"; init_vm
+ then log_success_msg "/proc/sys/vm initialized"
+ else log_failure_msg "/proc/sys/vm failed initialization"; return 1
+ fi
+}

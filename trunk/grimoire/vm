@@ -1,0 +1,28 @@
+# Copyright Kyle Sallee 2011.
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+   version stable 20111008
+   require init-functions
+  category administration/boot
+ attribute archive_off console
+      info home  http://sorcerer.silverice.org
+      desc 'init-script for setting values in /proc/sys/vm during boot
+
+The default value should provide adequate performance
+for both workstations and laptops
+without causing excessively frequent disk writes.
+Servers that require less 10 minutes of data loss
+following an unexpected power outage
+should use lower centi-second values.
+'
+
+build(){
+ mkdir -pm 700 $DESTDIR/etc/vm
+ find       $SCRIPT_DIR/etc -mindepth 1 -printf "%P\n" |
+ tar  -C    $SCRIPT_DIR/etc --exclude-vcs --no-recursion -cPT - |
+ tar  -C    $DESTDIR/etc -pxf -
+ find       $DESTDIR/etc -type f | xargs -r --max-lines=64 chmod 0644
+ find       $DESTDIR/etc -type d | xargs -r --max-lines=64 chmod 0755
+ chmod 0700 $DESTDIR/etc/vm
+}
