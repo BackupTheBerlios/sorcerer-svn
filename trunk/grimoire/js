@@ -1,0 +1,49 @@
+   version stable 185-1.0.0
+   require nspr
+      opts --enable-shared-js
+      opts --enable-strip
+      opts --disable-static
+      opts --enable-readline
+      opts --enable-threadsafe
+      opts --disable-tests
+      opts --with-system-nspr
+  category network/web
+ attribute client library makej multilib-dual setarch x11
+    source http://ftp.mozilla.org/pub/mozilla.org/js/js$VERSION.tar.gz
+      info last 20110431
+      desc 'javascript library called spidermonkey'
+
+build(){
+ fix_symlink(){
+  if   [  -f $DESTDIR/usr/lib64/libmozjs185.so.1.0.0 ]
+  then rm -f $DESTDIR/usr/lib64/libmozjs185.so
+       ln -s libmozjs185.so.1.0.0 $DESTDIR/usr/lib64/libmozjs185.so
+  fi
+  if   [  -f $DESTDIR/usr/lib/libmozjs185.so.1.0.0 ]
+  then rm -f $DESTDIR/usr/lib/libmozjs185.so
+       ln -s libmozjs185.so.1.0.0 $DESTDIR/usr/lib/libmozjs185.so
+  fi
+ }
+
+ fix_header(){
+  local B="#define JS_BYTES_PER_WORD"
+  sed -i "s:$B 8:#if defined(__x86_64__)\n$B 8\n#else\n$B 4\n#endif:" $DESTDIR/usr/include/js/js-config.h
+ }
+
+ if [[ $HOSTTYPE == x86_64 ]] &&
+    [[ $CFLAGS   =~ -m32   ]]
+ then opts --host i686-pc-linux-gnu
+ fi
+
+ cd js/src
+ ./configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ --enable-optimize="$CFLAGS" \
+ $OPTS &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+ fix_symlink &&
+ fix_header
+}
