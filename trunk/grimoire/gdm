@@ -1,10 +1,10 @@
 # The content of the PID file might be incorrect.
 # running /etc/init.d/gdm stop or /etc/init.d/gdm restart
 # might not work properly
-# seems to be due to a bugg gdm.
+# seems to be due to a bug gdm.
 
    version stable 3.2.0 3.0.0 2.91.94 2.32.1 2.32.0
-   require GConf Linux-PAM accountsservice gnome-power-manager gnome-settings-daemon libcanberra libxklavier metacity upower
+   require GConf Linux-PAM accountsservice gnome-power-manager gnome-settings-daemon gnome-shell libcanberra libxklavier metacity mutter upower
 # libselinux 
   optional libXevie     --with-xevie              --without-xevie
   optional tcp_wrappers --with-tcp-wrappers=yes   --with-tcp-wrappers=no to control allowed remote connections using tcp_wrappers
@@ -14,8 +14,8 @@
   category window-manager
  attribute gnome makej
     source $GNOME_URL sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.xz
-  homepage http://www.gnome.org/projects/gdm/
-      info last  20111006
+      info last 20111006
+      info home http://www.gnome.org/projects/gdm/
 # no sorcerer support for consolehelper yet.
 #            'libselinux:--with-selinux:--without-selinux:for selinux support'
  freshmeat gnomedisplaymanager
@@ -25,6 +25,15 @@ of the well known xdm program.'
      iwall 'gdm will soon restart'
 
 build(){
+ # switching window manager from metacity to mutter
+ # becuase metacity crashes when using NVIDIA twinview
+
+# case $VERSION in
+#  3.2.0) sed -i "s:gnome-shell --gdm-mode:mutter:" \
+#         data/applications/gnome-shell.desktop{,.in}
+#         echo "Switching gdm window manager from gnome-shell to mutter" ;;
+# esac
+
  if   spell_installed Linux-PAM; then SCHEME=pam
  elif spell_installed shadow;    then SCHEME=shadow
  else SCHEME=auto
@@ -44,6 +53,7 @@ build(){
 
 current(){
  case $VERSION in
+# 3.2.0) grep -q "from gnome-shell to mutter" $COMPILE_LOGS/gdm ;;
   3.0.0) grep -q /etc/pam.d/system-auth /etc/pam.d/gdm ;;
  esac
 }

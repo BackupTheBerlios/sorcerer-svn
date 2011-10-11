@@ -1,5 +1,5 @@
    version stable 3.2.0 3.0.0 2.91.94 2.32.1 2.32.0
-   require GConf json-glib libXtst librsvg upower
+   require GConf json-glib libXtst librsvg metacity mutter upower
 #  require gnome-control-center gnome-panel libXtst upower
       opts --disable-docbook-docs
   category window-manager
@@ -11,19 +11,23 @@
       desc 'gnome session manager'
 
 build(){
- # disabling check for accleration, because it might fail
- # falback from gnome-shell to metacity window manager is terrible because
- # metacity crashes when the first application is started
- # and thus forcefully logs out the user.
+## disabling check for accleration, because it might fail
+## falback from gnome-shell to metacity window manager is terrible because
+## metacity crashes when the first application is started
+## and thus forcefully logs out the user.
+
+# changed fallback window manager to mutter
 
  case $VERSION in
-  3.2.0) sed -i  '/IsRunnableHelper/d'  data/gnome.session.desktop.in.in ;;
+  3.2.0) sed -i 's:metacity:mutter:'  data/gnome-fallback.session.desktop.in.in ;;
+# 3.2.0) sed -i '/IsRunnableHelper/d' data/gnome.session.desktop.in.in ;;
  esac
  default_build
 }
 
 current(){
  case $VERSION in
-  3.2.0) ! grep -q "IsRunableHelper" /usr/share/gnome-session/sessions/gnome.session ;;
+  3.2.0)   grep -q mutter          /usr/share/gnome-session/sessions/gnome-fallback.session ;;
+# 3.2.0) ! grep -q IsRunableHelper /usr/share/gnome-session/sessions/gnome.session ;;
  esac
 }
