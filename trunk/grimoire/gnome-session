@@ -9,3 +9,21 @@
   homepage http://www.gnome.org
      wmbin /usr/bin/gnome-session
       desc 'gnome session manager'
+
+build(){
+ # disabling check for accleration, because it might fail
+ # falback from gnome-shell to metacity window manager is terrible because
+ # metacity crashes when the first application is started
+ # and thus forcefully logs out the user.
+
+ case $VERSION in
+  3.2.0) sed -i  '/IsRunnableHelper/d'  data/gnome.session.desktop.in.in ;;
+ esac
+ default_build
+}
+
+current(){
+ case $VERSION in
+  3.2.0) ! grep -q "IsRunableHelper" /usr/share/gnome-session/sessions/gnome.session ;;
+ esac
+}
