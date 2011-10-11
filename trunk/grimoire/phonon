@@ -1,12 +1,16 @@
-# is glib only used with pulseaudio?
-
    version stable 4.5.0 4.4.4 4.4.3 4.4.2
    inherit kde-v4
-   require automoc4
-# optional pulseaudio
+   require automoc4 pulseaudio
   category audio
  attribute library makej multilib-dual
     source $KDE_URL stable/phonon/$VERSION/src/phonon-$VERSION.tar.bz2
-  homepage http://phonon.kde.org/
-      info last  20110329
+      info last 20110329
+      info home http://phonon.kde.org/
       desc 'audio server/mixer for kde-v4'
+
+build(){
+ case $VERSION in
+  4.5.0) sed -i '/if (PULSEAUDIO_INCLUDE_DIR AND PULSEAUDIO_LIBRARY)/,/endif (PULSEAUDIO_INCLUDE_DIR AND PULSEAUDIO_LIBRARY)/d' cmake/FindPulseAudio.cmake ;;
+ esac
+ kde_build
+}
