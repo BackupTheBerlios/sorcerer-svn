@@ -5,44 +5,20 @@
 # boot-blaze accelerates booting
 
 file(){ while read r; do [ -f "$r" ] && echo "$r"; done; }
-
-load(){
- if [ -d $LOG ]; then
-  find $LOG -type f -mtime -182 -printf "/%P\n" |
-  file |
-  /bin/tar --atime-preserve=system --no-recursion -chPT - |
-  /bin/cat &>/dev/null
- fi
-}
-
-mkdr(){ [ -d "${1%/*}" ] || mkdir -p "${1%/*}"; }
-mkdt(){ while read R; do mkdr "$R"; echo -n > "$R"; done; }
-save(){ sed "s:^:$LOG:" | mkdt; }
-used(){ find $DIR -anewer $TMP -type f -size -32M; }
-omit(){ LC_ALL=C grep -v "^/var/cache/\|^/var/log/\|^/var/tmp/"; }
-
-look(){
- rm    -rf  $TMP
- echo  -n > $TMP
-
- mkdir -pm 700 $LOG
- chmod     700 $LOG
-
- sleep 900
-
- [ -f $TMP ] || return
-
- used | omit | save
-}
-
-main(){
- look &>/dev/null & disown
- load &>/dev/null & disown
-}
+logd(){ [ -d $LOG ] && find $LOG -type f -mtime -182 -printf "%A@\t/%P\n"; }
+ordr(){ sort -g | cut -f2- | file | tr '~' '/'; }
+cont(){ tar --atime-preserve=system --no-recursion -chPT - | cat &>/dev/null; }
+load(){ logd | ordr | cont; }
+save(){ while read r; do touch -r "$r" "$LOG/${r//\//~}"; done; }
+used(){ find $DIR -anewer $REF -type f -size -32M; }
+omit(){ LC_ALL=C grep -v "^/tmp/\|^/var/cache/\|^/var/log/\|^/var/tmp/"; }
+mlog(){ [ -d $LOG ] || mkdir -pm 700 $LOG; rm -rf $REF; echo -n > $REF; }
+look(){ mlog; sleep 900; used | omit | save; }
+main(){ look &>/dev/null & disown; load &>/dev/null & disown; }
 
 trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP
 umask 077
-TMP=/tmp/boot-blaze
+REF=/var/tmp/boot-blaze/ref
 LOG=/var/tmp/boot-blaze
 
 export LC_ALL=C
