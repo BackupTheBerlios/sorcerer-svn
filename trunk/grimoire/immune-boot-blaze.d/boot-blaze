@@ -4,58 +4,54 @@
 # For use with the distribution Sorcerer only.
 # boot-blaze accelerates booting
 
-load(){ /usr/bin/cut -f2- $CFG | /bin/tar --no-recursion -chPT - | /bin/cat; }
-load(){ /usr/bin/cut -f2- $CFG | /usr/bin/xargs  -r --max-lines=256 /bin/cat; }
-file(){ while read T F; do [[ -f $F ]] && echo "$T	$F"; done; }
-used(){ find /bin /etc /usr /sbin -anewer $TMP -printf '%A@\t%p\n' | sort -g; }
+file(){ while read r; do [ -f "$r" ] && echo "$r"; done; }
 
-remo(){
- /bin/cut  -d ' '  -f2  <  /proc/mounts |
- /bin/sed  -n '\,^/$,p;\,^/usr$,p'      |
- /bin/sort -u                           |
- while read; do /bin/mount -o remount$1 $REPLY; done
-}
-
-base(){
- declare -i  SEC    ORI=$( head -n 1 $1 | cut -f1 )
- while read  SEC         WHT
- do    ((    SEC -= ORI ))
-       echo "$SEC	$WHT"
- done < $1
-}
-
-watch(){
- if   [[ -f $CFG ]] && [ -z "$( find $CFG -mtime +1 )" ]
- then return
+load(){
+ if [ -d $LOG ]; then
+  find $LOG -type f -mtime -182 -printf "/%P\n" |
+  file |
+  /bin/tar --atime-preserve=system --no-recursion -chPT - |
+  /bin/cat &>/dev/null
  fi
+}
 
- echo -n > $TMP
- remo ,atime; sleep 300; remo
+mkdr(){ [ -d "${1%/*}" ] || mkdir -p "${1%/*}"; }
+mkdt(){ while read R; do mkdr "$R"; echo -n > "$R"; done; }
+save(){ sed "s:^:$LOG:" | mkdt; }
+used(){ find $DIR -anewer $TMP -type f -size -32M; }
+omit(){ LC_ALL=C grep -v "^/var/cache/\|^/var/log/\|^/var/tmp/"; }
 
- [[ -f $TMP ]] || return
+look(){
+ rm    -rf  $TMP
+ echo  -n > $TMP
 
-  used >       $RAW;  mv     $CFG $CFG.old
-  base         $RAW | cat -       $CFG.old |
-  sort -uk2         |
-  sort -g           | file > $CFG
-  rm   -f $TMP $RAW
+ mkdir -pm 700 $LOG
+ chmod     700 $LOG
+
+ sleep 900
+
+ [ -f $TMP ] || return
+
+ used | omit | save
 }
 
 main(){
- watch &>/dev/null & disown
- if [[ -f $CFG ]]; then
-  load &>/dev/null & disown
- fi
+ look &>/dev/null & disown
+ load &>/dev/null & disown
 }
 
 trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP
 umask 077
-EXT="$$.$RANDOM$RANDOM"
-TMP=/tmp/boot-blaze.tmp.$EXT
-RAW=/tmp/boot-blaze.raw.$EXT
-CFG=/etc/boot-blaze
+TMP=/tmp/boot-blaze
+LOG=/var/tmp/boot-blaze
+
 export LC_ALL=C
+
 if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
 fi
+
+DIR="/bin /etc /home /lib /opt /sbin /usr /var"
+if [ -d /lib64 ]; then DIR+=' /lib64'; fi
+
 main &>/dev/null
