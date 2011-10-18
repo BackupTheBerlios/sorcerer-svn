@@ -1,0 +1,17 @@
+# Entry into
+# <kernel> /domain/freedom
+# <kernel> /media/root/domain/freedom
+# permitted with authenticated using password
+
+if (( UID > 1023 )) &&
+   [ -f /etc/tomoyo/sorcerer/userpass ]; then
+ read < /etc/tomoyo/sorcerer/userpass
+ read -t 60 -s -p "Password: PASS
+ REPLY=$( echo   "$REPLY" | /bin/md5crypt )
+ if [ "$PASS" == "$REPLY" ]; then
+  if   [ -n "$1" ]
+  then PROG="$1"; shift 1; exec $PROG "$@"
+  else exec /bin/bash -
+  fi
+ fi
+fi

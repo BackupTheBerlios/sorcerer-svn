@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Short-Description: interface for setting user password for entering /domain/freedom
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only configure
+
+configure(){
+ instruct(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user password for /domain/freedom"
+       HELP=$"The following two dialogs will prompt for a password entry.  Please enter the same password twice to confirm."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --msgbox "$HELP" 0 0
+ }
+
+ thanks(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user password for /domain/freedom"
+       HELP=$"Thanks."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --msgbox "$HELP" 0 0
+ }
+
+ saved(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user password for /domain/freedom"
+       HELP=$"Hashed password saved to /etc/tomoyo/sorcerer/userpass"
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --msgbox "$HELP" 0 0
+ }
+
+ failed(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user password for /domain/freedom"
+       HELP=$"Passwords did not match.  Therefore, no change made."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --msgbox "$HELP" 0 0
+ }
+
+ readpass(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user password for /domain/freedom"
+       HELP=$"Please enter the password that allows user to enter the freedom domain. Input will not be echoed to the screen."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --passwordbox "$HELP" 0 0
+ }
+
+ local NEW1 NEW2
+ instruct
+ if   NEW1=$( readpass ) && thanks &&
+      NEW2=$( readpass ) && thanks &&
+      [ "$NEW1" == "$NEW2" ]
+ then
+  echo "$NEW1" |
+  /bin/md5crypt > /etc/tomoyo/sorcerer/userpass
+  chmod 640       /etc/tomoyo/sorcerer/userpass
+  saved
+ else
+  failed
+ fi
+}

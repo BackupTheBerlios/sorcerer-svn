@@ -1,0 +1,20 @@
+# Entry into
+# <kernel> /domain/user
+# <kernel> /media/root/domain/user
+# permitted from
+# <kernel> /domain/user
+# <kernel> /media/root/domain/user
+
+confirm(){
+ [ -n "$(
+  /sbin/tomoyo-pstree |
+  /bin/sed "\,($PPID) <kernel> /domain/user$,p
+            \,($PPID) <kernel> /media/root/domain/user$,p;d" )" ]
+}
+
+if    confirm; then
+ if   [ -n "$1" ]
+ then PROG="$1"; shift 1; exec $PROG "$@"
+ else exec /bin/bash -
+ fi
+fi

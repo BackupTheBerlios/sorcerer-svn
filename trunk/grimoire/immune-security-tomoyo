@@ -2,68 +2,72 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-   version stable 20111015
-   require tomoyo-tools
+   version stable 20111018
+   require md5crypt tomoyo-tools
   category immune-system
  attribute archive_off solo stale
-      info home  http://sorcerer.silverice.org/
+      info home http://sorcerer.silverice.org/
       desc 'enhanced security
 
-Tomoyo on Sorcerer has 3 generally used domain
+Tomoyo on Sorcerer has 5 generally used domain
 <kernel> /sbin/init
-<kernel> /media/root/domain/limited
 <kernel> /media/root/domain/freedom
+<kernel> /media/root/domain/user
+<kernel> /media/root/domain/limited
 <kernel> /media/root/domain/sorcery
 
 The first domain is a default domain and provides no restrictions.
-The second domain provides restrictions.
-The third domain provides no resctrictions.
-The fourth domain has restrictions suitable for software compilation,
+The second domain provides no resctrictions.
+The third domain provides restrictions appropriate for users.
+The forth domain provides restrictions appropraite
+for servers/daemons that do not provide user login.
+The fifth domain has restrictions suitable for software compilation,
 but not software installation.
 
-Transitioning from
-<kernel> /media/root/domain/limited
-to 
-<kernel> /media/root/domain/freedom
-is accomplished by running
-
-# /domain/freedom
-or
-# /usr/bin/sulogin
-or
-# sulogin
+Domain transition is accomplished by running
+a domain transition script installed in /domain/
 
 Transitioning to domain
 <kernel> /media/root/domain/freedom
-requires authentication with the root password.
+requires authentication with the root password when root.
+However, a user can authenticate with a password that
+is specified by the SA
+when the SA last ran /etc/init.d/tomoyo-userpass
 Authentication ensures that those who achieve root UID
 are rightfully entitled to the privilege of root
 rather than having acquired root by exploiting a bug
 in a process already running as root
 or by exploiting a bug in a SUID 0 executable file.
 
-Those in domain
+Processes in domain
 <kernel> /media/root/domain/limited
+<kernel> /media/root/domain/user
 will be unable to modify files in
 /bin /boot /etc /home /lib /lib64 /opt /usr /var/log/
 Mounting also is disabled.
 This limits the damage that can be done
 when someone acquires UID 0 without authentication.
 
+Processes in domain
+<kernel> /media/root/domain/limited
+will be unable to execute files on temporary directories
+and are unable to modify files in home directories.
+
 tomyo can still be configured to provide
 mandatory access control lists specific to programs
 exactly as described in the tomoyo documentations.
 Write the new domain files in /etc/tomoyo/sorcerer/domain/
 Write the new exception files in /etc/tomoyo/sorcerer/exception/
-That way the modifications are merged with Sorcerer defaults
-and loaded into the kernel.
+Write the transition scripts in  /etc/tomoyo/sorcerer/transition/
+That way the modifications are merged
+with Sorcerer defaults and loaded into the kernel.
 
 Tomoyo on Sorcerer is not intended to replace traditional security.
 Rather the security model is enforced by ensuring that those
 who become root can also provide the root password
 before gaining privilege to make potentially unwated modifications.
 
-Note that some services will acquire custom domains
+Note that services might have custom domains
 that that are far more restrictive than the limited domain.'
 
 build(){
