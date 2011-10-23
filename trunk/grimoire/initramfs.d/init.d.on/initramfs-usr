@@ -21,28 +21,24 @@ allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 
 exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
+if_find(){ while if [[ -e $1 ]]; then find $1; fi; [[ -n $2 ]]; do shift; done; }
+
 every(){
- if   [[ -d /usr/share/consolefonts ]]
- then find  /usr/share/consolefonts \
-            /usr/share/consoletrans \
-            /usr/share/keymaps \
-            /usr/share/unimaps
-      echo /init
- else echo /init
- fi |
- sed "\
-1i/media
-1i/media/root
-1i/proc
-1i/sys
-1i/tmp
-1i/usr
-1i/usr/share
-1i/usr/share/pci.ids
-1i/usr/share/usb.ids
-1i/usr/share/terminfo
-1i/usr/share/terminfo/l
-1i/usr/share/terminfo/l/linux"
+ echo /init
+ echo /media
+ echo /media/root
+ echo /proc
+ echo /sys
+ echo /tmp
+ echo /usr
+ echo /usr/share
+ echo /usr/share/pci.ids
+ echo /usr/share/usb.ids
+ echo /usr/share/terminfo
+ echo /usr/share/terminfo/l
+ echo /usr/share/terminfo/l/linux
+
+ if_find /fastboot /forcefsck /usr/share/{console{fonts,trans},{key,uni}maps}
 }
 
 initrf_update(){
@@ -67,13 +63,13 @@ initrf_update(){
 initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
-
- if   find /init /usr/share/{pci,usb}.ids /usr/share/terminfo/l/linux -newer $NAME | grep -q .
+ if   [ -f /forcefsck ] && find /forcefsck -newer $NAME | grep -q .; then return 1
+ elif [ -f /fastboot  ] && find /fastboot  -newer $NAME | grep -q .; then return 1
+ elif find /init /usr/share/{pci,usb}.ids /usr/share/terminfo/l/linux -newer $NAME | grep -q .
  then return 1
  fi
 
  if [ -f /var/log/init/failed/$INIT/stop ]; then return 1; fi
-
 } 
 
 run(){
