@@ -11,13 +11,19 @@
 
 . /lib/lsb/init-functions
 
+UP=/etc/tomoyo/sorcerer/userpass
+
 only configure
 
 configure(){
  instruct(){
   BACKTITLE=$"immune-security-tomoyo"
       TITLE=$"user password for /domain/freedom"
-       HELP=$"The following two dialogs will prompt for a password entry.  Please enter the same password twice to confirm."
+       HELP=$"The following dialog prompts for a user name.
+Then the following two dialogs prompt for a password.
+Please enter the same password each time.
+The password must differ from the user login password.
+The password must differ from the root password."
 
   dialog \
    --backtitle "$BACKTITLE"  \
@@ -28,7 +34,7 @@ configure(){
 
  thanks(){
   BACKTITLE=$"immune-security-tomoyo"
-      TITLE=$"user password for /domain/freedom"
+      TITLE=$"Input received."
        HELP=$"Thanks."
 
   dialog \
@@ -40,8 +46,8 @@ configure(){
 
  saved(){
   BACKTITLE=$"immune-security-tomoyo"
-      TITLE=$"user password for /domain/freedom"
-       HELP=$"Hashed password saved to /etc/tomoyo/sorcerer/userpass"
+      TITLE=$"Confirmation"
+       HELP=$"Hashed password for $USER saved to $UP"
 
   dialog \
    --backtitle "$BACKTITLE"  \
@@ -52,8 +58,8 @@ configure(){
 
  failed(){
   BACKTITLE=$"immune-security-tomoyo"
-      TITLE=$"user password for /domain/freedom"
-       HELP=$"Passwords did not match.  Therefore, no change made."
+      TITLE=$"Problematic outcome"
+       HELP=$"Error in input.  Therefore, no change made."
 
   dialog \
    --backtitle "$BACKTITLE"  \
@@ -62,10 +68,23 @@ configure(){
    --msgbox "$HELP" 0 0
  }
 
+ readname(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"user name permitted for /domain/freedom"
+       HELP=$"Please enter the username permitted to enter the freedom domain."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --inputbox "$HELP" 0 0
+ }
+
  readpass(){
   BACKTITLE=$"immune-security-tomoyo"
-      TITLE=$"user password for /domain/freedom"
-       HELP=$"Please enter the password that allows user to enter the freedom domain. Input will not be echoed to the screen."
+      TITLE=$"$1 password for /domain/freedom"
+       HELP=$"Please enter the password that allows user to enter the freedom domain.  Input will not be echoed to the screen."
 
   dialog \
    --backtitle "$BACKTITLE"  \
@@ -75,17 +94,90 @@ configure(){
    --passwordbox "$HELP" 0 0
  }
 
- local NEW1 NEW2
- instruct
- if   NEW1=$( readpass ) && thanks &&
-      NEW2=$( readpass ) && thanks &&
-      [ "$NEW1" == "$NEW2" ]
- then
-  echo "$NEW1" |
-  /bin/md5crypt > /etc/tomoyo/sorcerer/userpass
-  chmod 640       /etc/tomoyo/sorcerer/userpass
-  saved
- else
-  failed
+ add(){
+  local NEW1 NEW2
+  instruct
+  if   NAME=$( readname       ) && [ -n "$NAME" ] && thanks &&
+       NEW1=$( readpass $NAME ) && [ -n "$NEW1" ] && thanks &&
+       NEW2=$( readpass $NAME ) && [ -n "$NEW2" ] && [ "$NEW1" == "$NEW2" ]
+  then
+   PASS="$( echo "$NEW1" | /bin/md5crypt )"
+   echo "$NAME:$PASS" >> $UP
+   chmod 644             $UP
+   saved $NAME
+  else
+   failed
+  fi
+ }
+
+ main_menu(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"Action Selection Menu"
+       HELP=$"Permit or Revoke user access to the freedom domain?"
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout                  \
+   --ok-label     $"Select"  \
+   --cancel-label $"Exit"    \
+   --menu "$HELP" 0 0 0 Add "" Del ""
+ }
+
+ removed(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"Update acknowledgement"
+       HELP=$"Hashed password for $VICTIM removed from $UP"
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --msgbox "$HELP" 0 0
+ }
+
+ victims(){ sed -r "s/:.*/ user/" $UP | sort -u; }
+
+ confirm(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"Confirmation request"
+       HELP=$"Please confirm that $1 is correct."
+
+  dialog \
+   --backtitle "$BACKTITLE" \
+   --title     "$TITLE"     \
+   --timeout 60             \
+   --yesno     "$HELP" 0 0
+ }
+
+ del_menu(){
+  BACKTITLE=$"immune-security-tomoyo"
+      TITLE=$"Access Revocation Menu"
+       HELP=$"Please select the name of the user that loses permission to enter the freedom domain."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout                  \
+   --ok-label     $"Select"  \
+   --cancel-label $"Exit"    \
+   --menu "$HELP" 0 0 0 $( victims )
+ }
+
+ del(){ 
+  local           VICTIM=$( del_menu )
+  if   confirm   $VICTIM
+  then sed -i "/^$VICTIM:/d" $UP; removed
+  fi
+ }
+
+ if [ -f $UP ] && [ -s $UP ]; then
+  case $( main_menu ) in
+   Add) add ;;
+   Del) del ;;
+  esac
+ else add
  fi
 }
