@@ -8,14 +8,18 @@
 # Default-Mode: 500
 # Required-Start: proc
 # Should-Start: dev hugetlbfs sys
-# Default-Start: S
+# Default-Start: 1 2 3 4 5
 # Short-Description: sets number of huge pages 
 ### END INIT INFO
 
-NR=128
+NR=$( sed -r "s/MemTotal: *([^ ]*) kB/\1/p;d"     /proc/meminfo )
+HS=$( sed -r "s/Hugepagesize: *([^ ]*) kB/\1/p;d" /proc/meminfo )
+(( NR /= 10 ))
+(( NR /= HS ))
 
 . /lib/lsb/init-functions
 
+fast
 only start configure display
 
 display(){ echo "NR=$NR"; }
