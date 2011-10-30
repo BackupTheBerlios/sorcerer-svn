@@ -1,0 +1,56 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc
+# Should-Start: dev hugetlbfs sys
+# Default-Start: S
+# Short-Description: sets number of huge pages 
+### END INIT INFO
+
+NR=128
+
+. /lib/lsb/init-functions
+
+only start configure display
+
+display(){ echo "NR=$NR"; }
+
+configure(){
+
+nr_dialog(){
+ BACKTITLE=$"nr_hugepages configuration menu"
+     TITLE=$"Instructions"
+      HELP=$"Please provide the number of unswappable two megabyte huge pages to reserve"
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE"     \
+  --timeout 60             \
+  --stdout --no-cancel     \
+  --default-item 3         \
+  --inputbox "$HELP" 0 0 ${NR:-128}
+}
+
+ NR=$( nr_dialog )
+ if   [ -n "$NR" ]
+ then echo "NR=$NR" > /etc/init.d/conf.d/nr_hugepages
+ fi
+}
+
+start(){
+ run(){
+  if   [ -f         /proc/sys/vm/nr_hugepages ]
+  then echo "$NR" > /proc/sys/vm/nr_hugepages
+  fi
+ }
+
+ if   log_warning_msg "$NAME setting"; run
+ then log_success_msg "$NAME set"
+ else log_failure_msg "$NAME not set"; return 1
+ fi
+}
