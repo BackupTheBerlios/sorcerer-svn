@@ -24,8 +24,8 @@ case $VERSION in
   *rc*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/testing/linux-$VERSION.tar.xz ;;
      *) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/linux-$VERSION.tar.xz ;;
 esac
-      info last  20110722
-      info home  http://www.kernel.org/
+      info last 20111025
+      info home http://www.kernel.org/
    protect /boot
    protect /lib/modules
   eprovide linux-kernel
@@ -139,13 +139,20 @@ build(){
   BV="${VERSION}"
   BZ=$( find . -type f -name bzImage )
 
-  rm    -rf               $DESTDIR/boot/$BV
-  mkdir -p                $DESTDIR/boot/$BV
-  cp       $BZ            $DESTDIR/boot/$BV/linux
-  chmod 600               $DESTDIR/boot/$BV/linux
-  cp           System.map $DESTDIR/boot/$BV
-  rm    -f                $DESTDIR/boot/System.map
-  ln    -s $BV/System.map $DESTDIR/boot/System.map
+  mkdir  -pvm 755            $DESTDIR/boot/$BV
+  install -vm 600 $BZ        $DESTDIR/boot/$BV/linux
+  chmod 600                  $DESTDIR/boot/$BV/linux
+  install -vm 600 System.map $DESTDIR/boot/$BV
+  rm    -f                   $DESTDIR/boot/System.map
+  ln    -s $BV/System.map    $DESTDIR/boot/System.map
+ }
+
+ install_kernel_um(){
+  BV="${VERSION}"
+  strip linux
+  mkdir  -pvm 755         $DESTDIR/boot/$BV          $DESTDIR/usr/bin
+  install -vm 755 linux   $DESTDIR/boot/$BV/linux.um
+  ln      -v              $DESTDIR/boot/$BV/linux.um $DESTDIR/usr/bin/
  }
 
  install_header(){
@@ -176,6 +183,20 @@ build(){
   [ -n "${FEATURE[base]}" ] || get_cpu
  }
 
+ restore_linux_configs_um(){
+  local NAME
+  case $HOSTTYPE in
+   x86_64) NAME=x86_64-um ;;
+        *) NAME=ia32-um   ;;
+  esac
+
+  if   [ -f            $SCRIPT_DIR/$PROGRESS/$NAME ]
+  then install -vm 600 $SCRIPT_DIR/$PROGRESS/$NAME .config
+#      [ -n "${FEATURE[base]}" ] || get_cpu
+  else false
+  fi
+ }
+
  trim_config(){
   for OMIT in $OPTS; do
    case $OMIT in
@@ -189,8 +210,7 @@ build(){
 
  gzip_modules(){
   if ! spell_installed sorcerer-installer; then
-   local KO="$DESTDIR/lib/modules/$VERSION/kernel/"
- # find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v1
+   local KO="$DESTDIR/lib/modules/$VERSION$1/kernel/"
    find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
    find $KO -type f              | sed   -n '/\.gz$/p' |
    while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
@@ -198,19 +218,11 @@ build(){
  }
 
  strip_modules(){
-  find $DESTDIR/lib/modules/$VERSION/kernel -type f -name \*.ko |
+  find $DESTDIR/lib/modules/$VERSION$1/kernel -type f -name \*.ko |
   xargs --max-lines=256 strip --strip-unneeded
  }
 
- tame_oom_killer(){
-  if [ -f mm/oom_kill.c ] && grep -q "force_sig(SIGKILL" mm/oom_kill.c; then
-   echo "Adjusting oom-killer from SIGKILL to SIGTERM"
-   sed -i "s:force_sig(SIGKILL:force_sig(SIGTERM:" mm/oom_kill.c
-  fi
- }
-
  compile_and_install(){
-# tame_oom_killer
   restore_linux_configs
   trim_config
   yes "" | make oldconfig
@@ -220,13 +232,37 @@ build(){
   make firmware_install INSTALL_MOD_PATH=$DESTDIR &&
   install_kernel &&
   install_header &&
-  gzip_modules   &&
-  rm -fr /lib/modules/$VERSION
+  gzip_modules
  }
 
- rm -fr        /usr/src/linux &&
- mv $BUILD_DIR /usr/src/linux &&
- cd            /usr/src/linux &&
+ compile_and_install_um(){ (
+  if   ! restore_linux_configs_um
+  then rm -rf $BUILD_DIR; return
+  fi
+
+  unset CFLAGS CXXFLAGS LDFLAGS
+set -x
+  sed -i "s:EXTRAVERSION =.*:EXTRAVERSION = .um:" Makefile
+  yes "" |
+  make ARCH=um oldconfig
+  make ARCH=um modules &&
+  make ARCH=um         &&
+  make ARCH=um modules_install INSTALL_MOD_PATH=$DESTDIR &&
+  strip_modules .um &&
+  install_kernel_um &&
+  gzip_modules  .um &&
+  rm -fr $BUILD_DIR
+ ) }
+
+ export   CFLAGS="${CFLAGS//-fstack-protector-all/}"
+ export   CFLAGS="${CFLAGS//-fstack-protector/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector-all/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector/}"
+
+ rm -fr           /usr/src/linux &&
+ cp -a $BUILD_DIR /usr/src/linux &&
+ compile_and_install_um          &&
+ cd               /usr/src/linux &&
  compile_and_install
 }
 
