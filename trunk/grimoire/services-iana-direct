@@ -1,9 +1,15 @@
+# Copyright Kyle Sallee 2011
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+# Leech not permitted to download xml files.
+
 #   stable "$( date -u +%Y-%m )"
 version_year_month 12
   category network
  attribute client server
-    source http://www.iana.org/assignments/port-numbers
-  homepage http://www.iana.org/
+#   source http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml
+      info home http://www.iana.org/
 disable scavenge
    protect /etc/services
   eprovide services
@@ -11,25 +17,27 @@ disable scavenge
 
 build(){
 
-# port-numbers is seriously malformed.
-# Adding a line feed after port-numbers is essential because it lacks one.
-# It also contains ASCII characters > 0x7e which causes column to quit.
-# It also has tabs where it should have spaces.
-# It has carriage returns line feed pairslike DOS files.
-# Those reasons are why many tr sanitation commands are required.
+ parse_line(){
+  local N P U
 
-[[ -s $SOURCE ]]
-( cat $SOURCE ; echo )   |
-tr   -d '\r'             |
-tr      '\t'  ' '        |
-tr   -s ' '              |
-tr   -d '\177-\377'      |
-grep    "/tcp\|/udp"     |
-grep -v "^ \|Unassigned" |
-sed  -r "s:([^ ]*) ([^ ]*):\1|\2|#:
-         s:\|#$::" |
-column  -s '|' -t  > $SCRIPT_DIR/services.d/IANA
+  tr -d '\n' |
+  sed "s:<record>::g; s:</record>:\nW\n:g" |
+  sed -r "s:<protocol>(.*)</protocol>:\nP \1\n:
+          s:<name>(.*)</name>:\nN \1\n:
+          s:<number>(.*)</number>:\nU \1\n:" |
+  while read A I; do
+   case $A in
+    N) N=$I ;;
+    P) P=$I ;;
+    U) U=$I ;;
+    W) [ -n "$N" ] && [ -n "$P" ] && [ -n "$U" ] && echo -e "$N\t$U/$P"; N=; P=; U= ;;
+   esac
+  done
+ }
+
+ curl -s -L --max-redirs 5 --connect-timeout 300 http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml |
+ parse_line > $SCRIPT_DIR/services.d/IANA
+         [ -s $SCRIPT_DIR/services.d/IANA ]
 }
-
 
 current(){ [ -f /etc/services.d/IANA ]; }
