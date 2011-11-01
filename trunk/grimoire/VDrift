@@ -1,19 +1,33 @@
 # 2010-06-30 failed compilation
 
-   version stable 2010-06-30 2009-06-15 2009-06-15-src
-   require SDL_gfx SDL_image SDL_net freealut glew scons
+   version stable 2011-10-22 2010-06-30 2009-06-15 2009-06-15-src
+   require SDL_gfx SDL_image SDL_net boost bullet freealut glew libarchive libvorbis scons setuptools subversion
   category game/3d
  attribute x11
- attribute broke
-    source $SOURCEFORGE_URL vdrift/vdrift/vdrift-2010-06-30/vdrift-$VERSION.tar.bz2
-      info home  http://vdrift.sourceforge.net
+#attribute broke
+    source $SOURCEFORGE_URL vdrift/vdrift/vdrift-$VERSION/vdrift-$VERSION.tar.bz2
+#   source $SOURCEFORGE_URL vdrift/vdrift/vdrift-2010-06-30/vdrift-$VERSION.tar.bz2
+      info last 20111022
+      info home http://vdrift.sourceforge.net
       desc 'automobile drift racing game'
 
 build(){
-tar zxvf tools/scons-local-*.tar.gz &&
-./scons.py \
-release=1 &&
-echo "Long wait while scons burns your CPU" &&
-echo "while printing nothing is normal" &&
-./scons.py install prefix=$DESTDIR/usr
+ build_old(){
+  tar zxvf tools/scons-local-*.tar.gz &&
+  ./scons.py \
+  release=1 &&
+  echo "Long wait while scons burns your CPU" &&
+  echo "while printing nothing is normal" &&
+  ./scons.py install prefix=$DESTDIR/usr
+ }
+
+ case $VERSION in
+  2011-10-22) sed -i "s:asio.hpp:boost/asio.hpp:" SConstruct ;;
+ esac
+
+ scons \
+ release=1 &&
+ echo "Long wait while scons burns your CPU" &&
+ echo "while printing nothing is normal" &&
+ scons install prefix=$DESTDIR/usr
 }
