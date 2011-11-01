@@ -98,13 +98,20 @@ build(){
   symlink_icons
  }
 
- export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
-
- sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
-
- if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then opts "--host=${MACHTYPE/x86_64/i686}"
+       export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
+  else export LDFLAGS+=" -Wl,-rpath,/usr/lib64/firefox-$VERSION"
+  fi
+ else  export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
  fi
+
+ # sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
+
+ # if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ # then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ # fi
 
  # case statement to remove references to curl's deprecated header
  # that was removed from curl during version 7.21.7.
@@ -117,13 +124,13 @@ build(){
  esac
 
 
- CFLAGS="${CFLAGS//-mno-mmx/}"
- CFLAGS="${CFLAGS//-mno-sse2/}"
- CFLAGS="${CFLAGS//-mno-sse/}"
+ # CFLAGS="${CFLAGS//-mno-mmx/}"
+ # CFLAGS="${CFLAGS//-mno-sse2/}"
+ # CFLAGS="${CFLAGS//-mno-sse/}"
 
- CXXFLAGS="${CXXFLAGS//-mno-mmx/}"
- CXXFLAGS="${CXXFLAGS//-mno-sse2/}"
- CXXFLAGS="${CXXFLAGS//-mno-sse/}"
+ # CXXFLAGS="${CXXFLAGS//-mno-mmx/}"
+ # CXXFLAGS="${CXXFLAGS//-mno-sse2/}"
+ # CXXFLAGS="${CXXFLAGS//-mno-sse/}"
 
  ./configure \
  --prefix=/usr \
