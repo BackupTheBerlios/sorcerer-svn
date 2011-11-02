@@ -35,7 +35,12 @@ build(){
   done
  }
 
- curl -s -L --max-redirs 5 --connect-timeout 300 http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml |
+ curl -s -L -O --max-redirs 5 --connect-timeout 300 http://www.iana.org/assignments/service-names-port-numbers/service-names-port-numbers.xml
+ [ -s service-names-port-numbers.xml ] || return 1
+ if file -b service-names-port-numbers.xml | grep -q gzip; then
+  mv        service-names-port-numbers.xml{,.gz}
+  gunzip    service-names-port-numbers.xml.gz
+ fi
  parse_line > $SCRIPT_DIR/services.d/IANA
          [ -s $SCRIPT_DIR/services.d/IANA ]
 }
