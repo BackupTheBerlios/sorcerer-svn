@@ -2,22 +2,33 @@
 # ppl 0.11 compiles, however
 # cloog-ppl 0.15.9 does not compile with ppl 0.11 installed
 
-   version stable 0.10.2
-   require gmp
 # requirement on gcc-g++ creates circuliar requirement loop
-#  require gcc-g++ gmp
+
+   version stable 0.11.2 0.10.2
+   require gmp
       opts --enable-static=no --disable-rpath --disable-debugging
   category development/compiler
  attribute library multilib-dual
 #attribute makej multilib-concurrent
-    source http://www.cs.unipr.it/ppl/Download/ftp/releases/$VERSION/ppl-$VERSION.tar.bz2
-  homepage http://www.cs.unipr.it/ppl
-      vurl http://www.cs.unipr.it/ppl/Download/
+    source http://bugseng.com/products/ \
+            ftp://ftp.cs.unipr.it/pub/ppl/releases/ \
+           ppl/download/ftp/releases/$VERSION/ppl-$VERSION.tar.bz2
+
+#   source http://www.cs.unipr.it/ppl/Download/ftp/releases/$VERSION/ppl-$VERSION.tar.bz2
+      info last 20110227
+      info home http://bugseng.com/products/ppl/
+      info docs http://bugseng.com/products/ppl/documentation
+      info mail http://bugseng.com/products/ppl/mailing-lists
+#     info home http://www.cs.unipr.it/ppl/
+      vurl http://bugseng.com/products/ppl/download
+    CFLAGS='-O2'
+  CXXFLAGS='-O2'
+   LDFLAGS='-Wl,-O1'
       desc 'Parma Polyhedra Library
 used by gcc for Graphite loop optimizations'
 
 build(){ (
- if   echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
+ if    [[ $CFLAGS =~ -m32 ]]; then
   export   CFLAGS+=' -I/usr/include32'
   export CXXFLAGS+=' -I/usr/include32'
  fi
