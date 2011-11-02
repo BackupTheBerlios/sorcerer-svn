@@ -36,6 +36,7 @@ esac
       desc 'GNU implementation of a C library'
 
 build(){ (
+ local arch setarch
 
  install_glibc(){
   install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
@@ -72,9 +73,13 @@ build(){ (
  if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
   export CC="gcc -m32"
   opts --host=${MACHTYPE/x86_64/i686}
-  ARCH=i686
- else
-  ARCH=$HOSTTYPE
+  arch=i686; setarch=setarch
+# else
+#  arch=$HOSTTYPE
+ fi
+
+ if   [ -n "${FEATURE[base]}" ]
+ then opts --enable-multi-arch
  fi
 
  unset LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
@@ -99,7 +104,7 @@ build(){ (
 
  mkdir build
  cd    build
- setarch $ARCH \
+ $setarch $arch \
  ../configure       \
   --prefix=/usr     \
   --disable-profile \
@@ -111,8 +116,8 @@ build(){ (
   --enable-add-ons  \
   --with-headers=/usr/include \
   $OPTS &&
- setarch $ARCH make     all &&
- setarch $ARCH make install install_root=$DESTDIR &&
+ $setarch $arch make     all &&
+ $setarch $arch make install install_root=$DESTDIR &&
  quick_test        &&
  supported_locales &&
  install_glibc
