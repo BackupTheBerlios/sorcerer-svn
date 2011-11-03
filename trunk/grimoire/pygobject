@@ -1,7 +1,9 @@
 # pygtk version 2.24.0 requires pygobject < 3.0.?
 # pygobject 2.28.6 no longer compiles
+# compiles after removing a deprecated symbol -ks
 
-   version stable 3.0.2 2.28.6 2.28.4 2.28.3 2.28.1 2.28.0
+   version stable 2.28.6 2.28.4 2.28.3 2.28.1 2.28.0
+   version latest 3.0.2
    require Python glib gobject-introspection libffi pycairo
       opts --disable-docs
   category development
@@ -11,10 +13,17 @@
       info home http://www.pygtk.org/
       desc 'python bindings for gobject'
 
-build_old(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then LC_ALL=C grep -rl "lib/python" * |
-       xargs -r sed -i 's:lib/python:lib64/python:'
- fi
+build(){
+ build_old(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LC_ALL=C grep -rl "lib/python" * |
+        xargs -r sed -i 's:lib/python:lib64/python:'
+  fi
+  default_build
+ }
+
+ case $VERSION in
+  2.28.6) sed -i '/GI_INFO_TYPE_ERROR_DOMAIN/d' gi/pygi-info.c ;;
+ esac
  default_build
 }
