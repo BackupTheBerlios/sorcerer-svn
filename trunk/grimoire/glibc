@@ -1,4 +1,4 @@
-# glibc version 2.13 has a patch that fixes a compilation bug
+# glibc version 2.14.1 and 2.13 have a patch that fixes a compilation bug
 # that was introduced by the gcc version 4.5.x branch
 # and yet not fixed by gcc authors, odd.
 
@@ -38,13 +38,25 @@ esac
 build(){ (
  local arch setarch
 
+ missing_headers(){
+  # headers missing from glibc version 2.14.1
+  # yet required in order to compile libtirpc version 0.2.2
+  mkdir  -pvm 755 $DESTDIR/usr/include/rpcsvc
+  install -vm 644 ../nis/rpcsvc/nis{,lib,_tags}.h $DESTDIR/usr/include/rpcsvc/
+ }
+
  install_glibc(){
   install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
   mkdir  -pvm 755                   $DESTDIR/var/db
   mkdir  -pvm 700                   $DESTDIR/var/db/nscd
 
+  case $VERSION in
+   2.14.1) missing_headers ;;
+  esac
+
   cd    $DESTDIR
   rm -f $DESTDIR/etc/{localtime,ld.so.*}
+
   true
  }
 
@@ -135,8 +147,9 @@ post_install(){
 }
 
 current(){
-case $VERSION in
- 2.11.1) [    -f  /usr/bin/getconf ] &&
-         grep -qx /usr/bin/getconf $INSTALL_LOGS/glibc ;;
-esac
+ case $VERSION in
+  2.14.1) [ -f /usr/include/rpcsvc/nis.h ] ;;
+  2.11.1) [    -f  /usr/bin/getconf ] &&
+          grep -qx /usr/bin/getconf $INSTALL_LOGS/glibc ;;
+ esac
 }

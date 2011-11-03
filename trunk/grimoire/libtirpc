@@ -1,15 +1,46 @@
-   version stable 1.0.8 0.1.7
+# Not certain about the 1.0.8 version, maybe a typo?
+
+   version stable 0.2.2 1.0.8 0.1.7
    require pkgconfig
+      opts --enable-static=no
   category network
- attribute server
-    source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
-  homepage http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
-      opts --enable-static=no --libdir=/lib
+ attribute library makej multilib-dual
+    source $SOURCEFORGE_URL libtirpc/libtirpc/$VERSION/libtirpc-$VERSION.tar.bz2
+#   source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
+      info home http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
       desc 'transport independent remote procedure call library
-libtirpc is required for using NFSv4 over IPv6 networks.'
+libtirpc is required for using NFSv4 over IPv6 networks.
+libtirpc is used by Linux-PAM and nfs-utils'
 
 build(){
- default_build &&
- mkdir -p $DESTDIR/usr/lib &&
- mv $DESTDIR/lib/pkgconfig $DESTDIR/usr/lib
+ fix_pkgconfig(){
+  if   [   -f "$1" ]
+  then sed -i 's:${exec_prefix}/lib:/lib:' "$1"
+  fi
+ }
+
+ fix_la(){
+  if   [   -f "$1" ]
+  then sed -i 's:/usr/lib:/lib:' "$1"
+  fi
+ }
+
+ fix_lib(){
+  if   [ -d "$1" ]; then
+   mkdir -pvm 755 "$2"
+   find "$1" -maxdepth 1 -type f -o -type l |
+   xargs -r --max-lines=256 mv -t "$2"
+  fi
+ }
+
+ fix_install(){
+  fix_pkgconfig $DESTDIR/usr/lib64/pkgconfig/libtirpc.pc
+  fix_pkgconfig $DESTDIR/usr/lib/pkgconfig/libtirpc.pc
+  fix_la        $DESTDIR/usr/lib64/libtirpc.la
+  fix_la        $DESTDIR/usr/lib/libtirpc.la
+  fix_lib       $DESTDIR/{usr/,}lib64
+  fix_lib       $DESTDIR/{usr/,}lib
+ }
+
+ default_build && fix_install
 }
