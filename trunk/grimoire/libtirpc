@@ -1,10 +1,21 @@
 # Not certain about the 1.0.8 version, maybe a typo?
 
+# multilib-fail while using gcc-legacy in order to compile
+
+# Although this compile with minor modifications
+# it seems to require functions such as xdr_desresp and des_crypt_1
+# that are not provided by glibc 2.14.1 nor glibc 2.13
+# consequently, rpcbind fails to link with it when those symbols
+# can not be resolved
+
    version stable 0.2.2 1.0.8 0.1.7
-   require pkgconfig
+   require gcc-legacy pkgconfig
+#  require pkgconfig
       opts --enable-static=no
   category network
- attribute library makej multilib-dual
+ attribute broke
+ attribute library makej multilib-fail
+#attribute library makej multilib-dual
     source $SOURCEFORGE_URL libtirpc/libtirpc/$VERSION/libtirpc-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
       info home http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
@@ -41,6 +52,26 @@ build(){
   fix_lib       $DESTDIR/{usr/,}lib64
   fix_lib       $DESTDIR/{usr/,}lib
  }
+
+ export PATH="/opt/legacy/usr/bin:$PATH"
+ export   CFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+ export CXXFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/opt/legacy/lib64'
+ else export LDFLAGS+=' -L/opt/legacy/lib'
+ fi
+
+## Changing the default runtime linker is not required for libtirpc
+#then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+#else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
+
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+
+ case $VERSION in
+  0.2.2) cp src/crypt_client.{c,h}
+         sed -i '\,rpc/,d' src/crypt_client.h
+         sed -i 's:extern int _des_crypt_call(char \*, int, struct desparams \*);:#include "crypt_client.h":' src/des_crypt.c ;;
+ esac
 
  default_build && fix_install
 }

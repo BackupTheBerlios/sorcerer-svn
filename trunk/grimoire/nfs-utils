@@ -3,16 +3,21 @@
 # nfs-utils only supports MIT Kerberos 5 at the moment.
 # therefore --disable-gss is mandatory for compilation
 
+# broke because rpcbind is not properly linking with libtirpc
+
+# glibc > 2.13 lacks sufficient RPC support to compile libtirpc
+# consequently, librpcsecgss and rpcbind also do not compile.,
+# consequently, nfs-utils also does not compile.
+
    version stable 1.2.5 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0
-   require LVM2 libevent libnfsidmap procps util-linux
 #  require LVM2 libevent libnfsidmap librpcsecgss procps rpcbind util-linux
   optional libcap
     switch -static '' '[ ]=dynamic or [*]=static port assignments'
       opts --disable-gss --sbindir=/sbin
-# uses tirpc when libtirpc is installed and detected as usable
-#     opts --enable-tirpc
+#     opts --disable-tirpc
   category network/file-share
  attribute console client server
+ attribute broke
     source $SOURCEFORGE_URL nfs/nfs-utils/$VERSION/nfs-utils-$VERSION.tar.bz2
       info last 20111006
       info home http://sourceforge.net/projects/nfs
@@ -121,6 +126,14 @@ build(){
  if   ! spell_installed tcp_wrappers
  then OPTS+=' --without-tcp-wrappers'
  fi
+
+#  export PATH="/opt/legacy/usr/bin:$PATH"
+#  export   CFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+#  export CXXFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+#  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+#  then export LDFLAGS+=' -L/opt/legacy/lib64'
+#  else export LDFLAGS+=' -L/opt/legacy/lib'
+#  fi
 
  export   CFLAGS+=' -I/usr/include/et'
  export CXXFLAGS+=' -I/usr/include/et'

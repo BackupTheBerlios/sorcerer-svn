@@ -1,14 +1,12 @@
-# glibc version 2.14.1 and 2.13 have a patch that fixes a compilation bug
-# that was introduced by the gcc version 4.5.x branch
-# and yet not fixed by gcc authors, odd.
-
    version stable 2.13
   category development
- attribute library makej multilib-dual
+ attribute library makej multilib-fail
    require perl linux-headers
+      opts --prefix=/usr
+#     opts --target=${MACHTYPE/pc/legacy}
       opts --without-selinux
-      opts --enable-omitfp
       opts --enable-kernel=2.6.30
+      opts --enable-omitfp
 # --enable-oldest-abi=2.13 failed compilation
 #     opts --enable-oldest-abi=2.13
 # --enable-oldest-abi=2.3.3 compiled without installing libraries
@@ -24,7 +22,7 @@
       desc 'old glibc implementation that provides old bugs and RPC'
 
 build(){ (
- local arch prefix setarch
+ local arch legacy setarch
 
  install_glibc(){
   cd    $DESTDIR
@@ -49,13 +47,19 @@ build(){ (
 
  sed -i 's:/bin/pwd:pwd:g' configure
 
- prefix=/opt/glibc/2.13
+ legacy=/opt/legacy
+ 
+# mkdir -pvm 755 $DESTDIR$legacy
+
+# case $HOSTTYPE in
+#  x86_64) opts --libdir=$legacy/lib64 ;;
+#       *) opts --libdir=$legacy/lib ;;
+# esac
 
  mkdir build
  cd    build
- $setarch $arch \
+ $setarch $arch     \
  ../configure       \
-  --prefix=$prefix/usr \
   --disable-profile \
   --with-tls        \
   --with-elf        \
@@ -66,6 +70,7 @@ build(){ (
   --with-headers=/usr/include \
   $OPTS &&
  $setarch $arch make     all &&
- $setarch $arch make install install_root=$DESTDIR &&
+#$setarch $arch make install install_root=$DESTDIR &&
+ $setarch $arch make install install_root=$DESTDIR$legacy &&
  install_glibc
  ) }

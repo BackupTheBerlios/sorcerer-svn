@@ -1,0 +1,125 @@
+# requiring coreutils creates recursive requirement loop
+
+   version stable 4.5.3
+   require binutils-legacy glibc-legacy linux-headers-legacy
+      opts --without-ppl --without-cloog
+#     opts --with-build-sysroot=/opt/legacy
+      opts --prefix=/opt/legacy/usr
+#     opts --target=${MACHTYPE/pc/legacy}
+      opts --disable-nls
+  category development/compiler
+ attribute console library makej multilib-fail solo
+    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+      info last 20111101
+      info home http://gcc.gnu.org/
+      info docs http://gcc.gnu.org/onlinedocs/
+      info mail http://gcc.gnu.org/lists.html
+ conflicts gcc-objc
+    CFLAGS='-O2'
+  CXXFLAGS='-O2'
+   LDFLAGS='-Wl,-O1'
+      desc 'GNU compiler collection'
+
+build(){ (
+ local legacy=/opt/legacy
+
+ finish_install(){
+  local STRSTREAM=$DESTDIR$legacy/usr/include/c++/$VERSION/backward/strstream
+
+  if   [[ -f           $STRSTREAM   ]] &&
+     ! [[ -f           $STRSTREAM.h ]]
+  then ln -s strstream $STRSTREAM.h
+  fi
+
+  rm -f               $DESTDIR$legacy/usr/info/dir
+  mkdir -p            $DESTDIR$legacy/lib
+  ln -fs /usr/bin/cpp $DESTDIR$legacy/lib/cpp
+  ln -fs gcc          $DESTDIR$legacy/usr/bin/cc
+ }
+
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export CCACHE_DISABLE=1
+ export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+ export PATH="/opt/legacy/usr/bin:$PATH"
+
+ opts --enable-__cxa_atexit --enable-clocale=gnu
+
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+# then opts --disable-multilib
+# fi
+ opts --disable-multilib
+  
+
+# export   CFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+# export CXXFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+# else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
+# fi
+
+# export   CFLAGS+=' -I/opt/legacy/usr/include'
+# export CXXFLAGS+=' -I/opt/legacy/usr/include'
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then export LDFLAGS+=' -L/opt/legacy/lib64 -L/opt/legacy/usr/lib64'
+# else export LDFLAGS+=' -L/opt/legacy/lib   -L/opt/legacy/usr/lib'
+# fi
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+# else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
+# fi
+
+ opts --with-sysroot=/opt/legacy
+
+   LCF="LIBCFLAGS=$CFLAGS"
+  LCXF="LIBCXXFLAGS=$CXXFLAGS"
+    BF="BOOT_CFLAGS=$CFLAGS"
+  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+   LDF="LDFLAGS=$LDFLAGS"
+
+ OPTS+="
+  --prefix=$legacy/usr
+  --enable-shared
+  --infodir=/usr/info
+  --mandir=/usr/man
+  --datadir=/usr/share
+  --enable-long-long
+  --enable-threads
+  --enable-tls
+  --with-system-zlib
+  --disable-bootstrap"
+
+ OPTS+=" --enable-libstdcxx-pch=no"
+ OPTS+=" --enable-languages=c,c++"
+
+ mkdir BUILD
+ cd    BUILD
+ ../configure $OPTS             &&
+ make "$BF"                     \
+      "$LCF"  "$LCXF"  "$LDF"   \
+      "$LJCF" "$LJCXF"          &&
+ make  install DESTDIR=$DESTDIR &&
+ finish_install
+) }
+
+
+post_install(){
+ get_provider libtool | pipe_queue $LEECH_QUEUE
+ get_provider libtool | pipe_queue $CAST_QUEUE
+ leech
+
+ if   [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]
+ then rm -f ${CCACHE_CACHE}/*
+ fi
+
+ cast_if_needed(){
+  if ! spell_installed $1 &&
+       grep -lr $2 $ELF_LOGS |
+       grep -v  gcc          |
+       grep -q .
+  then echo $1 | pipe_queue "$CAST_QUEUE"
+  fi
+ }
+}

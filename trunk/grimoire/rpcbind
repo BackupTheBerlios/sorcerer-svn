@@ -1,11 +1,12 @@
    version stable 0.2.0 1.0.7 1.0.6 0.1.5 0.1.4
 #  version stable 1.0.7 1.0.6 0.1.5 0.1.4
-   require libtirpc
+   require libtirpc pkgconfig
   optional tcp_wrappers --enable-libwrap --disable-libwrap for additional connection controls
       opts --bindir=/bin
   category network
- attribute server
- attribute broke
+ attribute library makej multilib-fail
+# multilib-fail while using gcc-legacy to compile
+#attribute library makej multilib-dual
     source $SOURCEFORGE_URL rpcbind/rpcbind/$VERSION/rpcbind-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL rpcbind/OldFiles/rpcbind-$VERSION.tar.bz2
       info home http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
@@ -23,6 +24,19 @@ build(){
 # for rpcbind
 # But rpcbind is not definied in IANA's services.
 # Therefore, it is changed to sunrpc instead.
+
+ export PATH="/opt/legacy/usr/bin:$PATH"
+ export   CFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+ export CXXFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+ else export LDFLAGS+=' -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib   -Wl,-rpath-link,/opt/legacy/lib'
+ fi
+
+# then export LDFLAGS+=' -L/opt/legacy/lib64'
+# else export LDFLAGS+=' -L/opt/legacy/lib'
+
+ export LDFLAGS+=' -lnsl'
 
  sed -i 's:static char servname\[\] = "rpcbind":static char servname[] = "sunrpc":' src/rpcbind.c
  default_build

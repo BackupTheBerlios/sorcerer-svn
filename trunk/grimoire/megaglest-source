@@ -3,9 +3,34 @@
 # It segmentation faults when run on glibc 2.14.1
 # bug in glibc?
 # I might yet fix this,
-# but I will first have to create a glibc-v2.13 spell
-# that installs in /opt/glibc/2.13/
+# Not currently able to make this compile and link properly
+# with libraries provided in /opt/legacy/
 
    inherit megaglest
    require SDL autoconf cmake jam libvorbis megaglest-data openal wxWidgets xerces-c
     source $SOURCEFORGE_URL megaglest/current_release/megaglest-source-$VERSION.tar.xz
+ attribute broke
+
+case $VERSION in
+ 3.5.2.4)
+   require gcc-legacy ;;
+esac
+
+build(){
+ use_legacy(){
+  export PATH=/opt/legacy/usr/bin:$PATH
+  export   CFLAGS+=' -I/usr/include'
+  export CXXFLAGS+=' -I/usr/include'
+#  export   CFLAGS+=' -I/opt/legacy/usr/include -I/usr/include'
+#  export CXXFLAGS+=' -I/opt/legacy/usr/include -I/usr/include'
+#  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+#  then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+#  else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
+#  fi
+ }
+
+ case $VERSION in
+  3.5.2.4) use_legacy ;;
+ esac
+ default_build
+}
