@@ -8,22 +8,24 @@
 # consequently, rpcbind fails to link with it when those symbols
 # can not be resolved
 
-   version stable 0.2.2 1.0.8 0.1.7
-   require gcc-legacy pkgconfig
-#  require pkgconfig
+# libtirpc version 0.2.2 has unresolved symbols:
+# xdr_desresp des_crypt_1
+# No idea what should provide those functions.
+
+   version stable 1.0.8 0.1.7
+   require pkgconfig
       opts --enable-static=no
   category network
- attribute broke
  attribute library makej multilib-fail
 #attribute library makej multilib-dual
-    source $SOURCEFORGE_URL libtirpc/libtirpc/$VERSION/libtirpc-$VERSION.tar.bz2
-#   source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
+#   source $SOURCEFORGE_URL libtirpc/libtirpc/$VERSION/libtirpc-$VERSION.tar.bz2
+    source $SOURCEFORGE_URL libtirpc/OldFiles/libtirpc-$VERSION.tar.bz2
       info home http://nfsv4.bullopensource.org/doc/tirpc_rpcbind.php
       desc 'transport independent remote procedure call library
 libtirpc is required for using NFSv4 over IPv6 networks.
 libtirpc is used by Linux-PAM and nfs-utils'
 
-build(){
+build(){ (
  fix_pkgconfig(){
   if   [   -f "$1" ]
   then sed -i 's:${exec_prefix}/lib:/lib:' "$1"
@@ -53,18 +55,6 @@ build(){
   fix_lib       $DESTDIR/{usr/,}lib
  }
 
- export PATH="/opt/legacy/usr/bin:$PATH"
- export   CFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
- export CXXFLAGS+=' -isystem /opt/legacy/usr/include -I/opt/legacy/usr/include'
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export LDFLAGS+=' -L/opt/legacy/lib64'
- else export LDFLAGS+=' -L/opt/legacy/lib'
- fi
-
-## Changing the default runtime linker is not required for libtirpc
-#then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
-#else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
-
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
 
  case $VERSION in
@@ -74,4 +64,4 @@ build(){
  esac
 
  default_build && fix_install
-}
+) }

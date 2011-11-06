@@ -14,3 +14,20 @@
       info docs http://kdenlive.org/support
       info forum http://kdenlive.org/forum
       desc 'video editor that uses KDE and QT libraries'
+
+ use_legacy(){
+  export PATH=/opt/legacy/usr/bin:$PATH
+  export   CFLAGS+=' -I/opt/legacy/usr/include -I/usr/include'
+  export CXXFLAGS+=' -I/opt/legacy/usr/include -I/usr/include'
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
+  else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2 -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib -Wl,-rpath-link,/opt/legacy/lib'
+  fi
+ }
+
+build(){
+ case $VERSION in
+  0.8.2) use_legacy ;;
+ esac
+ default_build
+}
