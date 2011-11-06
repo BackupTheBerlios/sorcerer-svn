@@ -10,15 +10,10 @@
 # consequently, nfs-utils also does not compile.
 
    version stable 1.2.5 1.2.4 1.2.3 1.2.2 1.2.1 1.2.0
-   require LVM2 libevent-legacy libnfsidmap-legacy librpcsecgss-legacy procps rpcbind-legacy util-linux
+   require LVM2 libevent libnfsidmap librpcsecgss procps rpcbind util-linux
   optional libcap
     switch -static '' '[ ]=dynamic or [*]=static port assignments'
       opts --disable-gss --sbindir=/sbin
-case $VERSION in
- 1.2.5)
-   require gcc-legacy
-      opts --without-tcp-wrappers ;;
-esac
   category network/file-share
  attribute console client server
 #attribute broke
@@ -127,23 +122,9 @@ build(){ (
  OPTS=${OPTS/-dynamic/}
  OPTS=${OPTS/-static/}
 
-# if   ! spell_installed tcp_wrappers
-# then OPTS+=' --without-tcp-wrappers'
-# fi
-
- legacy(){
-  export PATH="/opt/legacy/usr/bin:$PATH"
-  export   CFLAGS+=' -I/opt/legacy/usr/include'
-  export CXXFLAGS+=' -I/opt/legacy/usr/include'
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then export LDFLAGS+=' -Wl,-I/opt/legacy/lib64/ld-linux-x86-64.so.2 -L/opt/legacy/lib64 -Wl,-rpath,/opt/legacy/lib64 -Wl,-rpath-link,/opt/legacy/lib64'
-  else export LDFLAGS+=' -Wl,-I/opt/legacy/lib/ld-linux.so.2          -L/opt/legacy/lib   -Wl,-rpath,/opt/legacy/lib   -Wl,-rpath-link,/opt/legacy/lib'
-  fi
- }
-
- case $VERSION in
-  1.2.5) legacy ;;
- esac
+ if   ! spell_installed tcp_wrappers
+ then OPTS+=' --without-tcp-wrappers'
+ fi
 
  export   CFLAGS+=' -I/usr/include/et'
  export CXXFLAGS+=' -I/usr/include/et'
