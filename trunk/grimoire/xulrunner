@@ -1,15 +1,4 @@
-# gjs and gnome-shell will break when xulrunner updates
-# Therefore, update and test those also.
-
-# gjs version 1.30.0 can not digest xulrunner 2.0
-# gjs version 1.30.0 is definitely not written to support xulrunner version 7.0.1
-
-# gjs might not run properly with xulrunner 3.6.23
-# gjs does not indicate which version of xulrunner is desired and compatible
-# gjs definitely requires xulrunner 1.9.2
-
-   version stable 3.6.23 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
-   version unstable 8.0b1 7.0.1 7.0 6.0.2
+   version stable 8.0b6 3.6.23 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
 # Using internal mng
    require GConf jdk libIDL libnotify nss sqlite startup-notification zip
 #  require GConf-dbus jdk libIDL libnotify nss sqlite startup-notification zip
@@ -18,8 +7,8 @@
   category network/web
  attribute client library makej multilib-dual solo x11
     source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-      info last  20110924
-  homepage http://developer.mozilla.org/en/XULRunner
+      info last 20111103
+      info home http://developer.mozilla.org/en/XULRunner
       vurl http://developer.mozilla.org/en/XULRunner
       opts --with-system-jpeg
       opts --with-system-zlib
@@ -80,6 +69,10 @@ build(){
  fi
 
  case $VERSION in
+      8.0*) grep -rl "curl/types\.h" * |
+            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
+            cp security/coreconf/Linux{2.6,3.1}.mk
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
      7.0.1) grep -rl "curl/types\.h" * |
             xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
             cp security/coreconf/Linux{2.6,3.1}.mk
@@ -106,6 +99,10 @@ build(){
             cp security/coreconf/Linux{2.6,3.0}.mk
             opts --disable-crashreporter ;;
  esac
+
+ export   CFLAGS="${CFLAGS//-flto/}"
+ export CXXFLAGS="${CXXFLAGS//-flto/}"
+ export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
 
  ./configure \
  --prefix=/usr \
