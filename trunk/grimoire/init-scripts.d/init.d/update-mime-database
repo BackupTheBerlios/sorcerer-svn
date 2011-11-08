@@ -14,7 +14,7 @@
 only stop
 deny control
 
-check(){
+check_old(){
  local DIR
  while read DIR; do
   log_warning_msg "$DIR checking"
@@ -22,6 +22,19 @@ check(){
   elif ! [ -d $DIR/packages ]; then :
   elif ! [ -f $DIR/mime.cache ]; then echo "$DIR"
   elif find $DIR/packages -maxdepth 0 -newer $DIR/mime.cache | grep -q  .; then echo "$DIR"
+  fi
+  log_success_msg "$DIR checked"
+ done
+}
+
+check(){
+ local DIR
+ while read DIR; do
+  log_warning_msg "$DIR checking"
+    if ! [ -d $DIR ]; then :
+  elif ! [ -f $DIR/mime.cache ]; then echo "$DIR"
+  elif find   $DIR -maxdepth 0 -newer $DIR/mime.cache | grep -q  .
+  then echo  "$DIR"
   fi
   log_success_msg "$DIR checked"
  done
