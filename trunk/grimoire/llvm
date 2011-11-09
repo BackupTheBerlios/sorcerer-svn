@@ -6,15 +6,30 @@
 
    version stable 2.9 2.8 2.7 2.6
    require gcc-g++
-      opts -DCMAKE_BUILD_TYPE=RELEASE
+      opts --enable-shared
+#     opts -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS:BOOL=TRUE
   category development/emulator
  attribute console library makej multilib-concurrent
     source http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tgz
 #   source http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
-  homepage http://www.llvm.org
+      info last 20110406
+      info home http://www.llvm.org
+      vurl http://www.llvm.org/releases/
       desc 'low level virtual machine'
 
 build(){
+# if     [[ $HOSTTYPE == x86_64 ]] &&
+#      ! [[ $CFLAGS   =~ -m32   ]]
+# then opts -DLLVM_LIBDIR_SUFFIX=64
+# fi
+
+# Did not work.
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then opts --libdir=/usr/lib64
+ fi
+
+ rm -f CMakeLists.txt
  default_build &&
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
