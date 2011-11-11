@@ -1,36 +1,33 @@
 # requiring coreutils creates recursive requirement loop
 
-   version stable 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
+# If this installs it beocmes unusable.
+
+   version stable 4.5.3
    require binutils cloog-ppl libelf mpfr multiprecision
 #  require binutils cloog-parma libelf mpfr multiprecision
-      opts --with-ppl --with-cloog --with-slibdir=/lib
+      opts --with-ppl --with-cloog
+#     opts --with-slibdir=/lib
   category development/compiler
- attribute console library lto_off makej multilib-fail solo
+ attribute console library lto_off makej multilib-fail optimize solo
+ attribute broke
     source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
       info last 20111101
       info home http://gcc.gnu.org/
       info docs http://gcc.gnu.org/onlinedocs/
       info mail http://gcc.gnu.org/lists.html
- conflicts gcc-objc
-    CFLAGS='-O2'
-  CXXFLAGS='-O2'
-   LDFLAGS='-Wl,-O1'
       desc 'GNU compiler collection'
 
 build(){
 
  finish_install(){
-  local STRSTREAM=$DESTDIR/usr/include/c++/$VERSION/backward/strstream
+  local STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
   if   [[ -f           $STRSTREAM   ]] &&
      ! [[ -f           $STRSTREAM.h ]]
   then ln -s strstream $STRSTREAM.h
   fi
 
-  rm -f  $DESTDIR/usr/info/dir
-  mkdir -p            $DESTDIR/lib
-  ln -fs /usr/bin/cpp $DESTDIR/lib/cpp
-  ln -fs gcc          $DESTDIR/usr/bin/cc
+  rm -f  $DESTDIR/opt/gcc/$VERSION/info/dir
  }
 
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
@@ -53,11 +50,11 @@ build(){
   LJCF="LIBGCJ_CFLAGS=$CFLAGS"
  LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
   LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-   LDF="LDFLAGS=$LDFLAGS"
+   LDF="LDFLAGS=$LDFLAGS -Wl,-R/opt/gcc/$VERSION/lib64 -Wl,-R/opt/gcc/$VERSION/lib"
 
+# --enable-shared
  OPTS+="
-  --prefix=/usr
-  --enable-shared
+  --prefix=/opt/gcc/$VERSION
   --infodir=/usr/info
   --mandir=/usr/man
   --datadir=/usr/share
@@ -97,10 +94,6 @@ post_install(){
  get_provider libtool | pipe_queue $CAST_QUEUE
  leech
 
- if   [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]
- then rm -f ${CCACHE_CACHE}/*
- fi
-
  cast_if_needed(){
   if ! spell_installed $1 &&
        grep -lr $2 $ELF_LOGS |
@@ -109,10 +102,4 @@ post_install(){
   then echo $1 | pipe_queue "$CAST_QUEUE"
   fi
  }
-}
-
-current(){
- case $VERSION in
-  4.6.2) [ -f /lib/libgcc_s.so.1 ] || [ -f /lib64/libgcc_s.so.1 ] ;;
- esac
 }
