@@ -47,7 +47,8 @@ build(){
   LJCF="LIBGCJ_CFLAGS=$CFLAGS"
  LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
   LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-   LDF="LDFLAGS=$LDFLAGS -Wl,-R/opt/gcc/$VERSION/lib64 -Wl,-R/opt/gcc/$VERSION/lib"
+   LDF="LDFLAGS=$LDFLAGS"
+#  LDF="LDFLAGS=$LDFLAGS -Wl,-R/opt/gcc/$VERSION/lib64 -Wl,-R/opt/gcc/$VERSION/lib"
 
 # --enable-shared
  OPTS+="
@@ -83,20 +84,4 @@ build(){
       "$LJCF" "$LJCXF"          &&
  make  install DESTDIR=$DESTDIR &&
  finish_install
-}
-
-
-post_install(){
- get_provider libtool | pipe_queue $LEECH_QUEUE
- get_provider libtool | pipe_queue $CAST_QUEUE
- leech
-
- cast_if_needed(){
-  if ! spell_installed $1 &&
-       grep -lr $2 $ELF_LOGS |
-       grep -v  gcc          |
-       grep -q .
-  then echo $1 | pipe_queue "$CAST_QUEUE"
-  fi
- }
 }
