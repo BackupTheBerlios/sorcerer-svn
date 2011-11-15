@@ -13,3 +13,15 @@
 kdelibs contains the base applications that form the core of
 the K Desktop Environment like the window manager, the terminal
 emulator, the control center, the file manager, and the panel.'
+
+build(){
+ sed -i 's:-Werror=return-type::'                   cmake/modules/FindKDE4Internal.cmake
+ sed -i 's:-Werror-implicit-function-declaration::' cmake/modules/FindKDE4Internal.cmake kjsembed/qtonly/FindQJSInternal.cmake
+ kde_build
+}
+
+current(){
+ case $VERSION in
+  4.7.3) ! grep -q "Werror=return-type" /opt/kde4/share/apps/cmake/modules/FindKDE4Internal.cmake ;;
+ esac
+}
