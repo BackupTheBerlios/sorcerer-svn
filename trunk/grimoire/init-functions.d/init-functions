@@ -37,7 +37,7 @@ session(){
 }
 
 pids_from_cgroup(){
- if ! find_cgroup; then return 1; fi
+ if ! cgroup_find; then return 1; fi
 
  if   [    -f   $CG/daemon/$NAME/tasks ] &&
       grep -q . $CG/daemon/$NAME/tasks
@@ -86,28 +86,6 @@ pidofproc(){
  fi
 }
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
-}
-
-cgroup_join(){
- if find_cgroup; then
-  mkdir -pm 770   $CG/$1/$NAME
-  echo $BASHPID > $CG/$1/$NAME/tasks
-  if   [ -n "$AFFINE" ]
-  then echo "$AFFINE" > $CG/$1/$NAME/cpuset.cpus
-  fi
- fi
-}
-
 killproc(){
  local PIDF PID BASE PIDS SIGL
 
@@ -133,7 +111,7 @@ killproc(){
   if   [  -f "$PIDF" ]
   then rm -f "$PIDF"
   fi
-  find_cgroup &&
+  cgroup_find &&
   rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
   return 0
  else return 1
@@ -143,9 +121,9 @@ killproc(){
 start_daemon(){
  run(){
   case $CGRP in
-   idle) cgroup_join idle ;;
+   idle) cgroup_join idle/sys/$NAME $AFFINE ;;
    none) : ;;
-      *) cgroup_join daemon ;;
+      *) cgroup_join norm/sys/$NAME $AFFINE ;;
   esac
 
   # timeout is safe to use for starting daemons and servers
@@ -465,7 +443,6 @@ fi
 
 cgroup_find(){ :; }
 cgroup_join(){ :; }
-cgroup_exit(){ :; }
 cgroup_pids(){ :; }
 
 if   [ -f /lib/cgroup/functions ]
