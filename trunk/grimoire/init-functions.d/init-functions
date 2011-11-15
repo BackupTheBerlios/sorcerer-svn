@@ -37,19 +37,19 @@ session(){
 }
 
 pids_from_cgroup(){
- if ! cgroup_find; then return 1; fi
+ cgroup_pids norm/sys/$NAME ||
+ cgroup_pids idle/sys/$NAME ||
+ cgroup_pids real/sys/$NAME ||
+ cgroup_pids fast/sys/$NAME ||
+ cgroup_pids slow/sys/$NAME
+}
 
- if   [    -f   $CG/daemon/$NAME/tasks ] &&
-      grep -q . $CG/daemon/$NAME/tasks
- then cat       $CG/daemon/$NAME/tasks; return 0
- fi
-
- if   [    -f   $CG/idle/$NAME/tasks ] &&
-      grep -q . $CG/idle/$NAME/tasks
- then cat       $CG/idle/$NAME/tasks; return 0
- fi
-
- return 1
+cgroup_rmdir(){
+ cgroup_oust norm/sys/$NAME ||
+ cgroup_oust idle/sys/$NAME ||
+ cgroup_oust real/sys/$NAME ||
+ cgroup_oust fast/sys/$NAME ||
+ cgroup_oust slow/sys/$NAME
 }
 
 pidofproc(){
@@ -67,7 +67,7 @@ pidofproc(){
  BASE=${1##*/}
 
  if    [ -z "$PIDF" ]; then
-  if   pids_from_cgroup;             then return
+  if   pids_from_cgroup;             then echo "$REPLY"; return
   elif [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
   elif [ -f "/var/run/$BASE"      ]; then PIDF=/var/run/$BASE
   else PIDS=$( /bin/pidof -o %PPID $BASE )
@@ -111,8 +111,7 @@ killproc(){
   if   [  -f "$PIDF" ]
   then rm -f "$PIDF"
   fi
-  cgroup_find &&
-  rmdir --ignore-fail-on-non-empty $CG/*/{daemon,idle}/$NAME 2>/dev/null &
+  cgroup_rmdir &&
   return 0
  else return 1
  fi
@@ -415,7 +414,7 @@ name()    { NAME=$1; }
 log_file(){ LOGF=$1; }
 options() { OPTS="$@"; }
 fast()    { FAST=1; }
-cgroup()  { CGRP=${1:-daemon}; }
+cgroup()  { CGRP=$1; }
 timeout() { TOUT=$1; }
 domain()  { if [ -f /domain/$1 ]; then TDOM=/domain/$1; fi; }
 
@@ -441,9 +440,11 @@ if   [ -f /etc/init.d/conf.d/$NAME ]
 then .    /etc/init.d/conf.d/$NAME
 fi
 
-cgroup_find(){ :; }
-cgroup_join(){ :; }
-cgroup_pids(){ :; }
+cgroup_find(){ false; }
+cgroup_join(){ false; }
+cgroup_pids(){ false; }
+cgroup_oust(){ false; }
+cgroup_kill(){ false; }
 
 if   [ -f /lib/cgroup/functions ]
 then .    /lib/cgroup/functions ]
