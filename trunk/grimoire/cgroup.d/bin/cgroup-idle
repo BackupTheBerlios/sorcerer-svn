@@ -14,35 +14,31 @@ help(){
  fi 1>&2
 }
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
-}
-
 user_idle(){
- if   ! find_cgroup;  then echo "Error: Unable to locate cgroup filesystem." 1>&2; return 1
+ if   ! cgroup_find;  then echo "Error: Unable to locate cgroup filesystem." 1>&2; return 1
  elif [ -z "$USER" ]; then echo "Error: Unknown user." 1>&2; return 1; fi
 
- mkdir -pm 700 $CG/user/$USER/idle
- echo 2      > $CG/user/$USER/idle/cpu.shares
- echo 100    > $CG/user/$USER/idle/blkio.weight
- echo $$     > $CG/user/$USER/idle/tasks
+ [ -f          $CG/idle/user/$USER/blkio.weight ] &&
+ echo 10     > $CG/idle/user/$USER/blkio.weight
+ echo $$     > $CG/idle/user/$USER/tasks
 }
 
 execute(){
- if   grep -qx "$1"   $CG/user/$USER/tasks
- then echo     "$1" > $CG/user/$USER/idle/tasks
+ [ -f          $CG/idle/user/$USER/blkio.weight ] &&
+ echo 10     > $CG/idle/user/$USER/blkio.weight
+ if   grep -qx "$1"   $CG/norm/user/$USER/tasks
+ then echo     "$1" > $CG/idle/user/$USER/tasks
  else RUN=$1; shift 1; exec $RUN "$@"
  fi
 }
 
+cgroup_load(){
+ if   [ -f /lib/cgroup/functions ]
+ then .    /lib/cgroup/functions
+ fi
+}
+
 help "$1" &&
+cgroup_load &&
 user_idle &&
 execute "$@"
