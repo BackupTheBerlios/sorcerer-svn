@@ -50,20 +50,28 @@ cgroup_exit(){
 cgroup_pids(){
 # returns PIDs from specified cgroup's task file
 # $1 = cgroup
+# $2 = cgroup
+# $3 = cgroup
+# ...
 # $REPLY = the PIDs
 
  local CG R
  REPLY=
- if   [ -n     "$1"       ] && cgroup_find &&
-      [ -r "$CG/$1/tasks" ]
- then
-  while read R; do
-   if   [ -z  "$REPLY" ]
-   then REPLY="$R"
-   else REPLY="$REPLY $R"
+
+ if cgroup_find; then
+  while   [ -n "$1" ]; do
+   if     [ -r "$CG/$1/tasks" ]; then
+    while read R; do
+     if   [ -z  "$REPLY" ]
+     then REPLY="$R"
+     else REPLY="$REPLY $R"
+     fi
+    done < "$CG/$1/tasks"
    fi
-  done < "$CG/$1/tasks"
+   shift 1
+  done
  fi
+
  [ -n "$REPLY" ]
 }
 
@@ -83,11 +91,18 @@ cgroup_kill(){
 cgroup_oust(){
 # removes specified control group
 # $1 = control group
+# $2 = control group
+# $3 = control group
+# ...
 
  local CG
- if   [ -n     "$1"       ] && cgroup_find &&
-      [ -r "$CG/$1/tasks" ]
- then rmdir --ignore-fail-on-non-empty "$CG/$1"
+ if cgroup_find; then
+  while [ -n "$1" ]; do
+   if   [ -r "$CG/$1/tasks" ]
+   then rmdir --ignore-fail-on-non-empty "$CG/$1"
+   fi
+   shift 1
+  done
  else false
  fi
 }

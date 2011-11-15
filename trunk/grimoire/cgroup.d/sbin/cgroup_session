@@ -17,36 +17,25 @@
 # of the cgroups that contain it such as the user cgroup.
 
 
-
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
-}
-
 open(){
- mkdir -pm 700   $CG/user/$PAM_USER
- chown $PAM_USER $CG/user/$PAM_USER
- echo $PPID >    $CG/user/$PAM_USER/tasks
+ mkdir -pm 700   $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ chown $PAM_USER $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ echo  $PPID >                    $CG/norm/user/$PAM_USER/tasks
 }
 
 close(){
  echo $$    > $CG/tasks
  echo $PPID > $CG/tasks
- read       <             $CG/user/$PAM_USER/tasks
- [ -n "$REPLY" ] || rmdir $CG/user/$PAM_USER
- return 0
+ cgroup_oust  $CG/{fast,idle,norm,slow}/user/$PAM_USER
 }
 
-find_cgroup || exit 0
+[ -f /lib/cgroup/functions ] &&
+.    /lib/cgroup/functions   &&
+cgroup_find                  ||
+exit 0
 
 case $PAM_TYPE in
   open_session) open  ;;
  close_session) close ;;
 esac
+return 0
