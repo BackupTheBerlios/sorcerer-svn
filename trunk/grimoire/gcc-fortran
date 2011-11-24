@@ -1,70 +1,7 @@
-   version stable 4.4.5 4.4.3
+   version stable 4.6.2
    require gcc-core
   category development/compiler profile
  attribute profile
-#    source $GNU_URL gcc/gcc-$VERSION/gcc-core-$VERSION.tar.bz2
-#    source $GNU_URL gcc/gcc-$VERSION/gcc-fortran-$VERSION.tar.bz2
       info home  http://gcc.gnu.org/
       info docs  http://gcc.gnu.org/onlinedocs/
-#      mail http://gcc.gnu.org/lists.html
       desc 'GNU compiler collection'
-
-build_old(){
-
- clean_dd(){
-  cd $DESTDIR/usr
-  rm -frv bin/{cpp,*gcc*,gccbug,gcov}
-  rm -frv libexec/gcc/*/*/{cc1,collect2,install-tools}
-  rm -frv man/man1/{cpp,gcc,gcov}.1 man/man7
-  rm -frv info/{dir,{cpp,cppinternals,gcc,gccinstall,gccint}.info}
-  rm -frv include lib share
-  cd $OLDPWD
- }
-
- export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
- export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
-
- case $HOSTTYPE in
-  x86_64) OPTS+=' --disable-multilib' ;;
- esac
-
- case $MACHTYPE in
-  *-uclibc) OPTS+=" --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc" ;;
-  *-gnu)    OPTS+=" --enable-__cxa_atexit --enable-clocale=gnu" ;;
- esac
-
-   LCF="LIBCFLAGS=$CFLAGS"
-  LCXF="LIBCXXFLAGS=$CXXFLAGS"
-    BF="BOOT_CFLAGS=$CFLAGS"
-  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
- LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
-  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
-   LDF="LDFLAGS=$LDFLAGS"
-
- OPTS+="
-  --prefix=/usr
-  --enable-shared
-  --infodir=/usr/info
-  --mandir=/usr/man
-  --datadir=/usr/share
-  --enable-long-long
-  --enable-threads
-  --enable-tls
-  --with-system-zlib
-  --disable-bootstrap
-  --enable-languages=fortran"
-
- if [ -d /boot/isolinux ]
- then OPTS+=" --enable-libstdcxx-pch=no"
- fi
-
- mkdir BUILD
- cd    BUILD
- ../configure $OPTS            &&
- make "$BF"                    \
-      "$LCF"  "$LCXF"  "$LDF"  \
-      "$LJCF" "$LJCXF"         \
-      all-target-libgfortran   \
-      install-gcc                DESTDIR=$DESTDIR && clean_dd &&
- make install-target-libgfortran DESTDIR=$DESTDIR
-}

@@ -17,16 +17,13 @@ help(){
 user_idle(){
  if   ! cgroup_find;  then echo "Error: Unable to locate cgroup filesystem." 1>&2; return 1
  elif [ -z "$USER" ]; then echo "Error: Unknown user." 1>&2; return 1; fi
-
- [ -f          $CG/idle/user/$USER/blkio.weight ] &&
- echo 10     > $CG/idle/user/$USER/blkio.weight
  echo $$     > $CG/idle/user/$USER/tasks
 }
 
 execute(){
  [ -f          $CG/idle/user/$USER/blkio.weight ] &&
  echo 10     > $CG/idle/user/$USER/blkio.weight
- if   grep -qx "$1"   $CG/norm/user/$USER/tasks
+ if   grep -qx "$1"   $CG/*/user/$USER/tasks
  then echo     "$1" > $CG/idle/user/$USER/tasks
  else RUN=$1; shift 1; exec $RUN "$@"
  fi
