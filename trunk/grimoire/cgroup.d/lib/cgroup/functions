@@ -2,9 +2,15 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
+cgroup_ifs(){ export IFS=" 	
+"; }
+
 cgroup_find(){
-if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
+ if [ -n "$CG" ]; then return 0; fi
+
+ local IFS; cgroup_ifs
+
+ local      DEV    TYPE JUNK
  while read DEV CG TYPE JUNK; do
   if   [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
   elif [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
@@ -24,6 +30,7 @@ cgroup_join(){
    if   [ -n "$2" ] && [ -f "$CG/$1/cpuset.cpus" ]
    then echo "$2" >         "$CG/$1/cpuset.cpus"
    fi
+   echo $$        >         "$CG/$1/tasks"
    echo $BASHPID  >         "$CG/$1/tasks"
   else false
   fi
@@ -32,11 +39,10 @@ cgroup_join(){
 }
 
 cgroup_root(){
-# joins the $BASHPID with the root cgroup
-
  local CG
  if   cgroup_find && [ -w "$CG/tasks" ]
- then echo $BASHPID  >    "$CG/tasks"
+ then echo $$        >    "$CG/tasks"
+      echo $BASHPID  >    "$CG/tasks"
  else false
  fi
 }
@@ -47,6 +53,7 @@ cgroup_exit(){
 # into higher level cgroup task file
 # $1 = cgroup to depart from
 
+ local IFS; cgroup_ifs
  local CG R U="${1%/*}"
 
  if   [ -n     "$1"       ] && cgroup_find &&
@@ -65,7 +72,9 @@ cgroup_pids(){
 # ...
 # $REPLY = the PIDs
 
+ local IFS; cgroup_ifs
  local CG R
+
  REPLY=
 
  if cgroup_find; then
@@ -90,7 +99,9 @@ cgroup_kill(){
 # $1 = control group
 # $2 = signal
 
+ local IFS; cgroup_ifs
  local CG R
+
  if   [ -n     "$1"       ] && cgroup_find &&
       [ -r "$CG/$1/tasks" ]
  then while read R; do kill $2 $R; done < "$CG/$1/tasks"
@@ -105,7 +116,9 @@ cgroup_oust(){
 # $3 = control group
 # ...
 
+ local IFS; cgroup_ifs
  local CG
+
  if cgroup_find; then
   while [ -n "$1" ]; do
    if   [ -r "$CG/$1/tasks" ]
