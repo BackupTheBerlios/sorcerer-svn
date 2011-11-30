@@ -1,8 +1,10 @@
 # linux sneakily invokes subversion during compilation
 # however there is no apparent reason why.
 
-   version stable	3.1.3		3.1.2		3.1.1		3.1.0
-   version 3.0.x	3.0.9		3.0.8		3.0.4		3.0.3		3.0.2		3.0.1		3.0.0
+   version stable	3.1.4		3.1.3		3.1.2		3.1.1		3.1.0
+   version 3.2.x	3.2-rc3		3.2-rc2		3.2-rc1
+   version 3.1.x	3.1.4		3.1.3		3.1.2		3.1.1		3.1
+   version 3.0.x	3.0.9		3.0.8		3.0.4		3.0.3		3.0.2		3.0.1		3.0
    version 2.6.39.x	2.6.39.4	2.6.39.3	2.6.39.2	2.6.39.1
    version 2.6.38.x	2.6.38.8	2.6.38.6	2.6.38.5	2.6.38.4	2.6.38.3
    version 2.6.37.x     2.6.37.6	2.6.37.4	2.6.37.3	2.6.36.3
@@ -18,13 +20,11 @@
   category kernel
  attribute console makej
 case $VERSION in
- 3.1.0) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/linux-${VERSION:0:3}.tar.xz ;;
- 3.0.0) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/linux-${VERSION:0:3}.tar.xz ;;
- 2.6.*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.6/linux-${VERSION:0:3}.tar.xz ;;
   *rc*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/testing/linux-$VERSION.tar.xz ;;
+ 2.6.*) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.6/linux-${VERSION:0:3}.tar.xz ;;
      *) source $KERNEL_URL pub/linux/kernel/v${VERSION:0:1}.x/linux-$VERSION.tar.xz ;;
 esac
-      info last 20111127
+      info last 20111128
       info home http://www.kernel.org/
    protect /boot
    protect /lib/modules
@@ -127,10 +127,10 @@ build(){
 
 
  backup_modules(){
-  if [ -d  /lib/modules/$VERSION ]; then
-  rm   -rf /lib/modules/$VERSION.old
-  cp   -a  /lib/modules/$VERSION \
-           /lib/modules/$VERSION.old
+  if [ -d  /lib/modules/$KVERSION ]; then
+  rm   -rf /lib/modules/$KVERSION.old
+  cp   -a  /lib/modules/$KVERSION \
+           /lib/modules/$KVERSION.old
   fi
  }
 
@@ -192,7 +192,6 @@ build(){
 
   if   [ -f            $SCRIPT_DIR/$PROGRESS/$NAME ]
   then install -vm 600 $SCRIPT_DIR/$PROGRESS/$NAME .config
-#      [ -n "${FEATURE[base]}" ] || get_cpu
   else false
   fi
  }
@@ -210,7 +209,7 @@ build(){
 
  gzip_modules(){
   if ! spell_installed sorcerer-installer; then
-   local KO="$DESTDIR/lib/modules/$VERSION$1/kernel/"
+   local KO="$DESTDIR/lib/modules/$KVERSION$1/kernel/"
    find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
    find $KO -type f              | sed   -n '/\.gz$/p' |
    while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
@@ -218,7 +217,7 @@ build(){
  }
 
  strip_modules(){
-  find $DESTDIR/lib/modules/$VERSION$1/kernel -type f -name \*.ko |
+  find $DESTDIR/lib/modules/$KVERSION$1/kernel -type f -name \*.ko |
   xargs --max-lines=256 strip --strip-unneeded
  }
 
@@ -254,6 +253,16 @@ build(){
   return 0
  ) }
 
+ kversion(){
+  fm() { sed "s:^$1 =::p;d" /usr/src/linux/Makefile; }
+  local r
+  r=$( fm VERSION      ); [ -z "$r" ] || KVERSION="$r"
+  r=$( fm PATCHLEVEL   ); [ -z "$r" ] || KVERSION+=".$r"
+  r=$( fm SUBLEVEL     ); [ -z "$r" ] || KVERSION+=".$r"
+  r=$( fm EXTRAVERSION ); [ -z "$r" ] || KVERSION+=".$r"
+ }
+
+ kversion
  export   CFLAGS="${CFLAGS//-fstack-protector-all/}"
  export   CFLAGS="${CFLAGS//-fstack-protector/}"
  export CXXFLAGS="${CXXFLAGS//-fstack-protector-all/}"
@@ -261,7 +270,7 @@ build(){
 
  rm -fr           /usr/src/linux &&
  cp -a $BUILD_DIR /usr/src/linux &&
- compile_and_install_um          &&
+#compile_and_install_um          &&
  cd               /usr/src/linux &&
  compile_and_install
 }
