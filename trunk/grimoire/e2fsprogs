@@ -1,15 +1,16 @@
 # Thanks to a hal developer wanting to use libblkid provided by util-linux
 # e2fsprogs and util-linux now have circuliar requirements upon each other!!!
 
-   version stable 1.41.14 1.41.13 1.41.12
+   version stable 1.42 1.41.14 1.41.13 1.41.12
    version wip 1.42-WIP-0702
    require gawk init-functions pkgconfig util-linux
      opts --exec-prefix= --with-root-prefix= --enable-elf-shlibs --disable-libblkid --disable-libuuid
   category disk/file-system
  attribute console library makej multilib-concurrent
     source $SOURCEFORGE_URL e2fsprogs/e2fsprogs/$VERSION/e2fsprogs-$VERSION.tar.gz
-      info home  http://e2fsprogs.sourceforge.net/
-      info docs  http://e2fsprogs.sourceforge.net/ext2.html
+      info last 20111201
+      info home http://e2fsprogs.sourceforge.net/
+      info docs http://e2fsprogs.sourceforge.net/ext2.html
       desc 'required utilities for the EXT2 file system
 e2fsprogs - The EXT2 file system utilities and libraries.
 EXT2 stands for "Extended Filesystem", version 2.
@@ -25,10 +26,19 @@ and most of the other core ext2 filesystem utilities.'
 # thread-local-storage must be disabled in order to compile e2fsprogs
 
 build(){
+ build_old(){
+  if   [[ $CFLAGS =~ -m32 ]]
+  then export LDFLAGS+=" -m32"
+  fi
+
+  default_build &&
+  make install-{strip,libs} "DESTDIR=$DESTDIR"
+ }
+
  if   [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=" -m32"
  fi
 
  default_build &&
- make install-{strip,libs} "DESTDIR=$DESTDIR"
+ make install-libs "DESTDIR=$DESTDIR"
 }
