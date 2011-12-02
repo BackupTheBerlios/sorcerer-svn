@@ -3,19 +3,18 @@
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
+swap_scan(){
+ while read F S U; do
+  if    [[ $F = SwapFree: ]]; then
+   if   ((  S > 65536 ))
+   then return 0
+   else return 1
+   fi
   fi
- done < /proc/mounts
- unset CG
- return 1
+ done < /proc/meminfo
 }
 
-# 10M worked in trials.
+# 10M reserve worked in trials.
 
 pawn(){
  mkdir -p        $CG/pawn
@@ -23,7 +22,7 @@ pawn(){
  echo 0        > $CG/pawn/memory.oom_control
  echo 1000     > /proc/$BASHPID/oom_score_adj
  local RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
- while sleep 86400; do :; done
+ while sleep 60 && swap_scan; do :; done
 }
 
 oom_control(){
@@ -57,7 +56,10 @@ main(){
 
 on_exit(){ oom_control 0; }
 
-find_cgroup || exit 0
+[ -f /lib/cgroup/functions ] &&
+   . /lib/cgroup/functions   &&
+cgroup_find ||
+exit 0
 
 if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
