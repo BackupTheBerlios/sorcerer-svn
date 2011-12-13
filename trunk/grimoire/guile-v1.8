@@ -1,25 +1,29 @@
    version stable 1.8.8 1.8.7
-      info last  20101213
    require gmp libtool ncurses readline
+      opts --enable-static=no --disable-rpath
+      opts --disable-error-on-warning
   category development
  attribute console library makej multilib-dual
     source $GNU_URL guile/guile-$VERSION.tar.gz
-      info home  http://www.gnu.org/software/guile/
-      info docs  http://www.gnu.org/software/guile/docs/docs.html
-      info mail  http://www.gnu.org/software/guile/mail/mail.html
+      info last 20101213
+      info home http://www.gnu.org/software/guile/
+      info docs http://www.gnu.org/software/guile/docs/docs.html
+      info mail http://www.gnu.org/software/guile/mail/mail.html
  freshmeat guile
       desc 'portable, embeddable Scheme implementation'
 
 build(){
- case $VERSION in
-  1.8.[4-5]) patch -p1 < $SCRIPT_DIR/guile-1.8.4.patch
-         grep -rl '\-Werror' * | xargs -r --max-lines=64 sed -i 's:-Werror::'
- ;;
- esac
+ local LIBDIR
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/opt/guile/1.8/lib64
+ else LIBDIR=/opt/guile/1.8/lib
+ fi
+
  ./configure              \
   --prefix=/opt/guile/1.8 \
   --sysconfdir=/etc       \
   --localstatedir=/var    \
+  --libdir=$LIBDIR        \
   $OPTS &&
  make   &&
  make install DESTDIR=$DESTDIR
