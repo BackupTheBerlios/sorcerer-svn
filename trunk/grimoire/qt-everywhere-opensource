@@ -4,10 +4,11 @@
 # http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.3.tar.gz 
 # Above is alternate download location?
 
-# Version 4.7.4 not yet tested
+# kdenlive version 0.8.2 does not compile when
+# qt-everywhere-opensource 4.8.0 is installed.
 
-   version stable 4.7.4 4.7.3 4.7.2 4.7.1 4.6.3
-   version unstable 4.7.4
+   version stable 4.7.4 4.7.3 4.7.2 4.7.1
+   version unstable 4.8.0 4.7.4
    require alsa-lib dbus glib fontconfig libXcursor libXinerama libXrandr libiodbc libmng libpng sqlite tiff
   optional cups        -cups -no-cups                for common unix printing support
   optional mysql
@@ -17,12 +18,9 @@
   optional unixODBC    ''    -no-sql-odbc            for connecting to windows database
       opts -no-phonon -fontconfig -xmlpatterns -exceptions
   category graphic/library
- attribute bottleneck huge kde4 library lto_off makej multilib-dual
+ attribute bottleneck huge kde4 library lto_off makej multilib-dual optimize
     source ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-$VERSION.tar.gz
-  homepage http://www.trolltech.com/developer/downloads/qt/x11
-    CFLAGS='-O2'
-  CXXFLAGS='-O2'
-   LDFLAGS='-Wl,-O1'
+      info home http://www.trolltech.com/developer/downloads/qt/x11
  freshmeat qt
       desc 'GUI toolkit'
 
@@ -93,6 +91,10 @@ build(){
 # local  PATH
 # export PATH=$RATH
 
+ case $VERSION in
+  4.7.*) opts -qt-gif ;;
+ esac
+
  mkdir -p lib
  echo -e "o\nyes" |
  setarch $ARCH    \
@@ -109,7 +111,6 @@ build(){
  -system-sqlite   \
  -system-zlib     \
  -qt3support      \
- -qt-gif          \
  -xinerama        \
  -nomake demos    \
  -nomake examples \
