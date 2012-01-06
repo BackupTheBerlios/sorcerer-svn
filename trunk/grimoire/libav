@@ -1,0 +1,90 @@
+   version stable 0.7.3
+   require bzip2 nasm zlib
+      opts --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
+case $VERSION in
+ 0.7.3) opts --enable-nonfree --disable-static --disable-doc ;;
+esac
+
+# avisynth is broke so do not enable as optional
+# optional jackit
+
+  optional SDL            ''                       --disable-ffplay  to build ffplay media player
+  optional XviD           --enable-libxvid         --disable-libxvid
+  optional a52dec
+# celt optional for ffmpeg version 0.8 and later
+# optional celt           --enable-libcelt         --disable-libcelt
+  optional dirac          --enable-libdirac        --disable-libdirac
+  optional faac           --enable-libfaac         --disable-libfaac
+# frei0r-plugins creates requirement loop with OpenCV and ffmpeg
+# optional frei0r-plugins --enable-frei0r          --disable-frei0r
+  optional gsm            --enable-libgsm          --disable-libgsm
+  optional lame           --enable-libmp3lame      --disable-libmp3lame
+  optional libdc1394      --enable-libdc1394       --disable-libdc1394
+  optional libtheora      --enable-libtheora       --disable-libtheora
+  optional libvorbis      --enable-libvorbis       --disable-libvorbis
+  optional libvpx         --enable-libvpx          --disable-libvpx
+# ffmpeg does not recognize the installation of openjpeg
+# optional openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
+# ffmpeg does not recognize rtmpdump's librtmp library
+# optional rtmpdump       --enable-librtmp         --disable-librtmp
+  optional schroedinger   --enable-libschroedinger --disable-libschroedinger
+  optional speex          --enable-libspeex        --disable-libspeex
+  optional x264           --enable-libx264         --disable-libx264
+  category video
+ attribute library makej optimize
+    source http://www.libav.org/releases/libav-$VERSION.tar.xz
+      info last 20111225
+      info home http://www.libav.org/
+      info docs http://www.libav.org/documentation.html
+      desc 'fork of ffmpeg'
+
+build(){
+ flags(){ grep flags < /proc/cpuinfo | grep -q $1 || OPTS+=" $2"; }
+
+ local ARCH
+
+ export   CFLAGS="${CFLAGS//-funroll-loops/}"
+ export CXXFLAGS="${CXXFLAGS//-funroll-loops/}"
+ export   CFLAGS="${CFLAGS//pentium-m /i686 }"
+ export CXXFLAGS="${CXXFLAGS//pentium-m /i686 }"
+
+ export  LDFLAGS+=' -ldl'
+
+ flags mmx      --disable-mmx
+ flags mmx2     --disable-mmx2
+ flags sse      --disable-sse
+ flags sse3     --disable-ssse3
+ flags 3dnow    --disable-amd3dnow
+ flags 3dnowext --disable-amd3dnowext
+
+ local PREFIX=/opt/libav/${VERSION:0:3}/usr
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then ARCH=i686
+ else ARCH=$HOSTTYPE
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=$PREFIX/lib64
+ else LIBDIR=$PREFIX/lib
+ fi
+
+ setarch $ARCH \
+ ./configure   \
+ --prefix=$PREFIX \
+ --libdir=$LIBDIR \
+ $OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
+ setarch $ARCH make &&
+ setarch $ARCH make install "DESTDIR=$DESTDIR"
+# &&
+# mkdir -pvm 755 "$DESTDIR/etc" &&
+# install -m 644 doc/ffserver.conf "$DESTDIR/etc" &&
+# sed -i 's:-L${libdir}::' $DESTDIR/$PREFIX/lib/pkgconfig/*.pc &&
+# if    [[ $HOSTTYPE == x86_64   ]]; then
+#  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/$PREFIX/lib{,32}
+#                                    else mv $DESTDIR/$PREFIX/lib{,64}
+#    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/$PREFIX/lib{32,}; 
+#fi
+#  fi
+# fi
+}
