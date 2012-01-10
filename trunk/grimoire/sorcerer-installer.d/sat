@@ -1,0 +1,142 @@
+#!/bin/bash
+# Copyright 2012 by Kyle Sallee
+# all rights reserved.
+# For use with Sorcerer only
+
+DIALOG="dialog
+--backtitle
+Prospective Sorcerer System Administrator Examination
+--stdout"
+
+TAB="	"
+ENTER="
+"
+export IFS="$TAB$ENTER"
+
+msg(){     $DIALOG --cr-wrap      --msgbox "$1" 0 0; }
+confirm(){ $DIALOG --cr-wrap "$1" --yesno  "$2" 5 40; }
+yesno(){   $DIALOG --cr-wrap      --yesno  "$1" 0 0; }
+
+multi(){   local TITLE="$1"; local HELP="$2"; shift 2
+           $DIALOG --nocancel --title "$TITLE" \
+                   --menu "$HELP" 20 75 10 "$@"; }
+
+nav(){ msg "Page Up and Page Down scroll.  'q' to returns after reading."; }
+
+offer(){
+ if   confirm --defaultno "Ready to execute $2 ?"
+ then nav; clear; "$1" "$2"
+ fi
+}
+
+msg "\
+Greetings and welcome.
+For a skilled system administrator, also called SA,
+installation of Sorcerer Modern Magic
+provides no challenge when using the menu driven installer.
+Manual installation from a command line is also easy.
+
+However, some people are eager
+to both attempt and surmount
+the challenge of installation
+with little or no prior training.
+The good news is that
+two people have successfully accomplish it."
+
+msg "\
+For the benefit of everyone else
+this exam identifies important system administrator lore
+that is missing from minds of future Sorcerer SAs.
+Then the missing lore is uploaded
+using the protocol of English
+through the eyeballs and into the brain.
+
+SA lore is knowledge that SA possess.
+However, merely gaining lore
+does not constitute SA training.
+Therefore, unfortunately not everyone
+will achieve immediate competence
+after reading documentation.
+However, reading and learning the lore
+will advance potentials SAs closer
+to the goal of becoming competent SAs.
+Hopefully, more misunderstood words and
+confusion will be eliminated rather than created."
+
+msg "\
+Menu driven installation is easily accomplished
+by anyone that understand all of the vernacular.
+Howver, choosing an appropriate installation type
+requires experience.
+If uncertain, baffled, or overwhelmed by the exam
+then installing Sorcerer Sentient provides
+a nearly no questions asked installation
+of a Sorcerer Sentient workstation to a block device.
+
+The operating system can be
+re-installed at any time.
+Therefore, perfection is entirely optional
+for the first few installation attempts.
+"
+
+msg "\
+Please answer questions honestly.
+Please do not answer with an uncertain guess.
+A gold star is NOT awarded
+for answering all questions correctly."
+
+msg "\
+Skipping or aborting the exam
+to proceed to the menu driven installer
+is immediate tacit consent that
+any impass experienced while installing
+is entirely caused by the computer opeartor's ignorance
+and that software developers remain blameless.
+
+Install/Rescue images come without warranty.
+SAs are not included.
+This is a distribution of free and open source software.
+This is not free computer based system administrator training."
+
+while 
+ REPLY=$( multi "How many primary partitions can a fixed disk have?" \
+ "" 1 "" 2 "" 4 "" 8 "" 15 "" "Unknown" "" )
+
+ ! [ "$REPLY" == 4 ]
+do offer less /usr/share/tldp/Partition
+done
+
+while
+ REPLY=$( multi "VG PV LV LVM2?" "" "Agree" "" "Disagree" "" "Unknown" "" )
+ ! [ "$REPLY" == Agree ]
+do offer less /usr/share/tldp/LVM-HOWTO
+done
+
+while
+ REPLY=$( multi "Wield the source LUKS?" "" "Plain" "" "Password" "" "Unknown" "" )
+ ! [ "$REPLY" == Password ]
+do offer man cryptsetup
+done
+
+while
+ REPLY=$( multi "fsck fstab?" "" "No" "" "Yes" "" "Unknown" "" )
+ ! [ "$REPLY" == Yes ]
+do offer man fsck
+   offer man fstab
+done
+
+
+msg "\
+Congratulations on completing the exam.
+Hopefully, sufficient lore was gained or verified
+such that installation should present no insumountable problems.
+Therefore, no wish of good luck is required.
+The magic of the SA belongs
+to those who can wield the lore.
+
+Installtion of a console based Sorcerer Modern Magic
+requires less than 30 minutes to accomplish.
+Installation of a Sorcerer Sentient KDE/xorg workstation
+might require an hour or longer depending upon Internet bandwidth.
+Prepare water and nutritional supplies if needed.  :)
+"
