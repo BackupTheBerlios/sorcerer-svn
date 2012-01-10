@@ -14,7 +14,7 @@ ENTER="
 export IFS="$TAB$ENTER"
 
 msg(){     $DIALOG --cr-wrap      --msgbox "$1" 0 0; }
-confirm(){ $DIALOG --cr-wrap "$1" --yesno  "$2" 5 40; }
+confirm(){ $DIALOG --cr-wrap "$1" --yesno  "$2" 10 40; }
 yesno(){   $DIALOG --cr-wrap      --yesno  "$1" 0 0; }
 
 multi(){   local TITLE="$1"; local HELP="$2"; shift 2
@@ -24,7 +24,7 @@ multi(){   local TITLE="$1"; local HELP="$2"; shift 2
 nav(){ msg "Page Up and Page Down scroll.  'q' to returns after reading."; }
 
 offer(){
- if   confirm --defaultno "Ready to execute $2 ?"
+ if   confirm --defaultno "Ready to execute $1 $2 ?"
  then nav; clear; "$1" "$2"
  fi
 }
@@ -98,18 +98,46 @@ SAs are not included.
 This is a distribution of free and open source software.
 This is not free computer based system administrator training."
 
-while 
- REPLY=$( multi "How many primary partitions can a fixed disk have?" \
- "" 1 "" 2 "" 4 "" 8 "" 15 "" "Unknown" "" )
+while
+ REPLY=$( multi "FHS" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer less /usr/share/fhs.txt
+done
 
+while
+ REPLY=$( multi "device nodes?" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer less /usr/src/linux/Documentation/devices.txt
+done
+
+while
+ REPLY=$( multi "fstab?" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer man fstab
+done
+
+while 
+ REPLY=$( multi "How many primary partitions can a fixed disk have?" "" 1 "" 2 "" 4 "" 8 "" 15 "" "Unknown" "" )
  ! [ "$REPLY" == 4 ]
 do offer less /usr/share/tldp/Partition
 done
 
 while
- REPLY=$( multi "Wield the source LUKS?" "" "Plain" "" "Password" "" "Unknown" "" )
- ! [ "$REPLY" == Password ]
-do offer man cryptsetup
+ REPLY=$( multi "fdisk" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer man fdisk
+done
+
+while
+ REPLY=$( multi "parted" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer man parted
+done
+
+while
+ REPLY=$( multi "cfdisk" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer man cfdisk
 done
 
 while
@@ -125,15 +153,21 @@ do offer man mdadm
 done
 
 while
- REPLY=$( multi "fstab?" "" "Known" "" "Unknown" "" )
- ! [ "$REPLY" == Known ]
-do offer man fstab
+ REPLY=$( multi "Wield the source LUKS?" "" "Plain" "" "Password" "" "Unknown" "" )
+ ! [ "$REPLY" == Password ]
+do offer man cryptsetup
 done
 
 while
  REPLY=$( multi "fsck?" "" "Known" "" "Unknown" "" )
  ! [ "$REPLY" == Known ]
 do offer man fsck
+done
+
+while
+ REPLY=$( multi "ext2?" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer less /usr/src/linux/Documentation/filesystems/ext2.txt
 done
 
 while
@@ -179,12 +213,6 @@ do offer less /usr/src/linux/Documentation/filesystems/btrfs.txt
 done
 
 while
- REPLY=$( multi "FHS" "" "Known" "" "Unknown" "" )
- ! [ "$REPLY" == Known ]
-do offer less /usr/share/fhs.txt
-done
-
-while
  REPLY=$( multi "System V Init" "" "Known" "" "Unknown" "" )
  ! [ "$REPLY" == Known ]
 do offer less /etc/init.d/README
@@ -206,24 +234,6 @@ while
  REPLY=$( multi "nano" "" "Known" "" "Unknown" "" )
  ! [ "$REPLY" == Known ]
 do offer man nano
-done
-
-while
- REPLY=$( multi "fdisk" "" "Known" "" "Unknown" "" )
- ! [ "$REPLY" == Known ]
-do offer man fdisk
-done
-
-while
- REPLY=$( multi "parted" "" "Known" "" "Unknown" "" )
- ! [ "$REPLY" == Known ]
-do offer man parted
-done
-
-while
- REPLY=$( multi "cfdisk" "" "Known" "" "Unknown" "" )
- ! [ "$REPLY" == Known ]
-do offer man cfdisk
 done
 
 while
@@ -283,7 +293,13 @@ done
 while
  REPLY=$( multi "linux" "" "Known" "" "Unknown" "" )
  ! [ "$REPLY" == Known ]
-do offer less /usr/src/linux/Documentation/README
+do offer less /usr/src/linux/README
+done
+
+while
+ REPLY=$( multi "kernel parameters?" "" "Known" "" "Unknown" "" )
+ ! [ "$REPLY" == Known ]
+do offer less /usr/src/linux/Documentation/kernel-parameters.txt
 done
 
 
