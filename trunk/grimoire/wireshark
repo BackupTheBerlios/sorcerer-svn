@@ -1,14 +1,6 @@
-# wireshark wants to use libcap even when libcap is not installed
-# No luck compiling wireshark 1.4.3 1.4.2 1.4.1 and 1.4.0
-# 1.4.4 is a security bug fix release.
-
-# wireshark source has -L$something/lib
-# hardcoded into configure in too many places.
-# compiles neither by ./configure nor cmake
-
-   version stable 1.7.0 1.6.4 1.7.0 1.6.3 1.6.2 1.6.1 1.6.0
+   version stable 1.6.5 1.7.0 1.6.4 1.7.0 1.6.3 1.6.2 1.6.1 1.6.0
    version secure 1.6.2
-   require GeoIP e2fsprogs gtk+ libpcap libsmi pcre
+   require GeoIP e2fsprogs glib_a gtk+ libpcap libsmi pcre
   optional gnutls    ''          ''                  for analyzing SSL packets
   optional heimdal   --with-krb5 --without-krb5      for kerberos
 # optional libcap    ''          --without-libcap    for POSIX.1e capabilities management
@@ -19,9 +11,8 @@
       opts --enable-gtk2
   category network
  attribute x11
- attribute broke
     source http://www.wireshark.org/download/src/wireshark-$VERSION.tar.bz2
-      info last 20111201
+      info last 20120110
       info home http://www.wireshark.org/
       desc 'network protocol analyzer
 It allows you to examine data from a live
@@ -35,5 +26,9 @@ view the reconstructed stream of a TCP session.'
 build(){
  rm -f CMakeLists.txt
  echo "OPTS=[$OPTS]"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LDFLAGS+=" -L/usr/lib64 -L/lib64"
+ else LDFLAGS+=" -L/usr/lib -L/lib"
+ fi
  default_build
 }
