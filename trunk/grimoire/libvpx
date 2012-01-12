@@ -6,14 +6,13 @@
    require yasm
       opts --disable-install-docs --enable-pic --enable-vp8
       opts --enable-runtime-cpu-detect --enable-shared
-    CFLAGS='-O2 -ffast-math'
-   LDFLAGS='-Wl,-O1'
+      opts --disable-examples
   category video
- attribute library makej multilib-dual
+ attribute library makej multilib-dual optimize
     source http://webm.googlecode.com/files/libvpx-v$VERSION.tar.bz2
-      info last  20110815
+      info last 20110815
+      info home http://code.google.com/p/webm/
       vurl http://code.google.com/p/webm/downloads/list
-  homepage http://code.google.com/p/webm/
       desc 'library for the VP8 Codec'
 
 build(){
@@ -31,5 +30,6 @@ build(){
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
  then mv $DESTDIR/usr/lib{,64}
- fi
+ fi &&
+ sed -i 's: -L${libdir}::' $DESTDIR/usr/lib*/pkgconfig/vpx.pc
 }
