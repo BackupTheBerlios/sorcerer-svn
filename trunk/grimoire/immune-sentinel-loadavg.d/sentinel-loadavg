@@ -1,26 +1,27 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee,
+# Copyright 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
-# sentinel-space attempts to maintain free space
+# sentinel-loadavg freezes the cast
+# of the most recently started spell when loadavg becomes unreasonable.
+# sentinel-loadavg unfreezes the cast
+# of a spell that it froze when loadavg again becomes reasonable.
 
-if   [ -n "$1" ]
+if   [ -n  "$1" ]
 then LIMIT="$1"
 else LIMIT=$( sed "/^processor/p;d" /proc/cpuinfo | wc -l )
  ((  LIMIT = LIMIT * 2 + 1 ))
 fi
 
 CG=
-FROZEN=
+ICE=
 
 LC_ALL=C
 TERM="dumb"
 IFS=" 	
 "
 export IFS LC_ALL TERM
-
-declare -A CASTING
 
 SSC=slow/sorcery/cast
 
@@ -38,27 +39,33 @@ loadavg(){
 
 casting(){
  if ! [ -d /root/.sorcery/queue/cast ]; then return 1; fi
- if ! [ -d $CG/$SSC     ]; then return 1; fi
  
- for TASK in $CG/$SSC/*/tasks
- do if [ -f $TASK ]; then return; else return 1; fi; done
+ for S in /root/.sorcery/cast/*; do
+  if   [ -f $S ] &&
+       [ -s $S ]
+  then return
+  else return 1
+  fi
+ done
 }
 
 newb(){
- FROZEN=$(
-  find $CG/$SSC -mindepth 1 -type d -printf "%T@	%f\n" |
+ ICE=$(
+  find /root/.sorcery/queue/cast/ -type f -not -empty \
+       -printf "%T@	%f\n" |
   sort -gr | head -n 1 | cut -f2
  )
+ [ -n "$ICE" ]
 }
 
-ice(){ newb; echo FROZEN > $CG/$SSC/$FROZEN/freezer.state; }
-thaw(){      echo THAWED > $CG/$SSC/$FROZEN/freezer.state; FROZEN=; }
+ice(){ newb && echo FROZEN > $CG/$SSC/$ICE/freezer.state; }
+thaw(){        echo THAWED > $CG/$SSC/$ICE/freezer.state; ICE=; }
 
 try_thaw(){ loadavg; if (( LIMIT > LOADAVG )); then thaw; fi; }
 try_ice(){  loadavg; if (( LIMIT < LOADAVG )); then ice; else return 1; fi; }
 
 scan(){
- if   [ -n "$FROZEN" ]
+ if   [ -n "$ICE" ]
  then            try_thaw;  sleep 60
  else casting && try_ice && sleep 60 || sleep 300
  fi
