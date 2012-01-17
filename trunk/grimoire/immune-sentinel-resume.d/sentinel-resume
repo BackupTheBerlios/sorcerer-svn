@@ -6,16 +6,10 @@
 # sentinel-resume periodically checks and resumes processing 
 # of delayed or paused spells to avert intentional and unintentional stalls.
 
-find_cgroup(){
- if [ -n "$CG" ]; then return 0; fi
- local DEV JUNK TYPE
- while read DEV CG TYPE JUNK; do
-  if   [[ $DEV == cgroup_root ]] && [[ $TYPE == tmpfs  ]]; then return 0
-  elif [[ $DEV == cgroup      ]] && [[ $TYPE == cgroup ]]; then return 0
-  fi
- done < /proc/mounts
- unset CG
- return 1
+cgroup_load(){
+ if   [ -f /lib/cgroup/functions ]
+ then .    /lib/cgroup/functions
+ fi
 }
 
 thaw(){
@@ -54,11 +48,12 @@ main(){
  while sleep 300; do scan; done
 }
 
-find_cgroup
-
 if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
 fi
 
+CG=
+cgroup_load
+cgroup_find
 main </dev/null &>/dev/null &
 exit 0

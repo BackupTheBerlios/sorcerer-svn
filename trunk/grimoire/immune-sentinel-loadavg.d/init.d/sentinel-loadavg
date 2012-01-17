@@ -1,0 +1,40 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 510
+# Required-Start: $local_fs run
+# Required-Stop:  $local_fs kill
+# Default-Start: 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: reduces loadavg
+### END INIT INFO
+
+if read < /proc/cmdline; [[ $REPLY =~ boot=IR ]]; then exit 0; fi
+
+LIMIT=$( sed "/^processor/p;d" /proc/cpuinfo | wc -l )
+(( LIMIT = LIMIT * 2 + 1 ))
+
+. /lib/lsb/init-functions
+
+fast
+cgroup idle
+only start stop restart try-restart status configure display
+server /usr/sbin/sentinel-loadavg
+options $LIMIT
+
+display(){ echo "Limit configured as $LIMIT"; }
+
+configure(){
+ input(){
+  dialog --stdout --no-cancel --timeout 60 \
+         --title $"$NAME configuration menu" \
+         --inputbox "Loadavg limit?" 0 0 $LIMIT
+ }
+
+ LIMIT=$( input )
+
+ if   [ -n "$LIMIT" ]
+ then echo "LIMIT=$LIMIT" > /etc/init.d/conf.d/$NAME
+ fi
+ try_restart
+}
