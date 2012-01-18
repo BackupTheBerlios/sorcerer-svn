@@ -15,6 +15,7 @@
    version unstable 5.15.6 5.15.5
   optional gdbm '' '' for database support
   optional db   '' '' for database support
+      opts -Duse64bitint
  conflicts perl--File-Spec
   category development/interpreter
  attribute console library makej
@@ -76,20 +77,20 @@ build(){
 # fi
 
 #./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth" -Duseshrplib $OPTS &&
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then SETARCH="setarch i686"
+ else SETARCH=""
+ fi
+ $SETARCH \
  ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth" $OPTS &&
  make "OPTIMIZE=$CFLAGS" &&
  make install DESTDIR=$DESTDIR
 }
 
-
 post_install(){
- # unlock_cast
- ( show_installed perl-module
-   echo           perl--XML-Parser
- ) | pipe_queue "$LEECH_QUEUE"
- leech
- ( show_installed perl-module
-   echo           perl--XML-Parser
- ) | pipe_queue "$CAST_QUEUE"
- true
+ echo perl--XML-Parser      | pipe_queue "$LEECH_QUEUE"
+ echo perl--XML-Parser      | pipe_queue  "$CAST_QUEUE"
+ show_installed perl-module | pipe_queue "$LEECH_QUEUE"
+ show_installed perl-module | pipe_queue  "$CAST_QUEUE"
+ default_post_install
 }
