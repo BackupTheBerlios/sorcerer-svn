@@ -1,6 +1,6 @@
 # 6.7.3-10 does not link properly.
 
-   version stable 6.7.2-10 6.7.1-10 6.7.0-10 6.6.9-10 6.6.8-10
+   version stable 6.7.4-10 6.7.2-10 6.7.1-10 6.7.0-10 6.6.9-10 6.6.8-10
    version unstable 6.7.3-10
 case $VERSION in
  6.7.3-10) # tries to use the wrong 32-bit lcms2 library during 64-bit linking
@@ -48,3 +48,10 @@ esac
       desc 'automated and interactive maniupation of images
 It supports the display and interactive manipulation 
 of images when used with the X Window System.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS=' -L/usr/lib64'
+ fi
+ default_build
+}

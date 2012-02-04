@@ -3,23 +3,24 @@
 # odd, 1.7.2 the download url has gdal-1.7.2.tar.gz.md5
 # but not the actual gdal-1.7.2.tar.gz
 
-   version stable 1.8.1 1.8.0 1.7.3 1.7.2 1.7.1
+   version stable 1.9.0 1.8.1 1.8.0 1.7.3 1.7.2 1.7.1
 case $VERSION in
  1.8.0*)
       opts --without-curl ;;
 esac
-   require curl geos giflib hdf5 jasper libpng proj sqlite tiff unixODBC
+   require curl geos giflib hdf5 jasper libpng pixman proj sqlite tiff unixODBC
   optional libgeotiff ''             '' for external GeoTiff library
+  optional openjpeg
   optional postgresql ''             '' for postgresql support
   optional xerces-c   --with-xerces  '' to include Xerces C++ XML Parser support for GML
     switch            --with-threads '' to support multi thread operation
       opts --enable-static=yes
   category utility/gis
  attribute console library makej multilib-dual
- attribute broke
+#attribute broke
     source http://download.osgeo.org/gdal/gdal-$VERSION.tar.gz
-      info last  20110714
-      info home  http://www.gdal.org/
+      info last 20120130
+      info home http://www.gdal.org/
       desc 'translator library for raster geospatial data formats
 gdal also comes with a variaty of useful command line utilities
 for data translation and processing:
@@ -34,3 +35,10 @@ for data translation and processing:
     * gdal_merge.py - Build a quick mosaic from a set of images.
     * gdal_rasterize - Rasterize vectors into raster file.
     * gdal-config - Get options required to build software using GDAL.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ fi
+ default_build
+}

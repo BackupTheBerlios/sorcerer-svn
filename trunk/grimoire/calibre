@@ -1,6 +1,6 @@
 # requirement list may be incomplete?
 
-   version stable 0.8.35 0.8.34 0.8.33 0.8.30 0.8.28 0.8.27 0.8.26 0.8.25 0.8.24
+   version stable 0.8.37 0.8.35 0.8.34 0.8.33 0.8.30 0.8.28 0.8.27 0.8.26 0.8.25 0.8.24
    require BeautifulSoup ImageMagick Imaging PyQt4 chmlib cssutils dbus-python lxml mechanize nautilus podofo poppler-qt-x11-opensource python-dateutil pygobject setuptools shared-mime-info xdg-utils
   optional icu4c
   optional unrar '' '' to support rar archives
@@ -8,7 +8,7 @@
  attribute python-module
     source $SOURCEFORGE_URL calibre/$VERSION/calibre-$VERSION.tar.xz
 #   source $SOURCEFORGE_URL calibre/$VERSION/calibre-$VERSION.tar.gz
-      info last 20120116
+      info last 20120130
       info home http://calibre-ebook.com/
       desc 'a one stop solution for e-book processing.
 Calibre is meant to be a complete e-library solution and thus
@@ -17,12 +17,14 @@ ebook conversion, as well as e-book reader sync features and
 an integrated e-book viewer.'
 
 build(){ (
- export QTDIR=/opt/kde4
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export QTDIR=/opt/32bit/usr; export PATH="/opt/32bit/usr/bin:$PATH"
+ else export QTDIR=/usr
+ fi
 
  export PKG_CONFIG_PATH=$QTDIR/lib/pkgconfig
  export POPPLER_INC_DIR=$QTDIR/include/poppler:$QTDIR/include
  export POPPLER_LIB_DIR=$QTDIR/lib
- export PATH="/opt/kde4/bin:$PATH"
 
  if   [[ $HOSTTYPE == x86_64 ]] &&
     ! [[ $CFLAGS   =~ -m32   ]]

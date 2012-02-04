@@ -18,11 +18,11 @@
 # kde version 4.5.0 does not have a kdepim
 
 if [[ -z $VERSION ]]; then
-   version stable 4.7.4 4.7.3 4.7.2 4.7.1 4.7.0 4.6.5 4.6.4 4.6.3 4.6.2 4.6.1 4.6.0
+   version stable 4.8.0 4.7.4 4.7.3 4.7.2 4.7.1 4.7.0 4.6.5 4.6.4 4.6.3 4.6.2 4.6.1 4.6.0
 fi
 
 if [ -z "${ATTRIBUTE[library]}" ]; then
-      opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4
+      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
 fi
       opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
       opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
@@ -31,18 +31,18 @@ fi
       opts -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 
  attribute kde4 makej
-      info home  http://www.kde.org
-      info docs  http://docs.kde.org/
-      info mail  http://www.kde.org/support/mailinglists/
+      info home http://www.kde.org
+      info docs http://docs.kde.org/
+      info mail http://www.kde.org/support/mailinglists/
 
 case $SPELL in
     kde-v4)
   category profile
  attribute archive_off
-   require kdeartwork-v4 kde-baseapps kde-path-v4 kde-runtime kde-wallpapers kde-workspace
+   require kdeartwork-v4 kde-baseapps kde-runtime kde-wallpapers kde-workspace
    require kdegraphics-strigi-analyzer konsole oxygen-icons
 
-  optional kdeaccessibility-v4
+  optional kaccessible
   optional kdeadmin-v4
   optional kdeedu
   optional kdegames-v4
@@ -53,7 +53,7 @@ case $SPELL in
   optional kdeplasma-addons-v4
   optional kdesdk-v4
   optional kdetoys-v4
-  optional kdeutils-v4
+  optional kdeutils
   optional kdewebdev-v4
   optional kcoloredit
   optional kfax
@@ -67,7 +67,7 @@ case $SPELL in
   optional scim-bridge-qt4
       info last 20111208
 
- conflicts kdebase-v4 kdebase-runtime-v4 kdebase-workspace-v4 kdeedu-v4 kdegraphics-v4
+ conflicts kdebase-v4 kdebase-runtime-v4 kdebase-workspace-v4 kdeedu-v4 kdegraphics-v4 kdeutils-v4 kdeaccessibility-v4 kde-path-v4
 
 # extragear-plasma last release was 4.0.2? no 4.0.3 release?
 #            'extragear-plasma:::for additional plasma apps/themes'
@@ -85,11 +85,6 @@ desktop environment, the true strength of this
 exceptional environment lies in the
 interoperability of its components.' ;;
 
- kdebase-runtime-v4) : ;;
- kdebase-v4) : ;;
- kdebase-workspace-v4) : ;;
- kdeedu-v4) : ;;
- kdegraphics-v4) : ;;
  kde*-v4)
     source   stable $KDE_URL   stable/$VERSION/src/${SPELL%-v4}-$VERSION.tar.bz2
     source unstable $KDE_URL unstable/$VERSION/src/${SPELL%-v4}-$VERSION.tar.bz2 ;;
@@ -98,24 +93,24 @@ esac
 kde_build(){ (
  if  [[ $HOSTTYPE == x86_64 ]]; then
   if [[ $CFLAGS   =~ -m32   ]]; then
-   export            PATH=/opt/kde4/i686/bin:$PATH
-   export PKG_CONFIG_PATH=/opt/kde4/i686/lib/pkgconfig:/usr/lib/pkgconfig
-   export         KDEDIRS=/opt/kde4/i686
-   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4/i686'
-   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/i686/lib'
+   export            PATH=/opt/32bit/usr/bin:$PATH
+   export PKG_CONFIG_PATH=/opt/32bit/usr/lib/pkgconfig:/usr/lib/pkgconfig
+   export         KDEDIRS=/opt/32bit/usr
+   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr'
+   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/32bit/usr/lib'
    ARCH=i686
   else
-   export            PATH=/opt/kde4/bin:$PATH
-   export PKG_CONFIG_PATH=/opt/kde4/lib64/pkgconfig:/usr/lib64/pkgconfig
-   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4'
-   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/kde4/lib64'
+#  export            PATH=/usr/bin:$PATH
+#  export PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/lib64/pkgconfig
+   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/usr'
+   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/usr/lib64'
    OPTS+=' -DLIB_SUFFIX:STRING=64'
    ARCH=$HOSTTYPE
   fi
  else
-  export      PATH="/opt/kde4/bin:$PATH"
-  export PKG_CONFIG_PATH=/opt/kde4/lib/pkgconfig:/usr/lib/pkgconfig
-  OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/kde4'
+# export      PATH="/usr/bin:$PATH"
+# export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/lib/pkgconfig
+  OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/usr'
   ARCH=$HOSTTYPE
  fi
 

@@ -5,29 +5,22 @@
 
    version stable 3.52.7
    require gtk+
-      opts --enable-static=no --prefix=/opt/kde4
+      opts --enable-static=no --prefix=/usr
   category db
  attribute library x11
     source http://www.iodbc.org/downloads/iODBC/libiodbc-$VERSION.tar.gz
-  homepage http://www.iodbc.org/dataspace/iodbc/wiki/iODBC/
+      info home http://www.iodbc.org/dataspace/iodbc/wiki/iODBC/
 #conflicts unixODBC
       desc 'Independent Open DataBase Connectivity for linux'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then OPTS+=' --libdir=/opt/kde4/lib64'
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if ! [[ $CFLAGS =~ -m32 ]]
+  then opts --libdir=/usr/lib64
+  else opts --prefix=/opt/32bit/usr
+  fi
  fi
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
- default_build &&
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
-  mkdir -pvm 755 $DESTDIR/opt/kde4/bin32
-  mv     -v      $DESTDIR/opt/kde4/bin{,32}/iodbc-config
- fi
-}
-
-current(){
- case $VERSION in
-  3.52.7) [ -f /opt/kde4/bin/iodbc-config ] ;;
- esac
+ default_build
 }

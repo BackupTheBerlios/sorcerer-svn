@@ -6,16 +6,16 @@
 
 # Version 1.2.5 has bugs that segfault /usr/bin/xsltproc
 # Version 1.2.4 makes programs crash happy, especially firefox.
+# Version 1.2.6 breaks vlc 1.1.13 compilation
 
    version stable 1.2.5 1.2.3
+   version latest 1.2.6
   category archive
- attribute library solo
+ attribute library optimize solo
     source $SOURCEFORGE_URL libpng/zlib/$VERSION/zlib-$VERSION.tar.bz2
 #   source http://www.zlib.net/ http://www.gzip.org/zlib/ zlib-$VERSION.tar.gz
-      info last 20100419
-  homepage http://www.zlib.net/
-    CFLAGS='-O2 -fstack-protector'
-   LDFLAGS='-Wl,-O1'
+      info last 20120131
+      info home http://www.zlib.net/
       desc 'legally unencumbered lossless data compression library
 zlib is designed to be a free, general-purpose,
 legally unencumbered -- that is, not covered by any patents
@@ -24,6 +24,15 @@ for use on virtually any computer hardware and operating system.
 The zlib data format is portable across platforms.'
 
 build(){
+ rm -f CMakeLists.txt
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/lib64
+ else opts --libdir=/lib
+ fi
+ default_build
+}
+
+build_old(){
  mvpc(){
   if   [ -d $DESTDIR/lib64/pkgconfig ]
   then mkdir -pvm 755 $DESTDIR/usr/lib64/

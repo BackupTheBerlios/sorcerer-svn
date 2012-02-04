@@ -2,10 +2,10 @@
 # 2.1 and 2.0 do not compile with current gcc.
 # 2.2 failed compilation
 
-   version stable 1.1 1.0
+   version stable 2.2 1.1 1.0
    version latest 2.1 2.0
    version unstable 1.2 1.1
-   require guile
+   require guile-v1.8
   optional Linux-PAM  ''                --disable-pam     for pluggable authentication
   optional db         ''                ''                can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db
   optional emacs      --enable-mh-utils ''                to provide an interface between Mailutils and Emacs using mh-e module
@@ -20,7 +20,8 @@
   optional xinetd     ''                ''                for running servers
 
   category network/email
- attribute console client library makej multilib-concurrent server
+ attribute console client server
+#attribute console client library makej multilib-concurrent server
 
 case $VERSION in
  2.0)
@@ -44,13 +45,21 @@ If it does not, please fix and report it
 or use pine SSL mail servers instead.'
 
 build(){
+ local  RATH=$PATH
+ local  PATH=/opt/guile/1.8/bin:$RATH
+ export PATH
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=' -L/usr/lib64/mysql'
  else export LDFLAGS+=' -L/usr/lib/mysql'
  fi
 
-   if grep -qx db   $OPT_ON_LOGS/mailutils; then OPTS+=' --with-db2'
- elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then OPTS+=' --with-gdbm'
+#   if grep -qx db   $OPT_ON_LOGS/mailutils; then OPTS+=' --with-db2'
+# elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then OPTS+=' --with-gdbm'
+# fi
+
+   if grep -qx db   $OPT_ON_LOGS/mailutils; then opts --with-berkeley-db
+ elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then opts --with-gdbm
  fi
  default_build &&
  ln -fs mail $DESTDIR/usr/bin/mailx
