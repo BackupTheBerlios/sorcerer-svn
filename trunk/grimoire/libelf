@@ -1,3 +1,9 @@
+# Check the existence of /usr/include/libelf.h on updates
+# glib may require /usr/include/libelf.h
+
+# installs differently if libelf is already installed with header files
+# located directly in /usr/include/
+
    version stable 0.8.13 0.8.12 0.8.11
    require pkgconfig
       opts --enable-static=no
@@ -5,7 +11,9 @@
  attribute library makej solo
 #attribute multilib-concurrent multilib-dual
     source http://www.mr511.de/software/libelf-$VERSION.tar.gz
-      info home  http://www.mr511.de/software/
+      info home http://www.mr511.de/software/
+# conflicts with self in order to install properly.
+ conflicts libelf
       desc 'ELF object file access library'
 
 build(){
@@ -16,4 +24,10 @@ build(){
  $OPTS &&
  make &&
  make install instroot=$DESTDIR
+}
+
+current(){
+ case $VERSION in
+  0.8.13) [ -f /usr/include/libelf.h ] ;;
+ esac
 }
