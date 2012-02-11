@@ -1,14 +1,32 @@
 # 1.30.0 fails compilation
 # skipping from 1.30.0 to 1.31.0 due to compile failure with 1.30.0
+# 1.31.10 causes many compile errors during GISCAN phase.
+# gobject-introspection breaks compilation of too much software
+# 1.31.6 1.31.1 1.31.0 1.31.10 causes compilation error in gtk+-v3 3.2.3
 
-   version   stable 1.31.10 1.31.0 1.30.0
-   version unstable 1.31.10 1.31.6 1.31.0 1.30.0
+# successful compilation of 0.10.8
+# 1.30.0 fails compilation
+
+# Do not increase stable version above 0.10.8
+# without doing a re-compile of all attribute gnome software
+# that is not already expected to be broke
+
+   version   stable 0.10.8 0.9.8 1.30.0
+   version unstable 1.31.10 1.31.6 1.31.1 1.31.0 1.30.0
    require automake cairo fontconfig freetype glib libffi libxml2
       opts --enable-static=no
   category development
  attribute gnome library
+#attribute broke
 #attribute gnome library makej
-    source $GNOME_URL sources/gobject-introspection/${VERSION:0:4}/gobject-introspection-$VERSION.tar.xz
+case $VERSION in
+  0.9.*)
+    source $GNOME_URL sources/gobject-introspection/${VERSION:0:3}/gobject-introspection-$VERSION.tar.bz2 ;;
+ 0.10.*)
+    source $GNOME_URL sources/gobject-introspection/${VERSION:0:4}/gobject-introspection-$VERSION.tar.bz2 ;;
+      *)
+    source $GNOME_URL sources/gobject-introspection/${VERSION:0:4}/gobject-introspection-$VERSION.tar.xz ;;
+esac
       info last 20111006
       info home http://www.gnome.org
       desc 'document API'
@@ -35,3 +53,5 @@ build(){
   fi
  fi
 }
+
+# current(){ echo gobject-introspection | pipe_queue $DISPEL_QUEUE; }  

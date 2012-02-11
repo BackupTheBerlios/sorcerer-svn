@@ -1,6 +1,16 @@
 # tracker is an optional requirement for totem
 
-   version stable 3.2.1 3.2.0 3.0.0
+# libpeas absolutely requires gobject-introspection.
+# gobject-introspection is too buggy and breaks several compile.
+# libpeas is broke while gobject-introspection is broke
+# totem is broke while libpeas is broke
+
+# 3.2.1 3.2.0 3.0.1 3.0.0 stalls during compilation during configure
+# No version of totem is expected to compile
+
+   version   stable 3.2.1
+   version   latest 3.2.1
+   version unstable 3.2.1
    require bluez clutter-gst clutter-gtk libarchive libXtst libepc libgdata libpeas mx totem-pl-parser
   optional gst-ffmpeg '' '' to watch avi mkv and wmv videos
   optional lirc
@@ -8,7 +18,13 @@
       opts --enable-static=no
   category video/dvd video/player
  attribute gnome makej
-    source $GNOME_URL sources/totem/${VERSION:0:3}/totem-$VERSION.tar.xz
+ attribute broke
+case $VERSION in
+ 3.0.*)
+    source $GNOME_URL sources/totem/${VERSION:0:3}/totem-$VERSION.tar.bz2 ;;
+     *)
+    source $GNOME_URL sources/totem/${VERSION:0:3}/totem-$VERSION.tar.xz ;;
+esac
       info last 20120131
       info home http://www.gnome.org/projects/totem/
 # This spell uses xine-lib instead of gstreamer for playing movies.

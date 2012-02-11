@@ -10,20 +10,31 @@
 # Evert reports that glib 2.30.0 breaks compilation of:
 # gamin; silgraphite; libglade; poppler.
 
-   version stable 2.30.2 2.30.1 2.30.0 2.28.8 2.28.7 2.28.6 2.28.5
-   version unstable 2.31.14 2.31.10
+# glib version 2.31.x requires
+# gtk_init(&argc, &argv);
+# before use of glib calls
+
+   version   stable 2.31.16 2.30.2 2.30.1 2.30.0
+   version unstable 2.31.16 2.31.14 2.31.10
    require Python libffi pcre pkgconfig zlib
       opts --with-pcre=system --with-threads=posix
+      opts --enable-static --enable-shared
   category development
  attribute gnome library makej multilib-concurrent
-    source $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.xz
+case $VERSION in
+ 2.26.*)
+    source $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.bz2 ;;
+      *)
+    source $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.xz ;;
+esac
       info last 20111113
       info home http://www.gtk.org/
       info docs http://www.gtk.org/documentation.html
+ conflicts glib_a		# added conflict on 20120211
       desc 'library of useful C routines for trees, hashes, and lists'
 
-current(){
- case $VERSION in
-  2.28.5) [ -f /etc/init.d/glib-compile-schemas ] ;;
- esac
+build(){
+   CFLAGS+=' -fPIC'
+ CXXFLAGS+=' -fPIC'
+ default_build
 }

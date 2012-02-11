@@ -1,5 +1,9 @@
-   version stable 5.0.2 4.2.5 4.2.0 4.0.7
-#  version unstable 4.99.0
+# 5.0.3 failed compilation
+
+
+   version   stable 5.0.2 4.2.5 4.2.0 4.0.7
+   version unstable 5.0.3
+   version   latest 5.0.3
 case $VERSION in
  4.2.0)
       opts --enable-introspection=no ;;
@@ -16,10 +20,11 @@ esac
       opts --enable-static=no --with-jni=/opt/jdk/include
   category db
  attribute gnome library makej multilib-concurrent
- attribute broke
+#attribute broke
     source   stable $GNOME_URL sources/libgda/${VERSION:0:3}/libgda-$VERSION.tar.xz
     source unstable $GNOME_URL sources/libgda/${VERSION:0:4}/libgda-$VERSION.tar.xz
-  homepage http://www.gnome.org
+      info last 20120124
+      info home http://www.gnome.org
 # glom 1.6.10 requires libgda-postgres-3.0
 #            'postgresql::--without-postgres:to retrieve data from postgresql database'
 
@@ -38,6 +43,11 @@ build(){
   fi
  else
  OPTS+=' --with-java=/opt/jdk/jre/lib/i386'
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS   =~ -m32   ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ else export LDFLAGS+=' -L/usr/lib'
  fi
 
  default_build
