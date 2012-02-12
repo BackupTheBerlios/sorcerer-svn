@@ -25,8 +25,6 @@ if [ -z "${ATTRIBUTE[library]}" ]; then
       opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
 fi
       opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
-      opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
-      opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
       opts -DCMAKE_BUILD_TYPE=Release
       opts -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE
 
@@ -96,22 +94,27 @@ kde_build(){ (
    export            PATH=/opt/32bit/usr/bin:$PATH
    export PKG_CONFIG_PATH=/opt/32bit/usr/lib/pkgconfig:/usr/lib/pkgconfig
    export         KDEDIRS=/opt/32bit/usr
-   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr'
-   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/opt/32bit/usr/lib'
+   opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+   opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+   opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr
+   opts -DCMAKE_INSTALL_RPATH:PATH=/opt/32bit/usr/lib
    ARCH=i686
   else
 #  export            PATH=/usr/bin:$PATH
 #  export PKG_CONFIG_PATH=/usr/lib64/pkgconfig:/usr/lib64/pkgconfig
    OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/usr'
-   OPTS+=' -DCMAKE_INSTALL_RPATH:PATH=/usr/lib64'
    OPTS+=' -DLIB_SUFFIX:STRING=64'
    ARCH=$HOSTTYPE
+   opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=FALSE
+   opts -DCMAKE_SKIP_RPATH:BOOL=TRUE
   fi
  else
 # export      PATH="/usr/bin:$PATH"
 # export PKG_CONFIG_PATH=/usr/lib/pkgconfig:/usr/lib/pkgconfig
   OPTS+=' -DCMAKE_INSTALL_PREFIX:PATH=/usr'
   ARCH=$HOSTTYPE
+  opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=FALSE
+  opts -DCMAKE_SKIP_RPATH:BOOL=TRUE
  fi
 
  if    [ ${ATTRIBUTE[multilib-concurrent]} ]; then

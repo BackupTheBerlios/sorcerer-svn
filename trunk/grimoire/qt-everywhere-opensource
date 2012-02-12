@@ -32,9 +32,9 @@ build(){
    if [[ $CFLAGS   =~ -m32   ]]; then
     sed -i 's:-L/opt/32bit/usr/lib:-L/opt/32bit/usr/lib -R/opt/32bit/usr/lib:' \
         $( find $DESTDIR/opt/32bit/usr/lib/ -name libQt\*.la )
-   else
-    sed -i 's:-L/usr/lib64:-L/usr/lib64 -R/usr/lib64:' \
-        $( find $DESTDIR/usr/lib64/ -name libQt\*.la )
+#   else
+#    sed -i 's:-L/usr/lib64:-L/usr/lib64 -R/usr/lib64:' \
+#        $( find $DESTDIR/usr/lib64/ -name libQt\*.la )
    fi
   else
    sed -i 's:-L/usr/lib:-L/usr/lib -R/usr/lib:' \
@@ -78,9 +78,9 @@ build(){
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
   then ARCH=i686;      PREFIX=/opt/32bit/usr
-  else ARCH=$HOSTTYPE; opts -libdir $PREFIX/lib64
+  else ARCH=$HOSTTYPE; opts -libdir $PREFIX/lib64 -no-rpath
   fi
- else  ARCH=$HOSTTYPE
+ else  ARCH=$HOSTTYPE; opts -no-rpath
  fi
 
  unset CC CXX
