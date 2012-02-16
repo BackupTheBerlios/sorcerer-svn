@@ -1,20 +1,25 @@
-   version stable 1.7.2 1.7.1 1.7.0 1.6.1 1.6.0
-   require qt-everywhere-opensource uim
+# The source ignores the -L/usr/lib and inserts -L/usr/lib64
+# and therefore ruins them multilib compile.
+
+   version stable 1.7.3 1.7.2 1.7.1 1.7.0 1.6.1 1.6.0
+   require phonon qt-everywhere-opensource uim
       opts --enable-dict --enable-static=no
       opts --with-qt4-immodule
       opts --prefix=/usr
   category input
- attribute console kde4 library makej x11
-#attribute broke
+ attribute console kde4 library makej multilib-fail x11
+#attribute console kde4 library makej x11
     source http://uim.googlecode.com/files/uim-$VERSION.tar.bz2
-      info last 20120116
+      info last 20120216
       info home http://uim.freedesktop.org/wiki/
       vurl http://code.google.com/p/uim/
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then export QTDIR=/opt/32bit/usr; export LDFLAGS+=' -L/usr/lib'
- else export QTDIR=/usr;           export LDFLAGS+=' -L/usr/lib64'
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32 ]]
+  then export QTDIR=/opt/32bit/usr; export LDFLAGS+=' -L/usr/lib'
+  else export QTDIR=/usr;           export LDFLAGS+=' -L/usr/lib64'
+  fi
  fi
  default_build
 }

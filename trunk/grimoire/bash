@@ -1,30 +1,28 @@
 # 4.2 seems to have a bug that becomes evident
 # from the odd installation of xterm.
 
-   version stable 4.2.010 4.2.008
+   version stable 4.2.0.020 4.2.010 4.2.008
    require readline
 ## --enable-static-linking not working at the moment
 ## Also the inclusion of --with-bash-malloc does not make it work
 #   switch --enable-static-link '' to make static linked bash
       opts --without-libiconv-prefix --without-libintl-prefix
   category development/interpreter utility/shell
- attribute console makej solo
+ attribute console makej optimize solo
     source ftp://ftp.cwru.edu/pub/bash/ ftp://ftp.gnu.org/pub/gnu/bash/ bash-${VERSION:0:3}.tar.gz
 
 case $VERSION in
  4.2.*)
     source ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches/bash42-00{1..9}
-    source ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches/bash42-010 ;;
+    source ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches/bash42-01{0..9}
+    source ftp://ftp.cwru.edu/pub/bash/bash-${VERSION:0:3}-patches/bash42-020
+ ;;
 esac
 
-      info last  20110502
-      info home  http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html
-      info docs  http://tiswww.case.edu/php/chet/bash/bashref.html
-
-    CFLAGS='-O2'
-   LDFLAGS='-Wl,-O1'
-     SHBIN='/bin/bash
-            /bin/sh'
+      info last 20111121
+      info home http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html
+      info docs http://tiswww.case.edu/php/chet/bash/bashref.html
+     shbin /bin/bash /bin/sh
    protect /bin/bash
    protect /bin/sh
    exclude /etc/shells
@@ -110,14 +108,7 @@ build(){
  make                      &&
  make install "DESTDIR=$DESTDIR" &&
  ln -sf bash  $DESTDIR/bin/sh    &&
- install_loadables         &&
- install_etc               &&
+ install_loadables &&
+ install_etc       &&
  clear_library_cache
-}
-
-current(){
- case $VERSION in
-  4.2.010) grep -q PROFILE_LOADED /etc/bash.d/default ;;
- esac &&
- grep -qx "patching file patchlevel.h" $COMPILE_LOGS/bash
 }
