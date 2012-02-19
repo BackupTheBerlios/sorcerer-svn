@@ -1,6 +1,8 @@
-   version stable 1.1.13 1.1.12 1.1.11 1.1.10 1.1.9 1.1.8 1.1.7 1.1.6
+   version stable 2.0.0 1.1.13 1.1.12 1.1.11 1.1.10 1.1.9 1.1.8 1.1.7 1.1.6
    version secure 1.1.12 1.1.11 1.1.8
 case $VERSION in
+ 2.0.0)
+      opts --disable-upnp ;;
  1.1.13)
       opts --disable-upnp ;;
  1.1.12)
@@ -22,16 +24,15 @@ case $VERSION in
  1.1.4)
       opts --disable-lua --disable-upnp ;;
 esac
-   require a52dec libXv libavc1394 libdvbpsi libnotify libproxy libv4l sysfsutils
-  optional SDL_image   ''                --disable-sdl      for SDL support
+   require SDL_image a52dec libXv libavc1394 libdvbpsi libnotify libproxy libv4l sysfsutils
   optional alsa-lib    --enable-alsa     ''                 for alsa sound support
   optional avahi       ''                ''                 for publishing and discovering services on local network
   optional esound      --enable-esd      ''                 for Esound library support
   optional ffmpeg      --enable-avcodec  --disable-avcodec
-# optional firefox     --enable-mozilla  ''                 to build a vlc-based browser plugin
   optional fluidsynth  --enable-fluidsynth --disable-fluidsynth for MIDI synthetiser
   optional fribidi     --enable-fribidi  --disable-fribidi  for bidirectional unicode
   optional gnome-vfs   --enable-gnomevfs --disable-gnomevfs for gnomevfs access module
+  optional jackit      --enable-jack     --disable-jack
   optional libcddb     ''                ''                 for accessing data on access data on a CDDB server
 # optional libdv       --enable-dv       ''                 for DV decoder support
 # optional libdvdread  ''                --disable-dvdread  for DVD decryption support
@@ -42,6 +43,7 @@ esac
   optional libmpcdec   ''                ''                 for playing musepack encoded streams
   optional libmodplug  ''                ''                 for playing amiga mod music files
   optional libmpeg2    --enable-libmpeg2 --disable-libmpeg2 for decoding MPEG-1 and MPEG-2 streams
+  optional libsamplerate --enable-samplerate --disable-samplerate
   optional libshout
   optional libtheora
 # libupnp disabled while problematic
@@ -50,7 +52,7 @@ esac
   optional libmad      ''                --disable-mad      for a 24 bit capable mpeg3 decoder
   optional lua
   optional nas         ''                ''                 for audio output through a network audio server
-  optional portaudio
+  optional portaudio   --enable-portaudio --disable-portaudio
   optional pulseaudio
   optional qt-everywhere-opensource '' '--disable-qt4 --disable-skins2' for skin support
   optional samba       ''                ''                 for supporting win32 clients
@@ -62,9 +64,14 @@ esac
      opts --enable-static=no --disable-nls --disable-mozilla --disable-swscale
  category video/dvd video/player
  attribute kde4 library makej multilib-dual x11
-    source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.bz2
+case $VERSION in
+ 1.1*)
+    source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.bz2 ;;
+    *)
+    source http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.xz ;;
+esac
       vurl http://www.videolan.org/vlc/download-sources.html
-      info last 20120102
+      info last 20120219
       info home http://www.videolan.org/
       desc 'videolan client multimedia player
 vlc the VideoLAN Client is an MPEG, MPEG2, VCD and DVD player.
