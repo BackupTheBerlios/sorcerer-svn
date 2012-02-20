@@ -1,10 +1,18 @@
-   version stable 1.1.7 1.1.6
+   version   stable 1.1.7 1.1.6
    version unstable 1.1.7b1
    require Python freetype jpeg libpng
   optional tk '' '' for TKINTER support
   category development
  attribute python-module
     source http://effbot.org/downloads/Imaging-$VERSION.tar.gz
-      info home  http://www.pythonware.com/products/pil/index.htm
-      info docs  http://www.pythonware.com/library/pil/handbook/index.htm
+      info home http://www.pythonware.com/products/pil/index.htm
+      info docs http://www.pythonware.com/library/pil/handbook/index.htm
       desc 'Imaging provides pil, python imaging library.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:ZLIB_ROOT = None:ZLIB_ROOT = "/lib64", "/usr/include":' setup.py
+ else sed -i 's:ZLIB_ROOT = None:ZLIB_ROOT = "/lib64", "/usr/include":' setup.py
+ fi
+ python setup.py install $OPTS "--root=$DESTDIR"
+}
