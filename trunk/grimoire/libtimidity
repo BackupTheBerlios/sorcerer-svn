@@ -1,0 +1,26 @@
+   version stable 0.1.0
+   require eawpats
+  optional libao
+  category audio/player
+ attribute library multilib-concurrent makej
+    source $SOURCEFORGE_URL libtimidity/libtimidity/$VERSION/libtimidity-$VERSION.tar.bz2
+      info last 20041124
+      info home http://libtimidity.sourceforge.net/
+      desc 'midi to wave converter'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ else export LDFLAGS+=' -L/usr/lib'
+ fi
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i "s:/lib$:/lib64:" $DESTDIR/usr/lib64/pkgconfig/libtimidity.pc
+ fi
+}
+
+build_old(){
+ default_build &&
+ mkdir -p              $DESTDIR/usr/share/timidity &&
+ ln -s ../lib/timidity $DESTDIR/usr/share/timidity
+}
