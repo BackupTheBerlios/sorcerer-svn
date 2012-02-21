@@ -9,11 +9,15 @@
       desc 'midi to wave converter'
 
 build(){
+ sed -i 's:timidity.cfg:/etc/timidity.cfg:' src/options.h
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=' -L/usr/lib64'
  else export LDFLAGS+=' -L/usr/lib'
  fi
  default_build &&
+ mkdir  -pvm 755                          $DESTDIR/etc  &&
+ install -vm 644 $SCRIPT_DIR/timidity.cfg $DESTDIR/etc/ &&
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then sed -i "s:/lib$:/lib64:" $DESTDIR/usr/lib64/pkgconfig/libtimidity.pc
  fi
