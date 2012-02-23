@@ -5,11 +5,13 @@
 
 # 7.11 is developmental version and 7.11.1 will be next stable release
 
-   version   stable 7.11.2 7.11.1 7.10.3 7.10.2
-   version unstable 8.0
+   version   stable 8.0.1 7.11.2 7.11.1 7.10.3
+#  version unstable 8.0
+   version   legacy 7.11.2
    require dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm llvm makedepend udev
 #  require gcc-g++
-      opts --with-gallium-drivers=i915,i965,nouveau,r300,r600,swrast
+      opts --with-gallium-drivers=i915,nouveau,r300,r600,svga,swrast
+#     opts --with-gallium-drivers=i915,i965,nouveau,r300,r600,swrast
   category graphic/library
  attribute X11R7 hidden library makej multilib-dual optimize x11
 #attribute multilib-concurrent
@@ -17,6 +19,8 @@
 case $VERSION in
  7.1*)
     source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaGLUT-$VERSION.tar.bz2 ;;
+# 8.0.1)
+#    source ftp://ftp.freedesktop.org/pub/mesa/7.11.2/MesaGLUT-7.11.2.tar.bz2 ;;
 esac
       info last 20120216
       info home http://www.mesa3d.org
@@ -25,12 +29,6 @@ esac
       desc '3-D graphics library with an API similar to OpenGL'
 
 build(){
- applypatch(){
-  if   [[ $HOSTTYPE == x86_64 ]] && [[ $VERSION == 7.10.2 ]]
-  then patch -p1 -R < ${SCRIPT_DIR}/Mesa-7.10.2-r200fix.patch
-  fi
- }
-
  install_drirc(){
   mkdir  -pvm 755                   $DESTDIR/etc
   install -vm 644 $SCRIPT_DIR/drirc $DESTDIR/etc
@@ -58,7 +56,6 @@ build(){
  then OPTS+=" ${MACHTYPE/x86_64/i686}"
  fi
 
- applypatch &&
  ./configure \
   --prefix=/usr \
   --enable-shared \

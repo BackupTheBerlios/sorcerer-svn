@@ -1,18 +1,26 @@
 # Might compile if OpenSceneGraph compiles
 # OpenSceneGraph currently not compiling
 
-   version stable 2.4.0 2.0.0 1.9.1
-   require SDL SimGear FlightGear-data FlightGear-Scenery-SharedModels
+# FlightGear vesrion 2.4.0 is compatible with
+# subversion version 1.6.17, but not with
+# subversion version 1.7.3
+
+   version stable 2.6.0 2.4.0 2.0.0 1.9.1
+   require SDL SimGear FlightGear-data FlightGear-Scenery-Airports FlightGear-Scenery-SharedModels cmake
   optional FlightGear-Aircraft '' '' for additional aircraft
   optional FlightGear-Scenery  '' '' for additional scenery
-  optional subversion          '' '' for TerraSync
+      opts -DFG_DATA_DIR=/usr/share/flightgear
+case $VERSION in
+ 2.4.0)
+      opts --without-libsvn ;;
+     *)
+  optional subversion          --with-libsvn --without-libsvn for TerraSync ;;
+esac
   category game/3d/flightsim
- attribute makej x11
+ attribute makej optimize x11
     source $FLIGHTGEAR_URL Source/flightgear-$VERSION.tar.bz2
-      info home  http://www.flightgear.org
+      info last 20120217
+      info home http://www.flightgear.org
       vurl ftp://ftp.flightgear.org/pub/flightgear/Source/
  freshmeat flightgear
       desc 'OpenGL flight simulator'
-    CFLAGS='-O2'
-  CXXFLAGS='-O2'
-   LDFLAGS='-Wl,-O1'

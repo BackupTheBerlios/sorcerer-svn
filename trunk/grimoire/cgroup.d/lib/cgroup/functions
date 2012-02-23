@@ -24,18 +24,37 @@ cgroup_join(){
 # $1 = name of control group
 # $2 = cpuset
 
- local CG
- if     [ -n "$1" ] && cgroup_find; then
-  if    [ -d "$1" ] || mkdir -pm 700 "$CG/$1"; then
-   if   [ -n "$2" ] && [ -f "$CG/$1/cpuset.cpus" ]
-   then echo "$2" >         "$CG/$1/cpuset.cpus"
+ local CG B C P
+ if     [ -n "$1" ] && cgroup_find; then C="$CG/$1"; P="${C%/*}"
+  if    [ -d "$C" ] || mkdir -pm 700 "$C"; then
+   if   [ -n "$2" ] &&
+        [ -f        "$C/cpuset.cpus" ]
+   then echo "$2" > "$C/cpuset.cpus"
    fi
-   echo $$        >         "$CG/$1/tasks"
-   echo $BASHPID  >         "$CG/$1/tasks"
+   echo $$        > "$C/tasks"
+   echo $BASHPID  > "$C/tasks"
+   if [ -f   "$P/blkio.weight" ]; then
+    read B < "$P/blkio.weight"
+    echo B > "$C/blkio.weight"
+   fi
   else false
   fi
   else false
  fi 2>/dev/null
+}
+
+cgroup_blkio_weight(){
+# $1 = name of control group
+# $2 = valid weight
+
+ local CG C
+ if    [ -n "$1" ] && cgroup_find; then C="$CG/$1"
+  if   [ -d "$C" ] &&
+       [ -n "$2" ] &&
+       [ -f        "$C/blkio.weight" ]
+  then echo "$2" > "$C/blkio.weight"
+  fi
+ fi
 }
 
 cgroup_root(){
