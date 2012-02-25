@@ -10,6 +10,7 @@
 #  require acl glib gobject-introspection gperf pci.ids sysvinit usbutils
   optional ConsoleKit
       opts --disable-introspection --sbindir=/sbin --libexecdir=/lib --bindir=/sbin
+      opts --with-rootprefix=
   category utility
  attribute console library makej multilib-concurrent optimize server
 #attribute console library multilib-fail server
@@ -73,4 +74,11 @@ post_install(){
  if   LC_ALL=C grep -q '^mem:x:'  /etc/group
  then sed -i 's/^mem:x:/kmem:x:/' /etc/group
  fi
+}
+
+current(){
+ case $VERSION in
+  181) [ -f                      $COMPILE_LOG/udev ] &&
+       [ -n "$( grep rootprefix: $COMPILE_LOG/udev | grep -v /usr )" ] ;;
+ esac
 }
