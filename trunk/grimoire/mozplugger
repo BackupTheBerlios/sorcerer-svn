@@ -1,7 +1,4 @@
-# 1.14.4 failed to compile
-
-   version stable 1.14.3 1.14.2 1.14.1 1.14.0
-   version unstable 1.14.4
+   version   stable 1.14.5 1.14.3 1.14.2 1.14.1 1.14.0
    require firefox libX11
   optional MPlayer      '' '' for viewing AVI, DivX, and MPEG video
   optional SDL_mixer    '' '' for playing midi files
@@ -16,13 +13,25 @@
   category audio/player video/player network/web
  attribute x11 seamonkey-plugin
     source http://mozplugger.mozdev.org/files/mozplugger-$VERSION.tar.gz
-      info last 20120107
+      info last 20120227
       info home http://mozplugger.mozdev.org/
       vurl http://mozplugger.mozdev.org/
   eprovide plugger
       desc 'multimedia plugin for Mozilla'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then lp="libprefix=/lib64"
+ else lp="libprefix=/lib"
+ fi
+
+ ./configure --prefix=/usr $OPTS &&
+ make "$lp" &&
+ make "$lp" "prefix=$DESTDIR/usr" install
+}
+
+
+build_old(){
 # Yes =/lib is correct and not /usr/lib
 
  local LP='libprefix=/lib'

@@ -1,18 +1,29 @@
-   version stable 0.2.3
+   version stable 0.2.4 0.2.3
    require ffmpeg
   category video/dvd video/player
- attribute x11
+ attribute library multilib-dual x11
+#attribute library makej multilib-dual x11
     source http://libdlna.geexbox.org/releases/libdlna-$VERSION.tar.bz2
-      info last  20071126
-      info home  http://libdlna.geexbox.org/
-      info docs  'http://libdlna.geexbox.org/#Introduction'
-      info news  'http://libdlna.geexbox.org/#Latest_News'
-      info use   'http://libdlna.geexbox.org/#Copyright_and_License'
-      info mail  'http://libdlna.geexbox.org/#DLNA_Mailing_List'
+      info last 20120227
+      info home http://libdlna.geexbox.org/
+      info docs 'http://libdlna.geexbox.org/#Introduction'
+      info news 'http://libdlna.geexbox.org/#Latest_News'
+      info use  'http://libdlna.geexbox.org/#Copyright_and_License'
+      info mail 'http://libdlna.geexbox.org/#DLNA_Mailing_List'
+ conflicts libdlna
       desc 'reference implementation of DLNA
 DLNA stands for Digital Living Network Alliance standards.'
 
 build(){
+ fix_pkgconfig(){
+  case $VERSION in
+   0.2.4)
+    if   [   -f                 $DESTDIR/usr/lib64/pkgconfig/libdlna.pc ]
+    then sed -i 's:lib$:lib64:' $DESTDIR/usr/lib64/pkgconfig/libdlna.pc
+    fi ;;
+  esac
+ }
+
  case $VERSION in
   0.2.3) grep -rl   ffmpeg/ * | xargs -r --max-lines=64 \
          sed  -i 's:ffmpeg/:libavformat/:'
@@ -21,11 +32,19 @@ build(){
          ;;
  esac
 
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS =~ -m32 ]]
+  then opts --libdir=/usr/lib; export LDFLAGS+=' -L/usr/lib'
+  else opts --libdir=/usr/lib64
+  fi
+ fi
+
  ./configure \
  --prefix=/usr \
  --disable-optimize \
  --disable-debug \
  $OPTS &&
  make &&
- make install DESTDIR=$DESTDIR
+ make install DESTDIR=$DESTDIR &&
+ fix_pkgconfig
 }

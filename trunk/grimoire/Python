@@ -42,6 +42,14 @@ build(){
   mv -v $DESTDIR/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
  }
 
+ add_dlfcn(){
+  Tools/scripts/h2py.py < /usr/include/dlfcn.h > DLFCN.py
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then mv DLFCN.py $DESTDIR/usr/lib64/python2.7/DLFCN.py
+  else mv DLFCN.py $DESTDIR/usr/lib/python2.7/DLFCN.py
+  fi
+ }
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
   sed -i 's:/lib/python:/lib64/python:'     Lib/distutils/command/install.py
   sed -i 's:lib", "py:lib64", "py:'         Lib/distutils/sysconfig.py
@@ -54,6 +62,7 @@ build(){
 
  ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
  make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR" &&
+ add_dlfcn &&
  if    [[ $HOSTTYPE == x86_64      ]] &&
      ! [[ -n ${ATTRIBUTE[monolib]} ]]; then
   if   [[ $CFLAGS   =~ -m32        ]]; then bit_move 32
@@ -83,6 +92,8 @@ post_install(){
 
 current(){
  case $VERSION in
+  2.7.2) [ -f /usr/lib64/python2.7/DLFCN.py ] ||
+         [ -f /usr/lib/python2.7/DLFCN.py ]   ;;
   2.7.1) if [[ $HOSTTYPE == x86_64 ]]
          then grep -q 'lib64", "py' /usr/lib64/python2.7/distutils/sysconfig.py
          fi ;;
