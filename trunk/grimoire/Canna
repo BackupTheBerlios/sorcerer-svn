@@ -3,21 +3,24 @@
 # make[2]: *** No rule to make target `includes'.  Stop.
 
    version stable 37p3
-   require imake
+   require gccmakedep imake xorg-cf-files
   category input
- attribute console library
- attribute broke
+ attribute console library multilib-fail
     source http://keihanna.dl.sourceforge.jp/ \
            http://kyushu-u.dl.sourceforge.jp/ \
            http://osdn.dl.sourceforge.jp/ \
            canna/9565/Canna$VERSION.tar.bz2
-      info home  http://canna.sourceforge.jp/
+      info last 20040520
+      info home http://canna.sourceforge.jp/
       desc 'system for Japanese input
 It converts Hiragana text to Kana Kanji mixed text.'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then sed -i 's:/lib$:/lib64:' Canna.conf
+ fi
  sed -i 's:/usr/local/canna:/usr:' Canna.conf
  xmkmf &&
- make    canna          CDEBUGFLAGS="$CFLAGS" &&
- make    install{,.man} CDEBUGFLAGS="$CFLAGS" "DESTDIR=$DESTDIR"
+ make canna          CDEBUGFLAGS="$CFLAGS" &&
+ make install{,.man} CDEBUGFLAGS="$CFLAGS" "DESTDIR=$DESTDIR"
 }
