@@ -1,12 +1,10 @@
-# 1.43.03-source might support make install
-# and has support for DESTDIR
-# 1.44.05-source is still broke and does not compile
+# 1.46.02-source requires obsolete version of portaudio
+# however source can be instructed to use pulseaudio instead
 
    version stable 1.46.02-source 1.45.05-source 1.45.03-source 1.44.05-source 1.44.03-source
-   require portaudio
+   require pulseaudio
   category audio/speech
- attribute console
- attribute broke
+ attribute console library makej multilib-dual
     source $SOURCEFORGE_URL espeak/espeak/espeak-${VERSION:0:4}/espeak-$VERSION.zip
       info last 20120116
       info home http://espeak.sourceforge.net/
@@ -29,7 +27,13 @@ build_old(){
  manual_install
 }
 
+ local LIBDIR
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/usr/lib64
+ else LIBDIR=/usr/lib
+ fi
+
  cd src &&
- make   &&
- make install DESTDIR=$DESTDIR
+ make AUDIO=pulseaudio "LIBDIR=$LIBDIR" &&
+ make AUDIO=pulseaudio "LIBDIR=$LIBDIR" install DESTDIR=$DESTDIR
 }
