@@ -1,11 +1,11 @@
-# has compile error
+# Why do they release obviously broke source code?
 
    version stable 11.4.4 11.3.1 11.3 11.2
    require gtk+ raptor w3c-libwww wxWidgets
   category network/web
  attribute client x11
  attribute broke
-      info last 20120116
+      info last 20120111
       info home http://www.w3.org/Amaya/
       vurl http://www.w3.org/Amaya/User/SourceDist.html
     source http://www.w3.org/Amaya/Distribution/ \
@@ -19,13 +19,17 @@ popular commercial browsers.
 With such an interface, users do not
 need to know the HTML or CSS languages.'
 
-# --without-wx      \
-#--with-gtk        \
 build(){
+ missing_dir_fix(){
+  case $VERSION in
+   11.4.4) mkdir -p thotlib/base ;;
+  esac
+ }
+
  [ -d Amaya ] &&
  cd   Amaya
- mkdir obj &&
- cd    obj &&
+ mkdir linux &&
+ cd    linux &&
  ../configure \
  --prefix=/opt \
  --bindir=/usr/bin \
@@ -33,5 +37,7 @@ build(){
  --enable-system-libwww \
  --enable-system-raptor \
  $OPTS &&
+ missing_dir_fix &&
  make install "DESTDIR=$DESTDIR"
+ false
 }

@@ -1,27 +1,26 @@
-# What part of kde does this require?
-
    version stable 2.3 2.2.2
-   require fuseiso
-#      opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
-#      opts -DCMAKE_INSTALL_RPATH:PATH=/usr/lib64:/usr/lib
-#      opts -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
-#      opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
-#      opts -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
-#      opts -DCMAKE_BUILD_TYPE=Release
+   require fuseiso phonon
  attribute kde4
- attribute broke
   category disk/cd
     source $SOURCEFORGE_URL "acetoneiso/AcetoneISO/AcetoneISO%20$VERSION/acetoneiso_$VERSION.tar.gz"
-      info home  http://www.acetoneteam.org/
+      info last 20101115
+      info home http://www.acetoneteam.org/
       desc 'software application to manage CD/DVD images
 Using fuseiso, AcetoneISO can mount typical proprietary images formats of
 the Windows world such as ISO BIN NRG MDF IMG and do plenty of other things.'
 
 build(){ (
-cd acetoneiso
-sed -i "s:/usr:$DESTDIR/usr:" acetoneiso.pro
-export PATH="/usr/bin:$PATH"
-qmake &&
-make &&
-make install
+ case $VERSION in
+  2.3) sed -i    's:Phonon/MediaObject:KDE/Phonon/MediaObject:' \
+       $( grep -lr "Phonon/MediaObject" * )
+       sed -i    's:Phonon/AudioOutput:KDE/Phonon/AudioOutput:' \
+       $( grep -lr "Phonon/AudioOutput" * )
+ ;;
+ esac
+ cd acetoneiso
+ sed -i "s:/usr:$DESTDIR/usr:" acetoneiso.pro
+ export PATH="/usr/bin:$PATH"
+ qmake &&
+ make &&
+ make install
 ) }

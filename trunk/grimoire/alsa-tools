@@ -1,12 +1,9 @@
 # Not sure what this provides, but it seems seriously broke
 
    version stable 1.0.25 1.0.24.1 1.0.23
-   require alsa-lib fltk
-#ncurses
-      opts --disable-xmlto
+   require alsa-lib fltk gtk+
   category audio/editor audio/mixer audio/player
- attribute console
- attribute broke
+ attribute console library makej multilib-dual
     source  ftp://ftp.alsa-project.org/pub/ \
             ftp://ftp.silug.org/pub/alsa/ \
             ftp://ftp.eecs.umich.edu/pub/linux/alsa/ \
@@ -18,20 +15,22 @@
            http://www.alsa-project.org/alsa/ftp/ \
            tools/alsa-tools-$VERSION.tar.bz2
       vurl http://www.alsa-project.org/main/index.php/Download
-      info last 20120130
+      info last 20120125
       info home http://www.alsa-project.org/main/index.php/Main_Page
       desc 'tools for use with alsa'
 
 build(){
-case $MACHTYPE in
- *-uclibc) export LDFLAGS+=' -lintl ' ;;
-esac
-case $VERSION in
- 1.0.23) sed -i 's:ld10k1::
-                 s:echomixer::
-                 s:vxloader::
-                 s:usx2yloader::
-                 s:us428control::' Makefile ;;
-esac
-default_build
+ case $MACHTYPE in
+  *-uclibc) export LDFLAGS+=' -lintl ' ;;
+ esac
+
+ for DIR in *; do
+  if [ -f "$DIR/configure" ]; then
+   cd "$DIR"
+   ./configure --prefix=/usr &&
+   make &&
+   make install "DESTDIR=$DESTDIR"
+   cd ..
+  fi
+ done
 }
