@@ -1,17 +1,22 @@
 # requiring coreutils creates recursive requirement loop
+# 4.6.3 failed compilation
+# 4.6.3 might only fail compilation when java is enabled
 
    version stable 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
+#  version stable 4.6.3 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
+   version latest 4.6.3
    require binutils cloog-ppl libelf mpfr multiprecision
 #  require binutils cloog-parma libelf mpfr multiprecision
       opts --with-ppl --with-cloog --with-slibdir=/lib
   category development/compiler
  attribute console library lto_off makej multilib-fail optimize solo
     source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
-      info last 20111101
+    source ftp://sourceware.org/pub/java/ecj-4.5.jar
+      info last 20120301
+      info last ecj 20100106
       info home http://gcc.gnu.org/
       info docs http://gcc.gnu.org/onlinedocs/
       info mail http://gcc.gnu.org/lists.html
- conflicts gcc-objc
       desc 'GNU compiler collection'
 
 build(){
@@ -68,16 +73,10 @@ build(){
  if [ -f /sbin/sinstall ] && [ -f /root/compact-IR ]; then
   OPTS+=" --enable-libstdcxx-pch=no"
   OPTS+=" --enable-languages=c,c++";  else
-  OPTS+=" --enable-languages=c,c++,fortran,objc"
-
-# multilib libjava compilation problematic because libtool
-# is selecting the wrong bit ELF libraries.
-#  OPTS+=" --enable-languages=c,c++,fortran,java,objc"
-#  OPTS+=" --enable-java-awt=xlib --enable-plugin"
-#  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
-#  then opts --x-libraries=/usr/lib
-#  fi
+  OPTS+=" --enable-languages=c,c++,fortran,java,objc"
  fi
+
+ cp ${SOURCE[1]} ecj.jar
 
  mkdir BUILD
  cd    BUILD
