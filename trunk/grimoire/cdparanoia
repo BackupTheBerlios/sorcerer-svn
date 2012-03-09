@@ -1,20 +1,11 @@
-# does not do an ELF 32-bit compile.
-# reason is configure is broke
-# would require hours to trace it and find the exact location
-# and to fix it.
-# Since the source is from 2008 and will likely remain
-# without further releases
-# this spell will probably be forever broke
-# until removed from the grimoire.
-
    version stable III-10.2.src
+   require automake libtool
   category audio/cd audio/recorder
  attribute library makej multilib-dual setarch
- attribute broke
     source http://downloads.xiph.org/releases/cdparanoia/cdparanoia-$VERSION.tgz
-      info last  20080911
-      info home  http://www.xiph.org/paranoia/
-      info docs  http://www.xiph.org/paranoia/doc.html
+      info last 20080911
+      info home http://www.xiph.org/paranoia/
+      info docs http://www.xiph.org/paranoia/doc.html
       desc 'cd ripper
 Cdparanoia is a Compact Disc Digital Audio (CDDA) 
 extraction tool, commonly known on the net as a ripper.
@@ -47,6 +38,12 @@ build(){
  export   CFLAGS+=' -fPIC'
  export CXXFLAGS+=' -fPIC'
             OPTS+=" --prefix=$DESTDIR/$SPELL/usr"
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib'
+ fi
+
+ aclocal; automake -acf; libtoolize -cf; autoreconf -fi
 
  default_build &&
  if     [[ $HOSTTYPE == x86_64 ]] &&

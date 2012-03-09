@@ -1,0 +1,21 @@
+   version stable 1.0.93
+   require lua scons
+  category development/interpreter
+ attribute console library multilib-dual
+    source http://www.codenix.com/~tolua/tolua++-$VERSION.tar.bz2
+      info last 20090215
+      info home http://www.codenix.com/~tolua/
+      desc 'tool to integrate C/C++ code with lua'
+
+build(){
+ fix_install(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+  fi
+ }
+ sed -i 's:/usr/local:/usr:' config_*.py
+ sed -i "s:'lualib',::"      config_posix.py
+ scons &&
+ scons install "prefix=$DESTDIR/usr" &&
+ fix_install
+}
