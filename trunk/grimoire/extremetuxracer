@@ -2,14 +2,19 @@
    require MesaLib SDL_mixer freetype libpng tcl
   category game/3d/flightsim
  attribute makej x11
- attribute broke
     source $SOURCEFORGE_URL extremetuxracer/extreme-tuxracer/$VERSION/extremetuxracer-$VERSION.tar.gz
+      info last 20090202
       info home  http://extremetuxracer.com/
       info docs  http://extremetuxracer.com/wiki/index.php?title=Main_Page
       info forum http://sourceforge.net/apps/phpbb/extremetuxracer/
       desc 'OpenGL downhill racing game'
 
 build(){
+ case $VERSION in
+  0.5beta) sed -i '/png\.h/a#define png_infopp_NULL (png_infopp)NULL
+                   /png\.h/a#define int_p_NULL (int*)NULL' src/ppgltk/images/png_reader.h ;;
+ esac
+
  if   [[ $HOSTTYPE == x86_64 ]]
  then opts --with-tcl=/usr/lib64
  fi
