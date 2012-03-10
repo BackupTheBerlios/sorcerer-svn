@@ -1,16 +1,14 @@
-# fdutils no longer compiles
-
    version stable 5.5 5.4
    require e2fsprogs texlive
   optional texinfo '' '' for documentation
   category disk
  attribute console
- attribute broke
     source http://fdutils.linux.lu/fdutils-$VERSION.tar.gz
       vurl http://fdutils.linux.lu/download.html
-      info home  http://fdutils.linux.lu/
-      info mail  http://fdutils.linux.lu/mailing.html
-      info docs  http://fdutils.linux.lu/Fdutils.html
+      info last 20060227
+      info home http://fdutils.linux.lu/
+      info mail http://fdutils.linux.lu/mailing.html
+      info docs http://fdutils.linux.lu/Fdutils.html
       desc 'floppy disk formatting utilities
 
 superformat	formats high capacity disks of (up to 1992k for high
@@ -27,27 +25,15 @@ floppycontrol	configure the floppy driver'
 
 
 build(){
- sed_source(){
-  grep  -rl '#include <linux/fd.h>' * |
-  while read
-  do    sed -i '\,#include <linux/fd.h>,i#include <linux/compiler.h>' $REPLY
-  done
-  sed -i 's:#include <linux/ext2_fs.h>:#include <ext2fs/ext2fs.h>:' src/fdmount.c
- }
-
- header_patch(){
-  case $VERSION in
-   5.[4-5]) sed_source ;;
-  esac
- }
-
-
- header_patch
-
  if ! spell_installed texinfo; then
   sed -i 's/comp-doc//'    Makefile.in
   sed -i 's/install-doc//' Makefile.in
  fi
+
+ case $VERSION in
+  5.5) sed -i '/ext2_fs/i#include <linux/fs.h>' src/fdmount.c
+       sed -i 's:info dvi:info:' doc/Makefile.in ;;
+ esac
 
  OPTS+=" --prefix=$DESTDIR/usr"
  default_build
