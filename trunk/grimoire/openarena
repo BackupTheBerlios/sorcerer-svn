@@ -1,0 +1,31 @@
+   version stable 0.8.8
+   require SDL libXxf86dga libXxf86vm libvorbis openal
+  category game
+ attribute x11
+    source stable http://files.poulsander.com/~poul19/public_files/oa/dev088/openarena-engine-source-$VERSION.tar.bz2
+    source stable $SOURCEFORGE_URL oarena/openarena-$VERSION.zip
+      info last 20100117
+      info home http://openarena.wikia.com/wiki/Main_Page
+      desc 'first person shooter based on ioquake3 fork of id tech 3 engine.'
+
+build(){
+ make_install(){
+  mkdir -pvm 755 $DESTDIR/usr/{bin,share/quake3arena/openarena}
+  chmod 755 openarena-$VERSION/baseoa
+  chmod 644 openarena-$VERSION/baseoa/*
+  mv        openarena-$VERSION/baseoa     $DESTDIR/usr/share/quake3arena/openarena/
+
+  chmod 755 openarena-$VERSION/missionpack
+  chmod 644 openarena-$VERSION/missionpack/*
+  mv        openarena-$VERSION/missionpack     $DESTDIR/usr/share/quake3arena/openarena/
+
+  find build -maxdepth 2 -mindepth 2 -type f |
+  xargs --max-lines=64 install -vm 755 -t $DESTDIR/usr/share/quake3arena/openarena/
+
+  install -vm 755 $SCRIPT_DIR/openarena        $DESTDIR/usr/bin/
+  install -vm 755 $SCRIPT_DIR/openarena_server $DESTDIR/usr/bin/
+ }
+
+ make &&
+ make_install
+}
