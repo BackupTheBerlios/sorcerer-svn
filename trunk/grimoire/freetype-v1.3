@@ -1,22 +1,24 @@
-case $HOSTTYPE in
- x86_64)
- attribute broke ;;
-esac
    version stable 1.3.1
-   require gettext libSM libX11
+   require gettext imake libSM libX11 xorg-cf-files
   category font/library
  attribute library
     source $SOURCEFORGE_URL freetype/freetype/$VERSION/freetype-$VERSION.tar.gz
-      info home  http://freetype.sourceforge.net/
-      info docs  http://freetype.sourceforge.net/freetype2/documentation.html
-      info mail  'http://freetype.sourceforge.net/developer.html#mailing-lists'
+      info last 20000302
+      info home http://freetype.sourceforge.net/
+      info docs http://freetype.sourceforge.net/freetype2/documentation.html
+      info mail 'http://freetype.sourceforge.net/developer.html#mailing-lists'
       desc 'free, quality, portable font engine'
 
 build(){
+ ldflags(){ sed -i "s:linkopts=:linkopts=\"$LDFLAGS\":" libtool; }
+
  sed -i "s:##::" test/ftdump.c
+
+ setarch i686     \
  ./configure      \
   --prefix=/usr   \
   --enable-static &&
+ ldflags &&
  make &&
  make install "DESTDIR=$DESTDIR"
 }

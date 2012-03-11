@@ -1,17 +1,23 @@
 # As is this might compile on a pure 80686, but not an x86_64 architecture
+# developers did not make a 1.1b5a-unofficial source tarball.
 
-   version stable 1.0-svn_r48
-   version   beta 1.1b4
+   version stable 1.1b5a-unofficial
    require libXxf86dga libXxf86vm libvorbis openal
   category game
  attribute x11
  attribute broke
-    source stable $SOURCEFORGE_URL smokinguns/Smokin_%20Guns/${VERSION:0:3}/sg-$VERSION.tar.bz2
-    source stable "http://www.altfire.com/main/files/Gaming/Games/Smokin%20Guns/Smokin_Guns_${VERSION:0:3}.zip"
-#   source   beta $SOURCEFORGE_URL smokinguns/Smokin_%20Guns/${VERSION:0:3}/sg-$VERSION.tar.bz2
-    source   beta $SOURCEFORGE_URL smokinguns/Smokin_%20Guns/${VERSION:0:3}/sg-$VERSION-engine-only-update.zip
-    source   beta "http://www.altfire.com/main/files/Gaming/Games/Smokin%20Guns/Smokin_Guns_${VERSION:0:3}.zip"
-      info last 20100117
+    source stable ftp://mirror.loop8.net/smokinguns/ \
+                  http://smokinguns.parttimegeeks.net/ \
+                  http://tmp.soulserv.net/ \
+                  sg_$VERSION.zip
+
+#    source stable $SOURCEFORGE_URL smokinguns/Smokin_%20Guns/${VERSION:0:3}/sg-$VERSION.tar.bz2
+#    source stable "http://media1.gamefront.com/moddb/2009/01/05/Smokin_Guns_1.0.zip"
+#    source   beta $SOURCEFORGE_URL smokinguns/Smokin_%20Guns/${VERSION:0:3}/SmokinGuns-$VERSION-engine-only-update.zip
+#    source   beta "http://media1.gamefront.com/moddb/2009/01/05/Smokin_Guns_1.0.zip"
+
+      info last 20120228
+      info files http://www.moddb.com/games/smokin-guns/downloads
       info home http://www.smokin-guns.net
       desc 'westernized quake 3'
 
@@ -35,14 +41,14 @@ build(){
 #  1.0*) sed -i 's:#error Unknown arch:  snprintf (fname, sizeof(fname), "%si386.so", name);:' code/unix/unix_main.c ;;
 # esac
 
- if [[ $HOSTTYPE == x86_64 ]]; then
-  export   CFLAGS+=' -m32'
-  export CXXFLAGS+=' -m32'
-  echo "-m32 added to CFLAGS and CXXFLAGS"
- fi
+# if [[ $HOSTTYPE == x86_64 ]]; then
+#  export   CFLAGS+=' -m32'
+#  export CXXFLAGS+=' -m32'
+#  echo "-m32 added to CFLAGS and CXXFLAGS"
+# fi
 
  sed -i "s:-O6 -m32 -mtune=pentiumpro -march=pentium:$CFLAGS:" code/Construct
  sed -i "s: -m32::" code/Construct
- setarch i686 make &&
+ make &&
  make_install
 }
