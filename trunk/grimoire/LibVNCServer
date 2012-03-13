@@ -1,13 +1,36 @@
 # avoid adding SDL as requirement since it causes a recrusive requirement loop
 # version 0.9.8 installs the libraries incorrectly.
 
+# cmake compilation for LibVNCServer is improper.
+
    version stable 0.9.8.2 0.9.7 0.9.1 0.9
    require avahi libXtst
+#  require avahi cmake libXtst
       opts --enable-static=no
   category utility/terminal-emulator
  attribute library makej multilib-concurrent x11
     source $SOURCEFORGE_URL libvncserver/libvncserver/$VERSION/LibVNCServer-$VERSION.tar.gz
-      info last 20111123
+      info last 20111109
       info home http://libvncserver.sourceforge.net/
       info docs http://libvncserver.sourceforge.net/doc/html/index.html
       desc 'API for writing a vnc server'
+
+build(){
+# if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS   =~ -m32   ]]; then
+#  OPTS+=' -DLIB_SUFFIX:STRING=64'
+#  opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=FALSE
+#  opts -DCMAKE_SKIP_RPATH:BOOL=TRUE
+# else
+#  opts -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=FALSE
+#  opts -DCMAKE_SKIP_RPATH:BOOL=TRUE
+# fi
+ rm -f CMakeLists.txt
+ default_build
+}
+
+current(){
+ case $VERSION in
+  0.9.8.2) [ -f /usr/lib64/pkgconfig/libvncserver.pc ] ||
+           [ -f   /usr/lib/pkgconfig/libvncserver.pc ] ;;
+ esac
+}
