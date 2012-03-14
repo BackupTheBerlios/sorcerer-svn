@@ -1,11 +1,11 @@
 # online-desktop uses pidgin's libpurple library
 
    version stable 2.10.1 2.10.0 2.9.0 2.8.0
-   require avahi farsight2 gtk+ libXScrnSaver nss startup-notification
+   version secure 2.10.1
+   require avahi farsight2 gst-ffmpeg gst-plugins-ugly gtk+ libXScrnSaver nss startup-notification x264
   optional doxygen               ''                  ''                   for building pidgin documentation
   optional evolution-data-server ''                  --disable-gevolution for evolution plugin
   optional gnutls                --enable-gnutls=yes --enable-gnutls=no   to use gnutls preferred SSL support
-  optional gstreamer             ''                  --disable-gstreamer  for gstreamer support
   optional gtkspell              ''                  --disable-gtkspell   for automatic spell checking
   optional libao                 ''                  --disable-audio      for audio output
   optional meanwhile             ''                  --disable-meanwhile  for Lotus Notes compatibility
@@ -18,7 +18,7 @@
   category network/chat
  attribute gnome library makej multilib-dual
     source $SOURCEFORGE_URL pidgin/Pidgin/$VERSION/pidgin-$VERSION.tar.bz2
-      info last 20111212
+      info last 20111210
       info home http://www.pidgin.im/
  conflicts gaim
       desc 'instant messanger client for several protocols
@@ -41,5 +41,18 @@ build(){
  export CXXFLAGS+=" -I/usr/include/nss -I/usr/include/nspr"
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -Wl,-rpath,/usr/lib64/pidgin -Wl,-rpath,/usr/lib64/purple-2 '
+ else export LDFLAGS+=' -Wl,-rpath,/usr/lib/pidgin -Wl,-rpath,/usr/lib/purple-2'
+ fi
+
  default_build
+}
+
+current(){
+ case $VERSION in
+  2.10.1) grep -q '/usr/lib64/pidgin:/usr/lib64/purple-2' $ELF_LOGS/pidgin ||
+          grep -q '/usr/lib/pidgin:/usr/lib/purple-2'     $ELF_LOGS/pidgin ;;
+ esac
 }
