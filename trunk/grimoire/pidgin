@@ -42,6 +42,14 @@ build(){
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
 
+ # pidgin requires the rpath for dynamically loading plugins
+ # however the pidgin source compiles without automatically adding rpath
+ # and that is odd since it makes certain protocols unavailable
+ # such as google talk XMPP jabber protocol.
+ # XMPP, google talk, and jabber are all the same protocol.
+ # Adding the rpath below fixes that.
+ # This fix is not expected to be specific to a precise version of pidgin.
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=' -Wl,-rpath,/usr/lib64/pidgin -Wl,-rpath,/usr/lib64/purple-2 '
  else export LDFLAGS+=' -Wl,-rpath,/usr/lib/pidgin -Wl,-rpath,/usr/lib/purple-2'

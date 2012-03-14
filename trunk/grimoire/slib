@@ -3,7 +3,7 @@
 # Version 3a4 does not support DESTDIR style installation
 # Version 3b2 does support DESTDIR
 
-   version stable 3b2 3a4 3a3 3a4 3a2 2d6 2d5 2d4
+   version stable 3b3 3b2 3a4 3a3 3a4 3a2 2d6 2d5 2d4
 #  version stable 3b3 3b2 3a4 3a3 3a4 3a2 2d6 2d5 2d4
    require guile unzip
   category development
@@ -26,16 +26,31 @@ build_old(){
  ln -fs /usr/lib/slib /usr/share/guile/1.6/slib
 }
 
+# build(){
+#  sed -i 's:/usr/local:/usr:' Makefile
+#  make infoz            DESTDIR=$DESTDIR
+#  make install          DESTDIR=$DESTDIR
+#  mkdir -pvm 755       $DESTDIR/usr/share/guile/2.0
+#  ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/2.0/slib
+# }
+
 build(){
-sed -i 's:/usr/local:/usr:' Makefile
-make infoz            DESTDIR=$DESTDIR
-make install          DESTDIR=$DESTDIR
-mkdir -pvm 755       $DESTDIR/usr/share/guile/1.8
-ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/1.8/slib
+ case $VERSION in
+  3b3) sed -i 's:collect.sc collect.scm:collect.scm:' Makefile ;;
+ esac
+ default_build &&
+ mkdir -pvm 755       $DESTDIR/usr/share/guile/2.0 &&
+ ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/2.0/slib
 }
 
 post_install(){
 echo "(require 'new-catalog)" |
 guile -l /usr/share/guile/1.6/slib/guile.init
 default_post_install
+}
+
+current(){
+ case $VERSION in
+  3b2) [ -h /usr/lib/guile/2.0/slib ] ;;
+ esac
 }
