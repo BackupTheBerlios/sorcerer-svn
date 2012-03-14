@@ -4,11 +4,10 @@
    require texinfo ImageMagick ghostscript texlive
   category graphic science
  attribute console
- attribute broke
     source $SOURCEFORGE_URL gri/gri/$VERSION/gri-$VERSION.tar.gz
-      info last  20110714
-      info home  http://gri.sourceforge.net/
-      info docs  http://gri.sourceforge.net/docs.php
+      info last 20110714
+      info home http://gri.sourceforge.net/
+      info docs http://gri.sourceforge.net/docs.php
       desc 'plotting language for scientific graphics programming
 The word language is important: Gri is command-driven, not point/click.
 Some users consider Gri similar to LaTeX, since both 
@@ -21,6 +20,12 @@ colors, and fonts.
 A TeX-like syntax provides common mathematical symbols.'
 
 build(){
+ # Case statement avoids a bug in texlive
+ case $VERSION in
+  2.12.23) sed -i 's:doc src:src:
+                   s:src doc:src:' Makefile.in ;;
+ esac
+
  LISPDIR=/usr/lib/xemacs/xemacs-packages/lisp
 
  ./configure          \
@@ -33,7 +38,7 @@ build(){
  make check &&
  make install DESTDIR=$DESTDIR &&
  if [ -d $LISPDIR ]; then
-  mkdir -p $DESTDIR/$LISPDIR
+  mkdir -pvm 755 $DESTDIR/$LISPDIR
  /usr/bin/install -m 644 src/gri-mode.el $DESTDIR/$LISPDIR
  fi
 }

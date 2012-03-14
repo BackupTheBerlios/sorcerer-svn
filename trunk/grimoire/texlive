@@ -1,3 +1,9 @@
+# kpsewhich --var-value=TEXMFMAIN
+# the above command should return /usr/share/texmf
+# yet it does not which indicates that texlive does not
+# properly configure.
+# texlive is partially broke.
+
 # XFree86 -> Linux-PAM -> teTeX -> teTex,src -> x11
 # recursive requirement loop.
 # Altered Linux-PAM to no longer optionally require teTeX
@@ -28,54 +34,16 @@
   category documentation
  attribute console makej
     source ftp://tug.org/historic/systems/texlive/${VERSION:0:4}/texlive-$VERSION-source.tar.xz
-      info last  20110705
+      info last 20110705
       info home http://www.tug.org/texlive/
       desc 'TeX system with programs, macros, and fonts'
 
 build(){
  export PATH="${PATH/\/usr\/libexec\/ccache:/}"
+ opts         --datadir=/usr/share/texmf
+ mkdir -pvm 755 $DESTDIR/usr/share/texmf
  default_build
 }
-
-# build(){
-#  case $HOSTTYPE in
-#   x86_64) export LDFLAGS+=' -L/usr/lib64' ;;
-#  esac
-#  default_build
-# }
-
-
-build_still_broke(){ 
-build_broke(){
- fixes2009(){
-  sed -i 's:$CLISP_LIB/clisp-link:/usr/bin/clisp-link:g' \
-   utils/xindy/configure
- }
-
- case $VERSION in
-  20091107) fixes2009 ;;
- esac
-
- default_build
-}
-
-cd clisp-2.48 &&
-# ./configure $clisp_builddir --with-dynamic-ffi --ignore-absence-of-libsigsegv &&
-
-./configure --with-dynamic-ffi --ignore-absence-of-libsigsegv &&
-cd src             &&
-./makemake         \
---prefix=/usr      \
---with-dynamic-ffi \
---ignore-absence-of-libsigsegv \
-$OPTS > Makefile   &&
-make config.lisp   &&
-make &&
-cd ../.. &&
-OPTS+=" --with-clisp=$PWD/clisp-2.48"
-default_build
-}
-
 
 post_install(){
 default_post_install
