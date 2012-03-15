@@ -1,7 +1,13 @@
 # 0.5.904 wants a pkgconfig for liblircclient0, but there is none.
+# broke but still under active development in 2012
+# the software author might yet make it work.
 
    version stable 0.5.907 0.5.906 0.5.905 0.5.904 0.5.903
    require libXaw xine-lib xulrunner
+case $VERSION in
+ 0.5.907)
+      opts --disable-lirc ;;
+esac
 #     opts --disable-lirc --disable-ffjs --disable-seajs
 #     opts --disable-lirc --disable-mozjs --disable-ffjs --disable-seajs
 
@@ -17,6 +23,15 @@
       info home http://xine.sourceforge.net/
       info mail 'http://sourceforge.net/mail/?group_id=9655'
       desc 'front end to xine, a video player'
+
+build(){
+ case $VERSION in
+  0.5.907) sed -i 's:#include <glib/gmessages.h>:#include <glib.h>:
+                   s:#include <glib/gthread.h>:#include <glib.h>:' \
+           src/{main.c,console_output.h,engine.c} ;;
+ esac
+ default_build
+}
 
 build_old(){
 (
