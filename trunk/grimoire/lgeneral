@@ -2,15 +2,18 @@
 # build() might require additional changes
 # installation a bit complicated for DESTDIR
 
+# version 1.2.2 tries to write directly to
+# /usr/share/lgeneral/convdata/strength.bmp during installation
+
    version stable 1.2.2 1.2.1 1.2.1 1.2
    require SDL_mixer
   category game
  attribute x11
  attribute broke
-#   source $SOURCEFORGE_URL lgeneral/lgeneral-engine/lgeneral-$VERSION.tar.gz
-#   source $SOURCEFORGE_URL lgeneral/lgeneral-data/pg-data.tar.gz
-      info last  20110816
-      info home  'http://lgames.sourceforge.net/index.php?project=LGeneral'
+   source $SOURCEFORGE_URL lgeneral/lgeneral/lgeneral-$VERSION.tar.gz
+   source $SOURCEFORGE_URL lgeneral/lgeneral-data/pg-data.tar.gz
+      info last 20110816
+      info home 'http://lgames.sourceforge.net/index.php?project=LGeneral'
       desc 'port of Panzer General, a turn based strategy game
 
 lgeneral is a turn-based strategy engine heavily inspired by Panzer General.
@@ -23,15 +26,16 @@ implementations contribute to the
 tactical and strategic depth of the game.'
 
 build(){
-install_data(){
- export SDL_VIDEODRIVER=dummy
- mkdir  -pvm 755               $DESTDIR/usr/share/games/lgeneral
- ./lgc-pg/lgc-pg -s pg-data -d $DESTDIR/usr/share/games/lgeneral
-}
+ install_data(){
+  export SDL_VIDEODRIVER=dummy
+  mkdir  -pvm 755               $DESTDIR/usr/share/lgeneral/convdata
+  mkdir  -pvm 755               $DESTDIR/usr/share/games/lgeneral/{nations,gfx/{flags,units},units}
+  ./lgc-pg/lgc-pg -s pg-data -d $DESTDIR/usr/share/games/lgeneral
+ }
 
-./configure \
---prefix=/usr &&
-make &&
-make install DESTDIR=$DESTDIR &&
-     install_data
+ ./configure \
+ --prefix=/usr &&
+ make &&
+ make install DESTDIR=$DESTDIR &&
+      install_data
 }
