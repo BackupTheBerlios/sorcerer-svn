@@ -1,4 +1,4 @@
-   version stable 4.0.0alpha7
+   version stable 4.0.0alpha18 4.0.0alpha7
       opts --enable-fhs
    require avahi e2fsprogs init-functions keyutils ncurses popt readline
   optional Linux-PAM '--with-pam --with-pam_smbpass' --without-pam  for pluggable authentication
@@ -7,11 +7,11 @@
 # optional gamin     ''                              ''             for file change notification and gamin can also be used
   optional heimdal   ''                              ''             for kerberos support
 # optional libcap    ''                              ''             for POSIX capabilities support
-  optional openldap  '--with-ldap --with-ldapsam'    --without-ldap for connecting with ldap servers
+# optional openldap  '--with-ldap --with-ldapsam'    --without-ldap for connecting with ldap servers
   optional openssl   ''                              ''             for encrypted communication
   optional xinetd    ''                              ''             for running samba web administration tool
   category network
- attribute server console broke
+ attribute server console
     source http://us1.samba.org/samba/ftp/ \
            http://us5.samba.org/samba/ftp/ \
            http://us2.samba.org/samba/ftp/ \
@@ -35,6 +35,7 @@
            http://sambafr.idealx.org/samba/ftp/ \
            http://us1.samba.org/samba/ftp/ \
            samba4/samba-$VERSION.tar.gz
+      info last 20120223
       info home http://www.samba.org/
       desc 'seamless file and print services to SMB/CIFS clients.
 samba provides Windows NT and LAN manager-style
@@ -42,16 +43,16 @@ file and print services to SMB clients such as Windows.'
 
 build(){
 
- cd source4 &&
+# --with-smbmount      \
+# --with-fhs           \
  ./configure          \
  --prefix=/opt/samba4 \
+ --destdir="$DESTDIR" \
  --sysconfdir=/etc    \
  --localstatedir=/var \
- --with-smbmount      \
- --with-fhs           \
  --with-shared-modules=idmap_rid \
  $OPTS &&
  make  &&
- mkdir -p    $DESTDIR/opt/samba4 &&
- make install DESTDIR=$DESTDIR
+ mkdir -pvm 755 "$DESTDIR"/opt/samba4 &&
+ make install    "DESTDIR=$DESTDIR"
 }

@@ -1,33 +1,17 @@
-# Makefile is bad, does not install
-
-   version stable 1.08 1.08-2
-      opts --enable-shared
+   version stable 1.09 1.08 1.08-2
+      opts --enable-shared --disable-static
   category network/file-share
- attribute library
- attribute broke
-#attribute multilib-fail
+ attribute library multilib-dual
     source ftp://ftp.debian.org/debian/pool/main/libl/liblockfile/liblockfile_$VERSION.orig.tar.gz
+      info last 20110810
       info home http://packages.debian.org/unstable/liblockfile1
       desc 'shared library with NFS-safe locking functions
 It includes the command-line utility dotlockfile. 
 library enables userspace use of kernel asynchronous I/O system calls'
 
 build(){
- local LIBDIR
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then LIBDIR=lib64
- else LIBDIR=lib
- fi
-
- sed -i 's:ln -s:ln -fs:' Makefile.in
- opts --prefix=$DESTDIR/usr
- mkdir -pm 755 $DESTDIR/usr/{include,$LIBDIR,man/man{1,3}}
-
- default_build &&
- if    [[ $HOSTTYPE == x86_64   ]]; then
-  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                    else mv $DESTDIR/usr/lib{,64}
-    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-  fi
- fi
+ ./configure --prefix=/usr $OPTS &&
+ make &&
+ mkdir -pvm 755 "$DESTDIR"/usr/{bin,include,lib{,64},man/man{1,3}} &&
+ make install "ROOT=$DESTDIR"
 }
