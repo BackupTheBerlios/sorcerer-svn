@@ -1,14 +1,15 @@
 # requiring coreutils creates recursive requirement loop
 # 4.6.3 failed compilation
 # 4.6.3 seems to only fail compilation when java is enabled
+# java enabled gcc is almost never used
+# therefore upgrading gcc to 4.6.3 to rid gcc's STUPID rpath.
 
-   version stable 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
-#  version stable 4.6.3 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
+   version stable 4.6.3 4.6.2 4.5.3 4.5.2 4.4.5 4.4.3
    version latest 4.6.3
    require binutils cloog-ppl libelf mpfr multiprecision
 #  require binutils cloog-parma libelf mpfr multiprecision
-  optional ecj --with-ecj-jar=/usr/share/java/ecj.jar
-      opts --with-ppl --with-cloog --with-slibdir=/lib
+# optional ecj --with-ecj-jar=/usr/share/java/ecj.jar
+      opts --with-ppl --with-cloog --with-slibdir=/lib --disable-rpath
   category development/compiler
  attribute console library lto_off makej multilib-fail optimize solo
     source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
@@ -21,7 +22,23 @@
 
 build(){
 
+ fix_la(){
+  # gcc writes it's library path strangely in libstdc++.la
+  # and other libtool la files and consequently libtool also
+  # fails to canonicalize and adds and explict rpath that
+  # ends up rpathing into /usr/lib64 or /usr/lib
+  # Both gcc and libtool authors are at fault
+  # for writing bad code.
+  # canonicalizing the libtool la files here prevents
+  # the rpath problem from spreading.
+
+  sed -i 's:/lib64/\.\./lib64:/lib64:
+          s:/lib64/\.\./lib:/lib:
+          s:/lib/\.\./lib:/lib:' "$DESTDIR"/usr/lib{,64}/*.la
+ }
+
  finish_install(){
+  fix_la
   local STRSTREAM=$DESTDIR/usr/include/c++/$VERSION/backward/strstream
 
   if   [[ -f           $STRSTREAM   ]] &&
@@ -29,10 +46,10 @@ build(){
   then ln -s strstream $STRSTREAM.h
   fi
 
-  rm -f  $DESTDIR/usr/info/dir
-  mkdir -p            $DESTDIR/lib
-  ln -fs /usr/bin/cpp $DESTDIR/lib/cpp
-  ln -fs gcc          $DESTDIR/usr/bin/cc
+  rm    -f            "$DESTDIR/usr/info/dir"
+  mkdir -pvm 755      "$DESTDIR/lib"
+  ln -fs /usr/bin/cpp "$DESTDIR/lib/cpp"
+  ln -fs gcc          "$DESTDIR/usr/bin/cc"
  }
 
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
@@ -73,7 +90,8 @@ build(){
  if [ -f /sbin/sinstall ] && [ -f /root/compact-IR ]; then
   OPTS+=" --enable-libstdcxx-pch=no"
   OPTS+=" --enable-languages=c,c++";  else
-  OPTS+=" --enable-languages=c,c++,fortran,java,objc"
+  OPTS+=" --enable-languages=c,c++,fortran,objc"
+# OPTS+=" --enable-languages=c,c++,fortran,java,objc"
  fi
 
 #cp ${SOURCE[1]} ecj.jar
@@ -84,7 +102,7 @@ build(){
  make "$BF"                     \
       "$LCF"  "$LCXF"  "$LDF"   \
       "$LJCF" "$LJCXF"          &&
- make  install DESTDIR=$DESTDIR &&
+ make  install "DESTDIR=$DESTDIR" &&
  finish_install
 }
 
