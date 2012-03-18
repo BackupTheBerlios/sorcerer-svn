@@ -1,4 +1,6 @@
 # Not multilib compliant?
+# In danger of having spell removed due to
+# inability to compile on x86_64 multilib box.
 
    version stable 5.3.2 5.3.1 5.3 5.2.5 5.2.4 5.2.3 5.2.2
    require Linux-PAM openssl
@@ -6,7 +8,7 @@
  attribute console makej
  attribute broke
     source http://mmonit.com/monit/dist/monit-$VERSION.tar.gz
-      info last 20120107
+      info last 20111220
       info home http://mmonit.com/monit
       desc 'utility for managing and monitoring everything
 Monit conducts automatic maintenance and repair and can execute
@@ -19,3 +21,10 @@ checksum changes or size changes.
 You can also use monit to monitor remote hosts;
 monit can ping a remote host and can
 check port connections and protocols.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ fi
+ default_build
+}
