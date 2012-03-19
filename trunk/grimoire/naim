@@ -1,32 +1,24 @@
-# A header request for
-# http://naim.googlecode.com/files/naim-0.11.8.3.tar.bz2
-# returns:
-# http_code: 404
-# url_effective: http://naim.googlecode.com/files/naim-0.11.8.3.tar.bz2
-# curl: (22) The requested URL returned error: 404
-# However, the file can be downloaded.
-# Unfortunately, leech will not download files for which
-# it can not first receive a successful header request.
-# Therefore, naim can not be downloaded with leech
-# unless I rewrite leech.
-# Consequently, naim will no longer be supported by Sorcerer.
-# They can either get new hosting for the source tarball
-# Or have one of those "Google only hires smart people."
-# fix their web server so it operates like 99.99%
-# of the other webservers on the Internet.
+# Oddly, installs header files and no libraries.
 
-
-   version stable 0.11.8.3.1 0.11.8.3
+   version stable 0.11.8.3.2 0.11.8.3.1 0.11.8.3
    require ncurses
+      opts --enable-shared
   category network/chat
  attribute console
- attribute broke
-#   source http://naim.googlecode.com/files/naim-$VERSION.tar.bz2
+    source http://naim.googlecode.com/files/naim-$VERSION.tar.bz2
+      info last 20090303
       info home http://naim.n.ml.org/
-      opts --enable-shared
-      desc 'naim is a console AIM, IRC, ICQ, and Lily client
+      desc 'console AIM, IRC, ICQ, and Lily client
 naim is the original ncurses (console) AIM client,
 which also supports IRC and Lily CMC.
 For AIM, it uses the TOC protocol, and includes many
 commonly-requested features found nowhere else,
 while still preserving naim classic look and feel.'
+
+build(){
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mkdir -pvm 755 $DESTDIR/usr/lib64
+ else mkdir -pvm 755 $DESTDIR/usr/lib
+ fi
+ default_build
+}

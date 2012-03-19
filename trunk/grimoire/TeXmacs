@@ -1,15 +1,20 @@
 # Freshmeat announcement for TeXmacs 1.0.7 is:
-# This version comes with an experimental Qt port.
 
-   version stable 1.0.7.14 1.0.7.13 1.0.7.11 1.0.7.10
+   version stable 1.0.7.15 1.0.7.14 1.0.7.13 1.0.7.11 1.0.7.10
    require freetype guile libXext texlive
   optional imlib2 --with-imlib2=yes '' to accelerate rendering of images
+case $VERSION in
+ 1.0.7.15)
+   require guile-v1.8 ;;
+ 1.0.7.14)
+   require guile-v1.8 ;;
+esac
       opts --disable-qt
   category utility/editor
  attribute makej x11
      source ftp://ftp.texmacs.org/TeXmacs/tmftp/source/TeXmacs-$VERSION-src.tar.gz
 #    source ftp://ftp.texmacs.org/pub/TeXmacs/targz/TeXmacs-$VERSION-src.tar.gz
-      info last 20111018
+      info last 20120317
       info home  http://www.texmacs.org
       vurl http://www.texmacs.org/tmweb/download/sources.en.html
 # Does it have static link with xorg-server?
@@ -24,25 +29,21 @@ specific needs and even to extend the editor.'
 
 build(){
 
-# The following case statements commented out because
-# the installed version of guile was rolled back to 1.6.x
-# and guile-v1.8 was placed in /opt/guile/1.8/...
+ case  $VERSION  in
+  1.0.7.15)  sed  -i  "s:-Wl,-rpath,:-Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib:"  configure
+             export  PATH="/opt/guile/1.8/bin:$PATH"  ;;
+  1.0.7.14)  sed  -i  "s:-Wl,-rpath,:-Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib:"  configure
+             export  PATH="/opt/guile/1.8/bin:$PATH"  ;;
+ esac
 
-# case  $VERSION  in
-#   1.0.6.3)  sed  -i  "s:-Wl,-rpath,:-Wl,-rpath-link,/opt/guile/1.6/lib -Wl,-rpath,/opt/guile/1.6/lib:"  configure
-#             export  PATH="/opt/guile/1.6/bin:$PATH"  ;;
-#   1.0.6.4)  sed  -i  "s:-Wl,-rpath,:-Wl,-rpath-link,/opt/guile/1.6/lib -Wl,-rpath,/opt/guile/1.6/lib:"  configure
-#             export  PATH="/opt/guile/1.6/bin:$PATH"  ;;
-# esac
+ EO="--enable-optimize=$CXXFLAGS"
 
-EO="--enable-optimize=$CXXFLAGS"
-
-./configure          \
---prefix=/usr        \
---sysconfdir=/etc    \
---localstatedir=/var \
-"$EO"                \
-$OPTS &&
-make &&
-make install "DESTDIR=$DESTDIR"
+ ./configure           \
+  --prefix=/usr        \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  "$EO"                \
+  $OPTS &&
+ make   &&
+ make install "DESTDIR=$DESTDIR"
 }
