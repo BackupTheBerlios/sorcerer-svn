@@ -1,14 +1,20 @@
-case $HOSTTYPE in
- x86_64)
- attribute broke ;;
-esac
+# requires an  ia32 installation or
+# a multilib x86_64 installation
    version stable 0.3
    require SDL libpng libvorbis openal
   category game
  attribute x11
     source http://swars.vexillium.org/files/swars-$VERSION.tar.bz2
+      info last 20101212
       info home http://swars.vexillium.org/
       desc 'game of syndicate wars ported to SDL
 This requires an original syndicate wars CD
 The port lacks joystick and networking support.
 It was created by disassembling the original DOS executable.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then export CFLAGS+=' -m32'; export LDFLAGS+=' -m32'
+ fi
+ default_build
+}
