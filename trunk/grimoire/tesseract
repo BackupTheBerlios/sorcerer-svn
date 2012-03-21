@@ -1,12 +1,50 @@
-#WARNING : use google servers, not w3c compliants, should download manually the
-#WARNING : sources
-#WARNING : JLM
+# This spell might yet be incomplete because many *.traineddata.gz
+# files exist for download and the documentation does not indicate
+# how these files are to be used or installed.
+# The 3.01 release of tesseract was improperly made
+# The omitted files are added by the spell by running automake -afc
+# The person who originally contributed the tesseract spell
+# left it broke, never maintained it, and omitted including
+# the requirement on leptonica
+# and omitted creating a spell for leptonica
+# Unknown if leptonica was a requirement at that time.
+# If anyone wants this spell maintained then please email the list
+# otherwise this spell will be removed shortly after it fails to compile.
 
-   version stable 2.01
-   require tiff
- attribute console broke new
+   version stable 3.01 2.01
+   require leptonica
+      opts --disable-static
+ attribute library makej multilib-dual x11
   category graphic/scan
     source http://tesseract-ocr.googlecode.com/files/tesseract-$VERSION.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.heb-com.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.heb.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.eng.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.hin.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.ara.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.osd.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.tha.tar.gz
+    source http://tesseract-ocr.googlecode.com/files/tesseract-ocr-$VERSION.slk-frak.tar.gz
+      info last 20111021
       info home http://code.google.com/p/tesseract-ocr
-      desc 'tesseract OCR engine was one of the 3 engines in the 1995 UNLV Accuracy test
+      info vurl http://code.google.com/p/tesseract-ocr/downloads/list
+      desc 'one of the 3 engines in the 1995 UNLV Accuracy test
 it is currently one of the most accurate open source OCR engine available'
+
+case $VERSION in
+ 3.01)
+   require automake ;;
+esac
+
+build(){
+ case $VERSION in
+  3.01) automake -afc ;;
+ esac
+ # The docs describe how to place the language specific data files
+ # into the source tree.  Unfortunately, it is confusing.
+ if   [  -d   tesseract-ocr ]
+ then cp -alv tesseract-ocr/tessdata/* tessdata
+      cp -alv tesseract-ocr/*          tessdata
+ fi
+ default_build
+}
