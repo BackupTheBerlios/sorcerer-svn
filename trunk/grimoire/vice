@@ -1,15 +1,27 @@
+# --disable-ffmpeg can be provided when vice becomes too old
+# to compile with currently installed ffmpeg
+# can have optional on pulseaudio
+
    version stable 2.2 1.22 1.21 1.20 1.19 1.18 1.17 1.16
-   require audiofile giflib jpeg libXaw libXv lame libpng readline
-  optional esound '' '' for audio output through esound
+   require MesaLib ffmpeg fontconfig font-alias font-cursor-misc font-misc-misc giflib imake jpeg libXv libnet libpng xorg-cf-files
+#  require audiofile giflib jpeg libXaw libXv lame libpng readline
+  optional esound '' --without-esd for audio output through esound
   category development/emulator game
  attribute x11
- attribute broke
     source http://www.zimmers.net/anonftp/pub/cbm/crossplatform/emulators/VICE/vice-$VERSION.tar.gz
       vurl http://www.viceteam.org/
-#   source ftp://ftp.zimmers.net/pub/cbm/crossplatform/emulators/VICE/vice-$VERSION.tar.gz
+      info last 20091219
       info home http://www.viceteam.org/
       desc 'versatile commdore emulator
 vice is a Versatile Commodore Emulator
 vice executes programs intended for the old 8-bit computers.
 The current version emulates the C64, the C128, the VIC20,
 almost all PET models, the PLUS4 and the CBM-II (aka C610).'
+
+build(){
+ case $VERSION in
+  2.2) sed -i '1i#include <X11/Xproto.h>
+               1i#include <X11/extensions/shmproto.h>' src/arch/unix/x11/xaw/x11video.c ;;
+ esac
+ default_build
+}

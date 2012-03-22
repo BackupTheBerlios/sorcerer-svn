@@ -1,24 +1,26 @@
-# when this installs it is not properly tracked.
-# This quits when run without giving a useful explanation.
-
    version stable 0761 0751 0741 0731
    require MesaLib SDL_image freealut libvorbis
   category game
  attribute x11
- attribute broke
     source $SOURCEFORGE_URL ultimatestunts/sourcecode/ultimatestunts-srcdata-$VERSION.tar.gz
-#   source $SOURCEFORGE_URL ultimatestunts/sourcecode/0.7.5%20release%201/ultimatestunts-srcdata-$VERSION.tar.gz
-##  source $SOURCEFORGE_URL ultimatestunts/sourcecode/0.7.5%20release%201/ultimatestunts-srcdata-$VERSION.tar.gz
-      info home  http://www.ultimatestunts.nl/
-      info docs  http://www.ultimatestunts.nl/documentation/index.htm
-      desc '3D OpenGL car driving simulation'
+      info last 20110203
+      info home http://www.ultimatestunts.nl/
+      info docs http://www.ultimatestunts.nl/documentation/index.htm
+      desc '3D OpenGL car driving simulation
+
+similar to DOS game known as stunts,
+yet feels incomplete and seems less entertaining.
+'
 
 build(){
  find data -type d | xargs -r --max-lines=64 chmod 755
  find data -type f | xargs -r --max-lines=64 chmod 644
- ./configure $OPTS &&
- make &&
- make install "DESTDIR=$DESTDIR"
-# "distdir=$DESTDIR"
-#default_build
+ default_build &&
+ cd data &&
+ make install "usdatadir=$DESTDIR/usr/share/ultimatestunts" &&
+ find "$DESTDIR/usr/share/ultimatestunts" -type d | xargs --max-lines=64 chmod 755 &&
+ find "$DESTDIR/usr/share/ultimatestunts" -type f | xargs --max-lines=64 chmod 644 &&
+ case $VERSION in
+  0761) sed -i 's:/usr/local:/usr:' "$DESTDIR/etc/ultimatestunts.conf" ;;
+ esac
 }
