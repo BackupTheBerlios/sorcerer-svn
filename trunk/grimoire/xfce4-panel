@@ -1,9 +1,40 @@
    version stable 4.8.0 4.6.4
    require exo garcon libwnck libxfce4ui
+case $VERSION in
+ 4.8.0)
+   require libwnck-v2 ;;
+esac
   category utility
- attribute library makej multilib-concurrent x11
- attribute broke
+ attribute library makej multilib-fail x11
     source http://archive.xfce.org/xfce/4.8/src/xfce4-panel-$VERSION.tar.bz2
       desc 'the panel of the XFce Desktop Environment
 It is modeled after the CDE panel and,
 of course, previous versions of xfce.'
+
+build(){
+## Not really compatibile with libwnck-3.0 without further modification.
+# case $VERSION in
+#  4.8.0) sed -i 's:libwnck-1.0:libwnck-3.0:' configure ;;
+# esac
+
+ add_pkg_config_path(){
+  if   [ -n "$PKG_CONFIG_PATH" ]
+  then export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig:$PKG_CONFIG_PATH"
+  else export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig"
+  fi
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ wnck_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then add_pkg_config_path lib64
+  else add_pkg_config_path lib
+  fi
+ }
+
+ case $VERSION in
+  4.8.0) wnck_fix ;;
+ esac
+
+ default_build
+}

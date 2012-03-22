@@ -1,16 +1,22 @@
-   version   stable 3.2.1 3.2.0 3.0.0
-   version unstable 3.3.5
+# Created only to be able to compile and link
+# xfce4-panel version 4.8.0
+
+   version   stable 2.30.7
    require gtk+-v3 imake libXres startup-notification xorg-cf-files
 #  require gtk+ libXres startup-notification
-      opts --enable-static=no
+      opts --enable-static=no --prefix=/opt/libwnck-v2
   category graphic/library graphic/toolkit
  attribute gnome library makej multilib-concurrent
-    source $GNOME_URL sources/libwnck/${VERSION:0:3}/libwnck-$VERSION.tar.xz
-      info last 20111016
+    source $GNOME_URL sources/libwnck/${VERSION:0:4}/libwnck-$VERSION.tar.xz
+      info last 20110831
       info home http://www.gnome.org
       desc 'window navigator construction kit'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/opt/libwnck-v2/lib64
+ fi
+
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build
 }

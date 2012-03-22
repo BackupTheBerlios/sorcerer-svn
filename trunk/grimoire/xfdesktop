@@ -2,6 +2,29 @@
    require Thunar gtk-xfce-engine libxfce4ui xfce4-panel
   category utility
  attribute makej x11
- attribute broke
     source http://archive.xfce.org/xfce/4.8/src/xfdesktop-$VERSION.tar.bz2
       desc 'the desktop manager for xfce4'
+
+build(){
+
+ add_pkg_config_path(){
+  if   [ -n "$PKG_CONFIG_PATH" ]
+  then export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig:$PKG_CONFIG_PATH"
+  else export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig"
+  fi
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ wnck_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then add_pkg_config_path lib64
+  else add_pkg_config_path lib
+  fi
+ }
+
+ case $VERSION in
+  4.8.0) wnck_fix ;;
+ esac
+
+ default_build
+}

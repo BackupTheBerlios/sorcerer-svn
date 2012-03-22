@@ -1,8 +1,30 @@
    version stable 4.8.0 4.6.2 4.6.1 4.6.0
    require fortune iceauth libwnck libxfce4ui libxfcegui4 xfce4-panel
   category window-manager
- attribute library makej multilib-concurrent x11
- attribute broke
+ attribute library makej multilib-fail x11
      wmbin /usr/bin/xfce4-session
     source http://archive.xfce.org/xfce/4.8/src/xfce4-session-$VERSION.tar.bz2
       desc 'session manager for xfce'
+
+build(){
+ add_pkg_config_path(){
+  if   [ -n "$PKG_CONFIG_PATH" ]
+  then export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig:$PKG_CONFIG_PATH"
+  else export PKG_CONFIG_PATH="/opt/libwnck-v2/$1/pkgconfig"
+  fi
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ wnck_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then add_pkg_config_path lib64
+  else add_pkg_config_path lib
+  fi
+ }
+
+ case $VERSION in
+  4.8.0) wnck_fix ;;
+ esac
+
+ default_build
+}
