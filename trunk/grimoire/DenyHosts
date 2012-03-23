@@ -1,11 +1,7 @@
-# Will this install properly without a build() ?
-# Requires DESTDIR compliant build()
-
    version stable 2.6 2.5 2.4b
    version secure 2.6
    require Python init-functions openssh tcp_wrappers
  attribute console
- attribute broke
   category security
     source $SOURCEFORGE_URL denyhosts/denyhosts/$VERSION/DenyHosts-$VERSION.tar.gz
       info last 20081207
@@ -21,11 +17,11 @@ attacker from continuing to gain entry into your system?
 DenyHosts attempts to address the above... and more.'
 
 
-# do not use build_old since it requires sentinel
-build_old(){
+build(){
 
- IDIR=/usr/share/denyhosts
- CFILE=denyhosts.cfg
+ local IDIR=/usr/share/denyhosts
+ local DDIR="$DESTDIR$IDIR"
+ local CFILE=denyhosts.cfg
 
  cat > denyhosts << EOF
 #!/bin/bash
@@ -33,17 +29,23 @@ export HOSTNAME=\$( hostname )
 $IDIR/denyhosts.py  -c /etc/$CFILE \$@
 EOF
 
- sed  -i  "s:bin/denyhosts.py:sbin/denyhosts.py:"  daemon-control-dist
- sed  -i  "s:/usr/share/denyhosts/denyhosts.cfg:/etc/${CFILE}:"  daemon-control-dist  
- sed  -i  "s:^LOCK_FILE:#LOCK_FILE:
-           s:^#LOCK_FILE = /var/run:LOCK_FILE = /var/run:"	$CFILE-dist
+ make_install(){
+  install -vm 755 -o 0 -g 0 -d               $DDIR/DenyHosts
+  install -vm 644 -o 0 -g 0    DenyHosts/*   $DDIR/DenyHosts
+  install -vm 755 -o 0 -g 0    denyhosts.py  $DDIR
+  install -vm 644 -o 0 -g 0    setup.py      $DDIR
+  install -vm 755 -o 0 -g 0    daemon-control-dist $DDIR/denyhostsd
+  install -vm 755 -o 0 -g 0 -d               $DESTDIR/usr
+  install -vm 755 -o 0 -g 0 -d               $DESTDIR/usr/sbin
+  install -vm 755 -o 0 -g 0    denyhosts     $DESTDIR/usr/sbin
+  install -vm 755 -o 0 -g 0 -d               $DESTDIR/etc
+  install -vm 644 -o 0 -g 0    $CFILE-dist   $DESTDIR/etc/$CFILE
+ }
 
- prepare_install                          				&&
- install  -m 755 -o 0 -g 0 -d -v             $IDIR/DenyHosts		&&
- install  -m 644 -o 0 -g 0 -v  DenyHosts/*   $IDIR/DenyHosts		&& 
- install  -m 755 -o 0 -g 0 -v  denyhosts.py  $IDIR			&&
- install  -m 644 -o 0 -g 0 -v  setup.py      $IDIR			&&
- install  -m 755 -o 0 -g 0 -v  daemon-control-dist  $IDIR/denyhostsd	&&
- install  -m 755 -o 0 -g 0 -v  denyhosts     /usr/sbin			&&
- install  -m 644 -o 0 -g 0 -v  $CFILE-dist   /etc/$CFILE
+ sed -i "s:bin/denyhosts.py:sbin/denyhosts.py:"  daemon-control-dist
+ sed -i "s:/usr/share/denyhosts/denyhosts.cfg:/etc/${CFILE}:"  daemon-control-dist
+ sed -i "s:^LOCK_FILE:#LOCK_FILE:
+         s:^#LOCK_FILE = /var/run:LOCK_FILE = /var/run:" $CFILE-dist
+
+ make_install
 }

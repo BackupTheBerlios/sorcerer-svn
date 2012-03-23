@@ -1,18 +1,31 @@
 # acpiexec did not compile in version 20090123 nor 20100528
 # impossible to track?
 
-   version stable 20110623 20101209 20100528 20090521
+   version stable 20120320 20110623 20101209 20100528 20090521
   category utility
- attribute console
+ attribute console hidden
     source http://www.acpica.org/download/acpica-unix-$VERSION.tar.gz
-      info home  http://www.acpica.org/
-      info docs  http://www.acpica.org/documentation/
+      info last 20120320
+      info home http://www.acpica.org/
+      info docs http://www.acpica.org/documentation/
       desc 'Advanced Configuration and Power Supply Interface Specification interface by Intel'
 
 build(){
+ local ID="INSTALLDIR=$DESTDIR/usr/bin"
+ mkdir -pvm 755      "$DESTDIR/usr/bin"
+ cd source/tools/acpibin && make && make install "$ID" &&
+ cd ../acpiexec          && make && make install "$ID" &&
+ cd ../acpihelp          && make && make install "$ID" &&
+ cd ../acpinames         && make && make install "$ID" &&
+ cd ../acpisrc           && make && make install "$ID" &&
+ cd ../acpixtract        && make && make install "$ID" &&
+ cd ../../compiler       && make && make install "$ID"
+}
+
+build_old(){
  make_install(){
-  mkdir   -p $DESTDIR/usr/bin
-  install -vm 755 compiler/iasl tools/acpisrc/acpisrc $DESTDIR/usr/bin/
+  mkdir   -pvm 755 $DESTDIR/usr/bin
+  install  -vm 755 compiler/iasl tools/acpisrc/acpisrc $DESTDIR/usr/bin/
  }
 
  cd compiler         && make &&
