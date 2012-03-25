@@ -1,14 +1,19 @@
 # libproxy 0.2.3 does not correctly detect and use installed xulrunner
+# 0.4.7 has compile error
 
-   version stable 0.2.3
+   version   stable 0.4.6 0.2.3
+   version unstable 0.4.7
    require GConf
+      opts -DWITH_MOZJS:BOOL=OFF
 #  require GConf-dbus
 case $VERSION in
  0.2.3) opts --without-mozjs ;;
 esac
   category network
- attribute library makej multilib-concurrent
+ attribute library makej multilib-fail
+# multilib-concurrent
     source http://libproxy.googlecode.com/files/libproxy-$VERSION.tar.gz
+      info last 20110606
       info home http://code.google.com/p/libproxy/
       desc 'library that provides automatic proxy configuration management'
 
@@ -21,7 +26,10 @@ build(){
   x86_64) export CFLAGS+=' -I/usr/include/dbus-1.0/ -I/usr/lib64/dbus-1.0/include' ;;
        *) export CFLAGS+=' -I/usr/include/dbus-1.0/ -I/usr/lib/dbus-1.0/include' ;;
  esac
- default_build
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv -v $DESTDIR/usr/lib{,64}
+ fi
 }
 
 current(){
