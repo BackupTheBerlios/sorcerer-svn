@@ -1,20 +1,25 @@
-# broke because ocaml is broke
-
    version stable 2.14.2 2.10.1
    require gnome-panel gtkglarea librsvg ocaml
   category graphic
  attribute library x11
- attribute broke
     source http://wwwfun.kurims.kyoto-u.ac.jp/soft/olabl/dist/lablgtk-$VERSION.tar.gz
-      info home  http://wwwfun.kurims.kyoto-u.ac.jp/soft/olabl/lablgtk.html
-      vurl http://wwwfun.kurims.kyoto-u.ac.jp/soft/olabl/lablgtk.html
-      info mail  http://yquem.inria.fr/cgi-bin/mailman/listinfo/lablgtk
+      info last 20100917
+      info home http://lablgtk.forge.ocamlcore.org/
+#     info home http://wwwfun.kurims.kyoto-u.ac.jp/soft/olabl/lablgtk.html
+      info mail http://yquem.inria.fr/cgi-bin/mailman/listinfo/lablgtk
+      vurl "http://forge.ocamlcore.org/frs?group_id=220"
       desc 'Objective Caml interface to gtk+'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then local LDIR=/usr/lib64
+ else local LDIR=/usr/lib
+ fi
+
  ./configure            \
   --prefix=$DESTDIR/usr \
   --sysconfdir=/etc     \
+  --libdir=$DESTDIR$LDIR \
   --localstatedir=/var  \
   $OPTS &&
  make     &&
