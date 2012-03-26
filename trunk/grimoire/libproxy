@@ -10,8 +10,7 @@ case $VERSION in
  0.2.3) opts --without-mozjs ;;
 esac
   category network
- attribute library makej multilib-fail
-# multilib-concurrent
+ attribute library makej multilib-concurrent
     source http://libproxy.googlecode.com/files/libproxy-$VERSION.tar.gz
       info last 20110606
       info home http://code.google.com/p/libproxy/
@@ -26,6 +25,12 @@ build(){
   x86_64) export CFLAGS+=' -I/usr/include/dbus-1.0/ -I/usr/lib64/dbus-1.0/include' ;;
        *) export CFLAGS+=' -I/usr/include/dbus-1.0/ -I/usr/lib/dbus-1.0/include' ;;
  esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib'
+      opts -DWITH_PERL:BOOL=OFF
+ fi
+
  default_build &&
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then mv -v $DESTDIR/usr/lib{,64}
