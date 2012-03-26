@@ -6,22 +6,28 @@
 # to install the components
 # Spell is currently incomplete
 
-   version stable 3.2.4
+   version stable 4.1.8 3.2.4
    require uniso
   category development/emulator
  attribute x11
- attribute broke
-    source http://download.virtualbox.org/virtualbox/3.2.4/VBoxGuestAdditions_$VERSION.iso
+    source http://download.virtualbox.org/virtualbox/$VERSION/VBoxGuestAdditions_$VERSION.iso
+      info last 20111219
       info home http://www.virtualbox.org/
       desc 'kernel modules for guest operating system'
 
 build(){
-isoinfo -l -J -R -i $SOURCE |
-uniso         -R -i $SOURCE
-case $HOSTTYPE in
- x86_64) VBoxLinuxAdditions-amd64.run --noexec --target . ;;
-      *) VBoxLinuxAdditions-x86.run   --noexec --target . ;;
-esac
-tar -xf VBoxGuestAdditions.tar.bz2
-false
+ make_install(){
+  find * -type d | xargs -r --max-lines=64 chmod 755
+  find * -type f | xargs -r --max-lines=64 chmod 644
+  mkdir -pvm 755 "$DESTDIR/opt/VBoxGuestAdditions"
+  cp    -av *    "$DESTDIR/opt/VBoxGuestAdditions/"
+ }
+
+ echo "BUILD_DIR=$BUILD_DIR"
+ rm    -f       "$BUILD_DIR"
+ mkdir -pvm 755 "$BUILD_DIR"
+ cd             "$BUILD_DIR"
+ isoinfo -l -J -R -i $SOURCE |
+ uniso         -R -i $SOURCE &&
+ make_install
 }

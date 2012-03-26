@@ -5,6 +5,21 @@
  attribute gnome
  attribute broke
     source $GNOME_URL sources/NetworkManager-openconnect/${VERSION:0:3}/NetworkManager-openconnect-$VERSION.tar.xz
+      info omit 20130302
       info last 20120302
       info home http://www.gnome.org/
       desc 'source tarball lacks description'
+
+build(){
+ case $VERSION in
+  0.9.2.0) sed -i 's:glib/gi18n.h:glib.h:' \
+               auth-dialog/main.c \
+               properties/auth-helpers.c \
+               properties/nm-openconnect.c \
+               src/nm-openconnect-service.c
+           sed -i 's:glib/gtypes.h:glib.h:' \
+               src/nm-openconnect-service.h ;;
+ esac
+ sed -i 's:-Werror::' configure
+ default_build
+}
