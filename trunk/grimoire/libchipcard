@@ -1,14 +1,15 @@
 # 5.0.2 did not compile
-   version stable 5.0.2 5.0.0 4.2.9 4.2.8
-   require gwenhywfar libusb-compat opensc sysfsutils
+   version stable 5.0.3beta 5.0.2 5.0.0 4.2.9 4.2.8
+   require gwenhywfar libusb-compat opensc pscs-lite sysfsutils
 #  require gwenhywfar hal libusb-compat opensc sysfsutils
       opts --disable-debug --enable-release
   category network
- attribute console library
- attribute broke
-    source "http://www2.aquamaniac.de/sites/download/download.php?package=02&release=10&file=01&dummy=/libchipcard-$VERSION.tar.gz"
+ attribute console library makej multilib-concurrent
+# attribute broke
+    source "http://www2.aquamaniac.de/sites/download/download.php?package=02&release=27&file=01&dummy=/libchipcard-$VERSION.tar.gz"
       vurl "http://www2.aquamaniac.de/sites/download/packages.php?package=02&showall=1"
 #     vurl http://www.aquamaniac.de/sites/download/packages.php
+      info omit 20120613
       info last 20110613
       info home http://www.aquamaniac.de/sites/libchipcard/index.php
       info news http://www.aquamaniac.de/sites/news/index.php
@@ -20,3 +21,10 @@ It uses the CTAPI library provided by the manufacturer
 of the reader and provides a filesystem on memory chip cards.
 It works under Linux, FreeBSD, and Windows, and has been
 tested with Towitoko and Kobil readers even in parallel.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib'
+ fi
+ default_build
+}
