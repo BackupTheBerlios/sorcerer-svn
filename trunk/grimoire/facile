@@ -1,17 +1,20 @@
-# broke because ocaml is broke
-
    version stable 1.1 1.0
    require ocaml
   category development/interpreter
- attribute library new
- attribute broke
+ attribute library
     source http://www.recherche.enac.fr/opti/facile/distrib/facile-$VERSION.tar.gz
-      info home  http://www.recherche.enac.fr/opti/facile/
+      info last 20070328
+      info home http://www.recherche.enac.fr/opti/facile/
       desc 'Functional Constraint Library implemented in Objective Caml'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then local LDIR=/usr/lib64
+ else local LDIR=/usr/lib
+ fi
+
  ./configure &&
  make &&
- mkdir -p $DESTDIR/usr/lib/ocaml/facile &&
- make install "FACILEDIR=$DESTDIR/usr/lib/ocaml/facile"
+ mkdir -pvm 755         "$DESTDIR$LDIR/ocaml/facile" &&
+ make install "FACILEDIR=$DESTDIR$LDIR/ocaml/facile"
 }

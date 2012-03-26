@@ -1,18 +1,19 @@
 # No DESTDIR type install
 
-   version stable 3.10.2 3.09.3 3.08.4 3.08.3 3.08.2 3.08.1 3.07pl2
+   version   stable 3.12.1 3.10.2 3.09.3 3.08.4 3.08.3 3.08.2 3.08.1 3.07pl2
    version unstable 3.10.2+rc1
    require ncurses
   optional tk     '' -no-tk for tcl/tk support
   optional libX11 '' ''     to build the graph library
-  category development/interpreter
- attribute console x11 broke
-    source http://caml.inria.fr/distrib/ocaml-${VERSION:0:4}/ \
-            ftp://ftp.inria.fr/INRIA/caml-light/ocaml-${VERSION:0:4}/ \
-            ocaml-$VERSION.tar.gz
-      info home http://pauillac.inria.fr/caml/
 # --enable-static=no not supported
 #     opts --enable-static=no
+  category development/interpreter
+ attribute console hidden x11
+    source http://caml.inria.fr/distrib/ocaml-${VERSION:0:4}/ \
+            ftp://ftp.inria.fr/INRIA/caml-light/ocaml-${VERSION:0:4}/ \
+            ocaml-$VERSION.tar.bz2
+      info last 20110704
+      info home http://pauillac.inria.fr/caml/
       desc 'Objective Caml is the latest implementation of the Caml dialect of ML
 ocaml Objective Caml is an implementation of the ML language,
 based on the Caml Light dialect extended with a complete
@@ -21,16 +22,26 @@ in the style of Standard ML.'
 
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then local LDIR=/usr/lib64
+ else local LDIR=/usr/lib
+ fi
+
 # -no-tk                 \
 # -bindir /usr/bin       \
 # -libdir /usr/lib/ocaml \
 # -mandir /usr/man       \
 ./configure     \
 -prefix /usr    \
+--libdir $LDIR  \
 --with-pthread  \
 $OPTS           &&
 make    world   &&
 make    opt     &&                          
 make    opt.opt &&
-make    install
+make    install \
+        "BINDIR=$DESTDIR/usr/bin" \
+        "LIBDIR=$DESTDIR$LDIR"   \
+        "STUBLIBDIR=$DESTDIR$LDIR/stublibs" \
+        "MANDIR=$DESTDIR/usr/man"
 }
