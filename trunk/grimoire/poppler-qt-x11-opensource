@@ -1,23 +1,52 @@
    inherit poppler
    require qt-everywhere-opensource
-      opts -DENABLE_XPDF_HEADERS:BOOL=TRUE
-      opts -DWITH_GObjectIntrospection:BOOL=OFF
+#      opts -DENABLE_XPDF_HEADERS:BOOL=TRUE
+#      opts -DWITH_GObjectIntrospection:BOOL=OFF
 # -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by calibre)
  attribute library makej
 #attribute multilib-dual
       desc 'PDF rendering library with qt-everywhere-opensource support'
 
-build(){ (
+build(){
+ missing_install(){
+  mkdir -vpm 755 $DESTDIR/usr/include/poppler
+  mkdir -vpm 755 $DESTDIR/usr/include/poppler/goo
+  mkdir -vpm 755 $DESTDIR/usr/include/poppler/splash
+  find poppler -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler
+  find splash  -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler/splash
+  find goo     -type f -name \*.h | xargs --max-lines=256 cp -t $DESTDIR/usr/include/poppler/goo
+  true
+ }
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then  export LDFLAGS+=' -Wl,-rpath,/opt/32bit/usr/lib'
+        export PATH="/opt/32bit/usr/bin:$PATH"
+        opts --prefix=/opt/32bit/usr
+  else  opts --prefix=/usr
+  fi
+ else   opts --prefix=/usr
+ fi
+
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ ./configure \
+  --sysconfdir=/etc \
+  --localstatedir=/var \
+ $OPTS &&
+ make  &&
+ make install DESTDIR=$DESTDIR &&
+ missing_install
+}
+
+build_old(){ (
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
   then  export LDFLAGS+=' -Wl,-rpath,/opt/32bit/usr/lib'
         export PATH="/opt/32bit/usr/bin:$PATH"
         opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr
-  else  export LDFLAGS+=' -Wl,-rpath,/usr/lib64'
-        opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+  else  opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
   fi
- else   export LDFLAGS+=' -Wl,-rpath,/usr/lib'
-        opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+ else   opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
  fi
  default_build
 ) }
