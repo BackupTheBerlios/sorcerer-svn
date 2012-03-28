@@ -1,9 +1,17 @@
 # Even with --disable-gtk-doc WebKit still requires gtk-doc to be installed.
 
-   version stable r97664 r96792 r94500 1.3.13 r81486
-   require Imaging enchant gst-plugins-base gtk+ gtk-doc libsoup
+# r112169 r112011 r111990 r110587 r109673 r108509 r107164 r106139 failed to compile
+
+   version   stable 1.7.92 r97664 r96792 r94500 1.3.13 r81486
+   version unstable r112169 r112011 r110587 r109673 r108509 r107164 r106139
+   require Imaging enchant geoclue gst-plugins-base gtk+ gtk-doc libsoup
       opts --disable-gtk-doc
       opts --with-gtk=3.0 --enable-introspection
+case $VERSION in
+ 1.7.92)
+      opts --with-accelerated-compositing=no --disable-webgl ;;
+esac
+
 #     opts --enable-geolocation
 # switch --enable-3D-transforms        --disable-3D-transforms                "enable support for 3D transforms default=no"
 # switch --enable-channel-messaging    --disable-channel-messaging            "enable HTML5 channel messaging support default=no"
@@ -33,11 +41,13 @@
  attribute library makej multilib-dual x11
 #attribute multilib-concurrent
 
-#   source http://ftp.debian.org/debian/pool/main/w/webkit/webkit_$VERSION.orig.tar.gz
-    source http://builds.nightly.webkit.org/files/trunk/src/WebKit-$VERSION.tar.bz2
-      info last 20111018
+    source http://www.webkitgtk.org/webkit-$VERSION.tar.xz
+#   source http://builds.nightly.webkit.org/files/trunk/src/WebKit-$VERSION.tar.bz2
+      info last 20120327
+      info home http://www.webkitgtk.org/
       info home http://webkit.org/
       info docs http://trac.webkit.org/wiki
+      info vurl "http://www.webkitgtk.org/?page=download"
       desc "open source web browser engine
 WebKit is also the name of the Mac OS X system framework
 version of the engine that's used by Safari, Dashboard, Mail,
@@ -52,5 +62,6 @@ build(){
  fi
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ rm -f CMakeLists.txt
  default_build
 }

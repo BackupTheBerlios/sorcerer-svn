@@ -1,17 +1,16 @@
 # If introspection works with clutter version > 1.4.0
 # then do an # augur arof clutter
 # and check/fix those spells also to enable introspection
-# 1.8.0 requires unstable versions of atk and pango
 
-   version   stable 1.8.2 1.8.0 1.6.14 1.6.12 1.6.10 1.6.8
-   version unstable 1.9.16 1.9.14 1.9.12 1.9.10 1.9.2
+   version   stable 1.10.0 1.8.2 1.8.0 1.6.14 1.6.12 1.6.10 1.6.8
+   version unstable 1.10.0 1.9.16 1.9.14 1.9.12 1.9.10 1.9.2
    require atk cogl json-glib
 #  require cogl gtk+ json-glib
       opts --disable-rpath
   category audio/cd
  attribute gnome library makej multilib-concurrent
-    source $GNOME_URL sources/clutter/${VERSION:0:3}/clutter-$VERSION.tar.xz
-      info last 20120319
+    source $GNOME_URL sources/clutter/${VERSION:0:4}/clutter-$VERSION.tar.xz
+      info last 20120322
       info home http://clutter-project.org/
       info docs http://www.clutter-project.org/documentation
       desc 'library for creating fast visually rich animated GUIs'
@@ -19,4 +18,11 @@
 build(){
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build
+}
+
+post_install(){
+ if   [[ $VERSION == 0.10.0 ]] &&
+      spell_installed $( get_provider mx )
+ then get_provider mx | pipe_queue $CAST_QUEUE
+ fi
 }
