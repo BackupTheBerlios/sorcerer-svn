@@ -1,4 +1,7 @@
-   version   stable 3.1.3 3.1.2 3.1.1 3.1.0 3.0.3 3.0.2 3.0.1
+# Version 3.1.3 may be beyond salvage?
+# Even 3.2.0beta6 does not compile.
+
+   version   stable 3.2.0beta6 3.1.3 3.1.2 3.1.1 3.1.0
    version unstable 3.2.0beta6 3.2.0beta5
    require dbus-glib gtk+
 # optional compface ''             --disable-compface for compface support
@@ -10,7 +13,8 @@
   category network/email network/news
  attribute client makej x11
  attribute broke
-    source http://sylpheed.sraoss.jp/sylpheed/v${VERSION:0:3}/sylpheed-$VERSION.tar.bz2
+    source http://sylpheed.sraoss.jp/sylpheed/v3.2beta/sylpheed-$VERSION.tar.bz2
+#   source http://sylpheed.sraoss.jp/sylpheed/v${VERSION:0:3}/sylpheed-$VERSION.tar.bz2
       info last 20120228
       info omit 20130228
       info home http://sylpheed.sraoss.jp/
@@ -27,10 +31,16 @@ uses the MH format.'
 
 build(){
  case $VERSION in
+  3.2.0beta6)
+   grep -lr "glib/g" * |
+   xargs --max-lines=64 \
+   sed -i 's:glib/g[^>]*:glib.h:'
+   sed -i 's:glibconfig\.h:glib.h:' libsylph/defs.h ;;
   3.1.3)
    grep -lr "glib/g" * |
    xargs --max-lines=64 \
-   sed -i 's:glib/g[^>]*:glib.h:' ;;
+   sed -i 's:glib/g[^>]*:glib.h:'
+   sed -i 's:glibconfig\.h:glib.h:' libsylph/defs.h ;;
  esac
  default_build &&
  mkdir   -pvm 755              $DESTDIR/usr/share/pixmaps &&
