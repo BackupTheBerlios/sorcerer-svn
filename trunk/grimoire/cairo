@@ -5,6 +5,8 @@
    version stable 1.12.0 1.10.2 1.10.0 1.8.10
    require MesaLib fontconfig libXrender libpng pixman xcb-util
       opts --enable-static=no --enable-gl=yes --enable-xcb=yes --enable-tee
+# below option is ineffective for repairing librsvg cairo test error
+#     opts --enable-full-testing=no
   category graphic/library
  attribute library makej multilib-concurrent
     CFLAGS='-O2 -fstack-protector'
@@ -16,6 +18,13 @@
       info home http://cairographics.org/
       info docs http://cairographics.org/documentation/
       desc 'vector graphics library'
+
+build(){
+ case $VERSION in
+  1.12.0) sed -i 's:boilerplate test pref:boilerplate pref:' Makefile.in ;;
+ esac
+ default_build
+}
 
 current(){
  case $VERSION in
