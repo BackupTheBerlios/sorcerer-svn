@@ -16,7 +16,23 @@
 
 build(){
 
+ fix_la(){
+  # gcc writes it's library path strangely in libstdc++.la
+  # and other libtool la files and consequently libtool also
+  # fails to canonicalize and adds and explict rpath that
+  # ends up rpathing into /usr/lib64 or /usr/lib
+  # Both gcc and libtool authors are at fault
+  # for writing bad code.
+  # canonicalizing the libtool la files here prevents
+  # the rpath problem from spreading.
+
+  sed -i 's:/lib64/\.\./lib64:/lib64:
+          s:/lib64/\.\./lib:/lib:
+          s:/lib/\.\./lib:/lib:' "$DESTDIR"/opt/gcc/$VERSION/lib/*.la
+ }
+
  finish_install(){
+  fix_la
   local STRSTREAM=$DESTDIR/opt/gcc/$VERSION/include/c++/$VERSION/backward/strstream
 
   if   [[ -f           $STRSTREAM   ]] &&

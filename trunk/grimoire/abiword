@@ -1,8 +1,11 @@
+# libpng upgrade broke abiword version 2.8.6
+
    version stable 2.8.6 2.8.5 2.8.4
    require gucharmap enchant fribidi goffice libgnomeprintui librsvg wv
       opts --disable-static
 case $VERSION in
  2.8.6)
+   require libpng-v1.4
    use_gcc gcc-v4.5 ;;
 esac
   category utility/editor
@@ -20,8 +23,18 @@ build(){
 #  2.8.6) sed -i 's:-no-undefined::' $( find * -type f -name Makefile.in ) ;;
 # esac
 
+ fix_2_8_6(){
+  sed -i '\,glib/gerror\.h,d' src/af/util/xp/ut_go_file.h
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+ }
+
  case $VERSION in
-  2.8.6) sed -i '\,glib/gerror\.h,d' src/af/util/xp/ut_go_file.h ;;
+  2.8.6) fix_2_8_6 ;;
  esac
 
  cd abi

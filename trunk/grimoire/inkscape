@@ -1,3 +1,5 @@
+# libpng upgrade broke inkscape version 0.48.3.1
+
 # 0.46 contains forward declarations causing compile errors.
 
 # Python perl--XML-Parser perl--XML-XQL
@@ -19,7 +21,11 @@
   optional aspell
   optional gtkspell
   optional lcms      --enable-lcms    --disable-lcms      for light weight color management library
-  category graphic/editor
+case $VERSION in
+ 0.48.3)
+   require libpng-v1.4 ;;
+esac
+ category graphic/editor
  attribute x11
     source $SOURCEFORGE_URL inkscape/inkscape/$VERSION/inkscape-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL inkscape/inkscape/${VERSION:0:4}/inkscape-$VERSION.tar.bz2
@@ -44,3 +50,21 @@ We also aim to maintain a thriving user and developer community
 by using open, community-oriented development.
 
 The above description is from http://www.inkscape.org/'
+
+build(){
+
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+ }
+
+ case $VERSION in
+  0.48.3.1) libpng_fix ;;
+ esac
+
+ default_build
+}
