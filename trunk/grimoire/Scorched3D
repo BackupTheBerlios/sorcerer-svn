@@ -1,13 +1,26 @@
+# libpng upgrade broke Scorched3D version 43.3d and
+# the typical fix is not working because the source is
+# ignoring environment variables LDFLAGS and PKG_CONFIG_PATH
+
 # requires it's own special static FFTW in order to compile.
+# Uncertain if FFTW is still required in source tree
+# since Scorched3D is failing to compile due to it's requirement
+# on ancient libpng API
 
    version stable 43.3d 43.3 43.2a 43.2 43.1c 43.1b
    require SDL_mixer SDL_net freealut wxWidgets
 # does not link properly with installed fftw; missing symbols?
       opts --disable-fftwtest
+case $VERSION in
+ 43.3d)
+   require libpng-v1.4 ;;
+esac
   category game
  attribute x11
+ attribute broke
     source $SOURCEFORGE_URL scorched3d/scorched3d/Version%20${VERSION}/Scorched3D-${VERSION}-src.tar.gz
     source ftp://ftp.fftw.org/pub/fftw/fftw-3.2.2.tar.gz
+      info omit 20130306
       info last 20120306
       info home http://scorched3d.sourceforge.net/
       info docs http://www.scorched3d.co.uk/wiki/index.php/Main_Page
@@ -15,6 +28,17 @@
       desc 'a 2D an artillery game'
 
 build(){
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
  cd fftw-3.2.2
  ./configure \
   --enable-shared=no  \
@@ -32,6 +56,10 @@ build(){
  #             $PWD/scorched-dep-osx/config/openal-config
 
  # LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
+
+ case $VERSION in
+  43.3d) libpng_fix ;;
+ esac
 
  if [ -d scorched ]
  then cd scorched
