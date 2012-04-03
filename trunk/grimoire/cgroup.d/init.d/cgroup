@@ -29,7 +29,14 @@ reset(){
 
 init_cgroup(){
  # some cgroup files must have only one line written at a time.
- catlines(){ while read; do echo "$REPLY" > $1; done; }
+ catlines(){
+  while read; do
+   if ! echo "$REPLY" > $1; then
+    echo "Failed write was:"
+    echo "echo \"$REPLY\" > $1"
+   fi
+  done
+ }
 
  find /etc/cgroup -type d -not -empty -printf "/sys/fs/cgroup/%P\n" | sort | xargs --max-lines=64 mkdir -pm 755
  find /etc/cgroup -type f -not -empty -printf "%P\n" |

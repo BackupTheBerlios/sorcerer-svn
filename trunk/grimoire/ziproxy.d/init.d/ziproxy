@@ -14,13 +14,14 @@
 only start stop restart try-restart status
 pid_file /var/run/ziproxy.pid
 server /usr/bin/ziproxy
+conf /etc/ziproxy.conf
 name ziproxy
 
 start(){
  log_warning_msg  "$NAME starting"
 #if   start_daemon -p $PIDF $SERV -d -c /etc/ziproxy.conf > $PIDF
  if   [  -z  "$( pidofproc -p $PIDF $SERV )" ] &&
-      su - nobody -s /bin/bash -c "$SERV -d -c /etc/ziproxy.conf" > $PIDF
+      /bin/su - nobody -s /bin/bash -c "$SERV -d -c /etc/ziproxy.conf" > $PIDF
  then log_success_msg "$NAME started"
  else log_failure_msg "$NAME not started"
       rm -f $PIDF
