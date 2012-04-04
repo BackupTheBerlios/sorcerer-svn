@@ -1,10 +1,11 @@
-   version stable 0.9.2 0.9.1
+   version stable 0.9.3 0.9.2 0.9.1
    require bzip2 giflib fontconfig libXext libXrender libpng tiff
+      opts --enable-static=no
   category utility/file-manager
  attribute x11
     source $SOURCEFORGE_URL cxplorer/xplorer/$VERSION/xplorer-$VERSION.tar.gz
+      info last 20120403
       info home http://cxplorer.sourceforge.net/
-      opts --enable-static=no
       desc 'GUI file manager
 It has a tree and a list field displaying
 the contents of your local filesystem.
@@ -14,3 +15,10 @@ It does not have embedded file viewers,
 but launches the external applications of your choice.
 The package runs directly on Xlib and does not have a
 dependency on external toolkits.'
+
+build(){
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64 -L/lib64'
+ fi
+ default_build
+}
