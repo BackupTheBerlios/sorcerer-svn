@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee,
+# Copyright 2011 through 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
@@ -9,7 +9,13 @@ if    [ -d          /etc/networks.d ]; then
  fi
 fi
 
-interfaces(){ ip link show | sed -r "/ lo: /d; s/^[0-9]*: ([^:]*): .*/\1/p;d"; }
+interfaces(){
+ ip link show |
+ LC_ALL=C grep -v "lo:\|^ " |
+ tr -d ' ' |
+ cut -d : -f2
+}
+
 wireless(){ iwconfig 2>/dev/null | sed "/^ /d; s/ .*//"; }
 
 for REPLY in $( wireless   ); do iwconfig $REPLY mode Managed essid any; done
