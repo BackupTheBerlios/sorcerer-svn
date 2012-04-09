@@ -1,15 +1,38 @@
 # requirements might be incomplete?
 
    version stable 0.7.0
-   require fribidi ImageMagick
-#  require libdvdread fribidi ImageMagick
+   require ImageMagick fribidi libdvdread
+case $VERSION in
+ 0.7.0)
+   require libpng-v1.4 ;;
+esac
   category video/dvd
  attribute x11
     source $SOURCEFORGE_URL dvdauthor/dvdauthor/$VERSION/dvdauthor-$VERSION.tar.gz
-      info home  http://dvdauthor.sourceforge.net/
-      info docs  http://dvdauthor.sourceforge.net/doc/index.html
+      info home http://dvdauthor.sourceforge.net/
+      info docs http://dvdauthor.sourceforge.net/doc/index.html
       desc 'set of tools to author a DVD
 dvdauthor aims to create menus, buttons, chapters, etc., but
 for now it can just take an mpeg stream (as created by
 mplex -f 8 from mjpegtools 1.6.0) and write it to DVD.'
 
+build(){
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export CFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+ }
+
+ # case statement to remove references to curl's deprecated header
+ # that was removed from curl during version 7.21.7.
+
+ case $VERSION in
+  0.7.0) libpng_fix ;;
+ esac
+
+ default_build
+}

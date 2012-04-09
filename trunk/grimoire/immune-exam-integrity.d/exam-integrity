@@ -1,22 +1,25 @@
 #!/bin/bash
-# Copyright 2000 through 2011 by Kyle Sallee,
+# Copyright 2000 through 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the distribution Sorcerer only.
 # md5sum checks md5sums of files installed by spells.
 
 . /etc/sorcery/config
+. /lib/cgroup/functions
 
 export LC_ALL=C
 trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGTERM
 
 renice 19      -p $$ &>/dev/null
 ionice -c2 -n7 -p $$ &>/dev/null
+# cgroup_join idle
+# If it joins the idle cgroup then # augur abort exam-integrity
+# will be unable to kill exam-integrity.
 
 SKIP='\:  /etc/init.d/:p;
       \:  /etc/:d
-      \:  /opt/kde4/etc/:d
-      \:  /opt/kde4/share/config/:d
-      \:  /opt/kde4/share/config.kcfg/:d'
+      \:  /usr/share/config/:d
+      \:  /usr/share/config.kcfg/:d'
 
 WHAT='Unexpected md5sum'
  LOG='Cast MD5'
