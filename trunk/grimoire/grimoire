@@ -16,3 +16,15 @@ find  . -type f -printf "%P\n" |
 tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
 chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
 }
+
+post_install(){
+# fixes a possible hang on augur sync provided that
+# that augur begin eventually runs.
+# deprecate this fix after 20120711
+
+ if ! grep -q CAST_QUEUE/new /usr/libexec/sorcery/augur.d/sync; then
+  get_provider sorcery | pipe_queue $CAST_QUEUE
+  get_provider sorcery | pipe_queue $LEECH_QUEUE
+ fi
+ default_post_install
+}
