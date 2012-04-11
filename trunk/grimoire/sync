@@ -7,6 +7,7 @@
    version stable stable
   category utility
  attribute archive_off solo sorcery
+ attribute broke
       info last 20120411
       info home http://sorcerer.silverice.org/
       desc 'sync is a utility spell for synchronizing installed software
@@ -46,6 +47,14 @@ post_install(){
 
  fill_cast_queue(){ showcc | arofni | not_active | req_event; }
 
+ from_new(){
+  if [ -d "$CAST_QUEUE/new" ]; then
+   find   "$CAST_QUEUE/new" -type f |
+   xargs --max-lines=256 \
+   mv -t  "$CAST_QUEUE"
+  fi
+ }
+
  no_recent_fails(){
   if [ -d "$CAST_QUEUE/failed" ]; then
    find   "$CAST_QUEUE/failed" -type f -mmin -60 -printf "%f\n" |
@@ -78,6 +87,8 @@ post_install(){
  elif up_sorcery; then touch "$CAST_QUEUE/sync"
  else up_all
  fi
+
+ from_new
 
  default_post_install
 }
