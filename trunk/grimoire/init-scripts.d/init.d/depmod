@@ -6,11 +6,40 @@
 # Short-Description: runs depmod during boot
 ### END INIT INFO
 
+# Never rely upon depmod -A
+
 . /lib/lsb/init-functions
 
 fast
 cgroup none
-only start
+only start force-reload
 server /sbin/depmod
 #options -A
 # parameter -A does not appear to work properly for NVIDIA-Linux-x86*
+
+check(){
+ for DIR in /lib/modules/*; do
+  if [ -d "$DIR" ]; then
+   log_warning_msg "$DIR checking"
+   if   ! [ -f "$DIR/reference" ]
+   then log_warning_msg "$DIR checked and is not current"; echo "$DIR"
+   elif   [ -n "$( find $DIR -newer $DIR/reference )" ]
+   then log_warning_msg "$DIR checked and is not current"; echo "$DIR"
+   else log_success_msg "$DIR checked and is current"
+   fi
+  fi
+ done
+}
+
+update(){
+ while read; do 
+  if   log_warning_msg "depmod ${REPLY##*/} running"; depmod ${REPLY##*/}
+  then log_success_msg "depmod ${REPLY##*/} success"; touch $REPLY/reference
+  else log_success_msg "depmod ${REPLY##*/} failure"
+  fi
+ done
+}
+
+start(){ check | update; }
+
+force_reload(){ find /lib/modules -maxdepth 1 -mindepth 1 -type d | update; }
