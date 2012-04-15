@@ -17,18 +17,32 @@ pnw(){
  [ -f          /proc/net/wireless ] &&
  tr ' ' '\n' < /proc/net/wireless |
  sed 's/://p;d' |
- sed 's/^/-N -Dwext -i/'
 }
 
-WSC=/etc/wpa_supplicant/wpa_supplicant.conf
+param(){
+ local N
+ local E=/etc/wpa_supplicant
+
+ pnw |
+ while read; do
+  if   [ -f $E/wpa$REPLY.conf ]
+  then CONF=$E/wpa$REPLY.conf
+  elif [ -f $E/wpa_supplicant.conf ]
+  then CONF=$E/wpa_supplicant.conf
+  else CONF=
+  fi
+  if   [ -n "$CONF" ]
+  then echo "$N-Dwext -i$REPLY -C$CONF"
+  else echo "$N-Dwext -i$REPLY"
+  fi
+  N="-N "
+ done
+}
 
 only start stop restart status
 name wpa_priv
-server /sbin/wpa_priv
-if   [ -f "$WSC" ]
-then options "-B -C$WSC /var/run/wpa_priv.pid $( pnw )"
-else options "-B $( pnw )"
-fi
+server /sbin/wpa_supplicant
+options "-B $( param )"
 
  # Monitor connection status and run network (IP) configuration
  # script when wireless connection is established
