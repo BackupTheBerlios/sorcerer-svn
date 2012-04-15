@@ -96,15 +96,15 @@ start_wlan(){
 
 
 start_wpa(){
- declare -i PID
+ local      PIDF
  declare -i WAIT
 
  /sbin/wpa_supplicant -i$IF -Dwext -c$WPA_CONF -B ||
  /sbin/wpa_supplicant -i$IF -Dwext -B
 
  # Make sure wpa_cli is not running
- PID=/var/run/wpa_cli.$IF
- [[ -f $PID ]] && kill $(< $PID )
+ PIDF=/var/run/wpa_cli.$IF
+ [[ -f $PIDF ]] && kill $(< $PIDF )
 
  # Monitor connection status and run network (IP) configuration
  # script when wireless connection is established
@@ -121,7 +121,10 @@ start_wpa(){
  # action file (-a <file>) that will perform actions on
  # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
  # The script should, for example call dhcpcd on 'CONNECT'
- /sbin/wpa_cli -a $WPA_ACTION -i $IF -B -P "$PID"
+ if   [ -n "$WPA_ACTION" ]
+ then /sbin/wpa_cli -a $WPA_ACTION -i $IF -B -P "$PID"
+ else /sbin/wpa_cli -i $IF -B -P "$PID"
+ fi
 }
 
 stop_if(){
@@ -157,7 +160,7 @@ start_smart(){
 
  if [[ -z $IF       ]]; then start_ppp; return; fi
  if [[ -n $MODE     ]]; then start_wlan; fi
- if [[ -n $WPA_CONF ]]; then start_wpa; return; fi
+ if [[ -n $WPA_CONF ]]; then start_wpa; fi
  if [[ -n $IPA      ]]; then start_static
                         else start_dynamic; fi
 }

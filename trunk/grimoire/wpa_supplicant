@@ -1,13 +1,32 @@
+# In version 0.7.3 wpa_priv compilation/linking is badly broke
+# Some of the functions required for it are located in scan.o
+# scan.o requiers some functions from wpa_supplicat.o
+# and wpa_supplicant.o and wpa_priv.o have some functions redefined.
+# Software development on wpa_supplicant and hostapd is ongoing in 2012,
+# but the software authors are not rolling tarballs.
+
+# Even the clone of the git repository on 20120415 still has
+# the same link error involving wpa_priv
+# Might not be a boon for using git over the tarball?
+
 # requires revision for qt GUI
 # only acquires gcc-g++ when creating qt GUI
 
-   version stable 0.7.3 0.7.2 0.7.1 0.7.0
-   require dbus ncurses openssl readline
+   version   stable 0.7.3 0.7.2 0.7.1 0.7.0
+   version unstable v2.0-devel-20120415 0.7.3 0.7.2 0.7.1 0.7.0
+   require dbus docbook2X ncurses openssl readline
 # optional qt-everywhere-opensource '' '' for GUI
+
+# pscs-lite spell currently unavailable
+# optional pscs-lite CONFIG_PCSC=y
   category network/security network/wireless
  attribute console
-    source http://hostap.epitest.fi/releases/wpa_supplicant-$VERSION.tar.gz
+    source   stable http://hostap.epitest.fi/releases/wpa_supplicant-$VERSION.tar.gz
+    source unstable http://sources.silverice.org/wpa_supplicant/$VERSION/hostap-$VERSION.tar.xz
+      info last 20120415
+#     info last 20100907
       info home http://hostap.epitest.fi/wpa_supplicant
+  sys_user wpa_priv wpa_priv /var/run_wpa_priv
       desc 'WPA/WPA2 supplicant
 wpa_supplicant supports WPA and WPA2 (IEEE 802.11i/RSN).
 It is suitable for both desktop/laptop
@@ -24,34 +43,7 @@ It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
 build(){
- create_config(){
-  cat > .config << EOF
-CONFIG_DRIVER_HOSTAP=y
-CONFIG_DRIVER_ATMEL=y
-CONFIG_DRIVER_IPW=y
-CONFIG_DRIVER_RALINK=y
-CONFIG_DRIVER_WEXT=y
-CONFIG_DRIVER_WIRED=y
-CONFIG_IEEE8021X_EAPOL=y
-CONFIG_EAP_MD5=y
-CONFIG_EAP_MSCHAPV2=y
-CONFIG_EAP_TLS=y
-CONFIG_EAP_PEAP=y
-CONFIG_EAP_TTLS=y
-CONFIG_EAP_GTC=y
-CONFIG_EAP_OTP=y
-CONFIG_EAP_LEAP=y
-CONFIG_PKCS12=y
-CONFIG_SMARTCARD=y
-CONFIG_CTRL_IFACE=y
-CONFIG_READLINE=y
-CONFIG_BACKEND=file
-CONFIG_PEERKEY=y
-CONFIG_IEEE80211W=y
-CONFIG_TLS=openssl
-CONFIG_CTRL_IFACE_DBUS=y
-EOF
- }
+ create_config(){ cp $SCRIPT_DIR/config .config; }
 
  install_examples(){
   mv *.service *.conf examples
@@ -60,25 +52,29 @@ EOF
 
  install_man(){
   for i in doc/docbook/*.[0-9]; do
-   mkdir   -p           $DESTDIR/usr/share/man/man${i##*.}
-   install -v -m 644 $i $DESTDIR/usr/share/man/man${i##*.}
+   if [ -f "$i" ]; then
+    mkdir   -pvm 755    $DESTDIR/usr/share/man/man${i##*.}
+    install  -vm 644 $i $DESTDIR/usr/share/man/man${i##*.}
+   fi
   done
  }
 
  install_wpa_gui(){
-  if            [ -f wpa_gui-qt4/wpa_gui ];  then
-   mkdir -p $DESTDIR/usr/bin
+  if          [ -f wpa_gui-qt4/wpa_gui ]; then
+   mkdir  -pvm 755                     $DESTDIR/usr/bin
    install -vm 755 wpa_gui-qt4/wpa_gui $DESTDIR/usr/bin
   fi
  }
 
  install_wpa_files(){
-  install -dv $DESTDIR/etc/wpa_supplicant
-  install -dv $DESTDIR/etc/dbus-1/system.d/
-  install -vm 644 dbus-wpa_supplicant.conf $DESTDIR/etc/dbus-1/system.d/wpa_supplicant.conf  
+  install -dvm 755 $DESTDIR/etc/wpa_supplicant
+  install -dvm 755 $DESTDIR/etc/dbus-1/system.d/
+  install  -vm 644 dbus-wpa_supplicant.conf 
+                   $DESTDIR/etc/dbus-1/system.d/wpa_supplicant.conf  
   install_wpa_gui
   install_examples
-  install_man	
+  install_man
+  true
  }
 
  make_gui(){
@@ -86,10 +82,23 @@ EOF
   true
  }
 
+ case $VERSION in
+  0.7.3) sed -i 's:wpa_event_type:enum wpa_event_type:' wpa_supplicant/wpa_priv.c
+         sed -i '\,hostapd/wpa.h,d' wpa_supplicant/tests/test_wpa.c
+         sed -i 's:logger_level:enum hostapd_logger_level:' wpa_supplicant/tests/test_wpa.c
+         sed -i 's: tests/test_wpa.o::' wpa_supplicant/Makefile
+ ;;
+ esac
+
 #export QTDIR=/usr
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/lib64'
+ else export LDFLAGS+=' -L/lib'
+ fi
+
  sed -i 's:/usr/local:/:' wpa_supplicant/Makefile
- export  LDFLAGS+=' -L/lib -L/lib64'
- cd  wpa_supplicant &&
+ cd wpa_supplicant &&
  create_config &&
  make &&
 #make_gui &&
