@@ -96,22 +96,9 @@ start_wlan(){
 
 
 start_wpa(){
- declare -i WAIT
-
  # Make sure wpa_cli is not running
  local  PIDF=/var/run/wpa_cli.$IF
  [[ -f $PIDF ]] && kill $(< $PIDF )
-
- # Monitor connection status and run network (IP) configuration
- # script when wireless connection is established
- # Wait until wpa_supplicant is running:
-
- ((       WAIT = SECONDS + 10 ))
- while (( WAIT > SECONDS      )); do
-  [ -S /var/run/wpa_supplicant/$IF ] && break
-  echo -n .
-  sleep 0.25
- done
 
  # Run wpa control interface in daemon mode executing the
  # action file (-a <file>) that will perform actions on
