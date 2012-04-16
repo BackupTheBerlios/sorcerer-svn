@@ -4,9 +4,11 @@
 
 version_year_week
 
+   require bash coreutils findutils sorcery sed sorcery
+   require curl gawk gcc grep make 
   category immune-system
  attribute archive_off solo stale
-      info last 20120409
+      info last 20120416
       info home http://sorcerer.silverice.org/
       desc 'file integrity protection
 
@@ -15,5 +17,17 @@ to ensure that file content is not corrupted.
 Corrupted files are corrected by re-installation
 of the software projects that provided the file'
 
+# exam-integrity execution can not be moved out of post_install
+# because not only does it find spells that require recasting
+# but it adds them to the queue and creates event logs
+
 build(){ :; }
-post_install(){ bash $SCRIPT_DIR/exam-integrity; }
+post_install(){
+ if   [  -n "$RESUME_LOGS" ] &&
+      [  -f "$RESUME_LOGS/immune-exam-integrity"
+ then rm -f "$RESUME_LOGS/immune-exam-integrity"
+ fi
+
+ bash $SCRIPT_DIR/exam-integrity
+ default_post_install
+}
