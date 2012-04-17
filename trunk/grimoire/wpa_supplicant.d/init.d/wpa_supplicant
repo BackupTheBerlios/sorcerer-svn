@@ -25,16 +25,14 @@ param(){
 
  pnw |
  while read; do
-  if   [ -f $E/wpa$REPLY.conf ]
-  then CONF=$E/wpa$REPLY.conf
-  elif [ -f $E/wpa_supplicant.conf ]
-  then CONF=$E/wpa_supplicant.conf
-  else CONF=
+  if   [ -f     $E/wpa$REPLY.conf ]
+  then CONF=" -c $E/wpa$REPLY.conf"
+  elif [ -f     $E/wpa_supplicant.conf ]
+  then CONF=" -c $E/wpa_supplicant.conf"
+  elif [ -z "$N" ]
+  then CONF=" -g /var/run/wpa_supplicant"
   fi
-  if   [ -n "$CONF" ]
-  then echo "$N-Dwext -i$REPLY -c$CONF"
-  else echo "$N-Dwext -i$REPLY"
-  fi
+  echo "$N-Dwext -i$REPLY$CONF"
   N="-N "
  done
 }
