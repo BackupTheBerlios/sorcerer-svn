@@ -23,37 +23,42 @@ When loading an operating system from fixed disk BIOS
 first loads and runs the content of the MBR, master boot record,
 of the primary fixed disk.
 
-Section 1.2 lilo
+Section 1.2 MBR / ms-sys
 
-If the MBR contains a boot loader program such as lilo, the linux loader,
-then lilo is run, otherwise the MBR will usually contain code
-that causes it to load and run the content from
-the boot block of the first partition marked as bootable
-in the partition table.
-Most Sorcerer boxes have lilo installed
-to the boot block of the /boot partition.
-However, if no /boot partition was defined
-then the boot block of the / partition will contain lilo.
-The bootloader load into memory
-a kernel image and also an initramfs image.
-Initramfs is the initialization random access memory file system.
+The MBR must contain bootable code.
+The code is typically from the ms-sys project.
+However, other bootloaders are can be used.
+The code in the MBR does not typically load the linux kernel
+but instead loads and begins execution of the code in the boot block
+of the first partition that has the bootable flag enabled.
 
-Section 1.3 linux kernel
+Section 1.3 boot block / extlinux
+
+If a box has a dedicated ext2 /boot partition
+then extlinux installed in the the boot block
+of that partition is run.
+Otherwise extlinux installed in the
+boot block of the / partition is run.
+extlinux is the default boot loader.
+It's task is to load the initrams and kernel
+from disk into RAM and to pass control to the kernel.
+
+Section 1.4 linux kernel
 
 The linux kernel begins.
 It initializes hardware devices
 such as the screen and keyboard.
 Then the kernel decompresses, if necessary, and
-extracts the cpio initramfs image to the rootfs.
+extracts the cpio initramfs images to the rootfs.
 The rootfs is automatically mounted on /
 Finally, the kernel begins execution of the file /init as process 1.
 
 However, using the kernel paramter rdinit=/bin/bash
 the kernel can be instructed to execute a shell instead of /init.
 Executing a shell instead of the normal /init is useful
-when the SA wants to debug problems that occur during sysinit.
+for debugging problems that occur during sysinit.
 
-Section 1.4 sysinit
+Section 1.5 sysinit
 
 Sysinit runs from entirely from the initramfs.
 Sysinit is the third stage of the boot process.
@@ -69,7 +74,7 @@ The purpose of the sysinit is to complete required preparations
 for being able to successfully mount filesystems provided
 on disk, by network, or by memory storage devices.
 
-Section 1.5 the end of sysinit
+Section 1.6 the end of sysinit
 
 The end portion of sysinit
 mounts the real root filesystem on /media/root/
@@ -82,7 +87,7 @@ Now that sysinit is complete
 runlevel execution begins
 within a chroot to /media/root/
 
-Section 1.6 gettys
+Section 1.7 gettys
 
 Following the completion of sysinit
 agetty is started on virtual consoles.
@@ -95,7 +100,7 @@ in order to diagnose and repair problems on a box
 without having to reboot using an Install/Rescue disk
 and without having to reboot using the rescue label.
 
-Section 1.7 runlevel
+Section 1.8 runlevel
 
 /etc/inittab contains a description of runlevels.
 And the default runlevel can be changed by editing /etc/inittab

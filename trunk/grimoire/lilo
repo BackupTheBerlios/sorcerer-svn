@@ -5,10 +5,11 @@
    version stable 22.8
    require bin86 LVM2 nasm
   category administration/bootloader
+ attribute broke deprecated
  attribute console x86
-    source http://home.san.rr.com/johninsd/pub/linux/lilo/ \
-           http://www.ibiblio.org/pub/Linux/system/boot/lilo/ \
-           lilo-$VERSION.src.tar.gz
+#    source http://home.san.rr.com/johninsd/pub/linux/lilo/ \
+#           http://www.ibiblio.org/pub/Linux/system/boot/lilo/ \
+#           lilo-$VERSION.src.tar.gz
       info home http://home.san.rr.com/johninsd/pub/linux/lilo/
       info home http://lilo.alioth.debian.org/
    protect /etc/lilo/head
@@ -20,8 +21,8 @@
 #  exclude /etc/lilo.conf.fast
 #  exclude /etc/lilo.conf.head
 #  exclude /etc/lilo.conf.tail
- conflicts syslinux
-      desc 'linux boot loader for x86 computers'
+#conflicts syslinux
+      desc 'linux boot loader for x86 computers; Sorcerer uses extlinux now'
 
 build(){
  configs_install(){
@@ -45,7 +46,11 @@ if [ -f /etc/lilo.conf.fast ]; then rm /etc/lilo.conf.fast; fi
 }
 
 current(){
-case $VERSION in
- 22.8) LC_ALL=C grep -q /etc/lilo/head $INSTALL_LOGS/lilo ;;
-esac
+ echo lilo     | pipe_queue $DISPEL_QUEUE
+ echo syslinux | pipe_queue $CAST_QUEUE
+ echo syslinux | pipe_queue $LEECH_QUEUE
+
+# case $VERSION in
+#  22.8) LC_ALL=C grep -q /etc/lilo/head $INSTALL_LOGS/lilo ;;
+# esac
 }
