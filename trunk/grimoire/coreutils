@@ -4,10 +4,8 @@
    require acl gmp libcap
     switch -static '' to make static linked cut sort uniq
 #  require libselinux
-    CFLAGS='-O2 -fPIC'
-   LDFLAGS='-Wl,-O1'
   category utility
- attribute console makej solo
+ attribute console makej optimize solo
     source $GNU_URL coreutils/coreutils-$VERSION.tar.xz
       info last 20120326
       info home http://www.gnu.org/software/coreutils/
@@ -26,6 +24,7 @@
    protect /bin/sort
    protect /bin/stat
    protect /bin/tee
+   protect /bin/tr
    protect /usr/bin/basename
    protect /usr/bin/chmod
    protect /usr/bin/date
@@ -37,7 +36,6 @@
    protect /usr/bin/nohup
    protect /usr/bin/tail
    protect /usr/bin/touch
-   protect /usr/bin/tr
    protect /usr/bin/uniq
    protect /usr/bin/wc
       desc 'file, shell and text manipulation utilities
@@ -149,6 +147,7 @@ build(){
   mv -fv {usr/,}bin/ls		# for SA and /etc/init.d/loadkeys
   mv -fv {usr/,}bin/mkdir	# /lib/udev/rule_generator.functions
   mv -fv {usr/,}bin/mknod	# for SA
+  mv -fv {usr/,}bin/tr		# for /etc/init.d/wpa_supplicant
   mv -fv {usr/,}bin/mv		# for SA
   hash -r
   mv -fv {usr/,}bin/readlink	# /lib/udev/rule_generator.functions
@@ -197,6 +196,7 @@ post_remove(){
 
 current(){
  case $VERSION in
+  8.16) [ -f /bin/tr ] ;;
   8.13) [ -f /bin/timeout ] ;;
  esac
 }
