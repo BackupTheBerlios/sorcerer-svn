@@ -1,10 +1,12 @@
 #!/bin/bash
 
+inside(){ [ -f "$2" ] && grep -qx "$1" "$2"; }
+
 if /sbin/modprobe "$@" &&
    [ -t 1 ] &&
    (( $# == 1 )) &&
-   ! grep -qx "$1" /etc/modules &&
-   ! grep -qx "$1" /etc/modules.asked
+   ! inside "$1" /etc/modules &&
+   ! inside "$1" /etc/modules.asked
 then
  read -t 10 -n 1 -p "Also load $1 during boot? [y|N]: "
  case $REPLY in

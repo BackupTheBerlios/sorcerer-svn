@@ -1,10 +1,12 @@
 #!/bin/bash
 
+inside(){ [ -f "$2" ] && grep -qx "$1" "$2"; }
+
 if /sbin/rmmod "$@" &&
    [ -t 1 ] &&
    (( $# == 1 )) &&
-   ! grep -qx "$1" /etc/modules.rm &&
-   ! grep -qx "$1" /etc/modules.rm.asked
+   ! inside "$1" /etc/modules.rm &&
+   ! inside "$1" /etc/modules.rm.asked
 then
  read -t 10 -n 1 -p "Also unload $1 during boot? [y|N]: "
  case $REPLY in
