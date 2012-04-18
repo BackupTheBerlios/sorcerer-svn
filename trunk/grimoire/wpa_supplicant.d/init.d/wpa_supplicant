@@ -29,8 +29,6 @@ param(){
   then CONF=" -c $E/wpa$REPLY.conf"
   elif [ -f     $E/wpa_supplicant.conf ]
   then CONF=" -c $E/wpa_supplicant.conf"
-  elif [ -z "$N" ]
-  then CONF=" -g /var/run/wpa_supplicant"
   fi
   echo "$N-Dwext -i$REPLY$CONF"
   N="-N "
@@ -38,18 +36,6 @@ param(){
 }
 
 only start stop restart status
-name wpa_priv
+name wpa_supplicant
 server /sbin/wpa_supplicant
-options "-B $( param )"
-
- # Monitor connection status and run network (IP) configuration
- # script when wireless connection is established
- # Wait until wpa_supplicant is running:
-
-# ((       WAIT = SECONDS + 10 ))
-# while (( WAIT > SECONDS      )); do
-#  [ -S /var/run/wpa_supplicant/$IF ] && break
-#  echo -n .
-#  sleep 0.25
-# done
-
+options "-B -g /var/run/wpa_supplicant $( param )"
