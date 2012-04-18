@@ -11,10 +11,14 @@
       info home http://www.gnu.org/software/coreutils/
       info docs http://www.gnu.org/software/coreutils/manual/
    protect /bin/cat
+   protect /bin/chmod
+   protect /bin/chown
    protect /bin/cp
    protect /bin/cut
+   protect /bin/date
    protect /bin/dd
    protect /bin/echo
+   protect /bin/kill
    protect /bin/ls
    protect /bin/mkdir
    protect /bin/mv
@@ -24,20 +28,18 @@
    protect /bin/sort
    protect /bin/stat
    protect /bin/tee
+   protect /bin/touch
    protect /bin/tr
+   protect /bin/tsort
+   protect /bin/uniq
+   protect /bin/wc
    protect /usr/bin/basename
-   protect /usr/bin/chmod
-   protect /usr/bin/date
    protect /usr/bin/dirname
    protect /usr/bin/du
    protect /usr/bin/install
-   protect /usr/bin/kill
    protect /usr/bin/md5sum
    protect /usr/bin/nohup
    protect /usr/bin/tail
-   protect /usr/bin/touch
-   protect /usr/bin/uniq
-   protect /usr/bin/wc
       desc 'file, shell and text manipulation utilities
 
 coreutils provides:
@@ -136,18 +138,26 @@ build(){
   mkdir -pvm 755 bin
 
   mv -fv {usr/,}bin/cat		# /etc/init.d/mount
+  mv -fv {usr/,}bin/chmod	# /etc/init.d/loadkeys
+  mv -fv {usr/,}bin/chown	# /etc/init.d/var_run_wpa_priv
   mv -fv {usr/,}bin/chroot	# /etc/init.d/mount
   mv -fv {usr/,}bin/cp		# /etc/init.d/udev
   mv -fv {usr/,}bin/cut		# /etc/init.d/mount
+  mv -fv {usr/,}bin/date	# Kyle's whim
   mv -fv {usr/,}bin/dd		# Kyle's whim
   mv -fv {usr/,}bin/df		# Kyle's whim
   mv -fv {usr/,}bin/echo	# legacy probably not required
   mv -fv {usr/,}bin/false	# legacy probably not required
+  mv -fv {usr/,}bin/kill	# Kyle's whim
   mv -fv {usr/,}bin/ln		# used by something
   mv -fv {usr/,}bin/ls		# for SA and /etc/init.d/loadkeys
   mv -fv {usr/,}bin/mkdir	# /lib/udev/rule_generator.functions
   mv -fv {usr/,}bin/mknod	# for SA
+  mv -fv {usr/,}bin/touch	# Kyle's whim
   mv -fv {usr/,}bin/tr		# for /etc/init.d/wpa_supplicant
+  mv -fv {usr/,}bin/tsort	# for /lib/lsb/install_initd invoked by /etc/init.d/rc.d
+  mv -fv {usr/,}bin/uniq	# Kyle's whim
+  mv -fv {usr/,}bin/wc		# Kyle's whim
   mv -fv {usr/,}bin/mv		# for SA
   hash -r
   mv -fv {usr/,}bin/readlink	# /lib/udev/rule_generator.functions
@@ -196,7 +206,7 @@ post_remove(){
 
 current(){
  case $VERSION in
-  8.16) [ -f /bin/tr ] ;;
+  8.16) [ -f /bin/tsort ] ;;
   8.13) [ -f /bin/timeout ] ;;
  esac
 }
