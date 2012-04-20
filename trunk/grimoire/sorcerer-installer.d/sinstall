@@ -1089,19 +1089,6 @@ Up and Down arrows navigate.  Space toggles.  Enter proceeds."
 }
 
 
-select_swapfile_to_initialize(){
-
- local TITLE=$"Swapfile Initialization Selection Menu"
- local HELP=$"If swapfiles have not been created and initialized
-then now is the time to do so.
-[x] = initialize  [ ] = leave alone 
-Up and Down arrows navigate.  Space toggles.  Enter proceeds."
-
- $DIALOG --ok-label Done --no-cancel --separate-output \
-  --title "$TITLE" --checklist "$HELP" 18 74 8 $( show_sinfo_init )
-}
-
-
 installed_fs(){
 
  check_jfs(){ dd if=$1 bs=64k count=1 2>/dev/null | grep -q JFS1 && echo jfs; }
@@ -1254,19 +1241,6 @@ filesystem_initialize(){
 }
 
 
-swapfile_initialize(){
- local SWAP
-
- mkdir -pvm 700 $TARGET/swap
- if [ -n "$SILENCE" ]; then initialize 0; else
-  [ -n "${PDEVICE[1]}" ] &&
-  for SWAP in $( select_swapfile_to_initialize )
-  do  initialize $( get_pcx "$SWAP" )
-  done
- fi
-}
-
-
 list_mounts(){
  for (( CX=0; CX<MP; CX++ )); do
   if     [ -n       "${PMOUNT[$CX]}" ] &&
@@ -1298,7 +1272,6 @@ filesystem_mount(){
   then chmod 1777 $TARGET/tmp
   fi
  done
- swapfile_initialize
 }
 
 trans(){ [[ -f $TARGET/etc/fstab ]]; }
