@@ -6,7 +6,7 @@
 PROG="${0##*/}"
 
 [ -f /etc/init.d/conf.d/sentinel-loadavg ] &&
-     /etc/init.d/conf.d/sentinel-loadavg
+   . /etc/init.d/conf.d/sentinel-loadavg
 LIMIT="${LIMIT:-4}"
 export PATH="${PATH/\/usr\/libexec\/sentinel-loadavg:/}"
 
@@ -16,17 +16,14 @@ LOAD="${REPLY%%\.*}"
 if (( LIMIT >= LOAD )); then exec $PROG "$@"; fi
 
 enable -f /usr/libexec/bash/sleep sleep
-sleep 1
-
-(( RAND = RANDOM % 10  ))
+sleep 0.025
 
 while (( 300 > SECONDS )); do
  read < /proc/loadavg
  LOAD="${REPLY%%\.*}"
- if   (( REST = LOAD - LIMIT ))
-      (( REST > 0 ))
- then sleep $REST
- else sleep .$RAND; exec $PROG "$@"
+ if   (( LIMIT >= LOAD ))
+ then exec  $PROG "$@"
+ else sleep 0.025
  fi
 done
 
