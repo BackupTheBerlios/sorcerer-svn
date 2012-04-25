@@ -8,20 +8,22 @@ PROG="${0##*/}"
 [ -f /etc/init.d/conf.d/sentinel-loadavg ] &&
    . /etc/init.d/conf.d/sentinel-loadavg
 LIMIT="${LIMIT:-4}"
-export PATH="${PATH/\/usr\/libexec\/sentinel-loadavg:/}"
+export PATH="${PATH//\/usr\/libexec\/sentinel-loadavg:/}"
 
 read < /proc/loadavg
 LOAD="${REPLY%%\.*}"
 
 if (( LIMIT >= LOAD )); then exec $PROG "$@"; fi
 
+declare -i TIME IDLE
+read JUNK JUNK JUNK JUNK TIME JUNK < /proc/stat
+
 enable -f /usr/libexec/bash/sleep sleep
-sleep 0.025
+sleep 0.1
 
 while (( 300 > SECONDS )); do
- read < /proc/loadavg
- LOAD="${REPLY%%\.*}"
- if   (( LIMIT >= LOAD ))
+ read JUNK JUNK JUNK JUNK IDLE JUNK < /proc/stat
+ if   (( IDLE > TIME ))
  then exec  $PROG "$@"
  else sleep 0.025
  fi
