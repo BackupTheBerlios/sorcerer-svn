@@ -2,23 +2,23 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-   version stable 20120227
+   version stable 20120425
   category immune-system
- attribute archive_off daemon
+ attribute archive_off
       info home http://sorcerer.silverice.org/
-      desc "enhanced cast limiter
+      desc "enhanced gcc loadavg limiter
 
-sorcery's cast program attempts to utilize all available cores
-except when the min feature is enabled.
-However, the amount of utilization
-and when it happens can not be entirely anticipated.
-Consequently, this sentinel monitors the loadavg when cast runs.
-If the loadavg is excessive for the amount of processing units
-then the spell that most recently began casting is temporarily frozen.
-Excessive utilization is defined as
-more than 2 loadavg per core or CPU."
+cast is unable anticipate the rise and fall of loadavg
+when make -j is combined with multiple concurrently running cast.
+Therefore, this wrapper allows for execution of gcc
+to be delayed until loadavg becomes reasonable."
 
 build(){
- mkdir  -pvm 755                              $DESTDIR/usr/sbin
- install -vm 700 $SCRIPT_DIR/sentinel-loadavg $DESTDIR/usr/sbin
+ mkdir  -pvm 755 $DESTDIR/usr/libexec/sentinel-loadavg
+ cd              $DESTDIR/usr/libexec/sentinel-loadavg
+ install -vm 700 $SCRIPT_DIR/limit .
+ ln -sf limit cc
+ ln -sf limit gcc
+ ln -sf limit c++
+ ln -sf limit g++
 }

@@ -1,0 +1,32 @@
+#!/bin/bash
+# Copyright 2012 by Kyle Sallee, All rights reserved.
+# For use with Sorcerer
+# limit is able to delay the start of gcc during high loads.
+
+PROG="${0##*/}"
+
+. /etc/init.d/conf.d/sentinel-loadavg
+LIMIT="${LIMIT:-4}"
+export PATH="${PATH/\/usr\/libexec\/sentinel-loadavg:/}"
+
+read < /proc/loadavg
+LOAD="${REPLY%%\.*}"
+
+if (( LIMIT >= LOAD )); then exec $PROG "$@"; fi
+
+enable -f /usr/libexec/bash/sleep sleep
+sleep 1
+
+(( RAND = RANDOM % 10  ))
+
+while (( 300 > SECONDS )); do
+ read < /proc/loadavg
+ LOAD="${REPLY%%\.*}"
+ if   (( REST = LOAD - LIMIT ))
+      (( REST > 0 ))
+ then sleep $REST
+ else sleep .$RAND; exec $PROG "$@"
+ fi
+done
+
+exec $PROG "$@"
