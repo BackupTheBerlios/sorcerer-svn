@@ -94,25 +94,6 @@ start_wlan(){
 #if [[ -n $IPA   ]]; then start_static "$IF";    else start_dhcp $IF; fi
 }
 
-
-start_wpa(){
- # Make sure wpa_cli is not running
- local  PIDF=/var/run/wpa_cli.$IF
- [[ -f $PIDF ]] && kill $(< $PIDF )
-
- # Run wpa control interface in daemon mode executing the
- # action file (-a <file>) that will perform actions on
- # "CONNECT" and "DISCONNECT" events. See "man wpa_cli"
- # The script should, for example call dhcpcd on 'CONNECT'
-
- # if unable to connect to wpa_supplicant
- # then invoking wpa_cli might hang.
-
- if   [ -n "$WPA_ACTION" ]
- then /sbin/wpa_cli -a $WPA_ACTION -i $IF -B -P "$PIDF"
- fi
-}
-
 stop_if(){
  ip link set   $IF down
  ip addr flush $IF
@@ -120,7 +101,6 @@ stop_if(){
 
   stop_wlan(){ stop_if; }
 stop_static(){ stop_if; }
-   stop_wpa(){ stop_if; /sbin/wpa_cli -i $IF terminate 2>/dev/null; }
 start_dynamic(){ start_dhcp; }
 stop_dynamic(){ stop_dhcp; }
 
@@ -141,21 +121,19 @@ stop_ppp(){
 
 
 start_smart(){
- if [[ -n $IF       ]] &&
-    [[ -n $MAC      ]]; then ip link set $IF address $MAC; fi
+ if [[ -n $IF   ]] &&
+    [[ -n $MAC  ]]; then ip link set $IF address $MAC; fi
 
- if [[ -z $IF       ]]; then start_ppp; return; fi
- if [[ -n $MODE     ]]; then start_wlan; fi
- if [[ -n $WPA_CONF ]]; then start_wpa; fi
- if [[ -n $IPA      ]]; then start_static
-                        else start_dynamic; fi
+ if [[ -z $IF   ]]; then start_ppp; return; fi
+ if [[ -n $MODE ]]; then start_wlan; fi
+ if [[ -n $IPA  ]]; then start_static
+                    else start_dynamic; fi
 }
 
 stop_smart(){
- if [[ -z $IF       ]]; then stop_ppp; return; fi
- if [[ -n $WPA_CONF ]]; then stop_wpa; return; fi
- if [[ -n $IPA      ]]; then stop_static
-                        else stop_dynamic; fi
+ if [[ -z $IF   ]]; then stop_ppp; return; fi
+ if [[ -n $IPA  ]]; then stop_static
+                    else stop_dynamic; fi
 }
 
 start(){ start_smart; }
