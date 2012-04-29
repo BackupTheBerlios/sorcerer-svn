@@ -12,7 +12,7 @@
 # trying to link with libraries in /usr/lib
 # yet the compile log gives no indication why.
 
-   version stable 2.62 2.61 2.60a 2.60
+   version stable 2.63 2.62 2.61 2.60a 2.60
 
 # case $VERSION in
 #  2.57)
@@ -29,7 +29,7 @@
  attribute broke
     source http://download.blender.org/source/blender-$VERSION.tar.gz
       info vurl http://www.blender.org/download/get-blender
-      info last 20120220
+      info last 20120428
       info home http://www.blender.org/
       info docs http://www.blender.org/education-help/
       desc 'a 3d modeling environement
@@ -38,6 +38,19 @@ modeling, animation, rendering, post-production, real-time interactive
 3D, and game creation and playback with cross-platform compatibility.'
 
 build(){
+ default_build &&
+ if   [  -d $DESTDIR/$SOURCE_DIR/build ]
+ then mv -v $DESTDIR/$SOURCE_DIR/build $DESTDIR/usr
+ fi
+}
+
+build_old(){
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/lib64 -L/usr/lib64'
+ else export LDFLAGS+=' -L/lib -L/usr/lib'
+ fi
+
  fix_nasm_inc(){
   cd extern/xvidcore/src/
   find . -type d -exec cp -v nasm.inc '{}' \;
