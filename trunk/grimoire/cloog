@@ -1,21 +1,31 @@
-# not tested, gcc prefers cloog-parma or cloog-ppl rather htan cloog
+# usually stable version is set to the version required by gcc
 
-   version   stable 0.16.3
+   version   stable 0.16.1
    version unstable 0.17.0
+   version   latest 0.17.0 0.16.3
+   require isl
 #  require gmp polylib ppl
 #  require gmp ppl
-      opts --with-ppl --enable-static=no
+      opts --enable-static=no --with-isl=bundled
+#     opts --enable-static=no --with-isl=system
+#     opts --with-ppl --enable-static=no
   category development/compiler
- attribute library makej multilib-concurrent
+ attribute library makej multilib-concurrent optimize setarch
     source http://www.bastoul.net/cloog/pages/download/cloog-$VERSION.tar.gz
 #   source ftp://gcc.gnu.org/pub/gcc/infrastructure/cloog-ppl-$VERSION.tar.gz
-      info last 20120130
+      info last 20111212
       info home http://www.cloog.org/
       info docs http://www.bastoul.net/cloog/documentation.php
+ conflicts cloog-ppl cloog-parma
       desc 'CLooG Code Generator in the Polyhedral Model
 used by gcc for Graphite loop optimizations'
 
 build(){
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/lib64'
+ else export LDFLAGS+=' -L/lib'
+ fi
+
  # to rid the rpath
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  sed -i 's:hardcode_absolute=yes:hardcode_absolute=no:' configure

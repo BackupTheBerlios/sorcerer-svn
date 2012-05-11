@@ -3,27 +3,20 @@
 # or was some sort of mistake.
 # php version 5.2.12 has a compile error with gmp 5.0.1
 
-# case $HOSTTYPE in
-#  x86_64)
-#    version stable 4.3.0 ;;
-#       *)
-#    version stable 5.0.0 4.3.1 4.3.0
-#     latest 5.0.1 ;;
-# esac
-
 # versions 5.0.0 and 5.0.1 appear to be unstable.
-# ppl requires gmp < 5.0.0
+# cloog-ppl requires gmp < 5.0.0
 
 # will not compile with --enable-nails
 
-   version stable 4.3.2
+   version stable 5.0.5 4.3.2
    require automake libtool
 # optional on gcc-g++ creates circuliar requirement loop
 # optional gcc-g++
   category mathematics
- attribute library
+ attribute library optimize setarch
 #attribute makej multilib-dual
-    source $GNU_URL gmp/gmp-$VERSION.tar.bz2
+    source $GNU_URL gmp/gmp-$VERSION.tar.xz
+      info last 20120506
       info home http://www.gnu.org/directory/gnump.html
       opts --enable-cxx --enable-mpfr --enable-static=no
 #      opts --enable-cxx --enable-mpfr --enable-nails --enable-static=no
@@ -41,6 +34,26 @@ GNUmp speed advantage increases with the operand size,
 since GNUmp in many cases has asymptomatically faster algorithms.'
 
 build(){
+
+ # gmp's 64-bit and 32-bit headers differ
+ preserve_ia32_headers(){
+   if [[ $HOSTTYPE == x86_64 ]] &&
+      echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
+   mkdir -vpm 755 $DESTDIR/usr/include32/
+   mv $DESTDIR/usr/include/gmp.h   $DESTDIR/usr/include32/
+   mv $DESTDIR/usr/include/gmpxx.h $DESTDIR/usr/include32/
+  fi
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export ABI=64
+ else export ABI=32
+ fi
+ default_build &&
+ preserve_ia32_headers
+}
+
+build_old(){
 (
  # gmp's 64-bit and 32-bit headers differ
  preserve_ia32_headers(){
