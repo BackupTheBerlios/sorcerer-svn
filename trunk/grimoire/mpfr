@@ -3,8 +3,22 @@
       opts --enable-static=no
   category mathematics
  attribute library makej multilib-concurrent
-    source http://www.mpfr.org/mpfr-current/mpfr-$VERSION.tar.bz2
-      info last 20111008
+ attribute no_patcher
+    source http://www.mpfr.org/mpfr-current/mpfr-$VERSION.tar.xz
+case $VERSION in
+ 3.1.0)
+    source http://www.mpfr.org/mpfr-current/patch01
+    source http://www.mpfr.org/mpfr-current/patch02
+    source http://www.mpfr.org/mpfr-current/patch03
+    source http://www.mpfr.org/mpfr-current/patch04
+    source http://www.mpfr.org/mpfr-current/patch05
+    source http://www.mpfr.org/mpfr-current/patch06
+    source http://www.mpfr.org/mpfr-current/patch07
+    source http://www.mpfr.org/mpfr-current/patch08
+    source http://www.mpfr.org/mpfr-current/patch09
+    source http://www.mpfr.org/mpfr-current/patch10 ;;
+esac
+      info last 20120507
       info home http://www.mpfr.org
       desc 'C library for mulitple-precision computations
 MPFR is a C library for multiple-precision floating-point
@@ -15,3 +29,20 @@ multiple-precision floating-point computation which
 is both efficient and has a well-defined semantics.
 It copies the good ideas from the ANSI/IEEE-754 standard
 for double-precision floating-point arithmetic (53-bit mantissa).'
+
+build(){
+ if ! [[ $HOSTTYPE == x86_64 ]] || ! [[ $CFLAGS =~ -m32 ]]; then
+  echo "Applying 10 patches to mpfr version 3.1.0 source"
+  declare -i CX=1
+  while [     -n    "${SOURCE[$CX]}" ]
+  do    patch -p1 < "${SOURCE[$CX]}"; (( CX++ ))
+  done
+ fi
+ default_build
+}
+
+current(){
+ case $VERSION in
+  3.1.0) grep -qx "Applying 10 patches to mpfr version 3.1.0 source" $COMPILE_LOGS/mpfr ;;
+ esac
+}
