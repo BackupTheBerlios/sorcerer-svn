@@ -1,8 +1,8 @@
-   version stable 2.9.2 2.9.1 2.9.0 2.8.7 2.8.6 2.8.5 2.8.4 2.8.3 2.8.3
+   version stable 2.9.2 2.9.1 2.9.0 2.8.7
    require db pcre
-  optional openldap  '' '' for ldap support
-  optional Linux-PAM '' '' for pluggable authentication
+  optional PAM       '' '' for pluggable authentication
   optional mysql     '' '' for MySQL support
+  optional openldap  '' '' for ldap support
   optional openssl   '' '' for postfix with TLS support
   sys_user mail mail /var/spool/mail
   category network/email
@@ -34,8 +34,14 @@ build(){
       CCARGS="-DHAS_LDAP"
  fi
 
- if   grep  -qx       Linux-PAM $OPT_ON_LOGS/postfix &&
-      spell_installed Linux-PAM
+#if   grep  -qx       Linux-PAM $OPT_ON_LOGS/postfix &&
+
+ if   spell_installed openpam
+ then AUXLIBS+=' -lpam'
+      CCARGS+=' -DHAS_PAM'
+ fi
+
+ if   spell_installed Linux-PAM
  then AUXLIBS+=' -lpam -lpam_misc'
       CCARGS+=' -DHAS_PAM'
  fi

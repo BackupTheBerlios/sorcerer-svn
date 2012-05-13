@@ -1,0 +1,60 @@
+# Version 20111218 causes a segfault in glibc
+# Version 20111218 probably has bugs that manifest
+# on a glibc system but not a BSD C based system.
+# While I want to transition from Linux-PAM to openpam;
+# openpam seems too buggy for that just yet.
+
+   version stable 20111218
+#  optional cracklib   ''             --disable-cracklib for password checking library
+#  optional db         --enable-db=db --enable-db=no     for userdb support
+#  optional libxcrypt '' '' for blowfish encrypted passwords
+## optional libxcrypt '' '' for passwords that blow fish
+#      opts --enable-read-both-confs
+#      opts --disable-nis
+  sys_user auth
+  category security/authentication
+ attribute library makej multilib-dual
+ attribute broke
+#attribute multilib-concurrent
+    source $SOURCEFORGE_URL openpam/openpam/Lycopsida/openpam-$VERSION.tar.gz
+      info omit 20130512
+      info last 20111218
+      info home http://www.openpam.org/
+
+# /lib and /lib64 reserved for ELFs required for booting box
+# not necessarily ELFs required for login and authentication.
+# However, if the root filesystem can not be mounted
+# login must be possible from the initramfs
+
+   protect /etc/security
+  eprovide PAM
+      desc 'implementation of pluggable authentication method
+that attempts to maintain compatibility
+with Solaris PAM, Linux-PAM and XSSO'
+
+build(){
+ adjust_unix_chkpwd(){
+  chown root:auth $DESTDIR/sbin/unix_chkpwd
+  chmod 2755      $DESTDIR/sbin/unix_chkpwd
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/lib64
+ else opts --libdir=/lib
+ fi
+
+ export HAVE_SGML2LATEX=no
+ sed -i 's: doc examples::g' Makefile.in
+
+ default_build
+# &&
+# adjust_unix_chkpwd
+}
+
+post_install(){
+ default_post_install
+          get_provider pam_ldap |
+ pipe     show_installed        |
+ LC_ALL=C sort | uniq -d        |
+          pipe_queue $CAST_QUEUE
+}

@@ -11,7 +11,14 @@
       info home http://www.freedesktop.org/wiki/Software/systemd
       desc 'replacement for sysvinit'
 
-build(){ default_build && rm -fr $DESTDIR/lib/udev/; }
+build(){
+ # systemd is not compatible with openpam
+ if   spell_installed openpam
+ then opts --disable-pam
+ fi
+ default_build &&
+ rm -fr $DESTDIR/lib/udev/
+}
 
 # build(){
 # setting LDFLAGS and CFLAGS did not fix systemd's inability to do multilib linking

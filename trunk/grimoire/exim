@@ -2,7 +2,7 @@
    require db gawk init-functions pcre
   optional mysql        '' '' for mysql authentication
   optional tcp_wrappers '' '' for controlling remote access
-  optional Linux-PAM    '' '' for pluggable authentication
+  optional PAM          '' '' for pluggable authentication
   category network/email
  attribute console server
   sys_user mail mail /var/spool/mail
@@ -53,7 +53,9 @@ build(){
   echo 'EXTRALIBS = -lwrap'     >> Local/Makefile
  fi
 
- if spell_installed Linux-PAM; then
+ if    spell_installed Linux-PAM ||
+       spell_installed openpam
+  then
   echo 'SUPPORT_PAM = yes'       >> Local/Makefile
   echo 'EXTRALIBS += -lpam -ldl' >> Local/Makefile  
  fi

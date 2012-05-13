@@ -1,5 +1,5 @@
    version stable 1.0.35 1.0.29 1.0.27 1.0.26 1.0.24
-  optional Linux-PAM  --with-pam   ''              for pluggable authentication
+  optional PAM        --with-pam   ''              for pluggable authentication
   optional xinetd     ''           ''              for running server
 # optional libcap     ''           ''              to limit capabilities of a process
   optional mysql      --with-mysql --without-mysql for MySQL user authentication
@@ -36,11 +36,10 @@ build(){
 --with-everything    \
 --without-banner     \
 --with-virtualchroot \
-$WITH_PAM            \
 $OPTS                &&
 make                 &&
 make install DESTDIR=$DESTDIR &&
-mkdir -p $DESTDIR/{etc,usr/share} &&
-install -vm 644 -o root -g root pam/ftpusers $DESTDIR/etc &&
+mkdir   -pvm 755 $DESTDIR/{etc,usr/share} &&
+install  -vm 644 -o root -g root pam/ftpusers $DESTDIR/etc &&
 cp -rv contrib $DESTDIR/usr/share/pure-ftpd
 }

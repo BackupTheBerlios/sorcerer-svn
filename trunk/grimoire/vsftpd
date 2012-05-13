@@ -10,7 +10,7 @@
 
    version stable 3.0.0 2.3.5 2.3.4 2.3.2 2.2.2 2.2.1
    require libcap
-  optional Linux-PAM    PAM        '' for pluggable authnetication
+  optional PAM          PAM        '' for pluggable authnetication
   optional openssl      SSL        '' for encryption support
   optional tcp_wrappers TCPWRAPPER '' for controlling access to ftpd daemon through tcp_wrappers
   category network/ftp
@@ -50,7 +50,9 @@ build(){
   cat  $OPT_ON_LOGS/vsftpd |
   while read; do
    case $REPLY in
+    openpam)      echo '#define VSF_BUILD_PAM' ;;
     Linux-PAM)    echo '#define VSF_BUILD_PAM' ;;
+    PAM)          echo '#define VSF_BUILD_PAM' ;;
     openssl)      echo '#define VSF_BUILD_SSL' ;;
     tcp_wrappers) echo '#define VSF_BUILD_TCPWRAPPERS' ;;
    esac
@@ -60,7 +62,7 @@ build(){
   cat  $OPT_OFF_LOGS/vsftpd |
   while read; do
    case $REPLY in
-    Linux-PAM)    echo '#undefine VSF_BUILD_PAM' ;;
+#   Linux-PAM)    echo '#undefine VSF_BUILD_PAM' ;;
     openssl)      echo '#undefine VSF_BUILD_SSL' ;;
     tcp_wrappers) echo '#undefine VSF_BUILD_TCPWRAPPERS' ;;
    esac
@@ -82,7 +84,9 @@ build(){
   cat  $OPT_ON_LOGS/vsftpd |
   while read; do
    case $REPLY in
+    openpam)      echo 'echo -lpam' ;;
     Linux-PAM)    echo 'echo -lpam' ;;
+    PAM)          echo 'echo -lpam' ;;
     openssl)      echo 'echo -lssl' ;;
     tcp_wrappers) echo 'echo -lwrap' ;;
    esac

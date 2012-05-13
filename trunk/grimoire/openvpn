@@ -2,7 +2,7 @@
    require lzo2 openssl
 #  require lzo2 libselinux openssl
 # optional libselinux '' '--disable-selinux' for SELinux support
-  optional Linux-PAM  '' '' for auth-pam plugin
+  optional PAM        '' '' for auth-pam plugin
     switch --enable-password-save '' allow passwords to be read from a file
 # May als need (optional) something called pkcs11-helper
   category security
@@ -44,10 +44,12 @@ build(){
   cp plugin/README README.plugins
  }
  
- spell_installed Linux-PAM    &&
- PLUGINS="down-root auth-pam" ||
- PLUGINS="down-root"
- 
+ if   spell_installed Linux-PAM ||
+      spell_installed openpam
+ then PLUGINS="down-root auth-pam"
+ else PLUGINS="down-root"
+ fi
+
  ./configure               \
   --sysconfdir=/etc        \
   --localstatedir=/var     \
