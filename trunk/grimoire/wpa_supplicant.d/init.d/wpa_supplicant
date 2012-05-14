@@ -10,13 +10,17 @@
 # Short-Description: Starts wpa_supplicant for all wireless interfaces
 ### END INIT INFO
 
-. /lib/lsb/init-functions
-
 pnw(){
  [ -f          /proc/net/wireless ] &&
  tr ' ' '\n' < /proc/net/wireless |
  sed 's/://p;d'
 }
+
+if   [ "$1" == start ]
+then pnw | grep -q . || exit 0
+fi
+
+. /lib/lsb/init-functions
 
 param(){
  local N
@@ -39,3 +43,4 @@ name wpa_supplicant
 server /sbin/wpa_supplicant
 options "-B $( param )"
 #options "-B -g /var/run/wpa_supplicant $( param )"
+
