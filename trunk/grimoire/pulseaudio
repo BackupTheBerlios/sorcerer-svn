@@ -1,5 +1,5 @@
    version   stable 2.0 1.1 1.0 0.9.23 0.9.22 0.9.21 0.9.20
-   version unstable 1.99.2
+   version unstable 2.0 1.99.2
    require audiofile avahi json-c libXtst libsamplerate libtool libvorbis speex
 #  require audiofile avahi json-c libXtst libatomic_ops libsamplerate libtool libvorbis speex
 ## require audiofile avahi libXtst libatomic_ops liboil libsamplerate libtool speex
@@ -14,13 +14,14 @@
   optional polkit     ''             ''              for PolicyKit support
       opts --disable-static --disable-systemd
   category audio/mixer
- attribute console library makej server x11
+ attribute console library multilib-concurrent server x11
+# pulseaudio version 2.0 makefiles are not proper for makej compilation
+#attribute makej
     source http://freedesktop.org/software/pulseaudio/releases/pulseaudio-$VERSION.tar.xz
 #   source http://0pointer.de/lennart/projects/pulseaudio/pulseaudio-$VERSION.tar.gz
       info last 20120513
       info home http://pulseaudio.org/
       info vurl http://pulseaudio.org/
-  eprovide polypaudio
       desc 'software audio mixer
 It is intended to be an improved drop-in replacement
 for the Enlightened Sound Daemon (esound or esd).
@@ -28,7 +29,34 @@ In addition to the features esound provides,
 pulseaudio has an extensible plugin architecture,
 support for more than one sink per source, etc...'
 
-build(){
- sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+# build(){
+#  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+#  default_build
+# }
+
+# build_new was not necessary nor tried after the sed statement
+# on configure was discontinued.
+# pulseaudio libraries must have a rpath to /usr/lib{,64}/pulseaudio/
+
+build_new(){
+ add_rpath(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then export LDFLAGS+=" -rpath,/usr/lib64/pulseaudio"
+  else export LDFLAGS+=" -rpath,/usr/lib/pulseaudio"
+  fi
+ }
+ case $VERSION in
+  2.0) add_rpath ;;
+ esac
  default_build
+}
+
+current(){
+ case $VERSION in
+  2.0) if   [       -f /usr/lib64/libpulse.so ]
+       then objdump -x /usr/lib64/libpulse.so | grep -q RPATH
+       elif [       -f /usr/lib/libpulse.so   ]
+       then objdump -x /usr/lib/libpulse.so   | grep -q RPATH
+       fi ;;
+ esac
 }
