@@ -7,7 +7,12 @@
 # optional LibVNCServer '' '' for vnc support
 
    version stable 1.5.3 1.5.2 1.5.1 1.5.0 1.4.13
-   require freetype gcc-g++ jpeg libdrm libmng libpng sysfsutils
+case $VERSION in
+ 1.5.3)
+   require libpng-v1.4 ;;
+esac
+   require freetype gcc-g++ jpeg libdrm libpng sysfsutils
+#  require freetype gcc-g++ jpeg libdrm libmng libpng sysfsutils
   optional libXext --enable-x11 --disable-x11 for X11 support
   optional LibVNCServer
   optional MesaLib
@@ -32,6 +37,23 @@ with software fallbacks for every graphics operation
 that is not supported by the underlying hardware.'
 
 build(){
-# sed -i '/@libdir@/d' directfb-config.in
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ case $VERSION in
+  1.5.3) libpng_fix ;;
+ esac
+
+ # sed -i '/@libdir@/d' directfb-config.in
  default_build
 }
