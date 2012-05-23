@@ -17,7 +17,11 @@ build(){
  export TERM
  local  G=/opt/guile/1.8
  export PATH="$G/bin:$PATH"
- export LDFLAGS+=" -Wl,-rpath-link,$G/lib -Wl,-rpath,$G/lib"
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=" -Wl,-rpath-link,$G/lib64 -Wl,-rpath,$G/lib64"
+ else export LDFLAGS+=" -Wl,-rpath-link,$G/lib -Wl,-rpath,$G/lib"
+ fi
 
  sed -i "s:\$HEAD -1:\$HEAD -n 1:" configure
  default_build &&
