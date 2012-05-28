@@ -2,8 +2,23 @@
    require swig
       opts --sbindir=/sbin --disable-static
   category security/authentication
- attribute console client server
+ attribute console client library multilib-dual server setarch
     source people.redhat.com/sgrubb/audit/audit-$VERSION.tar.gz
       info last 20120323
       info home http://people.redhat.com/sgrubb/audit/
       desc 'userspace portion for kernel auditing'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/lib64
+ else opts --libdir=/lib
+ fi
+ default_build
+}
+
+current(){
+ case $VERSION in
+  2.2.1) [ -f   /lib/libaudit.so.1 ]] ||
+         [ -f /lib64/libaudit.so.1 ]] ;;
+ esac
+}
