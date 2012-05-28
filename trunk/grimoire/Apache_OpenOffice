@@ -1,0 +1,96 @@
+   version stable 3.4.0
+   require desktop-file-utils jdk rpmunpack unzip zip
+  optional kdelibs-v4 '' '' for optional kde4 support
+  optional libsndfile '' '' for optional libsndfile support
+  category utility/office utility/editor
+ attribute archive_off x86 noheal x11 kde4
+case $HOSTTYPE in
+ x86_64)
+    source $SOURCEFORGE_URL openofficeorg.mirror/stable/$VERSION/Apache_OpenOffice_incubating_${VERSION}_Linux_x86-64_install-deb_en-US.tar.gz ;;
+      *)
+    source $SOURCEFORGE_URL openofficeorg.mirror/stable/$VERSION/Apache_OpenOffice_incubating_${VERSION}_Linux_x86_install-deb_en-US.tar.gz ;;
+esac
+      info last 20120502
+      info vurl http://download.openoffice.org/
+      info home http://www.openoffice.org
+      info docs http://why.openoffice.org/
+ conflicts OOo-bin
+      desc 'pre-compiled Open Source Office Suite
+OOo-bin (OpenOffice.org) provides an open source
+office suite that runs on all major platforms and
+provides access to all functionality and data through
+open-component based APIs and an XML-based file format.
+It can open M$ Office Documents.'
+
+build(){
+ [ -d DEBS ] &&
+ cd   DEBS   &&
+ mkdir -pvm 755 $DESTDIR &&
+ find * -type f -name \*.deb |
+ while read
+ do    ar x $REPLY data.tar.gz; tar -C $DESTDIR -xvf data.tar.gz || return 1
+ done
+}
+
+build_old(){
+
+ install_rpms(){
+  mkdir -p $DESTDIR/etc
+  cd       $DESTDIR
+  find $BUILD_DIR/RPMS{,/desktop-integration/*freedesktop-menus*} -maxdepth 1 -name \*.rpm |
+  while  read;  do
+   echo "---> Unpacking $REPLY"
+   rpmunpack < $REPLY | gzip -d | cpio -idm --no-absolute-filenames
+  done
+
+  ln -sf /opt/openoffice.org $DESTDIR/etc/openoffice.org
+
+  case $VERSION in
+   2.2.1_LinuxIntel_install_en-US) \
+    AGAIN=$BUILD_DIR/RPMS/openoffice.org-core04u-2.2.1-9161.i586.rpm
+    echo "---> Unpacking $AGAIN"
+    # rpmunpack misdetects gzip magic signature on 1st attempt.
+    # It can not be directly piped to rpmunpack, unknown why.
+    ( dd if=$AGAIN bs=1 count=4; rpmunpack < $AGAIN ) > $AGAIN.rpm
+    rpmunpack < $AGAIN.rpm | gzip -d | cpio -idm --no-absolute-filenames ;;
+  esac
+
+  chown -R root:root * 
+  find * -type f | xargs --max-lines=64 chmod o-w
+  find * -type d | xargs --max-lines=64 chmod 755
+ }
+
+ add_mailcap(){
+  mkdir -pvm 755 $DESTDIR/etc
+  sed "s:^:application/:
+       s:$:; openoffice.org -view %s:" $SCRIPT_DIR/mailcap |
+  sort -u > $DESTDIR/etc/mailcap.OOo-bin
+ }
+
+ disable_init_script(){
+  if   [ -f      "$DESTDIR/etc/init.d/jexec" ]
+  then chmod 600 "$DESTDIR/etc/init.d/jexec"
+  fi
+ }
+
+ [[ -d RPMS ]]   &&
+ install_rpms    &&
+ add_mailcap     &&
+ disable_init_script
+}
+
+post_install(){
+ default_post_install
+# gtk-update-icon-cache -fqt /usr/share/icons/{gnome,hicolor,locolor}
+# update-mime-database       /usr/share/mime
+# sed "s/:\*\./ /"           /usr/share/mime/globs > /etc/mime.types
+ update-desktop-database -q /usr/share/applications
+ cat /etc/mailcap.* >       /etc/mailcap
+}
+
+pre_remove(){
+ if   [[  -f /etc/mailcap ]]
+ then sed -i /openoffice.org/d /etc/mailcap
+ fi
+ default_pre_remove
+}
