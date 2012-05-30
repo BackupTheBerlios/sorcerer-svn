@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee,
+# Copyright 2011 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
@@ -13,8 +13,8 @@ cgroup_load(){
 }
 
 thaw(){
- if [ -d /root/.sorcery/queue/cast ]; then
-  find   /root/.sorcery/queue/cast/ -not -empty -mmin +480 -type f -printf "%f\n" |
+ if [ -d /var/log/sorcery/queue/cast ]; then
+  find   /var/log/sorcery/queue/cast/ -not -empty -mmin +480 -type f -printf "%f\n" |
   while read SPELL; do
    if   [ -f   $CG/sorcery/cast/$SPELL ] &&
         find   $CG/sorcery/cast/$SPELL/freezer.state -mmin +480 | grep -q .
@@ -28,8 +28,8 @@ thaw(){
 }
 
 stalled(){
- if   [ -d          /root/.sorcery/queue/$1 ] &&
-      [ -n "$( find /root/.sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
+ if   [ -d          /var/log/sorcery/queue/$1 ] &&
+      [ -n "$( find /var/log/sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
  then ! pgrep -u root "^$1$"
  else return 1
  fi

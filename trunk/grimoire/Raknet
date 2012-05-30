@@ -1,7 +1,18 @@
    version stable 2_0
    require gcc-g++
   category game
- attribute x11
+ attribute hidden library x11
     source http://www.sumwars.org/data/Raknet${VERSION}.tar.gz
-      info home  http://www.sumwars.org
+      info good 20120529
+      info home http://www.sumwars.org
       desc 'used during compilation of sumwars'
+
+build(){
+ local v
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then v=64
+ fi
+ make &&
+ mkdir -pvm 755 $DESTDIR/usr/{include,lib$v/pkgconfig}
+ make install INCLUDE_DIR=$DESTDIR/usr/include LIBS_DIR=$DESTDIR/usr/lib$v
+}

@@ -1,10 +1,10 @@
-			2008 Sorcery Documentation
+			2012 Sorcery Documentation
 
 
 0.	Table of Contents
 1.	External Documentation
 2.	Sorcery Tools
-3.	Grimoire
+3.	Catalog of Software
 4.	Spells
 5.	Installation CD
 6.	Installation Program
@@ -23,11 +23,11 @@
 
 99.9% of software is provided by the effort
 of generous free software authors
-that are not affiliated with Sorcerer.
+that are not affiliated with the Sorcerer project
 That is why Sorcerer developers do not write documentation.
 We read the documentation written by the software authors.
-Below are some useful hyperlinks to documentation used
-to develop Sorcerer and the Sorcerer grimoire:
+Below are some useful hyperlinks to documentation
+used to develop Sorcerer, spells and the software catalog:
 
 Linux Documentation Project:	http://www.tldp.org/
 Filesystem Hierarchy Standard:	http://www.pathname.com/fhs/pub/fhs-2.3.html
@@ -50,10 +50,10 @@ The installed sorcery tools are:
 /usr/sbin/leech
 /usr/sbin/sorcery
 
+cast    is a tool for software installation
+dispel  is a tool for software removal
+leech   is a tool for download sources, patches, tarballs
 augur   provides a command line update and information  tool
-cast    provides a command line software   installation tool
-dispel  provides a command line software uninstallation tool
-leech   provides a command line software download       tool
 sorcery provides a menu for configuration,
 	         a menu for selecting software for   installation,
                  a menu for selecting software for uninstallation
@@ -62,29 +62,31 @@ sorcery provides menus for cast and dispel because
 sometimes using the menus can be faster and easier
 than invoking the augur, cast, and dispel tools.
 
-The leech utility is automatically invoked by cast
-as necessary to download required sources.
-Therefore, leech will rarely be invoked directly.
+augur, dispel, and leech are automatically invoked by
+augur and sorcery.
+The SA will probably never want to invoke cast dispel and leech.
+cast dispel and leech accept no command line parameters
+and are not interactive.
 
-Detailed information about how to invoke the command line tools
-is provided when they are invoked with the --help parameter:
+augur's help screen displays when augur was invoked without parameters.
+For detailed information about a specific command line parameter
+then invoke augur with the help parameter followed by
+the specific augur command line parameter.
+Example:
+# augur help log
 
-augur  --help
-cast   --help
-dispel --help
-leech  --help
+augur and sorcery should only be invoked by an account
+with effective user identity 0, which should be root.
 
-Install software on boxes is can be updated using sorcery.
-However most SAs will invoke augur.
-For exact command line parameters view:
-augur --help
+3.	Catalog of Software
 
+The catalog of software which
+is available for immediate installation
+is called the grimoire.
+Grimoire is a word with the meaning "book written in Latin."
+Fortunately, the Sorcerer grimoire
+is actually plain English text with BASH shell syntax.
 
-3.	Grimoire
-
-The grimoire provides a catalog of software
-that is supported for immediate installation
-by the sorcery tools.
 The filename for the grimoire is:
 /usr/share/sorcery/grimoire.tar
 
@@ -95,9 +97,14 @@ it resides as many spell files and directories in
 
 4.	Spells
 
-Spells contain the instructions for
-configuring, downloading, compiling, installing,
-uninstalling, and updating software.
+Spells contain instructions for
+downloading, compiling, and installing
+software projects are contained in spells.
+Spells are bash script fragments.
+The grimoire is a book of spells.
+Anyone with simple BASH scripting skills
+can write a spell by copying and editing
+a similar existing spell.
 
 All spells have a similar format with many optional components.
 The easiest way to make a new spell is to copy and edit
@@ -105,12 +112,12 @@ an existing spell that is similar to the new spell.
 Spells are bash script fragments that and can easily
 be edited with any text editor such as "nano."
 
-Because spells are "programs" rather than data files
-there are few limits to what spells can accomplish.
-Therefore, the best way to learn how to write spells
-is by looking at other spells and by reading the
-bash manual page which can be invoked with:
-man bash
+Because spells are "programs" rather than static data files;
+fewer limitations exist concerning what spells can accomplish.
+Therefore, the best way to learn how to craft spells
+is by looking at other spells and by reading
+the bash manual page which can be invoked with:
+$ man bash
 
 
 
@@ -141,13 +148,13 @@ the file is an iso9660 ready to be written.
 
 If the CD fails to boot check first
 that BIOS/CMOS parameters permit booting from CDROM.
-If it still does not boot try writing it with a different program.
-If the contents of the CD when viewing look like
-sorcerer-*-200*.ziso*
+If it still does not boot try using a different program
+to write the image file to CD.
+If the contents of the CD appears to be the filename
 then it wrote the image as a file within an iso9660 filesystem
 instead of writing the image directly to the CD.
-If the image is not written directly to CD
-then it will not boot and will be useless for installation.
+If the image file is written as a file on a CD
+then the CD will not be bootable and will be useless for installation.
  
 
 6.	Installation Program
@@ -156,7 +163,7 @@ Most SAs will prefer to type the precise commands required for
 partitioning, making volumes, and creating filesystems.
 However, there is a menu driven alternative.
 After booting and logging in as root execute:
-/install
+sinstall
 
 Make some files systems,
 copy some programs,
@@ -188,11 +195,11 @@ On subsequent boots networking starts automatically.
 Now before doing anything else change the root password by executing:
 su -
 
-Now edit /etc/lilo.conf.head
+Now edit /etc/extlinux/head
 and change the password required for allowing parameters
 to be passed to the kernel at boot time.
-Now execute lilo to save it:
-lilo
+Now execute extlinux to save it:
+extlinux
 
 If the box does not already have a BIOS/CMOS password set
 in order to prevent it from booting from CDROM and floppy
@@ -219,7 +226,7 @@ exit
 10.	Update
 
 New administrators will execute:
-augur easy
+augur sync
 
 in order to complete the first update of the box.
 After the box is updated the feel free to begin
@@ -242,24 +249,6 @@ kde			to install a K desktop environment
 			of the kde versions 3.x and 4.x
 
 etc			for menu driven editing of files in /etc
-
-glibc-locales		to compile human language locales and
-			to select a default langauge for programs
-
-glibc-localtime		for selecting the timezone where the box resides
-
-sorcery-alien		for creating a monthly log files that are installed
-			but not tracked as part of any installed software
-
-sorcery-backup		for monthly full backups stored in /var/cache/backup/
-
-sorcery-defrag		for monthly defragmentation of installed files
-
-sorcery-immune		for an immune system to spot, report, and
-			correct problems that could otherwise cripple a box
-
-sorcery-md5sum		for a weekly check and repair of installed files
-
 
 Both augur and sorcery provide useful methods for
 discovering spells that can be installed.
@@ -314,9 +303,9 @@ every Sorcerer SA gains awareness of eventually.
 /etc/sorcery/log/			Logs sorcery uses for tracking
 
 /root/.sorcery/				tmpfs containing generated data
-/root/.sorcery/queue/cast/		The cast queue
-/root/.sorcery/queue/dispel/		The dispel queue
-/root/.sorcery/queue/leech/		The leech queue
+/var/log/sorcery/queue/cast/		The cast queue
+/var/log/sorcery/queue/dispel/		The dispel queue
+/var/log/sorcery/queue/leech/		The leech queue
 /root/.sorcery/grimoire/		The untarred merged grimorie
 /root/.sorcery/index			The grimoire index
 /root/.sorcery/index.d/arof		The all    requirements of index
@@ -387,7 +376,7 @@ Q	udev?
 A	Yes
 
 Q	Precompiled softare?
-A	No, however Open Office and some
+A	No, however Apache_OpenOffice and some
         vendor provided video driver
 	are provided as pre-compiled software.
 
@@ -424,11 +413,12 @@ Q	This is the original Sorcerer created by Kyle Sallee?
 A	Yes this is the "real Sallee" and not a fork.
 
 Q	Better than a fork?
-A	The forks were of an alpha quality sorcery that is no longer used.
+A	The forks are copies of an alpha quality sorcery
+	and technology that is no longer used.
 	The forkers were people who did not want to listen
 	and who did not want to cooperate.
-	They wanted to lead a distribution in which
-	they took no part in creating.
+	They wanted to lead a distribution
+	that they did not create and barely understand.
 
 Q	You listen to SAs?
 A	Exactly.  The modern Sorcerer distribution

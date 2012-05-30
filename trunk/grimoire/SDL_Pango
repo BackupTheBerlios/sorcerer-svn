@@ -2,15 +2,21 @@
    require SDL pango
       opts --enable-static=no
   category graphic/library
- attribute library makej multilib-concurrent x11
+ attribute library makej multilib-dual x11
+ attribute no_patcher
     source $SOURCEFORGE_URL sdlpango/SDL_Pango/$VERSION/SDL_Pango-$VERSION.tar.gz
     source http://zarb.org/~gc/t/SDL_Pango-0.1.2-API-adds.patch
-      info home  http://sdlpango.sourceforge.net/
+      info good 20120529
+      info last 20041210
+      info home http://sdlpango.sourceforge.net/
       desc 'glue between pango and SDL for perl programs'
 
 build(){
  case $VERSION in
   0.1.2) patch -p0 < ${SOURCE[1]} ;;
  esac
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib '
+ fi
  default_build
 }
