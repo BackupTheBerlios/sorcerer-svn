@@ -1,0 +1,47 @@
+# Not obeying instructions to disregard installed java
+# which is too new for libreoffice to use.
+
+   version stable 3.5.4 3.5.1.2 3.4.5.2 3.4.4.2 3.4.4.1 3.4.3.2
+   require perl--Archive-Zip
+      opts --with-java=no --disable-gnome-vfs --disable-gtk --without-java
+#     opts --with-java=no --disable-fetch-external
+  category utility/office utility/editor
+ attribute archive_off huge noheal no_patcher x11 kde4
+if [[ $HOSTTYPE == x86_64 ]]; then
+    source http://download.documentfoundation.org/libreoffice/stable/$VERSION/deb/x86_64/LibO_${VERSION}_Linux_x86-64_install-deb_en-US.tar.gz
+else
+    source http://download.documentfoundation.org/libreoffice/stable/$VERSION/deb/x86/LibO_${VERSION}_Linux_x86_install-deb_en-US.tar.gz
+fi
+
+#    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-core-$VERSION.tar.xz
+#    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-binfilter-$VERSION.tar.xz
+#    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-dictionaries-$VERSION.tar.xz
+#    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-help-$VERSION.tar.xz
+#    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-translations-$VERSION.tar.xz
+      info good 20120530
+      info last 20120307
+      info docs http://www.libreoffice.org/get-help/documentation/
+      info faq  http://www.libreoffice.org/get-help/faq/
+      info home http://www.libreoffice.org/
+      info mail http://www.libreoffice.org/get-help/mailing-lists/
+      info vurl http://www.libreoffice.org/download/
+      desc 'fork of openoffice'
+
+build(){
+build_old(){
+ [[ $PWD =~ /libreoffice ]] &&
+ for DIR in libreoffice-*; do
+  cp -a  $DIR/* .
+  rm -rf $DIR
+ done
+ default_build
+}
+
+ [ -d DEBS ] &&
+ cd   DEBS   &&
+ mkdir -pvm 755 $DESTDIR &&
+ find * -type f -name \*.deb |
+ while read
+ do    ar x $REPLY data.tar.gz; tar -C $DESTDIR -xvf data.tar.gz || return 1
+ done
+}
