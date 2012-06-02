@@ -1,14 +1,18 @@
-# 5.11 5.10.2 and 5.10.1 failed compilation
-# 5.11.5 5.11.2 and 5.11.1 failed compilation
-   version stable 5.10 5.9.9 5.9.8
-   version unstable 5.11.5 5.11.2
+   version   stable 5.16 5.10 5.9.9 5.9.8
    require guile libxml2
       opts --enable-static=no
+case $VERSION in
+ 5.16)
+   require guile-v1.8 ;;
+esac
   category development
- attribute console library multilib-concurrent
+ attribute console hidden library multilib-concurrent
 #attribute multilib-fail
-    source $SOURCEFORGE_URL autogen/AutoGen/AutoGen-$VERSION/autogen-$VERSION.tar.bz2
-      info home  http://www.gnu.org/software/autogen/
+    source $GNU_URL autogen/rel$VERSION/autogen-$VERSION.tar.xz
+#   source $SOURCEFORGE_URL autogen/AutoGen/AutoGen-$VERSION/autogen-$VERSION.tar.bz2
+      info good 20120601
+      info last 20120506
+      info home http://www.gnu.org/software/autogen/
       desc 'generates files that contain repetitive text with varied substitutions
 autogen is a tool designed for generating program files
 that contain repetitive text with varied substitutions.
@@ -19,3 +23,22 @@ blocks of such text that must be kept synchronized.
 Output is specified with a Scheme-enhanced output template.
 Input, if required by your template, may come
 from AutoGen definitions, CGI data, or XML files.'
+
+build(){
+ local RATH=$PATH
+ local PATH=$RATH
+
+ old_guile(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then export PATH="/opt/guile/1.8/bin:$PATH"
+       export LDFLAGS+=" -Wl,-rpath,/opt/guile/1.8/lib64"
+  else export PATH="/opt/guile/1.8/bin32:$PATH"
+       export LDFLAGS+=" -Wl,-rpath,/opt/guile/1.8/lib"
+  fi
+ }
+
+ case $VERSION in
+  5.16) old_guile ;;
+ esac
+ default_build
+}
