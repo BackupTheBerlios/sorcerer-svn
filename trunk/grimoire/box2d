@@ -2,10 +2,13 @@
 # requirements for spell not known
 
    version stable 2.1.2
+  require MesaLib
       opts --enable-static=no
   category development
- attribute gnome
+ attribute gnome library multilib-dual
     source http://box2d.googlecode.com/files/Box2D_v$VERSION.zip
+      info good 20120603
+      info last 20100401
       info home http://www.box2d.org/
       info docs http://www.box2d.org/documentation.html
       desc 'C++ engine for simulating rigid bodies in 2D'
@@ -13,5 +16,8 @@
 build(){
  [ -d Box2D ] &&
  cd   Box2D
- default_build
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib{,64}
+ fi
 }

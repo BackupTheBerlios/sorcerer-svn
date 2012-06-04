@@ -1,15 +1,35 @@
    version stable 0.5.7 0.5.6 0.5.5
    require MesaLib SDL_mixer SDL_ttf
+case $VERSION in
+ 0.5.7)
+   require libpng-v1.4 ;;
+esac
   category game
  attribute x11
     source http://briquolo.free.fr/download/briquolo-$VERSION.tar.bz2
-      info home  http://briquolo.free.fr/
-      info docs  http://briquolo.free.fr/en/documentation.html
+      info good 20120603
+      info last 20080324
+      info home http://briquolo.free.fr/
+      info docs http://briquolo.free.fr/en/documentation.html
       desc 'Breakout clone with an OpenGL 3D representation'
 
 build(){
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
  case $VERSION in
-  0.5.7) sed -i '1i#include <cstring>'  src/MOGL/MOGL_EnsembleObjet.cpp
+  0.5.7) libpng_fix
+         sed -i '1i#include <cstring>'  src/MOGL/MOGL_EnsembleObjet.cpp
          sed -i '1i#include <cstring>'  src/MOGL/MOGL_GestionnaireObjet.cpp
          sed -i '1i#include <cstdlib>'  src/MOGL/MOGL_Objet.cpp
          sed -i '1i#include <cstdlib>'  src/MOGL/MOGL_Peau.cpp
