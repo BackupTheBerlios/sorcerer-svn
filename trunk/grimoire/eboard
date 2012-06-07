@@ -1,13 +1,19 @@
    version stable 1.1.1
-      info last  20080222
+case $VERSION in
+ 1.1.1)
+   require libpng-v1.4 ;;
+esac
    require gtk+
   category game/board/chess
  attribute x11
+ attribute broke
     source $SOURCEFORGE_URL eboard/eboard/$VERSION/eboard-$VERSION.tar.bz2
     source $SOURCEFORGE_URL eboard/eboard-extras/pack%201%20patchlevel%202/eboard-extras-1pl2.tar.gz
     source $SOURCEFORGE_URL eboard/eboard-extras/pack%202/eboard-extras-2.tar.gz
-      info home  http://www.bergo.eng.br/eboard/
-      info docs  'http://www.bergo.eng.br/eboard/index.php?p=5'
+      info omit 20130101
+      info last 20080222
+      info home http://www.bergo.eng.br/eboard/
+      info docs 'http://www.bergo.eng.br/eboard/index.php?p=5'
       desc 'chess interface for chess engines, FICS, etc.
 
 eboard is a graphic based chess interface.
@@ -17,6 +23,19 @@ chess engines like GNU Chess, Sjeng and Crafty.'
 
 
 build(){
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
  install_extras(){
   cd $1
   ./configure --prefix=$DESTDIR/usr
@@ -25,6 +44,10 @@ build(){
  }
 
  sed_makefile(){ sed -i "s:-O6:$CXXFLAGS:" Makefile; }
+
+ case $VERSION in
+  1.1.1) libpng_fix ;;
+ esac
 
  ./configure    \
   --prefix=/usr \
