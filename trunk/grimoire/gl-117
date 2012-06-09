@@ -2,8 +2,20 @@
    require MesaLib SDL_mixer
   category game
  attribute x11
+ attribute broke
     source $SOURCEFORGE_URL gl-117/gl-117/GL-117%20Source/gl-117-$VERSION.tar.bz2
-      info home  http://www.heptargon.de/gl-117/gl-117.html
+      info omit 20130101
+#     info good 20120608
+      info last 20050312
+      info home http://www.heptargon.de/gl-117/gl-117.html
       desc 'OpenGL and SDL based action flight simulator
 It provides a random terrain generator, lighting effects,
 sounds, and joystick support.  Yes the campaign is winnable.'
+
+build(){
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ else export LDFLAGS+=' -L/usr/lib'
+ fi
+ default_build
+}

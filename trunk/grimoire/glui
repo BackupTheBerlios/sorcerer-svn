@@ -1,17 +1,24 @@
    version stable 2.36
-   require MesaLib
+   require MesaLib freeglut
   category graphic/library
  attribute library makej multilib-dual x11
     source $SOURCEFORGE_URL glui/Source/$VERSION/glui-$VERSION.tgz
-      info home  http://glui.sourceforge.net/
+      info good 20120608
+      info last 20071104
+      info home http://glui.sourceforge.net/
       info forum http://sourceforge.net/projects/glui/forums
       desc 'a graphic toolkit on top of glut written in C++ and OpenGL'
 
 build(){
+ local ld
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then ld=lib64
+ else ld=lib
+ fi
  cd src &&
  make && 
- mkdir -pvm 755  $DESTDIR/usr/{include,lib,share/doc/glui,share/glui} &&
- cp lib/*        $DESTDIR/usr/lib &&
+ mkdir -pvm 755  $DESTDIR/usr/{include,$ld,share/doc/glui,share/glui} &&
+ cp lib/*        $DESTDIR/usr/$ld &&
  cp -a bin       $DESTDIR/usr/share/glui &&
  cp -a doc/*     $DESTDIR/usr/share/doc/glui &&
  cp -a include/* $DESTDIR/usr/include
