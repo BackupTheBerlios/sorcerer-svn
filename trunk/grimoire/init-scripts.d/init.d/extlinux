@@ -54,15 +54,18 @@ extlinux_conf_update(){
   fi
   echo "LABEL	$REPLY"
   echo "	KERNEL	../$REPLY/linux"; [ -n "$INITRF" ] &&
-  echo "	INITRD	$INITRF";         [ -f /sbin/tomoyo-init ] &&
-  echo "	APPEND	security=tomoyo"; [ -n "$1" ] &&
+  echo "	INITRD	$INITRF";         [ -n "$APPEND" ] &&
+  echo "	APPEND	\"$APPEND\"";     [ -n "$1" ] &&
   echo "$1"
   echo
  }
 
- local INRF ICX=0
+ local APPEND INRF ICX=0
  local LVER="$( uname -r )"
  [ -f /boot/$LVER/linux ] || LVER=
+
+ if   [ -f /sbin/tomoyo-init    ]; then APPEND="security=tomoyo"; fi
+ if   [ -f /etc/extlinux/append ]; then APPEND+=" $(< /etc/extlinux/append )"; fi
 
  if   [ -f /etc/init.d/initramfs ] &&
       [ -x /etc/init.d/initramfs ]
