@@ -1,14 +1,17 @@
    version stable 2.3.2
-      info last  20080602
    require curl libvorbis libxslt
   optional libtheora '' '' for libtheora codec support
   optional speex     '' '' for speex codec support
   category audio/server
  attribute console server
+ attribute broke
     source http://downloads.xiph.org/releases/icecast/icecast-$VERSION.tar.gz
-      info home  http://www.icecast.org/
-      info docs  http://www.icecast.org/docs.php
-      info mail  http://www.icecast.org/mailinglist.php
+      info omit 20130101
+#     info good 20120609
+      info last 20080602
+      info home http://www.icecast.org/
+      info docs http://www.icecast.org/docs.php
+      info mail http://www.icecast.org/mailinglist.php
       info forum http://icecast.imux.net/
       desc 'streaming media server
 icecast is a streaming media server
@@ -17,3 +20,11 @@ It will stream MP3s to virtually anything
 that will play ogg-vorbis, including XMMS,
 mpg321, Sonique, WinAMP, RealPlayer,
 Windows Media Player, Ultraplayer, C3, etc...'
+
+build(){
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ else export LDFLAGS+=' -L/usr/lib'
+ fi
+ default_build
+}
