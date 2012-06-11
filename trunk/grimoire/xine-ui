@@ -1,39 +1,11 @@
-# libpng upgrade broke xine-ui version 0.99.6
-
-   version stable 0.99.6 0.99.5 0.99.4
+   version stable 0.99.7 0.99.6 0.99.5 0.99.4
    require hicolor-icon-theme libXft libXtst ncurses readline xine-lib
       opts --disable-lirc
   optional curl  '' ''              for downloading skins
   optional lirc  '' ''              for LIRC remote control support
-case $VERSION in
- 0.99.6)
-   require libpng-v1.4 ;;
-esac
   category video/dvd video/player
  attribute x11
     source $SOURCEFORGE_URL xine/xine-ui/$VERSION/xine-ui-$VERSION.tar.xz
+      info last 20120609
       info home http://xine.sourceforge.net
       desc 'interface to xine, a free video player'
-
-build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
- }
-
- # case statement to remove references to curl's deprecated header
- # that was removed from curl during version 7.21.7.
-
- case $VERSION in
-  0.99.6) sed -i '\,curl/types\.h,d' src/xitk/download.c
-          libpng_fix ;;
- esac
-
- default_build &&
- install -vdm 755 $DESTDIR/usr/share/applications &&
- ln -s /usr/share/xine/desktop/xine.desktop $DESTDIR/usr/share/applications/
-}

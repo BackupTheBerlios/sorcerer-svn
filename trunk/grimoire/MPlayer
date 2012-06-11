@@ -4,7 +4,7 @@
 # Might be daily automated tarball rolls of the repository.
 
 # 1.0rc3 segfaults when run with mkv
-   version stable 1.0rc4 1.0rc2 1.0rc1
+   version stable 1.1 1.0rc4 1.0rc2 1.0rc1
 
 # mplayer 1.0rc2 will not compile with x264 snapshot-20081001-2245
 # nor with x264 version snapshot-20081202-2245
@@ -39,8 +39,10 @@
 # optional xmms --enable-xmms '' to build with XMMS input plugin support
     switch --enable-joystick '' for joystick support
 
-    source $MPLAYER_URL releases/MPlayer-$VERSION.tar.bz2
+    source $MPLAYER_URL releases/MPlayer-$VERSION.tar.xz
 case $VERSION in
+ 1.1)
+      opts --disable-png ;;
  1.0rc4)
       opts --disable-png ;;
  1.0rc2)
@@ -57,7 +59,7 @@ esac
 
   category video/dvd video/player
  attribute makej x11
-      info last 20110123
+      info last 20120611
       info home http://www.mplayerhq.hu
       info docs http://www.mplayerhq.hu/design7/documentation.html
       desc 'movie and animation player
@@ -104,13 +106,13 @@ build(){
  then sed -i 's:${_xmmslibdir}/libxmms.so.1:-lxmms:' configure
  fi
 
+# --enable-largefiles             \
   echo                            |
   ./configure                     \
   --prefix=/usr                   \
   --enable-gui                    \
   --confdir=/etc/mplayer          \
   --enable-menu                   \
-  --enable-largefiles             \
   --codecsdir=/usr/lib/win32      \
   $OPTS                           &&
   make    install prefix=/usr "DESTDIR=$DESTDIR" &&
