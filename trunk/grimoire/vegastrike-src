@@ -1,4 +1,8 @@
    version stable 0.5.1.r1 0.5.1.beta2 0.5.0
+case $VERSION in
+ 0.5.1.r1)
+   require ffmpeg-v0.7 ;;
+esac
    require ffmpeg freeglut libtheora ogre
   category game/3d/flightsim
  attribute x11
@@ -8,6 +12,24 @@
       desc 'space flight simulator similar to Wing Commander'
 
 build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -L/opt/ffmpeg/0.7/usr/lib$SUFFIX -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
+ case $VERSION in
+  0.5.1.r1) ffmpeg_legacy ;;
+ esac
+
  ./configure --prefix=/usr $OPTS &&
  make &&
  make install "DESTDIR=$DESTDIR"
