@@ -1,52 +1,18 @@
-# to overcome the error:
-# /usr/include/libavutil/common.h:154: error: 'UINT64_C' was not declared in this scope
-# add a custom build to that spell such as:
-#
-# build(){
-# # for ffmpeg version 0.6
-#    CFLAGS+=' -D__STDC_CONSTANT_MACROS'
-#  CXXFLAGS+=' -D__STDC_CONSTANT_MACROS'
-#  export CFLAGS CXXFLAGS
-#  default_build
-# }
-
-
-# opal version 3.6.4 requires ffmpeg 0.5
-# Update and test linphone after updating ffmpeg, please.
-
-# ffmpeg version 0.8 compiles fine, however
-# much software does not compile with ffmpeg version 0.8
-
-
-   version stable 0.11.1 0.7.13 0.7.12 0.7.11 0.7.10 0.7.8 0.7.6 0.7.5 0.7.4 0.7.3 0.7.1
-#  version latest 0.11.1 0.11 0.10.3 0.10.2 0.10 0.9.1 0.9 0.8.5 0.8.4 0.8.3 0.8.2 0.8
+   version stable 0.7.13
    require bzip2 nasm zlib
       opts --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
       opts --enable-nonfree --disable-static --disable-doc
-# --enable-pic causes compile failure
 #     opts --enable-pic
-
-# avisynth is broke so do not enable as optional
-# optional jackit
-
   optional SDL            ''                       --disable-ffplay  to build ffplay media player
   optional XviD           --enable-libxvid         --disable-libxvid
   optional a52dec
-# celt optional for ffmpeg version 0.8 and later
-# optional celt           --enable-libcelt         --disable-libcelt
   optional faac           --enable-libfaac         --disable-libfaac
-# frei0r-plugins creates requirement loop with OpenCV and ffmpeg
-# optional frei0r-plugins --enable-frei0r          --disable-frei0r
   optional gsm            --enable-libgsm          --disable-libgsm
   optional lame           --enable-libmp3lame      --disable-libmp3lame
   optional libdc1394      --enable-libdc1394       --disable-libdc1394
   optional libtheora      --enable-libtheora       --disable-libtheora
   optional libvorbis      --enable-libvorbis       --disable-libvorbis
   optional libvpx         --enable-libvpx          --disable-libvpx
-# ffmpeg does not recognize the installation of openjpeg
-# optional openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
-# ffmpeg does not recognize rtmpdump's librtmp library
-# optional rtmpdump       --enable-librtmp         --disable-librtmp
   optional schroedinger   --enable-libschroedinger --disable-libschroedinger
   optional speex          --enable-libspeex        --disable-libspeex
   optional x264           --enable-libx264         --disable-libx264
@@ -92,19 +58,21 @@ build(){
 # else LDFLAGS+=' -L/usr/lib'
 # fi
 
+ local PREFIX=/opt/ffmpeg/0.7/usr
+
  setarch $ARCH \
  ./configure   \
- --prefix=/usr \
+ --prefix=$PREFIX \
  $OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
- setarch $ARCH  make  &&
- setarch $ARCH  make install "DESTDIR=$DESTDIR"     &&
- mkdir -pvm 755 "$DESTDIR/etc" &&
- install -m 644 doc/ffserver.conf "$DESTDIR/etc" &&
- sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
- if    [[ $HOSTTYPE == x86_64   ]]; then
-  if   [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                    else mv $DESTDIR/usr/lib{,64}
-    if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+ setarch $ARCH  make &&
+ setarch $ARCH  make install "DESTDIR=$DESTDIR" &&
+ mkdir -pvm 755 "$DESTDIR$PREFIX/etc" &&
+ install -m 644 doc/ffserver.conf "$DESTDIR$PREFIX/etc" &&
+ sed -i 's:-L${libdir}::'          $DESTDIR$PREFIX/lib/pkgconfig/*.pc &&
+ if    [[ $HOSTTYPE == x86_64      ]]; then
+  if   [[ $CFLAGS   =~ -m32        ]]; then mv $DESTDIR$PREFIX/lib{,32}
+                                       else mv $DESTDIR$PREFIX/lib{,64}
+    if [[ -d $DESTDIR$PREFIX/lib32 ]]; then mv $DESTDIR$PREFIX/lib{32,}; fi
   fi
  fi
 }

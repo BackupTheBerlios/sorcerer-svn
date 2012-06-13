@@ -4,6 +4,11 @@
 
    version   stable 2.3.1a 2.2.0 2.1.0
    version unstable 2.4.1 2.4.0 2.4.0-beta2 2.4.0-beta
+case $VERSION in
+ 2.3.1a)
+      opts -DWITH_FFMPEG:BOOL=OFF
+#  require ffmpeg-v0.7 ;;
+esac
 # case $VERSION in
 #  2.2.0)
 #       opts -DWITH_FFMPEG:BOOL=OFF ;;
@@ -13,16 +18,35 @@
   optional libdc1394
   category graphic
  attribute library multilib-dual
+# attribute broke
     source $SOURCEFORGE_URL opencvlibrary/opencv-unix/${VERSION:0:5}/OpenCV-$VERSION.tar.bz2
       info last 20120603
       info home http://opencv.willowgarage.com/wiki/
       desc 'open source computer vision library'
 
 build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
  if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=' -L/usr/lib64 -L/lib64'
  else export LDFLAGS+=' -L/usr/lib -L/lib'
  fi
+
+# case $VERSION in
+#  2.3.1a) ffmpeg_legacy ;;
+# esac
 
  default_build &&
  if     [[ $HOSTTYPE == x86_64 ]] &&

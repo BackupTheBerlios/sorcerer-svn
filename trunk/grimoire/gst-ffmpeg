@@ -1,5 +1,9 @@
    version   stable 0.10.13 0.10.11 0.10.10 0.10.9
    version unstable 0.11.2 0.11.1
+case $VERSION in
+ 0.10.13)
+   require ffmpeg-v0.7 ;;
+esac
    require ffmpeg gst-plugins-base pygobject
       opts --disable-examples --enable-static=no
       opts --with-system-ffmpeg
@@ -11,3 +15,24 @@
       info docs http://gstreamer.freedesktop.org/documentation/
       info mail http://gstreamer.freedesktop.org/lists/
       desc 'set of plugins for gstreamer'
+
+build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
+ case $VERSION in
+  0.10.13) ffmpeg_legacy ;;
+ esac
+ default_build
+}

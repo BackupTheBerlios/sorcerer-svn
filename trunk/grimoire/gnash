@@ -4,12 +4,15 @@
    require agg bluez boost desktop-file-utils faac farsight2 gamin gsm gst-ffmpeg kdelibs-v4 lame libvpx schroedinger x264 xulrunner
 case $VERSION in
  0.8.10)
-      opts --disable-npapi ;;
+      opts --disable-npapi
+      opts --enable-media=gst
+   require ffmpeg-v0.7 ;;
 esac
   category network/web
  attribute seamonkey-plugin kde4 x11
+#attribute broke
     source $GNU_URL gnash/$VERSION/gnash-$VERSION.tar.bz2
-      info last 20120209
+      info last 20120131
       info home http://www.gnashdev.org/
       info docs 'http://www.gnashdev.org/?q=node/26'
       info mail 'https://savannah.gnu.org/mail/?group=gnash'
@@ -23,6 +26,24 @@ build(){ (
 #  export PATH="/usr/bin:$PATH"
 #  export PKG_CONFIG_PATH=/usr/lib/pkgconfig
 #  default_build &&
+
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
+ case $VERSION in
+  0.8.10) ffmpeg_legacy ;;
+ esac
 
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then opts --with-kde4-prefix=/opt/32bit/usr
