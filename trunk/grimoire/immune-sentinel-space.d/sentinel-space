@@ -52,8 +52,14 @@ rootname(){
  REPLY="${REPLY%.tgz}"
 }
 
-size(){ [ -f "$TMP" ] && stat -c "%s" $TMP ; }
-doxz(){ xz -f -M $LIM --lzma2=dict=$( size ),mf=bt4,nice=273 "$TMP" ; }
+size(){
+ if [ -f "$TMP" ]; then
+  SIZE=$( stat -c "%s" $TMP )
+  if (( SIZE > 1610612736 )); then SIZE=1610612736; fi
+ else false
+ fi
+}
+doxz(){ size && xz -f -M $LIM --lzma2=dict=$SIZE,mf=bt4,nice=273 "$TMP" ; }
 rtmp(){ rm -f "$TMP" "$NEW"; false; }
 
 recompress(){
