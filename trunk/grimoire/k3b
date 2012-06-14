@@ -9,5 +9,28 @@
   category disk/cd
  attribute kde4 makej
     source $SOURCEFORGE_URL k3b/k3b/$VERSION/k3b-$VERSION.tar.bz2
+      info good 20120614
+      info last 20110115
       info home http://k3b.sourceforge.net/
       desc 'KDE-GUI for cdrecord and cdrdao, similar to Nero'
+
+build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -L/opt/ffmpeg/0.7/usr/lib$SUFFIX -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
+ case $VERSION in
+  2.0.2) ffmpeg_legacy ;;
+ esac
+ default_build
+}
