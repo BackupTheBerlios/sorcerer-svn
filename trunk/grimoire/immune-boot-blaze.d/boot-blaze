@@ -1,36 +1,28 @@
 #!/bin/bash
-# Copyright 2007, 2008, 2011 by Kyle Sallee,
+# Copyright 2007, 2008, 2011, 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the distribution Sorcerer only.
 # boot-blaze accelerates booting
 
-file(){ while read r; do [ -f "$r" ] && echo "$r"; done; }
-logd(){ [ -d $LOG ] && find $LOG -type f -mtime -182 -printf "%A@\t/%P\n"; }
-ordr(){ sort -g | cut -f2- | file | tr '~' '/'; }
-cont(){ tar --atime-preserve=system --no-recursion -chPT - | cat &>/dev/null; }
-load(){ logd | ordr | cont; }
-save(){ while read r; do touch -r "$r" "$LOG/${r//\//~}"; done; }
-used(){ find $DIR -anewer $REF -type f -size -32M; }
-omit(){ LC_ALL=C grep -v "^/tmp/\|^/var/cache/\|^/var/log/\|^/var/tmp/"; }
-mlog(){ [ -d $LOG ] || mkdir -pm 700 $LOG; rm -rf $REF; echo -n > $REF; }
-mntd(){ cat /proc/mounts | cut -d ' ' -f2 | LC_ALL=C grep -qx "$1"; }
-real(){ for d in / $DIR; do mntd "$d" && mount -o remount,strictatime $d; done; }
-rela(){ for d in / $DIR; do mntd "$d" && mount -o remount,relatime    $d; done; }
-look(){ real; mlog; sleep 900; rela; used | omit | save; }
-main(){ look &>/dev/null & disown; load &>/dev/null & disown; }
-
-trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP
-umask 077
-REF=/var/tmp/boot-blaze/ref
-LOG=/var/tmp/boot-blaze
-
 export LC_ALL=C
 
-if   [[     -x /usr/libexec/bash/sleep ]]
-then enable -f /usr/libexec/bash/sleep sleep
+H=/var/log/boot-blaze
+
+e(){ while read; [ -f "$REPLY" ] && echo -n "$REPLY "; done; }
+l(){ [ -f $H ] && e < $H; }
+
+if   [[ $HOSTTYPE == x86_64 ]]
+then L=/lib64
+else L=/lib
 fi
 
-DIR="/bin /etc /home /lib /opt /sbin /usr /var"
-if [ -d /lib64 ]; then DIR+=' /lib64'; fi
+main(){
+ LD_PRELOAD="$( l )" /usr/bin/sleep 900
 
-main &>/dev/null
+ cat /proc/*/maps |
+ tr ' ' '\n' | 
+ grep "$L/lib.*\.so\." |
+ sort -u > $H
+}
+
+main &>/dev/null &
