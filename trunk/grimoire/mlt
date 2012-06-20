@@ -5,7 +5,7 @@
 
 # 0.8.0 failed compilation
 
-   version   stable 0.7.8 0.7.6 0.7.4 0.7.2 0.7.0 0.6.2 0.6.0
+   version   stable 0.8.0 0.7.8 0.7.6 0.7.4 0.7.2 0.7.0
    version unstable 0.8.0
    require SDL_image ffmpeg libexif libsamplerate libvorbis qt-everywhere-opensource subversion
   optional libdv          '' '--disable-dv'
@@ -15,15 +15,15 @@
   optional libquicktime
   optional sox            '' '--disable-sox'
   optional xine-lib       '' '--disable-xine'
-#      opts --enable-gpl --swig-languages=all --avformat-svn --avformat-swscale --qimage-libdir=/usr/lib --qimage-includedir=/usr/include
+##    opts --enable-gpl --swig-languages=all --avformat-svn --avformat-swscale --qimage-libdir=/usr/lib --qimage-includedir=/usr/include
       opts --enable-gpl --avformat-swscale 
-      opts --qimage-includedir=/usr/include --qimage-libdir=/usr/lib
-      opts    --kde-includedir=/usr/include    --kde-libdir=/usr/lib
+#     opts --qimage-includedir=/usr/include --qimage-libdir=/usr/lib
+#     opts    --kde-includedir=/usr/include    --kde-libdir=/usr/lib
   category video
  attribute library makej multilib-dual optimize setarch
     source $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
 #   source $SOURCEFORGE_URL mlt/mlt/$VERSION/mlt-$VERSION.tar.gz
-      info last 20120603
+      info last 20120601
       info home http://www.mltframework.org/twiki/bin/view/MLT/
       desc 'media loving toolkit'
 
@@ -51,6 +51,12 @@ build(){
  if   grep -qr "/libvdpau.so$" $INSTALL_LOGS
  then opts --avformat-vdpau
  fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then opts --libdir=/usr/lib64
+ else opts --libdir=/usr/lib
+ fi
+ opts --include-dir=/usr/include
 
  default_build
 }
