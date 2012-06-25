@@ -2,7 +2,7 @@
 # filename changes from scim_1.4.10.tar.gz to scim-1.4.11.tar.gz
 # 1.4.11 and 1.4.12 have compile error
 
-   version   stable 1.4.13 1.4.10 1.4.9
+   version   stable 1.4.14 1.4.13 1.4.10 1.4.9
   optional gtk+    '' '--disable-gtk2-immodule --disable-panel-gtk' for gtk+ tools and immodule
   optional gtk+-v3 '' '--disable-gtk3-immodule' for gtk+-v3 immodule
       opts --enable-static=no
@@ -10,18 +10,27 @@
  attribute console library x11
     source $SOURCEFORGE_URL scim/scim/$VERSION/scim-$VERSION.tar.gz
 #   source $SOURCEFORGE_URL scim/scim/$VERSION/scim_$VERSION.tar.gz
-      info last 20120430
+      info last 20120624
       info home http://www.scim-im.org/
       desc 'smart common input method
 it provides a user friendly, full featured input method.'
 
 build(){
+# local RATH
+# local RATH=$PATH
+# local PATH=$RATH
+
  case $MACHTYPE in
   *-uclibc) sed -i '1i#define __error_t_defined' src/{ltdl.cpp,scim.h} ;;
  esac
 
  if   [ -f bootstrap ]
  then    ./bootstrap
+ fi
+
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then opts --disable-qt4-immodule
+#then export PATH="/opt/32bit/usr/bin:$PATH"
  fi
 
  default_build
