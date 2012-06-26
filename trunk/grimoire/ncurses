@@ -4,6 +4,12 @@
   category development
  attribute console library lto makej multilib-dual solo
     source $GNU_URL ncurses/ncurses-$VERSION.tar.gz
+case $VERSION in
+ 5.9)
+    source ftp://invisible-island.net/ncurses/5.9/patch-5.9-20120616.sh.gz ;;
+esac
+      info good 20120625
+      info last 20110404
       info home http://www.gnu.org/software/ncurses/ncurses.html
    protect /usr/share/terminfo
       desc 'displays and updates text on text-only terminals
@@ -23,6 +29,12 @@ build(){
   mkdir -pvm 755 $DESTDIR/bin
   mv     -v      $DESTDIR/{usr/bin/{clear,tput},bin/}
  }
+
+ case $VERSION in
+  5.9) cp ${SOURCE[1]} .
+       gunzip ${SOURCE[1]}
+       sh     ${SOURCE[1]%.gz} ;;
+ esac
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then  LIBDIR=/lib64
