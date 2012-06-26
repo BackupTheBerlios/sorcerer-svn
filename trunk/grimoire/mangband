@@ -1,11 +1,23 @@
-   version stable 070
+# Compiles, but does not track when installed
+# source doesn ot support DESTDIR
+# might remove from grimoire.
+
+   version stable 1.1.2 070
   category game
- attribute console
+ attribute broke console hidden
     source http://mangband.org/download/mangband-$VERSION.tar.gz
+      info omit 20130101
+#     info good 20120625
       info home http://mangband.org/
       desc 'multiplayer angband game'
 
 build(){
+ [ -d src ] &&
+ cd   src
+ default_build
+}
+
+build_old(){
  cd src
 
  MCFG='/etc/mangband.cfg'
@@ -14,7 +26,7 @@ build(){
  sed -i "s:\./lib/:/usr/share/mangband:" config.h
 
  make &&
- mkdir -p $DESTDIR/{etc,usr/{bin,share/mangband}} &&
+ mkdir -pvm 755 $DESTDIR/{etc,usr/{bin,share/mangband}} &&
  cd .. &&
  cp -a mangband    \
        mangclient  \
