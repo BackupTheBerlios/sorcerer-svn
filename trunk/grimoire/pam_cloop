@@ -1,8 +1,12 @@
-   version stable 0.2.1 0.2.0-1 0.1.0-1
+# Compiles, but does not install properly does not track
+
+   version stable 0.2.1
    require PAM
   category security/authentication security/encryption
- attribute client new
+ attribute client
     source http://max.kellermann.name/download/pam_cloop/v0.2/pam_cloop-$VERSION.tar.gz
+      info good 20120627
+      info last 20100917
       info home http://max.kellermann.name/projects/pam_cloop/
       desc 'PAM module for mounting encrypted partitions.
 
@@ -24,16 +28,16 @@ configuration for the requested user.'
 
 
 build(){
- LIB=/usr/lib
+ local LIB=/lib
  case $MACHTYPE in
   x86_64*) LIB+=64 ;;
  esac
 
- sed -i "s:-O2:$CFLAGS:" src/Makefile
+ sed -i "s:-O2:$CFLAGS:; s: -Werror::" src/Makefile
  make &&
- mkdir -p $DESTDIR/{etc,$LIB}
+ mkdir  -pvm 755 $DESTDIR/{etc,$LIB} &&
  mkdir   -vm 755 -p                               $DESTDIR/etc/security &&
- mkdir   -vm 755 -p                               $DESTDIR/usr/lib/security &&
- install -vm 644 -o root -g root cloop.conf       $DESTDIR/etc/security &&
- install -vm 755 -o root -g root src/pam_cloop.so $DESTDIR/$LIB/security
+ install -vm 644 -o root -g root cloop.conf       $DESTDIR/etc/security/ &&
+ mkdir   -vm 755 -p                               $DESTDIR/$LIB/security &&
+ install -vm 755 -o root -g root src/pam_cloop.so $DESTDIR/$LIB/security/
 }
