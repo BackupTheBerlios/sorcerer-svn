@@ -1,4 +1,4 @@
-   version stable 1.0.0 0.9.9 0.9.8
+   version stable 1.0.0
    require DirectFB ncurses
   optional PAM           --enable-pam       --disable-pam       for plugable authentication
   optional libXScrnSaver --enable-x-support --disable-x-support for x11 support only with xf86
@@ -6,8 +6,10 @@
   category utility/terminal-emulator
  attribute console
     source $SOURCEFORGE_URL qingy/qingy/qingy%20$VERSION/qingy-$VERSION.tar.bz2
+      info good 20120701
+      info last 20101207
       info home http://qingy.sourceforge.net
-      desc 'qingy is a getty that uses DirectFB.
+      desc 'getty that uses DirectFB
 By using DirectFB qingy provides a GUI
 without the overhead of the X Window System.
 qingy allows the user the choice of starting
@@ -19,6 +21,10 @@ build(){
   then sed -i 's:/lib/security/::' /etc/pam.d/qingy
   fi
  }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ fi
 
  default_build &&
  adjust_pam
