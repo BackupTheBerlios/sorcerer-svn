@@ -3,9 +3,11 @@
   category game
  attribute x11
     source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/rocksndiamonds-$VERSION.tar.gz
-    source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-dx-1.0.tar.gz
-    source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-emc-1.0.tar.gz
-    source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-sp-1.0.tar.gz
+#   source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-dx-1.0.tar.gz
+#   source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-emc-1.0.tar.gz
+#   source http://www.artsoft.org/RELEASES/unix/rocksndiamonds/levels/rockslevels-sp-1.0.tar.gz
+      info good 20120703
+      info last 20100608
       info home http://www.artsoft.org/rocksndiamonds/
       desc 'arcade style load runner or bloderdash type game with stero sounds
 rocksndiamonds is an arcade style game
@@ -18,6 +20,9 @@ Supaplex, and a lot of new levels designed by other players.'
 
 
 build(){
+ case $VERSION in
+  3.3.0.1) sed -i 's:-lsmpeg::' src/Makefile ;;
+ esac
 
  GD="GAME_DIR=/usr/share/rocksndiamonds"
  OP="OPTIONS=$CFLAGS"
@@ -27,10 +32,10 @@ build(){
  RW_GD="/var/lib/rocksndiamonds"
  
  diamond_install(){
-  mkdir -p $DESTDIR/{usr/{bin,share/rocksndiamonds},var/lib/rocksndiamonds}
+  mkdir  -pvm 755  $DESTDIR/{usr/{bin,share/rocksndiamonds},var/lib/rocksndiamonds}
   cp      -av docs graphics levels music sounds $DESTDIR/$RO_GD
   cp      -av scores                            $DESTDIR/$RW_GD
-  install -m  755 rocksndiamonds                $DESTDIR/$UG
+  install -vm 755 rocksndiamonds                $DESTDIR/$UG
  }
 
 
