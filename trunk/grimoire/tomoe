@@ -4,17 +4,22 @@
 
    version stable 0.6.0
    require subversion
+      opts --disable-dict-ruby --without-ruby --enable-static=no
+#     opts --disable-dict-ruby --without-ruby --without-svn-lib --enable-static=no
   category input
  attribute console library makej multilib-concurrent
     source $SOURCEFORGE_URL tomoe/tomoe/tomoe-$VERSION/tomoe-$VERSION.tar.gz
+      info good 20120704
+      info last 20070629
       info home http://sourceforge.jp/projects/tomoe/
-      opts --disable-dict-ruby --without-ruby --enable-static=no
-#     opts --disable-dict-ruby --without-ruby --without-svn-lib --enable-static=no
       desc 'handwriting identification library'
 
 build(){
+ glib_fix(){ grep -lr glib/ * | xargs sed -i 's:glib.*\.h:glib.h:'; }
+
  case $VERSION in
- 0.6.0) export CFLAGS+=' -I/usr/include/apr-1 -I/usr/include/mysql' ;;
+  0.6.0) export CFLAGS+=' -I/usr/include/apr-1 -I/usr/include/mysql'
+         glib_fix ;;
  esac
  default_build
 }
