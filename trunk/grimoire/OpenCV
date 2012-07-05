@@ -1,9 +1,16 @@
 # this spell must be multilib-dual
 
-# 2.4.1 2.4.0 failed to compile
+# 2.4.2 2.4.1 2.4.0 failed to compile
+# because they are not multilib compatible and attempt to link
+# with the ELF 64-bit libraries when compiling with -m32
+
+# upgrading cmake does not solve OpenCV version greater than 2.3.1a
+# inability to select the proper libraries for linking.
+# it must somewhere unset PKG_CONFIG_PATH from the environment
+# but I was unable to grep it in the source tree.
 
    version   stable 2.3.1a 2.2.0 2.1.0
-   version unstable 2.4.1 2.4.0 2.4.0-beta2 2.4.0-beta
+   version unstable 2.4.2 2.4.1 2.4.0 2.4.0-beta2 2.4.0-beta
 case $VERSION in
  2.3.1a)
       opts -DWITH_FFMPEG:BOOL=OFF
@@ -20,7 +27,7 @@ esac
  attribute library multilib-dual
 # attribute broke
     source $SOURCEFORGE_URL opencvlibrary/opencv-unix/${VERSION:0:5}/OpenCV-$VERSION.tar.bz2
-      info last 20120603
+      info last 20120705
       info home http://opencv.willowgarage.com/wiki/
       desc 'open source computer vision library'
 
@@ -39,7 +46,7 @@ build(){
   export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
  }
 
- if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=' -L/usr/lib64 -L/lib64'
  else export LDFLAGS+=' -L/usr/lib -L/lib'
  fi
