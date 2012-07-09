@@ -1,12 +1,27 @@
 # 0.1.3 has compile error
+# compilation of version 0.3.3 with gcc version 4.6.3 successful
+# but unsuccessful with gcc version 4.7.1
 
-   version stable 0.3.3 0.1.3 0.1.2 0.1.1 0.1.0 0.0.4
+   version stable 0.3.3
+case $VERSION in
+ 0.3.3)
+   use_gcc gcc-v4.5 ;;
+esac
    require SDL_image SDL_mixer curl glew jam openal physfs
       opts -DINSTALL_SUBDIR_BIN=bin
   category game
  attribute x11
     source http://supertux.googlecode.com/files/supertux-$VERSION.tar.bz2
+      info good 20120709
+      info last 20100301
       info vurl http://supertux.lethargik.org/wiki/Download/Installation_Milestone_1#Any_system.2FSource_Code
       info home http://supertux.berlios.de/
       info home http://super-tux.sourceforge.net/
       desc 'side-scrolling game similar to Super Mario Bros'
+
+build(){
+ case $VERSION in
+  0.3.3) sed -i '\,curl/types\.h,d' src/addon/addon_manager.cpp ;;
+ esac
+ default_build
+}
