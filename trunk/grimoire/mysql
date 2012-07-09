@@ -3,8 +3,10 @@
 
 # some unspecified compile error during version 5.5.17
 # now version 5.5.16 also is not compiling
+# 5.5.25a failed to compile because during the ELF 32-bit compile
+# the 64-bit openssl library was selected for linking by the source.
 
-   version stable 5.5.25 5.5.24 5.5.23 5.5.22 5.5.21 5.5.20
+   version stable 5.5.25a 5.5.25 5.5.24 5.5.23 5.5.22
    version legacy 5.1.59 5.1.56 5.1.55
    version unstable 6.0.11
    require db cmake gcc-g++ init-functions libaio ncurses openssl readline zlib
@@ -29,7 +31,7 @@ case $PROGRESS in
 esac
     source $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
       info vurl http://dev.mysql.com/downloads/mysql/${VERSION:0:3}.html
-      info last 20120531
+      info last 20120709
       info home http://www.mysql.com
    exclude /var/lib/mysql
       desc 'SQL database server.
@@ -42,7 +44,8 @@ build(){
  sed -i 's:"data":"/var/lib/mysql":' cmake/install_layout.cmake
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then OPTS+=" -DINSTALL_LIBDIR:STRING=lib64"
+ then opts -DINSTALL_LIBDIR:STRING=lib64
+ else export OPENSSL_ROOT_DIR=/usr
  fi
 
  default_build &&
