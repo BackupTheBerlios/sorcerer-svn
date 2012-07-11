@@ -4,9 +4,12 @@ case $VERSION in
  1.1.4) require guile-v1.8 ;;
 esac
   optional trackballs-music '' '' for additional music
+  optional trackballs-extra-levels
     source $SOURCEFORGE_URL trackballs/trackballs/$VERISON/trackballs-$VERSION.tar.gz
   category game
  attribute x11
+      info good 20120711
+      info last 20070525
       info home http://trackballs.sourceforge.net
       desc 'game similar to marble madness
 trackballs is a simple game similar
@@ -17,17 +20,19 @@ pools of acid, and other obstacles
 the player collects points.
 When the ball reaches the destination,
 the player continue to the next more
-difficult track - unless time runs out first. '
+difficult track - unless time runs out first.'
 
 build(){
-export LDFLAGS+=' -L/usr/X11R6/lib'
-sed -i 's:g++-3/set.h:set.h:' src/general.h
+ sed -i 's:g++-3/set.h:set.h:' src/general.h
 
-case $VERSION in
- 1.1.4) export CFLAGS+=' -I/opt/guile/1.8/include'
-        export CXXFLAGS+=' -I/opt/guile/1.8/include'
-        export LDFLAGS+=' -L/opt/guile/1.8/lib -Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib'
-        export  PATH="/opt/guile/1.8/bin:$PATH" ;;
-esac
-default_build
+ case $VERSION in
+  1.1.4) export CFLAGS+=' -I/opt/guile/1.8/include'
+         export CXXFLAGS+=' -I/opt/guile/1.8/include'
+         export LDFLAGS+=' -L/opt/guile/1.8/lib -Wl,-rpath-link,/opt/guile/1.8/lib -Wl,-rpath,/opt/guile/1.8/lib'
+         export  PATH="/opt/guile/1.8/bin:$PATH"
+         export GUILE_CONFIG=/opt/guile/1.8/bin/guile-config
+         sed -i 's:-L/usr/X11R6/lib/::' configure ;;
+ esac
+
+ default_build
 }
