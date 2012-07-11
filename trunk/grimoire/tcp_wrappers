@@ -21,11 +21,14 @@
 # -r--r--r--  1 wietse  wheel   99438 Apr  8  1997 tcp_wrappers_7.6.tar.gz
 # tcp_wrappers optional will be removed from openssh in 2009
 
-   version stable 7.6
+   version stable 7.6-ipv6.4 7.6
    require libtool
   category network
  attribute console server
     source ftp://ftp.porcupine.org/pub/security/tcp_wrappers_$VERSION.tar.gz
+      info good 20120710
+      info last 20040504
+#     info last 19970408
       info home ftp://ftp.porcupine.org/pub/security/index.html
       desc 'library for monitoring and filtering of inbound network request.
 The tcp_wrappers package allows you to 
@@ -40,20 +43,24 @@ applications, and impose no overhead on the actual conversation
 between the client and server applications.'
 
 build(){
+ local LD
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LD=lib64
+ else LD=lib
+ fi
 
  RDR="REAL_DAEMON_DIR=/usr/sbin"
 
  make "$RDR" linux &&
- mkdir -p $DESTDIR/usr/{include,lib,man/man{3,5,8},sbin} &&
+ mkdir -pvm 755 $DESTDIR/usr/{include,$LD,man/man{3,5,8},sbin} &&
  for EXECUTABLE in *; do
   if   [ -x $EXECUTABLE ]
   then cp   $EXECUTABLE $DESTDIR/usr/sbin
   fi
  done &&
  cp -v tcpd.h    $DESTDIR/usr/include  &&
- cp -v libwrap.a $DESTDIR/usr/lib      &&
+ cp -v libwrap.a $DESTDIR/usr/$LD      &&
  cp -v *.3       $DESTDIR/usr/man/man3 &&
  cp -v *.5       $DESTDIR/usr/man/man5 &&
  cp -v *.8       $DESTDIR/usr/man/man8
-
 }
