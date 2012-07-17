@@ -3,16 +3,44 @@
 # appear to be causing a compile error
 # after the update to gcc version 4.5.3
 
-   version stable 88.0 87.0 85.0 83.0 0.82.7.1
+# see the comment on wesnoth to understand why spring is also broke
+
+   version stable 89.0 88.0 87.0 85.0 83.0 0.82.7.1
 case $VERSION in
+ 89.0)
+   require boost-v1_45_0 ;;
  0.82.7.1)
       opts -DAI_TYPES:STRING=NATIVE ;;
 esac
    require DevIL SDL boost freetype glew jdk libXcursor libvorbis lua openal p7zip
   category game
  attribute makej optimize x11
+ attribute broke
     source $SOURCEFORGE_URL springrts/springrts/spring-$VERSION/spring_${VERSION}_src.tar.gz
       info vurl http://spring.clan-sy.com/wiki/Download
-      info last 20120326
+      info last 20120716
       info home http://spring.clan-sy.com/
       desc 'a real time strategy game.'
+
+build(){
+ old_boost(){
+  if  [[ $HOSTTYPE == x86_64 ]]; then
+   if [[ $CFLAGS   =~ -m32   ]]; then
+    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
+    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+   else
+    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64"
+    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
+   fi
+  else
+   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
+   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+  fi
+ }
+
+ case $VERSION in
+  89.0) old_boost ;;
+ esac
+
+ default_build
+}

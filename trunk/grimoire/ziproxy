@@ -1,10 +1,14 @@
-   version stable 3.2.1 3.2.0 3.1.3 3.1.2 3.1.1
-   version secure 3.1.1
+   version stable 3.2.1
+case $VERSION in
+ 3.2.1)
+   require giflib-v4 ;;
+esac
    require confuse cyrus-sasl giflib init-functions jpeg libpng
   optional jasper --with-jasper '' for recoding some images in JPEG-2000 format
   category network/web network/ftp
  attribute server
     source $SOURCEFORGE_URL ziproxy/ziproxy/ziproxy-$VERSION/ziproxy-$VERSION.tar.bz2
+      info good 20120716
       info last 20120209
       info home http://ziproxy.sourceforge.net/
       desc 'non-caching proxy for expediting web browsing
@@ -18,12 +22,29 @@ Therefore, do not enable jasper as an optional requirement
 when using ziproxy with firefox.'
 
 build(){
-install_conf(){
- sed     -i 's:/var/zip:/usr/share/zip:' etc/ziproxy.conf
- mkdir -vm 755 -p $DESTDIR/{etc,usr/share/ziproxy/error}
- install -vm 644 etc/ziproxy.conf       $DESTDIR/etc/ziproxy.conf
- install -vm 644 var/ziproxy/error/*    $DESTDIR/usr/share/ziproxy/error
-}
+ giflib_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then GIFLIBLIBDIR=/opt/giflib/4/usr/lib64
+  else GIFLIBLIBDIR=/opt/giflib/4/usr/lib
+  fi
+  export   CFLAGS+=" -I/opt/giflib/4/usr/include"
+  export CXXFLAGS+=" -I/opt/giflib/4/usr/include"
+  export  LDFLAGS+=" -L$GIFLIBLIBDIR -Wl,-rpath,$GIFLIBLIBDIR"
+  export PKG_CONFIG_PATH="$GIFLIBLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ install_conf(){
+  sed     -i 's:/var/zip:/usr/share/zip:' etc/ziproxy.conf
+  mkdir -vm 755 -p $DESTDIR/{etc,usr/share/ziproxy/error}
+  install -vm 644 etc/ziproxy.conf       $DESTDIR/etc/ziproxy.conf
+  install -vm 644 var/ziproxy/error/*    $DESTDIR/usr/share/ziproxy/error
+ }
+
+ case $VERSION in
+  3.2.1) giflib_fix ;;
+ esac
 
  sed -i 's:-Wl,-dn,::;s:,-dy::' configure
  default_build &&
