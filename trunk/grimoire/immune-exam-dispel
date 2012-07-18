@@ -1,0 +1,48 @@
+# Copyright Kyle Sallee 2012
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+version_year_week
+
+  category immune-system
+ attribute archive_off solo stale
+      info good 20120718
+      info home http://sorcerer.silverice.org/
+      desc "removes obsolte softare
+
+This performs a weekly check
+that probably aught to be performed by
+spell immune-exam-clean.
+Yet not all SAs want for sorcery tracked software
+to be automatically dispelled
+when it's spell file is no longer provided?
+However, such software is probably obsolete
+and probably should be removed.
+
+immune-exam-dispel should be unable
+to accidentally mass dispel
+the entire installed content of a box.
+The \"augur gone\" command
+aborts rather than providing an answer
+when the amount of available spells seems execessively low.
+Consequently, having this spell installed
+should not become an invitation for a box to self destruct."
+
+build(){ :; }
+
+post_install(){
+ default_post_install
+
+ local s g v
+
+ g=$( augur gone )
+
+ if [ -n  "$g" ]; then
+  for s in $g; do
+   v=$(< $VERSION_LOGS/$s )
+   event "$s" "$v" "Miss Self"
+   echo  "$s" | pipe_queue "$DISPEL_QUEUE"
+  done
+  dispel
+ fi
+}
