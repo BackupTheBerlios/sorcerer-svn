@@ -16,31 +16,251 @@ pnw(){
  sed 's/://p;d'
 }
 
-if   [ "$1" == start ]
-then pnw | grep -q . || exit 0
-fi
+write_conf(){
+ output(){
+  echo "ctrl_interface=DIR=/var/run/wpa_supplicant GROUP=wpa_priv"
+  echo "network={"
+  echo "ssid=\"$SSID\""
+  echo "scan_ssid=$SCAN_SSID"
+  echo "key_mgmt=$KEY_MGMT"
+  echo "psk=\"$PSK\""
+  echo "}"
+ }
+ mkdir -p /etc/wpa_supplicant/
+ output > /etc/wpa_supplicant/wpa_supplicant.conf
+}
 
-. /lib/lsb/init-functions
+configure(){
 
-param(){
- local N
- local E=/etc/wpa_supplicant
+ save(){
+  output(){
+   echo "CONFIGURED=true"
+   echo "SSID=$SSID"
+   echo "SCAN_SSID=$SCAN_SSID"
+   echo "KEY_MGMT=$KEY_MGMT"
+   echo "PSK=$PSK"
+   echo "INTERFACE=$INTERFACE"
+  }
 
- pnw |
- while read; do
-  if   [ -f     $E/wpa$REPLY.conf ]
-  then CONF=" -c $E/wpa$REPLY.conf"
-  elif [ -f     $E/wpa_supplicant.conf ]
-  then CONF=" -c $E/wpa_supplicant.conf"
+  mkdir -p /etc/init.d/conf.d
+  local  c=/etc/init.d/conf.d/wpa_supplicant
+
+  [ -f $c ] &&
+  sed -i '/CONFIGURED=/d
+          /SSID=/d
+          /SCAN_SSID=/d
+          /KEY_MGMT=/d
+          /PSK=/d
+          /INTERFACE=/d' $c
+  output               > $c
+  write_conf
+ }
+
+ get_ssid(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Enter the same name for network as router uses"
+
+  SSID="$( dialog            \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --stdout                  \
+   --no-cancel               \
+   --inputbox "$HELP" 0 0    \
+              "$SSID"
+  )"
+ }
+
+ get_scan_ssid(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Does the router broadcast the SSID?"
+
+  if   ! [ "$SCAN_SSID" == 1 ]
+  then local DEFAULT=--defaultno
   fi
-  echo "$N-Dwext -i$REPLY$CONF"
-  N="-N "
+
+  if dialog                  \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   $DEFAULT                  \
+   --yesno "$HELP" 0 0
+  then SCAN_SSID=1
+  else SCAN_SSID=0
+  fi
+ }
+
+ get_psk(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Enter same network passphrase as router uses"
+
+  PSK="$( dialog             \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --stdout                  \
+   --no-cancel               \
+   --inputbox "$HELP" 0 0    \
+              "$PSK"
+  )"
+ }
+
+ get_key_mgmt(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Select type of key management router uses"
+      OTHER=$"Menu driven configuration of non WPA-PSK key management
+is not supported by this simple menu driven configuration interface.
+Please read the wpa_supplicant.conf manual page
+and then appropriately edit /etc/wpa_supplicant/wpa_supplicant.conf
+after selecting the interface and exiting this configuration menu."
+
+  KEY_MGMT="$( dialog        \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --stdout                  \
+   --no-cancel               \
+   --menu      "$HELP" 0 0 0 \
+   WPA-PSK     ""            \
+   OTHER       ""
+  )"
+
+  if [ OTHER = "$KEY_MGMT" ]; then
+   dialog --backtitle "$BACKTITLE" \
+          --title     "$TITLE"     \
+          --stdout                 \
+          --no-cancel              \
+          --msgbox    "$OTHER"
+  fi
+ }
+
+ interface_available(){
+  local HELP=$"Wireless interfaces are not available.
+When wireless interfaces are available please re-run
+# /etc/init.d/wpa_supplicant configure"
+
+  if ! pnw | grep -q .; then
+   dialog --backtitle "$BACKTITLE" \
+          --title     "$TITLE"     \
+          --stdout                 \
+          --no-cancel              \
+          --msgbox    "$HELP" 0 0
+   false
+  fi
+ }
+
+ get_interface(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Select wireless interface name"
+
+  interface_available &&
+  KEY_MGMT="$( dialog           \
+   --backtitle    "$BACKTITLE"  \
+   --title        "$TITLE"      \
+   --stdout                     \
+   --no-cancel                  \
+   --default-item "$INTERFACE"  \
+   --menu         "$HELP" 0 0 0 \
+   $( pnw | sed -r "s:(.*):\1\tInterface:" )
+  )"
+ }
+
+ wpa_menu(){
+  BACKTITLE=$"WPA Configuration Menu"
+      TITLE=$"WPA Variable Selection"
+       HELP=$"Select field to adjust"
+        OUT=$"Save and Exit"
+     SELECT=$"Select"
+
+  dialog                      \
+   --backtitle   "$BACKTITLE" \
+   --title       "$TITLE"     \
+   --stdout                   \
+   --ok-label     "$SELECT"   \
+   --cancel-label "$OUT"      \
+   --menu         "$HELP"     \
+   0 0 0                      \
+   SSID      "$SSID"          \
+   SCAN_SSID "$SCAN_SSID"     \
+   KEY_MGMT  "$KEY_MGMT"      \
+   PSK       "$PSK"           \
+   INTERFACE "$INTERFACE"
+ }
+
+ while :; do
+ case $( wpa_menu ) in
+  SSID)		get_ssid ;;
+  SCAN_SSID)	get_scan_ssid ;;
+  KEY_MGMT)	get_key_mgmt ;;
+  PSK)		get_psk ;;
+  INTERFACE)	get_interface ;;
+  *)		save; return 0 ;;
+ esac
  done
 }
 
-only start stop restart status
+now(){
+ if ! dialog --title "WPA supplicant configuration" --timeout 60 \
+             --yesno "WPA supplicant can be configured now.
+Or configuration and starting later is possible
+by executing the commands:
+
+# /etc/init.d/wpa_supplicant configure;
+# /etc/init.d/wpa_supplicant start
+
+If Sorcerer is installed
+then this prompt will not appear on the next boot.
+
+Configure WPA supplicant now?" 0 0
+ then
+  mkdir -p               /etc/init.d/conf.d
+  echo CONFIGURED=true > /etc/init.d/conf.d/wpa_supplicant
+  false
+ fi
+}
+
+# if   [ "$1" == start ]
+# then pnw | grep -q . || exit 0
+# fi
+
+# param(){
+#  local N
+#  local E=/etc/wpa_supplicant
+
+#  pnw |
+#  while read; do
+#   if   [ -f     $E/wpa$REPLY.conf ]
+#   then CONF=" -c $E/wpa$REPLY.conf"
+#   elif [ -f     $E/wpa_supplicant.conf ]
+#   then CONF=" -c $E/wpa_supplicant.conf"
+#   fi
+#   echo "$N-Dwext -i$REPLY$CONF"
+#   N="-N "
+#  done
+# }
+
+guess_interface(){
+ if   [ -z "$INTERFACE" ]
+ then INTERFACE="$( pnw | sed "1p;d" )"
+ fi
+}
+
+. /lib/lsb/init-functions
+only start stop restart configure status
 name wpa_supplicant
 server /sbin/wpa_supplicant
-options "-B $( param )"
-#options "-B -g /var/run/wpa_supplicant $( param )"
+guess_interface
+options "-B -Dwext -i$INTERFACE -c $CONF"
+#options "-B $( param )"
+##options "-B -g /var/run/wpa_supplicant $( param )"
 
+if     [ start == "$1"    ] &&
+       [ -z "$CONFIGURED" ] &&
+     ! [ -f /etc/wpa_supplicant/wpa_supplicant.conf ]
+then now && configure
+fi
+
+if   [ -n "$SSID" ] && ! [ -f /etc/wpa_supplicant/wpa_supplicant.conf ]
+then write_conf
+fi
