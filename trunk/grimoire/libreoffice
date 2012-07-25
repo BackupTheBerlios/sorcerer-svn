@@ -12,12 +12,17 @@ if [[ $HOSTTYPE == x86_64 ]]; then
 else
     source http://download.documentfoundation.org/libreoffice/stable/$VERSION/deb/x86/LibO_${VERSION}_Linux_x86_install-deb_en-US.tar.gz
 fi
+case $VERSION in
+ 3.5.5)
+     source $SOURCEFORGE_URL libpng/libpng12/1.2.50/libpng-1.2.50.tar.xz ;;
+esac
 
 #    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-core-$VERSION.tar.xz
 #    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-binfilter-$VERSION.tar.xz
 #    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-dictionaries-$VERSION.tar.xz
 #    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-help-$VERSION.tar.xz
 #    source http://download.documentfoundation.org/libreoffice/src/${VERSION:0:5}/libreoffice-translations-$VERSION.tar.xz
+      info good 20120724
       info last 20120713
       info docs http://www.libreoffice.org/get-help/documentation/
       info faq  http://www.libreoffice.org/get-help/faq/
@@ -27,14 +32,20 @@ fi
       desc 'fork of openoffice'
 
 build(){
-build_old(){
- [[ $PWD =~ /libreoffice ]] &&
- for DIR in libreoffice-*; do
-  cp -a  $DIR/* .
-  rm -rf $DIR
- done
- default_build
-}
+ obsolete_libpng(){
+  cd libpng-1.2.50
+  ./configure  \
+   --prefix=$PWD/installed \
+   --libdir=/opt/libreoffice3.5/program \
+   --enable-shared --disable-static &&
+  make &&
+  make install "DESTDIR=$DESTDIR" &&
+  cd ..
+ }
+
+ case $VERSION in
+  3.5.5) obsolete_libpng ;;
+ esac
 
  [ -d DEBS ] &&
  cd   DEBS   &&
@@ -43,4 +54,10 @@ build_old(){
  while read
  do    ar x $REPLY data.tar.gz; tar -C $DESTDIR -xvf data.tar.gz || return 1
  done
+}
+
+current(){
+ case $VERSION in
+  3.5.5) [ -f /opt/libreoffice3.5/program/libpng.so.0.50.0 ] ;;
+ esac
 }
