@@ -1,0 +1,50 @@
+   version   stable 1.0.0beta41
+   require SDL-v2 SDL_image SDL_ttf libvorbis openal premake
+  optional libX11 --with-x  --disable-x for x11 graphical interface
+  sys_user games
+  category game
+ attribute x11
+    source http://te4.org/dl/t-engine/t-engine4-src-$VERSION.tar.bz2
+      info home http://te4.org/
+      info last 20120627
+      desc 't-engine4 + ToME 
+Troubles of Middle Earth is an angband fork or a CRPG
+
+Compilation, linking, and installation of 1.0.0beta41 seems okay,
+but it does not seem to play.
+Does a large rectangular empty black window.'
+
+build(){
+ make_install(){
+  mkdir  -pvm 755                  $DESTDIR/usr/share/tome
+  cp     -av bootstrap game        $DESTDIR/usr/share/tome/
+  chown  -R root:root              $DESTDIR/usr/share/tome
+  find $DESTDIR/usr/share/tome -type d | xargs -r --max-lines=256 chmod 755
+  find $DESTDIR/usr/share/tome -type f | xargs -r --max-lines=256 chmod 644
+  install -vm 755 t-engine         $DESTDIR/share/tome
+  mkdir  -pvm 755                  $DESTDIR/usr/bin
+  install -vm 755 $SCRIPT_DIR/tome $DESTDIR/usr/bin/
+ }
+
+ sed -i 's:SDL2_ttf:SDL_ttf:; s:SDL2_image:SDL_image:' build/te4core.lua
+ export   CFLAGS="$( echo   "$CFLAGS" | sed 's:-O.::' )"
+ export CXXFLAGS="$( echo "$CXXFLAGS" | sed 's:-O.::' )"
+ export   CFLAGS+="-I/usr/include/SDL2 -I/usr/include/SDL $CFLAGS"
+ export CXXFLAGS+="-I/usr/include/SDL2 -I/usr/include/SDL $CXXFLAGS"
+ premake4 gmake &&
+ make config=release &&
+ make_install
+}
+
+build_old(){
+USGT='/usr/share/games/tome'
+
+cd src
+make    -f makefile.std LIBDIR="$USGT/lib" &&
+mkdir -pvm 755 $DESTDIR/usr/{bin,share/games/tome} &&
+install -v -s -g games -m 2775 tome $DESTDIR/usr/bin &&
+mkdir   -pvm 755      $DESTDIR/$USGT &&
+cp      -a ../lib     $DESTDIR/$USGT &&
+chown   -R root:games $DESTDIR/$USGT &&
+chmod   -R g+w        $DESTDIR/$USGT
+}
