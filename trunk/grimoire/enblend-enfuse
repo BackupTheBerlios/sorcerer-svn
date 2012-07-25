@@ -7,15 +7,13 @@
 # absolutly requires lcms
 # modify spell to compile static version of lcms and link with it.
 
-   version stable 4.0 3.2
-   version secure 4.0
+   version stable 4.0
    require boost freeglut glew lcms libxmi openexr tiff
   category graphic/utility
  attribute console makej
- attribute broke
     source $SOURCEFORGE_URL enblend/enblend-enfuse/enblend-enfuse-$VERSION/enblend-enfuse-$VERSION.tar.gz
-    source $SOURCEFORGE_URL libpng/libpng12/1.2.44/libpng-1.2.44.tar.xz
-      info good 20120606
+    source $SOURCEFORGE_URL libpng/libpng12/1.2.50/libpng-1.2.50.tar.xz
+      info good 20120725
       info last 20091213
       info home http://enblend.sourceforge.net/
       desc 'tool for compositing images
@@ -26,12 +24,20 @@ Enblend does not line up the images for you.
 Use a tool like Hugin to do that.'
 
 build(){
- cd libpng-1.2.44 &&
- ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
- make install &&
- export  LDFLAGS+=" -L$PWD/install/lib" &&
- export   CFLAGS+=" -I$PWD/install/include" &&
- export CXXFLAGS+=" -I$PWD/install/include" &&
- cd .. &&
+ obsolete_libpng(){
+  cd libpng-1.2.50 &&
+  ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
+  make install &&
+  export  LDFLAGS+=" -L$PWD/install/lib" &&
+  export   CFLAGS+=" -I$PWD/install/include" &&
+  export CXXFLAGS+=" -I$PWD/install/include" &&
+  cd ..
+ }
+
+ case $VERSION in
+  4.0) obsolete_libpng
+       export LDFLAGS+=' -lboost_system-mt' ;;
+ esac
+
  default_build
 }
