@@ -16,21 +16,23 @@
 
 # 0.48.1 does not exists?
 
-   version stable 0.48.3.1 0.48.3 0.48.2 0.48.1 0.48.0 0.47
+   version stable 0.48.3.1
    require ImageMagick Python boost gc gsl gtkmm-v2.24 perl--XML-XQL poppler popt
   optional aspell
   optional gtkspell
   optional lcms      --enable-lcms    --disable-lcms      for light weight color management library
-case $VERSION in
- 0.48.3*)
-   require libpng-v1.4 ;;
-esac
  category graphic/editor
  attribute broke
  attribute x11
     source $SOURCEFORGE_URL inkscape/inkscape/$VERSION/inkscape-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL inkscape/inkscape/${VERSION:0:4}/inkscape-$VERSION.tar.bz2
-      info last 20120222
+case $VERSION in
+ 0.48.3*)
+   use_gcc gcc-v4.5
+#  require libpng-v1.4 ;;
+     source $SOURCEFORGE_URL libpng/libpng12/1.2.50/libpng-1.2.50.tar.xz ;;
+esac
+      info last 20120219
       info home http://www.inkscape.org/
       info docs http://inkscape.org/doc/
       desc 'vector graphics editor
@@ -53,6 +55,15 @@ by using open, community-oriented development.
 The above description is from http://www.inkscape.org/'
 
 build(){
+ obsolete_libpng(){
+  cd libpng-1.2.50 &&
+  ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
+  make install &&
+  export  LDFLAGS+=" -L$PWD/install/lib" &&
+  export   CFLAGS+=" -I$PWD/install/include" &&
+  export CXXFLAGS+=" -I$PWD/install/include" &&
+  cd ..
+ }
 
  libpng_fix(){
   if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
@@ -64,7 +75,8 @@ build(){
  }
 
  case $VERSION in
-  0.48.3.1) libpng_fix ;;
+  0.48.3.1) obsolete_libpng ;;
+# 0.48.3.1) libpng_fix ;;
  esac
 
  default_build

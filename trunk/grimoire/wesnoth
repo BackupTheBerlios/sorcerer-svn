@@ -2,19 +2,19 @@
 # problem with included lua?
 
 # upgrade from boost version from 1_49_0 to 1_50_0 broke wesnoth compilation
-# the fix below to use boost 1_45_0 does not fix the break.
+# the fix below to use boost 1_46_1 does not fix the break.
 
-   version   stable 1.10.3 1.10.2 1.10.1 1.10 1.8.6 1.8.5 1.8.4 1.8.2
-case $VERSION in
- 1.10.3)
-   require boost-v1_45_0 ;;
-esac
+   version   stable 1.10.3
+#case $VERSION in
+# 1.10.3)
+#   use_gcc gcc-v4.5
+#   require boost-v1_46_1 ;;
+#esac
    require SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi lua pango subversion
 #     opts --disable-strict-compilation
       opts -DENABLE_STRICT_COMPILATION:BOOL=FALSE
   category game
  attribute makej x11
- attribute broke
     source $SOURCEFORGE_URL wesnoth/wesnoth-${VERSION:0:4}/wesnoth-$VERSION/wesnoth-$VERSION.tar.bz2
       info last 20120521
       info home http://www.wesnoth.org/
@@ -25,23 +25,20 @@ types of terrain and against different types of attacks.'
 
 build(){
  old_boost(){
-  if  [[ $HOSTTYPE == x86_64 ]]; then
-   if [[ $CFLAGS   =~ -m32   ]]; then
-    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
-    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
-   else
-    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64"
-    opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
-   fi
+  if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+   export BOOST_INCLUDEDIR=/opt/boost/1_46_1/usr/include
+   export BOOST_LIBRARYDIR=/opt/boost/1_46_1/usr/lib64
+#   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_46_1/usr/lib64"
   else
-   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
-   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+   export BOOST_INCLUDEDIR=/opt/boost/1_46_1/usr/include
+   export BOOST_LIBRARYDIR=/opt/boost/1_46_1/usr/lib
+#   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_46_1/usr/lib"
   fi
  }
 
- case $VERSION in
-  1.10.3) old_boost ;;
- esac
+# case $VERSION in
+#  1.10.3) old_boost ;;
+# esac
 
  default_build
 }
