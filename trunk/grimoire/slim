@@ -1,14 +1,17 @@
 # requires deprecated version of libpng
+# requires libXmu but fails to add instruction to link with it.
 
-   version stable 1.3.4 1.3.3
+   version stable 1.3.4
+case $VERSION in
+ 1.3.4)
+   require libpng-v1.4 ;;
+esac
    require cmake jpeg libXft libXmu libpng
   optional PAM -DUSE_PAM=yes -DUSE_PAM=no
   category window-manager
  attribute x11
- attribute broke
     source http://download.berlios.de/slim/slim-$VERSION.tar.gz
-#     info good 20120705
-      info omit 20130625
+      info good 20120727
       info last 20120625
       info home http://slim.berlios.de/
       desc 'simple login manager for X11
@@ -16,9 +19,23 @@ It features customizable options, themes, and support for PNG and XFT.
 It does not depend on a particuar toolkit or desktop environment.
 You will need to modify /etc/inittab to invoke slim at boot.'
 
-build_old(){
- patch -p1 < $SCRIPT_DIR/slim-1.3.0.patch
- sed -i 's:/usr/bin/::' Makefile
- make &&
- make install DESTDIR=$DESTDIR
+build(){
+ libpng_fix(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
+  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
+  fi
+  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
+  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
+  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
+  echo "LDFLAGS=$LDFLAGS"
+  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+ }
+
+ case $VERSION in
+  1.3.4) libpng_fix; export LDFLAGS+=' -lXmu' ;;
+ esac
+
+ default_build
 }

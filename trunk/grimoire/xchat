@@ -5,12 +5,10 @@
   optional openssl --enable-openssl       --disable-openssl for secure connections
   optional perl    ''                     --disable-perl    to run xchat perl scripts
   optional tcl     --enable-tcl           --disable-tcl     to enable use of tcl scripting
-      opts --disable-zvt
   category network/chat
  attribute console makej x11
- attribute broke
     source http://www.xchat.org/files/source/${VERSION:0:3}/xchat-$VERSION.tar.xz
-      info omit 20120529
+      info good 20120727
       info last 20100529
       info home http://www.xchat.org/
       desc 'IRC client'
@@ -22,8 +20,10 @@ build(){
   else OPTS+=' --enable-tcl=/usr/lib64'
   fi
  fi
+
  case $VERSION in
-  2.8.8) sed -i 's:glib/gi18n.h:glib.h:' src/fe-gtk/sexy-spell-entry.c \
+  2.8.8) opts --disable-dbus
+         sed -i 's:glib/gi18n.h:glib.h:' src/fe-gtk/sexy-spell-entry.c \
                                          src/common/dbus/dbus-plugin.c
          sed -i 's:glib/ghash.h:glib.h:' src/common/{text,servlist}.c
          sed -i 's:glib/gslist.h:glib.h:' src/common/xchat.h
@@ -35,5 +35,6 @@ build(){
          sed -i 's:glib/gprintf.h:glib.h:' src/common/modes.c
          sed -i 's:glib/gmarkup.h:glib.h:' src/common/util.c ;;
  esac
+
  default_build
 }
