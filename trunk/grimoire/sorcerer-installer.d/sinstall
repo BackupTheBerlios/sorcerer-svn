@@ -1,9 +1,9 @@
 #!/bin/bash
 ############################################################
-# Copyright 2001 through 2010 by Kyle Sallee,              #
+# Copyright 2001 through 2012 by Kyle Sallee,              #
 # all rights reserved                                      #
-# and may not be reditribute in modified form without      # 
-# prior writen permission of Kyle Sallee                   #
+# and may not be reditribute in whole or modified form     #
+# without the prior writen permission of Kyle Sallee       #
 # It may only be used for installing Sorcerer              #
 ############################################################
 # sorcerer.install menu driven process of for installing   #
@@ -540,6 +540,12 @@ terror_retry(){
  fi
 } 
 
+verify_results(){
+ if   [ -x /etc/init.d/ir_verify ] &&
+         ! /etc/init.d/ir_verify status
+ then confirm $"Continue installation?" --defaultno
+ fi
+}
 
 transfer_arch(){
  local NOT_MOUNT=$"Not detecting file system mounted on $TARGET"
@@ -558,6 +564,8 @@ transfer_arch(){
 
  # Free some RAM incase the box is running low.
  rm -fr /lib/modules
+
+ verify_results || exit 1
 
  cd /
  rm    -vfr              $TARGET/{bin,dev,etc,lib,lib64,opt,sbin,tmp,usr,var}

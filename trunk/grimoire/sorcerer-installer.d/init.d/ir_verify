@@ -1,0 +1,51 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: ir_find
+# Should-Start: archives
+# Default-Start: S
+# Short-Description: verifies file content on I/R
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start status
+
+check(){
+ cd /root/IR
+ LC_ALL=C md5sum -c md5sums &> /var/log/ir.verify.run
+ mv /var/log/ir.verify.{run,ran}
+}
+
+start(){
+ if   ! [ -f /media/IR/md5sums      ]; then return 2
+ elif   [ -f /var/log/ir.verify.run ]; then return 1
+ elif   [ -f /var/log/ir.verify.ran ]; then return 0; fi
+
+ log_warning_msg "IR background file verifying starting"
+ check &
+ log_success_msg "IR background file verifying started"
+}
+
+status(){
+ if   ! [ -f /var/log/ir.verify.run ] &&
+      ! [ -f /var/log/ir.verify.ran ]
+ then log_failure_msg "IR background file verification not run"; exit 0
+ elif ! [ -f /var/log/ir.verify.ran ]
+ then log_warning_msg "IR file verifcation running.  Please await the outcome."
+      while ! [ -f /var/log/ir.verify.ran ]
+      do sleep 1
+      done
+ fi
+
+ if LC_ALL=C grep ": FAILED$" /var/log/ir.verify.ran; then
+  log_failure_msg "IR background file verification unsuccessful"
+  log_failure_msg "Unexpected content read from the following files:"
+  sed "s/: FAILED$//" /var/log/ir.verify.ran
+  read -n 1 -t 10 -p "Please press space to continue or wait 10 seconds."
+  exit 1
+ fi
+
+ log_success_msg "IR background file verifcation successful"
+}
