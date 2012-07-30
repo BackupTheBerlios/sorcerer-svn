@@ -1,6 +1,6 @@
 # Uncertain if libcap is optional
 
-   version stable 8.17 8.16 8.15 8.14 8.13 8.12 8.11 8.10 8.9
+   version stable 8.17
    require acl gmp libcap
     switch -static '' to make static linked cut sort uniq
 #  require libselinux
@@ -27,6 +27,7 @@
    protect /bin/sleep
    protect /bin/sort
    protect /bin/stat
+   protect /bin/tail
    protect /bin/tee
    protect /bin/touch
    protect /bin/tr
@@ -39,7 +40,6 @@
    protect /usr/bin/install
    protect /usr/bin/md5sum
    protect /usr/bin/nohup
-   protect /usr/bin/tail
       desc 'file, shell and text manipulation utilities
 
 coreutils provides:
@@ -166,6 +166,7 @@ build(){
   mv -fv {usr/,}bin/sync	# /etc/init.d/mount
   mv -fv {usr/,}bin/sleep	# /lib/udev/rule_generator.functions
   mv -fv {usr/,}bin/sort	# /etc/init.d/{loadkeys,mount}
+  mv -fv {usr/,}bin/tail	# /lib/lsb/init-functions:redraw()
   mv -fv {usr/,}bin/tee		# /etc/{rcS,prc}
   mv -fv {usr/,}bin/timeout	# /etc/{rcS,prc}
   mv -fv {usr/,}bin/true	# legacy probably not required
@@ -203,9 +204,13 @@ post_remove(){
  default_post_remove
 }
 
+post_install(){
+ rm -f /usr/bin/tail
+ default_post_install
+}
+
 current(){
  case $VERSION in
-  8.16) [ -f /bin/tsort ] ;;
-  8.13) [ -f /bin/timeout ] ;;
+  8.17) [ -f /bin/tail ] ;;
  esac
 }

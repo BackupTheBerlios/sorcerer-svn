@@ -1,23 +1,28 @@
 # Functions for LSB-compliant init-scripts
 # Compatible with /bin/dash and /bin/bash
 # For use with the distribution Sorcerer only!
-# Copyright Kyle Sallee 2005 through 2011.
+# Copyright Kyle Sallee 2005 through 2012.
 # All rights reserved.
 
+CL="[K"
 RED="[31m"
 GREEN="[32m"
 BLUE="[34m"
 WHITE="[37m"
-OVER="[65G"
 NORM="[0m"
 
-if [ "$BASH_VERSION" ]; then BE=-e; fi
+log_line(){ echo -en "$CL$BLUE[$1$BLUE]$NORM $2\r" 1>&2;}
+log_success_msg(){ log_line "${GREEN}success" "$1\n";}
+log_failure_msg(){ log_line "${RED}failure" "$1\n";}
+log_warning_msg(){ log_line "${WHITE}message" "$1";}
 
-log_line(){ echo $BE "$GREEN * $NORM$1$OVER$BLUE[$2 $BLUE]$NORM\r" 1>&2; }
-
-log_success_msg(){ log_line "$1" "$GREEN success";}
-log_failure_msg(){ log_line "$1" "$RED failed ";}
-log_warning_msg(){ log_line "$1" "$WHITE warning";}
+redraw(){
+ log_warning_msg "Redrawing ${LINES:-25} lines"
+ clear
+ if   [ -f /var/log/init/console ]; then tail -n ${LINES:-25} /var/log/init/console
+ elif [ -f /var/log/console      ]; then tail -n ${LINES:-25} /var/log/console
+ fi | cut -d : -f4- | cut -b2-
+}
 
 locked(){
  local S P REPLY
@@ -171,31 +176,31 @@ start_daemon(){
 # $LOCK $NAME $PIDF are optional.
 # $OPTS is optional except when mounting
 
+stats(){
+ PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
+ if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+ elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+ elif [    "$LOCK" ] &&
+      [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+                      else log_warning_msg "$NAME is not running"; return 3
+ fi
+}
+
+statm(){
+ if   mnt
+ then log_warning_msg "$NAME is mounted"; return 0
+ else log_warning_msg "$NAME is not mounted"; return 3
+ fi
+}
+
+statk(){
+ if   lsmod | LC_ALL=C grep -qws "${NAME//-/.}"
+ then log_warning_msg "$NAME module is loaded"; return 0
+ else log_warning_msg "$NAME module is not loaded"; return 3
+ fi
+}
+
 status(){
- stats(){
-  PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
-  if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-  elif [    "$LOCK" ] &&
-       [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
- }
-
- statm(){
-  if   mnt
-  then log_warning_msg "$NAME is mounted"; return 0
-  else log_warning_msg "$NAME is not mounted"; return 3
-  fi
- }
-
- statk(){
-  if   lsmod | LC_ALL=C grep -qws "${NAME//-/.}"
-  then log_warning_msg "$NAME module is loaded"; return 0
-  else log_warning_msg "$NAME module is not loaded"; return 3
-  fi
- }
-
  if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then statm
  elif [ "$SERV" ]
@@ -204,28 +209,28 @@ status(){
  fi
 }
 
-stop(){
- stops(){
-  if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
-  then log_success_msg "$NAME stopped"
-  else log_failure_msg "$NAME not stopped"; status
-  fi
- }
+stops(){
+ if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status
+ fi
+}
 
- stopm(){
-  if   log_warning_msg "$NAME umount"; umount $NAME
-  then log_success_msg "$NAME unmounted"
-  else log_failure_msg "$NAME not unmounted"; status
-  fi
- }
+stopm(){
+ if   log_warning_msg "$NAME umount"; umount $NAME
+ then log_success_msg "$NAME unmounted"
+ else log_failure_msg "$NAME not unmounted"; status
+ fi
+}
   
- stopk(){
-  if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME
-  then log_success_msg "$NAME unloaded"
-  else log_failure_msg "$NAME not unloaded"
-  fi
- }
+stopk(){
+ if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME
+ then log_success_msg "$NAME unloaded"
+ else log_failure_msg "$NAME not unloaded"
+ fi
+}
 
+stop(){
  if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then stopm
  elif [ "$SERV" ]
@@ -243,48 +248,48 @@ mnt(){
  return 1
 }
 
+conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
+miss(){ ! [ -f "$SERV" ]; }
+
+starts(){
+ if   conf
+ then log_warning_msg "$NAME not started"
+      log_warning_msg "$NAME missing $CONF"; return 6
+ elif miss
+ then log_warning_msg "$NAME not started"
+      log_warning_msg "$NAME missing $SERV"; return 5
+ elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
+}
+
+startm(){
+ run(){
+  if      [ -h "$NAME" ]; then rm    -f "$NAME"; fi
+  if    ! [ -d "$NAME" ]; then mkdir -p "$NAME"; fi &&
+  mount $OPTS  "$NAME"
+ }
+
+ if mnt; then return; fi
+ if   conf
+ then log_warning_msg "$NAME not mounted; $CONF does not exist"
+ elif log_warning_msg "$NAME mounting"; run
+ then log_success_msg "$NAME mounted"
+ else log_failure_msg "$NAME not mounted"
+ fi
+}
+
+startk(){
+ if   conf
+ then log_warning_msg "$NAME module not loaded; $CONF does not exist"
+ elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
+ then log_success_msg "$NAME loaded"
+ else log_failure_msg "$NAME not loaded"
+ fi
+}
+
 start(){
- conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
- miss(){ ! [ -f "$SERV" ]; }
-
- starts(){
-  if   conf
-  then log_warning_msg "$NAME not started"
-       log_warning_msg "$NAME missing $CONF"; return 6
-  elif miss
-  then log_warning_msg "$NAME not started"
-       log_warning_msg "$NAME missing $SERV"; return 5
-  elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
-  then log_success_msg "$NAME started"
-  else log_failure_msg "$NAME not started"; status
-  fi
- }
-
- startm(){
-  run(){
-   if      [ -h "$NAME" ]; then rm    -f "$NAME"; fi
-   if    ! [ -d "$NAME" ]; then mkdir -p "$NAME"; fi &&
-   mount $OPTS  "$NAME"
-  }
-
-  if mnt; then return; fi
-  if   conf
-  then log_warning_msg "$NAME not mounted; $CONF does not exist"
-  elif log_warning_msg "$NAME mounting"; run
-  then log_success_msg "$NAME mounted"
-  else log_failure_msg "$NAME not mounted"
-  fi
- }
-
- startk(){
-  if   conf
-  then log_warning_msg "$NAME module not loaded; $CONF does not exist"
-  elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
-  then log_success_msg "$NAME loaded"
-  else log_failure_msg "$NAME not loaded"
-  fi
- }
-
  if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
  then startm
  elif [ "$SERV" ]

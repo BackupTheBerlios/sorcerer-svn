@@ -1,0 +1,48 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Should-Start: udev modprobe
+# Default-Start: S
+# Short-Description: loadkeys loads the keyboard map
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure display
+
+display(){ echo "Keymap $KEYMAP"; }
+
+start(){
+ if [ -z "$KEYMAP" ]; then configure; redraw; fi
+
+ if   log_warning_msg "$KEYMAP keymap loading"; loadkeys $KEYMAP
+ then log_success_msg "$KEYMAP keymap loaded"
+ else log_failure_msg "$KEYMAP not loaded"; return 1
+ fi
+}
+
+configure(){
+ rm -f /etc/init.d/conf.d/loadkeys
+ keymap_menu(){
+  keymaps(){
+#  ls  -R /usr/share/keymaps          |
+   find /usr/share/keymaps -type f -printf '%f\n' |
+   sed -n 's:.*/::;s:\.map\.gz:	keymap:p' |
+   LC_ALL=C sort -u
+  }
+
+  HELP=$"Please select desired keyboard mapping within 60 seconds."
+
+  dialog --stdout --no-cancel --timeout 60 --default-item us \
+         --title $"Keymap Selection Menu" \
+         --menu $"Please select keyboard mapping within 60 seconds." \
+         19 60 10 $( keymaps )
+ }
+
+ KEYMAP=$( keymap_menu )
+ [     -d /etc/init.d/conf.d ] ||
+ mkdir -p /etc/init.d/conf.d
+ echo "KEYMAP=$KEYMAP" > /etc/init.d/conf.d/loadkeys
+ chmod 600               /etc/init.d/conf.d/loadkeys
+}

@@ -1,8 +1,8 @@
 #!/bin/bash
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Default-Start: S
-# No optimal time for stopping.
+# Default-Start: S 1 2 3 4 5
+# Should-Start: console
 # Required-Start: pts ptmx
 # Required-Stop: $local_fs kill
 # Short-Description: runs console message capture logging daemon
@@ -13,7 +13,18 @@
 only start stop status
 server /sbin/bootlogd
 
-if   [ -d /home ] || grep -q boot=IR /proc/cmdline
-then options -l /var/log/console
-else options -l /media/root/var/log/console
-fi
+start(){
+ cmv(){
+  if [ -f /var/log/init/console ]; then
+   cat    /var/log/init/console >> /var/log/console
+   rm     /var/log/init/console
+  fi
+  stop
+ }
+
+ if   [ -f /var/log/console ];
+ then options -l /var/log/console; cmv
+ else options -l /var/log/init/console -s
+ fi
+ starts
+}
