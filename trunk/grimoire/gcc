@@ -57,6 +57,13 @@ build(){
   ln -fs gcc          "$DESTDIR/usr/bin/cc"
  }
 
+# gcc version 4.7.1 does not want to compile without sse support
+# when it detects the CPU has the sse instruction.
+# maybe -march=i586 might achieve desired results?
+
+ export   CFLAGS="${CFLAGS/-march=i686 -mno-sse -mno-sse2/-march=i586}"
+ export CXXFLAGS="${CXXFLAGS/-march=i686 -mno-sse -mno-sse2/-march=i586}"
+
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
  export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
  export CCACHE_DISABLE=1
