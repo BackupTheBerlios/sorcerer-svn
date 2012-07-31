@@ -1,0 +1,14 @@
+complete_init_script(){
+ local REPLY="${1##*/}"
+ if grep -q "only\|deny" /etc/init.d/$REPLY && [ $COMP_CWORD == 1 ]; then
+  REPLY="$( /etc/init.d/$REPLY 2>&1 |
+            sed 's:.*{::;s:}.*::;s/|/\n/g' )"
+  read -a COMPREPLY <<< $( echo "$REPLY" | grep "${COMP_WORDS[1]}" )
+ fi
+}
+
+for REPLY in $( grep -l "BEGIN INIT INFO" /etc/init.d/* 2>/dev/null |
+                sed     's:.*[/]::' |
+                sed -r  's:(.*):/etc/init.d/\1\n./\1:' )
+do  complete -F complete_init_script $REPLY
+done
