@@ -54,4 +54,16 @@ build(){
  fi
 }
 
-# current(){ echo gobject-introspection | pipe_queue $DISPEL_QUEUE; }  
+current(){
+ limited(){
+  while [ -n "$1" ]
+  do    [ -f  $1  ] && grep -q /usr/libexec/sorcery/limiter $1 && return 1
+  done
+ }
+
+ proper_python(){ limited /usr/bin/g-ir-scanner{,-32}; }
+
+ case $VERSION in
+  1.32.1) proper_python ;;
+ esac
+}
