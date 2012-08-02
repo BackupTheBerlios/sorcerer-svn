@@ -69,8 +69,16 @@ post_install(){
  mkdir -pvm 755 $ISO/var/cache
  cp    -al /var/cache/{archive,sources} $ISO/var/cache/
  cp    -a  /boot                        $ISO/
+
+ # Remove dead weight from I/R
+ # Python only required by glib during compilation
+ # gcc-v4.5 only required by syslinux during compilation
+ # sorcerer-iso9660 not required installed on I/R
+
+ rm    -fr      $ISO/var/cache/archive/*/Python
  rm    -fr      $ISO/var/cache/archive/*/gcc-v4.5
  rm    -fr      $ISO/var/cache/archive/*/sorcerer-iso9660
+
  install_isolinux
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
  ( find $ISO/boot        -type f -name modules -printf "%p %s\n"
