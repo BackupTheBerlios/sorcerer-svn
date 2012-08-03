@@ -1,6 +1,6 @@
 # T.00.07 has errors maybe it is ancient?
 
-   version stable B.02.16 B.02.15 B.02.14
+   version stable B.02.16
    require gcc-g++
   optional gtk+ --enable-gui --disable-gui for gtk+ GUI
   category utility
@@ -22,6 +22,17 @@ case $MACHTYPE in
 esac
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
 if echo "$OPTS" | grep -q enable-gui; then
  make     &&
  make gui &&
@@ -29,5 +40,5 @@ if echo "$OPTS" | grep -q enable-gui; then
 else
  make &&
  make install DESTDIR=$DESTDIR
-fi
+fi && strip_destdir
 }

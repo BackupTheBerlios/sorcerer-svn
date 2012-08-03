@@ -105,9 +105,12 @@ post_install(){
  esac
  rm -f $ISO/boot/isolinux/boot.cat
  rm -f $DEST
- cd    $ISO
- find * -type f | LC_ALL=C grep -v "^md5sums$" |
- xargs --max-lines=64 md5sum | tee   md5sums
+ find  $ISO -printf "%P\n" |
+ find * -type f |
+ grep -vx "boot/isolinux/isolinux.bin" |
+ LC_ALL=C grep -v "^md5sums$" |
+ xargs --max-lines=64 md5sum |
+ tee $ISO/md5sums
  mkisofs \
   -o $DEST -A "${DEST##*/}"     \
   -publisher "Kyle D. Sallee"   \

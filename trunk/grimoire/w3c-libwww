@@ -9,3 +9,19 @@
       info last 20020612
  freshmeat libwww
       desc 'general-purpose Web API provided by W3C'
+
+build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
+ default_build &&
+ strip_destdir
+}

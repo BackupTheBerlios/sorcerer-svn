@@ -6,3 +6,19 @@
       info last 20120729
       info home http://www.gnu.org/software/help2man/
       desc 'generates simple manual pages from program output'
+
+build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
+ default_build &&
+ strip_destdir
+}

@@ -11,6 +11,17 @@
       desc 'library for userspace use of kernel asynchronous I/O system calls'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  sed -i "s:\$(prefix):$DESTDIR/\$(prefix):" {,src/}Makefile
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then sed -i 's:$(prefix)/lib:/lib64:' {,src/}Makefile
@@ -22,5 +33,6 @@ build(){
  make            &&
  prepare_install &&
  make    install &&
+ strip_destdir   &&
  rm -f $DESTDIR/lib{,64}/libaio.a
 }

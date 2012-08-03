@@ -1,24 +1,31 @@
-   version stable 2.02.86 2.02.74 2.02.73 2.02.60
+   version stable 2.02.96 2.02.86
    require ncurses pkgconfig readline
 #  require libselinux
       opts --exec-prefix= --enable-pkgconfig --sbindir=/sbin
   category disk
- attribute console library makej multilib-concurrent
+ attribute console hidden library makej multilib-concurrent
     source ftp://sources.redhat.com/pub/lvm2/LVM2.$VERSION.tgz
-      info last  20110803
-      info home  http://sources.redhat.com/lvm2
+      info good 20120803
+      info last 20120608
+      info home http://sources.redhat.com/lvm2
       desc 'the userspace toolset that provide logical volume management'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  if   [[ $HOSTTYPE = x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then OPTS+=" --with-usrlibdir=/usr/lib64"
  else OPTS+=" --with-usrlibdir=/usr/lib"
  fi
- default_build
+ default_build &&
+ strip_destdir
 } 
-
-current(){
- case $VERSION in
-  2.02.74) grep -q finale /etc/init.d/vgchange ;;
- esac
-}

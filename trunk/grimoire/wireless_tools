@@ -18,6 +18,17 @@ Includes:
 
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  local CC
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
@@ -34,5 +45,6 @@ build(){
          s/-Os/$CFLAGS/
          s:/usr/local:/usr:" Makefile
  make CC="$CC" &&
- make install PREFIX=$DESTDIR/usr INSTALL_DIR=$DESTDIR/sbin/ INSTALL_LIB=$DESTDIR/$LIB
+ make install PREFIX=$DESTDIR/usr INSTALL_DIR=$DESTDIR/sbin/ INSTALL_LIB=$DESTDIR/$LIB &&
+ strip_destdir
 }

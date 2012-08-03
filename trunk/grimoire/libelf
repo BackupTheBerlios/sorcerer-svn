@@ -18,6 +18,17 @@
       desc 'ELF object file access library'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  ./configure \
   --sysconfdir=/etc \
   --localstatedir=/var \
@@ -25,6 +36,7 @@ build(){
  $OPTS &&
  make &&
  make install instroot=$DESTDIR &&
+ strip_destdir &&
  rm -f $DESTDIR/usr/lib{,64}/*.a
 }
 

@@ -66,12 +66,29 @@ build(){
   fi
  }
 
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  local OS=linux-elf
+
+ # Trying to control optimization and linking of openssl libraries
+ # seems ineffective by the ways below.
 
  grep  -rl                       '\-O3 -Wall' * |
  xargs -r --max-lines=64 sed -i "s:-O3 -Wall:$CFLAGS:"
  grep  -rl                       '\-O3 -fomit-frame-pointer -Wall' * |
  xargs -r --max-lines=64 sed -i "s:-O3 -fomit-frame-pointer -Wall:$CFLAGS:"
+
+ sed -i "s:^LDFLAGS=$:LDFLAGS=$LDFLAGS:
+         s:^SHARED_LDFLAGS=$:SHARED_LDFLAGS=$LDFLAGS:" Makefile{,.org,.shared}
 
  sed -i 's:-Wl,-rpath,$(LIBRPATH)::' Makefile.shared
 
@@ -94,9 +111,9 @@ build(){
  rm -f $DESTDIR/usr/man/man3/EVP_BytesToKey.3 &&
  make install MANDIR=/usr/man INSTALL_PREFIX=$DESTDIR &&
  remove_ar &&
- move_include_man
+ move_include_man &&
+ strip_destdir
 }
-
 
 post_install(){
           get_provider ntp     |
@@ -105,10 +122,4 @@ post_install(){
  LC_ALL=C sort                 |
           uniq -d              |
           pipe_queue $CAST_QUEUE
-}
-
-current(){
- case $VERSION in
-  1.0.0d) [ -f /lib64/libssl.so ] || [ -f /lib/libssl.so ] ;;
- esac
 }

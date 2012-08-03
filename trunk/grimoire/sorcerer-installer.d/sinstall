@@ -539,6 +539,24 @@ terror_retry(){
  fi
 } 
 
+provide_missing(){
+ logs(){      find $TARGET/etc/sorcery/log/install -type f; }
+ expected(){  logs | xargs --max-lines=256 cat | sort -u; }
+ real(){      grep -v "^/dev/\|^/proc/\|^/sys/"; }
+ installed(){ find $TARGET -printf "/%P\n" | real; }
+ together(){  expected; installed | sed p; }
+ missing(){   together | sort | uniq -u; }
+ provided(){  find / -xdev; }
+ combined(){  missing; provided; }
+ available(){ combined | sort | uniq -d; }
+
+ local  LC_ALL
+ export LC_ALL=C
+ available |
+ tar --no-recursion -cPT - |
+ tar -C $TARGET -pvxf -
+}
+
 verify_results(){
  if   [ -x /etc/init.d/ir_verify ] &&
          ! /etc/init.d/ir_verify status
@@ -560,9 +578,6 @@ transfer_arch(){
  if   [[ -d $TARGET/var/cache ]]
  then mv    $TARGET/var/cache $TARGET/var/cache.old
  fi
-
- # Free some RAM incase the box is running low.
- rm -fr /lib/modules
 
  verify_results || exit 1
 
@@ -595,6 +610,8 @@ transfer_arch(){
  xargs --max-lines=1024 cat |
  if ! xz -cd;                  then echo "$ED" >> /tmp/terror; fi |
  if ! tar -C $TARGET -ixvpf -; then echo "$ET" >> /tmp/terror; fi
+
+ provide_missing
 
  if ! [ -f /tmp/terror ]; then
   pause

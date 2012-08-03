@@ -23,6 +23,17 @@ It is cleanly coded and fairly efficient,
 and supports kernel-mode PPPoE on Linux 2.4.x.'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  install_extra(){
   mkdir -p $DESTDIR/usr/share/applnk/Internet
   mkdir -p $DESTDIR/usr/share/gnome/apps/Internet
@@ -43,6 +54,7 @@ build(){
  make       &&
  make  install DESTDIR=$DESTDIR && cd ../src &&
  make  install DESTDIR=$DESTDIR &&
+ strip_destdir &&
  install_extra
 }
 

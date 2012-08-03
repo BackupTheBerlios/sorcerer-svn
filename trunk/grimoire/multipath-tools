@@ -25,6 +25,17 @@ the path being a route from one host HBA port
 to one storage controller port.'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
 case $VERSION in
  0.4.8) patch -p1 < $SCRIPT_DIR/kpartx.rules.diff 
         patch -p1 < $SCRIPT_DIR/pid.patch  ;;
@@ -32,7 +43,8 @@ esac
 
 make &&
 make install DESTDIR=$DESTDIR &&
-mkdir -p    $DESTDIR/etc &&
+mkdir  -pvm 755 $DESTDIR/etc &&
+strip_destdir &&
 install -vm 644 -o root -g root multipath.conf.annotated $DESTDIR/etc/multipath.conf
 }
 

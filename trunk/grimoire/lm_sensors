@@ -17,6 +17,17 @@ systems containing hardware health
 monitoring hardware such as the LM78 and LM75'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  if   echo $OPTS | grep -q sensord
  then sed -i "s/# PROG_EXTRA/PROG_EXTRA/" Makefile; SENSORD=1
  fi
@@ -38,5 +49,5 @@ build(){
   mkdir -p $DESTDIR/usr/{bin,man/man8}
   install -o 0 -g 0 -m 755 prog/sensord/sensord   $DESTDIR/usr/bin
   install -o 0 -g 0 -m 644 prog/sensord/sensord.8 $DESTDIR/usr/man/man8
- fi
+ fi && strip_destdir
 }

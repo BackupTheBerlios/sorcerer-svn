@@ -2,7 +2,7 @@
 # because stable release quit compiling and installing correctly.
 
    version stable 3.00
-   version alpha 3.01a07 3.01a06 3.01a05
+   version alpha 3.01a07
    require acl
   optional syslinux     '' '' to create bootable CDROMs and DVDs
   optional zisofs-tools '' '' to create ISO9660s enabled with transparent compression
@@ -29,8 +29,20 @@ dev=ATAPI:/dev/hdf
 Running cdrecord using ide-scsi emulation is no longer recommended.'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
 # sed -i "66i#include <linux/compiler.h>
 #         66itypedef unsigned char u8;" libscg/scsi-linux-sg.c
  make &&
- make install INS_BASE=$DESTDIR/usr
+ make install INS_BASE=$DESTDIR/usr &&
+ strip_destdir
 }

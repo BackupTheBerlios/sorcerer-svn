@@ -20,6 +20,17 @@ decimal numbers, strings with many additional data type flags
 (such as multiple values for a single option).'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  local LDEMULATION
 
 # if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
@@ -35,5 +46,6 @@ build(){
 
  export CFLAGS+=' -fPIC'
  default_build &&
+ strip_destdir &&
  rm -f $DESTDIR/usr/lib{,64}/*.a
 }

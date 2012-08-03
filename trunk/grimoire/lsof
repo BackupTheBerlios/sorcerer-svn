@@ -1,4 +1,4 @@
-   version stable 4.86 4.85 4.84 4.83 4.82
+   version stable 4.86
 #  require libselinux
   category utility
  attribute console
@@ -24,6 +24,17 @@ open by processes currently running on the system.
 It can also list communications open by each process.'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  tar -xf  "${SPELL}_${VERSION}_src.tar" &&
  cd  "${SPELL}_${VERSION}_src"          &&
  yes | ./Configure      linux           &&
@@ -31,5 +42,6 @@ build(){
  make                                   &&
  mkdir  -pvm 755        "$DESTDIR"/usr/{bin,man/man8} &&
  install -vm 755 lsof   "$DESTDIR"/usr/bin &&
- install -vm 644 lsof.8 "$DESTDIR"/usr/man/man8
+ install -vm 644 lsof.8 "$DESTDIR"/usr/man/man8 &&
+ strip_destdir
 }

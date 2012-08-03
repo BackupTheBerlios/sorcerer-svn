@@ -1,4 +1,4 @@
-   version stable 2.11 2.10 2.9 2.8 2.7
+   version stable 2.11
   category utility
  attribute console
     source http://savannah.nongnu.org/download/dmidecode/dmidecode-$VERSION.tar.bz2
@@ -16,8 +16,20 @@ expansion slots (e.g. AGP, PCI, ISA) and memory module slots,
 and the list of I/O ports (e.g. serial, parallel, USB).'
 
 build(){
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find $DESTDIR -type f     |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
  sed -i "s:/usr/local:/usr:
          s:-O2:$CFLAGS:" Makefile
  make &&
- make install "DESTDIR=$DESTDIR"
+ make install "DESTDIR=$DESTDIR" &&
+ strip_destdir
 }
