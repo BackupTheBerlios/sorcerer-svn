@@ -1,0 +1,28 @@
+   inherit syslinux
+   require syslinux
+      desc 'installs statically linked extlinux in /boot/util'
+
+build(){
+ case $VERSION in
+  5.*) unset LDFLAGS ;;
+  4.*) unset LDFLAGS ;;
+ esac
+
+ sed -i '/INSTALL_AUX_OPT/d
+         s:win32/syslinux.exe::' Makefile
+
+ rm -f diag/geodsp/mk-lba-img
+ make &&
+ rm -f extlinux/extlinux &&
+ make -C extlinux LDFLAGS="-Wl,-s -static" &&
+ make install INSTALLROOT=$DESTDIR DESTDIR=$DESTDIR
+ mkdir -pvm 700                       $DESTDIR/boot/util &&
+ mv $DESTDIR/sbin/extlinux            $DESTDIR/boot/util &&
+ rm -fr ${DESTDIR:-nothing}{/bin,/sbin,/lib,/lib64,/usr}
+}
+
+current(){
+ if   ! [ -f $VERSION_LOGS/sorcerer-installer ]
+ then echo syslinux-static | pipe_queue $DISPEL_QUEUE
+ fi
+}
