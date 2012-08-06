@@ -5,7 +5,8 @@
 # compilation of libmad support fails
 case $VERSION in
  2.0.1)
-      opts --without-ffmpeg ;;
+   require ffmpeg-v0.7 ;;
+#     opts --without-ffmpeg ;;
 esac
       opts --without-libmad
    require libsndfile wxWidgets
@@ -24,7 +25,7 @@ esac
  attribute broke
     source http://audacity.googlecode.com/files/audacity-minsrc-$VERSION.tar.bz2
       info omit 20130705
-      info last 20120705
+      info last 20120629
       info home http://audacity.sourceforge.net/
       info docs http://audacity.sourceforge.net/help/
       info vurl 'http://code.google.com/p/audacity/downloads/list'
@@ -47,3 +48,24 @@ esac
 audacity is a program that lets you manipulate digital audio waveforms.
 In addition to letting you record sounds directly from within the program,
 it imports many sound file formats, including WAV, AIFF, and MP3.'
+
+build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -L/opt/ffmpeg/0.7/usr/lib$SUFFIX -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
+ }
+
+ case $VERSION in
+  2.0.1) ffmpeg_legacy ;;
+ esac
+ default_build
+}
