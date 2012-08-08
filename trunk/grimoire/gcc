@@ -112,6 +112,8 @@ build(){
 
 #cp ${SOURCE[1]} ecj.jar
 
+ rm -fr /tmp/gcc.previous.md5sum
+ sed "\:  /usr/bin/:p;d" $MD5SUM_LOGS/gcc > /tmp/gcc.previous.md5sum
  mkdir BUILD
  cd    BUILD
  ../configure $OPTS             &&
@@ -128,8 +130,11 @@ post_install(){
  get_provider libtool | pipe_queue $CAST_QUEUE
  leech
 
- if   [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]
- then rm -f ${CCACHE_CACHE}/*
+ if [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]; then
+  if   ! md5sum -c /tmp/gcc.previous.md5sum &>/dev/null
+  then rm       -f /tmp/gcc.previous.md5sum ${CCACHE_CACHE}/*
+  else rm       -f /tmp/gcc.previous.md5sum
+  fi
  fi
 
  cast_if_needed(){
