@@ -1,32 +1,33 @@
+# systemd forked and supplanted udev project.
+
 # Upon update check to see if
 # udevadm trigger
 # makes /dev/ptmx a symbolic link to /dev/pts/ptmx.
 # If it does then adjust udevd-restart
 # If not then keep the fix.
-# Where to download version 174 from?
 
-   version stable 182 181 180
-   require acl glib gperf kmod pci.ids pkgconfig sysvinit usbutils
-#  require acl glib gobject-introspection gperf pci.ids sysvinit usbutils
-  optional ConsoleKit
-      opts --disable-introspection --sbindir=/sbin --libexecdir=/lib --bindir=/sbin
-      opts --with-rootprefix=
-  category utility
- attribute console library lto makej multilib-concurrent optimize server
+   version stable forked 182
+   require systemd
+#  require acl glib gperf kmod pci.ids pkgconfig sysvinit usbutils
+# optional ConsoleKit
+#     opts --disable-introspection --sbindir=/sbin --libexecdir=/lib --bindir=/sbin
+#     opts --with-rootprefix=
+  category profile
+ attribute profile
 #attribute console library multilib-fail server
-#   source http://people.freedesktop.org/~kay/udev/udev-$VERSION.tar.bz2
-    source $KERNEL_URL pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.xz
+#   source $KERNEL_URL pub/linux/utils/kernel/hotplug/udev-$VERSION.tar.xz
       info last 20120318
       info home http://www.kernel.org/pub/linux/utils/kernel/hotplug/udev.html
-   exclude /dev
-   exclude /lib/udev/dev/core
+#  exclude /dev
+#  exclude /lib/udev/dev/core
       desc 'daemon for handle coldplug and hotplug events.
+supplanted by fork of udev made by systemd software authors.
 When a hardware event happens udev can load modules, load firmware,
 and create device nodes in /dev according to what rule files specify.
 udev replaces hotplug and pcmcia event handlers
 udev should be installed even on boxes that have no hotplug events.'
 
-build(){
+build_old(){
 
 # /dev/zero and /dev/mem are needed for uvesafb before udevd starts
 
@@ -68,17 +69,4 @@ nod_sym_install(){
  default_build   &&
  nod_sym_install &&
    rules_install
-}
-
-post_install(){
- if   LC_ALL=C grep -q '^mem:x:'  /etc/group
- then sed -i 's/^mem:x:/kmem:x:/' /etc/group
- fi
-}
-
-current(){
- case $VERSION in
-  181) [ -f                      $COMPILE_LOG/udev ] &&
-       [ -n "$( grep rootprefix: $COMPILE_LOG/udev | grep -v /usr )" ] ;;
- esac
 }
