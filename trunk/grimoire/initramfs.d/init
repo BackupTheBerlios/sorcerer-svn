@@ -10,8 +10,12 @@ if [ -x /etc/init.d/dev  ]; then /etc/init.d/dev  start; fi
 if [[ $@ =~ bash ]]; then
  read j j v j < /proc/version
  l=/lib/modules/$v/modules.loaded
- if   [ -f $l ]
- then while read; do modprobe -b "$REPLY"; done < $l
+ if [ -f $l ]; then
+  while read; do
+   echo "Delays might occur.  Please cultivate patience."
+   echo "Module $REPLY loading."
+   modprobe -b "$REPLY"
+  done < $l
  fi
  exec /bin/bash
 else
