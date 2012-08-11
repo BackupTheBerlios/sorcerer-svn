@@ -8,11 +8,12 @@ if [ -x /etc/init.d/proc ]; then /etc/init.d/proc start; fi
 if [ -x /etc/init.d/dev  ]; then /etc/init.d/dev  start; fi
 
 if [[ $@ =~ bash ]]; then
- /sbin/modprobe -b usb_common
- /sbin/modprobe -b usbcore
- /sbin/modprobe -b hid
- /sbin/modprobe -b usbhid
- exec /bin/bash "$@"
+ read j j v j < /proc/version
+ l=/lib/modules/$v/modules.loaded
+ if   [ -f $l ]
+ then while read; do modprobe -b "$REPLY"; done < $l
+ fi
+ exec /bin/bash
 else
  exec /sbin/init "$@"
 fi
