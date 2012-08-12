@@ -1,0 +1,29 @@
+complete_cpufreq(){
+ cpufreq_governors(){
+  echo "conservative"
+  echo "ondemand"
+  echo "performance"
+  echo "powersave"
+  echo "userspace"
+ }
+
+ scaling_available_frequencies(){
+  local f=/sys/devices/system/cpu/cpu0/cpufreq/scaling_available_frequencies
+  [ -f $f ] && cat $f
+ }
+
+ cpufreq_parameter_parse(){
+  if   (( COMP_CWORD == 1 ))
+  then cpufreq_governors
+  elif (( COMP_CWORD == 2 )) &&
+       [[ ${COMP_WORDS[1]} == userspace ]]
+  then scaling_available_frequencies
+  fi
+ }
+
+ local REPLY="${1##*/}"
+ read -a COMPREPLY <<< $( cpufreq_parameter_parse | grep "${COMP_WORDS[$COMP_CWORD]}" )
+}
+
+complete -F complete_cpufreq cpufreq
+complete -F complete_cpufreq /bin/cpufreq

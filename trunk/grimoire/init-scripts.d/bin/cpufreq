@@ -1,0 +1,57 @@
+#!/bin/bash
+# Copyright 2012 by Kyle Sallee, All Rights Reserved.
+# For use with the Sorcerer distribution only.
+# Set all CPU cores selected governor or frequency.
+
+load_module(){
+
+ (( UID == 0 )) || return
+
+ local m=cpufreq_$1
+
+ [[ $(< /proc/modules ) =~      $m ]] ||
+ zcat /proc/config.gz | grep -q $m    ||
+ /sbin/modprobe $m
+}
+
+engage(){
+ local p   c=/sys/devices/system/cpu
+ for p in $c/cpu*/cpufreq/scaling_governor
+ do if [ -f "$p" ]; then echo $1 > $p; fi
+ done
+
+ [ -z "$2" ] && return
+ shift 1
+
+ for p in $c/cpu*/cpufreq/scaling_setspeed
+ do if [ -f "$p" ]; then echo $1 > $p; fi
+ done
+}
+
+load_set(){ load_module "$1"; engage "$@"; }
+
+help(){
+ echo "Please specify a governor such as:"
+ echo "conservative;"
+ echo "ondemand;"
+ echo "performance;"
+ echo "powersave;"
+ echo "userspace."
+ echo "and a second parameter of frequency when selecting userspace."
+ echo "$0 provides BASH tab completion command line parameter hints"
+ echo "type cpufreq; press space bar; and tap tab twice for a hint."
+ exit 1
+}
+
+main(){
+ case $1 in
+  performance)  load_set $@ ;;
+  powersave)    load_set $@ ;;
+  ondemand)     load_set $@ ;;
+  conservative) load_set $@ ;;
+  userspace)    load_set $@ ;;
+  *) help ;;
+ esac
+}
+ 
+main "$@"
