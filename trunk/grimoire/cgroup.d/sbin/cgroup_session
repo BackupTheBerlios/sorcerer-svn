@@ -11,22 +11,29 @@
 # Users can make their own sub cgroup
 # in order to control some aspects such as
 # CPU core affinity.
-# However, users may not modify settings
-# that of their main user cgroup.
+# However, users may not modify settings of their main user cgroup.
 # And user sub cgroups are still bound by the constraints
 # of the cgroups that contain it such as the user cgroup.
 
 export PATH=/bin
 
+inherit(){
+ while 
+  if   [ -f      $1/blkio.weight ]; then
+   read <   ${1%/*}/blkio.weight
+   echo $REPLY > $1/blkio.weight
+  fi
+  [ -n "$2" ]; do
+  shift
+ done
+}
+
 open(){
- if [ -f         $CG/dmz ]; then echo $PPID > $CG/tasks; return; fi
- mkdir -pm 700   $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ mkdir -m 700    $CG/{fast,idle,norm,slow}/user/$PAM_USER 2>/dev/null
+ inherit         $CG/{fast,idle,norm,slow}/user/$PAM_USER
  chown $PAM_USER $CG/{fast,idle,norm,slow}/user/$PAM_USER/tasks
  echo  $PPID >                    $CG/norm/user/$PAM_USER/tasks
- echo  900   >   $CG/fast/user/$PAM_USER/blkio.weight
- echo  700   >   $CG/norm/user/$PAM_USER/blkio.weight
- echo  100   >   $CG/slow/user/$PAM_USER/blkio.weight
- echo  10    >   $CG/idle/user/$PAM_USER/blkio.weight
+ 
 }
 
 close(){

@@ -1,0 +1,451 @@
+# Functions for LSB-compliant init-scripts
+# Compatible with /bin/dash and /bin/bash
+# For use with the distribution Sorcerer only!
+# Copyright Kyle Sallee 2005 through 2012.
+# All rights reserved.
+
+CL="[K"
+RED="[31m"
+GREEN="[32m"
+BLUE="[34m"
+WHITE="[37m"
+NORM="[0m"
+
+log_line(){ echo -en "\r$CL$BLUE[$1$BLUE]$NORM $2 " 1>&2;}
+log_success_msg(){ log_line "${GREEN}success" "$1\n";}
+log_failure_msg(){ log_line "${RED}failure" "$1\n";}
+log_warning_msg(){ log_line "${WHITE}message" "$1";}
+
+redraw(){
+ clear
+ log_success_msg "Redrawing ${LINES:-25} lines"
+ if   [ -f /var/log/init/console ]; then tail -n ${LINES:-25} /var/log/init/console
+ elif [ -f /var/log/console      ]; then tail -n ${LINES:-25} /var/log/console
+ fi | cut -d : -f4- | cut -b2-
+}
+
+locked(){
+ local S P REPLY
+
+ [ "$2" ] && L=${#2} &&
+ [ "$1" ] && [ -f "$1" ] &&
+ read P < $1 &&
+ S=/proc/$P/status &&
+ [ -f  "$S" ] &&
+ read REPLY < $S &&
+ [ ${REPLY##*	} = "$2" ]
+}
+
+session(){
+ read REPLY < $1 &&
+ ps --no-heading -o comm -s $REPLY | grep -qx "$2" 
+}
+
+pids_from_cgroup(){
+ cgroup_pids $NAME
+}
+
+cgroup_rmdir(){
+ cgroup_oust $NAME
+}
+
+pidofproc(){
+
+ local PIDS
+
+ while
+  case $1 in
+   -p) PIDF=$2 ;;
+    *) break ;;
+  esac
+ do shift 2
+ done
+
+ BASE=${1##*/}
+
+ if    [ -z "$PIDF" ]; then
+  if   pids_from_cgroup;             then echo "$REPLY"; return
+  elif [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
+  elif [ -f "/var/run/$BASE"      ]; then PIDF=/var/run/$BASE
+  else PIDS=$( /bin/pidof -o %PPID $BASE )
+  fi
+ fi
+
+ if    [ -s    "$PIDF" ]; then
+  if   locked  "$PIDF" "$BASE" ||
+       session "$PIDF" "$BASE"
+  then read REPLY < $PIDF; echo $REPLY
+  else false
+  fi
+ elif [ -n "$PIDS" ]
+ then echo "$PIDS"
+ else return 1
+ fi
+}
+
+killproc(){
+ local PIDF PID BASE PIDS SIGL
+
+ while
+  case $1 in
+   -p) PIDF=$2 ;;
+   -s) SIGL=$2 ;;
+    *) break ;;
+  esac
+ do shift 2
+ done
+
+ BASE=${1##*/}; [ "$2" ] &&
+ SIGL=$2
+ PIDS="$( pidofproc -p "$PIDF" "$1" )"
+
+ if    [     "$PIDS" ]; then
+  if   [     "$SIGL" ]
+  then kill "-$SIGL" $PIDS
+  else kill -15      $PIDS; sleep 3
+       kill -9       $PIDS
+  fi 2>/dev/null
+  if   [  -f "$PIDF" ]
+  then rm -f "$PIDF"
+  fi
+  cgroup_rmdir &&
+  return 0
+ else return 1
+ fi
+}
+
+start_daemon(){
+ run(){
+  case $CGRP in
+   none) : ;;
+      *) cgroup_join $NAME $AFFINE ;;
+  esac
+
+  # timeout is safe to use for starting daemons and servers
+  # because daemons and servers return after starting
+  # while keeping separate processes running in background.
+
+  local TKILL
+  local TOUT=${TOUT:-3600}	# maximum timeout 1 hour
+  (( TKILL = TOUT + 15 ))
+
+  if   [ "$BACK" ]
+  then $TDOM /lib/lsb/pidf "$PIDF" "$@" &
+  else $TDOM /bin/timeout -k $TKILL --foreground $TOUT "$@"
+  fi
+ }
+
+ local BASE LOGF PIDF
+
+ while
+  case $1 in
+   -p) PIDF=$2; shift ;;
+   -l) LOGF=$2; shift ;;
+   -b) BACK=1 ;;
+   -f) FORC=1 ;;
+    *) break ;;
+  esac
+ do shift
+ done
+
+ BASE=${1##*/}
+
+ if [ "$BACK" ]; then
+  LOGF="${LOGF:-/var/log/$BASE}"
+  PIDF="${PIDF:-/var/run/$BASE.pid}"
+ fi
+
+ if   pidofproc -p "$PIDF" "$1" 1>/dev/null
+ then [ "$FORC" ] || return 1
+ fi
+
+ if [ "$LOGF" ]; then run "$@" 1>> "$LOGF" 2>&1; else run "$@";  fi
+}
+
+# Functions below are not specified in the LSB
+# $SERV must be set
+# $LOCK $NAME $PIDF are optional.
+# $OPTS is optional except when mounting
+
+stats(){
+ PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
+ if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
+ elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+ elif [    "$LOCK" ] &&
+      [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+                      else log_warning_msg "$NAME is not running"; return 3
+ fi
+}
+
+statm(){
+ if   mnt
+ then log_warning_msg "$NAME is mounted"; return 0
+ else log_warning_msg "$NAME is not mounted"; return 3
+ fi
+}
+
+statk(){
+ if   lsmod | LC_ALL=C grep -qws "${NAME//-/.}"
+ then log_warning_msg "$NAME module is loaded"; return 0
+ else log_warning_msg "$NAME module is not loaded"; return 3
+ fi
+}
+
+status(){
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
+ then statm
+ elif [ "$SERV" ]
+ then stats
+ else statk
+ fi
+}
+
+stops(){
+ if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV"
+ then log_success_msg "$NAME stopped"
+ else log_failure_msg "$NAME not stopped"; status
+ fi
+}
+
+stopm(){
+ if   log_warning_msg "$NAME umount"; umount $NAME
+ then log_success_msg "$NAME unmounted"
+ else log_failure_msg "$NAME not unmounted"; status
+ fi
+}
+  
+stopk(){
+ if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME
+ then log_success_msg "$NAME unloaded"
+ else log_failure_msg "$NAME not unloaded"
+ fi
+}
+
+stop(){
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
+ then stopm
+ elif [ "$SERV" ]
+ then stops
+ else stopk
+ fi
+}
+
+mnt(){
+ if [ -f /proc/mounts ]; then
+  while read DEV MNT JNK
+  do [ "$NAME" = "$MNT" ] && return
+  done < /proc/mounts
+ fi
+ return 1
+}
+
+conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
+miss(){ ! [ -f "$SERV" ]; }
+
+starts(){
+ if   conf
+ then log_warning_msg "$NAME not started"
+      log_warning_msg "$NAME missing $CONF"; return 6
+ elif miss
+ then log_warning_msg "$NAME not started"
+      log_warning_msg "$NAME missing $SERV"; return 5
+ elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME not started"; status
+ fi
+}
+
+startm(){
+ run(){
+  if      [ -h "$NAME" ]; then rm    -f "$NAME"; fi
+  if    ! [ -d "$NAME" ]; then mkdir -p "$NAME"; fi &&
+  mount $OPTS  "$NAME"
+ }
+
+ if mnt; then return; fi
+ if   conf
+ then log_warning_msg "$NAME not mounted; $CONF does not exist"
+ elif log_warning_msg "$NAME mounting"; run
+ then log_success_msg "$NAME mounted"
+ else log_failure_msg "$NAME not mounted"
+ fi
+}
+
+startk(){
+ if   conf
+ then log_warning_msg "$NAME module not loaded; $CONF does not exist"
+ elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
+ then log_success_msg "$NAME loaded"
+ else log_failure_msg "$NAME not loaded"
+ fi
+}
+
+start(){
+ if   [ "$NAME" ] && [ -z "${NAME%%/*}" ]
+ then startm
+ elif [ "$SERV" ]
+ then starts
+ else startk
+ fi
+}
+
+    restart(){ stop && sleep 1; start; }
+try_restart(){ [ "$SERV" ] && status 2>/dev/null && restart; return 0; }
+
+help(){
+ local keep="start stop restart try-restart reload force-reload status control"
+ if [ -n "$only" ]; then keep="$only"; fi
+ if [ -n "$deny" ]; then
+  for omit in $deny; do
+   keep="${keep// $omit / }"
+   keep="${keep#$omit }"
+   keep="${keep% $omit}"
+  done
+ fi
+ echo "Usage: $SELF {${keep// /|}}" 1>&2
+}
+
+      reload(){ try_restart; }
+force_reload(){ restart; }
+
+parse(){
+ numlock_on(){  setleds +num &>/dev/null; return 0; }
+ numlock_off(){ setleds -num &>/dev/null; return 0; }
+
+ permit(){
+  inside(){
+   local R=$1
+   while shift; [  -n "$1" ]
+   do    if [ "$R" == "$1" ]; then return 0; fi
+   done
+   return 1
+  }
+
+  if [ -n "$deny" ] &&   inside "$1" $deny; then help; return 3; fi
+  if [ -n "$only" ] && ! inside "$1" $only; then help; return 3; fi
+ }
+
+ event(){
+  E=$?
+  if ! [ -d /var/log/init ]; then exit $E; fi
+  if   [ -z "$1" ]; then exit $E; fi
+
+  S=${SELF##*/}
+  S=${S#[SK][0-9][0-9]} 
+  P=/var/log/init/passed/$S
+  F=/var/log/init/failed/$S
+
+  if [ $E == 0 ]; then
+   [     -d   $P ] ||
+   mkdir -p   $P
+   echo  -n > $P/$1
+   if [ -f    $F/$1 ]; then
+    rm  -f    $F/$1
+    rmdir --ignore-fail-on-non-empty $F
+   fi
+  else
+   [     -d   $F ] ||
+   mkdir -p   $F
+   echo  $E > $F/$1
+   if [ -f    $P/$1 ]; then
+    rm  -f    $P/$1
+    rmdir --ignore-fail-on-non-empty $P
+   fi
+  fi
+  numlock_off
+  exit $E
+ }
+
+ local p=$1 f=${1//-/_}
+ shift 1
+ permit "$p" &&
+ numlock_on  &&
+ "$f" "$@"
+ event  "$p"
+}
+
+control(){
+ control_menu(){
+  case $mode in
+   510) status="runs automatically and restarts automatically on updates" ;;
+   500) status="runs automatically" ;;
+     *) status="does not run automatically" ;;
+  esac
+
+  dialog \
+   --title "/etc/init.d/$NAME" \
+   --timeout 60          \
+   --stdout              \
+   --cancel-label "Done" \
+   --menu "$status." 0 0 0  \
+   "Automatic"	"execution toggle?" \
+   "Restart"	"on updates toggle?"
+ }
+
+ while
+  mode=$( find /etc/init.d/$NAME -type f -printf "%m\n" )
+  case $( control_menu ) in
+   Automatic) if   [ "${mode:0:1}" == 5 ]
+              then chmod 400 /etc/init.d/$NAME
+              else chmod u+x /etc/init.d/$NAME
+              fi ;;
+   Restart)   if   [ "${mode:1:1}" == 1 ]
+              then chmod g-x /etc/init.d/$NAME
+              else chmod g+x /etc/init.d/$NAME
+              fi ;;
+   *) /lib/lsb/install_initd; exit 0 ;;
+  esac
+ do :;
+ done
+}
+
+    only(){ only="$@ control"; }
+    deny(){ deny="$@"; }
+affine()  { AFFINE=${1:-0}; }
+affinity(){ AFFINE=${1:-0}; }
+pid_file(){ PIDF=$1; }
+server()  { SERV=$1; }
+config()  { CONF=$1; }
+name()    { NAME=$1; }
+log_file(){ LOGF=$1; }
+options() { OPTS="$@"; }
+fast()    { FAST=1; }
+cgroup()  { CGRP=$1; }
+timeout() { TOUT=$1; }
+domain()  { if [ -f /domain/$1 ]; then TDOM=/domain/$1; fi; }
+
+on_exit(){
+ local         E=$?
+ if ! [ 0 == "$E" ]
+ then return  $E
+ fi
+ if [ -n "$FAST" ]; then
+  case $RUNLEVEL in
+   2|4) parse ${ARGS[*]} & ;;
+     *) parse ${ARGS[*]}   ;;
+  esac
+ else   parse ${ARGS[*]}
+ fi
+}
+
+if [ -z "$NAME" ]
+then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
+fi
+
+if   [ -f /etc/init.d/conf.d/$NAME ]
+then .    /etc/init.d/conf.d/$NAME
+fi
+
+cgroup_find(){ false; }
+cgroup_join(){ false; }
+cgroup_pids(){ false; }
+cgroup_oust(){ false; }
+cgroup_kill(){ false; }
+
+if   [ -f /lib/cgroup/functions ]
+then .    /lib/cgroup/functions ]
+fi
+
+ARGS=( "$@" )
+SELF="$0"
+trap on_exit EXIT

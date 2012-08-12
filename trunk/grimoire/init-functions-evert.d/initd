@@ -1,0 +1,180 @@
+#!/bin/bash
+# LSB-compliant install_initd and remove_initd script
+# for use with the distribution sorcerer only!
+# Copyright Kyle Sallee 2005 through 2008.
+# All rights reserved.
+
+# Directories
+INIT_DIR=/etc/rc.d
+INIT_OLD=/etc/rc.d.old
+INIT_IDX=/tmp/init.index.$RANDOM$RANDOM
+INIT_PRO=$INIT_IDX/pro
+INIT_RUN=$INIT_IDX/run
+INIT_DIE=$INIT_IDX/die
+INIT_NEW=$INIT_IDX/rc.d
+INIT_SRL=$INIT_IDX/srl
+INIT_KRL=$INIT_IDX/krl
+
+# Files
+INIT_SO=$INIT_IDX/so
+INIT_KO=$INIT_IDX/ko
+
+add_idx(){
+ local WHAT=$1
+ local NAME=$2
+ shift 3
+ while [[ -n $1 ]]; do
+  if ! [[    $1 == $NAME ]]
+  then echo       "$NAME" >> $WHAT/$1
+  fi
+  shift
+ done
+}
+
+add_rdx(){
+ local WHAT=$1
+ local NAME=$2
+ shift 3
+ while [[ -n $1 ]]
+ do    echo "$1" >> $WHAT/$NAME; shift
+ done
+}
+
+add_ldx(){
+ local WHAT=$1
+ local NAME=$2
+ shift 3
+ while [[ -n        $1 ]]; do
+  [[     -d   $WHAT/$1 ]] ||
+  mkdir  -p   $WHAT/$1
+  echo   -n > $WHAT/$1/$NAME
+  shift
+ done
+}
+
+make_index(){
+ find /etc/init.d -maxdepth 1 -type f |
+
+ xargs -r --max-lines=256 grep . |
+
+ sed -n 's/://g; s:/etc/init.d/::; s:#::gp' |
+
+ while read -a INFO; do
+  if [ -z "${INFO[2]}" ]; then continue; fi
+  case ${INFO[1]} in
+        Provides) add_idx $INIT_PRO "${INFO[@]}" ;;
+   Default-Start) add_ldx $INIT_SRL "${INFO[@]}"; echo "$INFO" >> "$INIT_RUN/$INFO" ;;
+         *-Start) add_rdx $INIT_RUN "${INFO[@]}" ;;
+    Default-Stop) add_ldx $INIT_KRL "${INFO[@]}"; echo "$INFO" >> "$INIT_DIE/$INFO" ;;
+          *-Stop) add_idx $INIT_DIE "${INFO[@]}" ;;
+  esac
+ done
+}
+
+find_grep_sed_flip(){
+ find "$@" -type f |
+ xargs -r --max-lines=256 grep . |
+ sed   -r 's:.*/::; s/(.*):(.*)/\2 \1/'
+}
+
+make_order(){
+ providers
+ find_grep_sed_flip $INIT_RUN | tsort > $INIT_SO
+ find_grep_sed_flip $INIT_DIE | tsort > $INIT_KO
+}
+
+providers(){
+ find  $INIT_PRO -type f -printf '%f\n' |
+ while read  PRO; do
+  grep -lrx $PRO $INIT_RUN $INIT_DIE |
+  while read; do
+   cat $INIT_PRO/$PRO >> $REPLY
+  done
+ done
+
+ find  $INIT_PRO -type f |
+ xargs -r --max-lines=256 grep . |
+ sed 's:.*/::' |
+ tr  ':' ' ' |
+ while read FAKE REAL; do
+  if   [[ -f $INIT_DIE/$FAKE ]]
+  then cat   $INIT_DIE/$FAKE >> $INIT_DIE/$REAL
+  fi
+ done
+}
+
+
+rank(){
+ RANK=0
+ while read; do
+  for SYML in $2??$REPLY; do
+   if [[ -h    $SYML ]]; then
+       NRANK="${SYML##*/}"
+       NRANK="${NRANK:1:2}"
+    (( NRANK=10#$NRANK ))
+    (( NRANK++         ))
+    if (( NRANK > RANK )); then RANK=$NRANK; fi
+   fi
+  done
+ done
+ if   (( 10 > RANK ))
+ then REPLY="0$RANK"
+ else REPLY="$RANK"
+ fi
+}
+
+levels(){
+ if   [[ -f $3 ]]
+ then rank $1 $2 < $3
+ else REPLY=00
+ fi
+ ln -s ../../init.d/$1 $2$REPLY$1
+}
+
+order(){ while read; do [[ -f $1/$REPLY ]] && echo $REPLY; done; }
+
+make_link(){
+ for RL in $1/*; do
+  LVL=${RL##*/}
+  [[ -d $INIT_NEW/rc$LVL.d ]] ||
+  mkdir $INIT_NEW/rc$LVL.d
+  order $RL < $2 |
+  while read
+  do    levels $REPLY $INIT_NEW/rc$LVL.d/$4 $3/$REPLY
+  done
+ done
+}
+
+make_links(){
+ rm   -fr  $INIT_IDX
+ mkdir -p  $INIT_IDX/{die,pro,run,rc.d,srl,krl}
+ chmod 700 $INIT_IDX{,/rc.d}
+ cd        $INIT_IDX
+
+ echo Creating symbolic links to init-scripts. 1>&2
+ make_index
+ make_order
+ make_link $INIT_SRL $INIT_SO $INIT_RUN S
+ make_link $INIT_KRL $INIT_KO $INIT_DIE K
+
+ rm -fr            $INIT_OLD
+ mv      $INIT_DIR $INIT_OLD
+ mv      $INIT_NEW $INIT_DIR
+ rm -fr  $INIT_IDX
+
+ ( find -L $INIT_DIR -mindepth 2 -xtype l
+   find -L $INIT_DIR -mindepth 2 -xtype l -perm /100
+ ) | LC_ALL=C sort | uniq -u | xargs -r --max-lines=64 rm -f
+
+}
+
+ remove_initd(){ echo "$@ will not be started during boot" 1>&2; chmod 600 "$@"; }
+install_initd(){ echo "$@ will be started during boot" 1>&2;     chmod 700 "$@"; }
+
+if    [[ -f $1 ]]; then
+ if   [ "${0##*/}" == install_initd ]; then install_initd "$1"
+ elif [ "${0##*/}" == remove_initd  ]; then  remove_initd "$1"
+ fi
+fi
+
+make_links

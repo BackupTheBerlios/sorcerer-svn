@@ -13,23 +13,58 @@
 cgroup provides init-script /etc/init.d/cgroup
 that mounts a cgroup file system on /sys/fs/cgroup
 It also creates the top level cgroup directories.
-And it sets values within those cgroups which
-may be default or SA defined.
+And it sets values within those cgroups
+which may be default or SA defined.
 
-If all user owned processes
-should be placed into /sys/fs/cgroup/tasks
-then execute /etc/init.d/cgroup configure ;
-create /sys/fs/cgroup/dmz/ ;
-execute /etc/init.d/cgroup start ;
-login as a user.
+This implementation provides
+individual cgroups for system services under
+/sys/fs/cgroup/{fast,norm,slow,idle}/sys/$SERVICE
+and individual cgroups for user owned processes within
+/sys/fs/cgroup/{fast,norm,slow,idle}/user/$USER
 
-Allowing user owned processes to run
-in the root control group is NOT prudent.
-It achieves partial restoration
-of the useful of "nice" and "renice."
-However, it also allows any user
-to recieve an unfair portion of CPU cycles
-by starting a massives amount of proceses.'
+The init-script of each service
+specifies which of the 4 possible cgroups
+that a service will run within.
+For example kdm, gdm, xdm, and X run in
+/sys/fs/cgroup/fast/sys/{kdm,gdm,xdm}
+This ensures that the X server
+can not be starving for processing power.
+
+Users are allowed to migrate their processes
+to different task files when
+/sys/fs/cgroup/{fast,slow,idle}/user
+exists.
+Therefore, the SA can disallow
+user migration of processes into the task file
+/sys/fs/cgroup/fast/user/$USER/tasks
+when
+/sys/fs/cgroup/fast/user
+does not exist
+
+The preference for use as a server or workstation
+can be adjusted by changing the value of
+/sys/fs/cgroup/norm/{sys,user}/cpu.shares
+With each at 1024 the competing load is balanced
+evenly between the roles of server and workstation.
+
+sorcery utilities such as cast, dispel, and leech
+run in sub control groups of
+/sys/fs/cgroup/slow/
+A system with competing processes
+can run /sys/fs/cgroup/slow/ as slow as 1.5% full speed.
+
+/sys/fs/cgroup/idle/ sub control groups contain
+processes that do background compression of tarballs,
+cleaning, and other less than urgent roles.
+A system with competing processes
+can run /sys/fs/cgroup/idle/ as slow as 0.2% full speed.
+
+This implementation is designed to be suitable
+for both workstations and servers.
+Almost all processing power is diverted to urgent matters
+while the less urgent tasks
+can run slowly when demand for processing power exceeds supply.'
+
 
 build(){
  mkdir -pvm 700 $DESTDIR/etc/cgroup
