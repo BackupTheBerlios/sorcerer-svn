@@ -49,6 +49,16 @@ init_cgroup(){
 
 configure(){
 
+ display(){
+   BACKTITLE=$"cgroup init-script"
+       TITLE=$"Defined control groups"
+   dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 \
+    --msgbox   "$( find /etc/cgroup -type d -printf "%P\n" | sort )" 0 0
+ }
+
  main_menu(){
   mm(){
    BACKTITLE=$"cgroup init-script"
@@ -62,12 +72,14 @@ configure(){
     --stdout --ok-label Select \
     --cancel-label Done \
     --menu   "$HELP" 0 0 0 \
-    "Edit"   "a value for all top level cgroups" \
-    "Create" "a top level cgroup"
+    "Edit"    "control" \
+    "Display" "control groups" \
+    "Create"  "control group"
   }
 
   while  REPLY=$( mm ); do
    case $REPLY in
+    Display) display ;;
     Edit) edit ;;
     Exit) return 0 ;;
     Create) create ;;
@@ -99,9 +111,13 @@ configure(){
    fi
   }
 
+  cgroups(){
+   echo /
+   find /etc/cgroup -type d -printf '%P\n' | sed '/^$/d' | sort
+  }
+
   vals(){
-   find /etc/cgroup -type f -name $CONTROL -printf "%P\n" |
-   cut -d / -f1 | sort -u |
+   cgroups |
    while read; do echo "$REPLY"; content "/etc/cgroup/$REPLY/$CONTROL"; done
   }
 
@@ -149,7 +165,7 @@ configure(){
   name_entry(){
     BACKTITLE=$"cgroup init-script"
         TITLE=$"control group name entry"
-         HELP=$"Please enter the new control group name\nusing only letters and digits."
+         HELP=$"Please enter the new control group name without using space.  Using slash is allowed to define a sublevel control group."
 
    dialog \
     --backtitle "$BACKTITLE" \
@@ -164,8 +180,6 @@ configure(){
         TITLE=$"new top level control group creation"
 
    mkdir -pm 755 /etc/cgroup/$NEW
-   find /etc/cgroup/norm/sys -type f -printf "/etc/cgroup/$NEW/%f\n" |
-   xargs --max-lines=64 touch
 
    dialog \
     --backtitle "$BACKTITLE" \
@@ -176,7 +190,7 @@ configure(){
 
   valid(){
    [ -n "$NEW" ] &&
-   [ -z "$( echo "$NEW" | tr -d '[:alnum:]' )" ]
+   [ -z "$( echo "$NEW" | tr -d '[:alnum:]/_-' )" ]
   }
 
   if   NEW=$( name_entry ) && valid
