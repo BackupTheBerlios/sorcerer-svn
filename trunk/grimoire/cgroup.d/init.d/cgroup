@@ -20,9 +20,11 @@ name /sys/fs/cgroup
 deny control
 
 subsys_default(){
+ unip(){ [ 1 == $( sed '/^processor/p;d' | wc -l ) ]; }
+
  if [ -z "${!subsys[*]}" ]; then
   subsys[clone_children]=1
-  subsys[cpu]=1
+  subsys[cpu]=1; unip ||
   subsys[cpuset]=1
   subsys[cpuacct]=1
   subsys[freezer]=1
