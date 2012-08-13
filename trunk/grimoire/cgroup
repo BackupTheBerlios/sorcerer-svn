@@ -68,12 +68,12 @@ can run slowly when demand for processing power exceeds supply.'
 
 build(){
  mkdir -pvm 700 $DESTDIR/etc/cgroup
- find      $SCRIPT_DIR/etc -mindepth 1 -printf "%P\n" |
- tar  -C   $SCRIPT_DIR/etc --exclude-vcs --no-recursion -cPT - |
- tar  -C   $DESTDIR/etc -pxf -
- find      $DESTDIR/etc -type f | xargs -r --max-lines=64 chmod 644
- find      $DESTDIR/etc -type d | xargs -r --max-lines=64 chmod 755
- chmod 700 $DESTDIR/etc/cgroup
+ find        $SCRIPT_DIR/etc/cgroup -mindepth 1 -printf "%P\n" |
+ tar  -C     $SCRIPT_DIR/etc/cgroup --exclude-vcs --no-recursion -cPT - |
+ tar  -C        $DESTDIR/etc/cgroup -pxf -
+ find           $DESTDIR/etc/cgroup -type f | xargs -r --max-lines=64 chmod 644
+ find           $DESTDIR/etc/cgroup -type d | xargs -r --max-lines=64 chmod 755
+ chmod -pvm 700 $DESTDIR/etc/cgroup
 
  mkdir -pvm 755             $DESTDIR/sbin
  for REPLY in            $SCRIPT_DIR/sbin/*
@@ -88,6 +88,11 @@ build(){
  mkdir -pvm 755             $DESTDIR/lib/cgroup
  for REPLY in            $SCRIPT_DIR/lib/cgroup/*
  do  install -vm 755 $REPLY $DESTDIR/lib/cgroup/
+ done
+
+ mkdir -pvm 755             $DESTDIR/etc/bash_completion.d
+ for REPLY in            $SCRIPT_DIR/etc/bash_completion.d/*
+ do  install -vm 755 $REPLY $DESTDIR/etc/bash_completion.d/
  done
 }
 

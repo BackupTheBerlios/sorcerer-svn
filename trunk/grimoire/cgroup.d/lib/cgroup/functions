@@ -138,13 +138,8 @@ cgroup_oust(){
  local IFS; cgroup_ifs
  local CG
 
- if cgroup_find; then
-  while [ -n "$1" ]; do
-   if   [ -r "$CG/$1/tasks" ]
-   then rmdir --ignore-fail-on-non-empty "$CG/$1"
-   fi
-   shift 1
-  done
+ if   cgroup_find
+ then printf "$CG/%s\n" "$@" | /bin/xargs -r --max-lines=64 /bin/rmdir
  else false
  fi 2>/dev/null
 }

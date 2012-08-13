@@ -1,0 +1,82 @@
+#!/bin/bash
+
+# Copyright 2011, 2012 by Kyle Sallee
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+help(){
+ echo "$0 Copyright 2011, 2012 by Kyle Sallee."
+ echo "All rights reserved.  For use with the distribution Sorcerer only."
+ echo
+ echo $"This can start a new process or move an existing process"
+ echo $"into a control group that achives"
+ echo $"a disproportional amount of processing power."
+ echo $"Succinctly stated $0 runs processes"
+ echo $"faster, slower, or glues them to a processor."
+ echo
+ echo $"The first parameter should be a command such as:"
+ echo $"affine; fast; idle; slow."
+ echo
+ echo $"When affine is used then the next parameter must be a processor."
+ echo $"And the following parameters must be PIDs."
+ echo
+ echo $"When fast, idle, or slow is the first parameter"
+ echo $"then the following parameter can be PIDs"
+ echo $"Otherwise specify a program to execute."
+ echo $"Additional program parameters can follow."
+ echo
+ echo $"Parameters must not be a combination of program names and PIDs"
+ echo $"Only one progarm can be run per invocation of $0"
+ exit 1
+}
+
+checks(){
+ if     [ -z "$USER" ];                 then echo $"Error: Unknown user."
+ elif ! cgroup_find;                    then echo $"Error: Unable to locate cgroup filesystem."
+ elif ! [ -w $CG/$1/user/$USER/tasks ]; then echo $"Error: Permission denied."
+ else return
+ fi 1>&2
+ exit 1
+}
+
+pids_transition(){
+ local t=$1/tasks; shift
+ while echo "$1" > "$t"; [ -n "$2" ]
+ do shift
+ done
+}
+
+execute(){
+ local c=$1; shift
+ if   grep -qx "$1" $CG/*/user/$USER/tasks
+ then pids_transition "$CG/$c/user/$USER" "$@"
+ else pids_transition "$CG/$c/user/$USER" "$$"
+      shift; RUN=$1; shift; exec $RUN "$@"
+ fi
+}
+
+cgroup_load(){
+ if   [ -f /lib/cgroup/functions ]
+ then .    /lib/cgroup/functions
+ fi
+}
+
+cgroup_affine(){
+ if ! cgroup_find; then echo $"Error: Unable to locate cgroup filesystem." 1>&2; exit 1; fi
+
+ shift
+ local t=$( grep -lx "$2" $CG/*/user/$USER/tasks )
+ if [ -z "$t" ]; then echo "Error: PID $2 not owned by $USER" 1>&2; exit 1; fi
+ local a="${t%/*}/$1"
+ shift
+ if ! [ -d "$a" ]; then echo $"Error: Permission denied."; exit 1; fi
+ pids_transition $a "$@"
+}
+
+cgroup_load
+
+if   [ -z               "$1" ]; then help; fi
+if   [      affine   == "$1" ]
+then cgroup_affine      "$@";
+else checks $1; execute "$@"
+fi

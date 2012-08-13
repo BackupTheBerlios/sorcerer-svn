@@ -8,13 +8,6 @@
 # That could be useful when wanting modifications
 # for a user's provisioning to remain until reboot.
 
-# Users can make their own sub cgroup
-# in order to control some aspects such as
-# CPU core affinity.
-# However, users may not modify settings of their main user cgroup.
-# And user sub cgroups are still bound by the constraints
-# of the cgroups that contain it such as the user cgroup.
-
 export PATH=/bin
 
 inherit(){
@@ -23,23 +16,53 @@ inherit(){
    read <   ${1%/*}/blkio.weight
    echo $REPLY > $1/blkio.weight
   fi
+  if   [ -f      $1/cpuset.sched_load_balance ]; then
+   read <   ${1%/*}/cpuset.sched_load_balance
+   echo $REPLY > $1/cpuset.sched_load_balance
+  fi
   [ -n "$2" ]; do
   shift
  done
 }
 
+gain(){
+ /bin/mkdir -m 755 $@ 2>/dev/null
+ inherit           $@ 
+}
+
+affinity(){
+ [ -f $CG/cpuset.cpus ] || return
+
+ local a b p
+
+ while
+  p="${1%/*}"
+  read a < "$p/cpuset.cpus"
+  b="${a##*-}"; b="${b:-0}"
+  a="${a%-*}"
+  while gain $1/$a; echo $a > $1/$a/cpuset.cpus; (( a < b ))
+  do (( a++ ))
+  done
+  [ -n "$2" ]
+ do shift
+ done
+}
+
 open(){
- mkdir -m 755    $CG/{fast,idle,norm,slow}/user/$PAM_USER 2>/dev/null
- inherit         $CG/{fast,idle,norm,slow}/user/$PAM_USER
- chown $PAM_USER $CG/{fast,idle,norm,slow}/user/$PAM_USER/tasks
- echo  $PPID >                    $CG/norm/user/$PAM_USER/tasks
- 
+ gain                 $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ affinity             $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ /bin/chown $PAM_USER $CG/{fast,idle,norm,slow}/user/$PAM_USER/{*/,}tasks 2>/dev/null
+ echo $PPID >         $CG/norm/user/$PAM_USER/tasks
 }
 
 close(){
  echo $$    > $CG/tasks
  echo $PPID > $CG/tasks
- cgroup_oust  $CG/{fast,idle,norm,slow}/user/$PAM_USER
+ cgroup_oust $(
+  /bin/find $CG -type d -printf '%P\n' |
+  /bin/grep "user/$PAM_USER" |
+  /bin/sort -r
+ )
 }
 
 [ -f /lib/cgroup/functions ] &&

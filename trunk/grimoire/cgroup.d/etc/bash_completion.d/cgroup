@@ -1,0 +1,35 @@
+complete_cgroup(){
+ cgroup_commands(){
+  echo "fast"
+  echo "idle"
+  echo "slow"
+  echo "affine"
+ }
+
+ available_processors(){
+  local a b
+
+  [ -f     /sys/fs/cgroup/cpuset.cpus ] || return
+  read a < /sys/fs/cgroup/cpuset.cpus
+  b="${a##*-}"; b="${b:-0}"
+  a="${a%-*}"
+  while echo $a; (( a < b ))
+  do (( a++ ))
+  done
+ }
+
+ cgroup_parameter_parse(){
+  if   (( COMP_CWORD == 1 ))
+  then cgroup_commands
+  elif (( COMP_CWORD == 2 )) &&
+       [[ ${COMP_WORDS[1]} == affine ]]
+  then available_processors
+  fi
+ }
+
+ local REPLY="${1##*/}"
+ read -a COMPREPLY <<< $( cgroup_parameter_parse | grep "^${COMP_WORDS[$COMP_CWORD]}" )
+}
+
+complete -F complete_cgroup cgroup
+complete -F complete_cgroup /bin/cgroup
