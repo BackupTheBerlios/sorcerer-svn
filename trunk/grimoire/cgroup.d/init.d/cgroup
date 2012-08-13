@@ -11,11 +11,39 @@
 # Short-Description: mount cgroup on /sys/fs/cgroup and set limits
 ### END INIT INFO
 
+declare -A subsys subsys_d
+
 . /lib/lsb/init-functions
 
 only start configure status reset
 name /sys/fs/cgroup
 deny control
+
+subsys_default(){
+ if [ -z "${!subsys[*]}" ]; then
+  subsys[clone_children]=1
+  subsys[cpu]=1
+  subsys[cpuset]=1
+  subsys[cpuacct]=1
+  subsys[freezer]=1
+  subsys[memory]=1
+ fi
+}
+
+subsys_to_optlist(){
+ subsys_default
+ optlist=
+ if   [ -x /etc/init.d/sentinel-memory ]
+ then subsys[memory]=1
+ fi
+
+ for s in ${!subsys[*]}; do
+  if   [ -n "$optlist" ]
+  then optlist+=",$s"
+  else optlist="$s"
+  fi
+ done
+}
 
 reset(){
  if   [ -d /etc.ori/cgroup ]; then
@@ -74,7 +102,8 @@ configure(){
     --menu   "$HELP" 0 0 0 \
     "Edit"    "control" \
     "Display" "control groups" \
-    "Create"  "control group"
+    "Create"  "control group" \
+    "Subsys"  "selection"
   }
 
   while  REPLY=$( mm ); do
@@ -83,8 +112,62 @@ configure(){
     Edit) edit ;;
     Exit) return 0 ;;
     Create) create ;;
+    Subsys) subsys ;;
    esac
   done
+ }
+
+ subsys(){
+# declare -A subsys_d
+  subsys_d[blkio]=$"control disk/storage I/O when CFQ scheduler is enabled"
+  subsys_d[clone_children]=$"sub cgroup inherits values from cgroup above"
+  subsys_d[cpu]=$"scheduling allocation of processing power"
+  subsys_d[cpuset]=$"mostly for SMP boxes and controlling task migration"
+  subsys_d[cpuacct]=$"track and report processing power used by each cgroup"
+  subsys_d[freezer]=$"pause and resume running of processes within a cgroup"
+  subsys_d[memory]=$"limit and control RAM and swap provided to cgroup"
+
+  subsys_checklist(){
+   for s in ${!subsys_d[*]}; do
+    echo "$s"
+    echo "subsys" 
+    if   [ -n "${subsys[$s]}" ]
+    then echo on
+    else echo off
+    fi
+    echo "${subsys_d[$s]}"
+   done
+  }
+
+  subsys_menu(){
+    BACKTITLE=$"cgroup init-script"
+        TITLE=$"subsystem selection"
+         HELP=$"[x]=enabled [ ]=disabled  Space toggles and arrows navigate"
+
+   export IFS="
+"
+   dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --stdout --timeout 120 \
+    --no-cancel \
+    --ok-label $"Done" \
+    --item-help \
+    --separate-output \
+    --checklist "$HELP" 0 0 0 $( subsys_checklist )
+  }
+
+  subsys_default
+  if ss=$( subsys_menu ); then
+   subsys=()
+   mkdir -pm 700               /etc/init.d/conf.d/
+   touch                       /etc/init.d/conf.d/cgroup
+   sed -i '/subsys/d'          /etc/init.d/conf.d/cgroup
+#  echo "declare -A subsys" >> /etc/init.d/conf.d/cgroup
+   for s in $ss
+   do  echo "subsys[$s]=1"; subsys[$s]=1
+   done                     >> /etc/init.d/conf.d/cgroup
+  fi
  }
 
  edit(){
@@ -219,8 +302,7 @@ status(){
 
 start(){
 
- mcg(){ mount -t cgroup -o clone_children,cpu,cpuacct,cpuset,freezer,memory cgroup /sys/fs/cgroup; }
-#mcg(){ mount -t cgroup -o blkio,clone_children,cpu,cpuacct,cpuset,freezer,memory cgroup /sys/fs/cgroup; }
+ mcg(){ subsys_to_optlist; mount -t cgroup -o $optlist cgroup /sys/fs/cgroup; }
 
  if   status &>/dev/null
  then log_success_msg "/sys/fs/cgroup mounted"
