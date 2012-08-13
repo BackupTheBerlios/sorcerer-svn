@@ -320,7 +320,7 @@ boot_dev_check(){
 
 get_filesystem(){
 
- local BTRFS EXT2 EXT3 EXT4 OCFS2 JFS XFS REISER SWAP
+ local BTRFS EXT2 EXT3 EXT4 OCFS2 JFS XFS SWAP
 
   BTRFS=$"B Tree Reversible           file system experimental"
    EXT2=$"Second Extended             file system"
@@ -329,12 +329,11 @@ get_filesystem(){
   OCFS2=$"Oracle Clustering           file system"
     JFS=$"JFS              journaling file system"
     XFS=$"XFS              journaling file system"
- REISER=$"Reiserfs         journaling file system"
    SWAP=$"Swap"
 
  local BOOT HELP TITLE FS
 
-  BOOT=$"Reiserfs OCFS2 XFS and BTRFS can be selected for / after /boot is defined."
+  BOOT=$"OCFS2 XFS and BTRFS can be selected for / after /boot is defined."
   HELP=$"Please select a file system"
  TITLE=$"File System Selection Menu"
 
@@ -353,7 +352,7 @@ get_filesystem(){
   FS="$(
    $DIALOG --title "$TITLE" --default-item "$FS" --menu "$HELP" 0 0 0 \
     ext4 "$EXT4" ext3 "$EXT3" ext2 "$EXT2" jfs "$JFS" swap "$SWAP" \
-    reiserfs "$REISER" xfs "$XFS" btrfs "$BTRFS" )"
+    xfs "$XFS" btrfs "$BTRFS" )"
  else
   msgbox "$BOOT"
   FS="$(
@@ -690,7 +689,6 @@ get_def_options(){
      btrfs) REPLY="defaults"                    ;;
       swap) REPLY="defaults"                    ;;
        xfs) REPLY="defaults,noatime"            ;;
-  reiserfs) REPLY="defaults,notail,noatime"     ;;
        jfs) REPLY="defaults,noatime"            ;;
          *) REPLY="defaults"                    ;;
  esac
@@ -1128,7 +1126,6 @@ installed_fs(){
   *ocfs2*)		echo  ocfs2	;;
   *BTRFS\ Filesystem*)  echo  btrfs     ;;
   *SGI\ XFS*)		echo  xfs	;;
-  *ReiserFS*)		echo  reiserfs	;;    
   *FAT*)		echo  fat	;;
   *stdin:\ data*)  	check_jfs "$1"	;;
  esac
@@ -1187,7 +1184,6 @@ get_mkfs(){
      ocfs2) PMKFS[$1]="mkfs.ocfs2"      ;;
      btrfs) PMKFS[$1]="mkfs.btrfs"	;;
       swap) PMKFS[$1]="mkswap"		;;
-  reiserfs) PMKFS[$1]="mkreiserfs"	;;
        xfs) PMKFS[$1]="mkfs.xfs"	;;
        jfs) PMKFS[$1]="jfs_mkfs"	;;
  esac
@@ -1211,7 +1207,6 @@ get_mk_command(){
       ext2) echo "mkfs.ext2	${PCHECK[$1]}	${PFEATURE[$1]}	$DEV" ;;
      ocfs2) echo "mkfs.ocfs2	-F		${PFEATURE[$1]}	$DEV" ;;
      btrfs) echo "mkfs.btrfs	$DEV" ;;
-  reiserfs) echo "mkreiserfs	-f	$DEV" ;;
        xfs) echo "mkfs.xfs	-f	$DEV" ;;
        jfs) echo "jfs_mkfs	-q	${PCHECK[$1]}	$DEV" ;;
       swap) file_or_part "$1" ;;
@@ -1392,7 +1387,7 @@ any of these conditions are true:
 2. When / is a LVM2 logical volume
 3. When / is a LUKS encrypted volume
 5. When / is a software RAID.
-6. When / is a XFS, BTRFS, ocfs2 or Reiserfs file system' 20 75
+6. When / is a XFS, BTRFS, or ocfs2 file system' 20 75
 }
 
 
