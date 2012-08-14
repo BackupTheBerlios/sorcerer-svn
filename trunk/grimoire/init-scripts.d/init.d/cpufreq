@@ -18,7 +18,7 @@
 only start configure status display
 
 display(){
- echo "Default scaling_governor cpufreq_$DEFAULT"
+ echo "Default scaling_governor cpufreq_${DEFAULT:=performance}"
  if   [ -n "$USERS" ]
  then echo "Users are allowed to adjust scaling governor"
  else echo "Users are not allowed to adjust scaling governor"
@@ -101,6 +101,8 @@ or cpufreq_userspace."
 
 
 start(){
+ DEFAULT="${DEFAULT:-performance}"
+
  if   [ -n "$USERS" ]
  then chmod 666 /sys/devices/system/cpu/cpu*/cpufreq/scaling_{governor,setspeed}
  fi
@@ -118,7 +120,7 @@ status(){
  local cscf=cpufreq/scaling_cur_freq
  local c f g
 
- if   [ -n "$DEFAULT" ]
+ if   [ -n "${DEFAULT:=performance}" ]
  then log_warning_msg "Default scaling governor is cpufreq_$DEFAULT"
  fi
 

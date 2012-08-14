@@ -13,3 +13,38 @@
 only start stop restart status
 name /root/.sorcery
 options '-o defaults,size=256m,nr_inodes=256k,mode=700 -t tmpfs tmpfs'
+
+stop(){
+ root_owned_cast_dispel(){
+  pgrep -u root '^cast$'
+  pgrep -u root '^dispel$'
+ }
+
+ busy(){ root_owned_cast_dispel | grep -q '.'; }
+
+ abort_and_wait(){
+  touch /root/.sorcery/halt
+  augur queue | sed 's:cast/active/::' | augur abort
+  log_warning_msg 'waiting for completion of cast or dispel'; echo
+  log_warning_msg 'forcing power off will cause problems please be patient'
+  while busy; do sleep 1; done
+  log_success_msg 'sorcery run completed'
+ }
+
+ wait_sorcery(){
+  if   log_warning_msg 'sorcery run check starting'; ! busy
+  then log_success_msg 'sorcery not running'
+  else log_warning_msg 'sorcery awaiting completion'; abort_and_wait
+  fi
+ }
+
+ umount_sorcery(){
+  if   log_warning_msg "$NAME unmounting"; umount $NAME
+  then log_success_msg "$NAME unmounted"
+  else log_success_msg "$NAME not unmounted"
+  fi
+ }
+
+ wait_sorcery
+ umount_sorcery
+}
