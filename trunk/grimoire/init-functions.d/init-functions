@@ -337,7 +337,16 @@ parse(){
   if [ -n "$only" ] && ! inside "$1" $only; then help; return 3; fi
  }
 
- event(){
+ event_start(){
+  local S
+  S=${SELF##*/}
+  S=${S#[SK][0-9][0-9]} 
+  [     -d  /var/log/init/run ] ||
+  mkdir -p  /var/log/init/run
+  echo $$ > /var/log/init/run/$S
+ }
+
+ event_end(){
   E=$?
   if ! [ -d /var/log/init ]; then exit $E; fi
   if   [ -z "$1" ]; then exit $E; fi
@@ -346,23 +355,16 @@ parse(){
   S=${S#[SK][0-9][0-9]} 
   P=/var/log/init/passed/$S
   F=/var/log/init/failed/$S
+  R=/var/log/init/run/$S
+
+  rm -fr $F $P $R
 
   if [ $E == 0 ]; then
-   [     -d   $P ] ||
    mkdir -p   $P
    echo  -n > $P/$1
-   if [ -f    $F/$1 ]; then
-    rm  -f    $F/$1
-    rmdir --ignore-fail-on-non-empty $F
-   fi
   else
-   [     -d   $F ] ||
    mkdir -p   $F
    echo  $E > $F/$1
-   if [ -f    $P/$1 ]; then
-    rm  -f    $P/$1
-    rmdir --ignore-fail-on-non-empty $P
-   fi
   fi
   numlock_off
   exit $E
@@ -370,10 +372,11 @@ parse(){
 
  local p=$1 f=${1//-/_}
  shift 1
+ event_start
  permit "$p" &&
  numlock_on  &&
  "$f" "$@"
- event  "$p"
+ event_end "$p"
 }
 
 control(){

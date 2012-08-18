@@ -1,0 +1,40 @@
+#!/bin/bash
+# Copyright 2012 by Kyle Sallee,
+# All rights reserved.
+# For use with the distribution Sorcerer only.
+# boot-killer slays allows person at keyboard
+# to slay off stalled init-scripts
+
+export LC_ALL=C
+
+main(){
+ sleep 30
+ export LC_ALL=C
+ if pgrep rcS 1>/dev/null; then
+  echo
+  echo $"Sysinit's duration seems unexpected."
+  echo $"Pressing CapsLock will now kill currently running init-script."
+  echo $"Waiting is best."
+  echo $"Please kill cautiously."
+ fi 1>&2
+
+ while pgrep rcS 1>/dev/null; do
+  if setleds < /dev/console | grep -q "Current flags:.*CapsLock on"; then
+   REPLY=$( find /var/log/init/run -type f )
+   if [ -n "$REPLY" ] &&
+      [ -f "$REPLY" ]; then
+    echo   "$REPLY" | sed 's:.*[/]::;' | sed 's:^:pkill -9 :'
+    cat     $REPLY  | xargs -r --max-lines=64 kill -9
+    rm  -f  $REPLY
+   fi
+   setleds -caps < /dev/console
+  fi
+  if   [ -z "$blink" ]
+  then setleds -L +caps < /dev/console ; blink=on
+  else setleds -L -caps < /dev/console ; blink=
+  fi
+  sleep 0.25
+ done
+}
+
+main &
