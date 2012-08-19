@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee,
+# Copyright 2011, 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
@@ -12,6 +12,7 @@ VC=/var/cache
 AC=$VC/archive
 CC=$VC/ccache
 SC=$VC/sources
+CD=/usr/src/sorcery/ccache
 
 TAR='/\.tar$/p'
 TGZ='/\.tar\.gz$/p;/\.tgz$/p'
@@ -39,7 +40,7 @@ decomp(){
   bzip2) bzip2 -cd  "$IN" > "$TMP" ;;
    gzip) gzip  -cd  "$IN" > "$TMP" ;;
     tar) ln         "$IN"   "$TMP" ;;
-      *) false ;;
+      *) rm    -f   "$IN";   false ;;
  esac
 }
 
@@ -88,8 +89,24 @@ recompress(){
  fi
 }
 
-pending(){ find $AC/ $CC/ $SC/ -maxdepth 4 -type f | sed -n "$FILES"; }
-reduction(){ pending | while read; do recompress "$REPLY"; done; }
+tarballit(){
+ mkdir -pvm 755  $CC
+ local  tarball="$CC/${1##*/}.tar"
+
+ if   find   "$1" -type f -printf '%P\n' |
+      tar -C "$1" --no-recursion -cPT -  \
+       >    "$tarball.new"
+ then mv    "$tarball.new" "$tarball"; rm -fr "$1"
+ else rm -f "$tarball.new"
+ fi
+}
+
+pendingd(){ [ -d $CD ] &&
+            find $CD -mindepth 1 -maxdepth 1 -type d; }
+pendingf(){ find $AC/ $CC/ $SC/  -maxdepth 4 -type f | sed -n "$FILES"; }
+
+reduction(){ pendingf | while read && ! later; do recompress "$REPLY"; done; }
+dir_2_tar(){ pendingd | while read && ! later; do tarballit  "$REPLY"; done; }
 
 free_bytes(){ stat -f -c '%a*%s' $1 | bc; }
 
@@ -116,27 +133,12 @@ remove_file(){
  done
 }
 
-compress_dir(){
- local TMP NEW
- while read; do
-  if (( $( free_bytes $1 ) < $2 )); then
-   TMP=$REPLY.tar
-   NEW=$REPLY.tar.xz
-   if   tar -c "$REPLY" > "$TMP" && doxz
-   then rm -fr "$REPLY"   "$TMP"
-   else rm -f  "$NEW"     "$TMP"
-   fi
-  fi
- done
-}
-
 inside(){
  find $1 -maxdepth 1 -mindepth 1 -type $2 -printf '%T@\t%p\n' |
  sort -gr |
  cut -f2
 }
 
-shrink_dir(){ [ -d $1 ] && inside $1 d | oldest | compress_dir "$@"; }
 waste_file(){ [ -d $1 ] && inside $1 f | oldest | remove_file  "$@"; }
 
 acad(){
@@ -151,14 +153,15 @@ busy(){
  pgrep -u root "^cast$"
 }
 
-scan(){
+later(){
  if   [ -f /etc/init.d/find_ir ] || busy || ! acad
  then return 0
+ else return 1
  fi
+}
 
- # Compression tactics
- if full /usr/doc          $LOW; then shrink_dir /usr/doc          $LOW; fi
- if full /usr/share/doc    $LOW; then shrink_dir /usr/share/doc    $LOW; fi
+scan(){
+ if later; then return 0; fi
 
  # Removal tactics
  if full /usr/share/locale $LOW; then waste_locales; fi
@@ -166,6 +169,7 @@ scan(){
  if full /usr/share/doc    $MIN; then waste_file /usr/share/doc    $MIN; fi
  if full /usr/doc          $MIN; then waste_file /usr/doc          $MIN; fi
 
+ dir_2_tar
  reduction
 }
 
