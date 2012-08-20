@@ -1,12 +1,12 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee,
+# Copyright 2011, 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
 swap_scan(){
  while read F S U; do
   if    [[ $F = SwapFree: ]]; then
-   if   ((  S > 65536 ))
+   if   ((  S > 262144 ))
    then return 0
    else return 1
    fi
@@ -17,12 +17,12 @@ swap_scan(){
 # 10M reserve worked in trials.
 
 pawn(){
- mkdir -p        $CG/pawn
+ mkdir -pm 700   $CG/pawn
  echo $BASHPID > $CG/pawn/tasks
  echo 0        > $CG/pawn/memory.oom_control
  echo 1000     > /proc/$BASHPID/oom_score_adj
- local RESERVE="$( dd if=/dev/zero bs=12M count=1 2>/dev/null | tr '\0' ' ' )"
- while sleep 60 && swap_scan; do :; done
+ local RESERVE="$( dd if=/dev/zero bs=16M count=1 2>/dev/null | tr '\0' ' ' )"
+ while sleep 15 && swap_scan; do :; done
 }
 
 oom_control(){
@@ -38,7 +38,7 @@ main(){
  }
 
  local PASS=0
- echo -1000    > /proc/$BASHPID/oom_score_adj
+ echo -1000 > /proc/$BASHPID/oom_score_adj
  while
   (( PASS++ ))
   SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&
@@ -65,12 +65,17 @@ if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
 fi
 
-SDIR=$1
-SIZE=$2
+SDIR=${1:-/var/cache/swap}
+SIZE=${2:-1024M}
+
 if   [     -d      $SDIR ]
 then rm    -f      $SDIR/swap* &>/dev/null
+elif [     -e      $SDIR ]
+then rm    -fr     $SDIR
+     mkdir -pm 700 $SDIR
 else mkdir -pm 700 $SDIR
 fi
+
 trap on_exit EXIT
 oom_control 1
 main &>/dev/null &
