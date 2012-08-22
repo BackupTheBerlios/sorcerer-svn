@@ -1,9 +1,14 @@
+# Using statically linked popt instead of system installed
+# because rsync is installing to /bin
+
    version stable 3.0.9
-   require autoconf popt
+  PVERSION=1.16
+   require autoconf
       opts --bindir=/bin
   category network/file-share
  attribute console
     source http://rsync.samba.org/ftp/rsync/rsync-$VERSION.tar.gz
+    source http://rpm5.org/files/popt/popt-$PVERSION.tar.gz
       info home http://rsync.samba.org/
       info last 20110924
       desc 'a replacement for rcp
@@ -17,8 +22,22 @@ that both sets of files are present at one of
 the ends of the link beforehand.'
 
 build(){
+build_popt(){
+ cd popt-$PVERSION    &&
+ ./configure          \
+ --prefix=/usr        \
+ --sysconfdir=/etc    \
+ --localstatedir=/var \
+ --enable-shared=no   &&
+ make &&
+ export LDFLAGS+=" -L$PWD/.libs" &&
+ export  CFLAGS+=" -I$PWD" &&
+ cd ..
+}
+
 autoconf
 autoheader
+build_popt &&
 ./configure \
 --prefix=/usr \
 --sysconfdir=/etc \
