@@ -2,10 +2,10 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-   version stable 20120609
+   version stable 20120823
   category immune-system
  attribute archive_off solo stale
-      info last 20120609
+      info last 20120823
       info home http://sorcerer.silverice.org/
 #conflicts lilo bison-v2.3 ORBit2 libbonobo at-spi gnome-mag eggdbus evas_generic_loaders ffmpeg-v0.6 gimageview gnome-vfs hal immune-sentinel-loadavg libgnome libgnomemm libgnomeui libgnomeuimm libgnomeui libmng
       desc 'applies adjustments as a box transitions through time
@@ -85,6 +85,40 @@ post_install(){
   fi
  }
 
+ aux_dirs(){
+  local vco=/var/cache/old
+  local vct=/var/cache/tmp
+
+  if  ! [ -d /aux           ]; then mkdir -pm 755 /aux;                  fi
+  if  ! [ -d /aux/fit       ]; then mkdir -pm 700 /aux/fit;              fi
+  if  ! [ -d /aux/new       ]; then mkdir -pm 700 /aux/new;              fi
+  if  ! [ -d /aux/new/etc   ]; then mkdir -pm 700 /aux/new/etc;          fi
+  if  ! [ -d /aux/old       ]; then mkdir -pm 755 /aux/old;              fi
+  if  ! [ -d /aux/use       ]; then mkdir -pm 700 /aux/use;              fi
+  if  ! [ -d /aux/use/etc   ]; then mkdir -pm 700 /aux/use/etc;          fi
+
+  if    [ -d /lib64.sav     ]; then
+   if ! [ -d /aux/fit/lib64 ]; then mv        /lib64.sav /aux/fit/lib64;
+                               else rm    -fr /lib64.sav;            fi; fi
+  if    [ -d /lib.sav       ]; then
+   if ! [ -d /aux/fit/lib   ]; then mv        /lib.sav   /aux/fit/lib;
+                               else rm    -fr /lib.sav;              fi; fi
+
+  if    [ -d /lib64.bad     ]; then rm    -fr /lib64.bad;                fi
+  if    [ -d /lib.bad       ]; then rm    -fr /lib.bad;                  fi
+
+  if    [ -d /etc.sav       ]; then cp    -a  /etc.sav/* /aux/use/etc/;
+                                    rm    -fr /etc.sav;                  fi
+
+  if    [ -d /etc.ori       ]; then cp    -a  /etc.ori/* /aux/new/etc/;
+                                    rm    -fr /etc.ori;                  fi
+
+  if    [ -d $vct           ]; then rm    -fr $vct;                      fi
+  if    [ -d $vco           ]; then mv        $vco/*     /aux/old/;
+                                    rm    -fr $vco;
+                                    /sbin/ldconfig;                      fi
+ }
+
  discard_old_index		#	Always run this function
 
  # Temporary fixes to provide for 6 months.
@@ -95,5 +129,6 @@ post_install(){
  kde_fix			#	20120202
  ati_to_amd_fix			#	20120412
  libgweather			#	20120528
+ aux_dirs			#	20120823
  default_post_install
 }

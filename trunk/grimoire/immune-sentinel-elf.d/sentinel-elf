@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 2012 by Kyle Sallee,
+# Copyright 2011, 2012 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
@@ -21,17 +21,25 @@ chain(){
 
 repair(){
  fix(){
-  if ! [ -d $1.sav ]; then return 0; fi
-  mv    $1{,.bad}
-  cp -a $1{.sav,}
+  if ! [ -d $f/$1 ]; then return 0; fi
+  mv    $r/$1 $b/
+  cp -a $f/$1 $r/
   logger -p syslog.crit -s -t sentinel-elf -- $"ELF library failure detected"
-  logger -p syslog.crit -s -t sentinel-elf -- $"$1     moved  to $1.bad"
-  logger -p syslog.crit -s -t sentinel-elf -- $"$1.sav copied to $1"
+  logger -p syslog.crit -s -t sentinel-elf -- $"$r/$1 moved  to $b/$1"
+  logger -p syslog.crit -s -t sentinel-elf -- $"$f/$1 copied to $r/$1"
  }
 
+ local r=/media/root
+ local a=$r/aux
+ local b=$a/bad
+ local f=$a/fit
+
+ rm    -fr     $b
+ mkdir -pm 755 $a
+ mkdir -pm 700 $b
  case $HOSTTYPE in
-  x86_64) fix /media/root/lib64 ;;
-       *) fix /media/root/lib   ;;
+  x86_64) fix lib64 ;;
+       *) fix lib   ;;
  esac
 }
 
