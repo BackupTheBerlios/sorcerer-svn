@@ -1,0 +1,18 @@
+   version stable 0.8.0
+   require serd
+  category audio/library
+ attribute library makej multilib-dual
+    source http://download.drobilla.net/sord-$VERSION.tar.bz2
+      info last 20120818
+      info home http://drobilla.net/software/sord
+      desc 'library for sorting RDF data in memory'
+
+build(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
+ fi
+}

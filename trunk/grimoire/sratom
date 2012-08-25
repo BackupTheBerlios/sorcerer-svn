@@ -1,0 +1,18 @@
+   version stable 0.4.0
+   require sord
+  category audio/library
+ attribute library makej multilib-dual
+    source http://download.drobilla.net/sratom-$VERSION.tar.bz2
+      info last 20120709
+      info home http://drobilla.net/software/sratom
+      desc 'library for serializing LV2 atom to/from RDF, esp Tutle syntax'
+
+build(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
+ fi
+}

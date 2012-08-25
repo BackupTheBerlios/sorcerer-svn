@@ -1,0 +1,17 @@
+   version stable 0.18.0
+  category audio/library
+ attribute library makej multilib-dual
+    source http://download.drobilla.net/serd-$VERSION.tar.bz2
+      info last 20120823
+      info home http://drobilla.net/software/serd
+      desc 'library for RDF syntax which supports r/w Turtle and NTtriples'
+
+build(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
+ fi
+}

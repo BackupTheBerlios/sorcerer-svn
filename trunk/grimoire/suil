@@ -1,0 +1,20 @@
+# does not link properly with qt-everywhere-opensource
+
+   version stable 0.6.4
+  category audio/library
+ attribute library makej multilib-dual
+ attribute broke
+    source http://download.drobilla.net/suil-$VERSION.tar.bz2
+      info last 20120709
+      info home http://drobilla.net/software/suil
+      desc 'library for loading and wrapping LV2 plugin UIs'
+
+build(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
+ fi
+}
