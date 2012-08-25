@@ -1,0 +1,19 @@
+   version stable 1.0.0
+   require gtk+ libsndfile
+  category audio/library
+ attribute library multilib-dual
+    source http://lv2plug.in/spec/lv2-$VERSION.tar.bz2
+      info last 20120418
+      info home http://lv2plug.in/spec/
+ conflicts lv2core
+      desc 'LV2 specification components for audio processing'
+
+build(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
+ fi
+}
