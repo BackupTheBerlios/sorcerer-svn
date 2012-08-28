@@ -9,21 +9,26 @@
 # header files from v4l-utils.
 # strange recursive requirement between libv4l and v4l-utils
 
-   version stable 1.0.22
-   require jpeg tiff v4l-utils
-#  require jpeg libv4l tiff
+   version stable 1.0.23 1.0.22
+   require git jpeg tiff v4l-utils
   optional libgphoto2    '' '' for digital camera support
   optional libexif
   optional libusb-compat '' '' for usb scanner support
       opts --without-snmp
   category graphic/scan
  attribute hidden library makej multilib-dual x11
-    source ftp://ftp.sane-project.org/  \
-           ftp://ftp2.sane-project.org/ \
-           ftp://ftp3.sane-project.org/ \
-           pub/sane/sane-backends-$VERSION/sane-backends-$VERSION.tar.gz
-      info good 20120703
-      info last 20110214
+    source stable sane-backends-$VERSION.tar RELEASE_${VERSION//./_} git://git.debian.org/sane/sane-backends.git
+
+# leech refuses to download an obviously incomplete gzipped tarball
+#   source http://alioth.debian.org/frs/download.php/3752/sane-backends-1.0.23.tar.gz.1
+#   source http://alioth.debian.org/frs/download.php/3753/sane-backends-1.0.23.tar.gz.2
+#   source http://alioth.debian.org/frs/download.php/3754/sane-backends-1.0.23.tar.gz.3
+
+#    source ftp://ftp.sane-project.org/  \
+#           ftp://ftp2.sane-project.org/ \
+#           ftp://ftp3.sane-project.org/ \
+#           pub/sane/sane-backends-$VERSION/sane-backends-$VERSION.tar.gz
+      info last 20120828
       info home http://www.sane-project.org/
  freshmeat sane
       desc 'libraries for scanning
@@ -42,9 +47,3 @@ build(){
  make STANDARD= &&
  make STANDARD= DESTDIR=$DESTDIR install
 }
-
-# post_install(){
-#  default_post_install
-#  echo v4l-utils | pipe_queue $CAST_QUEUE
-#  echo v4l-utils | pipe_queue $LEECH_QUEUE
-# }
