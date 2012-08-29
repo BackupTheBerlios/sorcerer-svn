@@ -1,4 +1,5 @@
-   version stable 2.7.2 2.7.1 2.6.6
+   version stable 2.7.3 2.7.2 2.7.1
+   version secure 2.7.3
    require bzip2 db gdbm expat gmp ncurses pkgconfig readline zlib
   optional openssl '' '' for secure socket connections
   optional sqlite  '' '' for sqlite support
@@ -7,11 +8,15 @@
 # optional tk      '' '' to use tk for GUI and graphics
 
   category development/interpreter
- attribute console library makej x11
-    source http://www.python.org/ftp/python/$VERSION/ \
+ attribute console hidden library makej x11
+    source stable http://www.python.org/ftp/python/$VERSION/ \
             ftp://ftp.python.org/pub/python/$VERSION/ \
            Python-$VERSION.tar.bz2
-      info last 20110824
+    source secure http://www.python.org/ftp/python/$VERSION/ \
+            ftp://ftp.python.org/pub/python/$VERSION/ \
+           Python-$VERSION.tar.bz2
+      info last 20120409
+      info vurl http://www.python.org/download/
       info home http://www.python.org/
       info docs http://www.python.org/doc/
  freshmeat python
@@ -37,9 +42,13 @@ build(){
  }
 
  bit_move(){
-  mv -v $DESTDIR/usr/bin/python{,-$1} &&
-  mv -v $DESTDIR/usr/bin/python${VERSION:0:3}{,-$1} &&
-  mv -v $DESTDIR/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
+  if [[ -h $DESTDIR/usr/bin/python ]]; then
+   rm -f  "$DESTDIR/usr/bin/python"
+   cp -al "$DESTDIR/usr/bin/python"{${VERSION:0:3},}
+  fi
+  mv -v "$DESTDIR"/usr/bin/python{,-$1} &&
+  mv -v "$DESTDIR"/usr/bin/python${VERSION:0:3}{,-$1} &&
+  mv -v "$DESTDIR"/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
  }
 
  add_dlfcn(){
