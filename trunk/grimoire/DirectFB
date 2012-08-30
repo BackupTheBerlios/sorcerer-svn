@@ -8,22 +8,24 @@
 # 1.6.0 does not compile because the source tree
 # was not properly prepared before being rolled into a source tarball.
 
-   version   stable 1.6.1 1.5.3
-case $VERSION in
- 1.6.0)
-   require automake libtool ;;
- 1.5.3)
-   require libpng-v1.4 ;;
-esac
-   require freetype gcc-g++ jpeg libdrm libpng sysfsutils
-#  require freetype gcc-g++ jpeg libdrm libmng libpng sysfsutils
-  optional libXext --enable-x11 --disable-x11 for X11 support
-  optional LibVNCServer
-  optional MesaLib
-      opts --enable-multi
-      opts --disable-sdl
-#     opts --disable-avifile --disable-sdl
+# qingy requires DirectFB linked with freetype
+
+   version   stable 1.6.1
+   require freetype gcc-g++
+# optional LibVNCServer --enable-vnc      --disable-vnc
+# optional SDL          --enable-sdl      --disable-sdl
+  optional MesaLib      --enable-mesa     --disable-mesa
+# optional freetype     --enable-freetype --disable-freetype
+  optional imlib2       --enable-imlib2   --disable-imlib2
+  optional jasper       --enable-jpeg2000 --disable-jpeg2000
+  optional jpeg         --enable-jpeg     --disable-jpeg
+  optional libXext      --enable-x11      --disable-x11 for X11 support
+  optional libpng       --enable-png      --disable-png
+      opts --disable-sdl --enable-multi --without-tests
   category graphic
+ attribute library makej multilib-dual setarch x11
+# Insists that fluxconf be installed
+# when doing multilib-concurrent compilation with version 1.6.1
  attribute library makej multilib-concurrent setarch x11
     source http://www.directfb.org/downloads/Core/DirectFB-${VERSION:0:3}/DirectFB-$VERSION.tar.gz
       info vurl "http://www.directfb.org/index.php?path=Main%2FDownloads"
@@ -41,26 +43,3 @@ on top of the Linux framebuffer device.
 It is a complete hardware abstraction layer
 with software fallbacks for every graphics operation
 that is not supported by the underlying hardware.'
-
-build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
- }
-
- case $VERSION in
-  1.6.0) aclocal; automake -acf; libtoolize -cf ;;
-  1.5.3) libpng_fix ;;
- esac
-
- # sed -i '/@libdir@/d' directfb-config.in
- default_build
-}
