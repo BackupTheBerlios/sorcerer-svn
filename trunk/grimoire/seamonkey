@@ -1,0 +1,157 @@
+   version   stable 2.12
+   require GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files zip
+#  require GConf-dbus bzip2 hicolor-icon-theme libnotify startup-notification sqlite zip
+# gnome-vfs makes firefox crash during downloading on x86_64
+      opts --disable-gnomevfs --disable-crashreporter
+  optional yasm       '' --disable-webm     for webm video codec
+#   switch --enable-glitz --disable-glitz 'enable glitz for use with cairo'
+#      opts --with-system-jpeg
+      opts --with-system-zlib
+      opts --with-system-bz2
+      opts --enable-startup-notification
+      opts --disable-static
+#      opts --enable-system-cairo
+      opts --enable-system-lcms
+      opts --enable-application=suite
+#     opts --with-system-libxul
+#     opts --with-libxul-sdk=/usr
+#     opts --disable-libxul
+#     opts --disable-xul
+#      opts --with-system-nspr
+#      opts --with-system-nss
+      opts --without-system-nss
+      opts --without-system-nspr
+      opts --enable-strip
+      opts --enable-default-toolkit=cairo-gtk2
+      opts --disable-mochitest
+      opts --disable-tests
+      opts --enable-official-branding
+#      opts --enable-system-sqlite
+
+## --with-system-png requires png with apng support and currently the patch does not apply
+#     opts --with-system-png
+
+# Avoid failed cast when iwlib.h is not installed (provided by wireless-tools)
+# Why does firefox need wireless anyway? 
+# Furthermore, necko-wifi may not me supported on Linux anyway if I understand
+# things correctly (J. Merka, 03/01/10).
+      opts --disable-necko-wifi
+
+# Enable official branding should be fine because we are not 
+# distributing the builds. This option names the browser Firefox instead
+# of Minefield but launches a EULA on the first start:
+#      opts --enable-official-branding
+#      opts --with-distribution-id='sorcerer'
+# These two should be safe for Sorcerer
+      opts --disable-updater
+      opts --disable-installer
+
+           #--with-system-png
+           #--enable-cpp-rtti
+#            'jdk:::for building the javaXPCOM components' )
+# compilation with javaXPCOM component support is not working
+
+  category network/web
+# Errors with message that -m32 is invalid.
+ attribute bottleneck client huge library litelink makej multilib-fail x11
+    source http://releases.mozilla.org/pub/mozilla.org/seamonkey/releases/$VERSION/source/seamonkey-$VERSION.source.tar.bz2
+      info last 20120828
+      info http://www.seamonkey-project.org
+  eprovide mozilla
+#conflicts gnome-vfs
+      desc 'web brower based upon mozilla gecko HTML rendering engine'
+
+build(){
+
+ symlink_icons(){
+  install -vdm 755 $DESTDIR/usr/share/applications
+  install -vm  644 $SCRIPT_DIR/applications.d/seamonkey.desktop $DESTDIR/usr/share/applications
+  mkdir -p $DESTDIR/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps
+  ln -fs /usr/lib/seamonkey-$VERSION/chrome/icons/default/default16.png \
+         $DESTDIR/usr/share/icons/hicolor/16x16/apps/seamonkey.png
+  ln -fs /usr/lib/seamonkey-$VERSION/chrome/icons/default/default32.png \
+         $DESTDIR/usr/share/icons/hicolor/32x32/apps/seamonkey.png
+  ln -fs /usr/lib/seamonkey-$VERSION/chrome/icons/default/default48.png \
+         $DESTDIR/usr/share/icons/hicolor/48x48/apps/seamonkey.png
+  true
+ }
+
+ make_install(){
+  if   [ -d                      $DESTDIR/usr/lib64/seamonkey-$VERSION ]
+  then ln -fs seamonkey-$VERSION $DESTDIR/usr/lib64/seamonkey
+       ln -fs seamonkey-$VERSION $DESTDIR/usr/lib64/mozilla
+  fi
+  if   [ -d                      $DESTDIR/usr/lib/seamonkey-$VERSION ]
+  then ln -fs seamonkey-$VERSION $DESTDIR/usr/lib/seamonkey
+       ln -fs seamonkey-$VERSION $DESTDIR/usr/lib/mozilla
+  fi
+  rm -fr /usr/lib{,64}/mozilla
+  symlink_icons
+ }
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then opts "--host=${MACHTYPE/x86_64/i686}"
+       export LDFLAGS+=" -Wl,-rpath,/usr/lib/seamonkey-$VERSION"
+  else export LDFLAGS+=" -Wl,-rpath,/usr/lib64/seamonkey-$VERSION"
+  fi
+ else  export LDFLAGS+=" -Wl,-rpath,/usr/lib/seamonkey-$VERSION"
+ fi
+
+ # sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
+
+ # if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ # then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ # fi
+
+ # case statement to remove references to curl's deprecated header
+ # that was removed from curl during version 7.21.7.
+
+ case $VERSION in
+  [5-7].0*) sed -i '\,curl/types\.h,d' js/src/config/system-headers \
+                toolkit/crashreporter/google-breakpad/src/common/linux/{http_upload.cc,libcurl_wrapper.cc}
+            cp security/coreconf/Linux{2.6,3.1}.mk
+            cp security/coreconf/Linux{2.6,3.0}.mk ;;
+ esac
+
+
+ # CFLAGS="${CFLAGS//-mno-mmx/}"
+ # CFLAGS="${CFLAGS//-mno-sse2/}"
+ # CFLAGS="${CFLAGS//-mno-sse/}"
+
+ # CXXFLAGS="${CXXFLAGS//-mno-mmx/}"
+ # CXXFLAGS="${CXXFLAGS//-mno-sse2/}"
+ # CXXFLAGS="${CXXFLAGS//-mno-sse/}"
+
+ export   CFLAGS="${CFLAGS//-flto/}"
+ export CXXFLAGS="${CXXFLAGS//-flto/}"
+ export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
+
+ case $VERSION in
+  2.12) export     CFLAGS="${CFLAGS/-march=native/}"
+        export CXXFLAGS="${CXXFLAGS/-march=native/}"
+        export     CFLAGS="${CFLAGS/-O?/}"
+        export CXXFLAGS="${CXXFLAGS/-O?/}"
+        ;;
+ esac
+
+ mkdir BUILD
+ cd    BUILD
+ ../configure \
+ --prefix=/usr \
+ --sysconfdir=/etc \
+ --localstatedir=/var \
+ --enable-optimize="$CFLAGS" \
+ $OPTS &&
+ make  &&
+ make install "DESTDIR=$DESTDIR" &&
+ make_install
+}
+
+post_install(){
+ default_post_install
+ grep -lr "^/usr/lib/mozilla/plugins/\|^/usr/lib64/mozilla/plugins/" $INSTALL_LOGS |
+ basenames |
+ pipe_queue "$CAST_QUEUE"
+ true
+}
