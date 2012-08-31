@@ -8,10 +8,10 @@
 # 1.6.0 does not compile because the source tree
 # was not properly prepared before being rolled into a source tarball.
 
-# qingy requires DirectFB linked with freetype
+# qingy requires DirectFB linked with freetype jpeg libpng
 
    version   stable 1.6.1
-   require freetype gcc-g++ linux-fusion
+   require freetype gcc-g++ jpeg libpng linux-fusion
 # optional LibVNCServer --enable-vnc      --disable-vnc
 # optional SDL          --enable-sdl      --disable-sdl
   optional MesaLib      --enable-mesa     --disable-mesa
@@ -19,9 +19,9 @@
 # optional freetype     --enable-freetype --disable-freetype
   optional imlib2       --enable-imlib2   --disable-imlib2
   optional jasper       --enable-jpeg2000 --disable-jpeg2000
-  optional jpeg         --enable-jpeg     --disable-jpeg
+# optional jpeg         --enable-jpeg     --disable-jpeg
   optional libXext      --enable-x11      --disable-x11 for X11 support
-  optional libpng       --enable-png      --disable-png
+# optional libpng       --enable-png      --disable-png
       opts --disable-sdl --enable-multi --without-tests
   category graphic
  attribute library makej multilib-dual setarch x11
@@ -45,3 +45,9 @@ on top of the Linux framebuffer device.
 It is a complete hardware abstraction layer
 with software fallbacks for every graphics operation
 that is not supported by the underlying hardware.'
+
+build(){
+ default_build &&
+ mkdir -pvm 755 $DESTDIR/etc &&
+ install -vm 644 $SCRIPT_DIR/directfbrc $DESTDIR/etc/
+}
