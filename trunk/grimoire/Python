@@ -35,10 +35,11 @@ applications that need a programmable interface.'
 
 build(){
  wrappers(){
+  sed     -i 's:-m32::g'                $DESTDIR/usr/lib/python2.7/config/Makefile
   install -m 644 $SCRIPT_DIR/pyconfig.h $DESTDIR/usr/include/python${VERSION:0:3}/
   install -m 755 $SCRIPT_DIR/python     $DESTDIR/usr/bin/
-  install -m 755 $SCRIPT_DIR/python     $DESTDIR/usr/bin/python${VERSION:0:3}
-  sed     -i 's:-m32::g'                $DESTDIR/usr/lib/python2.7/config/Makefile
+  cp      -al                           $DESTDIR/usr/bin/python{,${VERSION:0:3}}
+  cp      -al                           $DESTDIR/usr/bin/python{,${VERSION:0:1}}
  }
 
  bit_move(){
@@ -46,8 +47,8 @@ build(){
    rm -f  "$DESTDIR/usr/bin/python"
    cp -al "$DESTDIR/usr/bin/python"{${VERSION:0:3},}
   fi
-  mv -v "$DESTDIR"/usr/bin/python{,-$1} &&
-  mv -v "$DESTDIR"/usr/bin/python${VERSION:0:3}{,-$1} &&
+  mv -v "$DESTDIR"/usr/bin/python{,-$1}
+  mv -v "$DESTDIR"/usr/bin/python${VERSION:0:3}{,-$1}
   mv -v "$DESTDIR"/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
  }
 
@@ -101,6 +102,9 @@ post_install(){
 
 current(){
  case $VERSION in
+  2.7.3) if   [[ $HOSTTYPE == x86_64 ]]
+         then grep -q "exec python" /usr/bin/python
+         fi ;;
   2.7.2) [ -f /usr/lib64/python2.7/DLFCN.py ] ||
          [ -f /usr/lib/python2.7/DLFCN.py ]   ;;
   2.7.1) if [[ $HOSTTYPE == x86_64 ]]
