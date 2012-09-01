@@ -3,7 +3,6 @@ version_year_day 31 $LAG
  attribute grimoire archive_off solo stale
     source http://sorcerer.silverice.org/download/grimoire/grimoire-$VERSION.tar.xz
       info home http://sorcerer.silverice.org/
-# eprovide sorcerer-grimoire
  conflicts grimoire-sentient
       desc 'the official grimoire of sorcerer'
 
@@ -11,20 +10,23 @@ build(){
 echo "$LAG days behind available grimoire."
 [[ -f grimoire ]] &&
 [[ -f sorcery  ]] &&
-mkdir -p $DESTDIR/$GRIMOIRE_LIBRARY &&
+mkdir -pm 755 $DESTDIR/$GRIMOIRE_LIBRARY &&
 find  . -type f -printf "%P\n" |
-tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
-chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
+tar_files >   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
+chmod 600     $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
 }
 
 post_install(){
-# fixes a possible hang on augur sync provided that
-# that augur begin eventually runs.
-# deprecate this fix after 20120711
-
- if ! grep -q CAST_QUEUE/new /usr/libexec/sorcery/augur.d/sync; then
-  get_provider sorcery | pipe_queue $CAST_QUEUE
-  get_provider sorcery | pipe_queue $LEECH_QUEUE
+ merge_grimoires
+ generate_index
+ local s="$( get_provider sorcery )"
+ augur newer "$s"
+ if [ -f "$CAST_QUEUE/new/$s" ]; then
+  mv     "$CAST_QUEUE/new/$s" "$CAST_QUEUE/"
+  [     -d      "$LEECH_QUEUE" ] ||
+  mkdir -pm 700 "$LEECH_QUEUE"
+  echo  -n    > "$LEECH_QUEUE/$s"
  fi
+ 
  default_post_install
 }
