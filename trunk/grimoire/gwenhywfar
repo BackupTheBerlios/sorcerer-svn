@@ -1,11 +1,12 @@
 # manually update source each time the version of this changes.
 
    version stable 4.3.3 4.0.2 3.11.3
-      opts --enable-release --enable-qt4 --with-guis=gtk2
+      opts --enable-release --enable-qt4
    require gtk+ gnutls openssl
 #  require gnutls ncurses openssl
   category development
- attribute hidden library makej multilib-concurrent
+ attribute hidden library makej
+#attribute multilib-concurrent
       info vurl http://www.aquamaniac.de/sites/download/packages.php
 # for 4.3.3
    source "http://www2.aquamaniac.de/sites/download/download.php?package=01&release=67&file=01&dummy=gwenhywfar-$VERSION.tar.gz"
@@ -28,3 +29,28 @@ operating systems like Linux, *BSD, Windows etc.
 It also provides you with some often needed modules such as
 configuration file handling, simple XML file parsing, IPC etc.
 libxml is the XML version 1 parser for Gnome.'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]]; then
+  if  [[ $CFLAGS =~ -m32 ]]; then
+   local  RATH=$PATH
+   local  PATH=/opt/32bit/usr/bin:$PATH
+   export PATH
+   opts --with-qt4-libs=/opt/32bit/usr/lib
+   opts --with-qt4-includes=/opt/32bit/usr/include
+  else
+   opts --with-qt4-libs=/usr/lib64
+   opts --with-qt4-includes=/usr/include
+  fi
+ fi
+
+ ./configure $OPTS --with-guis="gtk2 qt4" &&
+ make &&
+ make install "DESTDIR=$DESTDIR"
+}
+
+current(){
+ case $VERSION in
+  4.3.3) [ -f /usr/include/gwenhywfar4/gwen-gui-qt4/qt4_gui.hpp ] ;;
+ esac
+}
