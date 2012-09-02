@@ -1,0 +1,52 @@
+# Copyright Kyle Sallee 2012
+# All rights reserved.
+
+wm_choices(){
+#[ -f /etc/shells ] && sed 's:$:\tshell:' /etc/shells
+ echo "/bin/bash	Shell"
+ [ -d /etc/X11/wm ] && find /etc/X11/wm -type l -printf '%l\tWindow Manager\n'
+}
+
+wm_valid(){ while read f d; do [[ -f $f ]] && echo "$f	$d"; done; }
+
+wm_valid_choice(){ wm_choices | wm_valid; }
+
+wm_gain_previous(){
+ local  IFS
+ export IFS="	
+"
+ dialog --timeout 60 \
+  --backtitle $"Login Menu" --stdout \
+  --default-item "$WM" \
+  --ok-label $"Select" --no-cancel  \
+  --title $"Window Manager Selection" \
+  --menu $"Please select window manager to start" 20 75 10 \
+  $( wm_valid_choice )
+}
+
+wm_load_previous(){
+ [ -f      "$HOME/.login" ] &&
+ read WM < "$HOME/.login"
+      WM="${WM:-/bin/bash}"
+}
+
+wm_save_previous(){
+ if   [ -n "$HOME" ] &&
+      [ -d "$HOME" ]
+ then echo "$WM" > $HOME/.login
+ fi
+}
+
+wm_exec_previous(){
+ if     [ -n "$WM" ] &&
+      ! [    "$WM" == /bin/bash ]
+ then exec /usr/bin/xinit "$WM"
+ fi
+}
+
+wm_load_previous
+read -n 1 -t 60 -p $"Press Enter to run: $WM"
+if   [[ -n $REPLY ]]
+then WM="$( wm_gain_previous )"; wm_save_previous
+fi
+wm_exec_previous
