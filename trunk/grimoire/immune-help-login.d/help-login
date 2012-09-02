@@ -1,17 +1,18 @@
 # Copyright Kyle Sallee 2012
 # All rights reserved.
 
-wm_choices(){
-#[ -f /etc/shells ] && sed 's:$:\tshell:' /etc/shells
+wm_choices(){ [ -d /etc/X11/wm ] && find /etc/X11/wm -type l -printf '%l\tWindow Manager\n'; }
+
+wm_valid(){ 
  echo "/bin/bash	Shell"
- [ -d /etc/X11/wm ] && find /etc/X11/wm -type l -printf '%l\tWindow Manager\n'
+ echo "omit	selection during login"
+ wm_choices |
+ while read f d
+ do [[ -f $f ]] && echo "$f	$d"
+ done
 }
 
-wm_valid(){ while read f d; do [[ -f $f ]] && echo "$f	$d"; done; }
-
-wm_valid_choice(){ wm_choices | wm_valid; }
-
-wm_gain_previous(){
+wm_gain(){
  local  IFS
  export IFS="	
 "
@@ -21,32 +22,34 @@ wm_gain_previous(){
   --ok-label $"Select" --no-cancel  \
   --title $"Window Manager Selection" \
   --menu $"Please select window manager to start" 20 75 10 \
-  $( wm_valid_choice )
+  $( wm_valid )
 }
 
-wm_load_previous(){
- [ -f      "$HOME/.login" ] &&
- read WM < "$HOME/.login"
+wm_load(){
+ [ -f      "$HOME/.wm" ] &&
+ read WM < "$HOME/.wm"
       WM="${WM:-/bin/bash}"
 }
 
-wm_save_previous(){
+wm_save(){
  if   [ -n "$HOME" ] &&
       [ -d "$HOME" ]
- then echo "$WM" > $HOME/.login
+ then echo "$WM" > "$HOME/.wm"
  fi
 }
 
-wm_exec_previous(){
+wm_exec(){
  if     [ -n "$WM" ] &&
       ! [    "$WM" == /bin/bash ]
  then exec /usr/bin/xinit "$WM"
  fi
 }
 
-wm_load_previous
+wm_load
+[[ $WM == omit ]] && return
 read -n 1 -t 60 -p $"Press Enter to run: $WM"
 if   [[ -n $REPLY ]]
-then WM="$( wm_gain_previous )"; wm_save_previous
+then WM="$( wm_gain )"; wm_save
 fi
-wm_exec_previous
+[[ $WM == omit ]] && return
+wm_exec
