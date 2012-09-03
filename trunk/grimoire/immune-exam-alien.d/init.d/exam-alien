@@ -21,10 +21,16 @@ cgroup idle
 fast
 
 status(){
- if   [ -s /var/log/alien/aliens.txt ]
- then log_success_msg "aliens discovered. Please run /etc/init.d/alien deport"
- else log_success_msg "aliens not discovered."
+ stats
+ local RET=$?
+ echo
+ if (( RET == 3 )); then
+  if   [ -s /var/log/alien/aliens.txt ]
+  then log_success_msg "aliens discovered. Please run /etc/init.d/alien deport"
+  else log_success_msg "aliens not discovered."
+  fi
  fi
+ return $RET
 }
 
 deport(){
