@@ -25,6 +25,19 @@ TERM="dumb"
 IFS=" 	
 "
 export IFS LC_ALL TERM
+BPS=1048576
+
+limit_io(){
+ if   [ -n      "$BPS" ]
+ then local bps="$BPS"
+ else local bps=${1:-8}; (( bps *= 1048576 ))
+ fi
+
+ if   [ -x /usr/bin/pv ]; then /usr/bin/pv -B $bps -L $bps -q
+ elif [ -x /bin/dd     ]; then /bin/dd     bs=$bps status=noxfer
+ else /bin/cat -
+ fi
+}
 
 compressor(){
  case "$( file -bk "$1" )" in
@@ -37,8 +50,8 @@ compressor(){
 
 decomp(){
  case $( compressor "$IN" ) in
-  bzip2) bzip2 -cd  "$IN" > "$TMP" ;;
-   gzip) gzip  -cd  "$IN" > "$TMP" ;;
+  bzip2) bzip2 -cd  "$IN" | limit_io > "$TMP" ;;
+   gzip) gzip  -cd  "$IN" | limit_io > "$TMP" ;;
     tar) ln         "$IN"   "$TMP" ;;
       *) rm    -f   "$IN";   false ;;
  esac
@@ -94,7 +107,8 @@ tarballit(){
  local  tarball="$CC/${1##*/}.tar"
 
  if   find   "$1" -type f -printf '%P\n' |
-      tar -C "$1" --no-recursion -cPT -  \
+      tar -C "$1" --no-recursion -cPT -  |
+      limit_io \
        >    "$tarball.new"
  then mv    "$tarball.new" "$tarball"; rm -fr "$1"
  else rm -f "$tarball.new"
