@@ -16,11 +16,6 @@ ionice -c2 -n7 -p $$ &>/dev/null
 # If it joins the idle cgroup then # augur abort exam-integrity
 # will be unable to kill exam-integrity.
 
-SKIP='\:  /etc/init.d/:p;
-      \:  /etc/:d
-      \:  /usr/share/config/:d
-      \:  /usr/share/config.kcfg/:d'
-
 WHAT='Unexpected md5sum'
  LOG='Cast MD5'
  EXT=$RANDOM$RANDOM$RANDOM
@@ -28,14 +23,13 @@ WHAT='Unexpected md5sum'
  MIS=/tmp/md5sums.mis.$EXT
  CHK=/tmp/md5sums.chk.$EXT
 
-tsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/d'; }
-gsum(){ find $MD5SUM_LOGS -type f | sed '/\.gz$/p;d'; }
-sums(){ tsum | xargs -r --max-lines=1024 cat
-        gsum | xargs -r --max-lines=1024 gzip -cd; }
- use(){ sed "$SKIP"; }
- old(){ sums | use | tee $OLD; }
+tsum(){ find $MD5SUM_LOGS -type f; }
+sums(){ tsum | xargs -r --max-lines=64 cat; }
+ use(){ filter conf; }
+ old(){ sums | use | limit_io 1 >  $OLD; }
 name(){ cut -b 35-; }
- now(){ name | sort -u | escape_qs | xargs -r --max-lines=1024 md5sum | tee $CHK; }
+slow(){ escape_qs | xargs -r --max-lines=64 tar --no-recursion -cP | limit_io | tar -itf -; }
+ now(){ cat $OLD | name | slow | escape_qs | xargs -r --max-lines=64 md5sum; }
 from(){ while read; do grep -rx "$REPLY" $INSTALL_LOGS; done | sed "s:$INSTALL_LOGS/::"; }
 peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee /dev/stderr | cut -f2 | sort -u; }
 this(){ pipe_queue "$CAST_QUEUE"; }
@@ -47,31 +41,30 @@ percent(){ SOLD=$( finfo -s $OLD ); SCHK=$( finfo -s $CHK );
 why(){
  echo 1>&2; while read R; do
   event "$R" "$( installed_version "$R" )" "$LOG"
-  echo "$R"
+  echo  "$R"
  done
  }
 
-
 check(){
- old  | now 2>$MIS | cat - $OLD $OLD | sort | uniq -u |
- name | pipe miss  | sort -u |
- from | peal       | why     | this
+ old > $OLD
+ now > $CHK 2>$MIS
+
+ sort -u $CHK     | cat - $OLD $OLD |
+ sort | uniq -u   |
+ name | pipe miss | sort -u |
+ from | peal      | why     | this
  rm -f $OLD $MIS $CHK
 }
 
-
 guess(){
- while [[ -f $OLD ]] && ! [[ -s $CHK ]]; do prepare; sleep 5; done
- while [[ -f $OLD ]];                    do percent; sleep 5; done
+ while [[ -f $OLD ]] && ! [[ -s $CHK ]]; do prepare; sleep 1;  done
+ while [[ -f $OLD ]];                    do percent; sleep 10; done
  echo
 }
 
 touch     $OLD $MIS $CHK
 chmod 600 $OLD $MIS $CHK
 
-sync
-[ -f     /proc/sys/vm/drop_caches ] &&
-echo 1 > /proc/sys/vm/drop_caches
-check &
-guess 2>/dev/null
-#augur begin
+check
+# check &
+# guess 2>/dev/null
