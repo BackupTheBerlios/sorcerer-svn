@@ -1,18 +1,20 @@
-   version stable 0.25
+   version stable 0.26 0.25
    require funionfs fuse
   category disk/file-system
  attribute console client
-    source http://podgorny.cz/unionfs-fuse/releases/unionfs-fuse-$VERSION.tar.bz2
-      info good 20120711
-      info last 20120202
+    source http://podgorny.cz/unionfs-fuse/releases/unionfs-fuse-$VERSION.tar.xz
+      info last 20120911
       info home http://podgorny.cz/unionfs-fuse/
       desc 'userland unionfs implementation
 Might hang a box when attempting to kill it or unmount it.
 Very dangerous.'
 
 build(){
-export LDFLAGS+=' -L/lib -L/lib64'
-make &&
-mkdir  -pvm 755 $DESTDIR/bin &&
-install -vm 755 src/unionfs $DESTDIR/bin/
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/lib64'
+ else export LDFLAGS+=' -L/lib'
+ fi
+ make &&
+ mkdir  -pvm 755 $DESTDIR/bin &&
+ install -vm 755 src/unionfs $DESTDIR/bin/
 }
