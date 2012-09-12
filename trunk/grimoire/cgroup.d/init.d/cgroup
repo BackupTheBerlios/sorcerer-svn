@@ -57,7 +57,7 @@ reset(){
  fi
 }
 
-init_cgroup(){
+init_cgroup_old(){
  # some cgroup files must have only one line written at a time.
  catlines(){
   while read; do
@@ -74,6 +74,28 @@ init_cgroup(){
   if   [ -f     /sys/fs/cgroup/$REPLY ]
   then catlines /sys/fs/cgroup/$REPLY < /etc/cgroup/$REPLY
   fi
+ done
+}
+
+init_cgroup(){
+ # some cgroup files must have only one line written at a time.
+ catlines(){
+  while read
+  do    echo "$REPLY" > "$1" || echo "Failed write was: echo \"$REPLY\" > \"$1\""
+  done
+ }
+
+ local d f
+
+ find /etc/cgroup -type d -printf '%P\n' | sort |
+ while read d; do
+  mkdir -p       "/sys/fs/cgroup/$d"
+  find              "/etc/cgroup/$d" -maxdepth 1 -type f -not -empty -printf '%P\n' |
+  while read f; do 
+   if   [ -f     "/sys/fs/cgroup/$d/$f" ]
+   then catlines "/sys/fs/cgroup/$d/$f" < "/etc/cgroup/$d/$f"
+   fi
+  done
  done
 }
 
