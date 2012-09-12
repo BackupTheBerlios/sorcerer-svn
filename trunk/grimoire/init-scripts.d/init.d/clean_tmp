@@ -19,13 +19,16 @@ start(){
    then find $1 -mindepth 1 -maxdepth 1 |
         xargs -r --max-lines=64 rm -fr
         chmod $2 $1
-   else mkdir -pm 1777 $1
+   else mkdir -pm $2 $1
    fi
   } 
   if   [ -f /fastboot  ]; then rm -f /fastboot;  touch /init; fi
   if   [ -f /forcefsck ]; then rm -f /forcefsck; touch /init; fi
   renew /tmp 1777
-  renew /usr/src/sorcery 0700
+  if   [ -d /usr/src/sorcery ]
+  then find /usr/src/sorcery -maxdepth 1 -type d | sed '\,/ccache,d'
+  else echo /usr/src/sorcery
+  fi   | while read; do renew "$REPLY" 0700; done
  }
 
  if   log_warning_msg "$NAME running"; run
