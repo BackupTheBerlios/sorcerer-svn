@@ -28,14 +28,13 @@ export IFS LC_ALL TERM
 BPS=1048576
 
 limit_io(){
- if   [ -n      "$BPS" ]
- then local bps="$BPS"
- else local bps=${1:-8}; (( bps *= 1048576 ))
+ if   [ -n "$MBps" ]; then local m="$MBps"
+ elif [ -n "$1"    ]; then local m="$1"
  fi
 
- if   [ -x /usr/bin/pv ]; then /usr/bin/pv -B $bps -L $bps -q
- elif [ -x /bin/dd     ]; then /bin/dd     bs=$bps status=noxfer
- else /bin/cat -
+ if   [ -x /usr/bin/cock ]
+ then      /usr/bin/cock $m
+ else          /bin/cat -
  fi
 }
 
@@ -162,10 +161,13 @@ acad(){
  fi
 }
 
-busy(){
- pgrep -u root "^xz$" ||
- pgrep -u root "^cast$"
+busy_old(){
+ pgrep -u root "^cast$" ||
+ pgrep -u root "^familiar$" ||
+ pgrep -u root "^xz$"
 }
+
+busy(){ [ -d $SCG ] && grep -q . $( find $SCG -type f -name tasks ); }
 
 later(){
  if   [ -f /etc/init.d/find_ir ] || busy || ! acad
@@ -189,6 +191,8 @@ scan(){
 
 main(){
  trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT SIGSTOP SIGPIPE
+ SCG=/sys/fs/cgroup/slow/sorcery/
+ MBps=1
  if   [[     -x /usr/libexec/bash/sleep ]]
  then enable -f /usr/libexec/bash/sleep sleep
  fi
