@@ -153,14 +153,6 @@ build(){
  }
 
 
- backup_modules(){
-  if [ -d  /lib/modules/$KVERSION ]; then
-  rm   -rf /lib/modules/$KVERSION.old
-  cp   -a  /lib/modules/$KVERSION \
-           /lib/modules/$KVERSION.old
-  fi
- }
-
  install_kernel(){
   SM="System.map"
   BV="${KVERSION}"
@@ -306,11 +298,11 @@ build(){
  export CXXFLAGS="${CXXFLAGS//-fstack-protector-all/}"
  export CXXFLAGS="${CXXFLAGS//-fstack-protector/}"
 
- rm -fr           /usr/src/linux &&
- cp -a $BUILD_DIR /usr/src/linux &&
- kversion                        &&
-#compile_and_install_um          &&
- cd               /usr/src/linux &&
+ rm -fr            /usr/src/linux &&
+ mv     $BUILD_DIR /usr/src/linux &&
+ kversion                         &&
+#compile_and_install_um           &&
+ cd                /usr/src/linux &&
  compile_and_install
 }
 
@@ -331,10 +323,4 @@ post_install(){
  sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"  |
  pipe_queue "$CAST_QUEUE"
  true
-}
-
-current(){
- case $VERSION in
-  2.6.38.6) zcat /proc/config.gz | grep -q "CONFIG_BLK_CGROUP=y" ;;
- esac
 }
