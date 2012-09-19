@@ -9,6 +9,8 @@
 # adding udev to requirement list creates recursive requirement loop
 
    version   stable 8.0.4 8.0.3 8.0.2 8.0.1
+   version unstable snb-magic-12212-g99f14bc
+
    require dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm libxml2 llvm makedepend
 #  require dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm llvm makedepend udev
 #  require gcc-g++
@@ -20,7 +22,8 @@
 # linking requires too much memory to be multilib and makej
 # yet it works provided enough RAM exists.
 #attribute X11R7 hidden library makej multilib-dual optimize x11
-    source ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
+    source   stable ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
+    source unstable MesaLib-$VERSION.tar $VERSION git://anongit.freedesktop.org/git/mesa/mesa
       info last 20120713
       info home http://www.mesa3d.org
       info mail http://www.mesa3d.org/lists.html
@@ -55,6 +58,10 @@ build(){
  then OPTS+=" ${MACHTYPE/x86_64/i686}"
  fi
 
+ if   [ -f autogen.sh ]
+ then sh ./autogen.sh
+ fi
+
  ./configure \
   --prefix=/usr \
   --enable-shared \
@@ -69,6 +76,11 @@ build(){
 
 
 post_install(){
+ if    [[ $PROGRESS == unstable ]]; then
+  echo libGLU | pipe_queue  "$CAST_QUEUE"
+  echo libGLU | pipe_queue "$LEECH_QUEUE"
+ fi
+
  recast(){
   if   spell_installed "$1"
   then echo            "$1" | pipe_queue "$CAST_QUEUE"
