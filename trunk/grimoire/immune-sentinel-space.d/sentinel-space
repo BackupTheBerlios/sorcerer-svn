@@ -5,6 +5,12 @@
 
 # sentinel-space attempts to maintain free space
 
+. /etc/sorcery/config
+AC=$ARCHIVE_CACHE
+CC=$CCACHE_CACHE
+SC=$SOURCE_CACHE
+CD=$CCACHES_DIR
+
 LOW=268435456	# 256M
 MIN=134217728	# 128M
 
@@ -21,17 +27,6 @@ IFS="
 export IFS LC_ALL TERM
 BPS=1048576
 
-limit_io(){
- if   [ -n "$MBps" ]; then local m="$MBps"
- elif [ -n "$1"    ]; then local m="$1"
- fi
-
- if   [ -x /usr/bin/cock ]
- then      /usr/bin/cock $m
- else          /bin/cat -
- fi
-}
-
 compressor(){
  case "$( file -bk "$1" )" in
       gzip*) echo gzip  ;;
@@ -45,8 +40,8 @@ decomp(){
  case $( compressor "$IN" ) in
   bzip2) bzip2 -cd  "$IN" | limit_io > "$TMP" ;;
    gzip) gzip  -cd  "$IN" | limit_io > "$TMP" ;;
-    tar) ln         "$IN"   "$TMP" ;;
-      *) rm    -f   "$IN";   false ;;
+    tar) ln         "$IN"  "$TMP" ;;
+      *) rm    -f   "$IN";  false ;;
  esac
 }
 
@@ -179,7 +174,7 @@ busy_old(){
 busy(){ [ -d $SCG ] && grep -q . $( find $SCG -type f -name tasks ); }
 
 later(){
- if   [ -f /etc/init.d/find_ir ] || busy || ! acad
+ if   busy || ! acad
  then return 0
  else return 1
  fi
@@ -211,11 +206,9 @@ main(){
  while sleep 900; do scan; done
 }
 
-. /etc/sorcery/config
-AC=$ARCHIVE_CACHE
-CC=$CCACHE_CACHE
-SC=$SOURCE_CACHE
-CD=$CCACHES_DIR
+if   [ -f /etc/init.d/find_ir ]
+then exit 0
+fi
 
 main &>/dev/null &
 exit 0
