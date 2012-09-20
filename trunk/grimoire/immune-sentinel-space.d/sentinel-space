@@ -5,14 +5,19 @@
 
 # sentinel-space attempts to maintain free space
 
-LOW=268435456
-MIN=134217728
+LOW=268435456	# 256M
+MIN=134217728	# 128M
 
-VC=/var/cache
-AC=$VC/archive
-CC=$VC/ccache
-SC=$VC/sources
-CD=/usr/src/sorcery/ccache
+#VC=/var/cache
+#AC=$VC/archive
+#CC=$VC/ccache
+#SC=$VC/sources
+#CD=/usr/src/sorcery/ccache
+
+AC=$ARCHIVE_CACHE
+CC=$CCACHE_CACHE
+SC=$SOURCE_CACHE
+CD=$CCACHES_DIR
 
 TAR='/\.tar$/p'
 TGZ='/\.tar\.gz$/p;/\.tgz$/p'
@@ -72,7 +77,15 @@ size(){
  else false
  fi
 }
-doxz(){ size && xz -f -M $LIM --lzma2=dict=$SIZE,mf=bt4,nice=273 "$TMP" ; }
+
+doxz(){
+ size &&
+ if   later
+ then xz -f -M 5    --lzma2=dict=$SIZE,mf=bt4,nice=273 "$TMP"
+ else xz -f -M $LIM --lzma2=dict=$SIZE,mf=bt4,nice=273 "$TMP"
+ fi
+}
+
 rtmp(){ rm -f "$TMP" "$NEW"; false; }
 
 recompress(){
@@ -114,10 +127,17 @@ tarballit(){
  fi
 }
 
-pendingd(){ [ -d $CD ] &&
-            find $CD -mindepth 1 -maxdepth 1 -type d; }
+pendingd(){
+ [ -d $CD ] &&
+ find $CD -mindepth 1 -maxdepth 1 -type d |
+ while read
+ do    [ -f "$CAST_QUEUE/$REPLY" ] || echo "$REPLY"
+ done
+}
+
 pendingf(){ find $AC/ $CC/ $SC/  -maxdepth 4 -type f | sed -n "$FILES"; }
 
+  limited(){ pendingf | while read &&   later; do recompress "$REPLY"; done; }
 reduction(){ pendingf | while read && ! later; do recompress "$REPLY"; done; }
 dir_2_tar(){ pendingd | while read && ! later; do tarballit  "$REPLY"; done; }
 
@@ -152,7 +172,7 @@ inside(){
  cut -f2
 }
 
-waste_file(){ [ -d $1 ] && inside $1 f | oldest | remove_file  "$@"; }
+waste_file(){ [ -d $1 ] && inside $1 f | oldest | remove_file "$@"; }
 
 acad(){
  if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
@@ -177,16 +197,19 @@ later(){
 }
 
 scan(){
- if later; then return 0; fi
-
- # Removal tactics
  if full /usr/share/locale $LOW; then waste_locales; fi
- if full /var/cache/ccache $LOW; then waste_file /var/cache/ccache $LOW; fi
  if full /usr/share/doc    $MIN; then waste_file /usr/share/doc    $MIN; fi
  if full /usr/doc          $MIN; then waste_file /usr/doc          $MIN; fi
+ if full /var/cache/ccache $LOW; then waste_file /var/cache/ccache $LOW; fi
+
+ if   full $ARCHIVE_CACHE $MIN ||
+      full  $CCACHE_CACHE $MIN ||
+      full  $SOURCE_CACHE $MIN
+ then limited; reduction
+ else          reduction
+ fi
 
  dir_2_tar
- reduction
 }
 
 main(){
@@ -199,5 +222,6 @@ main(){
  while sleep 900; do scan; done
 }
 
+. /etc/sorcery/config
 main &>/dev/null &
 exit 0
