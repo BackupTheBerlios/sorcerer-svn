@@ -1,10 +1,11 @@
-   version stable 5.11 5.10 5.09 5.08 5.06 5.05 5.04 5.03
+   version stable 5.11 5.10 5.09
    require zlib
       opts --disable-static
   category utility
  attribute console library lto makej multilib-concurrent optimize solo
 #  source ftp://ftp.gw.com/mirrors/unix/file/file-$VERSION.tar.gz
    source ftp://ftp.astron.com/pub/file/file-$VERSION.tar.gz
+      info good 20120923
       info last 20120222
       info home http://www.darwinsys.com/file/
       info mail http://mx.gw.com/mailman/listinfo/file
@@ -13,8 +14,25 @@
       desc 'attemps to classify files by their content'
 
 build(){
+ more_magic(){
+  if [[ $CFLAGS =~ -m32 ]]; then return; fi
+  mkdir mm; cp -a ../magic/Magdir/* mm/
+  cd    mm
+  install -dvm 755   "$DESTDIR/usr/share/misc/mgc"
+  find  * -type f              | xargs --max-lines=1 file -Cm
+  find  * -type f -name \*.mgc | xargs --max-lines=64 \
+  install -vm 644 -t "$DESTDIR/usr/share/misc/mgc"
+ }
+
  cp  $SCRIPT_DIR/magic         magic/Magdir/sorcerer
  cat $SCRIPT_DIR/magic.mime >> magic/magic.mime
  sed -i "\,Magdir/spectrum,aMagdir/sorcerer \\\\" magic/Makefile.*
- default_build
+ default_build &&
+ more_magic
+}
+
+current(){
+ case $VERSION in
+  5.11) [ -f /usr/share/misc/mgc/magic.mgc ] ;;
+ esac
 }
