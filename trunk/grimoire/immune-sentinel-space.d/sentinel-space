@@ -100,10 +100,10 @@ recompress(){
 
 tarballit(){
  mkdir -pvm 755  $CC
- local  tarball="$CC/${1##*/}.tar"
+ local  tarball="$CC/$1.tar"
 
- if   find   "$1" -type f -printf '%P\n' |
-      tar -C "$1" --no-recursion -cPT -  |
+ if   find   "$CD$1" -type f -printf '%P\n' |
+      tar -C "$CD$1" --no-recursion -cPT -  |
       limit_io \
        >    "$tarball.new"
  then mv    "$tarball.new" "$tarball"; rm -fr "$1"
@@ -113,7 +113,7 @@ tarballit(){
 
 pendingd(){
  [ -d $CD ] &&
- find $CD -mindepth 1 -maxdepth 1 -type d |
+ find $CD -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
  while read
  do    [ -f "$CAST_QUEUE/$REPLY" ] || echo "$REPLY"
  done
