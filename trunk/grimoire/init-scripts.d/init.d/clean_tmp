@@ -4,7 +4,7 @@
 # Default-Mode: 500
 # Required-Start: $local_fs
 # Default-Start: 1 2 3 4 5
-# Short-Description: removes /fastboot and /forcefsck /tmp/* /usr/src/sorcery/*
+# Short-Description: removes /fastboot and /forcefsck /tmp/* /var/cache/sorcery/*
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -25,10 +25,9 @@ start(){
   if   [ -f /fastboot  ]; then rm -f /fastboot;  touch /init; fi
   if   [ -f /forcefsck ]; then rm -f /forcefsck; touch /init; fi
   renew /tmp 1777
-  if   [ -d /usr/src/sorcery ]
-  then find /usr/src/sorcery -maxdepth 1 -type d | sed '\,/ccache,d'
-  else echo /usr/src/sorcery
-  fi   | while read; do renew "$REPLY" 0700; done
+  if   [ -d /var/cache/sorcery ]
+  then find /var/cache/sorcery -mindepth 1 -maxdepth 1 -type d | sed '\,/ccache,d'| xargs -r --max-lines=64 rm -fr
+  fi
  }
 
  if   log_warning_msg "$NAME running"; run
