@@ -2,11 +2,12 @@
 # Version 2.9.4 has odd installation error.
 # lrwxrwxrwx 1 root root 74 Aug 25 11:46 /usr/bin/wx-config -> /usr/src/sorcery/destdir/wxWidgets/64/usr/lib64/wx/config/gtk2-unicode-2.9
 
-   version   stable 2.8.12
-   version unstable 2.9.4
-   require gtk+
+   version   stable 2.9.4 2.8.12
+#  version unstable 2.9.4
+   require gtk+ libGLU
   optional SDL_mixer     '--enable-sound --with-sdl' '--disable-sound --without-sdl' to use SDL for audio
   optional esound '' '' for audio output through esound
+  optional gst-plugins-base-0.10
   optional libgnomeprint --with-gnomeprint           --without-gnomeprint for gnome print support
       opts --enable-compat24 --enable-plugins --with-opengl --with-gtk=2 --enable-zipstream --enable-unicode
 
@@ -14,7 +15,7 @@
 # enabling accessibility support in 2.8.0 causes compile failure.
 
   category graphic/library graphic/toolkit
- attribute library makej multilib-dual
+ attribute library litelink makej multilib-dual
     source   stable $SOURCEFORGE_URL wxwindows/$VERSION/wxWidgets-$VERSION.tar.bz2
     source unstable $SOURCEFORGE_URL wxwindows/$VERSION/wxWidgets-$VERSION.tar.bz2
       info good 20120713
@@ -37,8 +38,15 @@ wxWidgets gives you a single, easy-to-use API for
 writing GUI applications on multiple platforms.'
 
 build(){
+ deref_wx_config(){
+                    [ -h "$DESTDIR/usr/bin/wx-config" ] || return
+  local from=$( readlink "$DESTDIR/usr/bin/wx-config" )
+  rm -f                  "$DESTDIR/usr/bin/wx-config"
+  cp -a "$from"          "$DESTDIR/usr/bin/wx-config"
+ }
+
  if   [ "${VERSION:0:3}" == 2.9 ]
- then default_build
+ then default_build; deref_wx_config
  else build_old
  fi
 }

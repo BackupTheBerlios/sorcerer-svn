@@ -6,14 +6,20 @@
 # version 1.9.5 requires developmental version of libsoup
 # version 1.9.6 not tested but expected to have same problem as 1.9.5 :)
 
-   version   stable 1.9.3 1.9.2 1.9.1
+# webkit2gtk might not be used until gnome 3.8.0
+
+   version   stable 1.9.6 1.9.3 1.9.2 1.9.1
    version unstable 1.9.92
-   require Imaging enchant geoclue gst-plugins-base-v0.10 gtk+ gtk-doc libsoup
-      opts --disable-gtk-doc
+case $VERSION in
+ 1.9.6)
+      opts --disable-webkit2 ;;
+esac
+   require Imaging enchant geoclue gst-plugins-base-0.10 gtk+ gtk-doc libsoup
+      opts --disable-gtk-doc --disable-glibtest
       opts --with-gtk=3.0 --enable-introspection
 case $VERSION in
- 1.9.4)
-      opts --with-accelerated-compositing=no --disable-webgl ;;
+# 1.9.6)
+#      opts --with-accelerated-compositing=no --disable-webgl ;;
  1.9.3)
       opts --with-accelerated-compositing=no --disable-webgl ;;
  1.9.2)
@@ -52,8 +58,8 @@ esac
 #  optional gst-plugins-base --enable-video    --disable-video    "enable HTML5 video support default=yes"
 
   category network/web
- attribute library makej multilib-dual solo x11
-#attribute multilib-concurrent
+ attribute library makej optimize x11
+#attribute multilib-concurrent multilib-dual
 
     source   stable http://www.webkitgtk.org/releases/webkit-$VERSION.tar.xz
     source unstable http://www.webkitgtk.org/releases/webkit-$VERSION.tar.xz
@@ -75,7 +81,19 @@ build(){
  then sh ./autogen.sh
  fi
 
+# linking fails due to too many command line arugments passed to /bin/sh
+# when using ccache to compile version 1.9.6
+# case $VERSION in
+#  1.9.6) export      PATH="${PATH/\/usr\/libexec\/ccache:/}"
+#         export   CFLAGS+=' -I$PWD/Source/WebKit2/UIProcess/API/gtk'
+#         export CXXFLAGS+=' -I$PWD/Source/WebKit2/UIProcess/API/gtk' ;;
+# esac
+
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  rm -f CMakeLists.txt
- default_build
+ if ! default_build; then
+  export PATH="${PATH/\/usr\/libexec\/ccache:/}"
+  make V=1 &&
+  make install "DESTDIR=$DESTDIR"
+ fi
 }

@@ -1,0 +1,29 @@
+# disable introspection while introspection is broke with gst-plugins-base
+
+   version stable 1.6.0 1.5.6
+   require clutter gst-plugins-bad-0.10 gst-plugins-base-0.10
+case $VERSION in
+ 1.6.0)
+      opts --enable-introspection=no ;;
+ 1.5.6)
+      opts --enable-introspection=no ;;
+esac
+
+  category audio/cd
+ attribute gnome library makej multilib-concurrent
+#   source http://source.clutter-project.org/sources/clutter-gst/${VERSION:0:3}/clutter-gst-$VERSION.tar.xz
+    source $GNOME_URL sources/clutter-gst/${VERSION:0:3}/clutter-gst-$VERSION.tar.xz
+      info last 20120929
+      info home http://clutter-project.org/
+      info docs http://www.clutter-project.org/documentation
+      desc 'library for creating fast visually rich animated GUIs'
+
+build(){
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ default_build &&
+ if   [ -f $DESTDIR/usr/lib64/pkgconfig/clutter-gst-1.0.pc ]
+ then sed -i 's:-L${libdir}::
+              s:libdir=${exec_prefix}/lib$:libdir=${exec_prefix}/lib64:' \
+          $DESTDIR/usr/lib64/pkgconfig/clutter-gst-1.0.pc
+ fi
+}

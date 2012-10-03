@@ -8,11 +8,10 @@
 
 expire_logs(){
  local EE=${EVENT_EXPIRE:-$EXPIRE}
- local LE=${LEECH_EXPIRE:-$EXPIRE}
 
- ( find "${EVENT_LOGS:-/var/log/sorcery/event}/"     -type f -mtime +$EE
-   find "${LEECH_LOGS:-/var/log/sorcery/leech}/"     -type f -mtime +$LE
- ) 2>/dev/null | escape_qs | xargs -r --max-lines=64 rm -f
+ find "${EVENT_LOGS:-/var/log/sorcery/event}/" 
+      -type f -mtime +$EE 2>/dev/null |
+ escape_qs | xargs -r --max-lines=64 rm -f
 }
 
 prune_common_cache(){
@@ -86,7 +85,7 @@ prune_source_cache(){
 }
 
 prune_failed_cache(){
- find "${FAILED_CACHE:-/usr/src/sorcery/failed}/" \
+ find "${FAILED_CACHE:-/var/cache/sorcery/failed}/" \
   -maxdepth 1 -mindepth 1 -type d  -mtime +7 | xargs --max-lines=16 rm -fr
 }
 
