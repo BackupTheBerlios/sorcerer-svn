@@ -13,35 +13,32 @@ cgroup_load(){
 }
 
 thaw(){
- if [ -d /var/log/sorcery/queue/cast ]; then
-  find   /var/log/sorcery/queue/cast/ -not -empty -mmin +480 -type f -printf "%f\n" |
-  while read SPELL; do
-   if   [ -f   $CG/sorcery/cast/$SPELL ] &&
-        find   $CG/sorcery/cast/$SPELL/freezer.state -mmin +480 | grep -q .
-   then read < $CG/sorcery/cast/$SPELL/freezer.state
-    if   [[   FROZEN == $REPLY ]]
-    then echo THAWED > $CG/sorcery/cast/$SPELL/freezer.state
-    fi
-   fi
-  done
- fi
+ find $CG/slow/sorcery/cast -name freezer.state -type f -mmin +480 |
+ xargs -r --max-lines=64 grep -lr FROZEN |
+ while read; do echo THAWED > "$REPLY"; done
 }
 
-stalled(){
- if   [ -d          /var/log/sorcery/queue/$1 ] &&
-      [ -n "$( find /var/log/sorcery/queue/$1 -maxdepth 1 -type f -mmin +1 )" ]
- then ! pgrep -u root "^$1$"
- else return 1
- fi
+tools(){
+ pgrep -u root "^cast$"
+ pgrep -u root "^dispel$"
+ pgrep -u root "^leech$"
+ pgrep -u root "^oust$"
+ pgrep -u root "^provision$"
+ pgrep -u root "^reuse$"
+ pgrep -u root "^rush$"
 }
 
-scan(){
- # cast might be waiting for a source to download.
- thaw
- if   stalled leech || stalled cast
- then augur begin </dev/null &
- fi
+queued(){
+  [ -d $q ] &&
+  find $q/{cast,dispel,leech,oust,provision,reuse,rush} \
+       -mindepth 1 -maxdepth 1 -type f
 }
+
+pending(){ [ -n "$( queued )" ]; }
+idle(){    [ -z "$( tools  )" ]; }
+stalled(){ pending && idle; }
+unstall(){ if stalled; then augur begin </dev/null & fi; }
+scan(){ thaw; unstall; }
 
 main(){
  sleep 120; scan
@@ -52,6 +49,7 @@ if   [[     -x /usr/libexec/bash/sleep ]]
 then enable -f /usr/libexec/bash/sleep sleep
 fi
 
+q=/var/log/sorcery/queue
 CG=
 cgroup_load
 cgroup_find
