@@ -53,6 +53,19 @@ build(){
   install -vm 644 $SCRIPT_DIR/rules.d/* $DESTDIR/lib/udev/rules.d/
  }
 
+ link_fix(){
+  if  [ -h "$1" ]; then
+   rm   -f "$1"
+   find    "$2" -type f -name libudev.so.\* -printf '%f\n' |
+   head -n 1 | while read; do ln -fs "$REPLY" "$2/libudev.so"; done
+  fi
+ }
+
+ so_fix(){
+  link_fix "$DESTDIR/usr/lib64/libudev.so" "$DESTDIR/lib64"
+  link_fix   "$DESTDIR/usr/lib/libudev.so" "$DESTDIR/lib"
+ }
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --with-rootlibdir=/lib64
  else with also --with-rootlibdir=/lib
@@ -69,7 +82,8 @@ build(){
 
  default_build   &&
  nod_sym_install &&
-   rules_install
+   rules_install &&
+      so_fix
 }
 
 post_install(){
