@@ -17,8 +17,8 @@ acad(){
 
 allow(){
  if   [ -f /var/log/alien/visa.txt ]
- then find /var/log/alien/visa.txt /etc/sorcery/log/install -type f
- else find                         /etc/sorcery/log/install -type f
+ then find /var/log/alien/visa.txt $INSTALL_LOGS -type f
+ else find                         $INSTALL_LOGS -type f
  fi | xargs -r --max-lines=64 cat
 }
 
@@ -81,14 +81,18 @@ not(){
       \,^/etc/tomoyo/,d
       \,^/etc/xml/catalog$,d
       \,^/etc/xml/docbook$,d
+      \,^/lib64/.link/,d
+      \,^/lib/.link/,d
       \,^/lib/modules/,d
-      \,^/usr/src/,d
+      \,^/usr/lib64/.link/,d
+      \,^/usr/lib/.link/,d
       \,^/usr/lib64/gio/modules/giomodule\.cache$,d
       \,^/usr/lib/gio/modules/giomodule\.cache$,d
       \,^/usr/lib64/locale/locale-archive,d
       \,^/usr/lib/locale/locale-archive,d
       \,^/usr/share/glib-2.0/schemas/gschemas\.compiled$,d
       \,^/usr/share/icons/.*/icon-theme\.cache$,d
+      \,^/usr/src/linux,d
       \,^/var/cache/,d
       \,^/var/db/,d
       \,^/var/lib/dbus/machine-id,d
@@ -104,6 +108,7 @@ not(){
 files(){ while read; do [[ -f $REPLY ]] && echo "$REPLY"; done; }
 
 run(){
+ . /etc/sorcery/config
  ionice -c 3 -p $$
  export LC_ALL=C
  [     -d      /var/log/alien ] ||

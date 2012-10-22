@@ -1,29 +1,22 @@
-   version stable 4.9.1 4.8.7
-      opts --disable-static
-  category network/web
- attribute library makej multilib-dual
-    source http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$VERSION/src/nspr-$VERSION.tar.gz
-    source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.6-pkgconfig-1.patch
+with version stable 4.9.2 4.9.1 4.8.7
+with also    --disable-static
+with role    network/web
+with trait   library makej multilib-dual
+with source  http://ftp.mozilla.org/pub/mozilla.org/nspr/releases/v$VERSION/src/nspr-$VERSION.tar.gz
+with source  http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.6-pkgconfig-1.patch
 case $VERSION in
- 4.8.6) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.6-pkgconfig-1.patch ;;
- 4.8.4) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.3-pkgconfig-1.patch ;;
+ 4.8.7) source http://www.linuxfromscratch.org/patches/blfs/svn/nspr-4.8.6-pkgconfig-1.patch ;;
 esac
-      info last 20120601
-      info home http://www.mozilla.org/projects/security/pki/nss/
-      desc 'netscape portable runtime'
+with info    last 20120730
+with info    home http://www.mozilla.org/projects/security/pki/nss/
+with info    cite 'netscape portable runtime'
 
 build(){
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --enable-64bit
+ then with also --enable-64bit
  fi
  export LDFLAGS+=" $CFLAGS"
 
-# The patch is for pkgconfig support 
-# However, why does it not apply automatically by cast?
-
-# sed -i 's:$libdirs::' mozilla/nsprpub/config/nspr-config.in
-
-# patch -p1 < ${SOURCE[1]}
  cd mozilla/nsprpub &&
  ./configure     \
   --prefix=/usr  \

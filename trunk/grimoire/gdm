@@ -3,31 +3,26 @@
 # might not work properly
 # seems to be due to a bug gdm.
 
-   version   stable 3.6.0 3.4.1 3.4.0.1
-#  version unstable 3.5.92.1
-case $VERSION in
- 3.2.1.1)
-      opts --enable-introspection=no ;;
-esac
-   require GConf PAM accountsservice check gnome-power-manager gnome-settings-daemon gnome-shell libcanberra libxklavier metacity mutter upower
-#  require GConf PAM accountsservice audit check gnome-power-manager gnome-settings-daemon gnome-shell libcanberra libxklavier metacity mutter upower
+with version   stable 3.6.1 3.6.0 3.4.1
+with base    GConf PAM accountsservice check gnome-power-manager gnome-settings-daemon gnome-shell libcanberra libxklavier metacity mutter upower
+#with base    GConf PAM accountsservice audit check gnome-power-manager gnome-settings-daemon gnome-shell libcanberra libxklavier metacity mutter upower
 # libselinux 
-  optional libXevie     --with-xevie              --without-xevie
-  optional tcp_wrappers --with-tcp-wrappers=yes   --with-tcp-wrappers=no to control allowed remote connections using tcp_wrappers
-      opts --enable-static=no
-      opts --without-libaudit
-#     opts --enable-console-helper=no --enable-static=no
+with elect   libXevie     --with-xevie              --without-xevie
+with elect   tcp_wrappers --with-tcp-wrappers=yes   --with-tcp-wrappers=no to control allowed remote connections using tcp_wrappers
+with also    --enable-static=no
+with also    --without-libaudit
+#     with also --enable-console-helper=no --enable-static=no
   sys_user gdm gdm /var/gdm
-  category window-manager
- attribute gnome makej
-    source   stable $GNOME_URL sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.xz
-    source unstable $GNOME_URL sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.xz
-      info last 20120929
-      info home http://www.gnome.org/projects/gdm/
+with role    window-manager
+with trait   gnome makej
+with source    stable $GNOME_URL sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.xz
+with source  unstable $GNOME_URL sources/gdm/${VERSION:0:3}/gdm-$VERSION.tar.xz
+with info    last 20121021
+with info    home http://www.gnome.org/projects/gdm/
 # no sorcerer support for consolehelper yet.
 #            'libselinux:--with-selinux:--without-selinux:for selinux support'
- freshmeat gnomedisplaymanager
-      desc 'Gnome Display Manager is an improved xdm
+with info    freecode gnomedisplaymanager
+with info    cite 'Gnome Display Manager is an improved xdm
 gdm the Gnome Display Manager is a re-implementation
 of the well known xdm program.'
      iwall 'gdm will soon restart'
@@ -58,10 +53,4 @@ build(){
  $AUTH_SCHEME &&
  make         &&
  make install DESTDIR=$DESTDIR
-}
-
-current(){
- case $VERSION in
-  3.2.0) grep -q "domain user" /etc/init.d/gdm ;;
- esac
 }

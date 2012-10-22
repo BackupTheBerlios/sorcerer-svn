@@ -1,11 +1,11 @@
-   inherit poppler
-   require qt-everywhere-opensource
-#      opts -DENABLE_XPDF_HEADERS:BOOL=TRUE
-#      opts -DWITH_GObjectIntrospection:BOOL=OFF
+with inherit poppler
+with base    qt-everywhere-opensource
+#      with also -DENABLE_XPDF_HEADERS:BOOL=TRUE
+#      with also -DWITH_GObjectIntrospection:BOOL=OFF
 # -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by calibre)
- attribute library makej
-#attribute multilib-dual
-      desc 'PDF rendering library with qt-everywhere-opensource support'
+with trait   library makej
+#trait multilib-dual
+with info    cite 'PDF rendering library with qt-everywhere-opensource support'
 
 build(){
  missing_install(){
@@ -22,10 +22,10 @@ build(){
   if   [[ $CFLAGS   =~ -m32   ]]
   then  export LDFLAGS+=' -L/opt/32bit/usr/lib -Wl,-rpath,/opt/32bit/usr/lib'
         export PATH="/opt/32bit/usr/bin:$PATH"
-        opts --prefix=/opt/32bit/usr
-  else  opts --prefix=/usr
+with also    --prefix=/opt/32bit/usr
+  else  with also --prefix=/usr
   fi
- else   opts --prefix=/usr
+ else   with also --prefix=/usr
  fi
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
@@ -43,10 +43,10 @@ build_old(){ (
   if   [[ $CFLAGS   =~ -m32   ]]
   then  export LDFLAGS+=' -Wl,-rpath,/opt/32bit/usr/lib'
         export PATH="/opt/32bit/usr/bin:$PATH"
-        opts -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr
-  else  opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+with also    -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr
+  else  with also -DCMAKE_INSTALL_PREFIX:PATH=/usr
   fi
- else   opts -DCMAKE_INSTALL_PREFIX:PATH=/usr
+ else   with also -DCMAKE_INSTALL_PREFIX:PATH=/usr
  fi
  default_build
 ) }

@@ -1,21 +1,22 @@
 # ftp://ftp.cyrusimap.org/cyrus-sasl
 # Above is an alternate download location
+# might currently be broke
 
-   version stable 2.1.25
-   require e2fsprogs gss openssl
-  optional PAM     ''                      '' for optional pluggable authentication
-  optional heimdal --with-gss_impl=heimdal '' for kerberos 5 authentication
-      opts --enable-login --enable-ntlm
-  category security/authentication security/encryption
- attribute library lto multilib-concurrent
-#attribute makej
-    source ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$VERSION.tar.gz
+with version stable 2.1.25
+with base    e2fsprogs gss openssl
+with elect   PAM     ''                      '' for optional pluggable authentication
+with elect   heimdal --with-gss_impl=heimdal '' for kerberos 5 authentication
+with also    --enable-login --enable-ntlm
+with role    security/authentication security/encryption
+with trait   library lto multilib-concurrent
+#trait makej
+with source  ftp://ftp.cyrusimap.org/cyrus-sasl/cyrus-sasl-$VERSION.tar.gz
 #   source ftp://ftp.andrew.cmu.edu/pub/cyrus-mail/cyrus-sasl-$VERSION.tar.gz
-      info good 20120716
-      info last 20110913
-      info home http://www.cyrusimap.org/
- freshmeat cyrussasl
-      desc 'library for secure network authentication
+with info    good 20120716
+with info    last 20110913
+with info    home http://www.cyrusimap.org/
+with info    freecode cyrussasl
+with info    cite 'library for secure network authentication
 cyrus-sasl is a generic library for easy integration of secure 
 network authentication to any client or server application.
 It supports authentication via standard plaintext methods 
@@ -26,10 +27,10 @@ ACAP, LDAP, and other standard protocols.'
 
 build(){ (
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --with-plugindir=/usr/lib64/sasl2 
-      opts --with-configdir=/usr/lib64/sasl2
- else opts --with-plugindir=/usr/lib/sasl2 
-      opts --with-configdir=/usr/lib/sasl2
+ then with also --with-plugindir=/usr/lib64/sasl2 
+with also    --with-configdir=/usr/lib64/sasl2
+ else with also --with-plugindir=/usr/lib/sasl2 
+with also    --with-configdir=/usr/lib/sasl2
  fi
 
  sed -i 's:*mbdb, path, NULL,:*mbdb, (DB_TXN *) NULL, path, NULL,:' \

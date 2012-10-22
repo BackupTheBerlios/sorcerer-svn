@@ -2,32 +2,32 @@
 # 3.9.80, 3.9.83, 3.9.84  failed to compile
 # 3.9.83 failed to compile
 
-   version   stable 3.10.0 3.9.79
-#  version unstable 3.9.84
+with version   stable 3.10.0 3.9.79
+#with version unstable 3.9.84
 # Not sure if LAPACK is required (separately) for 3.9.25
-   require gcc-fortran gccmakedep LAPACK
-      opts --nof77
-  category mathematics
- attribute console lto_off
- attribute broke
-#attribute makej
+with base    gcc-fortran gccmakedep LAPACK
+with also    --nof77
+with role    mathematics
+with trait   console lto_off
+with trait   broke
+#trait makej
 # does not install libraries multilib but compiles that way fine.
- attribute multilib-fail
+with trait   multilib-fail
 
 # Disable automatic detection if CPU throttling is enabled because if it is,
 # the cast would fail. Some computers (often laptops) have BIOS that does
 # not allow users to disable throttling. Of course if throttling is enabled,
 # ATLAS install will be junk because the timings will be completely random.
-      opts '-Si cputhrchk 0'
+with also    '-Si cputhrchk 0'
 case $VERSION in
  3.9*) source $SOURCEFORGE_URL math-atlas/Developer%20%28unstable%29/$VERSION/atlas$VERSION.tar.bz2
-       source http://www.netlib.org/lapack/lapack.tgz ;;
+with source  http://www.netlib.org/lapack/lapack.tgz ;;
     *) source $SOURCEFORGE_URL math-atlas/Stable/$VERSION/atlas$VERSION.tar.bz2 ;;
 esac
-      info last 20120713
-      info home http://math-atlas.sourceforge.net/
-      info docs 'http://math-atlas.sourceforge.net/faq.html#doc'
-      desc 'automatically tuned routines for linear algebra'
+with info    last 20120713
+with info    home http://math-atlas.sourceforge.net/
+with info    docs 'http://math-atlas.sourceforge.net/faq.html#doc'
+with info    cite 'automatically tuned routines for linear algebra'
 
 build(){
 new_build(){
@@ -37,7 +37,7 @@ new_build(){
  }
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --libdir=/usr/lib64; B=64
+ then with also --libdir=/usr/lib64; B=64
  else B=32
  fi
 
@@ -79,8 +79,8 @@ old_build(){
  }
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --libdir=/usr/lib64; B=64
- else opts --libdir=/usr/lib;   B=32
+ then with also --libdir=/usr/lib64; B=64
+ else with also --libdir=/usr/lib;   B=32
  fi
 
  mkdir build &&

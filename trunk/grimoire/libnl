@@ -1,39 +1,17 @@
-   version   stable 3.2.13 3.2.12 3.2.11
-   require autoconf
-      opts --disable-static
-  category network/library
- attribute library makej
-#attribute multilib-concurrent
-    source http://www.infradead.org/~tgr/libnl/files/libnl-$VERSION.tar.gz
+# 3.2.14 failed compilation
+
+with version   stable 3.2.13 3.2.12
+with version unstable 3.2.14
+with base    autoconf
+with also    --disable-static
+with role    network/library
+with trait   library makej
+#trait multilib-concurrent
+with source   stable http://www.infradead.org/~tgr/libnl/files/libnl-$VERSION.tar.gz
+with source unstable http://www.infradead.org/~tgr/libnl/files/libnl-$VERSION.tar.gz
 #   source http://downloads.openwrt.org/sources/libnl-$VERSION.tar.gz
-      info last 20120903
-      info home http://www.infradead.org/~tgr/libnl/
-      desc 'library for applications dealing with netlink sockets
+with info    last 20121021
+with info    home http://www.infradead.org/~tgr/libnl/
+with info    cite 'library for applications dealing with netlink sockets
 The library provides an interface for raw netlink messaging
 and various netlink family specific interfaces.'
-
-build(){
- case $VERSION in
-  1.0-pre8) sed -i '1i#include <limits.h>' include/netlink-local.h ;;
-  3.2.11) sed -i '1i#ifndef YY_BUF_SIZE
-                 1i#define YY_BUF_SIZE 16384
-                 1i#endif' lib/route/pktloc.c ;;
-  3.2.10) sed -i '1i#ifndef YY_BUF_SIZE
-                 1i#define YY_BUF_SIZE 16384
-                 1i#endif' lib/route/pktloc.c ;;
-  3.2.9) sed -i '1i#ifndef YY_BUF_SIZE
-                 1i#define YY_BUF_SIZE 16384
-                 1i#endif' lib/route/pktloc.c ;;
-  3.2.8) sed -i '1i#ifndef YY_BUF_SIZE
-                 1i#define YY_BUF_SIZE 16384
-                 1i#endif' lib/route/pktloc.c ;;
-  3.2.7) sed -i '1i#ifndef YY_BUF_SIZE
-                 1i#define YY_BUF_SIZE 16384
-                 1i#endif' lib/route/pktloc.c ;;
- esac
- default_build &&
- case $VERSION in
-  1.0-pre8) mkdir  -pvm 755 $DESTDIR/usr/include/linux
-            install -vm 755 {,$DESTDIR/usr/}include/linux/ip_mp_alg.h ;;
- esac
-}

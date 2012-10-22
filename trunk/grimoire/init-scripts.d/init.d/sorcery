@@ -5,27 +5,30 @@
 # Required-Start: $local_fs
 # Default-Start: 1 2 3 4 5
 # Default-Stop: 0 6
-# Short-Description: mounts tmpfs on /root/.sorcery
+# Short-Description: mounts tmpfs on /aux/run/tmp
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 only start stop restart status
-name /root/.sorcery
+name /aux/run/tmp
 options '-o defaults,size=256m,nr_inodes=256k,mode=700 -t tmpfs tmpfs'
 
 stop(){
- root_owned_cast_dispel(){
-  pgrep -u root '^cast$'
-  pgrep -u root '^dispel$'
+ active(){
+  pgrep -u root '^moil$'
+  pgrep -u root '^oust$'
+  pgrep -u root '^post$'
+  pgrep -u root '^reap$'
+  pgrep -u root '^save$'
  }
 
- busy(){ root_owned_cast_dispel | grep -q '.'; }
+ busy(){ active | grep -q .; }
 
  abort_and_wait(){
-  touch /root/.sorcery/halt
-  augur queue | sed 's:cast/active/::' | augur abort
-  log_warning_msg 'waiting for completion of cast or dispel'; echo
+  touch /aux/tmp/halt
+  augur queue | sed 's:moil/active/::' | augur abort
+  log_warning_msg 'waiting for completion of sorcery'; echo
   log_warning_msg 'forcing power off will cause problems please be patient'
   while busy; do sleep 1; done
   log_success_msg 'sorcery run completed'

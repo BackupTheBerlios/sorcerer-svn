@@ -10,24 +10,24 @@
 # not being entirely parallel make compatible.
 
 
-   version stable 4.7.2 4.7.1 4.6.3
-   require binutils cloog libelf mpfr multiprecision ppl
-#  require binutils cloog-ppl libelf mpfr multiprecision
-#  require binutils cloog-parma libelf mpfr multiprecision
-# optional ecj --with-ecj-jar=/usr/share/java/ecj.jar
-      opts --with-ppl --with-cloog --with-slibdir=/lib --disable-rpath
-      opts --enable-cloog-backend=isl
-#     opts --enable-cloog-backend=isl --disable-cloog-version-check
-  category development/compiler
- attribute console library lto_off multilib-fail optimize solo
-#attribute console library lto_off makej multilib-fail optimize solo
-    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+with version stable 4.7.2 4.7.1 4.6.3
+with base    binutils cloog libelf mpfr multiprecision ppl
+#with base    binutils cloog-ppl libelf mpfr multiprecision
+#with base    binutils cloog-parma libelf mpfr multiprecision
+#with elect   ecj --with-ecj-jar=/usr/share/java/ecj.jar
+with also    --with-ppl --with-cloog --with-slibdir=/lib --disable-rpath
+with also    --enable-cloog-backend=isl
+#     with also --enable-cloog-backend=isl --disable-cloog-version-check
+with role    development/compiler
+with trait   console library lto_off multilib-fail optimize solo
+#trait console library lto_off makej multilib-fail optimize solo
+with source  $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
 #   source ftp://sourceware.org/pub/java/ecj-4.5.jar
-      info last 20120922
-      info home http://gcc.gnu.org/
-      info docs http://gcc.gnu.org/onlinedocs/
-      info mail http://gcc.gnu.org/lists.html
-      desc 'GNU compiler collection'
+with info    last 20120922
+with info    home http://gcc.gnu.org/
+with info    docs http://gcc.gnu.org/onlinedocs/
+with info    mail http://gcc.gnu.org/lists.html
+with info    cite 'GNU compiler collection'
 
 build(){
 
@@ -74,12 +74,12 @@ build(){
  export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
  case $MACHTYPE in
-  *-uclibc) opts --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
-  *-gnu)    opts --enable-__cxa_atexit --enable-clocale=gnu ;;
+  *-uclibc) with also --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
+  *-gnu)    with also --enable-__cxa_atexit --enable-clocale=gnu ;;
  esac
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
- then opts --disable-multilib
+ then with also --disable-multilib
  fi
 
    LCF="LIBCFLAGS=$CFLAGS"
@@ -126,8 +126,8 @@ build(){
 
 
 post_install(){
- get_provider libtool | pipe_queue $LEECH_QUEUE
- get_provider libtool | pipe_queue $CAST_QUEUE
+ get_provider libtool | pipe_queue $LOAD_QUEUE
+ get_provider libtool | pipe_queue $MOIL_QUEUE
  leech
 
  if [[ -d ${CCACHE_CACHE:=/var/cache/ccache} ]]; then
@@ -142,7 +142,7 @@ post_install(){
        grep -lr $2 $ELF_LOGS |
        grep -v  gcc          |
        grep -q .
-  then echo $1 | pipe_queue "$CAST_QUEUE"
+  then echo $1 | pipe_queue "$MOIL_QUEUE"
   fi
  }
 }

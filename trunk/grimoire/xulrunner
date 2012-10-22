@@ -1,33 +1,38 @@
-   version stable 11.0 8.0b6 3.6.23 1.9.2.17 2.0 1.9.2.10 1.9.2.9 1.9.2.8
+# 16.0 failed compilation
+
+with version   stable 16.0 11.0 8.0b6
+#with version unstable 16.0.1 15.0.1
 # Using internal mng
-   require GConf imake jdk libXScrnSaver libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
-#  require GConf imake jdk libXScrnSaver libIDL libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
-#   switch --enable-glitz --disable-glitz 'enable glitz for use with cairo'
-  category network/web
- attribute client library makej multilib-dual solo x11
-    source http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
+with base    GConf imake jdk libXScrnSaver libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
+#with base    GConf imake jdk libXScrnSaver libIDL libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
+# with switch  --enable-glitz --disable-glitz 'enable glitz for use with cairo'
+with role    network/web
+with trait   client library litelink makej multilib-dual solo x11
+with source    stable http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
+with source  unstable http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
 #   source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-      info last 20120312
-      info home http://developer.mozilla.org/en/XULRunner
-      info vurl http://developer.mozilla.org/en/XULRunner
-      opts --with-system-jpeg
-      opts --with-system-zlib
-      opts --with-system-bz2
-      opts --enable-startup-notification
-      opts --disable-static
-      opts --enable-system-cairo
-      opts --enable-system-lcms
-      opts --enable-application=xulrunner
-      opts --enable-libxul
-      opts --with-java-include-path=/opt/jdk/include
-      opts --with-java-bin-path=/opt/jdk/bin
-#     opts --with-system-nspr
-#     opts --with-system-nss
-      opts --enable-strip
-      opts --enable-default-toolkit=cairo-gtk2
-      opts --disable-mochitest
-      opts --disable-tests
-#     opts --enable-system-sqlite
+with info    last 20121005
+with info    home http://developer.mozilla.org/en/XULRunner
+with info    vurl http://developer.mozilla.org/en/XULRunner
+with also    --with-system-jpeg
+with also    --with-system-zlib
+with also    --with-system-bz2
+with also    --enable-startup-notification
+with also    --disable-static
+#     with also --enable-system-cairo
+with also    --disable-system-cairo
+with also    --enable-system-lcms
+with also    --enable-application=xulrunner
+with also    --enable-libxul
+with also    --with-java-include-path=/opt/jdk/include
+with also    --with-java-bin-path=/opt/jdk/bin
+with also    --with-system-nspr
+with also    --with-system-nss
+with also    --enable-strip
+with also    --enable-default-toolkit=cairo-gtk2
+with also    --disable-mochitest
+with also    --disable-tests
+#     with also --enable-system-sqlite
 # xulrunner version 1.9.2.9 requires ancient version of sqlite
 # checking for sqlite3 >= 3.6.22... yes
 # checking SQLITE_CFLAGS...  
@@ -37,13 +42,13 @@
 
 
 ## --with-system-png requires png with apng support and currently the patch does not apply
-#     opts --with-system-png
+#     with also --with-system-png
 
 
            #--enable-cpp-rtti
 #            'jdk:::for building the javaXPCOM components' )
 # compilation with javaXPCOM component support is not working
-      desc 'HTML rendering and javascript library'
+with info    cite 'HTML rendering and javascript library'
 
 build(){
  add_symlinks(){
@@ -65,40 +70,8 @@ build(){
  export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
 
  if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ then with also --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
  fi
-
- case $VERSION in
-      8.0*) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-     7.0.1) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-       7.0) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-     6.0.2) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-    3.6.23) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-    3.6.21) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
-  1.9.1.19) grep -rl "curl/types\.h" * |
-            xargs -r --max-lines=256 sed -i '\,curl/types\.h,d'
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk
-            opts --disable-crashreporter ;;
- esac
 
  export   CFLAGS="${CFLAGS//-flto/}"
  export CXXFLAGS="${CXXFLAGS//-flto/}"

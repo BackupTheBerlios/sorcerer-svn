@@ -5,31 +5,31 @@
 # Linux-PAM might be deprecated?
 # considering switching to openpam
 
-   version stable 1.1.4 1.1.3 1.1.2 1.1.1
-  optional cracklib   ''             --disable-cracklib for password checking library
-  optional db         --enable-db=db --enable-db=no     for userdb support
-  optional libxcrypt '' '' for blowfish encrypted passwords
-# optional libxcrypt '' '' for passwords that blow fish
-      opts --enable-read-both-confs
-      opts --disable-nis
+with version stable 1.1.4 1.1.3 1.1.2 1.1.1
+with elect   cracklib   ''             --disable-cracklib for password checking library
+with elect   db         --enable-db=db --enable-db=no     for userdb support
+with elect   libxcrypt '' '' for blowfish encrypted passwords
+#with elect   libxcrypt '' '' for passwords that blow fish
+with also    --enable-read-both-confs
+with also    --disable-nis
   sys_user auth
-  category security/authentication
- attribute library lto makej multilib-concurrent
-    source $KERNEL_URL pub/linux/libs/pam/library/Linux-PAM-$VERSION.tar.bz2
-      info last 20110625
-      info home http://www.kernel.org/pub/linux/libs/pam
-      info vurl ftp://ftp.kernel.org/pub/linux/libs/pam/library/
+with role    security/authentication
+with trait   library lto makej multilib-concurrent
+with source  $KERNEL_URL pub/linux/libs/pam/library/Linux-PAM-$VERSION.tar.bz2
+with info    last 20110625
+with info    home http://www.kernel.org/pub/linux/libs/pam
+with info    vurl ftp://ftp.kernel.org/pub/linux/libs/pam/library/
 
 # /lib and /lib64 reserved for ELFs required for booting box
 # not necessarily ELFs required for login and authentication.
 
 # If the root filesystem can not be mounted
 # login must be possible from the initramfs
-   protect /etc/security
- freshmeat linux-pam
- conflicts libtirpc
-  eprovide PAM
-      desc 'pluggable authentication mechanism
+with protect /etc/security
+with info    freecode linux-pam
+with clash   libtirpc
+with hold    PAM
+with info    cite 'pluggable authentication mechanism
 
 For additional Linux-PAM modules
 that are not provided with Linux-PAM please see:
@@ -42,8 +42,8 @@ build(){
  }
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --libdir=/lib64 --enable-securedir=/lib64/security
- else opts --libdir=/lib   --enable-securedir=/lib/security
+ then with also --libdir=/lib64 --enable-securedir=/lib64/security
+ else with also --libdir=/lib   --enable-securedir=/lib/security
  fi
 
  export HAVE_SGML2LATEX=no
@@ -59,7 +59,7 @@ post_install(){
           get_provider pam_ldap |
  pipe     show_installed        |
  LC_ALL=C sort | uniq -d        |
-          pipe_queue $CAST_QUEUE
+          pipe_queue $MOIL_QUEUE
 }
 
 current(){

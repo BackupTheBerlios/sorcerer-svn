@@ -1,17 +1,24 @@
-# replaces libv4l
-
-   version stable 0.8.8 0.8.7 0.8.6
-   require jpeg
-  category graphic
- attribute library lto makej multilib-dual x11
-    source http://linuxtv.org/downloads/v4l-utils/v4l-utils-$VERSION.tar.bz2
-      info good 20120530
-      info last 20120416
-      info home http://linuxtv.org
- conflicts libv4l
-      desc 'utilities for video for linux'
+with version stable 0.9.1 0.8.8 0.8.7
+with base    jpeg
+with elect   qt-everywhere-opensource --enable-qv4l2 --disable-qv4l2 for qv4l2
+with role    graphic
+with trait   library lto makej multilib-dual x11
+with source  http://linuxtv.org/downloads/v4l-utils/v4l-utils-$VERSION.tar.bz2
+with info    last 20121009
+with info    home http://linuxtv.org
+with info    cite 'utilities for video for linux'
 
 build(){
+ if  [[ $HOSTTYPE == x86_64 ]] &&
+     [[ $CFLAGS   =~ -m32   ]]; then
+  export            PATH=/opt/32bit/usr/bin:$PATH
+  export PKG_CONFIG_PATH=/opt/32bit/usr/lib/pkgconfig:/usr/lib/pkgconfig
+  export         KDEDIRS=/opt/32bit/usr
+ fi
+ default_build
+}
+
+build_old(){
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then make install PREFIX=/usr LIBDIR=/usr/lib64 "DESTDIR=$DESTDIR"
  else sed -i '/-C utils/d' Makefile

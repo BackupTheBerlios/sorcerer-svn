@@ -1,63 +1,74 @@
-   version   stable smooth-20121004-0 smooth-20121003-1 smooth-20120929-1
-  category utility
- attribute archive_off solo sorcery
-      info last 20121004
-      info home http://sorcerer.silverice.org/
-    source   stable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
-    source unstable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
+
+if declare -F attribute >/dev/null; then
+ # code to create temporary forward compatibility
+ with(){ local r; shift; "$r" "$@"; }
+ trait(){ attribute "$@"; }
+ role(){ category "$@"; }
+fi
+
+with version   stable delegate-20121022-0 smooth-20121013-1 smooth-20121010-0
+with role    utility
+with trait   archive_off solo sorcery
+with info    last 20121022
+with info    home http://sorcerer.silverice.org/
+with source    stable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
+with source  unstable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
 
 # Should /var/cache and /var/spool be excluded?
-# They used to be but that caused missing directories for cups and hal
+# They used to be but that caused missing directories for cups
 
-   exclude /dev
-   exclude /etc/sorcery/local.config
-   exclude /home
-   exclude /proc
-   exclude /root
-   exclude /tmp
-   exclude /usr/src/sorcery
-   exclude /var/lock
-   exclude /var/log/sorcery/snap
-   exclude /var/run
-   exclude /var/state
-   exclude /var/tmp
-   exclude $VOG_DIR
-  volatile /aux/new/
-  volatile /etc/sorcery/config
-  volatile /etc/init.d/
-  volatile /usr/man/
-  volatile /usr/share/man/
-  volatile /usr/doc/
-  volatile /usr/share/doc/
-  volatile /usr/share/gtk-doc/
-  volatile /usr/share/locale/
-  volatile /usr/info/
-  volatile /usr/share/info/
-  volatile /usr/share/icons/
-  volatile /var/cache/
-  volatile /var/lib/
-  volatile /var/spool/
-  volatile /var/log/sorcery/
-  volatile /lib/modules/.*/modules\.d
-  volatile /lib/udev/dev/
-  volatile $MD5SUM_LOGS/
-   protect /etc/sorcery/config
-   protect /etc/sorcery/dialogrc
-   protect /usr/libexec/sorcery/augur
-   protect /usr/libexec/sorcery/cast
-   protect /usr/libexec/sorcery/dispel
-   protect /usr/libexec/sorcery/leech
-   protect /usr/libexec/sorcery/share
-   protect /usr/libexec/sorcery/sorcery
-   protect /usr/sbin/augur
-   protect /usr/sbin/cast
-   protect /usr/sbin/dispel
-   protect /usr/sbin/leech
-   protect /usr/sbin/sorcery
-   protect /var/cache
-   protect /var/spool
-    config /etc/
-      desc 'sorcery contains source management tools.
+with exclude /dev
+with exclude /etc/sorcery/local.config
+with exclude /home
+with exclude /proc
+with exclude /root
+with exclude /tmp
+with exclude /usr/src/sorcery
+with exclude /var/lock
+with exclude /var/log/sorcery/snap
+with exclude /var/run
+with exclude /var/state
+with exclude /var/tmp
+with exclude "$EVENT_LOGS"
+with vary    /etc/sorcery/config
+with vary    /etc/init.d/
+with vary    /usr/man/
+with vary    /usr/share/man/
+with vary    /usr/doc/
+with vary    /usr/share/doc/
+with vary    /usr/share/gtk-doc/
+with vary    /usr/share/locale/
+with vary    /usr/info/
+with vary    /usr/share/info/
+with vary    /usr/share/icons/
+with vary    /var/cache/
+with vary    /var/lib/
+with vary    /var/spool/
+with vary    /var/log/sorcery/
+with vary    /lib/modules/.*/modules\.d
+with vary    /lib/udev/dev/
+with protect     /lib64/.link/
+with protect /usr/lib64/.link/
+with protect       /lib/.link/
+with protect   /usr/lib/.link/
+with protect /etc/sorcery/config
+with protect /usr/libexec/sorcery/functions
+with protect /usr/libexec/sorcery/oust
+with protect /usr/libexec/sorcery/post
+with protect /usr/libexec/sorcery/reap
+with protect /usr/libexec/sorcery/rush
+with protect /usr/libexec/sorcery/save
+with protect /usr/libexec/sorcery/till
+with protect /usr/sbin/oust
+with protect /usr/sbin/post
+with protect /usr/sbin/reap
+with protect /usr/sbin/rush
+with protect /usr/sbin/save
+with protect /usr/sbin/till
+with protect /var/cache
+with protect /var/spool
+with config  /etc/
+with info    cite 'sorcery contains source management tools.
 augur   - provides detailed information about the box
 cast    - installs spells
 dispel  - removes installed spells
@@ -65,3 +76,20 @@ leech   - downloads sources for spells
 sorcery - menu driven source manager'
 
 build(){ DESTDIR=$DESTDIR ./install $VERSION; }
+
+post_install(){
+
+ discard_old_index(){
+  merge_grimoires
+  generate_index   
+  . /etc/sorcery/config
+  run_details
+ }
+
+ discard_old_index
+ pkill -u root wand &>/dev/null
+ if   ! [ -f "$VERSION_LOGS/immune-exam-transition" ]
+ then touch    "$MOIL_QUEUE/immune-exam-transition"
+ fi
+ default_post_install
+}

@@ -7,68 +7,68 @@
 # cairo glitz is deprecated code that no longer works
 # therefore do not experiment with it.
 
-   version   stable 15.0.1 15.0 14.0.1
-   require GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files zip
-#  require GConf-dbus bzip2 hicolor-icon-theme libnotify startup-notification sqlite zip
+with version   stable 16.0.1 16.0 15.0.1 15.0
+with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files zip
+#with base    GConf-dbus bzip2 hicolor-icon-theme libnotify startup-notification sqlite zip
 # gnome-vfs makes firefox crash during downloading on x86_64
-      opts --disable-gnomevfs --disable-crashreporter
-  optional yasm       '' --disable-webm     for webm video codec
-#   switch --enable-glitz --disable-glitz 'enable glitz for use with cairo'
-#      opts --with-system-jpeg
-      opts --with-system-zlib
-      opts --with-system-bz2
-      opts --enable-startup-notification
-      opts --disable-static
-#      opts --enable-system-cairo
-      opts --enable-system-lcms
-      opts --enable-application=browser
-#     opts --with-system-libxul
-#     opts --with-libxul-sdk=/usr
-#     opts --disable-libxul
-#     opts --disable-xul
-#      opts --with-system-nspr
-#      opts --with-system-nss
-      opts --without-system-nss
-      opts --without-system-nspr
-      opts --enable-strip
-      opts --enable-default-toolkit=cairo-gtk2
-      opts --disable-mochitest
-      opts --disable-tests
-      opts --enable-official-branding
-#      opts --enable-system-sqlite
+with also    --disable-gnomevfs --disable-crashreporter
+with elect   yasm       '' --disable-webm     for webm video codec
+# with switch  --enable-glitz --disable-glitz 'enable glitz for use with cairo'
+#      with also --with-system-jpeg
+with also    --with-system-zlib
+with also    --with-system-bz2
+with also    --enable-startup-notification
+with also    --disable-static
+#      with also --enable-system-cairo
+with also    --enable-system-lcms
+with also    --enable-application=browser
+#     with also --with-system-libxul
+#     with also --with-libxul-sdk=/usr
+#     with also --disable-libxul
+#     with also --disable-xul
+#      with also --with-system-nspr
+#      with also --with-system-nss
+with also    --without-system-nss
+with also    --without-system-nspr
+with also    --enable-strip
+with also    --enable-default-toolkit=cairo-gtk2
+with also    --disable-mochitest
+with also    --disable-tests
+with also    --enable-official-branding
+#      with also --enable-system-sqlite
 
 ## --with-system-png requires png with apng support and currently the patch does not apply
-#     opts --with-system-png
+#     with also --with-system-png
 
 # Avoid failed cast when iwlib.h is not installed (provided by wireless-tools)
 # Why does firefox need wireless anyway? 
 # Furthermore, necko-wifi may not me supported on Linux anyway if I understand
 # things correctly (J. Merka, 03/01/10).
-      opts --disable-necko-wifi
+with also    --disable-necko-wifi
 
 # Enable official branding should be fine because we are not 
 # distributing the builds. This option names the browser Firefox instead
 # of Minefield but launches a EULA on the first start:
-#      opts --enable-official-branding
-#      opts --with-distribution-id='sorcerer'
+#      with also --enable-official-branding
+#      with also --with-distribution-id='sorcerer'
 # These two should be safe for Sorcerer
-      opts --disable-updater
-      opts --disable-installer
+with also    --disable-updater
+with also    --disable-installer
 
            #--with-system-png
            #--enable-cpp-rtti
 #            'jdk:::for building the javaXPCOM components' )
 # compilation with javaXPCOM component support is not working
 
-  category network/web
- attribute bottleneck client huge library makej multilib-dual optimize stack-protector x11
- attribute litelink
-    source http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/firefox-$VERSION.source.tar.bz2
-      info last 20120909
-      info home http://www.mozilla.com/en-US/firefox/firefox.html
-#conflicts gnome-vfs
-  eprovide mozilla
-      desc 'web brower based upon mozilla gecko HTML rendering engine'
+with role    network/web
+with trait   bottleneck client huge library makej multilib-dual optimize stack-protector x11
+with trait   litelink
+with source  http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/firefox-$VERSION.source.tar.bz2
+with info    last 20121013
+with info    home http://www.mozilla.com/en-US/firefox/firefox.html
+# with clash   gnome-vfs
+with hold    mozilla
+with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
 
 build(){
 
@@ -100,7 +100,7 @@ build(){
 
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
-  then opts "--host=${MACHTYPE/x86_64/i686}"
+  then with also "--host=${MACHTYPE/x86_64/i686}"
        export LDFLAGS+=" -Wl,-rpath,/usr/lib/firefox-$VERSION"
   else export LDFLAGS+=" -Wl,-rpath,/usr/lib64/firefox-$VERSION"
   fi
@@ -110,7 +110,7 @@ build(){
  # sed -i 's:/bin/pwd:pwd:g;s:/bin/ls:ls:g' build/unix/mozilla.in
 
  # if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- # then opts --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ # then with also --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
  # fi
 
  # case statement to remove references to curl's deprecated header
@@ -153,6 +153,6 @@ post_install(){
  default_post_install
  grep -lr "^/usr/lib/mozilla/plugins/\|^/usr/lib64/mozilla/plugins/" $INSTALL_LOGS |
  basenames |
- pipe_queue "$CAST_QUEUE"
+ pipe_queue "$MOIL_QUEUE"
  true
 }

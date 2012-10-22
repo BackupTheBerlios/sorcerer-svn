@@ -4,40 +4,40 @@
 # httpd requires apr-util with openldap support
 # might link with sqlite-v2.8 if it installed
 
-   version stable 1.5.1 1.4.1 1.3.12
-   require apr db expat openldap
-  optional unixODBC   --with-odbc
-  optional postgresql --with-pgsql
-  optional mysql      --with-mysql
-  optional sqlite     --with-sqlite3
-      opts --with-berkeley-db --with-ldap
-#     opts --with-berkeley-db --with-expat --with-ldap
-#     opts --with-apr=/usr/bin --with-berkeley-db --with-expat=/usr --with-ldap
+with version stable 1.5.1 1.4.1 1.3.12
+with base    apr db expat openldap
+with elect   unixODBC   --with-odbc
+with elect   postgresql --with-pgsql
+with elect   mysql      --with-mysql
+with elect   sqlite     --with-sqlite3
+with also    --with-berkeley-db --with-ldap
+#     with also --with-berkeley-db --with-expat --with-ldap
+#     with also --with-apr=/usr/bin --with-berkeley-db --with-expat=/usr --with-ldap
 
 # 1.3.9 does not recognize --enable-static=no
-#     opts --enable-static=no --with-apr=/usr/bin --with-berkeley-db --with-expat=/usr --with-ldap
-  category network/web
- attribute console library makej server
- attribute multilib-fail
+#     with also --enable-static=no --with-apr=/usr/bin --with-berkeley-db --with-expat=/usr --with-ldap
+with role    network/web
+with trait   console library makej server
+with trait   multilib-fail
 # it strips off the -m32
-    source $APACHE_URL apr/apr-util-$VERSION.tar.bz2
-      info last 20121004
-      info home http://apr.apache.org/
-      desc 'helpful abstractions on top of apache portable runtime'
+with source  $APACHE_URL apr/apr-util-$VERSION.tar.bz2
+with info    last 20121004
+with info    home http://apr.apache.org/
+with info    cite 'helpful abstractions on top of apache portable runtime'
 
 build(){
  if   [[ $HOSTTYPE == x86_64 ]]; then
   if  [[ $CFLAGS =~ -m32 ]]
-  then opts --with-apr=/usr/bin32/apr-1-config
-  else opts --with-apr=/usr/bin/apr-1-config
+  then with also --with-apr=/usr/bin32/apr-1-config
+  else with also --with-apr=/usr/bin/apr-1-config
   fi
- else  opts --with-apr=/usr/bin/apr-1-config
+ else  with also --with-apr=/usr/bin/apr-1-config
  fi
 
  # oddly it must explicitly be told this instead of using /usr/share/config.site
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --libdir=/usr/lib64
- else opts --libdir=/usr/lib
+ then with also --libdir=/usr/lib64
+ else with also --libdir=/usr/lib
  fi
 
  sed -i 's:DB_VER 3:DB_VER 4:

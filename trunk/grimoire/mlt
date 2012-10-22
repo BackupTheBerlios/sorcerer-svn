@@ -5,26 +5,26 @@
 
 # 0.8.0 failed compilation
 
-   version   stable 0.8.2 0.8.0 0.7.8
-   require SDL_image ffmpeg libexif libsamplerate libvorbis qt-everywhere-opensource subversion
-  optional libdv          '' '--disable-dv'
-  optional frei0r-plugins '' '--disable-frei0r'
-  optional gtk+           '' '--disable-gtk2'
-  optional jackit
-  optional libquicktime
-  optional sox            '' '--disable-sox'
-  optional xine-lib       '' '--disable-xine'
-##    opts --enable-gpl --swig-languages=all --avformat-svn --avformat-swscale --qimage-libdir=/usr/lib --qimage-includedir=/usr/include
-      opts --enable-gpl --avformat-swscale 
-#     opts --qimage-includedir=/usr/include --qimage-libdir=/usr/lib
-#     opts    --kde-includedir=/usr/include    --kde-libdir=/usr/lib
-  category video
- attribute library makej multilib-dual optimize setarch
-    source   stable $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
-    source unstable $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
-      info last 20120901
-      info home http://www.mltframework.org/twiki/bin/view/MLT/
-      desc 'media loving toolkit'
+with version   stable 0.8.2 0.8.0 0.7.8
+with base    SDL_image ffmpeg libexif libsamplerate libvorbis qt-everywhere-opensource subversion
+with elect   libdv          '' '--disable-dv'
+with elect   frei0r-plugins '' '--disable-frei0r'
+with elect   gtk+           '' '--disable-gtk2'
+with elect   jackit
+with elect   libquicktime
+with elect   sox            '' '--disable-sox'
+with elect   xine-lib       '' '--disable-xine'
+##    with also --enable-gpl --swig-languages=all --avformat-svn --avformat-swscale --qimage-libdir=/usr/lib --qimage-includedir=/usr/include
+with also    --enable-gpl --avformat-swscale 
+#     with also --qimage-includedir=/usr/include --qimage-libdir=/usr/lib
+#     with also    --kde-includedir=/usr/include    --kde-libdir=/usr/lib
+with role    video
+with trait   library makej multilib-dual optimize setarch
+with source    stable $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
+with source  unstable $SOURCEFORGE_URL mlt/mlt/mlt-$VERSION.tar.gz
+with info    last 20120901
+with info    home http://www.mltframework.org/twiki/bin/view/MLT/
+with info    cite 'media loving toolkit'
 
 build(){
  local PKG_CONFIG_PATH
@@ -48,14 +48,14 @@ build(){
  export PKG_CONFIG_PATH LDFLAGS
 
  if   grep -qr "/libvdpau.so$" $INSTALL_LOGS
- then opts --avformat-vdpau
+ then with also --avformat-vdpau
  fi
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then opts --libdir=/usr/lib64
- else opts --libdir=/usr/lib
+ then with also --libdir=/usr/lib64
+ else with also --libdir=/usr/lib
  fi
- opts --include-dir=/usr/include
+with also    --include-dir=/usr/include
 
  default_build
 }

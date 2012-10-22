@@ -2,31 +2,31 @@
 # 2.1 and 2.0 do not compile with current gcc.
 # 2.2 failed compilation
 
-   version stable 2.2 1.1 1.0
-   require guile-1.8
-  optional PAM        ''                --disable-pam     for pluggable authentication
-  optional db         ''                ''                can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db
-  optional emacs      --enable-mh-utils ''                to provide an interface between Mailutils and Emacs using mh-e module
-  optional fribidi    ''                --without-fribidi for bidirectional text support
-  optional gdbm       ''                ''                use GNU database library for APOP authentication in POP3 daemon
-  optional gnutls     --with-gnutls     ''                to enable TSL/SSL server-side encryption via gnutls in IMAP4/POP3 daemons
-# optional gsasl      --with-gsasl      ''                use libgsasl for SASL authnetication with IMAP4d
-  optional gss        --with-gssapi     ''                for gssapi/kerberos 5 authentication
-  optional mysql      --with-mysql      ''                to enable authnetication using mysql
-  optional postgresql --with-postgres   ''                to enable authneticaion via postgresql
-  optional stunnel    ''                ''                for imaps or pops services
-  optional xinetd     ''                ''                for running servers
-      opts --disable-static
-      opts --without-tcp-wrappers
-  category network/email
- attribute console client server
-#attribute console client library makej multilib-concurrent server
-    source $GNU_URL mailutils/mailutils-$VERSION.tar.xz
-      info good 20120625
-      info last 20100908
-      info home http://www.gnu.org/software/mailutils
-   provide email-client pop3 pop3s imap imaps mailx
-      desc 'series of useful mail clients, servers, and libraries
+with version stable 2.2 1.1 1.0
+with base    guile-1.8
+with elect   PAM        ''                --disable-pam     for pluggable authentication
+with elect   db         ''                ''                can use either db or gdbm for APOP authnetication in POP3 daemon  Use Berkeley sleepycat db
+with elect   emacs      --enable-mh-utils ''                to provide an interface between Mailutils and Emacs using mh-e module
+with elect   fribidi    ''                --without-fribidi for bidirectional text support
+with elect   gdbm       ''                ''                use GNU database library for APOP authentication in POP3 daemon
+with elect   gnutls     --with-gnutls     ''                to enable TSL/SSL server-side encryption via gnutls in IMAP4/POP3 daemons
+#with elect   gsasl      --with-gsasl      ''                use libgsasl for SASL authnetication with IMAP4d
+with elect   gss        --with-gssapi     ''                for gssapi/kerberos 5 authentication
+with elect   mysql      --with-mysql      ''                to enable authnetication using mysql
+with elect   postgresql --with-postgres   ''                to enable authneticaion via postgresql
+with elect   stunnel    ''                ''                for imaps or pops services
+with elect   xinetd     ''                ''                for running servers
+with also    --disable-static
+with also    --without-tcp-wrappers
+with role    network/email
+with trait   console client server
+#trait console client library makej multilib-concurrent server
+with source  $GNU_URL mailutils/mailutils-$VERSION.tar.xz
+with info    good 20120625
+with info    last 20100908
+with info    home http://www.gnu.org/software/mailutils
+with fill    email-client pop3 pop3s imap imaps mailx
+with info    cite 'series of useful mail clients, servers, and libraries
 
 mailutils contains a series of useful mail clients, servers and libraries.
 These are the primary mail utilities of the GNU system.
@@ -52,8 +52,8 @@ build(){
 # elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then OPTS+=' --with-gdbm'
 # fi
 
-   if grep -qx db   $OPT_ON_LOGS/mailutils; then opts --with-berkeley-db
- elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then opts --with-gdbm
+   if grep -qx db   $OPT_ON_LOGS/mailutils; then with also --with-berkeley-db
+ elif grep -qx gdbm $OPT_ON_LOGS/mailutils; then with also --with-gdbm
  fi
  default_build &&
  ln -fs mail $DESTDIR/usr/bin/mailx

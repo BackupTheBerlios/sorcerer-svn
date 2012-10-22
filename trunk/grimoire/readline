@@ -1,34 +1,20 @@
-# Some dumb sources find /usr/lib/libreadline.a
-# and assume there is no /lib/libreadline.so.*
-# Not all of those dumb sources are capable of
-# compiling and linking with libreadline.a
-# such as lftp
-
-
-   version stable 6.2.004 6.2.002 6.2.001 6.2 6.1.002
-   require ncurses
-      opts --exec-prefix= --enable-shared=yes
-# Static libraries for a statically linked bash?
-#     opts --enable-static=no
-      opts --with-curses
-#     opts --disable-rpath
-# I wish --disable-rpath was obeyed
-
-  category development
- attribute console library lto optimize solo
-#   source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}.tar.gz
-    source ftp://ftp.cwru.edu/pub/bash/readline-${VERSION:0:3}.tar.gz
-
+with version stable 6.2.004 6.1.002
+with base    ncurses
+with also    --exec-prefix= --enable-shared=yes
+with role    development
+with trait   console library lto optimize solo
+#with source  ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}.tar.gz
+with source  ftp://ftp.cwru.edu/pub/bash/readline-${VERSION:0:3}.tar.gz
  case $VERSION in
     6.[1-2].*) PATCHES=${VERSION:6:1}
      for ((SCX=1; SCX <= PATCHES; SCX++))
      do source ftp://ftp.gnu.org/gnu/readline/readline-${VERSION:0:3}-patches/readline${VERSION:0:1}${VERSION:2:1}-00$SCX
      done ;;
  esac
-      info last 20170716
-      info home http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
- freshmeat gnureadline
-      desc 'library for editing command lines while they are being typed
+with info    last 20170716
+with info    home http://cnswww.cns.cwru.edu/php/chet/readline/rltop.html
+with info    freecode gnureadline
+with info    cite 'library for editing command lines while they are being typed
 The readline library provides a set of functions for use by
 applications that allow users to edit command lines as they are typed.
 Both Emacs and vi editing modes are available.
@@ -45,12 +31,6 @@ build(){
  export LDFLAGS+=" -lncurses $CFLAGS"
 
  default_build &&
- mkdir -p $DESTDIR/etc &&
+ mkdir -pvm 755 $DESTDIR/etc &&
  install -m 644 -o root -g root $SCRIPT_DIR/inputrc $DESTDIR/etc
-}
-
-current(){
- case $VERSION in
-  6.1.002) grep -q ncurses $ELF_LOGS/readline ;;
- esac
 }

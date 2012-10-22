@@ -1,42 +1,42 @@
-   version stable 0.8.3 0.8.2 0.8.1 0.8 0.7.3
-   require bzip2 nasm zlib
-      opts --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
+with version stable 0.8.3 0.8.2 0.8.1 0.8 0.7.3
+with base    bzip2 nasm zlib
+with also    --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
 case $VERSION in
-  0.8*) opts --enable-nonfree --disable-static --disable-doc ;;
- 0.7.3) opts --enable-nonfree --disable-static --disable-doc ;;
+  0.8*) with also    --enable-nonfree --disable-static --disable-doc ;;
+ 0.7.3) with also    --enable-nonfree --disable-static --disable-doc ;;
 esac
 
-# avisynth is broke so do not enable as optional
-# optional jackit
+# avisynth is broke so do not enable
+#with elect   jackit
 
-  optional SDL            ''                       --disable-ffplay  to build ffplay media player
-  optional XviD           --enable-libxvid         --disable-libxvid
-  optional a52dec
-# celt optional for ffmpeg version 0.8 and later
-# optional celt           --enable-libcelt         --disable-libcelt
-  optional faac           --enable-libfaac         --disable-libfaac
+with elect   SDL            ''                       --disable-ffplay  to build ffplay media player
+with elect   XviD           --enable-libxvid         --disable-libxvid
+with elect   a52dec
+# celt is optional for ffmpeg version 0.8 and later
+#with elect   celt           --enable-libcelt         --disable-libcelt
+with elect   faac           --enable-libfaac         --disable-libfaac
 # frei0r-plugins creates requirement loop with OpenCV and ffmpeg
-# optional frei0r-plugins --enable-frei0r          --disable-frei0r
-  optional gsm            --enable-libgsm          --disable-libgsm
-  optional lame           --enable-libmp3lame      --disable-libmp3lame
-  optional libdc1394      --enable-libdc1394       --disable-libdc1394
-  optional libtheora      --enable-libtheora       --disable-libtheora
-  optional libvorbis      --enable-libvorbis       --disable-libvorbis
-  optional libvpx         --enable-libvpx          --disable-libvpx
+#with elect   frei0r-plugins --enable-frei0r          --disable-frei0r
+with elect   gsm            --enable-libgsm          --disable-libgsm
+with elect   lame           --enable-libmp3lame      --disable-libmp3lame
+with elect   libdc1394      --enable-libdc1394       --disable-libdc1394
+with elect   libtheora      --enable-libtheora       --disable-libtheora
+with elect   libvorbis      --enable-libvorbis       --disable-libvorbis
+with elect   libvpx         --enable-libvpx          --disable-libvpx
 # ffmpeg does not recognize the installation of openjpeg
-# optional openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
+#with elect   openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
 # ffmpeg does not recognize rtmpdump's librtmp library
-# optional rtmpdump       --enable-librtmp         --disable-librtmp
-  optional schroedinger   --enable-libschroedinger --disable-libschroedinger
-  optional speex          --enable-libspeex        --disable-libspeex
-  optional x264           --enable-libx264         --disable-libx264
-  category video
- attribute library makej optimize
-    source http://www.libav.org/releases/libav-$VERSION.tar.xz
-      info last 20120609
-      info home http://www.libav.org/
-      info docs http://www.libav.org/documentation.html
-      desc 'fork of ffmpeg'
+#with elect   rtmpdump       --enable-librtmp         --disable-librtmp
+with elect   schroedinger   --enable-libschroedinger --disable-libschroedinger
+with elect   speex          --enable-libspeex        --disable-libspeex
+with elect   x264           --enable-libx264         --disable-libx264
+with role    video
+with trait   library makej optimize
+with source  http://www.libav.org/releases/libav-$VERSION.tar.xz
+with info    last 20120609
+with info    home http://www.libav.org/
+with info    docs http://www.libav.org/documentation.html
+with info    cite 'fork of ffmpeg'
 
 build(){
  flags(){ grep flags < /proc/cpuinfo | grep -q $1 || OPTS+=" $2"; }

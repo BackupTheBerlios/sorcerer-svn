@@ -7,26 +7,26 @@
 # No versions are known to compile at the moment
 # Version 0.16.4 not tested
 
-   version   stable 0.16.0 0.15.10
-   version unstable 0.16.4
-   require boost openssl
-      opts --enable-static=no
+with version   stable 0.16.0 0.15.10
+with version unstable 0.16.4
+with base    boost openssl
+with also    --enable-static=no
 case $VERSION in
  0.15.*)
-   require boost-v1_45_0 ;;
+with base    boost-v1_45_0 ;;
 esac
-  category network/file-share
- attribute library makej multilib-fail
- attribute broke
-    source   stable http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$VERSION.tar.gz
-    source unstable http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$VERSION.tar.gz
-      info home http://www.rasterbar.com/products/libtorrent
+with role    network/file-share
+with trait   library makej multilib-fail
+with trait   broke
+with source    stable http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$VERSION.tar.gz
+with source  unstable http://libtorrent.googlecode.com/files/libtorrent-rasterbar-$VERSION.tar.gz
+with info    home http://www.rasterbar.com/products/libtorrent
 #     info good 20120725
-      info last 20120821
-      info docs http://www.rasterbar.com/products/libtorrent/manual.html
-      info mail https://lists.sourceforge.net/lists/listinfo/libtorrent-discuss
-      info vurl http://code.google.com/p/libtorrent/downloads/list
-      desc 'c++ BitTorrent library'
+with info    last 20120821
+with info    docs http://www.rasterbar.com/products/libtorrent/manual.html
+with info    mail https://lists.sourceforge.net/lists/listinfo/libtorrent-discuss
+with info    vurl http://code.google.com/p/libtorrent/downloads/list
+with info    cite 'c++ BitTorrent library'
 
 build(){
  old_boost(){
@@ -58,9 +58,9 @@ build_new1(){
  rm -f CMakeLists.txt
  if   [[ $HOSTTYPE == x86_64 ]]; then
   if  [[ $CFLAGS =~ -m32 ]]; then
-   opts --with-boost=/usr --with-boost-libdir=/usr/lib
+with also    --with-boost=/usr --with-boost-libdir=/usr/lib
   else
-   opts --with-boost=/usr --with-boost-libdir=/usr/lib64
+with also    --with-boost=/usr --with-boost-libdir=/usr/lib64
   fi
  fi
  default_build
@@ -71,14 +71,14 @@ build_old(){
  if  [[ $HOSTTYPE == x86_64 ]]; then
   if [[ $CFLAGS   =~ -m32   ]]; then
    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
-   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+with also    --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
   else
    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib64"
-   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
+with also    --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib64
   fi
  else
    export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_45_0/lib"
-   opts --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
+with also    --with-boost=/opt/boost/1_45_0 --with-boost-libdir=/opt/boost/1_45_0/lib
  fi
  default_build
 }

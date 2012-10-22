@@ -2,7 +2,7 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: $network coda
+# Required-Start: $network coda vutil
 # Required-Stop:  $network
 # Should-Start: venus.cache
 # Default-Start: 2 3 4 5
@@ -13,20 +13,6 @@
 . /lib/lsb/init-functions
 
 only start stop restart status
-pid_file /usr/coda/venus.cache/pid
 server /usr/sbin/venus
 name venus
-
-start(){
- run(){
-  . $( codaconfedit venus.conf )
-  vutil --swaplogs
-  venus &>/dev/null
-  start_daemon -p "$PIDF" $SERV
- }
-
- if   log_warning_msg "$NAME starting"; run
- then log_success_msg "$NAME started"
- else log_failure_msg "$NAME not started"; status
- fi
-}
+config /etc/coda/venus.conf

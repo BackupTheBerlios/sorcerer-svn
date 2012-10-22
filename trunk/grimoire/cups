@@ -11,49 +11,49 @@
 # gnome-settings-daemon version 3.4.2 and
 # gnome-control-center version 3.4.2 can use.
 
-   version   stable 1.5.4 1.5.3 1.6.1
-   version unstable 1.6.1
-   require acl libpng mxml openslp popt tiff
-#  require acl libcap libpng openslp popt tiff
-  optional PAM       --enable-pam     --disable-pam     for pluggable authentication
-  optional dbus      --enable-dbus    --disable-dbus    for dbus
-# optional gnutls    --enable-gnutls  --disable-gnutls  for SSL/TLS by gnutls
-  optional heimdal   ''               ''                for kerberos 5
-  optional openldap  --enable-ldap    --disable-ldap    for LDAP
-# optional openssl   --enable-openssl --disable-openssl for SSL/TLS by openssl
+with version   stable 1.5.4 1.5.3 1.6.1
+with version unstable 1.6.1
+with base    acl libpng mxml openslp popt tiff
+#with base    acl libcap libpng openslp popt tiff
+with elect   PAM       --enable-pam     --disable-pam     for pluggable authentication
+with elect   dbus      --enable-dbus    --disable-dbus    for dbus
+#with elect   gnutls    --enable-gnutls  --disable-gnutls  for SSL/TLS by gnutls
+with elect   heimdal   ''               ''                for kerberos 5
+with elect   openldap  --enable-ldap    --disable-ldap    for LDAP
+#with elect   openssl   --enable-openssl --disable-openssl for SSL/TLS by openssl
 # Evert reports that firefox crashes during printing if
 # openssl is providing SSL/TLS for cups
 
 # cups verson 1.4.7 not compatible with gnutls version 2.12.7
-#   require gnutls
-#      opts --disable-openssl --enable-gnutls --without-rcdir
+#with base    gnutls
+#      with also --disable-openssl --enable-gnutls --without-rcdir
 
-   require openssl
-      opts --enable-openssl --disable-gnutls --without-rcdir
+with base    openssl
+with also    --enable-openssl --disable-gnutls --without-rcdir
 
-  category printer
- attribute console library makej multilib-dual
-    source stable \
+with role    printer
+with trait   console library makej multilib-dual
+with source  stable \
            http://ftp.easysw.com/pub/ \
             ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
             ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
             ftp://ftp.ntua.gr/pub/gnu/ \
             cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-    source unstable \
+with source  unstable \
            http://ftp.easysw.com/pub/ \
             ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
             ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
             ftp://ftp.ntua.gr/pub/gnu/ \
             cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-    source $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
-      info last 20120727
-      info home http://www.cups.org/
-      info docs http://www.cups.org/documentation.php
-      info vurl http://www.cups.org/software.php
-   exclude /etc/cups/certs
-   protect /etc/printcap
-  eprovide lpr
-      desc 'portable printing layer'
+with source  $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
+with info    last 20120727
+with info    home http://www.cups.org/
+with info    docs http://www.cups.org/documentation.php
+with info    vurl http://www.cups.org/software.php
+with exclude /etc/cups/certs
+with protect /etc/printcap
+with hold    lpr
+with info    cite 'portable printing layer'
    
 build(){
 
@@ -70,8 +70,8 @@ build(){
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then sed -i 's:/lib/security/pam:/lib64/security/pam:' configure
-      opts --libdir=/usr/lib64
- else opts --libdir=/usr/lib
+with also    --libdir=/usr/lib64
+ else with also --libdir=/usr/lib
  fi
 
  ./configure              \

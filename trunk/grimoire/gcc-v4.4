@@ -1,17 +1,17 @@
 # requiring coreutils creates recursive requirement loop
 
-   version stable 4.4.7 4.4.6 4.4.5 4.4.3
-   require binutils mpfr multiprecision
-#  require binutils cloog-parma mpfr multiprecision
-      opts --with-ppl --without-cloog
-  category development/compiler
- attribute console library makej multilib-fail
-    source $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
-      info last 20120313
-      info home http://gcc.gnu.org/
-      info docs http://gcc.gnu.org/onlinedocs/
-      info mail http://gcc.gnu.org/lists.html
-      desc 'gcc version 4.4.6 for compiling glibc version 2.13'
+with version stable 4.4.7 4.4.6 4.4.5 4.4.3
+with base    binutils mpfr multiprecision
+#with base    binutils cloog-parma mpfr multiprecision
+with also    --with-ppl --without-cloog
+with role    development/compiler
+with trait   console library makej multilib-fail
+with source  $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+with info    last 20120313
+with info    home http://gcc.gnu.org/
+with info    docs http://gcc.gnu.org/onlinedocs/
+with info    mail http://gcc.gnu.org/lists.html
+with info    cite 'gcc version 4.4.6 for compiling glibc version 2.13'
 
 build(){
 
@@ -32,12 +32,12 @@ build(){
  export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
 
  case $MACHTYPE in
-  *-uclibc) opts --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
-  *-gnu)    opts --enable-__cxa_atexit --enable-clocale=gnu ;;
+  *-uclibc) with also --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
+  *-gnu)    with also --enable-__cxa_atexit --enable-clocale=gnu ;;
  esac
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
- then opts --disable-multilib
+ then with also --disable-multilib
  fi
 
    LCF="LIBCFLAGS=$CFLAGS"
@@ -75,14 +75,14 @@ build(){
 
 
 post_install(){
- get_provider libtool | pipe_queue $CAST_QUEUE
+ get_provider libtool | pipe_queue $MOIL_QUEUE
 
  cast_if_needed(){
   if ! spell_installed $1 &&
        grep -lr $2 $ELF_LOGS |
        grep -v  gcc          |
        grep -q .
-  then echo $1 | pipe_queue "$CAST_QUEUE"
+  then echo $1 | pipe_queue "$MOIL_QUEUE"
   fi
  }
 }

@@ -19,43 +19,43 @@
 # probably intended that way by the software authors
 # in order to encourage a faster demise of SUNRPC.
 
-   version   stable 2.13 2.12.2
-   version unstable 2.16.0
+with version   stable 2.13 2.12.2
+with version unstable 2.16.0
 case $VERSION in
  2.16.*)
-      opts --enable-obsolete-rpc ;;
+with also    --enable-obsolete-rpc ;;
 esac
-  category development
- attribute library makej multilib-dual solo
-   require perl linux-headers
-      opts --without-selinux
-    source   stable $GNU_URL glibc/glibc-$VERSION.tar.xz
-    source unstable $GNU_URL glibc/glibc-$VERSION.tar.xz
-      info last 20111007
-      info home http://www.gnu.org/software/libc/
-      info docs http://www.gnu.org/software/libc/manual/
-   exclude /etc/ld.so.cache
-   exclude /etc/ld.so.conf
-   exclude /etc/localtime
-   protect /etc/hostname
-   protect /etc/hosts
-   protect /etc/host.conf
-   protect /etc/hosts
-   protect /etc/hosts.allow
-   protect /etc/hosts.deny
-   protect /etc/hosts.equiv
-   protect /etc/hosts.lpd
-   protect /etc/networks
-   protect /etc/nsswitch.conf
-   protect /etc/resolv.conf
-   protect /lib/ld-linux.so.2
-   protect /lib64/ld-linux-x86-64.so.2
-   protect /sbin/ldconfig
+with role    development
+with trait   library makej multilib-dual solo
+with base    perl linux-headers
+with also    --without-selinux
+with source    stable $GNU_URL glibc/glibc-$VERSION.tar.xz
+with source  unstable $GNU_URL glibc/glibc-$VERSION.tar.xz
+with info    last 20111007
+with info    home http://www.gnu.org/software/libc/
+with info    docs http://www.gnu.org/software/libc/manual/
+with exclude /etc/ld.so.cache
+with exclude /etc/ld.so.conf
+with exclude /etc/localtime
+with protect /etc/hostname
+with protect /etc/hosts
+with protect /etc/host.conf
+with protect /etc/hosts
+with protect /etc/hosts.allow
+with protect /etc/hosts.deny
+with protect /etc/hosts.equiv
+with protect /etc/hosts.lpd
+with protect /etc/networks
+with protect /etc/nsswitch.conf
+with protect /etc/resolv.conf
+with protect /lib/ld-linux.so.2
+with protect /lib64/ld-linux-x86-64.so.2
+with protect /sbin/ldconfig
 case $HOSTTYPE in
  x86_64) RPATH='/usr/lib64/gconv' ;;
       *) RPATH='/usr/lib/gconv'   ;;
 esac
-      desc 'GNU implementation of a C library'
+with info    cite 'GNU implementation of a C library'
 
 build(){ (
  local arch setarch
@@ -110,14 +110,14 @@ build(){ (
 
  if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
   export CC="gcc -m32"
-  opts --host=${MACHTYPE/x86_64/i686}
+with also    --host=${MACHTYPE/x86_64/i686}
   arch=i686; setarch=setarch
 # else
 #  arch=$HOSTTYPE
  fi
 
  if   [ -n "${FEATURE[base]}" ]
- then opts --enable-multi-arch
+ then with also --enable-multi-arch
  fi
 
  unset LTDL_LIBRARY_PATH LD_LIBRARY_PATH LD_RUN_PATH
@@ -136,7 +136,7 @@ build(){ (
  touch          $DESTDIR/etc/ld.so.conf
 
  KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
- if (( KVER >= 2630 )); then opts --enable-kernel=2.6.30; fi
+ if (( KVER >= 2630 )); then with also --enable-kernel=2.6.30; fi
 
  sed -i 's:/bin/pwd:pwd:g' configure
 
@@ -167,7 +167,7 @@ post_install(){
  pipe     show_installed             |
  LC_ALL=C sort                       |
           uniq -d                    |
-          pipe_queue $CAST_QUEUE
+          pipe_queue $MOIL_QUEUE
 
  /etc/init.d/locale-archive reload
  true

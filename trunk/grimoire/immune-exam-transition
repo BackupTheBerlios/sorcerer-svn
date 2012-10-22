@@ -2,15 +2,15 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-   version stable 20120905
-  category immune-system
- attribute archive_off solo stale
-      info last 20120905
-      info home http://sorcerer.silverice.org/
-#conflicts lilo bison-v2.3 ORBit2 libbonobo at-spi gnome-mag eggdbus evas_generic_loaders ffmpeg-v0.6 gimageview gnome-vfs hal immune-sentinel-loadavg libgnome libgnomemm libgnomeui libgnomeuimm libgnomeui libmng
- conflicts kipi-plugins libkdcraw libkexiv2 libkipi libksane # 20120904
- conflicts eject # 20120905
-      desc 'applies adjustments as a box transitions through time
+with version stable 20121015
+with role    immune-system
+with trait   archive_off solo stale
+with info    last 20121015
+with info    home http://sorcerer.silverice.org/
+with clash   kipi-plugins libkdcraw libkexiv2 libkipi libksane # 20120904
+with clash   eject # 20120905
+with clash   immune-sentinel-space # 20121014
+with info    cite 'applies adjustments as a box transitions through time
 
 Please also install spell immune-exam-dispel for automatic
 dispelling of installed spells that
@@ -34,13 +34,6 @@ build(){ :; }
 
 post_install(){
 
- discard_old_index(){
-  merge_grimoires
-  generate_index   
-  . /etc/sorcery/config
-  run_details
- }
-
  mod_mode(){
   inits(){ find /etc/init.d -mindepth 1 -maxdepth 1 -type f "$@"; }
   if   [ -z "$( inits -perm 510 )" ]; then
@@ -51,8 +44,8 @@ post_install(){
  }
 
  pkgconfig_fixes(){
-  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue $LEECH_QUEUE
-  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue $CAST_QUEUE
+  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue "$LOAD_QUEUE"
+  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue "$MOIL_QUEUE"
  }
 
  fix_inittab(){
@@ -61,15 +54,10 @@ post_install(){
   fi
  }
 
- kde_fix(){
-  LC_ALL=C grep -l '^/opt/kde4/' $INSTALL_LOGS/* | basenames | pipe_queue $LEECH_QUEUE
-  LC_ALL=C grep -l '^/opt/kde4/' $INSTALL_LOGS/* | basenames | pipe_queue $CAST_QUEUE
- }
-
  ati_to_amd_fix(){
   if spell_installed ati-driver-installer; then
-   echo amd-driver-installer | pipe_queue $LEECH_QUEUE
-   echo amd-driver-installer | pipe_queue $CAST_QUEUE
+   echo amd-driver-installer | pipe_queue "$LOAD_QUEUE"
+   echo amd-driver-installer | pipe_queue "$MOIL_QUEUE"
   fi
  }
 
@@ -82,8 +70,8 @@ post_install(){
   if   spell_installed libgweather &&
        spell_installed evolution-data-server
        grep -q libORBit-2 $ELF_LOGS/evolution-data-server
-  then echo libgweather | pipe_queue $CAST_QUEUE
-       echo libgweather | pipe_queue $LEECH_QUEUE
+  then echo libgweather | pipe_queue "$MOIL_QUEUE"
+       echo libgweather | pipe_queue "$LOAD_QUEUE"
   fi
  }
 
@@ -121,16 +109,108 @@ post_install(){
                                     /sbin/ldconfig;                      fi
  }
 
- discard_old_index		#	Always run this function
+ remove_shared(){
+  if   [  -f /usr/libexec/sorcery/shared ]
+  then rm -f /usr/libexec/sorcery/shared
+  fi
+ }
+
+ relocation(){
+
+  different_filesystems(){
+   stat -f -c "%i" /var/cache/{ccache,sources} \
+                   /aux/can | sort | uniq -u | grep -q .
+  }
+
+  required_space(){
+   du -cms /var/cache/{archive,ccache,sources} | sed 's:\ttotal::p;d'
+  }
+
+  available_space(){ stat -f -c '%a*%s/1048576' | bc; }
+
+  local  LC_ALL
+  export LC_ALL=C
+
+  local   A=/aux
+  local  AL=/aux/log
+  local ALE=/aux/log/event
+  local  OE=/var/log/sorcery/event
+  local  OL=/etc/sorcery/log
+# local OAC=/var/cache/archive
+  local OCC=/var/cache/ccache
+  local OSC=/var/cache/sources
+  local OGC=/var/cache/git
+  local   C=/aux/can
+# local  AC=/aux/can/archive
+  local  CC=/aux/can/ccache
+  local  SC=/aux/can/source
+  local  GC=/aux/can/git
+
+  mkdir  -pv        $ALE $AC $CC $SC
+
+  if   [ -d     $OL ]; then
+   cp    -av    $OL $A
+   grep  -lr    $OL $AL | xargs -r --max-lines=64 \
+   sed   -i  "s:$OL:$AL:"
+   rm    -frv   $OL
+  fi
+
+## does not work because of tabs in file names.
+## SA can move them manually if desired.
+#  if   [ -d     $OE ]; then
+#   mv               $ALE/* $OE/
+#   rm   -fr         $ALE
+#   mv   -av     $OE $AL
+#  fi
+
+  rm -frv /var/cache/sorcery /usr/src/sorcery /var/cache/download
+
+  if   different_filesystems &&
+       (( $( required_space ) > $( available_space ) ))
+  then return
+  # SA must manually move
+  # /var/cache/{archive,ccache,git,sources} to
+  #   /aux/can/{archive,ccache,git,source}  respectively
+  fi
+
+## previous archives are now useless generate new ones.
+
+#  if   [ -d    $OAC ] && ! [ -h $OAC ] && ! [ -h $AC ]; then
+#   find        $OAC -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
+#   while read D; do
+#    mkdir -pv  "$AC/$D"
+#    find      "$OAC/$D" -mindepth 1 -maxdepth 1 | xargs -r --max-lines=64 \
+#    mv   -vt   "$AC/$D/"
+#   done
+#   rm    -frv  "$OAC"
+#  fi
+
+  if   [ -d    $OSC ] && ! [ -h $OSC ] && ! [ -h $SC ]; then
+   find        $OSC -mindepth 1 -maxdpeth 1 | xargs -r --max-lines=64 \
+   mv    -vt    $SC/
+   rm    -frv  $OSC
+  fi
+
+  if   [ -d    $OCC ] && ! [ -h $OCC ] && ! [ -h $CC ]; then
+   find        $OCC -mindepth 1 -maxdpeth 1 | xargs -r --max-lines=64 \
+   mv    -vt    $CC/
+   rm    -frv  $OCC
+  fi
+
+  if   [  -d   $OGC ] && ! [ -h $GC ]
+  then mv -v   $OGC $C
+  fi
+ }
 
  # Temporary fixes to provide for 6 months.
 
  mod_mode			#	20110706
  pkgconfig_fixes		#	20110911
  fix_inittab			#	20110912
- kde_fix			#	20120202
  ati_to_amd_fix			#	20120412
  libgweather			#	20120528
  aux_dirs			#	20120823
+ remove_shared			#	20121007
+ relocation			#	20121015
  default_post_install
 }

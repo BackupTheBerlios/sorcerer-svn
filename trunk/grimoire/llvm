@@ -10,36 +10,36 @@
 # --enable-bindings=none circumvents the break
 # by not compiling the ocaml bindings
 
-   version   stable 3.0
-   version unstable 3.1
-   require gcc-g++
-#  require gcc-g++ perl--Pod-Simple
-      opts --enable-shared --disable-docs
-      opts --enable-bindings=none
-      opts --disable-assertions
-#     opts -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS:BOOL=TRUE
-  category development/emulator
+with version   stable 3.0
+with version unstable 3.1
+with base    gcc-g++
+#with base    gcc-g++ perl--Pod-Simple
+with also    --enable-shared --disable-docs
+with also    --enable-bindings=none
+with also    --disable-assertions
+#     with also -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS:BOOL=TRUE
+with role    development/emulator
 # lto compilation requires too much RAM
- attribute console library lto_off multilib-concurrent
-#attribute console library lto_off makej multilib-concurrent
-    source   stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
-    source unstable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
-      info last 20120522
-      info home http://www.llvm.org
-      info vurl http://www.llvm.org/releases/
-#conflicts ocaml
-      desc 'low level virtual machine'
+with trait   console library lto_off multilib-concurrent
+#trait console library lto_off makej multilib-concurrent
+with source    stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
+with source  unstable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
+with info    last 20120522
+with info    home http://www.llvm.org
+with info    vurl http://www.llvm.org/releases/
+#with clash   ocaml
+with info    cite 'low level virtual machine'
 
 build(){
 # if     [[ $HOSTTYPE == x86_64 ]] &&
 #      ! [[ $CFLAGS   =~ -m32   ]]
-# then opts -DLLVM_LIBDIR_SUFFIX=64
+# then with also -DLLVM_LIBDIR_SUFFIX=64
 # fi
 
 # Did not work.
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
- then opts --libdir=/usr/lib64
+ then with also --libdir=/usr/lib64
  fi
 
  rm -f CMakeLists.txt
