@@ -66,6 +66,26 @@ build(){
   link_fix   "$DESTDIR/usr/lib/libudev.so" "$DESTDIR/lib"
  }
 
+ pkgconfig_fix(){
+  if   [ -f                      "$DESTDIR/usr/lib64/pkgconfig/libudev.pc" ]
+  then sed -i 's:/usr/lib:/lib:' "$DESTDIR/usr/lib64/pkgconfig/libudev.pc"
+  fi
+  if   [ -f                        "$DESTDIR/usr/lib/pkgconfig/libudev.pc" ]
+  then sed -i 's:/usr/lib:/lib:'   "$DESTDIR/usr/lib/pkgconfig/libudev.pc"
+  fi
+ }
+
+ libtool_fix(){
+  if   [ -f                      "$DESTDIR/usr/lib64/libudev.la" ]
+  then sed -i 's:/usr/lib:/lib:' "$DESTDIR/usr/lib64/libudev.la"
+       mv                    "$DESTDIR"{/usr,}/lib64/libudev.la
+  fi
+  if   [ -f                        "$DESTDIR/usr/lib/libudev.la" ]
+  then sed -i 's:/usr/lib:/lib:'   "$DESTDIR/usr/lib/libudev.la"
+       mv                      "$DESTDIR"{/usr,}/lib/libudev.la
+  fi
+ }
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --with-rootlibdir=/lib64
  else with also --with-rootlibdir=/lib
@@ -83,7 +103,9 @@ build(){
  default_build   &&
  nod_sym_install &&
    rules_install &&
-      so_fix
+   pkgconfig_fix &&
+     libtool_fix &&
+          so_fix
 }
 
 post_install(){
