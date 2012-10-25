@@ -6,13 +6,18 @@ with also    --disable-static
 with role    video
 with trait   library multilib-dual
 with source  http://rtmpdump.mplayerhq.hu/download/rtmpdump-$VERSION.tgz
-with info    good 20120703
+with info    good 20121025
 with info    last 20100630
 with info    home http://rtmpdump.mplayerhq.hu/
 with info    cite 'toolkit for RTMP streams'
 
 build(){
- make prefix=/usr &&
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then LDFLAGS+=' -L/usr/lib'
+ fi
+# sed -i "s:^OPT=.*:OPT=$CFLAGS:
+#         s:\$(XLDFLAGS):$LDFLAGS:" Makefile
+ make prefix=/usr "XCFLAGS=$CFLAGS" "XLDFLAGS=$LDFLAGS" &&
  make prefix=$DESTDIR/usr install &&
  sed -i "s:$DESTDIR::" $DESTDIR/usr/lib/pkgconfig/*.pc &&
  sed -i 's:-L${libdir}::' $DESTDIR/usr/lib/pkgconfig/*.pc &&
@@ -22,4 +27,12 @@ build(){
       sed -i 's:prefix}/lib:prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
  fi &&
  rm -f $DESTDIR/usr/lib{,64}/*.a
+}
+
+current(){
+ case $VERSION in
+  2.3) if   [ -f /usr/lib/librtmp.so.0 ]
+       then file /usr/lib/librtmp.so.0 | grep -q ELF 32-bit
+       fi
+ esac
 }
