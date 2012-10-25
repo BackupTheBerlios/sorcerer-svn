@@ -67,6 +67,15 @@ build(){
   link_fix   "$DESTDIR/usr/lib/libudev.so" "$DESTDIR/lib"
  }
 
+ ar_fix(){
+  if   [ -f "$DESTDIR/usr/lib64/libudev.a" ]
+  then mv   "$DESTDIR"/{usr/,}lib64/libudev.a
+  fi
+  if   [ -f "$DESTDIR/usr/lib/libudev.a" ]
+  then mv   "$DESTDIR"/{usr/,}lib/libudev.a
+  fi
+ }
+
  pkgconfig_fix(){
   if   [ -f                      "$DESTDIR/usr/lib64/pkgconfig/libudev.pc" ]
   then sed -i 's:/usr/lib:/lib:' "$DESTDIR/usr/lib64/pkgconfig/libudev.pc"
@@ -110,11 +119,18 @@ build(){
    rules_install &&
    pkgconfig_fix &&
      libtool_fix &&
-          so_fix
+          so_fix &&
+          ar_fix
 }
 
 post_install(){
  if   LC_ALL=C grep -q '^mem:x:'  /etc/group
  then sed -i 's/^mem:x:/kmem:x:/' /etc/group
  fi
+}
+
+current(){
+ case $VERSION in
+  194) [ -f /lib64/libudev.a ] || [ -f /lib/libudev.a ] ;;
+ esac
 }
