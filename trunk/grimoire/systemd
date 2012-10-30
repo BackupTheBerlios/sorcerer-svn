@@ -128,3 +128,22 @@ post_install(){
  then sed -i 's/^mem:x:/kmem:x:/' /etc/group
  fi
 }
+
+current(){
+ effected(){
+  export LC_ALL=C
+  grep -l /usr/lib64/libudev.la /usr/lib64/*.la
+  grep -l /usr/lib/libudev.la   /usr/lib/*.la
+ }
+
+ libudev_location_fix(){
+  effected 2>/dev/null |
+  show_from |
+  cut -d : -f1 |
+  pipe_queue "$MOIL_QUEUE"
+ }
+
+ case $VERSION in
+  195) libudev_location_fix ;;
+ esac
+}
