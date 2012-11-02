@@ -123,26 +123,28 @@ build(){
           ar_fix
 }
 
+libudev_location_fix(){
+  effected(){
+   export LC_ALL=C
+   grep -l /usr/lib64/libudev.la /usr/lib64/*.la
+   grep -l /usr/lib/libudev.la   /usr/lib/*.la
+  }
+
+ effected 2>/dev/null |
+ show_from |
+ cut -d : -f1 |
+ pipe_queue "$MOIL_QUEUE"
+}
+
 post_install(){
  if   LC_ALL=C grep -q '^mem:x:'  /etc/group
  then sed -i 's/^mem:x:/kmem:x:/' /etc/group
  fi
+ libudev_location_fix
+ default_post_install
 }
 
 current(){
- effected(){
-  export LC_ALL=C
-  grep -l /usr/lib64/libudev.la /usr/lib64/*.la
-  grep -l /usr/lib/libudev.la   /usr/lib/*.la
- }
-
- libudev_location_fix(){
-  effected 2>/dev/null |
-  show_from |
-  cut -d : -f1 |
-  pipe_queue "$MOIL_QUEUE"
- }
-
  case $VERSION in
   195) libudev_location_fix ;;
  esac
