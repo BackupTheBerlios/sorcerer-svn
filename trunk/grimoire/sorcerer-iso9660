@@ -48,36 +48,37 @@ post_install(){
  run_init_d extlinux stop
  run_init_d initramfs stop
 
- [[ -d $ARCHIVE_CACHE ]] || return
- cd    $ARCHIVE_CACHE
+ [ -d "$ARCHIVE_CACHE.ir" ] || return
+ cd   "$ARCHIVE_CACHE.ir"
  grep -r "." $VERSION_LOGS |
- sed  -r "s,.*/(.*):(.*),$ARCHIVE_CACHE/$HOSTTYPE/\1/\2,p" |
- pipe find $ARCHIVE_CACHE/ -mindepth 3 -maxdepth 3 -type d |
+ sed  -r "s,.*/(.*):(.*),$ARCHIVE_CACHE.ir/$HOSTTYPE/\1/\2,p" |
+ pipe find "$ARCHIVE_CACHE.ir/" -mindepth 3 -maxdepth 3 -type d |
  sort | uniq -u | xargs -r rm -r
 
- find $SOURCE_CACHE -type f -name \*.tar.gz  | xargs -r gzip  -d
- find $SOURCE_CACHE -type f -name \*.tgz     | xargs -r gzip  -d
- find $SOURCE_CACHE -type f -name \*.tar.bz2 | xargs -r bzip2 -d
- find $ARCHIVE_CACHE $SOURCE_CACHE -type f -name \*.tar -printf "%p %s\n" |
+ find "$SOURCE_CACHE" -type f -name \*.tar.gz  | xargs -r gzip  -d
+ find "$SOURCE_CACHE" -type f -name \*.tgz     | xargs -r gzip  -d
+ find "$SOURCE_CACHE" -type f -name \*.tar.bz2 | xargs -r bzip2 -d
+ find "$ARCHIVE_CACHE.ir" "$SOURCE_CACHE" -type f -name \*.tar -printf "%p %s\n" |
  while read FILE SIZE; do
   rm -f  "$FILE.xz"
   xz -M 85% --lzma2=dict=$SIZE,mf=bt4,nice=273 -v -v $FILE
  done
 
-                 ISO=/var/cache/iso
- rm    -fr      $ISO
- mkdir -pvm 755 $ISO/var/cache
- cp    -al /var/cache/{archive,sources} $ISO/var/cache/
- cp    -a  /boot                        $ISO/
+ local                           ISO=/var/cache/iso
+ rm    -fr                     "$ISO"
+ mkdir -pvm 755                "$ISO/aux/can/"
+ cp    -al "$ARCHIVE_CACHE.ir" "$ISO/$ARCHIVE_CACHE"
+ cp    -a  "$SOURCE_CACHE"     "$ISO/$SOURCE_CACHE"
+ cp    -a  /boot               "$ISO/"
 
  # Remove dead weight from I/R
  # Python only required by glib during compilation
  # gcc-v4.5 only required by syslinux during compilation
  # sorcerer-iso9660 not required installed on I/R
 
- rm    -fr      $ISO/var/cache/archive/*/Python
- rm    -fr      $ISO/var/cache/archive/*/gcc-v4.5
- rm    -fr      $ISO/var/cache/archive/*/sorcerer-iso9660
+ rm -fr "$ISO$ARCHIVE_CACHE"/*/Python
+ rm -fr "$ISO$ARCHIVE_CACHE"/*/gcc-v4.5
+ rm -fr "$ISO$ARCHIVE_CACHE"/*/sorcerer-iso9660
 
  install_isolinux
  cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
