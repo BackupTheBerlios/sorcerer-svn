@@ -3,9 +3,13 @@
 # Will not accept command to disable static libs.
 #     with also --enable-static=no
 
+# version 1.3.x-r9705 ignores CFLAGS and therefore
+# does not properly pass -m32 during ELF 32-bit compilation
+
 with version stable 1.3.x-r9705 2.0.x-alpha-r9296
 with base    jpeg libXcursor libXext libXft libXi libXinerama libpng
 with role    graphic
+with trait   broke
 with trait   library x11
 #trait makej multilib-dual
 with source  http://ftp.easysw.com/pub/fltk/ \
@@ -21,6 +25,9 @@ with info    forum http://www.fltk.org/newsgroups.php
 with info    cite 'fast light graphical toolkit for X11'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib'
+ fi
  ./configure \
  --prefix=/usr \
  --sysconfdir=/etc \
