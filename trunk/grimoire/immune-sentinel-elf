@@ -2,10 +2,10 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-with version stable 20120823
+with version stable 20121113
 with role    immune-system
 with trait   archive_off daemon
-with info    last 20120823
+with info    last 20121113
 with info    home http://sorcerer.silverice.org/
 with info    cite "/lib64 /lib protection
 
@@ -28,24 +28,12 @@ is not tested and not recommended."
 
 build(){
  libs(){
-  LIBDIR=/lib
   if   [[ $HOSTTYPE == x86_64 ]]
-  then LIBDIR+=64
+  then echo '-Os -Wl,-O1 -L/lib64 -lacl -lmount -lreadline -ludev'
+  else echo '-Os -Wl,-O1 -L/lib   -lacl -lmount -lreadline -ludev'
   fi
-
-  find $LIBDIR -maxdepth 1 -type l |
-  sed "s:^$LIBDIR/lib:-l:
-       s:\.so.*::p;d" |
-  sort -u |
-  while read; do
-   if   gcc -o elfchain{,.c} "$REPLY" 2>/dev/null &&
-        ! ldd  elfchain | grep -q /usr/lib
-   then echo "$REPLY"
-   else echo "$REPLY rejected" 1>&2
-   fi
-  done
  }
-
+ 
  mkdir -pv $BUILD_DIR
  cd        $BUILD_DIR
  cp $SCRIPT_DIR/elfchain.c .

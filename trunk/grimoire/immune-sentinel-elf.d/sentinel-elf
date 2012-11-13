@@ -15,15 +15,17 @@ if ! [ -f /media/root/usr/sbin/elfchain ]; then
 fi
 
 chain(){
- [ -f   /media/root/usr/sbin/elfchain ] || return 0
- chroot /media/root /usr/sbin/elfchain
+ if ! [ -f   /media/root//usr/sbin/elfchain ]; then return 0; fi
+ if ! chroot /media/root /usr/sbin/elfchain  ; then sleep 30
+      chroot /media/root /usr/sbin/elfchain
+ fi
 }
 
 repair(){
  fix(){
   if ! [ -d $f/$1 ]; then return 0; fi
-  mv    $r/$1 $b/
-  cp -a $f/$1 $r/
+  mv        $r/$1 $b/
+  cp -a     $f/$1 $r/
   logger -p syslog.crit -s -t sentinel-elf -- $"ELF library failure detected"
   logger -p syslog.crit -s -t sentinel-elf -- $"$r/$1 moved  to $b/$1"
   logger -p syslog.crit -s -t sentinel-elf -- $"$f/$1 copied to $r/$1"
