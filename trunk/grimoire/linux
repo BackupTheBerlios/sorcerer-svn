@@ -231,7 +231,7 @@ build(){
  gzip_modules(){
   if ! spell_installed sorcerer-installer; then
    local KO="$DESTDIR/lib/modules/$KVERSION$1/kernel/"
-   find $KO -type f -size +4096c | xargs -r --max-lines=64 gzip -v9
+   find $KO -type f -size +4096c | xargs -r -P $( nproc ) --max-lines=64 gzip -v9
    find $KO -type f              | sed   -n '/\.gz$/p' |
    while read; do mv -v "$REPLY" "${REPLY%\.gz}"; done
   fi

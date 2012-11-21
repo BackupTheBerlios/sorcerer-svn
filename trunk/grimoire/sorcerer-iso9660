@@ -1,31 +1,30 @@
 # sorcerer-iso9660 spell is for the Sorcerer distribution only
 # Copyright 2007-2012 by Kyle Sallee, all rights reserved.
 
-with version stable 20121111 20120421 20111212
+with version stable 20121201 20120421 20111212
 with base    sorcerer-installer
 with role    administration
 with trait   archive_off console solo
 with info    cite 'rolls the Sorcerer Install/Rescue CDROM images'
 
 post_install(){
- install_isolinux(){
-  lver83(){
-   LAST="$1"
-    NOW="$1"
-   while [[ $NOW =~ \. ]]
-   do LAST="$NOW"
-      NOW="${NOW/\./_}"
-   done
-   LVER83="$LAST"
-  }
+( set -x
 
-  LVER="$( installed_version linux )"
-  lver83 $LVER
-  YEAR="$( date +%Y )"
+ lver83(){
+  LAST="$1"
+   NOW="$1"
+  while [[ $NOW =~ \. ]]
+  do LAST="$NOW"
+     NOW="${NOW/\./_}"
+  done
+  LVER83="$LAST"
+ }
+
+ install_isolinux(){
 
   mkdir -vp $ISO/boot/isolinux
   cp    -va /usr/share/syslinux/isolinux.bin \
-            $SCRIPT_DIR/isolinux/*   $ISO/boot/isolinux/
+            $SCRIPT_DIR/isolinux/* $ISO/boot/isolinux/
   if   [[ $HOSTTYPE == x86_64 ]]
   then rm -f $ISO/boot/isolinux/isolinux.cfg.ia32
   else mv    $ISO/boot/isolinux/isolinux.cfg{.ia32,}
@@ -48,67 +47,59 @@ post_install(){
  run_init_d extlinux stop
  run_init_d initramfs stop
 
- [ -d "$ARCHIVE_CACHE.ir" ] || return
- cd   "$ARCHIVE_CACHE.ir"
- grep -r "." $VERSION_LOGS |
- sed  -r "s,.*/(.*):(.*),$ARCHIVE_CACHE.ir/$HOSTTYPE/\1/\2,p" |
- pipe find "$ARCHIVE_CACHE.ir/" -mindepth 3 -maxdepth 3 -type d |
- sort | uniq -u | xargs -r rm -r
+ LVER="$( installed_version linux )"
+ lver83 $LVER
+ YEAR="$( date +%Y )"
 
- find "$SOURCE_CACHE" -type f -name \*.tar.gz  | xargs -r gzip  -d
- find "$SOURCE_CACHE" -type f -name \*.tgz     | xargs -r gzip  -d
- find "$SOURCE_CACHE" -type f -name \*.tar.bz2 | xargs -r bzip2 -d
- find "$ARCHIVE_CACHE.ir" "$SOURCE_CACHE" -type f -name \*.tar -printf "%p %s\n" |
- while read FILE SIZE; do
-  rm -f  "$FILE.xz"
-  xz -M 85% --lzma2=dict=$SIZE,mf=bt4,nice=273 -v -v $FILE
- done
+ local           pt=/para/initrf
+ local            p=/para/ir
+ rm      -fr     ${p:=/para/ir}
+ mkdir   -pm 700 $p
+ mkdir   -pm 755 $p/aux/can
+ mkdir   -m 1777 $p/tmp
+ if   [  $HOSTTYPE == x86_64 ]
+ then cp -alxt   $p/ /bin /etc /lib /lib64 /opt /root /sbin /usr /var
+ else cp -alxt   $p/ /bin /etc /lib        /opt /root /sbin /usr /var
+ fi
 
- local                           ISO=/var/cache/iso
- rm    -fr                     "$ISO"
- mkdir -pvm 755                "$ISO/aux/can/"
- cp    -al "$ARCHIVE_CACHE.ir" "$ISO/$ARCHIVE_CACHE"
- cp    -a  "$SOURCE_CACHE"     "$ISO/$SOURCE_CACHE"
- cp    -a  /boot               "$ISO/"
+ cp      -alxt   $p/aux/     /aux/log
+ cp      -alxt   $p/aux/can/ /aux/can/source
+ cp      -alxt   $p/         /init
+ cp      -at     $p/         /boot
+ rm      -fr     $p/boot/{,*}/initrf
+ rm      -fr     $p/boot/*/modules
+ rm      -fr     $p/boot/util
+ rm      -fr     $p/aux/log/{config,event,favor,opt.{on,off},progress}
+ rm      -fr     $p/aux/log/*/sorcerer-iso9660
+ rm      -fr     $p/etc/sorcery/local.config
+ rm      -fr     $p/root/.ssh
+ rm      -fr     $p/usr/src
+ rm      -fr     $p/var/log/*
+ cd              $p
+ find            $p -printf "%P\n" | sort |
+ cpio -o -H newc --quiet > $pt &&
+ xz -M 1GiB --check=crc32 --x86 --lzma2=dict=64MiB,nice=273,mf=bt4 $pt
 
- # Remove dead weight from I/R
- # Python only required by glib during compilation
- # gcc-v4.5 only required by syslinux during compilation
- # sorcerer-iso9660 not required installed on I/R
-
- rm -fr "$ISO$ARCHIVE_CACHE"/*/Python
- rm -fr "$ISO$ARCHIVE_CACHE"/*/gcc-v4.5
- rm -fr "$ISO$ARCHIVE_CACHE"/*/sorcerer-iso9660
+ local            ISO=/iso
+ rm    -fr       $ISO
+ mkdir -pm 700   $ISO
+ cp    -a  /boot $ISO/
+ rm    -fr       $ISO/boot/{$LVER,}/initrf
+ mv    $pt.xz    $ISO/boot/$LVER/initrf
 
  install_isolinux
- cp    -a  /usr/doc/sorcery/LICENSE.SPL $ISO
- ( find $ISO/boot        -type f -name modules -printf "%p %s\n"
-   find $ISO/boot/initrf -type f               -printf "%p %s\n"
- ) |
- while read FILE SIZE; do
-  if   file -b $FILE | grep -q "gzip compressed data"; then
-   mv     $FILE{,.gz}
-   gunzip $FILE.gz
-  fi
-  xz -M 85% -k --check=crc32 --x86 --lzma2=dict=$SIZE $FILE &&
-  mv $FILE.xz $FILE
- done
+ cp -a /usr/doc/sorcery/LICENSE.SPL $ISO
 
  DATE=$VERSION
  case $HOSTTYPE in
-  x86_64) DEST=/var/cache/sorcerer-$HOSTTYPE-$DATE.iso ;;
+  x86_64) DEST=/aux/sorcerer-$HOSTTYPE-$DATE.iso ;;
     i*86) grep -q CONFIG_SMP=y /usr/src/linux/.config &&
-          DEST=/var/cache/sorcerer-i686-SMP-$DATE.iso ||
-          DEST=/var/cache/sorcerer-i686-UP-$DATE.iso  ;;
+          DEST=/aux/sorcerer-i686-SMP-$DATE.iso ||
+          DEST=/aux/sorcerer-i686-UP-$DATE.iso  ;;
  esac
  rm -f $ISO/boot/isolinux/boot.cat
  rm -f $DEST
- find  $ISO -printf "%P\n" |
- find * -type f |
- grep -vx "boot/isolinux/isolinux.bin" |
- LC_ALL=C grep -v "^md5sums$" |
- xargs --max-lines=64 md5sum |
- tee $ISO/md5sums
+ cd    $ISO
  mkisofs \
   -o $DEST -A "${DEST##*/}"     \
   -publisher "Kyle D. Sallee"   \
@@ -121,5 +112,6 @@ post_install(){
   -boot-info-table  \
   -R -cache-inodes $ISO &&
  md5sum $DEST | sed 's:/.*/::' | tee $DEST.md5 &&
- rm -rf $ISO
+ rm -rf $ISO $p
+) &>/tmp/read.me
 }

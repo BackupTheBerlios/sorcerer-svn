@@ -35,7 +35,7 @@ ask_pass(){
 
 run_auto(){
 
- local BOOTLOADER BL_CONF GL MBR MIRD SILENCE
+ local BOOTLOADER BL_CONF GL MBR SILENCE
  local BOOT_PASS ROOT_PASS USER_PASS USER_NAME
  local CX
 
@@ -112,8 +112,6 @@ run_auto(){
  sed -i 's/id:3:/id:4:/'         $TARGET/etc/inittab
 #sed -i "s:<path_to_resume_device_file>:${DISK}1:" $TARGET/etc/suspend.conf
 
- chmod 500 $TARGET/etc/init.d/boot-sentient
- touch     $TARGET/root/restart-sentient
  chroot_silent
  sync
 
@@ -122,33 +120,32 @@ run_auto(){
  sort -r |
  xargs -r umount
 
- MIRD=$( grep /media/IR /proc/mounts | cut -d ' ' -f1 )
- umount $MIR
- eject  $MIRD
- sleep 5
+ if   [ -b  /dev/cdrom ]
+ then eject /dev/cdrom
+ fi
+
+ sleep 1
  reboot -d -f -i
 }
-
 
 inputbox(){ $DIALOG --no-collapse --nocancel --inputbox "$1" 0 0 "$2"; }
 
 chroot_run(){
  echo    $"Chrooting to $TARGET"
 
- mkdir  -p                     $TARGET/root/.sorcery
- mkdir  -p                     $TARGET/{usr/src/sorcery,run}
+ mkdir  -p                     $TARGET/aux/run/tmp
  mkdir  -p                     $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/dev
  mount  --bind  /dev/pts       $TARGET/dev/pts
  mount  --bind  /proc          $TARGET/proc
- mount  --bind  /root/.sorcery $TARGET/root/.sorcery
+ mount  --bind  /aux/run/tmp   $TARGET/aux/run/tmp
  mount  --bind  /run           $TARGET/run
  chroot $TARGET swapon  -a
  chroot $TARGET "$@"
  chroot $TARGET swapoff -a
  umount                        $TARGET/run
- umount                        $TARGET/root/.sorcery
+ umount                        $TARGET/aux/run/tmp
  umount                        $TARGET/proc
  umount                        $TARGET/dev/pts
  umount                        $TARGET/dev
@@ -156,31 +153,26 @@ chroot_run(){
  pause
 }
 
-
 chroot_silent(){
  wait_finish(){
-  while pgrep cast | grep -q .
-  do    sleep 5
+  while [ -f $TARGET/aux/log/install/sorcerer-installer ] ||
+        pgrep reap | grep -q .
+  do    sleep 1
   done
+  pkill wand
  }
 
- echo    $"Chrooting to $TARGET"
-
- mkdir  -p                     $TARGET/root/.sorcery
- mkdir  -p                     $TARGET/{usr/src/sorcery,run}
+ mkdir  -p                     $TARGET/aux/run/tmp
  mkdir  -p                     $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/dev
  mount  --bind  /dev/pts       $TARGET/dev/pts
  mount  --bind  /proc          $TARGET/proc
- mount  --bind  /root/.sorcery $TARGET/root/.sorcery
+ mount  --bind  /aux/run/tmp   $TARGET/aux/run/tmp
  mount  --bind  /run           $TARGET/run
  chroot $TARGET swapon -a
- chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer
- chroot $TARGET /usr/sbin/augur queue cast/suspend-utils
- chroot $TARGET /usr/sbin/dispel
- chroot $TARGET /usr/sbin/cast
- chroot $TARGET /usr/sbin/augur scry suspend-utils
+ chroot $TARGET /usr/sbin/augur begin reap/sorcerer-installer
+ chroot $TARGET /usr/sbin/augur scry
  wait_finish
  chroot $TARGET /etc/init.d/depmod start
  chroot $TARGET /etc/init.d/rc.d stop
@@ -189,7 +181,7 @@ chroot_silent(){
  chroot $TARGET /etc/init.d/initramfs stop
  chroot $TARGET swapoff -a
  umount                        $TARGET/run
- umount                        $TARGET/root/.sorcery
+ umount                        $TARGET/aux/run/tmp
  umount                        $TARGET/proc
  umount                        $TARGET/dev/pts
  umount                        $TARGET/dev
@@ -198,27 +190,24 @@ chroot_silent(){
 
 chroot_build(){
  scry_finish(){
-  while pgrep cast | grep -q .
+  while [ -f $TARGET/aux/log/install/sorcerer-installer ] ||
+        pgrep wand | grep -q .
   do    chroot $TARGET /usr/sbin/augur scry
   done
  }
 
  echo    $"Chrooting to $TARGET"
 
- mkdir  -p                     $TARGET/root/.sorcery
- mkdir  -p                     $TARGET/{usr/src/sorcery,run}
+ mkdir  -p                     $TARGET/aux/run/tmp
  mkdir  -p                     $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/$TARGET/dev # avoids bug in linux?
  mount  --bind  /dev           $TARGET/dev
  mount  --bind  /dev/pts       $TARGET/dev/pts
  mount  --bind  /proc          $TARGET/proc
- mount  --bind  /root/.sorcery $TARGET/root/.sorcery
+ mount  --bind  /aux/run/tmp   $TARGET/aux/run/tmp
  mount  --bind  /run           $TARGET/run
  chroot $TARGET swapon -a
- chroot $TARGET /usr/sbin/augur queue dispel/sorcerer-installer 
- chroot $TARGET /usr/sbin/augur queue dispel/immune-boot-sentient
- chroot $TARGET /usr/sbin/dispel
- chroot $TARGET /usr/sbin/cast "$@"
+ chroot $TARGET /usr/sbin/begin "$@" reap/sorcerer-installer 
  scry_finish
  chroot $TARGET /etc/init.d/depmod start
  chroot $TARGET /etc/init.d/rc.d stop
@@ -227,7 +216,7 @@ chroot_build(){
  chroot $TARGET /etc/init.d/initramfs stop
  chroot $TARGET swapoff -a
  umount                        $TARGET/run
- umount                        $TARGET/root/.sorcery
+ umount                        $TARGET/aux/run/tmp
  umount                        $TARGET/proc
  umount                        $TARGET/dev/pts
  umount                        $TARGET/dev
@@ -510,55 +499,6 @@ make_bootloader_conf(){
  mbr_check
 }
 
-
-terror_retry(){
-
- rm -f /tmp/terror
-
-#$DIALOG --msgbox $"Errors during unarchiving. Attempting unarchiving archives one at a time." 10 50
- find /media/IR/var/cache/archive/$HOSTTYPE/ -type f |
- while read; do
-  if ! xz -cd "$REPLY"
-  then echo "$REPLY${TAB}Error decompressing" >> /tmp/terror
-  fi |
-  if ! tar -C $TARGET -ixvpf - 2>&1
-  then echo "$REPLY${TAB}Error while untarring" >> /tmp/terror
-  fi
- done
-
- if ! [ -f /tmp/terror ]; then
-  pause
-  msgbox $"Files transferred."
- else
-  $DIALOG --textbox /tmp/terror 20 70
- fi
-} 
-
-provide_missing(){
- logs(){      find $TARGET/etc/sorcery/log/install -type f; }
- expected(){  logs | xargs --max-lines=256 cat | sort -u; }
- real(){      grep -v "^/dev/\|^/proc/\|^/sys/"; }
- installed(){ find $TARGET -printf "/%P\n" | real; }
- together(){  expected; installed | sed p; }
- missing(){   together | sort | uniq -u; }
- provided(){  find / -xdev; }
- combined(){  missing; provided; }
- available(){ combined | sort | uniq -d; }
-
- local  LC_ALL
- export LC_ALL=C
- available |
- tar --no-recursion -cPT - |
- tar -C $TARGET -pvxf -
-}
-
-verify_results(){
- if   [ -x /etc/init.d/ir_verify ] &&
-         ! /etc/init.d/ir_verify status
- then confirm $"Continue installation?" --defaultno
- fi
-}
-
 transfer_arch(){
  local NOT_MOUNT=$"Not detecting file system mounted on $TARGET"
 
@@ -566,54 +506,9 @@ transfer_arch(){
  then msgbox "$NOT_MOUNT"; allow || return 1
  fi
 
- local MIR=/media/IR
-
- rm -f /tmp/terror
-
- if   [[ -d $TARGET/var/cache ]]
- then mv    $TARGET/var/cache $TARGET/var/cache.old
- fi
-
- verify_results || exit 1
-
- cd /
- rm    -vfr              $TARGET/{bin,dev,etc,lib,lib64,opt,sbin,tmp,usr,var}
- mkdir -vpm 755          $TARGET/{dev,etc,home,media/{cdrom,dvd,floppy,root},proc,sys,tmp,var/cache/archive}
- mkdir -vpm 700          $TARGET/etc/sorcery/log/{config,opt.{on,off},provide}
- chmod -v  1777          $TARGET/{,var/}tmp
- cp    -va dev etc init  $TARGET
- rm    -f                $TARGET/etc/init.d/log.d/*
- cp    -va     etc/skel  $TARGET/root
- mkdir -vpm 700          $TARGET/root/.sorcery
- chmod -v   700          $TARGET/root
- rm    -fr /boot/util
- cp    -va /boot         $TARGET
-#cp    -va $MIR/boot     $TARGET
- cp    -av $MIR/var/cache/sources \
-                         $TARGET/var/cache/
- rm    -fr               $TARGET/boot/isolinux
- cp    -va $MIR/var/cache/archive \
-                         $TARGET/var/cache/
- mkdir -vpm 755          $TARGET/lib/udev
- cp    -va /lib/udev/dev $TARGET/lib/udev/
-
- echo "FEATURE[rapid]=1" >> $TARGET/etc/sorcery/local.config
- echo "FEATURE[retry]=1" >> $TARGET/etc/sorcery/local.config
-
- local ED="Error while decompressing archives"
- local ET="Error while untarring archives"
-
- find $TARGET/var/cache/archive/$HOSTTYPE/ -type f |
- xargs --max-lines=1024 cat |
- if ! xz -cd;                  then echo "$ED" >> /tmp/terror; fi |
- if ! tar -C $TARGET -ixvpf -; then echo "$ET" >> /tmp/terror; fi
-
- provide_missing
-
- if ! [ -f /tmp/terror ]; then
-  pause
-  msgbox $"Files transferred."
- else terror_retry
+ if   [ -n    "$SILENCE" ]
+ then cp -ax / $TARGET/
+ else cp -ax / $TARGET/ || pause; msgbox $"Files transferred."
  fi
 
  cp /tmp/fstab $TARGET/etc/fstab
@@ -647,16 +542,15 @@ Please select software that will also be compiled and installed."
 
 
 editor_menu(){
- local      TITLE="Text Editor Selection Menu"
- local  NANO_HELP="nano is a very easy to use text editor."
- local ELVIS_HELP="elvis is a clone vi/en editor."
- local  ZILE_HELP="zile is a small, fast and powerful emacs clone."
+ local     TITLE="Text Editor Selection Menu"
+ local NANO_HELP="nano is a very easy to use text editor."
+ local ZILE_HELP="zile is a small, fast and powerful emacs clone."
 
  EDITOR=$(
   $DIALOG \
   --title $"Text Editor Selection Menu" --item-help --default-item nano \
   --menu  $"Please select a text editor" 0 0 0 \
-  nano "" "$NANO_HELP" elvis "" "$ELVIS_HELP" zile "" "$ZILE_HELP" )
+  nano "" "$NANO_HELP" zile "" "$ZILE_HELP" )
  export EDTIOR
 }
 
@@ -678,15 +572,15 @@ get_def_options(){
  local REPLY
 
  case ${PFILESYSTEM[$1]} in
-      ext4) REPLY="defaults,noatime,commit=600" ;;
-      ext3) REPLY="defaults,noatime,commit=600" ;;
-      ext2) REPLY="defaults,noatime"            ;;
-     ocfs2) REPLY="defaults,noatime"            ;;
-     btrfs) REPLY="defaults"                    ;;
-      swap) REPLY="defaults"                    ;;
-       xfs) REPLY="defaults,noatime"            ;;
-       jfs) REPLY="defaults,noatime"            ;;
-         *) REPLY="defaults"                    ;;
+      ext4) REPLY="defaults,noatime,commit=60" ;;
+      ext3) REPLY="defaults,noatime,commit=60" ;;
+      ext2) REPLY="defaults,noatime"           ;;
+     ocfs2) REPLY="defaults,noatime"           ;;
+     btrfs) REPLY="defaults"                   ;;
+      swap) REPLY="defaults"                   ;;
+       xfs) REPLY="defaults,noatime"           ;;
+       jfs) REPLY="defaults,noatime"           ;;
+         *) REPLY="defaults"                   ;;
  esac
 
  case ${PMOUNT[$1]} in
@@ -1899,32 +1793,6 @@ export IFS="	$LF"
 export DIALOG="dialog	--backtitle	Sorcerer Installer	--stdout"
 
 trap : INT QUIT
-
-if   ! [ -d /media/IR/boot/isolinux ]
-then $DIALOG --msgbox "\
-The Sorcerer Install/Rescue image is
-normally automatically mounted during boot
-by the execution of /etc/init.d/find_ir start
-Not having it mounted is unexpected.
-Menu driven installation will not be possible.
-I apologize for the inconvenience.
-Please email a detailed report of the problem,
-cause and solution please to kyle.sallee@gmail.com" 15 60
-exit 1
-fi
-
-if ! [ -f /usr/bin/stat ]
-then $DIALOG --msgbox "\
-Important archives such as coreutils
-were not unarchived from the Install/Rescue image.
-Archive are normally automatically unarchived during boot 
-by the execution of /etc/init.d/archives start
-Consequently, menu driven installation is not possible.
-I apologize for the inconvenience.
-Please email a detailed report of the problem,
-cause and solution please to kyle.sallee@gmail.com" 15 70
-exit 1
-fi
 
 if   [ "$1" == Sentient ]
 then run_auto
