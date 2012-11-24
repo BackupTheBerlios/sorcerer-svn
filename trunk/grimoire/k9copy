@@ -1,0 +1,37 @@
+with version   stable 2.3.8
+with base    kdelibs-v4 libmpeg2 xine-lib
+with role    video/dvd
+with trait   kde4
+with source   stable $SOURCEFORGE_URL k9copy/k9copy-kde4/$VERSION/k9copy-$VERSION-Source.tar.gz
+with info    good 20121124
+with info    last 20111218
+with info    home http://k9copy.sourceforge.net/
+with info    cite 'Replacement for DVD shrink DVD ripper'
+
+build(){
+ ffmpeg_legacy(){
+  local s
+  if   [[ $HOSTYPE == x86_64 ]]
+  then s=64
+  fi
+
+  with also       -DAVCODEC_INCLUDE_DIR_FF:PATH=/opt/ffmpeg/0.7/usr/include/libavcodec
+  with also      -DAVFORMAT_INCLUDE_DIR_FF:PATH=/opt/ffmpeg/0.7/usr/include/libavformat
+  with also   -DFFMPEGSCALE_INCLUDE_DIR_FF:PATH=/opt/ffmpeg/0.7/usr/include/libswscale
+  with also -DFFMPEGSCALE_INCLUDE_DIR_LAVC:PATH=/opt/ffmpeg/0.7/usr/include
+  with also     -DAVCODEC_INCLUDE_DIR_LAVC:PATH=/opt/ffmpeg/0.7/usr/include
+  with also    -DAVFORMAT_INCLUDE_DIR_LAVC:PATH=/opt/ffmpeg/0.7/usr/include
+
+  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include/libavcodec -I/opt/ffmpeg/0.7/usr/include/libavformat -I/opt/ffmpeg/0.7/usr/includ -I/opt/ffmpeg/0.7/usr/include/libswscale'
+  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include/libavcodec -I/opt/ffmpeg/0.7/usr/include/libavformat -I/opt/ffmpeg/0.7/usr/include -I/opt/ffmpeg/0.7/usr/include/libswscale'
+
+  with also -DFFMPEGSCALE_LIBRARY:FILEPATH=/opt/ffmpeg/0.7/usr/lib$s/libswscale.so
+  with also     -DAVCODEC_LIBRARY:FILEPATH=/opt/ffmpeg/0.7/usr/lib$s/libavcodec.so
+  with also    -DAVFORMAT_LIBRARY:FILEPATH=/opt/ffmpeg/0.7/usr/lib$s/libavformat.so
+ }
+
+ case $VERSION in
+  2.3.8) ffmpeg_legacy ;;
+ esac
+ default_build
+}
