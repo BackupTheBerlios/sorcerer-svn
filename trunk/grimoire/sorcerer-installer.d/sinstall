@@ -207,7 +207,7 @@ chroot_build(){
  mount  --bind  /aux/run/tmp   $TARGET/aux/run/tmp
  mount  --bind  /run           $TARGET/run
  chroot $TARGET swapon -a
- chroot $TARGET /usr/sbin/begin "$@" reap/sorcerer-installer 
+ chroot $TARGET /usr/sbin/augur begin "$@" reap/sorcerer-installer 
  scry_finish
  chroot $TARGET /etc/init.d/depmod start
  chroot $TARGET /etc/init.d/rc.d stop
@@ -353,6 +353,105 @@ get_filesystem(){
 
 
 fdisc(){
+ msgbox "\
+Files are installed according to the FHS.
+However, the FHS does not specify locations for all files.
+Locations for storing source tarballs, archives,
+git repositories, ccache tarballs and more are omitted.
+For that reason the files omitted by the FHS
+are stored within the /aux/ file system hierarchy.
+Consequently, using dedicated file systems for
+/aux/ and /aux/run/ can improve performance.
+
+/aux/can/{archive,ccache,git,source}/ directories
+are used for storing files that are both generated and downloaded.
+/aux/ should be an ext3 file system of size 60G to 100G
+However, if the archive feature is disabled,
+and ccache is not installed, and
+/aux/can/source/ is a sshfs or NFS from a different box
+then the size of a dedicated /aux/ could be as large
+as required for acquisition of source
+from software projects that must be downloaded
+by cloning git repositories,
+and the storage of log files.
+If a dedicated file system then /aux/
+should be no less than 20G
+or 40G without a dedicated /aux/run/
+
+/aux/run/ is a dedicated temporary directory
+because it eventually becomes empty.
+/aux/run/ is utilized during the compilation,
+linking, logging, and installation of software.
+/aux/run/ should be an ext3 of size 20G without using ccache
+or 30G to 40G if using ccache to expedite software compilation.
+A file system with no files also has no file fragmentation.
+Therefore, the performance enhancement of a dedicated /aux/run/
+is immediately evident."
+
+msgbox "\
+The possible partitioning plan for a box
+with ample fixed disk space could be:
+primary partition 1	1G 		ext2	/boot;
+primary partition 2	RAM/2		swap;
+primary partition 3	40G		ext3	/;
+extended partition 4,1	100G		ext3	/aux;
+extended partition 4,2	40G		ext3	/aux/run;
+extended partition 4,3	100G 		ext4	/srv;
+extended partition 4,4	+100G	LUKS	ext4	/home.
+
+The final partition is on a LUKS encrypted device
+which requires a proper passphrase be entered
+to be able to unlock the key to decrypt and mount it.
+An invalid passphrase unlocks no keys and
+the LUKS device remains encrypted and unable to mount.
+With this loadout if the computer is stolen
+then the thief will be unable to access /home
+without the passphrase.
+However, the thief could install malware
+and returning the computer.
+Therefore, this plan only provided medium security."
+
+msgbox "\
+The partitioning plan for a secure laptop could be:
+USB SSD		PP 1	1G			ext2	/boot;
+fixed disk	PP 1	maximum	LUKS encrypted	ext4	/
+
+When using a secure laptop loadout
+the only points of vulnerability
+become the network connection
+and the person who possesses
+the USB SSD /boot partition.
+While power down the data on the laptop remains
+as safe as keeping the laptop in a safe.
+However, locking the USB SSD /boot partition in a safe
+separate from the laptop remains a wise precaution."
+
+msgbox "\
+Obviously, the minimum partitioning plan could be:
+primary partition 1	full capacity	ext4
+
+Everything on a single partition provides
+maximum utilization of disk space
+at the expense of reduced performance.
+Time allocated to system would be greater
+and physial performance could be slower.
+However, a single partition plan
+provides simplicity that works."
+
+msgbox "\
+Please carefully consider and create
+a precise partition plan for a box
+that is expected to perform it's role for many years,
+because Sorcerer is an
+\"install only once but update often distro.\"
+
+Starting with paradigm versions of sorcery
+separate dedicated partitions
+within the /usr hierarchy are disallowed.
+Therefore, /usr and subdirectories of /usr
+must reside on the same file system as /
+Please pardon the inconvenience."
+
  $DIALOG \
  --title $"Partitioning Menu" --no-cancel \
  --menu  $"Select a partitioning program" 0 0 0 \
@@ -377,6 +476,7 @@ get_def_mount(){
  local NOTXFS=$"xfs on / requires a /boot partition"
  local NOTBTRFS=$"btrfs on / requires a /boot partition"
  local NOOCFS2=$"ocfs2 on / requires a /boot partition"
+ local NOTUSR=$"/usr and subdirectories must reside on /"
  local FS="${PFILESYSTEM[$1]}"
  local MOUNT
  local ASK="$2"
@@ -408,7 +508,11 @@ get_def_mount(){
   MOUNT="$( inputbox "$PLEASE" "${PMOUNT[$1]:-$MOUNT}" )"
 
    if   [ / == "$MOUNT" ] && [ -n "$NOTROOT" ]
-   then msgbox "$NOTROOT"; MOUNT=""
+   then msgbox "$NOTROOT"; MOUNT=
+   fi
+
+   if   [[ $MOUNT =~ /usr ]]
+   then msgbox "$NOTUSR"; MOUNT=
    fi
 
    PMOUNT[$1]="$MOUNT"
@@ -506,10 +610,23 @@ transfer_arch(){
  then msgbox "$NOT_MOUNT"; allow || return 1
  fi
 
+ umount /var/run
+ clear
+
+ if   [ -z "$SILENCE" ]; then
+  echo "Please cultivate calm"
+  echo "while files copy quickly and silently."
+  echo "Only error messages will be displayed."
+ fi
+
+ sleep 0.25
+
  if   [ -n    "$SILENCE" ]
  then cp -ax / $TARGET/
  else cp -ax / $TARGET/ || pause; msgbox $"Files transferred."
  fi
+
+ mount --bind /run /var/run
 
  cp /tmp/fstab $TARGET/etc/fstab
  echo "--speed-time  120" >  $TARGET/root/.curlrc.sorcery
@@ -1777,6 +1894,9 @@ main_menu(){
  done
 }
 
+if   [ -f /usr/bin/reset ]
+then      /usr/bin/reset
+fi
 
 # Max Partitions
 MP=64

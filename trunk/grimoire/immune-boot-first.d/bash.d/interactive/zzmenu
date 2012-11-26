@@ -10,90 +10,30 @@ first_boot_menu(){
 
  installed(){ augur installed "$1" | grep -qx "$1"; }
 
- go_grimoire(){
-  if installed "$1"; then return; fi
-  TERM=dumb augur begin  "$1"
-  au scry
- }
-
- grimoire_description(){
-
-   local HELP=$"\
-Grimoire means book written in Latin.
-The Sorcerer grimoires are
-catalogs of software available for easy installation.
-Two grimoires are available: grimoire; grimoire-sentient
-
-Sorcerer Modern Magic Grimoire \"grimoire\"
-is for boxes that require frequent updates
-such as security updates.
-
-Sorcerer Sentient Grimoire \"grimoire-sentient\"
-updates only when new Install/Rescue CDs are generated.
-It is intended for use with the sorcerer-sentient spell.
-
-SAs should probably go with Sorcerer Modern Magic Grimoire.
-Non SAs should probably go with Sorcerer Sentient Grimoire."
-
- dialog --msgbox "$HELP" 0 0
-}
-
- grimoire_menu(){
-   local HELP=$"\
-When updates can be tested first
-on development boxes
-then selecting Modern can be used.
-Otherwise selecting Sentient provides
-a better probability of casting success."
-
-   dialog --backtitle "Sorcerer" \
-          --title "Grimoire Selection Menu" \
-          --stdout --no-cancel --ok-label Select \
-          --item-help --menu "$HELP" 0 0 0 \
-   Modern   "Sorcerer Modern Magic Grimoire" \
-            "catalog that can update as often as daily" \
-   Sentient "Sorcerer Sentient Grimoire" \
-            "catalog that updates only when new I/Rs are created"
- }
-
- select_grimoire(){
-  grimoire_description
-  local GRIM=$( grimoire_menu )
-  case $GRIM in
-   Modern)   go_grimoire grimoire ;;
-   Sentient) go_grimoire grimoire-sentient ;;
-  esac
- }
-
  main_menu(){
-  local g
-  if   installed grimoire;          then g=grimoire
-  elif installed grimoire-sentient; then g=grimoire-sentient
-  else g=unknown
-  fi
 
   HELP=$"\
 If a Sorcerer Sentient workstation is desired
-then both grimoire-sentient and sorcerer-sentient
-should probably be installed.
+then sorcerer-sentient should probably be installed.
 Otherwise dispel this menu and install software
 by using the sorcery tools such as:
-augur the command line tool; and sorcery the menu driven tool."
+augur the command line tool;
+sorcery the menu driven tool."
 
   dialog --backtitle "Sorcerer" \
          --title "First Boot Menu" \
          --stdout --ok-label Select --cancel-label Shell \
          --item-help --menu "$HELP" 0 0 0 \
-  Grimoire "Installed Sotware catalog is $g" \
-           "Chose between stability or security" \
+  Dispel   "# augur being reap/immune-boot-first" \
+           "Removes this menu to allow for normal booting" \
   Scry     "# augur scry" \
            "View the heads up display of sorcery activity" \
-  Sentient "# augur begin sorcerer-sentient" \
-           "Installs Sorcerer Sentient workstation loadout" \
+  WPA      "# /etc/init.d/wpa_supplicant configure" \
+           "Adjust the WPA configuration information for this computer" \
   Kiosk    "# augur begin immune-auto-login" \
            "Provides an automatic KDE user login on each boot" \
-  Dispel   "# augur queue dispel/immune-boot-first; dispel" \
-           "Removes this menu to allow for normal booting"
+  Sentient "# augur begin sorcerer-sentient" \
+           "Installs Sorcerer Sentient workstation loadout"
  }
 
  dialog --msgbox "\
@@ -108,11 +48,11 @@ then the SA must configure networking." 0 0
 
  while REPLY=$( main_menu ); do
   case $REPLY in
-   Grimoire) select_grimoire ;;
    Scry)     augur scry ;;
+   WPA)      /etc/init.d/wpa_supplicant configure ;;
    Sentient) TERM=dumb augur begin sorcerer-sentient ;;
    Kiosk)    TERM=dumb augur begin kde immune-auto-login ;;
-   Dispel)   augur queue dispel/immune-boot-first; dispel ;;
+   Dispel)   augur begin reap/immune-boot-first ;;
   esac
  done
 }

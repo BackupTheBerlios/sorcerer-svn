@@ -1,35 +1,14 @@
 version_year_day 31 $LAG
 with role    grimoire
 with trait   grimoire archive_off solo stale
-with source  http://sorcerer.silverice.org/download/grimoire-sentient/grimoire-sentient-$VERSION.tar.xz
+with trait   broke deprecated
+#with source  http://sorcerer.silverice.org/download/grimoire-sentient/grimoire-sentient-$VERSION.tar.xz
 with info    home  http://sorcerer.silverice.org/
 #with hold    sorcerer-grimoire
 with clash   grimoire
-with info    cite 'the seriously lagged official grimoire of sorcerer
+with info    cite 'previous grimoire for Sorcerer Sentient boxes.'
 
-This is a more thoroughly tested and less frequently updated grimoire
-for use on Sorcerer Sentient workstations.
-Do not use on production boxes and servers.
-The infrequent updates of this grimoire
-may cause software with security vulnerabilities
-to remain installed longer than with the grimoire spell.'
-
-build(){
- echo "$LAG days behind available grimoire."
- [[ -f grimoire ]] &&
- [[ -f sorcery  ]] &&
- mkdir -p $DESTDIR/$GRIMOIRE_LIBRARY &&
- find  . -type f -printf "%P\n" |
- tar_files > $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar &&
- chmod 600   $DESTDIR/$GRIMOIRE_LIBRARY/$SPELL.tar
-}
-
-post_install(){
- if   ! spell_installed sorcerer-sentient &&
-      ! spell_exile     sorcerer-sentient
- then
-  echo sorcerer-sentient | pipe_queue  $MOIL_QUEUE
-  echo sorcerer-sentient | pipe_queue $LOAD_QUEUE
- fi
- default_post_install
+current(){
+ echo grimoire-sentient | pipe_queue "$REAP_QUEUE"
+ echo grimoire          | pipe_queue "$CAST_QUEUE/new"
 }

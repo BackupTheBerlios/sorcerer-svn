@@ -2,36 +2,72 @@ show(){
  dialog --backtitle "Sorcerer Recommendations" \
         --title "RAM Recommendation"  \
         --msgbox "
-The minimum amount of installed RAM is 2 gigabytes.
-However, for each processor 1G of RAM should be installed.
-Therefore, a quad core workstation
-should have at least 4G of RAM installed.
-An 8 processor machine should have 8G of RAM installed.
-And a single uniprocesor machine should have 2G of RAM.
+A minimum of 3G of RAM must be installed.
+The x86_64 Install/Rescue image
+would have already failed booting
+on a computer with less than 2.5G of RAM installed.
 
-If less than specified amount of RAM is installed
-then casting uses less than full processing potential.
-If less than 2G of RAM is installed
-then aggressive swap thrashing can occur
-when linking software projects such as firefox.
-If less than 1G of RAM is installed
-then Sorcerer might not install,
-and deployment and updates might cause
-nearly endless swapping and heavy lag or near lock situations
-during input/output to mass storage devices.
+User and system process will be utilizing
+the majority of the first gigabyte of RAM.
+Between updates the kernel will utilize excess RAM
+to cache fixed disk content and to provide 2M large pages
+instead of 4096 byte pages for memory allocation requests.
 
-If desired then the \"min\" feature can be enabled
-which limits cast to minimum resource utilization.
-However, this still does not circumvent
-the previously mentioned requirements." 20 76
+An additional gigabyte of RAM
+is required per processor
+to achieve optimal performance.
+During the updates of large software projects
+the linker completely utilize 1G of RAM per linker process.
+During software compilation, linking, and installation
+full utilization of processors
+requires commensurate amounts of RAM.
+
+If less than 8G of RAM is installed on an 8 processor box
+then sorcery might utilize fewer than 8 processors.
+Software would require longer to deploy and update,
+but the box would be usable
+provided that it has at least 3G of RAM installed.
+Sorcerer can be installed on netbooks provided
+that the netbook has at least 3G of RAM installed.
+
+Installing larger RAM modules or
+installing a pre-compiled binary based distro
+are the only options for computers
+with less than 3G of RAM installed.
+
+The RAM requirements for Sorcerer reflect
+the decisions made by free software authors
+in charge of utilities such as:
+binutils which provide the linker /usr/bin/ld;
+gcc which provide the GNU C++ compiler /usr/bin/g++;
+firefox which can consume more than a gigabyte of RAM
+after a short duration of use.
+
+For the moment modern pre-compiled software such as firefox
+can be run on boxes with 1G of installed RAM.
+Swapping memory content to and from disk
+helps under-built boxes maintain functionality
+at the cost of performance when memory utilization
+exceeds the amount of installed RAM.
+A pre-compiled binary based distro
+can be deployed and updated
+without the larger amount of resources required
+by a source based distro such as Sorcerer.
+
+If the reader expects that free software authors
+are incorrect by requiring copious amounts of RAM
+then the solution is to install a fun
+pre-compiled binary based distro instead of Sorcerer.
+" 20 76
+
 
  dialog --backtitle "Sorcerer Recommendations" \
         --title "Processor Recommendation"  \
         --msgbox "
 Congratulations, this box meets the minimum processor requirement.
 
-The IA32 I/R requires at the very least
-an 80686 with PAE instruction set compatible processor.
+The IA32 I/R requires at least an 80686
+with PAE instruction set compatible processor.
 
 The x86_64 I/R requires any x86_64 compatible processor.
 Such machines have long mode instruction, 64 bit registers,
@@ -41,15 +77,18 @@ Using the x86_64 I/R will not necessarily
 create an installation that runs faster
 than the IA32 installation.
 It will however use slightly more memory
-for storage of pointers, integers, and for saving
-address on the stack when calling functions.
+for storage of pointers, integers,
+and for saving registers and address
+on the stack when calling functions.
 And that can make it run slower.
 However, for some programs the larger address space
-will prove convenient or essential.
+could be convenient or essential.
 
+Any box with 3G or less installed RAM should probably
+install the IA32 port of Sorcerer.
 Any x86_64 capable box with 4G or more installed RAM
-should proably install the x86_64 image because
-RAM can be utilized more effectively, without paging.
+should install the x86_64 image
+because RAM can be utilized more effectively, without paging.
 And ELF 32-bit libraries are still provided
 for running 32-bit software such as wine.
  
@@ -58,9 +97,7 @@ and the full instruction set of the 64 bit processor,
 yet uses 32-bits for pointers and function calls
 is not provided now nor is planned for the future.
 This is because the best aspect of x86_64
-is being able to address more than 4G of memory.
-Those who prefer a 3% speed gain
-should buy and install a faster microprocessor." 20 76
+is being able to address more than 4G of memory." 20 76
 
  dialog --backtitle "Sorcerer Recommendations" \
         --title "Mass Storage Recommendation"  \
@@ -72,58 +109,37 @@ that the SA constantly cleans the file system.
 Otherwise the root file system
 could fill to maximum capacity
 during updates of installed software.
-At 60G or more then a box
-will automatically clean it's own rubbish.
-No problem should be anticipated unless users
-aggressive use disk space.
-If so then place home on a private file system.
 
-When / exists on a file system other than ext3 or ext4
-then a dedicated 2G ext2 file system for /boot could be required.
-A dedicated /boot file system is also required
-when / exists on a LUKS encrypted device.
+A dedicated 1G ext2 file system is required for /boot
+when / exists on a filesystem other than ext3 or ext4
+or upon a LUKS encrypted device.
 For certain types of RAIDs a dedicated /boot is also required.
-The SA is responsible for knowing when a dedicated /boot is required
-and for making the partition and file system
-while using the menu driven installer
-or manually at a command prompt.
-Omission of a dedicated /boot partition and file system
-on an installation style where a /boot is required
-creates a box that will might not achieve it's first boot
-and will not achieve it's second." 20 76
+
+The SA is responsible for knowing
+when a dedicated /boot is required.
+Omission of a dedicated /boot when required
+will create a box that might fail it's first boot
+and definitely fail it's second boot.
+If any doubt exists then make the 1G ext2 /boot" 20 76
 
  dialog --backtitle "Sorcerer Recommendations" \
         --title "Swap Recommendation"  \
         --msgbox "
-Dedicated swap space is not required.
-The box will allocate and activate swap files as needed.
-At time of boot old swap files are eliminated,
+A dedicated swap partition of
+half the size of installed RAM is recommended.
+If suspending to disk then a dedicated swap partition
+equal to the size of installed RAM is recommended.
+However, dedicated swap space is not required.
+
+Sorcerer boxes allocate and activate swap files as needed.
+During boot old swap files are eliminated,
 provided that the box rather than the SA created them.
-
-However, the convenience of swap files
-incurs a small performance penalty.
-Best performance is achieved
-with a dedicated swap partition.
-The proper amount of space for a swap partition varies.
-Most SAs would allocate at least 1G as a minimum
-and no more than half installed RAM as a maximum.
-However, maximum values vary depending upon
-the role of the box and the amount of installed RAM.
-If the size of the dedicated swap partition is insufficient
-then the box will create and activate swap files as necessary.
-
-Normally, a box can not deplete all available memory.
-However, an intentional fork bomb
-could eventually swap lock a box,
-unless the SA sets reasonable limits
-to prevent an unreasonble amount of memory
-and process usage by a user.
 
 If the root file system resides on a LUKS encrypted device
 then the swap partition also
 can also be created on a LUKS encrypted device.
-The swap partition will receive a unique random key on each boot.
-This prevents data recovery from the swap partition.
+A swap partition on a LUKS device
+receives a unique random key on each boot.
 
 Boxes that will suspend to disk
 require a dedicate non encrypted swap partition
@@ -136,9 +152,8 @@ Proper shutdown or proper rebooting of a box quarterly
 is best for maintaining optimal performance.
 Succinctly stated, certain important events
 only happen during shutdown and reboot.
-For example on boxes with extreme uptime,
-memory will be wasted
-and file systems will not be fscked/checked." 20 76
+Boxes with extreme uptime will waste memory
+and file systems will not be fscked." 20 76
 
 
  dialog --backtitle "Sorcerer Recommendations" \
@@ -148,19 +163,18 @@ Sorcerer is suitable for deployment
 for the purpose of both servers and workstations.
 File server, print server, web server,
 email server, database, digital video toaster,
-kiosk and much more is possible. 
-A Sorerer box can even be used as a gadget such as
-for deployment for the single role of being a firewall/router.
-However, other niche distributions may be better suited
-for the role of a dedicated firewall/router.
+firewall/router, laptop, kiosk and more is possible. 
 
-Sorcerer is ideally suited for the deployment of encrypted laptops
-where the root file system resides on a LUKS enrypted partition
-and the /boot file system exists on a separate USB SSD key/thumb drive.
+Sorcerer is ideally suited for the deployment
+of encrypted laptops where the root file system
+resides on a LUKS enrypted device
+and the /boot file system exists
+on a separate detachable USB SSD key/thumb drive.
 No method for security is perfect
 however with this method
 the most vulnerable point of attack
-is the unencrypted /boot partition on the USB SSD key/thumb drive,
+is the unencrypted /boot partition
+on the USB SSD key/thumb drive,
 or the person who posses it.
 
 Sorcerer boxes without LUKS encrypted devices
@@ -170,14 +184,15 @@ by the installation of immune-security-tomoyo.
 After activation a separate domains protect
 system installed areas from both modification
 and the addition of new files
-even when a process has acquired EUID 0.
+even after a process has acquired EUID 0.
 
 For modification of protected areas
 additional authentication must be successfully passed
 in order to accomplish transition into the freedom domain.
-The freedom domain allows EUID 0 to accomplish all that is expected.
-Otherwise, system installed files and
-those areas of the file system
+The freedom domain allows EUID 0
+to accomplish all that is expected.
+Otherwise, system installed files
+and those areas of the file system
 appear as if behind a glass barrier.
 Reading can be accomplished, but modification is denied." 20 76
 
@@ -207,7 +222,8 @@ for /bin /boot /etc /lib /lib64 /opt /usr /var.
 File modification and even addition of new files
 to system installation locations will be prohibited
 without successful transition to the freedom domain.
-Therefore, this method helps thwart the installation of root kits.
+Therefore, this method thwarts
+the installation of root kits.
 However, it does not protect against data theft
 by a process that gains EUID 0.
 
@@ -217,8 +233,8 @@ should be stored encrypted.
 Sorcerer can install several software projects
 that can provide file level encryption.
 
-Intrusion detection, and system monitoring software projects
-can be installed on a box
+Intrusion detection and system monitoring
+software projects can be installed
 that can inform and/or provide automatic response
 to potential attacks and scans.
 
@@ -229,11 +245,11 @@ Tomoyo seems more flexible and easier
 to deploy and maintain than selinux.
 selinux works best on boxes that do not update.
 However, Sorcerer box can update frequently and even automatically.
-A tomoyo lattice of security can automatically cover updated files
+A tomoyo lattice of security automatically covers updated files
 without the overhead, headache, time, and effort required by selinux.
 
 A Sorcerer box's security potential
-depends mostly upon the skill and forethought of the SA.
+depends mostly upon the skill and effort of the SA.
 A Sorcerer box is not necessarily any less secure
 than a distrbituion that specializes in the niche of hardening.
 However, a box can be made as insecure as a SA desires.
