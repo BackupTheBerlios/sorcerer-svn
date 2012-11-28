@@ -1,8 +1,10 @@
 # opal is also available from http://www.voxgratia.org/downloads.html
 # However that version may be useless for use with ekiga
-# 3.6.8 failed to compile 
 
-with version stable 3.10.7 3.10.2 3.10.1
+# Why do the software authors continually release opal
+# with code that requires obsolete ffmpeg?
+
+with version stable 3.10.9 3.10.7 3.10.2 3.10.1
 with base    expat ffmpeg libtheora openldap ptlib speex x264
 # gsm source is missing
 #with elect   gsm
@@ -20,10 +22,14 @@ with also    --disable-plugins ;;
 with also    --disable-celt ;;
 esac
 with role    utility
-with trait   gnome library
+with trait   gnome library makej optimize
 #trait makej multilib-concurrent
 with source  $GNOME_URL sources/opal/${VERSION:0:4}/opal-$VERSION.tar.xz
-with info    last 20120824
+case $VERSION in
+ 3.10.9)
+with source http://ffmpeg.org/releases/ffmpeg-0.6.6.tar.bz2 ;;
+esac
+with info    last 20121126
 with info    home http://www.ekiga.org/
 with info    freecode none
 with info    cite 'undescribed library used by ekiga'
@@ -33,6 +39,47 @@ build(){
 #   CFLAGS+=' -D__STDC_CONSTANT_MACROS'
 # CXXFLAGS+=' -D__STDC_CONSTANT_MACROS'
 # export CFLAGS CXXFLAGS
+
+ static_ffmpeg(){
+  local  cf="$CFLAGS"
+  local cxf="$CXXFLAGS"
+  export   CFLAGS="-D__STDC_CONSTANT_MACROS $cf"
+  export CXXFLAGS="-D__STDC_CONSTANT_MACROS $cxf"
+
+  local ffdd=$PWD/ffmpeg
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then local ffld=/usr/lib64
+  else local ffld=/usr/lib
+  fi
+
+  cd ffmpeg-0.6.6 &&
+  ./configure \
+   --enable-swscale --enable-postproc --enable-gpl \
+   --disable-debug  --enable-nonfree  --disable-doc \
+   --disable-shared --enable-static   --enable-pthreads \
+   --libdir=$ffld   --prefix=/usr &&
+  make &&
+  make install DESTDIR="$ffdd" &&
+  export   CFLAGS="-I$ffdd/usr/include $cf" &&
+  export CXXFLAGS="-I$ffdd/usr/include $cxf" &&
+  export LDFLAGS+=" -L$ffdd$ffld" &&
+  cd ..
+ }
+
+ #insufficient
+ missing_defines(){
+  sed -i '1i#define CODEC_FLAG_H263P_AIV 0x00000008
+          1i#define CODEC_FLAG_H263P_UMV 0x02000000
+          1i#define CODEC_FLAG_H263P_SLICE_STRUCT 0x10000000
+          1i#define CODEC_FLAG_OBMC 0x00000001
+          1i#define CODEC_FLAG_PART 0x0080
+          s:FF_I_TYPE:AV_PICTURE_TYPE_I:' \
+      plugins/video/{H.263-1998/h263-1998,MPEG4-ffmpeg/mpeg4}.cxx
+ }
+
+ case $VERSION in
+  3.10.9) static_ffmpeg ;;
+ esac
  default_build
 }
 

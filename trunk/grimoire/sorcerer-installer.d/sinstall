@@ -610,7 +610,6 @@ transfer_arch(){
  then msgbox "$NOT_MOUNT"; allow || return 1
  fi
 
- umount /var/run
  clear
 
  if   [ -z "$SILENCE" ]; then
@@ -619,14 +618,10 @@ transfer_arch(){
   echo "Only error messages will be displayed."
  fi
 
- sleep 0.25
-
  if   [ -n    "$SILENCE" ]
  then cp -ax / $TARGET/
  else cp -ax / $TARGET/ || pause; msgbox $"Files transferred."
- fi
-
- mount --bind /run /var/run
+ fi 2>&1 | sed '\,/media/root/var/run,d'
 
  cp /tmp/fstab $TARGET/etc/fstab
  echo "--speed-time  120" >  $TARGET/root/.curlrc.sorcery
@@ -1538,7 +1533,7 @@ glibc-locales"
 
  make_bootloader_conf
 
- EXTRA_SPELLS=$( select_extra_spells )
+ # EXTRA_SPELLS=$( select_extra_spells )
 
  chroot_build	$REQUIRED_SPELLS	$EXTRA_SPELLS
 
