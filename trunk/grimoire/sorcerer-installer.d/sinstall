@@ -99,9 +99,6 @@ run_auto(){
  transfer_arch
 
  make_bootloader_conf
- GL=$TARGET/etc/sorcery/log/config/glibc-locales
- mkdir -p $GL
- echo 'LOCALES=""' > $GL/sorcery
 
  echo    "$USER_NAME"             | chroot $TARGET /usr/sbin/adduser
  echo -e "$USER_PASS\n$USER_PASS" | chroot $TARGET /usr/bin/passwd "$USER_NAME"
@@ -176,9 +173,8 @@ chroot_silent(){
  wait_finish
  chroot $TARGET /etc/init.d/depmod start
  chroot $TARGET /etc/init.d/rc.d stop
- chroot $TARGET /etc/init.d/services stop
- chroot $TARGET /etc/init.d/extlinux stop
- chroot $TARGET /etc/init.d/initramfs stop
+ chroot $TARGET /etc/init.d/initramfs force-reload
+ chroot $TARGET /etc/init.d/extlinux force-reload
  chroot $TARGET swapoff -a
  umount                        $TARGET/run
  umount                        $TARGET/aux/run/tmp
@@ -211,9 +207,8 @@ chroot_build(){
  scry_finish
  chroot $TARGET /etc/init.d/depmod start
  chroot $TARGET /etc/init.d/rc.d stop
- chroot $TARGET /etc/init.d/services stop
- chroot $TARGET /etc/init.d/extlinux stop
- chroot $TARGET /etc/init.d/initramfs stop
+ chroot $TARGET /etc/init.d/initramfs force-reload
+ chroot $TARGET /etc/init.d/extlinux force-reload
  chroot $TARGET swapoff -a
  umount                        $TARGET/run
  umount                        $TARGET/aux/run/tmp
@@ -624,6 +619,7 @@ transfer_arch(){
  fi 2>&1 | sed '\,/media/root/var/run,d'
 
  cp /tmp/fstab $TARGET/etc/fstab
+ mkdir -pm 755 $TARGET/home
  echo "--speed-time  120" >  $TARGET/root/.curlrc.sorcery
  echo "--speed-limit 256" >> $TARGET/root/.curlrc.sorcery
 }
@@ -1528,8 +1524,7 @@ compile_menu(){
  fi
 
  local EXTRA_SPELLS REQUIRED_SPELLS="\
-etc
-glibc-locales"
+etc"
 
  make_bootloader_conf
 
