@@ -96,7 +96,7 @@ run_auto(){
  make_fstab > /tmp/fstab
 
  filesystem_mount
- transfer_arch
+ transfer_base
 
  make_bootloader_conf
 
@@ -598,7 +598,7 @@ make_bootloader_conf(){
  mbr_check
 }
 
-transfer_arch(){
+transfer_base(){
  local NOT_MOUNT=$"Not detecting file system mounted on $TARGET"
 
  if   ! mounted
@@ -620,6 +620,7 @@ transfer_arch(){
 
  cp /tmp/fstab $TARGET/etc/fstab
  mkdir -pm 755 $TARGET/home
+ mkdir -pm 700 $TARGET/aux/log/event
  echo "--speed-time  120" >  $TARGET/root/.curlrc.sorcery
  echo "--speed-limit 256" >> $TARGET/root/.curlrc.sorcery
 }
@@ -1700,7 +1701,7 @@ run_init_filesys(){
  fi
 }
 
-run_install(){    if mounted   || allow; then transfer_arch 2>&1 | tee /tmp/transfer.txt; fi; }
+run_install(){    if mounted   || allow; then transfer_base 2>&1 | tee /tmp/transfer.txt; fi; }
 run_edit_fstab(){ if installed || allow; then edit_fstab;   fi; }
 run_compile(){    if installed || allow; then compile_menu; fi; }
 
