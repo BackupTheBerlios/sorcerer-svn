@@ -352,14 +352,14 @@ fdisc(){
 Files are installed according to the FHS.
 However, the FHS does not specify locations for all files.
 Locations for storing source tarballs, archives,
-git repositories, ccache tarballs and more are omitted.
-For that reason the files omitted by the FHS
+git repositories, ccache tarballs and more were omitted.
+For this reason the files omitted by the FHS
 are stored within the /aux/ file system hierarchy.
 Consequently, using dedicated file systems for
 /aux/ and /aux/run/ can improve performance.
 
-/aux/can/{archive,ccache,git,source}/ directories
-are used for storing files that are both generated and downloaded.
+/aux/can/{archive,ccache,git,source}/ are used for
+storing files that are both generated and downloaded.
 /aux/ should be an ext3 file system of size 60G to 100G
 However, if the archive feature is disabled,
 and ccache is not installed, and
@@ -377,22 +377,26 @@ or 40G without a dedicated /aux/run/
 because it eventually becomes empty.
 /aux/run/ is utilized during the compilation,
 linking, logging, and installation of software.
-/aux/run/ should be an ext3 of size 20G without using ccache
-or 30G to 40G if using ccache to expedite software compilation.
-A file system with no files also has no file fragmentation.
-Therefore, the performance enhancement of a dedicated /aux/run/
+When ccache is not installed
+then /aux/run/ should be an ext3 of size 20G.
+When ccache is installed
+then 30G to 40G is recommended.
+A file system with no files
+also has no file fragmentation.
+Therefore, the performance enhancement
+of a dedicated /aux/run/
 is immediately evident."
 
 msgbox "\
 The possible partitioning plan for a box
 with ample fixed disk space could be:
-primary partition 1	1G 		ext2	/boot;
-primary partition 2	RAM/2		swap;
-primary partition 3	40G		ext3	/;
-extended partition 4,1	100G		ext3	/aux;
-extended partition 4,2	40G		ext3	/aux/run;
-extended partition 4,3	100G 		ext4	/srv;
-extended partition 4,4	+100G	LUKS	ext4	/home.
+primary  partition 1    1G          ext2  /boot;
+primary  partition 2    RAM/2       swap;
+primary  partition 3    40G         ext3  /;
+extended partition 4,1  100G        ext3  /aux;
+extended partition 4,2  40G         ext3  /aux/run;
+extended partition 4,3  100G        ext4  /srv;
+extended partition 4,4 +100G  LUKS  ext4  /home.
 
 The final partition is on a LUKS encrypted device
 which requires a proper passphrase be entered
@@ -408,8 +412,8 @@ Therefore, this plan only provided medium security."
 
 msgbox "\
 The partitioning plan for a secure laptop could be:
-USB SSD		PP 1	1G			ext2	/boot;
-fixed disk	PP 1	maximum	LUKS encrypted	ext4	/
+USB SSD     PP 1  1G            ext2  /boot;
+fixed disk  PP 1  maximum  LUKS ext4  /
 
 When using a secure laptop loadout
 the only points of vulnerability
@@ -423,7 +427,7 @@ separate from the laptop remains a wise precaution."
 
 msgbox "\
 Obviously, the minimum partitioning plan could be:
-primary partition 1	full capacity	ext4
+primary partition 1  full capacity  ext4
 
 Everything on a single partition provides
 maximum utilization of disk space
@@ -625,6 +629,9 @@ transfer_base(){
  mkdir -pm 700 $TARGET/aux/log/{config,event,opt.{on,off}}
  echo "--speed-time  120" >  $TARGET/root/.curlrc.sorcery
  echo "--speed-limit 256" >> $TARGET/root/.curlrc.sorcery
+
+ echo  "FEATURE[retry]=1" >  $TARGET/etc/sorcery/local.config
+ chmod 755                   $TARGET/etc/sorcery/local.config
 }
 
 
