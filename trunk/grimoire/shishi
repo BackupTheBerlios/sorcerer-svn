@@ -3,13 +3,18 @@ with base    gnutls libidn pkgconfig
 with elect   Linux-PAM --enable-pam --disable-pam for PAM support
 #with elect   PAM --enable-pam --disable-pam for PAM support
 with also    --enable-static=no --disable-rpath
-  sys_user shishi
+with sys_user shishi
 with role    security/authentication
 with trait   library makej multilib-dual
-with trait   broke
-#trait library makej multilib-concurrent
+#with trait   broke
 with source    stable $GNU_URL shishi/shishi-$VERSION.tar.gz
 with source  unstable ftp://alpha.gnu.org/pub/gnu/shishi/shishi-$VERSION.tar.gz
+case $VERSION in
+ 1.0.1)
+with source           $GNU_URL libtasn1/libtasn1-2.14.tar.gz
+;;
+esac
+
 #with source http://josefsson.org/shishi/releases/shishi-$VERSION.tar.gz
 #with info    good 20120705
 with info    last 20120312
@@ -28,3 +33,21 @@ To use shishi kerberos 5 implementation for distributed authentication
 requires further manual configuration according to the manul available
 at the URL below.
 http://www.gnu.org/software/shishi/manual/shishi.html'
+
+build(){
+ static_libtasn1(){
+  cd libtasn1-2.14 &&
+  if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then ./configure --prefix=$PWD/install --enable-static --disable-shared --libdir=$PWD/install/lib64
+  else ./configure --prefix=$PWD/install --enable-static --disable-shared
+  fi &&
+  make install
+  with also --with-libtasn1-prefix=$PWD/install
+  cd ..
+ }
+
+ case $VERSION in
+  1.0.1) static_libtasn1 ;;
+ esac
+ default_build
+}
