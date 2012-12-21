@@ -5,7 +5,7 @@
 # Should-Start: alt_boot find_ir udevd
 # Default-Start: S
 # Short-Description: avoids rdinit=/bin/bash when / is not in fstab
-# Description: fstab checks for / in /etc/fstab and rewrites it to /media/root
+# Description: fstab checks for / in /etc/fstab and rewrites it to /media/root/real
 ### END INIT INFO
 
 if   [ -d /home ] || grep -q boot=IR /proc/cmdline
@@ -31,17 +31,22 @@ start(){
   ROOT=$( root_menu )
   case $ROOT in
    /sbin/sulogin) sulogin -t 300 1>/dev/console 2>&1 0</dev/console ;;
-   /dev*) echo "$ROOT /media/root auto defaults 0 0" >> /etc/fstab
+   /dev*) echo "$ROOT /media/root/real auto defaults 0 0" >> /etc/fstab.rootfs
   esac
  }
 
- check(){ [ -n "$( sed "s/#.*//;s:\t: :g;\: $1 :p;d" /etc/fstab )" ]; }
- modify(){ sed -i 's:\t: :g;  s: / : /media/root :'  /etc/fstab; }
+ check(){ [ -n "$( sed "s/#.*//;s:\t: :g;\: $1:p;d" /etc/fstab.rootfs )" ]; }
 
- if   log_warning_msg 'Checking /etc/fstab for /'; check /
- then log_success_msg 'Found /'; modify
- elif log_warning_msg 'Checking /etc/fstab for /media/root'; check /media/root
- then log_success_msg 'Found /media/root'
- else log_failure_msg '/ not in /etc/fstab'; interact
+ copy(){
+  sed 's:#.*::' /etc/fstab |
+  sed 's:\t: :g' |
+  sed 's: / : /media/root/real :p;d' > /etc/fstab.rootfs
+ }
+
+ [ -f /etc/fstab.rootfs ] || copy
+
+ if   log_warning_msg '/etc/fstab contains /media/root checking'; check /media/root/
+ then log_success_msg '/etc/fstab contains /media/root verified'
+ else log_failure_msg 'root file system search failed'; interact
  fi
 }

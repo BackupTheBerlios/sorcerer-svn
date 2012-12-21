@@ -146,7 +146,7 @@ http://mirror.mcs.anl.gov/openssh/ \
 http://ftp.lambdaserver.com/pub/OpenBSD/OpenSSH/ \
            portable/openssh-$VERSION.tar.gz
 with info    home http://www.openssh.com/
-with info    last 20120903
+with info    last 20120828
 with protect /etc/ssh
 with omit    /etc/ssh/ssh_host_dsa_key
 with omit    /etc/ssh/ssh_host_dsa_key.pub
@@ -162,10 +162,10 @@ implementation and includes sftp client and server support.'
 build(){
  use_pam(){ sed -i 's:#UsePAM no:UsePAM yes:' $DESTDIR/etc/ssh/sshd_config; }
 
- keep_config(){
-  cp  -a $DESTDIR/etc/ssh/sshd_config{,_keep}
-  sed -i 's:#PidFile /var/run/sshd.pid:PidFile /var/run/sshd_keep.pid:
-          s:#Port 22:Port 30:' $DESTDIR/etc/ssh/sshd_config_keep
+ rootfs_config(){
+  cp  -a $DESTDIR/etc/ssh/sshd_config{,-rootfs}
+  sed -i 's:#PidFile /var/run/sshd.pid:PidFile /var/run/sshd-rootfs.pid:
+          s:#Port 22:Port 30:' $DESTDIR/etc/ssh/sshd_config-rootfs
  }
 
  if spell_installed libselinux; then OPTS+=' --with-selinux'; fi
@@ -188,6 +188,12 @@ build(){
  $OPTS &&
  make  &&
  make install DESTDIR=$DESTDIR &&
- keep_config &&
+ rootfs_config &&
  use_pam
+}
+
+current(){
+ case $VERSION in
+  6.1p1) grep -q /media/root/real /etc/init.d/sshd-rootfs ;;
+ esac
 }

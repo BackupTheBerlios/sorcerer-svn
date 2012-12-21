@@ -26,7 +26,12 @@ series(){
  echo "Sysinit ${SECONDS}s End"
 }
 
-/sbin/agetty -f /etc/issue.rootfs tty12 -8 -h -s 115200 &
+if ! [ -d /home ]; then
+ echo "rootfs file system login" > /etc/issue
+ echo "rootfs file system login" > /etc/issue.rootfs
+fi
+
+/sbin/agetty tty12 -8 -h -s 115200 &
 
 if   ! [    -f               /proc/mounts ] ||
      ! grep -q /var/log/init /proc/mounts; then

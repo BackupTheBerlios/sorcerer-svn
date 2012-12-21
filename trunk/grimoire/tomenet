@@ -1,0 +1,36 @@
+with version stable 4.5.0
+with base    SDL_mixer
+with sys_user games
+with role    game
+with trait   console makej x11
+with info    last 20121209
+with info    home http://www.tomenet.net/
+with source  stable http://www.tomenet.net/downloads/tomenet-$VERSION.tar.bz2
+with info    cite 'multi player CRPG'
+
+build(){
+ make_install(){
+  cd ..
+  rm -fr src
+  chgrp -Rv games lib tomenet.server
+  chmod 2755     tomenet.server
+  find lib -type d | xargs chmod 755
+  find lib -type f | xargs chmod 644
+  mkdir -pm 755  "$DESTDIR/opt/tomenet/"
+  cp -a *        "$DESTDIR/opt/tomenet/"
+ }
+ 
+ cd src
+ make clean
+ make &&
+ make install &&
+ make_install
+}
+
+post_install(){
+# sorcery might not have allowed
+# those to install with group other than root
+# reason unknown.
+ chgrp -R games /opt/tomenet/lib
+ default_post_install
+}

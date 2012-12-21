@@ -5,8 +5,9 @@
 # Required-Start: root-rw-retry
 # Default-Start: S
 # Short-Description: alternate roots if SA made mistake.
-# Description: If /media/root is not expected to be encrypted
-# 	and can not be mounted then present a selection of
+# Description: If a root file system did not mount
+#	and the root file system is not expected to be encrypted
+#	then present a selection of
 #	alternate UUID and devices to be mounted as root.
 ### END INIT INFO
 
@@ -14,38 +15,31 @@
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
-if grep -v rootfs  /proc/mounts | grep -q " /media/root .*rw"; then exit 0; fi
-if grep /media/root /etc/fstab | grep -q luks; then exit 0; fi
-if [ -d /home ]; then exit 0; fi
-if grep -q boot=IR /proc/cmdline; then exit 0; fi
+if   grep -v rootfs  /proc/mounts           |
+     grep -q " /media/root/.* .*rw"         ||
+     grep    /media/root/ /etc/fstab.rootfs |
+     grep -q luks                           ||
+     grep -q boot=IR /proc/cmdline          ||
+     [ -d /home ]
+then exit 0
+fi
 
 . /lib/lsb/init-functions
 
 only start
 
 start(){
- media_root(){
-  sed 's:#.*::' /etc/fstab |
-  grep /media/root |
-  tr '\t' ' ' |
-  tr -s ' ' |
-  cut -d ' ' -f1
- }
-
  root_menu(){
   dialog --backtitle alt_boot --stdout --no-cancel --title "Root Device Menu" \
          --menu "Please select device for /" 0 0 0 $( block )
  }
 
  block(){ find /dev -type b -printf '%p	%Y\n' | sed '/loop/d'; }
- new_root(){ echo "$( root_menu ) /media/root auto defaults 0 0" >> /etc/fstab; }
+ new_root(){ echo "$( root_menu ) /media/root/real auto defaults 0 0" >> /etc/fstab.rootfs; }
 
  not_mounted(){
-  local OLD_DEV="$( media_root )"
-  local MSG=$"$OLD_DEV
-did not mount on /media/root
-This outcome is undesirable,
-but not unanticipated."
+  local MSG=$"A root file system did not mount.
+This outcome is undesirable, but not unanticipated."
 
   dialog --backtitle root-alt --stdout --no-cancel --timeout 60 \
          --title "Please pardon the interruption." --msgbox \
@@ -64,7 +58,6 @@ but not unanticipated."
 
  not_mounted
  if [ "$( choose )" == select ]; then
-  sed -i '\,/media/root,d' /etc/fstab
   new_root
   /etc/init.d/root-rw start
  fi

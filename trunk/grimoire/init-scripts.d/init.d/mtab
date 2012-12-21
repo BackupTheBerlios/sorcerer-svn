@@ -2,8 +2,7 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: root-rw
-# Should-Start: root-rw-retry root-alt
+# Required-Start: bind
 # Default-Start: S
 # Short-Description: creates /etc/mtab from /proc/mounts
 ### END INIT INFO
@@ -15,11 +14,13 @@ deny control
 
 start(){
  run(){
-  MR=/media/root
-  if   [  -f  $MR/sbin/init ]
-  then rm -fr $MR/etc/mtab /etc/mtab; cat /proc/mounts > $MR/etc/mtab; ln -s /proc/mounts /etc/mtab
-  else rm -fr              /etc/mtab; cat /proc/mounts >    /etc/mtab
-  fi
+  rm -f                                   /etc/mtab
+  ln -s                 /proc/mounts      /etc/mtab
+  for d in /media/root/*; do
+   if   [ -f         "$d/proc/mounts" ]
+   then chroot "$d" cat /proc/mounts > "$d/etc/mtab"
+   fi
+  done
  }
 
  log_warning_msg '/etc/mtab creating'; run

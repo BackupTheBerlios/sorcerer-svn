@@ -21,19 +21,32 @@ run(){
 }
 
 load_newer(){
- rm -rf           /etc/{init.d,rc.d}
- cp -a /media/root/etc/{init.d,rc.d} /etc/
+ rm -rf    /etc/{init.d,rc.d}
+ cp -a "$p"/etc/{init.d,rc.d} /etc/
 }
 
-current(){
- if [ -d /media/root/etc/init.d ]; then
-  chroot /media/root /etc/init.d/rc.d stop
+vfs(){
+ sed  's:#.*::' /etc/fstab.rootfs |
+ sed  's:\t: :g' | tr  -s ' '     |
+ sed  's:^ ::'   | cut -d ' ' -f2 |
+ grep /media/root/
+}
 
-  if   [ /media/root/etc/init.d/prc -nt /etc/init.d/prc ]
-  then load_newer; exec /etc/init.d/prc "$@"
-  else load_newer
+primary_root(){ vfs | sed '1p;d'; }
+
+current(){
+ local p="$( primary_root )"
+ local vfs="$( vfs )"
+
+ for d in $vfs; do
+  if [ -x "$d/etc/init.d/rc.d" ]; then
+   chroot "$d" /etc/init.d/rc.d stop
+
+   if   find "$p/etc/init.d/prc" -type f -newer /etc/init.d/prc | grep -q .
+   then load_newer "$p"; exec /etc/init.d/prc "$@"
+   fi
   fi
- fi
+ done
 }
 
 linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2; allow_sulogin; done; }
@@ -67,25 +80,34 @@ ssm(){
 }
 
 try_chroot(){
- if   [ -f /media/root/etc/init.d/prc ]
- then exec /bin/chroot /media/root /etc/init.d/prc "$@" c
- fi
+ local r
+ for d in /media/root/*; do
+  if   [ -x "$d/etc/init.d/prc" ]
+  then /bin/chroot "$d" /etc/init.d/prc "$@" c; r=1
+  fi
+ done
+ if [ -n "$r" ]; then exit 0; fi
 }
 
 par_chroot(){
  current "$@"
- if [ -f /media/root/etc/init.d/prc ]; then
-  /bin/chroot /media/root /etc/init.d/prc "$@" c
+ local r
+ for d in /media/root/*; do
+  if [ -x "$d/etc/init.d/prc" ]; then 
+   /bin/chroot "$d" /etc/init.d/prc "$@" c
+   r=1
+  fi
+ done
+ if [[ -n $r ]]; then
   ssm $( rcl | LC_ALL=C sort | sed '/mount/,999p;d' )
-  exit
  else
   ssm $( rcl | LC_ALL=C sort | sed '0,/mount/p;d' | sed '/mount/d' ) 2>&1 |
   tee /var/log/runlevel.$RL
   if   [ -z "$2" ]
   then ssm $( rcl | LC_ALL=C sort | sed '/mount/,999p;d' )
   fi
-  exit
  fi
+ exit 0
 }
 
 RL=$1
@@ -98,5 +120,5 @@ esac
 case $RL in
  3|5|1) log ssl ;;
    2|4) log ssp ;;
-     7) ssl ;;
+     7)     ssl ;;
 esac

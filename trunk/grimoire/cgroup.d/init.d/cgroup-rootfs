@@ -1,0 +1,85 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011, 2012
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc sys
+# Default-Start: S
+# Short-Description: mounts cgroup
+# Long-Description: mounts cgroup on /cgroup
+#	creates /cgroup/rootfs
+#	binds   /cgroup/rootfs to /sys/fs/cgroup
+#	and set limits.
+#	This grants rootfs it's own private cgroup hierarchy
+### END INIT INFO
+
+declare -A subsys subsys_d
+
+. /lib/lsb/init-functions
+
+only start status
+name cgroup-rootfs
+deny control
+
+subsys_default(){
+ unip(){ [ 1 == $( sed '/^processor/p;d' /proc/cpuinfo | wc -l ) ]; }
+
+ if [ -z "${!subsys[*]}" ]; then
+  subsys[clone_children]=1
+  subsys[cpu]=1; unip ||
+  subsys[cpuset]=1
+  subsys[cpuacct]=1
+  subsys[freezer]=1
+  subsys[memory]=1
+ fi
+}
+
+subsys_to_optlist(){
+ subsys_default
+ optlist=
+ if   [ -x /etc/init.d/sentinel-memory ]
+ then subsys[memory]=1
+ fi
+
+ for s in ${!subsys[*]}; do
+  if   [ -n "$optlist" ]
+  then optlist+=",$s"
+  else optlist="$s"
+  fi
+ done
+}
+
+status(){
+ mnt(){
+  if [ -f /proc/mounts ]; then
+   while read DEV MNT JNK
+   do [ "$NAME" = "$MNT" ] && return
+   done < /proc/mounts
+  fi
+  return 1
+ }
+
+ if   mnt
+ then log_warning_msg "$NAME is mounted"; return 0
+ else log_warning_msg "$NAME is not mounted"; return 3
+ fi
+}
+
+start(){
+
+ mcg(){
+  subsys_to_optlist
+  mkdir -pm 755 /cgroup;        mount -t cgroup -o $optlist cgroup /cgroup
+  mkdir -pm 755 /cgroup/rootfs; mount --rbind /cgroup/rootfs /sys/fs/cgroup
+ }
+
+ if   status &>/dev/null
+ then log_success_msg "/sys/fs/cgroup mounted"
+ elif log_warning_msg "/sys/fs/cgroup mounting"; mcg
+ then log_success_msg "/sys/fs/cgroup mounted";
+ else log_failure_msg "/sys/fs/cgroup mounting failed"; return 1
+ fi
+}

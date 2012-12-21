@@ -17,12 +17,19 @@ start(){
  run(){
   if [ -d /home ]
   then mount -n -o remount,rw /
-  else mount -n -o         rw /media/root
+  else
+   sed 's:#.*::' /etc/fstab.rootfs |
+   tr  '\t' ' '      |
+   tr  -s ' '        |
+   cut -d ' ' -f2    |
+   grep /media/root/ |
+   while read; do mkdir -pm 755 "$REPLY"; done
+   mount -T /etc/fstab.rootfs -n -a
   fi
  }
 
- if   log_warning_msg 'root mounting read write'; run
- then log_success_msg 'root mounted  read write'
- else log_failure_msg 'root not mounted'
+ if   log_warning_msg 'root file systems mounting read write'; run
+ then log_success_msg 'root file systems mounted  read write'
+ else log_failure_msg 'root file systems not mounted'
  fi
 }

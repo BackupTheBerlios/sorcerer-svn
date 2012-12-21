@@ -7,16 +7,17 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: proc sys
-# Default-Start: S
-# Short-Description: mount cgroup on /sys/fs/cgroup and set limits
+# Default-Start: 1 2 3 4 5
+# Short-Description: mounts cgroup
+# Long-Description: initializes limits for root specific private cgroup
 ### END INIT INFO
 
 declare -A subsys subsys_d
 
 . /lib/lsb/init-functions
 
-only start configure status reset
-name /sys/fs/cgroup
+only start configure reset
+name cgroup-rootfs
 deny control
 
 subsys_default(){
@@ -55,26 +56,6 @@ reset(){
   echo "Current configuration moved  from /etc/cgroup         to /etc/cgroup.old"
   echo "Default configuration copied from /aux/new/etc/cgroup to /etc/cgroup"
  fi
-}
-
-init_cgroup_old(){
- # some cgroup files must have only one line written at a time.
- catlines(){
-  while read; do
-   if ! echo "$REPLY" > $1; then
-    echo "Failed write was:"
-    echo "echo \"$REPLY\" > $1"
-   fi
-  done
- }
-
- find /etc/cgroup -type d -not -empty -printf "/sys/fs/cgroup/%P\n" | sort | xargs --max-lines=64 mkdir -pm 755
- find /etc/cgroup -type f -not -empty -printf "%P\n" |
- while read; do
-  if   [ -f     /sys/fs/cgroup/$REPLY ]
-  then catlines /sys/fs/cgroup/$REPLY < /etc/cgroup/$REPLY
-  fi
- done
 }
 
 init_cgroup(){
@@ -308,33 +289,7 @@ configure(){
  main_menu
 }
 
-status(){
- mnt(){
-  if [ -f /proc/mounts ]; then
-   while read DEV MNT JNK
-   do [ "$NAME" = "$MNT" ] && return
-   done < /proc/mounts
-  fi
-  return 1
- }
-
- if   mnt
- then log_warning_msg "$NAME is mounted"; return 0
- else log_warning_msg "$NAME is not mounted"; return 3
- fi
-}
-
 start(){
-
- mcg(){ subsys_to_optlist; mount -t cgroup -o $optlist cgroup /sys/fs/cgroup; }
-
- if   status &>/dev/null
- then log_success_msg "/sys/fs/cgroup mounted"
- elif log_warning_msg "/sys/fs/cgroup mounting"; mcg
- then log_success_msg "/sys/fs/cgroup mounted";
- else log_failure_msg "/sys/fs/cgroup mounting failed"; return 1
- fi
-
  if   log_warning_msg "/sys/fs/cgroup initializing"; init_cgroup
  then log_success_msg "/sys/fs/cgroup initialized"
  else log_failure_msg "/sys/fs/cgroup failed initialization"; return 1

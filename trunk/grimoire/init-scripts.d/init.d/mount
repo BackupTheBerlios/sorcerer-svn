@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Provides: $local_fs
-# Required-Start: mtab root-rw bind_dev
+# Required-Start: mtab root-rw dev-bind
 # Required-Stop: cryptmount cryptsetup finale halt mdadm reboot reboot-kexec root-ro vgchange
 # Default-Start: S
 # Default-Stop: 0 6
@@ -16,17 +16,24 @@ only start stop
 deny control
 
 start(){
- run(){
-  if [ -f     /media/root/sbin/init ]
-  then chroot /media/root mount -a
-  else                    mount -a
-  fi
- }
+ run(){ chroot "$1" mount -a; }
 
- if   log_warning_msg 'Filesystems from /etc/fstab mounting'; run
- then log_success_msg 'Filesystems from /etc/fstab mounted'
- else log_success_msg 'Filesystems from /etc/fstab not mounted'
+ local r=0
+ if    [ -d /home ]; then
+  if   log_warning_msg "mount -a executing"; mount -a
+  then log_success_msg "mount -a executed"
+  else log_success_msg "mount -a execution failed"; r=1
+  fi
+ else
+  for d in /media/root/*; do
+   [[ -f $d/etc/fstab ]] || continue
+   if   log_warning_msg "chroot $d mount -a executing"; run "$d"
+   then log_success_msg "chroot $d mount -a executed"
+   else log_success_msg "chroot $d mount -a execution failed"; r=1
+   fi
+  done
  fi
+ return $r
 }
 
 stop(){
@@ -34,15 +41,15 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-   cut -d ' ' -f2 /proc/mounts |
-   LC_ALL=C sort -r |
-   if   [ -d /media/root/proc ]
-   then grep /media/root
-   else grep -vx / ; mount -o remount,ro /
-   fi |
-   xargs -r --max-lines=1024 umount -lr
+  cut -d ' ' -f2 /proc/mounts |
+  LC_ALL=C sort -r |
+  if   [ -d /media/root/proc ]
+  then grep /media/root
+  else grep -vx / ; mount -o remount,ro /
+  fi |
+  xargs -r --max-lines=1024 umount -lr
  }
 
- log_warning_msg 'Filesystems unmounting'; run
- log_success_msg 'Filesystems unmounted'
+ log_warning_msg 'File systems unmounting'; run
+ log_success_msg 'File systems unmounted'
 }

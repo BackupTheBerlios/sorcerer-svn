@@ -1,0 +1,39 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011, 2012
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: bind
+# Default-Start: S
+# Short-Description: creates private cgroup for each root file system 
+### END INIT INFO
+
+declare -A subsys subsys_d
+
+. /lib/lsb/init-functions
+
+only start
+name /sys/fs/cgroup
+deny control
+
+start(){
+
+ run(){
+  mkdir -pm 755                "$d/rootfs" &&
+  mount --rbind /sys/fs/cgroup "$d/rootfs" &&
+  mount --rbind                "$d" "$c"
+ }
+
+ for a in /media/root/*; do 
+  c="$a/sys/fs/cgroup"; [ -d $c ] || continue
+  d="/cgroup/${a##*/}"
+  if   grep -q "$c" /proc/mounts; then continue
+  elif log_warning_msg "$c binding"; run
+  then log_success_msg "$c bound";
+  else log_failure_msg "$c bind failure"; return 1
+  fi
+ done
+}

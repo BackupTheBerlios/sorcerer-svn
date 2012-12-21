@@ -77,28 +77,33 @@ on disk, by network, or by memory storage devices.
 Section 1.6 the end of sysinit
 
 The end portion of sysinit
-mounts the real root filesystem on /media/root/
-Additional filesystems specified in /etc/fstab
-are mounted under /media/root
-Then, virtual file systems such as /dev and /proc
+mounts the real root filesystems.
+File systems and binds specified in /etc/fstab.rootfs are mounted.
+Root file systems should be mounted
+on immediate subdirectories of /media/root/
+The primary or real root file system is typically mounted as:
+/media/root/real/
+
+Then, virtual file systems such as /dev /proc /sys
 that mounted during sysinit
-are bound to /media/root/dev and /media/root/proc, respectively.
+are bound to /media/root/*/{dev,proc,sys}/ , respectively.
 Now that sysinit is complete
-runlevel execution begins
-within a chroot to /media/root/
+runlevel begins in each root file system
+where /etc/init.d/prc is executable.
+
 
 Section 1.7 gettys
 
 Following the completion of sysinit
-agetty is started on virtual consoles.
-Runlevels 1 2 3 provides agetty on virtual consoles 1 through 7.
-Runlevels 4 5   provides agetty on virtual consoles 1 through 3 and 7.
-agetty, except on virtual console #7, log in chrooted to /media/root/
-Virtual console #7 logs into /
-Virtual console #7 is provided for the SA
-in order to diagnose and repair problems on a box
-without having to reboot using an Install/Rescue disk
-and without having to reboot using the rescue label.
+gettys are started on virtual consoles.
+gettys are specified in /etc/inittab.
+gettys can be made available for any root file system
+or denied for a root file system by editing /etc/inittab
+The default configuration provides several gettys
+that are chrooted to /media/root/real/
+and one getty that logs into / the rootfs.
+Logging into the rootfs can be useful for
+identifying and repairing problems without rebooting.
 
 Section 1.8 runlevel
 
