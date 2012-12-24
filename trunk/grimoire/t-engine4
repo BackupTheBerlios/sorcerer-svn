@@ -1,18 +1,14 @@
-with version   stable 1.0.0beta41
-with base    SDL2 SDL_image SDL_ttf libvorbis openal premake
+with version   stable 1.0.0RC2 1.0.0beta41
+with base    SDL2 SDL2_image SDL2_ttf libvorbis openal premake
 with elect   libX11 --with-x  --disable-x for x11 graphical interface
-  sys_user games
+with sys_user games
 with role    game
 with trait   x11
 with source  http://te4.org/dl/t-engine/t-engine4-src-$VERSION.tar.bz2
 with info    home http://te4.org/
-with info    last 20120627
-with info    cite 't-engine4 + ToME 
-Troubles of Middle Earth is an angband fork or a CRPG
-
-Compilation, linking, and installation of 1.0.0beta41 seems okay,
-but it does not seem to play.
-Does a large rectangular empty black window.'
+with info    last 20121222
+with info    cite "t-engine4 + ToME
+Tales of Maj'Eyal is an angband fork or a CRPG"
 
 build(){
  make_install(){
@@ -21,12 +17,16 @@ build(){
   chown  -R root:root              $DESTDIR/usr/share/tome
   find $DESTDIR/usr/share/tome -type d | xargs -r --max-lines=256 chmod 755
   find $DESTDIR/usr/share/tome -type f | xargs -r --max-lines=256 chmod 644
-  install -vm 755 t-engine         $DESTDIR/share/tome
+  install -vm 755 t-engine         $DESTDIR/usr/share/tome
   mkdir  -pvm 755                  $DESTDIR/usr/bin
   install -vm 755 $SCRIPT_DIR/tome $DESTDIR/usr/bin/
+#  if ! [ -f $DESTDIR/usr/share/tome/t-engine ]; then
+#   cd       $DESTDIR/usr/share/tome
+#   ln -s    game/engine/te4*        t-engine
+#  fi
  }
 
- sed -i 's:SDL2_ttf:SDL_ttf:; s:SDL2_image:SDL_image:' build/te4core.lua
+# sed -i 's:SDL2_ttf:SDL_ttf:; s:SDL2_image:SDL_image:' build/te4core.lua
  export   CFLAGS="$( echo   "$CFLAGS" | sed 's:-O.::' )"
  export CXXFLAGS="$( echo "$CXXFLAGS" | sed 's:-O.::' )"
  export   CFLAGS+="-I/usr/include/SDL2 -I/usr/include/SDL $CFLAGS"
