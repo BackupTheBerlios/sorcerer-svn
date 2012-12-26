@@ -81,23 +81,27 @@ ssm(){
 
 try_chroot(){
  local r
- for d in /media/root/*; do
-  if   [ -x "$d/etc/init.d/prc" ]
-  then /bin/chroot "$d" /etc/init.d/prc "$@" c; r=1
-  fi
- done
+ if [ -z "$2" ]; then
+  for d in /media/root/*; do
+   if   [ -x "$d/etc/init.d/prc" ]
+   then /bin/chroot "$d" /etc/init.d/prc "$@" c; r=1
+   fi
+  done
+ fi
  if [ -n "$r" ]; then exit 0; fi
 }
 
 par_chroot(){
  current "$@"
  local r
- for d in /media/root/*; do
-  if [ -x "$d/etc/init.d/prc" ]; then 
-   /bin/chroot "$d" /etc/init.d/prc "$@" c
-   r=1
-  fi
- done
+ if [ -z "$2" ]; then
+  for d in /media/root/*; do
+   if [ -x "$d/etc/init.d/prc" ]; then 
+    /bin/chroot "$d" /etc/init.d/prc "$@" c
+    r=1
+   fi
+  done
+ fi
  if [[ -n $r ]]; then
   ssm $( rcl | LC_ALL=C sort | sed '/mount/,999p;d' )
  else
