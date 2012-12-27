@@ -1,12 +1,44 @@
-with version stable 5.9 5.7 5.6
+with version stable 5.9-20121222 5.9 5.7 5.6
+case $VERSION in
+ 5.9*)
+with also    --without-gpm ;;
+esac
 with base    gawk
 with also    --without-debug
 with role    development
-with trait   console library lto makej multilib-dual solo
-with source  $GNU_URL ncurses/ncurses-$VERSION.tar.gz
+with trait   console library lto makej multilib-dual no_patcher solo
+with source  $GNU_URL ncurses/ncurses-${VERSION:0:3}.tar.gz
 case $VERSION in
- 5.9)
-with source  ftp://invisible-island.net/ncurses/5.9/patch-5.9-20120616.sh.gz ;;
+ 5.9*)
+with source  ftp://invisible-island.net/ncurses/5.9/patch-5.9-20120616.sh.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120622.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120630.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120707.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120714.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120721.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120728.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120804.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120811.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120825.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120826.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120901.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120902.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120903.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120908.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20120922.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121006.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121013.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121017.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121026.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121102.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121110.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121117.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121124.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121201.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121208.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121215.patch.gz
+with source  ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20121222.patch.gz
+;;
 esac
 with info    good 20120625
 with info    last 20110404
@@ -30,10 +62,21 @@ build(){
   mv     -v      $DESTDIR/{usr/bin/{clear,tput},bin/}
  }
 
+ patchy(){
+  set -x
+  local          r="${SOURCE[1]}"
+  cp     "$r" .; r="${r##*/}"
+  gunzip "$r"  ; r="${r%.gz}"
+  sh     "$r"
+  CX=2
+  while [    -n  "${SOURCE[$CX]}" ]
+  do    gzip -cd "${SOURCE[$CX]}" | patch -p1; (( CX++ ))
+  done
+  set +x
+ }
+
  case $VERSION in
-  5.9) cp ${SOURCE[1]} .
-       gunzip ${SOURCE[1]}
-       sh     ${SOURCE[1]%.gz} ;;
+  5.9*) patchy ;;
  esac
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
