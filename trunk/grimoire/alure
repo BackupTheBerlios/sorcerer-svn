@@ -1,0 +1,28 @@
+with version stable 1.2
+with base    openal
+with also    -DCMAKE_INSTALL_PREFIX:PATH=/usr
+with also    -DFLUIDSYNTH:BOOL=OFF
+with also    -DBUILD_EXAMPLES:BOOL=OFF
+with also    -DINSTALL_EXAMPLES:BOOL=OFF
+#with also    -DDSOUND:BOOL=OFF
+#with also    -DWINMM:BOOL=OFF
+with role    audio/library audio/mixer
+with trait   library makej x11
+with source  http://kcat.strangesoft.net/alure-releases/alure-$VERSION.tar.bz2
+with info    good 20121230
+with info    last 20110729
+with info    home http://kcat.strangesoft.net/alure.html
+with info    vurl http://kcat.strangesoft.net/alure.html
+with info    cite 'library to help with OpenAL applications'
+
+build(){
+ default_build &&
+ mkdir  -pvm 755                           $DESTDIR/usr/bin &&
+ if   [[ $HOSTTYPE == x86_64   ]]; then
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
+                                   else mv $DESTDIR/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
+   sed -i 's:/lib:/lib64:' $DESTDIR/usr/lib64/pkgconfig/alure{,-static}.pc
+  fi
+ fi
+}
