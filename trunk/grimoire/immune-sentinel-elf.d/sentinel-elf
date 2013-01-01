@@ -9,47 +9,53 @@
 # then a previous backups of the library directory
 # is restored in order to end the crisis.
 
-if ! [ -f /media/root/real/usr/sbin/elfchain ]; then
- echo "sentinel-elf runs only on the Sorcerer's keep." 1>&2
+if [ -d /opt ]; then
+ echo "sentinel-elf must be started on the rootfs file system." 1>&2
  exit 1
 fi
 
 chain(){
- if ! [ -f   /media/root/real//usr/sbin/elfchain ]; then return 0; fi
- if ! chroot /media/root/real /usr/sbin/elfchain  ; then sleep 30
-      chroot /media/root/real /usr/sbin/elfchain
+ if ! [ -x   "$1///usr/sbin/elfchain" ]; then return 0; fi
+ if ! chroot "$1" /usr/sbin/elfchain   ; then sleep 30
+      chroot "$1" /usr/sbin/elfchain
  fi
 }
 
-repair(){
+verify(){
  fix(){
-  if ! [ -d $f/$1 ]; then return 0; fi
-  mv        $r/$1 $b/
-  cp -a     $f/$1 $r/
+  if ! [ -d "$f/$1" ]; then return 0; fi
+  mv        "$r/$1" "$b/"
+  cp -a     "$f/$1" "$r/"
   logger -p syslog.crit -s -t sentinel-elf -- $"ELF library failure detected"
   logger -p syslog.crit -s -t sentinel-elf -- $"$r/$1 moved  to $b/$1"
   logger -p syslog.crit -s -t sentinel-elf -- $"$f/$1 copied to $r/$1"
  }
 
- local r=/media/root/real
- local a=$r/aux
- local b=$a/bad
- local f=$a/fit
+ local r a b f
 
- rm    -fr     $b
- mkdir -pm 755 $a
- mkdir -pm 700 $b
- case $HOSTTYPE in
-  x86_64) fix lib64 ;;
-       *) fix lib   ;;
- esac
+ for r in /media/root/*; do
+  chain "$r" && continue
+
+  r=/media/root/real
+  a=$r/aux
+  b=$a/bad
+  f=$a/fit
+
+  rm    -fr     "$b"
+  mkdir -pm 755 "$a"
+  mkdir -pm 700 "$b"
+  case $HOSTTYPE in
+   x86_64) fix lib64 ;;
+        *) fix lib   ;;
+  esac
+ done
 }
 
 main(){
  if   [[     -x /media/root/real/usr/libexec/bash/sleep ]]
  then enable -f /media/root/real/usr/libexec/bash/sleep sleep
  fi
- while sleep 60; do chain || repair; done
+ while sleep 60; do verify; done
 }
 
 main &>/dev/null &
