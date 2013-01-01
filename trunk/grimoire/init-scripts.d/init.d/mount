@@ -41,13 +41,17 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-  cut -d ' ' -f2 /proc/mounts |
-  LC_ALL=C sort -r |
-  if   [ -d /media/root ]
-  then grep /media/root
-  else grep -vx / ; mount -o remount,ro /
-  fi |
-  xargs -r --max-lines=1024 umount -lr
+  cut  -d ' ' -f2 /proc/mounts  |
+  sed  '\,^/media/root,p;d'     |
+  sort -r | xargs -r --max-lines=256 umount -lr
+
+  sed  '\,^rootfs / rootfs,d
+        \,^proc /proc proc,d
+        \,^sysfs /sys sysfs,d
+        \,^tmpfs /run tmpfs,d
+        \,^devtmpfs /dev devtmpfs,d
+        \,^devpts /dev/pts devpts,d' /proc/mounts | cut -d ' ' -f2 |
+  sort -r | xargs -r --max-lines=256 umount -lr
  }
 
  log_warning_msg 'File systems unmounting'; run
