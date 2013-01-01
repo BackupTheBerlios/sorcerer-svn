@@ -1,0 +1,42 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Default-Start: 1 2 3 4 5
+# Short-Description: creates /var/tmp/ and assigns proper mode and ownership
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start
+name /var/tmp
+
+chkdir(){
+ if    ! [ -d /var/tmp ]; then
+  if   log_warning_msg "rm -f /var/tmp && mkdir -pm 1777 /var/tmp/" &&
+                        rm -f /var/tmp && mkdir -pm 1777 /var/tmp/
+  then log_success_msg "/var/tmp/ created"
+  else log_failure_msg "/var/tmp/ creation failed"; return 1
+  fi
+ elif    [ -d /var/tmp ] &&
+       ! [ -n "$( find /var/tmp -maxdepth 0 -uid 0 -gid 0 -perm 1777 )" ]
+ then
+  if   log_warning_msg "chown root:root /var/tmp/ && chmod 1777 /var/tmp/" &&
+                        chown root:root /var/tmp/ && chmod 1777 /var/tmp/
+  then log_success_msg "/var/tmp/ ownership and mode adjusted"
+  else log_failure_msg "/var/tmp/ ownership and mode adjustment failed"; return 1
+  fi
+ fi
+}
+
+start(){
+ if   log_warning_msg "/var/tmp/ existence ownership mode checking"; chkdir
+ then log_success_msg "/var/tmp/ verified"
+ else log_failure_msg "/var/tmp/ improper"
+ fi
+}
