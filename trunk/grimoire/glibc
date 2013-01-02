@@ -1,5 +1,5 @@
 # NVIDIA's precompiled drivers version 295.49
-# mightn ot be compatible wtih glbic version 2.15
+# might not be compatible wtih glbic version 2.15
 
 # glibc version 2.14.1 and 2.13 have a patch that fixes a compilation bug
 # that was introduced by the gcc version 4.5.x branch
@@ -62,25 +62,10 @@ with info    cite 'GNU implementation of a C library'
 build(){ (
  local arch setarch
 
- missing_headers(){
-  # headers missing from glibc version 2.14.1
-  # yet required in order to compile libtirpc version 0.2.2
-  mkdir  -pvm 755 $DESTDIR/usr/include/rpcsvc
-  mkdir  -pvm 755 $DESTDIR/usr/include/rpc
-  install -vm 644 ../nis/rpcsvc/nis{,lib,_tags}.h $DESTDIR/usr/include/rpcsvc/
-  install -vm 644 ../nis/rpcsvc/yp{,clnt}.h       $DESTDIR/usr/include/rpcsvc/
-  install -vm 644 ../sunrpc/rpc/{auth,auth_des,auth_unix,clnt,pmap_clnt,rpc,rpc_msg,svc,svc_auth,types,xdr}.h $DESTDIR/usr/include/rpc/
- }
-
  install_glibc(){
   install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
   mkdir  -pvm 755                   $DESTDIR/var/db
   mkdir  -pvm 700                   $DESTDIR/var/db/nscd
-
-#  case $VERSION in
-#   2.15)   missing_headers ;;
-#   2.14.1) missing_headers ;;
-#  esac
 
   cd    $DESTDIR
   rm -f $DESTDIR/etc/{localtime,ld.so.*}
@@ -112,7 +97,7 @@ build(){ (
 
  if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]; then
   export CC="gcc -m32"
-with also    --host=${MACHTYPE/x86_64/i686}
+  with also    --host=${MACHTYPE/x86_64/i686}
   arch=i686; setarch=setarch
 # else
 #  arch=$HOSTTYPE
@@ -162,23 +147,15 @@ with also    --host=${MACHTYPE/x86_64/i686}
  quick_test        &&
  supported_locales &&
  install_glibc
- ) }
+) }
 
 post_install(){
-          get_provider nss_ldap      |
- pipe     show_installed             |
- LC_ALL=C sort                       |
-          uniq -d                    |
+          get_provider nss_ldap  |
+ pipe     show_installed         |
+ LC_ALL=C sort                   |
+          uniq -d                |
           pipe_queue $MOIL_QUEUE
 
  /etc/init.d/locale-archive reload
  true
-}
-
-current(){
- case $VERSION in
-# 2.14.1) [ -f /usr/include/rpcsvc/nis.h ] ;;
-  2.11.1) [    -f  /usr/bin/getconf ] &&
-          grep -qx /usr/bin/getconf $INSTALL_LOGS/glibc ;;
- esac
 }
