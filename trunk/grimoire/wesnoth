@@ -11,7 +11,7 @@ with version unstable 1.11.1
 #   use_gcc gcc-v4.5
 #with base    boost-v1_46_1 ;;
 #esac
-with base    SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi lua pango subversion
+with base    SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi libpng14 lua pango subversion
 #     with also --disable-strict-compilation
 with also    -DENABLE_STRICT_COMPILATION:BOOL=FALSE
 with role    game
@@ -40,6 +40,11 @@ build(){
 # case $VERSION in
 #  1.10.3) old_boost ;;
 # esac
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
+ else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib'
+ fi
 
  default_build
 }
