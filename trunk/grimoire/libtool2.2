@@ -1,12 +1,13 @@
-with version stable 2.4.2 2.2.10
+# httpd version 2.2.16 will not compile with libtool version 2.4
+
+with version stable 2.2.10
 with version latest 2.4.2
-with also    --enable-static=no
+with also    --enable-static=no --prefix=/opt/libtool/2.2/usr
 with role    development
 with trait   archive_off library makej multilib-concurrent solo
 with source    stable $GNU_URL libtool/libtool-$VERSION.tar.gz
 with source    latest $GNU_URL libtool/libtool-$VERSION.tar.gz
-with info    good 20130102
-with info    last 20111018
+with info    last 20111019
 with info    home http://www.gnu.org/software/libtool
 with info    cite 'generic library support script
 libtool - Generic library support script
@@ -17,6 +18,9 @@ Libtool supports building static libraries on all platforms.
 It also includes GNU libltdl, the libtool dynamic loader library.'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/opt/libtool/2.2/usr/lib64
+ fi
  export   CFLAGS="${CFLAGS//-flto/}"
  export CXXFLAGS="${CXXFLAGS//-flto/}"
  export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"

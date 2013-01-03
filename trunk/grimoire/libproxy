@@ -11,7 +11,6 @@ case $VERSION in
 esac
 with role    network
 with trait   library makej multilib-concurrent
-#with trait   broke
 with source  http://libproxy.googlecode.com/files/libproxy-$VERSION.tar.gz
 with info    last 20121130
 with info    vurl http://code.google.com/p/libproxy/downloads/list
@@ -34,7 +33,9 @@ with also    -DWITH_PERL:BOOL=OFF
  fi
 
  default_build &&
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then mv -v $DESTDIR/usr/lib{,64}
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  mkdir -pvm 755 "$DESTDIR"/usr/lib64
+  mv    -v       "$DESTDIR"/usr/lib/* "$DESTDIR"/usr/lib64/
+  sed   -i 's:/lib$:/lib64:'          "$DESTDIR"/usr/lib64/pkgconfig/*.pc
  fi
 }
