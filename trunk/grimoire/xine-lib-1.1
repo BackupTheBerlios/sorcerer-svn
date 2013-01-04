@@ -1,14 +1,4 @@
-# 1.1.13 gained elective on libmodplug, but why?
-
-# 1.2.0 might not be unstable but it breaks ABI compatibility
-# with versions 1.1.x
-# Some software might compile error with xine-lib 1.2.x headers.
-# Will wait until xine-lib 1.2.1 or later to test the newer ABI
-
-# version 1.2.2 not compatible with phonon-backend-xine version 4.4.4
-
-with version   stable 1.2.2 1.1.21
-with version unstable 1.2.2
+with version   stable 1.1.21
 with base    MesaLib gdk-pixbuf libXinerama libXvMC libpng v4l-utils
 #with base    MesaLib gdk-pixbuf libXinerama libXvMC libpng libv4l
 with elect   GConf
@@ -38,6 +28,12 @@ with info    freecode xine
 with info    cite 'libraries for xine, a free video player'
 
 build(){
+ with also --prefix=/opt/xine-lib/1.1/usr
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/opt/xine-lib/1.1/usr/lib64
+ else with also --libdir=/opt/xine-lib/1.1/usr/lib
+ fi
+
  case $VERSION in
   1.1.19) sed -i '1i#include <X11/Xlib.h>
                   1i#include <X11/extensions/XvMClib.h>

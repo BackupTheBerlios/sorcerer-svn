@@ -12,9 +12,10 @@
 with version   stable 3.0.1
 case $VERSION in
  3.0.1)
-with base    ffmpeg-v0.7 giflib-v4 ;;
+with base    ffmpeg-v0.7 giflib-v4 xine-lib-1.1 ;;
 esac
-with base    LibVNCServer curl ffmpeg giflib librsvg openexr poppler xine-lib
+with base    LibVNCServer curl ffmpeg giflib librsvg openexr poppler
+#with base    LibVNCServer curl ffmpeg giflib librsvg openexr poppler xine-lib
 with role    graphic
 with trait   library makej multilib-fail optimize x11
 with source  http://www.openscenegraph.org/downloads/stable_releases/OpenSceneGraph-$VERSION/source/OpenSceneGraph-$VERSION.zip
@@ -69,8 +70,16 @@ with also    -DFFMPEG_LIBAVUTIL_LIBRARIES:FILEPATH=/opt/ffmpeg/0.7/usr/lib$SUFFI
 with also    -DFFMPEG_LIBSWSCALE_LIBRARIES:FILEPATH=/opt/ffmpeg/0.7/usr/lib$SUFFIX
  }
 
+ xinelib_fix(){
+  with also -DXINE_INCLUDE_DIR:PATH=/opt/xine-lib/1.1/usr/include
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then with also -DXINE_LIBRARY:FILEPATH=/opt/xine-lib/1.1/usr/lib64/libxine.so
+  else with also -DXINE_LIBRARY:FILEPATH=/opt/xine-lib/1.1/usr/lib/libxine.so
+  fi
+ }
+
  case $VERSION in
-  3.0.1) ffmpeg_legacy; giflib_fix ;;
+  3.0.1) ffmpeg_legacy; giflib_fix; xinelib_fix ;;
   2.8.5) sed -i '\,curl/types.h,d' src/osgPlugins/curl/ReaderWriterCURL.cpp ;;
  esac
 
