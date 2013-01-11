@@ -974,6 +974,166 @@ empty_entry(){
 
 filesystem_table(){
 
+ fstab_help(){
+ $DIALOG --msgbox \
+"A root file system provides /bin/ /lib/ /opt/ /sbin/ /usr/ directories
+filled with expected file content.
+If ELF 64-bit executable files and shared libraries exist
+then /lib64/ provides the location for ELF 64-bit libraries.
+
+A paradigm is a replica of a root file system.
+A paradigm has it's own directories that mirror
+the structure of it's progenitor at the time of creation.
+The files in a paradigm are hard linked
+to files with the same names and relative locations
+within it's progenitor's file system.
+Consequently, the cost for creating a paradigm
+is inodes rather than significant disk space.
+
+Boxes can have can have
+as many file systems and paradigms
+as mass storage space and inodes permit.
+However, since neither paradigms nor
+multiple root file systems
+were topics discussed by the LSB
+each distribution of free software
+might provide implementations that differ.
+
+After completion of POST, the power on self test,
+BIOS, basic input ouput system, loads and executes a bootloader.
+The bootloader loads the linux kernel
+and compressed or uncompressed cpio images into RAM.
+The cpio images are called initramfs.
+The bootloader begins execution of the linux kernel.
+The linux kernel decompresses and extracts conten
+from the initramfs onto the rootfs.
+
+The rootfs is a variation of tmpfs.
+Rootfs is RAM based but also backed by anonymous swap.
+Rootfs is mounted as /
+
+The initramfs file system differs from a root file system.
+initramfs has an incomplete /usr and missing /opt.
+The purpose of the initramfs file system is to boot,
+shutdown, and repair/troubleshoot root file systems
+when necessary.
+
+Root file systems are mounted on
+the immediate sub directories of /media/root/
+A deployed box has at least one root file system.
+Unless the name is changed
+then the initial root file system is mounted on
+/media/root/real/
+Examples of additional root file systems might be:
+/media/root/work/ for the required loadout of software
+required by the workplace management;
+/media/root/test/ for testing developmental versions
+or newer versions of software than deployed for production use;
+/media/root/play/ could provide a loadout of software
+suitable for playing games, relaxing, and training.
+
+Root file systems can exist as binds
+on a previously mounted file system
+or can exist on separate dedicated file systems.
+fstab entiries that contain /media/root/
+are stored in /etc/fstab.rootfs instead of /etc/fstab
+The content of /etc/fstab.rootfs is mounted 
+before the content of /media/root/*/etc/fstab
+is mounted chrooted.
+
+Consequently, if a root file system has a separate
+dedicated /aux/ /var/ /srv/ or /home/ file system
+then additional file ystems are still specified in /etc/fstab.
+
+Root file systems and paradigms
+share many of the same limitations.
+A single linux kernel is shared.
+Pool of available PIDs is shared.
+/dev/ is shared.
+Ports numbers are shared.
+Therefore, unless a virtual network adapter
+is configured for allowing the same utilities
+on a separate root to bind to a different adapter
+then only one process can bind to a network device's port.
+X or GUI login programs can run in multiple root file systems.
+However the last one to start will likely become the
+active virtual console and display it's greeting.
+As expect other virtual consoles can be selected
+by pressing ctrl-alt-number key.
+Virtual consoles are shared.
+Gettys assignments in /etc/inittab must be adjusted
+to provide gettys that log into root real file systems
+other than /media/root/real/
+
+Unlike a virtual computer
+paradigms and multiple root file systems
+maximize execution speed and minimize RAM waste.
+
+Paradigms minimize mass storage utilization
+will still providing a file system
+that can evolve differently from it's progenitor.
+Consequently, paradigms can be used for testing
+or for providing a save point that could be useful
+for reverting to a previous loadout of software.
+The progenitor file system can have it's content
+shifted to that of one it's paradigms.
+Shifting migrates the changes made within the paradigm
+into the root file system of it's progenitor.
+Paradigms can be easily discarded when no longer useful.
+Since paradigms are constructed using hard linked files
+paradigms must always exist on the same file system
+as it's progenitor.
+
+Root file systems are mounted on /media/root/*/ of the rootfs.
+Likewise paradigms are mounetd on the /media/root/*/
+of a progenitor's root file system.
+Therefore, if the SA desired to create a paradigm
+called 201301 for comparing the evolution of software
+within /media/root/real/
+then the paradigm's file system would be created at
+/media/root/real/media/root/201301/
+
+The functionality of paradigms
+and multiple root file systems
+can be used concurrently.
+The best choice depends upon the task at hand
+and expected duration or role of the file system.
+
+Runlevel execution happens in all root file systems
+provided that /etc/init.d/prc has the executable mode.
+However, runlevel execution never happens in paradigms.
+Paradigms are manipulated using
+the paradigm augur module of the sorcery tools.
+The use of paradigms is considered advanced lore
+mastered only by senior level Sorcerer SAs.
+
+Consequently, the menu driven installer
+provides no functions for creating paradigms.
+The following menu allows for root file systems
+to be defined and then for additional file systems
+to be created within.
+One caveat exist.
+/usr/ and subdirectories of /usr
+must exist on the same file system as /
+Otherwise the code for creating paradigms would be far more complex
+since hard links can not span file system boundaries.
+
+If confused then try the recommendation of /media/root/real/
+When booted login on gettys and the ssh listening on port 22
+are chrooted within /media/root/real/
+Consequently, /media/root/real/ appears to be /.
+The rootfs mounted on / remains hidden and inaccessible
+unless logging in on a special getty or port 30 via ssh.
+The concealed of rootfs mounted on / allows for
+the LSB compliant installation locations for software.
+The use of multiple root file systems and paradigms
+can remain transparent to everyone except the SA.
+If desired then the SA can go with /media/root/real/
+as the single root file system and
+completely ignore the extra complexity and functionality." 20 75
+
+# ***
+
  pselect(){
   $DIALOG --ok-label Select --cancel-label Done \
    --title $"File System Table Menu" \
@@ -1066,7 +1226,6 @@ filesystem_table(){
   fi
  }
 
-
  check_root_defined(){
   if   ! root_device | grep -q .
   then msgbox $"/ Root file system required!"; return 1
@@ -1095,6 +1254,8 @@ filesystem_table(){
 to mount prior to transfering sorcerer.
 The information prompted for corresponds
 to the fields on a line in /etc/fstab"
+
+ fstab_help
 
  $DIALOG --msgbox "$HELP" 18 65
  offer_man fstab
