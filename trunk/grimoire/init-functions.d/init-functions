@@ -388,25 +388,25 @@ control(){
   esac
 
   dialog \
-   --title "/etc/init.d/$NAME" \
+   --title "$SELF"       \
    --timeout 60          \
    --stdout              \
    --cancel-label "Done" \
-   --menu "$status." 0 0 0  \
+   --menu "$status." 0 0 0 \
    "Automatic"	"execution toggle?" \
    "Restart"	"on updates toggle?"
  }
 
  while
-  mode=$( find /etc/init.d/$NAME -type f -printf "%m\n" )
+  mode=$( find "$SELF" -type f -printf "%m\n" )
   case $( control_menu ) in
    Automatic) if   [ "${mode:0:1}" == 5 ]
-              then chmod 400 /etc/init.d/$NAME
-              else chmod u+x /etc/init.d/$NAME
+              then chmod 400 "$SELF"
+              else chmod u+x "$SELF"
               fi ;;
    Restart)   if   [ "${mode:1:1}" == 1 ]
-              then chmod g-x /etc/init.d/$NAME
-              else chmod g+x /etc/init.d/$NAME
+              then chmod g-x "$SELF"
+              else chmod g+x "$SELF"
               fi ;;
    *) /lib/lsb/install_initd; exit 0 ;;
   esac

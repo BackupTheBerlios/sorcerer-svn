@@ -1,0 +1,15 @@
+with version stable 2012j
+with role    utility/time
+with trait   data
+with base    glibc
+with source  stable ftp://ftp.iana.org/tz/releases/tzdata$VERSION.tar.gz
+with info    last 20121113
+with info    home ftp://ftp.iana.org/tz/releases/
+with info    cite 'files installed to /usr/share/zoneinfo/ that describe timezones'
+
+build(){
+ mkdir   -pvm 755    $DESTDIR/usr/share/zoneinfo
+ install  -vm 755 -t $DESTDIR/usr/share/zoneinfo *.tab &&
+ zic              -d $DESTDIR/usr/share/zoneinfo -L leapseconds \
+         $( grep -l "Rule	" * 2>/dev/null )
+}
