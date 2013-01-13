@@ -1,29 +1,9 @@
-# NVIDIA's precompiled drivers version 295.49
-# might not be compatible wtih glbic version 2.15
-
-# glibc version 2.14.1 and 2.13 have a patch that fixes a compilation bug
-# that was introduced by the gcc version 4.5.x branch
-# and yet not fixed by gcc authors, odd.
-
-# glibc version 2.14 and above have no support for rpc
-# libtirpc also does not work becuase it requires rpc functions
-# that are not available in glibc.
-# Also glibc 2.14.1 has new annoying bugs not present in 2.13.
-# Rolling back glibc 2.13 to 2.13 will break some boxes.
-# However, there is no better soluton at this moment
-# than to hold at version 2.13
-
-# aware of glibc version 2.15, researching it's RPC status before testing.
-# the RPC in glibc version 2.16.0 is broke and causes
-# a compile failure when given --enable-obsolete-rpc
-# probably intended that way by the software authors
-# in order to encourage a faster demise of SUNRPC.
-
 with version   stable 2.13 2.12.2
 with version unstable 2.17
 case $VERSION in
  2.17*)
-with also    --enable-obsolete-rpc ;;
+with switch  --enable-obsolete-rpc --disable-obsolete-rpc 'enable when NFS will be used'
+;;
 esac
 with role    development
 with trait   library makej multilib-dual solo
@@ -120,8 +100,9 @@ build(){ (
  mkdir -pvm 755 $DESTDIR/etc
  touch          $DESTDIR/etc/ld.so.conf
 
- KVER=$( uname -r | cut -d '.' -f-3 | tr -d '.' )
- if (( KVER >= 2630 )); then with also --enable-kernel=2.6.30; fi
+ if   [ -f /usr/bin/uname ]
+ then with also --enable-kernel=$( uname -r )
+ fi
 
  sed -i 's:/bin/pwd:pwd:g' configure
 
