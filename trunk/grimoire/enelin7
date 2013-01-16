@@ -1,0 +1,33 @@
+# Compiles and installs fine begins to run
+# but segmentation faults after init video subsystem
+with version stable 0.8
+with base    SDL glu
+with role    game
+with trait   makej x11
+with trait   broke
+with source  stable http://proj.phk.at/el/7/enelin7-$VERSION.zip
+with info    good 20130116
+with info    last 20111021
+with info    home http://proj.phk.at/el/7/
+with info    cite '3D first-person shooter game of destroying bombers'
+
+build(){
+ make_install(){
+  mkdir  -pvm 755         "$DESTDIR"/usr/share
+  mkdir  -pvm 755         "$DESTDIR"/usr/bin
+  mkdir  -pvm 755         "$DESTDIR"/usr/libexec
+  install -vm 755 enelin7 "$DESTDIR"/usr/libexec
+  cd ..
+  find data -type d | xargs --max-lines=64 chmod 755
+  find data -type f | xargs --max-lines=64 chmod 644
+  mv      -v data         "$DESTDIR"/usr/share/enelin7
+  install -vm 755         "$SCRIPT_DIR"/enelin7 \
+                          "$DESTDIR"/usr/bin/
+ }
+
+ cd src &&
+ sed -i "s:/usr/local/share/:/usr/share/:" lib01/filesystem1/filesystem1.cc &&
+ sed -i "s:'-O2':'-fpermissive','-O2':" SConstruct &&
+ scons release=1 &&
+ make_install
+}

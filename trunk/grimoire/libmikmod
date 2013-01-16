@@ -1,12 +1,15 @@
 # libmikmod-3.2.2.zip is beta
+# 3.3.1 compiles using cmake and installs improperly
 
-with version stable 3.3.1 3.2.0 3.1.12
+with version   stable 3.2.0 3.3.1
+with version unstable 3.3.1
 with also    --disable-static
 with role    audio/library
-with trait   library
+with trait   library makej
 #   source $SOURCEFORGE_URL mikmod/libmikmod%20%28source%29/$VERSION/libmikmod-$VERSION.tar.gz
 #     info home http://mikmod.raphnet.net/
-with source  http://mikmod.shlomifish.org/files/libmikmod-$VERSION.tar.bz2
+with source    stable http://mikmod.shlomifish.org/files/libmikmod-$VERSION.tar.gz
+with source  unstable http://mikmod.shlomifish.org/files/libmikmod-$VERSION.tar.bz2
 with info    home http://mikmod.shlomifish.org/
 with info    last 20121206
 with info    cite 'library for playing mod, s3m, xm, it, med, mtm, 669 files
@@ -17,10 +20,19 @@ using the OSS driver for output, as well as Alsa and EsounD.
 Supported module format include mod, s3m, xm, it, med,
 mtm and 669, to name a few.'
 
-build_old(){
+build(){
  default_build &&
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
  then sed -i 's:prefix}/lib$:prefix}/lib64:' $DESTDIR/usr/bin/libmikmod-config
+ fi
+}
+
+post_install(){
+ default_post_install &&
+ # The recast of SDL_mixer is only required when downgrading from
+ # 3.3.1 to 3.2.0 since 3.3.1 is beta and not yet fit for use.
+ if   [[ -f $VERSION_LOGS/SDL_mixer ]]
+ then echo SDL_mixer | pipe_queue "$MOIL_QUEUE"
  fi
 }
