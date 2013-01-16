@@ -1,0 +1,27 @@
+with version stable 2.6.1
+with base    SDL lua libtheora libvorbis
+#with also    -DCMAKE_BUILD_TYPE:STRING=Release 
+with role    game/rts
+with trait   optimize makej x11
+with source    stable http://www.boswars.org/dist/releases/boswars-${VERSION}-src.tar.gz
+with info    good 20120116
+with info    last 20100418
+with info    home http://www.boswars.org/
+with info    cite 'futuristic real time strategy game (RTS)'
+
+build(){
+ make_install(){
+  mkdir  -pvm 755         "$DESTDIR"/usr/share/boswars
+  mv      -v  campaigns graphics intro maps patches scripts sounds units \
+                          "$DESTDIR"/usr/share/boswars/
+  find "$DESTDIR" -type d | xargs --max-lines=64 chmod 755
+  find "$DESTDIR" -type f | xargs --max-lines=64 chmod 644
+  mkdir  -pvm 755         "$DESTDIR"/usr/libexec
+  install -vm 755 boswars "$DESTDIR"/usr/libexec/
+  mkdir  -pvm 755         "$DESTDIR"/usr/bin
+  install -vm 755         "$SCRIPT_DIR"/boswars \
+                          "$DESTDIR"/usr/bin/
+ }
+ scons &&
+ make_install
+}

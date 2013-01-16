@@ -1,11 +1,10 @@
 with version stable 1.4.9rc1
-with base    SDL_mixer flex unzip
+with base    SDL_mixer flex libpng14 unzip
 case $VERSION in
- 1.2) use_gcc gcc-v3.4 ;;
+ 1.4.9rc1) use_gcc gcc-v4.5 ;;
 esac
 with role    game development/emulator
-with trait   broke
-with trait   x11
+with trait   optimize makej x11
 with source  $SOURCEFORGE_URL exult/exult-all-versions/$VERSION/exult-$VERSION.tar.gz
 with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/jmsfx.zip
 with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/sqsfxbg.zip
@@ -13,16 +12,14 @@ with source  $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/jmsfxsi.zip
 with source  $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/sqsfxsi.zip
 with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_1of2.zip
 with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_2of2.zip
-with info    good 20120606
+with info    good 20130116
 with info    last 20101021
 with info    home http://exult.sourceforge.net/
 with info    docs http://exult.sourceforge.net/docs.php
 with info    forum 'http://exult.sourceforge.net/forum/list.php?f=1'
 with info    cite 'an open-source game engine for playing Ultima7
-If you do not own Ultima 7 this engine will be of no use to you.
-For sound & midi to work
-shutdown all other sound servers
-and run esd before starting exult.'
+Ultima 7 part I or part II data files are required for playing exult.
+For audio and midi to play starting esd might be required.'
 
 build(){
  echo "PWD=$PWD"
@@ -38,8 +35,16 @@ build(){
  # export CFLAGS="${CFLAGS/-march=native//}"
  # export CXXFLAGS="${CXXFLAGS/-march=native//}"
 
- export   CFLAGS="-O0"
- export CXXFLAGS="-O0"
+# export   CFLAGS="-O0"
+# export CXXFLAGS="-O0"
+
+ # exult version 1.4.9rc1 requires libpng 1.4.x
+ export   CFLAGS+=' -I/opt/libpng/1.4.x/include'
+ export CXXFLAGS+=' -I/opt/libpng/1.4.x/include'
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
+ else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib'
+ fi
 
  ./configure           \
   --prefix=/usr        \
@@ -48,19 +53,18 @@ build(){
   --disable-timidity   \
   $OPTS &&
  make &&
- make install "DESTDIR=$DESTDIR" &&
- mkdir -pvm 755              $DESTDIR/usr/share/exult/music &&
- cp    $SCRIPT_DIR/exult.cfg $DESTDIR/usr/share/exult/ &&
- cp -av *.flx                $DESTDIR/usr/share/exult/ &&
- cp -av *.ogg                $DESTDIR/usr/share/exult/music/
+ make install        "DESTDIR=$DESTDIR" &&
+ mkdir -pvm 755              "$DESTDIR"/usr/share/exult/music &&
+ cp    $SCRIPT_DIR/exult.cfg "$DESTDIR"/usr/share/exult/ &&
+ cp -av *.flx                "$DESTDIR"/usr/share/exult/ &&
+ cp -av *.ogg                "$DESTDIR"/usr/share/exult/music/
 }
 
 post_install(){
 cat << EOF
-When you are ready to play, copy /usr/share/exult.cfg to ~/.exult.cfg.
-Make appropriate modifications and install the gamedata files and enjoy.
-Note: You may also have to start esd, enlightenment sound daemon,
-in order to get sound and music.
-And if you don't own Ultima 7, then exult will be of no use to you.
+Before playing, copy /usr/share/exult.cfg to ~/.exult.cfg.
+Make appropriate modifications and install the gamedata files.
+Note: Starting esd might be required for sound and music output.
+Ultima 7 part 1 or part 2 data files are required to play.
 EOF
 }

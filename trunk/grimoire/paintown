@@ -1,0 +1,28 @@
+with version stable 3.6.0
+with base    SDL cmake mpg123 libvorbis
+with role    game
+with trait   makej x11
+with info    good 20130116
+with info    last 20120813
+with source  stable $SOURCEFORGE_URL paintown/paintown/$VERSION/paintown-$VERSION.tar.bz2
+with info    home http://paintown.org
+with info    cite 'open source 2D fighting game'
+
+build(){
+ make_install(){
+  mkdir  -pvm 755 "$DESTDIR"/usr/share
+  mv     ../data  "$DESTDIR"/usr/share/paintown
+  find            "$DESTDIR" -type d | xargs --max-lines=64 chmod 755
+  find            "$DESTDIR" -type f | xargs --max-lines=64 chmod 644
+  mkdir  -pvm 755 "$DESTDIR"/usr/bin
+  install -vm 755 bin/paintown \
+                  "$DESTDIR"/usr/bin/
+ }
+
+ sed -i 's:"data":"/usr/share/paintown":' src/util/funcs.cpp &&
+ mkdir build &&
+ cd    build &&
+ cmake -DCMAKE_INSTALL_PREFIX:PATH=/usr .. &&
+ make &&
+ make_install
+}
