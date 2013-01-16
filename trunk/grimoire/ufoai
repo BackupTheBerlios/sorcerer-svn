@@ -1,0 +1,25 @@
+with version stable 2.4
+with version git    master
+with base    SDL_mixer SDL_ttf XviD libtheora mxml
+with role    game/rts
+with trait   optimize makej x11
+with source    stable $SOURCEFORGE_URL ufoai/UFO_AI%202.x/$VERSION/ufoai-${VERSION}-source.tar.bz2
+with source    stable $SOURCEFORGE_URL ufoai/UFO_AI%202.x/$VERSION/ufoai-${VERSION}-data.tar
+with source       git ufoai-$VERSION.tar $VERSION git://git.code.sf.net/p/ufoai/code
+with info    last 20120424
+with info    home http://ufoai.org/wiki/News
+with info    cite 'a game inspired by Microprose xcom'
+
+build(){
+ sed -i 's:games/ufoai:share/ufoai:' configure
+ ./configure \
+  --target-os=linux \
+  --enable-release \
+  --prefix=/usr &&
+ make &&
+ make install \
+  "PKGBINDIR=$DESTDIR/usr/bin" \
+  "PKGDATADIR=$DESTDIR/usr/share/ufoai" \
+  "PKGLIBDIR=$DESTDIR/usr/lib" \
+  "PREFIX=$DESTDIR/usr"
+}

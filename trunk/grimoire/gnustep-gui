@@ -15,8 +15,7 @@ with elect   cups
 with elect   portaudio
 with also    --with-layout=fhs
 with role    development
-with trait   console
-with trait   broke
+with trait   console library makej multilib-fail
 with source  http://ftpmain.gnustep.org/pub/gnustep/core/gnustep-gui-$VERSION.tar.gz
 with info    home http://www.gnustep.org
 with info    cite 'GUI interface class library for gnustep'
@@ -31,12 +30,24 @@ build(){
   export CXXFLAGS+=" -I/opt/giflib/4/usr/include"
   export  LDFLAGS+=" -L$GIFLIBLIBDIR -Wl,-rpath,$GIFLIBLIBDIR"
   export PKG_CONFIG_PATH="$GIFLIBLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+#  echo "CFLAGS=$CFLAGS"
+#  echo "CXXFLAGS=$CXXFLAGS"
+#  echo "LDFLAGS=$LDFLAGS"
+#  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
+  sed -i 's:<gif_lib.h>:"/opt/giflib/4/usr/include/gif_lib.h":' Source/NSBitmapImageRep+GIF.m
+# sed -i "s:-lgif:-L$GIFLIBLIBDIR -lgif:" configure
+## no clue what version of gif this can compile with
+## so the easy way to disable gif support is
+## to break libgif detection in configure
+## since the configure switches to disable it are ignored
+  sed -i 's:-lungif:-lungifted:;s:-lgif:-lgifted:' configure
  }
 
  case $VERSION in
   0.22.0) giflib_fix ;;
  esac
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64
+ fi
  default_build
 }

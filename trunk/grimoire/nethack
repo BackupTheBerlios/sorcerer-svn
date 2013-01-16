@@ -1,0 +1,30 @@
+with version stable 3.4.3
+#with base    ncurses
+#with elect   libXaw --with-x --disable-x for x11 graphical interface
+#with elect   SDL_mixer '' ''             for sound effects
+#with also    --datadir=/usr/share --with-setgid=games
+#with also    --bindir=/usr/bin
+with sys_user games
+with role    game
+with trait   console
+with info    good 20130115
+with info    last 20031209
+with info    home http://www.nethack.org/
+with source  $SOURCEFORGE_URL nethack/nethack/$VERSION/nethack-${VERSION//\./}-src.tgz
+with info    cite 'single player CRPG'
+
+build(){
+ sed -i '/extern char \*tparm/d' win/tty/termcap.c
+ sed -i 's:# WINTTYLIB = -lncurses:WINTTYLIB = -lncurses:
+         s:WINTTYLIB = -ltermlib:# WINTTYLIB = -ltermlib:' sys/unix/Makefile.src
+ sed -i 's:SHELLDIR = \$(PREFIX)/games:SHELLDIR = $(PREFIX)/bin:
+         s:GAMEDIR  = \$(PREFIX)/games/lib/\$(GAME)dir:GAMEDIR = $(PREFIX)/share/$(GAME):' sys/unix/Makefile.top
+
+ cd sys/unix   &&
+ sh ./setup.sh &&
+ cd ../..      &&
+ make          &&
+ make install "PREFIX=$DESTDIR/usr" &&
+ sed -i "s:$DESTDIR::" "$DESTDIR/usr/bin/nethack"
+}
+

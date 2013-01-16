@@ -1,0 +1,19 @@
+with version stable 17
+with base    SDL_gfx SDL_image SDL_mixer SDL_net SDL_ttf boost glew lua
+with also    -DCMAKE_BUILD_TYPE:STRING=Release 
+with role    game/rts
+with trait   optimize makej x11
+with source    stable https://launchpad.net/widelands/build$VERSION/build-$VERSION/+download/widelands-build${VERSION}-src.tar.bz2
+CURL_PARAM='-k'
+with info    last 20120423
+with info    home wl.widelands.org
+with info    cite 'a game inspired by Bluebyte Settlers'
+
+build(){
+ sed -i '/Boost_USE_STATIC_LIBS/d' CMakeLists.txt
+ case $VERSION in
+  17) sed -i '1i#include <unistd.h>' src/main.cc ;;
+ esac
+ default_build &&
+ mv "$DESTDIR/usr/"{games,bin}
+}

@@ -11,7 +11,15 @@ with also    --with-layout=fhs
 #     with also --disable-invocations
 #     with also --with-ffi-include=/usr/include --with-ffi-library=/usr/lib
 with role    development
-with trait   console
+with trait   console library makej multilib-fail
+with trait   broke
 with source  http://ftpmain.gnustep.org/pub/gnustep/core/gnustep-base-$VERSION.tar.gz
 with info    home http://www.gnustep.org
 with info    cite 'foundation for GNUstep'
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64
+ fi
+ default_build
+}
