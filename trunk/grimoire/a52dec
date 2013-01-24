@@ -1,12 +1,15 @@
-with version stable 0.7.4 0.7.3 0.7.2
-with base    automake libtool
+with version stable 0.7.4
+case $VERSION in
+ 0.7.4)
+with base    autoconf-2.53 automake-1.4 libtool-1.5
+;;
+esac
 with also    --enable-shared --disable-static
 with role    video
 with trait   library makej multilib-dual
-with trait   broke
 #trait multilib-concurrent
 with source  http://liba52.sourceforge.net/files/a52dec-$VERSION.tar.gz
-#with info    good 20120530
+with info    good 20130124
 with info    last 20020727
 with info    home  http://liba52.sourceforge.net/
 with info    vurl http://liba52.sourceforge.net/
@@ -16,6 +19,7 @@ The A/52 standard is used in a variety of applications,
 including digital television and DVD.
 It is also known as AC-3.'
 
+# Build was designed for version 0.7.4
 build(){
  local CC
  export CFLAGS+=' -fPIC'
@@ -23,7 +27,16 @@ build(){
  then export CC="gcc -m32"
  fi
 
- # to rid the rpath
- autoreconf; aclocal; automake -acf; libtoolize -cf; autoreconf -fi
+ export PATH="/opt/automake/1.4/usr/bin:$PATH"
+ export PATH="/opt/libtool/1.5/usr/bin:$PATH"
+ export PATH="/opt/autoconf/2.53/usr/bin:$PATH"
+ export SED=sed
+# The following eliminates the rpath
+ rm -f configure
+ ./bootstrap
+ find . -type f -name Makefile.in |
+ xargs --max-lines=64 \
+ sed -i 's:@LIBTOOL@:libtool:
+         s:@RANLIB@:ranlib:'
  default_build
 }

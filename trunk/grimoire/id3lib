@@ -1,11 +1,16 @@
-with version stable 3.8.3 3.8.2 3.8.1
+with version stable 3.8.3
 with base    gcc-g++ zlib
+case $VERSION in
+ 3.8.3)
+with base    autoconf-2.53 automake-1.6 libtool-1.5
+;;
+esac
 with also    --enable-static=no
 with role    audio/library
 with trait   library makej unsafe
 #trait multilib-dual
 with source  $SOURCEFORGE_URL id3lib/id3lib/$VERSION/id3lib-$VERSION.tar.gz
-with info    good 20120609
+with info    good 20130124
 with info    last 20030302
 with info    home http://id3lib.sourceforge.net/
 with info    docs http://id3lib.sourceforge.net/api/index.html
@@ -22,14 +27,22 @@ esac
 
 build(){
  case $VERSION in
-  3.8.3) autoreconf
-         aclocal -I .
-         autoheader
-         libtoolize --automake
-         automake   --add-missing
-         autoconf ;;
+  3.8.3)
+   export PATH="/opt/automake/1.6/usr/bin:$PATH"
+   export PATH="/opt/libtool/1.5/usr/bin:$PATH"
+   export PATH="/opt/autoconf/2.53/usr/bin:$PATH"
+   export SED=sed
+   autoreconf
+   aclocal -I .
+   autoheader
+   libtoolize --automake
+   automake   --add-missing
+   autoconf ;;
  esac
- export LDFLAGS+=" -lstdc++ -lz $CFLAGS"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=" -L/usr/lib64 -lstdc++ -lz $CFLAGS"
+ else export LDFLAGS+=" -L/usr/lib   -lstdc++ -lz $CFLAGS"
+ fi
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build
 }
