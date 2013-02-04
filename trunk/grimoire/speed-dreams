@@ -1,0 +1,33 @@
+with version   stable 2.0.0-r4687
+with base    SDL enet glu openal
+#with base    freealut freeglut glu imake libXrandr libpng libvorbis plib xorg-cf-files
+with role    game
+with trait   optimize x11
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-base-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-hq-cars-and-tracks-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-more-hq-cars-and-tracks-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-more-hq-cars-and-tracks-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-wip-cars-and-tracks-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-unmaintained-$VERSION.tar.xz
+with source    stable $SOURCEFORGE_URL speed-dreams/${VERSION:0:5}/speed-dreams-src-partial-build-patch-$VERSION.tar.xz
+with info    last 20120408
+with info    home http://www.speed-dreams.org
+with info    cite 'forked up TORCS'
+
+build(){
+ default_build &&
+ if   [ -d "$DESTDIR"/usr/games ]
+ then mv   "$DESTDIR"/usr/{games,bin}
+ fi
+}
+
+build_old(){
+ sed -i 's:subdirs dep:subdirs:' Make-default.mk
+ ./configure           \
+  --sysconfdir=/etc    \
+  --localstatedir=/var \
+  --prefix=/usr \
+ $OPTS &&
+ make  &&
+ make install datainstall "DESTDIR=$DESTDIR"
+}

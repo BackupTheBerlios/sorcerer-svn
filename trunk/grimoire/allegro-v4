@@ -10,6 +10,7 @@ with elect   libXxf86dga '' ''                                      for DGA supp
 with also    --enable-fbcon=no --disable-asm
 with role    game
 with trait   library x11
+#with trait   makej
 #trait multilib-fail
 with source  $SOURCEFORGE_URL alleg/allegro/$VERSION/allegro-$VERSION.tar.gz
 with info    good  20120713
@@ -44,16 +45,21 @@ build(){
   echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
  }
 
+ adjust_config(){
+  sed -i "s:allegro_ldflags=\"\":allegro_ldflags=\"-Wl,-rpath,$LIBPNGLIBDIR -lpng\":" "$DESTDIR/usr/bin/allegro-config"
+ }
+
  case $VERSION in
   4.4.1.1) libpng_fix ;;
  esac
 
  sed -i "s/-O2/$CFLAGS/" configure
- default_build
+ default_build &&
+ adjust_config
 }
 
 current(){
  case $VERSION in
-  4.4.1.1) grep -q lib_path= /usr/bin/allegro-config ;;
+  4.4.1.1) grep -q rpath /usr/bin/allegro-config ;;
  esac
 }

@@ -1,0 +1,42 @@
+with version stable 1.3.1
+with base    SDL_image SDL_mixer libX11
+with role    game
+with trait   optimize x11
+with source  stable $SOURCEFORGE_URL redeclipse/redeclipse_${VERSION:0:3}/redeclipse_${VERSION}_all.tar.bz2
+#with source  stable $SOURCEFORGE_URL redeclipse/redeclipse_$VERSION/redeclipse_${VERSION}_all.tar.bz2
+#with source  stable $SOURCEFORGE_URL redeclipse/redeclipse_$VERSION/redeclipse_${VERSION}_all.tar.bz2
+with info    last 20120903
+with info    home http://www.redeclipse.net
+with info    cite 'Cube 2: redeclipse first person shooter
+Cube 2: redeclipse is a free is a free multiplayer/singleplayer 
+first person shooter, built as a major redesign of the Cube FPS.'
+
+
+build(){
+make_install(){
+ local DL=$DESTDIR/usr/libexec/redeclipse
+ local DS=$DESTDIR/usr/share/games/redeclipse
+ local DB=$DESTDIR/usr/bin
+
+ mkdir -pvm 755 "$DL"
+ mv re{client,server} "$DL"
+ chmod 755      "$DL"/*
+
+ cd ..
+
+ mkdir -pvm 755 "$DS"; mv data "$DS/"
+ find "$DS" -type d | escape_qs | xargs --max-lines=256 chmod 755 
+ find "$DS" -type f | escape_qs | xargs --max-lines=256 chmod 644 
+
+ mkdir -pvm 755 "$DB"
+ cp $SCRIPT_DIR/re{client,server} "$DB"
+ chmod 755 "$DB"/*
+}
+
+# rm bin_unix/*
+rm -fr bin{,64}/*
+cd src
+make "CXXFLAGS=$CXXFLAGS" &&
+make "CXXFLAGS=$CXXFLAGS" install &&
+make_install
+}

@@ -1,0 +1,29 @@
+# Has unsual build method
+# unable to dissaude to link with libpng14 installed in /opt/
+# the fix might be simple, but yet remains elusive for the moment.
+
+with version stable 0.1.4
+with base    allegro-v4 libvorbis
+#with base    SDL_image SDL_mixer boost scons
+with role    game
+with trait   broke
+with trait   makej optimize x11
+with info    last 20100919
+with info    omit 20130919
+with source  stable $SOURCEFORGE_URL "opensnc/Open%20Sonic/$VERSION/opensnc-src-$VERSION.tar.gz"
+with info    home http://opensnc.sourceforge.net/
+with info    cite 'also known as Open Sonic is a clone of Sonic the Hedgehog game'
+
+build(){
+ ./configure -DCMAKE_INSTALL_PREFIX:PATH=/usr &&
+ make &&
+ case $VERSION in
+  0.1.4) sed -i 's:/usr/bin/opensonic:\$ENV{DESTDIR}/usr/bin/opensonic:' cmake_install.cmake
+         if   [[ $HOSTTYPE == x86_64 ]]
+         then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
+         else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
+         fi ;;
+ esac &&
+ mkdir -pvm 755         "$DESTDIR/usr/bin" &&
+ make install   "DESTDIR=$DESTDIR"
+}

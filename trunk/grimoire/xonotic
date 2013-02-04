@@ -1,0 +1,26 @@
+with version stable 0.6.0
+with base    SDL jpeg
+with role    game
+with trait   makej optimize x11
+with source  stable http://dl.xonotic.org/xonotic-$VERSION.zip
+with info    good 20130203
+with info    home http://www.xonotic.org
+with info    cite 'first person shooter'
+
+build(){
+ make_install(){
+  mkdir  -pvm 755 "$DESTDIR"/usr/{bin,libexec,share/xonotic}
+  install -vm 755 darkplaces-sdl        "$DESTDIR/usr/libexec/"
+  install -vm 755 darkplaces-dedicated  "$DESTDIR/usr/libexec/"
+  cd ../../
+  install -vm 755 "$SCRIPT_DIR/xonotic" "$DESTDIR/usr/bin/"
+  find data -type d | xargs --max-lines=64 chmod 755
+  find data -type f | xargs --max-lines=64 chmod 644
+  mv   data "$DESTDIR/usr/share/xonotic/"
+ }
+
+ cd   source/darkplaces &&
+ make sdl-release &&
+ make  sv-release &&
+ make_install
+}
