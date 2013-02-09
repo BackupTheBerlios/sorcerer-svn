@@ -1,16 +1,21 @@
-# Possible gcc 4.4.2 patch at http://bugs.gentoo.org/254254
-# 0.9.23.0 fails compilation
+# Method for installing clucene-core's contribs-lib and headers unknown
+# Perhaps the source tree is bugged?
 
-with version stable 0.9.21b 0.9.20
+# Intentionally switched to unstable version,
+# hopefully it installs pkgconfig files and is usable.
+
+with version stable 2.3.3.4 0.9.21b 0.9.20
 with base    gcc-g++
-with also    --enable-static=no
+with also    -DBUILD_CONTRIBS:BOOL=ON -DBUILD_CONTRIBS_LIB:BOOL=ON
+#with also    --enable-static=no
 with role    development
 with trait   library multilib-dual
 #trait broke
-with source  $SOURCEFORGE_URL clucene/clucene-core-stable/$VERSION/clucene-core-$VERSION.tar.bz2
+with source  stable $SOURCEFORGE_URL clucene/clucene-core-unstable/${VERSION:0:3}/clucene-core-$VERSION.tar.gz
+#with source  $SOURCEFORGE_URL clucene/clucene-core-stable/$VERSION/clucene-core-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL clucene/clucene-core-unstable/${VERSION:0:6}/clucene-core-${VERSION}-Source.tar.bz2
 with info    good 20120604
-with info    last 20081023
+with info    last 20110317
 with info    home http://clucene.sourceforge.net/
 with info    mail http://sourceforge.net/projects/clucene/support
 with info    wiki "http://sourceforge.net/apps/mediawiki/clucene/index.php?title=Main_Page"
@@ -18,6 +23,28 @@ with info    docs "http://sourceforge.net/apps/mediawiki/clucene/index.php?title
 with info    cite 'searching API'
 
 build(){
+ default_build &&
+# make clucene-contribs-lib &&
+# make -f  src/contribs-lib/Makefile install "DESTDIR=$DESTDIR" 
+ cd src/contribs-lib/ &&
+ make all install "DESTDIR=$DESTDIR"
+}
+
+build_overdone(){
+ OPTS="-DCMAKE_INSTALL_PREFIX:PATH=/usr $OPTS"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then OPTS+=' -DLIB_SUFFIX:STRING=64'
+ fi
+ OPTS+=' -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE'
+
+ mkdir build &&
+ cd    build &&
+ $SETARCH cmake $OPTS .. &&
+ $SETARCH make all clucene-contribs-lib install "DESTDIR=$DESTDIR" &&
+ false
+}
+
+build_old(){
  rm -f CMakeLists.txt
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build

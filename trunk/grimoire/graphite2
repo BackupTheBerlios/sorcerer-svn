@@ -1,0 +1,22 @@
+with version stable 1.2.0
+with base    cmake
+with also    --enable-static=no
+with role    documentation
+with trait   library makej multilib-dual
+with source  $SOURCEFORGE_URL silgraphite/graphite2/graphite2-$VERSION.tgz
+with info    last 20120921
+with info    home http://scripts.sil.org/RenderingGraphite
+with info    home http://projects.palaso.org/projects/graphitedev
+with info    cite 'newer version of the graphite font rendering system'
+
+build(){
+ fix_install(){
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+   mv "$DESTDIR"/usr/lib{,64}
+   sed -i 's:-L/usr/lib:-L/usr/lib64:' "$DESTDIR"/usr/lib64/pkgconfig/graphite2.pc
+  fi
+ }
+
+ default_build &&
+ fix_install
+}
