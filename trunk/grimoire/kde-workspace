@@ -1,27 +1,16 @@
 with inherit kde-v4
-# google-gadgets-for-linux is currently not compiling
-#with base    google-gadgets-for-linux
-# marble fails to compile with gpsd installed
-#with base    gpsd
 with base    ConsoleKit NetworkManager
 with base    kactivities kde-base-artwork kde-runtime kdepimlibs-v4 
 with base    libXres libXxf86misc libraw1394 libxkbfile lm_sensors
-with base    pciutils prison qimageblitz xcb-util-renderutil xprop
-#with base    pciutils prison pykde4 qimageblitz xprop
+with base    pciutils prison qimageblitz xcb-util-image xcb-util-renderutil
+with base    xprop
 with role    utility/file-manager utility/terminal-emulator
 with trait   library makej multilib-concurrent optimize
 with trait   litelink
 with source    stable $KDE_URL   stable/$VERSION/src/$SPELL-$VERSION.tar.xz
 with source  unstable $KDE_URL unstable/$VERSION/src/$SPELL-$VERSION.tar.xz
-     wmbin /usr/bin/startkde
-     iwall 'kdm will soon restart'
-  sys_user kdm
+with wmbin   /usr/bin/startkde
+with iwall   'kdm will soon restart'
+with sys_user kdm
 with clash   kdebase-workspace-v4
 with info    cite 'window manager and desktop for kde'
-
-post_install(){
- default_post_install
- case $VERSION in
-  4.8.0) sed -i 's:/opt/kde4:/usr:' /usr/share/config/kdm/kdmrc ;;
- esac
-}
