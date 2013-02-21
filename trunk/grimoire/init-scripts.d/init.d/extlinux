@@ -59,18 +59,18 @@ extlinux_conf_update(){
   echo
  }
 
- local APPEND INRF ICX=0
+ if   [ -f /etc/init.d/initramfs ] &&
+      [ -x /etc/init.d/initramfs ] &&
+      ! $DONE
+ then /etc/init.d/initramfs reload
+ fi
+
+ local APPEND ICX=0
  local LVER="$( uname -r )"
  [ -f /boot/$LVER/linux ] || LVER=
 
  if   [ -f /sbin/tomoyo-init    ]; then APPEND="security=tomoyo"; fi
  if   [ -f /etc/extlinux/append ]; then APPEND+=" $(< /etc/extlinux/append )"; fi
-
- if   [ -f /etc/init.d/initramfs ] &&
-      [ -x /etc/init.d/initramfs ]
- then INRF=true
- else INRF=false
- fi
 
  if ! [ -f $HEAD ]; then exit 1; fi
 
@@ -103,10 +103,6 @@ extlinux_conf_update(){
  mv $CONF.$$ $CONF
  cp $CONF    $EXTL
  chmod 600 $CONF $EXTL
-
- if   $INRF && ! $DONE
- then /etc/init.d/initramfs reload
- fi
 
  if ! [ -f /etc/init.d/find_ir ]; then
   /sbin/extlinux -U /boot/extlinux ||
