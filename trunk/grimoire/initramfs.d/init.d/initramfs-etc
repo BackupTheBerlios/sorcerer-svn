@@ -80,20 +80,21 @@ initrf_update(){
 initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
- local DIRS FILES
+ also(){
+  var=$1; shift
+  while [ -n "$1" ]
+  do if [ -e "$1" ]; then eval $var+=" $1"; fi; shift
+  done
+ }
 
- DIRS='/etc/bash.d /etc/cgroup /etc/init.d /etc/modprobe.d /etc/networks.d /etc/rc.d /etc/udev'
- [ -d /etc/wpa_supplicant ] && DIRS+=' /etc/wpa_supplicant'
- [ -d /etc/lvm ] && DIRS+=' /etc/lvm'
- [ -d /etc/tomoyo ] && DIRS+=' /etc/tomoyo'
+ local FIND='/etc/bash.d'
+ also  FIND \
+ /etc/cgroup /etc/exports /etc/fstab /etc/fstab.rootfs /etc/group \
+ /etc/hostname /etc/init.d /etc/inittab /etc/lvm /etc/mdadm.conf \
+ /etc/modprobe.d /etc/multipath.conf /etc/networks.d /etc/passwd \
+ /etc/rc.d /etc/shadow /etc/udev /etc/tomoyo /etc/wpa_supplicant
 
- FILES='/etc/fstab /etc/hostname /etc/inittab /etc/passwd /etc/shadow'
-
- [ -f /etc/exports        ] && FILES+=' /etc/exports'
- [ -f /etc/mdadm.conf     ] && FILES+=' /etc/mdadm.conf'
- [ -f /etc/multipath.conf ] && FILES+=' /etc/multipath.conf'
-
- if   find $DIRS $FILES -newer $NAME | grep -q .
+ if   find $FIND -newer $NAME | grep -q .
  then return 1
  fi
 

@@ -12,6 +12,14 @@
 only start
 
 start(){
+
+ up(){
+  if [ -f "$1" ]; then
+   sed -i '/ file system login/d'  "$1"
+   echo  "$n file system login" >> "$1"
+  fi
+ }
+
  log_warning_msg "/media/root/*/etc/issue verifying"
 
  for d in /media/root/*; do
@@ -20,7 +28,7 @@ start(){
     if ! [ -d "$d/etc" ]; then continue
   elif ! [ -f "$i"     ] || ! grep -q "$n" "$i" 
   then
-   log_warning_msg "$i updating"; echo "$n file system login" >> "$i"
+   log_warning_msg "$i updating"; up "$i"
    log_success_msg "$i updated"
   fi
  done
