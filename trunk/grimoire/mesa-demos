@@ -1,14 +1,22 @@
-with version stable 8.0.1
+with version stable 8.1.0 8.0.1
 with base    MesaLib freeglut glew
 with role    graphic/library
 with trait   X11R7 hidden makej x11
 with source  ftp://ftp.freedesktop.org/pub/mesa/demos/$VERSION/mesa-demos-$VERSION.tar.bz2
-with info    last 20120222
+with info    last 20130224
 with info    home http://www.mesa3d.org/
 with info    cite '3-D graphics demos and utilities'
 
 build(){
+# install_fix not required with version 8.1.0 and later
+ install_fix(){
+  if   [  -f "$DESTDIR"/usr/bin/clear ]
+  then mv -v "$DESTDIR"/usr/bin/clear{,-mesa-demos}
+  fi
+  if   [  -f "$DESTDIR"/usr/bin/bitmap ]
+  then mv -v "$DESTDIR"/usr/bin/bitmap{,-mesa-demos}
+  fi
+ }
  default_build &&
- mv -v $DESTDIR/usr/bin/clear{,-mesa-demos} &&
- mv -v $DESTDIR/usr/bin/bitmap{,-mesa-demos}
+ install_fix
 }
