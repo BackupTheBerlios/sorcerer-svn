@@ -18,7 +18,8 @@ build(){
   mkdir mm; cp -a "$BUILD_DIR/magic/Magdir/"* mm/
   cd    mm
   install -dvm 755   "$DESTDIR/usr/share/misc/mgc"
-  find  * -type f              | xargs --max-lines=1 file -Cm
+  find  * -type f              | xargs --max-lines=1  \
+  "$DESTDIR/usr/bin/file" -Cm
   find  * -type f -name \*.mgc | xargs --max-lines=64 \
   install -vm 644 -t "$DESTDIR/usr/share/misc/mgc"
  }
@@ -31,7 +32,18 @@ build(){
 }
 
 current(){
- case $VERSION in
-  5.11) [ -f /usr/share/misc/mgc/magic.mgc ] ;;
- esac
+ elf_log_repair(){
+  find "${ELF_LOGS:-/aux/log/elf}/" -type f -newer \
+       "${VERSION_LOGS:-/aux/log/version}/$SPELL" |
+  xargs -r rm -f
+  rm    -f "${ELF_LOGS:-/aux/log/elf}/$SPELL"
+  false
+ }
+
+ local     iver
+ read      iver < "${VERSION_LOGS:-/aux/log/version}/$SPELL"
+ if   [ "$iver" == 5.13 ] &&
+      LC_ALL=C file /usr/share/misc/mgc/elf.mgc | grep -q "version 10"
+ then elf_log_repair
+ fi
 }
