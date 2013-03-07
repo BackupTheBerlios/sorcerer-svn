@@ -2,8 +2,13 @@ with version stable 0.0.13beta
 with base    MesaLib SDL_image SDL_mixer SDL_ttf curl glu guile gtk+ sqlite
 with elect   liquidwar6-extra-maps
 with role    game
+with trait   broke
 with trait   makej x11
 with source  $GNU_URL liquidwar6/liquidwar6-$VERSION.tar.gz
+case $VERSION in
+ 0.0.13beta)
+with source  $SOURCEFORGE_URL libpng/libpng15/1.5.14/libpng-1.5.14.tar.xz ;;
+esac
 #   source http://download.savannah.gnu.org/releases/liquidwar6/$VERSION/liquidwar6-$VERSION.tar.gz
 with info    good 20121010
 with info    last 20111224
@@ -13,3 +18,23 @@ You control an army formed with thousands of pixels
 (fighters) which look like liquid and try to eat your opponent.
 You can play against a primitive NPC/AI or up to 5 other human players.
 Network play is available.'
+
+build(){
+ obsolete_libpng(){
+  cd libpng-1.5.14
+  ./configure  \
+   --prefix="$PWD/installed" \
+   --enable-static --disable-shared &&
+  make &&
+  make install &&
+  export   CFLAGS+=" -I$PWD/installed/include" &&
+  export CXXFLAGS+=" -I$PWD/installed/include" &&
+  export  LDFLAGS+=" -L$PWD/installed/lib"     &&
+  cd ..
+ }
+
+ case $VERSION in
+  0.0.13beta) obsolete_libpng ;;
+ esac
+ default_build
+}

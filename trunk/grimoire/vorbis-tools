@@ -1,16 +1,15 @@
-# 1.2.0 has compile error
-# 1.4.0 has compile error
-
-with version   stable 1.1.1
+with version   stable 1.4.0 1.1.1
 with version unstable 1.4.0
-with base    curl libvorbis libao
+with base    curl libvorbis
+with elect   libao '' --without-ao    for audio output to esd or pulse in addition to alsa
 with elect   flac  '' --without-flac  for flac audio codec support
 with elect   speex '' --without-speex for speex audio codec support
 with role    audio/editor audio/player
 with trait   console
 with source    stable http://downloads.xiph.org/releases/vorbis/vorbis-tools-$VERSION.tar.gz
 with source  unstable http://downloads.xiph.org/releases/vorbis/vorbis-tools-$VERSION.tar.gz
-with info    good 20120615
+with info    last 20100326
+with info    good 20130306
 with info    home http://www.xiph.org/ogg/vorbis/
 with info    cite 'tools to create and play Ogg Vorbis files
 Ogg Vorbis is a high-quality lossy audio codec which is free of
@@ -19,6 +18,11 @@ These are the tools that one needs to create and play Ogg Vorbis
 files on the commandline, as well as a simple commentor.'
 
 build(){
+ echo "OPTS=$OPTS"
+ default_build
+}
+
+build_old(){
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --with-curl-libraries=/usr/lib64 --with-ao-libraries=/usr/lib64
  else with also --with-curl-libraries=/usr/lib   --with-ao-libraries=/usr/lib

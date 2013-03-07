@@ -15,11 +15,18 @@ with info    cite 'attemps to classify files by their content'
 build(){
  more_magic(){
   if [[ $CFLAGS =~ -m32 ]]; then return; fi
+
+  local LD_LIBRARY_PATH file="$DESTDIR/usr/bin/file"
+
+  if   [[ $HOSTTYPE == x86_64 ]]
+  then export LD_LIBRARY_PATH="$DESTDIR/usr/lib64"
+  else export LD_LIBRARY_PATH="$DESTDIR/usr/lib"
+  fi
+
   mkdir mm; cp -a "$BUILD_DIR/magic/Magdir/"* mm/
   cd    mm
   install -dvm 755   "$DESTDIR/usr/share/misc/mgc"
-  find  * -type f              | xargs --max-lines=1  \
-  "$DESTDIR/usr/bin/file" -Cm
+  find  * -type f              | xargs --max-lines=1  "$file" -Cm
   find  * -type f -name \*.mgc | xargs --max-lines=64 \
   install -vm 644 -t "$DESTDIR/usr/share/misc/mgc"
  }
