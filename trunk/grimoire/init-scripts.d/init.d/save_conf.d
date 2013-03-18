@@ -12,18 +12,26 @@
 only start
 deny control
 
+vfs(){
+ sed  's:#.*::' /etc/fstab.rootfs |
+ sed  's:\t: :g' | tr  -s ' '     |
+ sed  's:^ ::'   | cut -d ' ' -f2 |
+ grep /media/root/
+}
+
+primary_root(){ vfs | sed '1p;d'; }
+
 start(){
 
  run(){
   local r=0
-  for   d in /media/root/*; do
-   [ -d "$d/etc/init.d"        ] || continue
-   [ -d "$d/etc/init.d/conf.d" ] || mkdir -m 700 "$d/etc/init.d/conf.d"
-   for  f in /etc/init.d/conf.d/*; do
-    if   [      "$f" -nt "$d/$f" ]
-    then cp -av "$f"     "$d/$f" || r=1
-    fi
-   done
+         d="$( primary_root )"
+  [ -d "$d/etc/init.d"        ] || continue
+  [ -d "$d/etc/init.d/conf.d" ] || mkdir -m 700 "$d/etc/init.d/conf.d"
+  for  f in /etc/init.d/conf.d/*; do
+   if   [      "$f" -nt "$d/$f" ]
+   then cp -av "$f"     "$d/$f" || r=1
+   fi
   done
   return $r
  }

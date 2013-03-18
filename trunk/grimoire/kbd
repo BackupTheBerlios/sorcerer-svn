@@ -10,29 +10,36 @@
 # where is this project hosted now?
 
 with version   stable 1.15.2
-#with version unstable 1.15.3
+with version unstable 1.15.3
 with base    automake flex init-functions libtool perl
 # kbd source ignores --bindir=/bin
 #     with also --bindir=/bin
 with role    font utility/keyboard
 with trait   console
 #   source ftp://ftp.kernel.org/pub/linux/utils/kbd/kbd-$VERSION.tar.bz2
-with source    stable http://sources.silverice.org/kbd/$VERSION/kbd-$VERSION.tar.bz2
-with source  unstable http://sources.silverice.org/kbd/$VERSION/kbd-$VERSION.tar.bz2
-with info    good 20120729
+#with source    stable http://sources.silverice.org/kbd/$VERSION/kbd-$VERSION.tar.bz2
+#with source  unstable http://sources.silverice.org/kbd/$VERSION/kbd-$VERSION.tar.bz2
+with source     stable http://kbd-project.org/download/kbd-$VERSION.tar.gz
+with source   unstable http://kbd-project.org/download/kbd-$VERSION.tar.gz
+with info    good 20130314
 with info    last 20110515
-with info    home ftp://ftp.kernel.org/pub/linux/utils/kbd/
+with info    home http://kbd-project.org
 with info    cite 'keytable files and keyboard utilities
 Configuration file is /etc/keymap.conf'
 
 build(){
+ adjust_install(){
+  mkdir -pvm 755 "$DESTDIR/bin"
+  mv     -v "$DESTDIR"/usr/bin/{chvt,deallocvt,loadkeys,openvt} "$DESTDIR"/bin
+ }
+
  default_build &&
- mkdir -pvm 755                  $DESTDIR/bin &&
- mv -v $DESTDIR/usr/bin/loadkeys $DESTDIR/bin/
+ adjust_install
 }
 
 current(){
  case $VERSION in
-  1.15.2) grep -q redraw /etc/init.d/loadkeys ;;
+  1.15.2) [ -f /bin/openvt ] ;;
+  1.15.3) [ -f /bin/openvt ] ;;
  esac
 }

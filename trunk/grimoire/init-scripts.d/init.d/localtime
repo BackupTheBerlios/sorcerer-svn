@@ -13,9 +13,13 @@
 
 # omit log
 
-if   [ -d        /media/root/real/usr/share/zoneinfo ]
-then exec chroot /media/root/real $0 "$@"
-fi
+e=
+for  d in /media/root/*; do
+ if   [ -d   "$d"/usr/share/zoneinfo ]
+ then        "$d" $0 "$@"; e=1
+ fi
+done
+if [ -n "$e" ]; then exit 0; fi
 
 . /lib/lsb/init-functions
 

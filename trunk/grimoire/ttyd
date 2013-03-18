@@ -1,0 +1,28 @@
+# Copyright Kyle Sallee 2013.
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+with version stable 20130315
+with base    bash cgroup coreutils findutils init-functions kbd procps shadow
+with role    administration/boot
+with trait   archive_off console
+with info    last 20130315
+with info    home http://sorcerer.silverice.org
+with info    cite 'dynamic tty allocation for login daemon'
+
+build(){
+ install -vm 755 -d "$DESTDIR"/sbin
+ install -vm 755 {"$SCRIPT_DIR","$DESTDIR"/sbin}/rgetty
+ install -vm 755 {"$SCRIPT_DIR","$DESTDIR"/sbin}/ttyd
+}
+
+build_old(){
+ local    in="$SCRIPT_DIR/vt_disallocate.c"
+ local out="$DESTDIR/sbin/vt_disallocate"
+
+ mkdir -pvm 755 "$DESTDIR/sbin"
+ gcc     -o      "$out" $CFLAGS $LDFLAGS "$in" &&
+ strip           "$out" &&
+ chmod   -v  755 "$out" &&
+ install -vm 755 "$SCRIPT_DIR/ttyd" "$DESTDIR/sbin/ttyd"
+}
