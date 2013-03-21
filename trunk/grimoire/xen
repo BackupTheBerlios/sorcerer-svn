@@ -1,17 +1,35 @@
-with version   stable 4.2.0
-with base    yajl
+with version   stable 4.2.1 4.2.0
+QVERSION=1.3.1
+with base    Dev86 bridge-utils yajl
+with elect   SDL '' '--disable-sdl'
+with also    --disable-debug
 with role    development/emulator
-with trait   hidden makej optimize x11
-with trait   broke
+with trait   console hidden x11
+#with trait   console hidden makej optimize x11
+#with trait   broke
 with source    stable http://bits.xensource.com/oss-xen/release/$VERSION/xen-$VERSION.tar.gz
+with source    stable http://wiki.qemu.org/download/qemu-$QVERSION.tar.bz2
 with source  unstable http://bits.xensource.com/oss-xen/release/$VERSION/xen-$VERSION.tar.gz
+with source  unstable http://wiki.qemu.org/download/qemu-$QVERSION.tar.bz2
 with info    vurl http://www.xen.org/products/xen_source.html
-with info    last 20129817
+with info    last 20121218
 with info    home http://www.xen.org/products/xenhyp.html
 with info    cite 'xen hypervisor
 provides a software layer for running virtualized operating systems.'
 
 build(){
+ rm -fr            tools/qemu-xen
+ mv qemu-$QVERSION tools/qemu-xen
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then with also --libdir=/usr/lib64
+ fi
+
+ case $VERSION in
+  4.2.1) sed -i '\,debugger/gdbsx,d'   tools/Makefile
+         sed -i 's:which $(DOT):false:'  docs/Makefile ;;
+ esac
+
  unset LDFLAGS
  default_build
 }
