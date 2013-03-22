@@ -1,18 +1,50 @@
 with version stable 12 11 10
 with base    xz zlib
-with also    --with-xz --with-zlib
+with also    --bindir=/bin --with-xz --with-zlib
 with role    kernel
-with trait   library lto makej multilib-concurrent
-with source  $KERNEL_URL pub/linux/utils/kernel/kmod/kmod-$VERSION.tar.xz
-#with source  http://packages.profusion.mobi/kmod/kmod-$VERSION.tar.xz
-with info    last 20121207
+with trait   console library lto makej multilib-concurrent
+with source    stable $KERNEL_URL pub/linux/utils/kernel/kmod/kmod-$VERSION.tar.xz
+with source  unstable $KERNEL_URL pub/linux/utils/kernel/kmod/kmod-$VERSION.tar.xz
+with info    last 20121205
 with info    home http://www.politreco.com
-with info    cite 'modules loading library'
+with clash   module-init-tools
+with omit    /etc/modules.conf
+with protect /etc/modules
+with protect /etc/modules.rm
+with info    cite 'library and utility for loading linux kernel modules'
 
 build(){
+ conf_install(){
+  mkdir -pvm 755 "$DESTDIR"/etc/modules.d
+  cp    -av       $SCRIPT_DIR/modules    "$DESTDIR"/etc
+  cp    -av       $SCRIPT_DIR/modules.rm "$DESTDIR"/etc
+ }
+
+ wrap_install(){
+  mkdir  -pvm 755                      "$DESTDIR"/usr/sbin
+  install -vm 700 $SCRIPT_DIR/modprobe "$DESTDIR"/usr/sbin/
+  install -vm 700 $SCRIPT_DIR/rmmod    "$DESTDIR"/usr/sbin/
+ }
+
+ sym(){ while [ -n "$1" ]; do ln -sv ../bin/kmod "$DESTDIR/$1"; shift; done; } 
+ syml_install(){
+  mkdir -pvm 755 "$DESTDIR"/{bin,sbin}
+  sym sbin/{depmod,insmod,modinfo,modprobe,rmmod} bin/lsmod
+ }
+ 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --libdir=/lib64
  else with also --libdir=/lib
  fi
- default_build
+
+ default_build &&
+ conf_install  &&
+ wrap_install  &&
+ syml_install
+}
+
+current(){
+ case $VERSION in
+  12) [ -f /bin/kmod ] ;;
+ esac
 }
