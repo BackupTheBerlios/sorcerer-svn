@@ -16,8 +16,6 @@ only start stop
 deny control
 
 start(){
- run(){ chroot "$1" mount -a; }
-
  local r=0
  if    [ -d /home ]; then
   if   log_warning_msg "mount -a executing"; mount -a
@@ -26,9 +24,9 @@ start(){
   fi
  else
   for d in /media/root/*; do
-    [ "$d" == /media/root/rootfs ] || continue
-   [[ -f $d/etc/fstab ]] || continue
-   if   log_warning_msg "chroot $d mount -a executing"; run "$d"
+   if [ "$d" == /media/root/rootfs ] || ! [[ -f $d/etc/fstab ]]
+   then continue
+   elif log_warning_msg "chroot $d mount -a executing"; chroot "$d" mount -a
    then log_success_msg "chroot $d mount -a executed"
    else log_success_msg "chroot $d mount -a execution failed"; r=1
    fi

@@ -15,14 +15,13 @@ deny control
 
 start(){
  run(){
-  if [ -d /home ]
+  if   [ -d /home ]
   then mount -n -o remount,rw /
   else
-   sed 's:#.*::' /etc/fstab.rootfs |
+   sed 's:#.*::;/noauto/d;\,/media/root/,p;d' /etc/fstab.rootfs |
    tr  '\t' ' '      |
    tr  -s ' '        |
    cut -d ' ' -f2    |
-   grep /media/root/ |
    while read; do mkdir -pm 755 "$REPLY"; done
    mount -T /etc/fstab.rootfs -n -a
    [  -e        /media/root/rootfs ] &&
