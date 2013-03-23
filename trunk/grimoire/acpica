@@ -6,7 +6,6 @@ with version   stable 20120320 20110623
 with version unstable 20121018
 with role    utility
 with trait   console hidden
-with trait   broke
 with source    stable https://www.acpica.org/download/acpica-unix-$VERSION.tar.gz
 with source  unstable https://www.acpica.org/download/acpica-unix2-$VERSION.tar.gz
 CURL_PARAM=-k
@@ -23,6 +22,9 @@ build_new(){
 build(){
  local ID="INSTALLDIR=$DESTDIR/usr/bin"
  mkdir -pvm 755      "$DESTDIR/usr/bin"
+ [ -d source/tools/acpibin ] &&
+ find * -type f -name Makefile | xargs --max-lines=64 sed -i 's:-Werror::'
+
  cd source/tools/acpibin && make && make install "$ID" &&
  cd ../acpiexec          && make && make install "$ID" &&
  cd ../acpihelp          && make && make install "$ID" &&
