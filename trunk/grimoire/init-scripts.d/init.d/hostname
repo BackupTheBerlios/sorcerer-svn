@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright Kyle Sallee 2011
+# Copyright Kyle Sallee 2011, 2012, 2013
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
@@ -8,19 +8,43 @@
 # Default-Mode: 500
 # Required-Start: proc
 # Default-Start: S
-# Short-Description: sets the box's name
+# Short-Description: sets the hostname for the rootfs
+# run /etc/init.d/rootname configure to set a hostname for a root file system.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 only start configure
 
+main_root(){
+ /bin/sed 's:#.*::' /etc/fstab.rootfs |
+ /bin/tr  '\t' ' ' |
+ /bin/tr  -s ' ' |
+ /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
+ /bin/cut  -d ' ' -f2 |
+ /bin/head -n 1
+}
+
 configure(){
  hostname_dialog(){
   BACKTITLE=$"hostname configuration menu"
       TITLE=$"hostname input"
-       HELP=$"Boxes typically have names like rainbow.home or www.ekrondo.com
-Please input a name for this box"
+       HELP=$"Boxes typically have host names such as:\n
+cream.puf; party.tea; workstation26.lab4.pu.edu.\n
+The hostname is written to /etc/hostname\n
+The hostname is valid for the computer and the rootfs file system.\n
+Root file systems have their hostname set from /etc/rootname\n
+/etc/init.d/rootname is the init-script that sets the rootname.\n
+If root file systems /media/root/main and /media/root/www exists\n
+then their rootnames will likely be something like\n
+main.cream.puff and www.party.tea.\n
+The rootname can be entirely different from the hostname,\n
+however more often than not the rootname will become\n
+the basename of where the root file system is mounted\n
+dot the hostname for the computer.\n
+Later please set the rootname for each root file system.\n
+At this moment please enter the hostname for this computer\n
+which will be the hostname for the rootfs."
 
   dialog \
    --backtitle "$BACKTITLE"  \
@@ -35,14 +59,21 @@ Please input a name for this box"
  local NAME=$( hostname_dialog )
  if   echo "$NAME" | grep -q "\." || confirm_it
  then echo "$NAME" > /etc/hostname
+      local mr=$( main_root )
+      cp /etc/hostname "$mr"/etc/
  fi
 }
 
-
 start(){
+ local REPLY
  log_warning_msg "hostname setting"
- [ -f           /etc/hostname ] &&
- read   REPLY < /etc/hostname
- echo ${REPLY:-noname} > /proc/sys/kernel/hostname
+ if   [ -f /etc/hostname ]; then read REPLY < /etc/hostname; fi
+ if   [ -z "$REPLY" ]
+ then REPLY="unknown$RANDOM$RANDOM"
+      log_failure_msg "/etc/init.d/hostname configure"
+      log_failure_msg "Executing the above command is recommended"
+ fi
+
+ echo "$REPLY" > /proc/sys/kernel/hostname
  log_success_msg "hostname is now $REPLY"
 }

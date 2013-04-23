@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee
+# Copyright 2011, 2012, 2013 by Kyle Sallee
 # All Rights Reserved
 # For use on Sorcerer only
 
@@ -10,6 +10,8 @@
 # Short-Description: final pause, login, and rebound before the halt or reboot
 ### END INIT INFO
 
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+
 . /lib/lsb/init-functions
 
 only start
@@ -19,10 +21,10 @@ start(){
 
 rebound(){
  [ -f /proc/mounts ] || return
- find /var/log/init/ -mindepth 1 -maxdepth 1 |
- while read; do mv $REPLY{,.old}; done
+ /bin/find /var/log/init/ -mindepth 1 -maxdepth 1 |
+ while read; do /bin/mv $REPLY{,.old}; done
  /etc/init.d/rcS
- telinit $REPLY
+ /sbin/telinit $REPLY
  exit
 }
 
@@ -47,5 +49,4 @@ count_down(){
  then log_success_msg "Finale complete"
  else log_failure_msg "Finale error"
  fi
-
 }

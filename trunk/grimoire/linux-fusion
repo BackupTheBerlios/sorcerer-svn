@@ -1,17 +1,68 @@
-with version   stable 9.0.0 8.10.4 8.10.3
+with version stable 9.0.0 8.10.4 8.10.3
+with base    linux-config
 with role    graphic/library
-with trait   linux-module makej
+with trait   linux-module makej multilib-fail
 with source  http://www.directfb.org/downloads/Core/linux-fusion/linux-fusion-$VERSION.tar.gz
 with info    last 20130121
 with info    home http://www.directfb.org/
 with info    cite 'kernel module for running multiple DirectFB programs'
 
 build(){
- local LVER=$( installed_version $( get_provider linux-kernel ) )
- local UDEV=$DESTDIR/lib/udev/rules.d/40-fusion.rules
+ lversion(){
+  local m=/usr/src/linux/Makefile
 
- make KERNELDIR=/usr/src/linux KERNEL_VERSION=$LVER INSTALL_MOD_PATH=$DESTDIR &&
- make KERNELDIR=/usr/src/linux KERNEL_VERSION=$LVER INSTALL_MOD_PATH=$DESTDIR install &&
+  if   ! [ -f $m ]
+  then return
+  fi
+
+  local v="s:^VERSION=::p;d"
+  local p="s:^PATCHLEVEL=::p;d"
+  local s="s:^SUBLEVEL=::p;d"
+  local e="s:^EXTRAVERSION=::p;d"
+  local c="s: ::g;"
+
+  v=$( sed "$c $v" $m )
+  p=$( sed "$c $p" $m )
+  s=$( sed "$c $s" $m )
+  e=$( sed "$c $e" $m )
+
+  [ -n "$p" ] && v+=".$p"
+  [ -n "$s" ] && v+=".$s"
+  [ -n "$e" ] && v+=".$e"
+
+  LVER="$v"
+ }
+
+ lversion
+
+ local    d=/usr/src/linux
+ local c=$d/.config.custom
+ local s=$d/.config.stock
+
+ cp -a /usr/src/linux l
+
+   if [ -f $c ]; then cp $c l/.config
+ elif [ -f $s ]; then cp $s l/.config
+ else
+  echo "$c does not exist"
+  echo "$s does not exist"
+  echo "$c or $s must exist"
+  echo "try casting linux-config first"
+  return 1
+ fi
+ cd l
+ yes '' |
+ make oldconfig
+#make silentoldconfig
+ make prepare scripts
+ cd ..
+
+ echo "Compilation of linux-fusion begins after this line."
+
+ local UDEV="$DESTDIR/lib/udev/rules.d/40-fusion.rules"
+
+ make KERNELDIR="$PWD/l" KERNEL_VERSION=$LVER INSTALL_MOD_PATH="$DESTDIR" &&
+ make KERNELDIR="$PWD/l" KERNEL_VERSION=$LVER INSTALL_MOD_PATH="$DESTDIR" install &&
  mkdir -pvm 755 $( dirname $UDEV ) &&
  echo 'KERNEL=="fusion[0-9]*", NAME="fusion/%n", GROUP="video", MODE="0660"' > $UDEV &&
  chmod 644 $UDEV

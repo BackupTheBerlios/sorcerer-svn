@@ -1,0 +1,75 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Stop: kexec $local_fs root-ro udev
+# Should-Stop: tmp
+# Default-Stop:
+# Short-Description: creates boot filesystems
+### END INIT INFO
+
+# Copyright 2013 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+. /lib/lsb/init-functions
+
+only stop reload force-reload status
+name /boot/initrf/firmware
+INIT=initramfs-firmware
+SKIP="[32G"
+
+allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+
+exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
+
+every(){ find /lib/firmware/; }
+
+initrf_update(){
+
+ local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ rm    -rf     $TEMPIF
+ mkdir -pm 700 $TEMPIF/boot/initrf
+
+ local  COMMON="$TEMPIF/$NAME"
+
+ every | allpaths | exists | cpio -o -H newc --quiet | gzip -1 > $COMMON
+ chmod 600 $COMMON
+
+ [  -f /boot/initrf ] &&
+ rm -f /boot/initrf
+
+ cp -a  $TEMPIF/boot /
+ rm -fr $TEMPIF
+ sync
+}
+
+initrf_present(){ [ -f $NAME ] || return 1; }
+
+initrf_current(){
+
+ if   [ -n "$( find /lib/firmware/ -newer $NAME )" ]
+ then return 1
+ fi
+
+ if [ -f /var/log/init/failed/$INIT/stop ]; then return 1; fi
+
+} 
+
+run(){
+ if   log_warning_msg "$NAME $SKIP updating"; initrf_update
+ then log_success_msg "$NAME $SKIP updated"
+ else log_failure_msg "$NAME $SKIP failed"; false
+ fi
+}
+
+status(){
+ if   log_warning_msg "$NAME $SKIP checking"; initrf_present && initrf_current
+ then log_success_msg "$NAME $SKIP checked; status:     current"
+ else log_warning_msg "$NAME $SKIP checked; status: not current"; return 1
+ fi
+}
+
+stop(){ status || run; }
+force_reload(){ run; }
+reload(){ DONE=true; stop; }
+
+export LC_ALL=C

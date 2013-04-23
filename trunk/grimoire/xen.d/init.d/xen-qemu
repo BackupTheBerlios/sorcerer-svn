@@ -1,0 +1,28 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: xenconsoled
+# Required-Stop: $syslog $remote_fs
+# Default-Start: 1 2 3 5
+# Default-Stop: 0 6
+# Short-Description: starts and stops qemu monitor for dom0
+### END INIT INFO
+
+# Will not have the server on rootfs
+# however should run only on a single root file system
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+only start stop restart try-restart status
+
+if   [ -f /etc/sysconfig/xencommons ]
+then .    /etc/sysconfig/xencommons
+elif [ -f /etc/default/xencommons ]
+then .    /etc/default/xencommons
+fi
+
+server ${QEMU_XEN:-/usr/lib/xen/bin/qemu-system-i386}
+options -xen-domid 0 -xen-attach -name dom0 -nographic -M xenpv -daemonize -monitor /dev/null

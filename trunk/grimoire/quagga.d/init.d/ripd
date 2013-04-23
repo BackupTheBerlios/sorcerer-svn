@@ -1,0 +1,25 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: zebra
+# Required-Stop:  $network
+# Default-Start: S
+# Default-Stop: 0 1 6
+# Short-Description: ripd starts a routing server
+### END INIT INFO
+
+if    ! [ ramfs == "$( /bin/stat -f -c %T / )" ]; then
+ if   [ start == "$1" ]
+ then echo "$0 starts only on rootfs" 1>&2; exit 1
+ else exit 0
+ fi
+fi
+
+. /lib/lsb/init-functions
+
+only start stop status
+server /sbin/ripd
+config /etc/quagga/ripd.conf
+#domain user
+options -d

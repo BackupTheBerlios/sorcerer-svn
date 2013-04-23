@@ -1,0 +1,30 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Provides: mdadm
+# Required-Start: dmsetup lock sys
+# Should-Start: udev mdadm--auto-detect
+# Required-Stop: finale halt reboot reboot-kexec
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: mdadm activates the software RAID
+# Raid partitions should be type 0xFD
+# This script assembles the raid arrays using configuration from
+# /etc/mdadm.conf
+# Shutting down RAIDS during shutdown is probably not required.
+### END INIT INFO
+
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+
+. /lib/lsb/init-functions
+
+only start stop
+cgroup none
+server /sbin/mdadm
+config /etc/mdadm.conf
+
+case $1 in
+ start) options '--assemble --scan' ;;
+ stop)  options '--stop --scan' ;;
+esac

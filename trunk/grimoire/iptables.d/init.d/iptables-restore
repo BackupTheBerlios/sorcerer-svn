@@ -1,0 +1,33 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Should-Start: loopback $network
+# Default-Start: S 1 2 3 4 5
+# Short-Description: iptables-restore loads previously saved rules
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop restart
+
+if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+then config /etc/iptables.conf.rootfs
+else config /etc/iptables.conf
+if 
+
+start(){
+ [ -s "$CONF" ] &&
+ if   log_warning_msg "iptables-restore < $CONF running"
+                       iptables-restore < $CONF
+ then log_success_msg "iptables-restore < $CONF ran"
+ else log_failure_msg "iptables-restore < $CONF failed to run"
+ fi
+}
+
+stop(){ 
+ if   log_warning_msg "iptables -F running"; /sbin/iptables -F
+ then log_success_msg "iptables -F ran"
+ else log_failure_msg "iptables -F failed to run"
+ fi
+}

@@ -4,10 +4,6 @@
 # http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.3.tar.gz 
 # Above is alternate download location?
 
-# kdenlive version 0.8.2 does not compile when
-# qt-everywhere-opensource 4.8.0 is installed.
-# 4.8.1 failed compilation, perhaps incompatible with current glib?
-
 with version   stable 4.8.4 4.8.3
 with base    alsa-lib dbus glib fontconfig libXcursor libXinerama libXrandr libiodbc libpng sqlite tiff
 #with base    alsa-lib dbus glib fontconfig libXcursor libXinerama libXrandr libiodbc libmng libpng sqlite tiff
@@ -17,7 +13,8 @@ with elect   mysql
 #with elect   mysql       -plugin-sql-mysql
 with elect   postgresql  ''    -no-sql-psql            for postgresql support
 #with elect   sqlite-v2.8 ''    -no-sql-sqlite2         for old sqlite support
-with elect   unixODBC    ''    -no-sql-odbc            for connecting to windows database
+with elect   libiodbc     ''    -no-sql-odbc            for connecting to windows database
+#with elect   unixODBC    ''    -no-sql-odbc            for connecting to windows database
 with also    -no-phonon -fontconfig -xmlpatterns -exceptions
 with role    graphic/library
 with trait   bias bottleneck huge kde4 library lto_off makej multilib-dual optimize
@@ -104,20 +101,6 @@ build(){
 # local  PATH
 # export PATH=$RATH
 
- use_older_webkit(){
-  if [ -d qt-everywhere-opensource-src-4.7.4/src/3rdparty/webkit ]; then
-   rm -fr                                    src/3rdparty/webkit
-   mv     qt-everywhere-opensource-src-4.7.4/src/3rdparty/webkit src/3rdparty/
-#  rm -fr qt-everywhere-opensource-src-4.7.4
-  fi
- }
-
- case $VERSION in
-# 4.8.3) use_older_webkit ;;
-# 4.8.*) sed -i 's/-Werror/-fpermissive/' src/3rdparty/webkit/Source/WebKit.pri ;;
-  4.7.*) with also -qt-gif ;;
- esac
-
  mkdir -p lib
 #-system-libmng   \
  echo -e "o\nyes" |
@@ -144,4 +127,10 @@ build(){
  setarch $ARCH make &&
  setarch $ARCH make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR &&
  add_rpath_to_la
+}
+
+current(){
+ case $VERSION in
+  4.8.4) grep -qx "patching file src/tools/moc/main.cpp" "$COMPILE_LOGS/$SPELL" ;;
+ esac
 }

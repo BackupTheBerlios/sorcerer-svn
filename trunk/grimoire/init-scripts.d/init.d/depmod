@@ -8,6 +8,8 @@
 
 # Never rely upon depmod -A
 
+(( UID == 0 )) || exit 0
+
 . /lib/lsb/init-functions
 
 fast
@@ -23,7 +25,8 @@ check(){
    log_warning_msg "$DIR checking"
    if   ! [ -f "$DIR/reference" ]
    then log_warning_msg "$DIR checked and is not current"; echo "$DIR"
-   elif   [ -n "$( find $DIR -newer $DIR/reference )" ]
+   elif   [ -n "$( /bin/find $DIR -newer $DIR/reference |
+                   /bin/grep -v modules.loaded )" ]
    then log_warning_msg "$DIR checked and is not current"; echo "$DIR"
    else log_success_msg "$DIR checked and is current"
    fi
@@ -33,8 +36,8 @@ check(){
 
 update(){
  while read; do 
-  if   log_warning_msg "depmod ${REPLY##*/} running"; depmod ${REPLY##*/}
-  then log_success_msg "depmod ${REPLY##*/} success"; touch $REPLY/reference
+  if   log_warning_msg "depmod ${REPLY##*/} running"; /sbin/depmod "${REPLY##*/}"
+  then log_success_msg "depmod ${REPLY##*/} success"; /bin/touch "$REPLY/reference"
   else log_success_msg "depmod ${REPLY##*/} failure"
   fi
  done

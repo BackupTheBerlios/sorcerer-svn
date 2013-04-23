@@ -7,7 +7,7 @@
 # Short-Description: creates boot filesystems
 ### END INIT INFO
 
-# Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
+# Copyright 2007 through 2013 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 . /lib/lsb/init-functions
@@ -35,6 +35,7 @@ filter_elf(){
 every(){
  find ${NAME/\/boot\/initrf/} |
  sed "\
+\,^/lib/firmware/,d
 \,^/lib/modules/,d
 \,^/lib.*\.la$,d
 \,^/lib.*lib.*\.a$,d"
@@ -63,7 +64,12 @@ initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
 
- if   find ${NAME/\/boot\/initrf/} -newer $NAME | grep -v "/lib/modules" | grep -q .
+ if   find ${NAME/\/boot\/initrf/} -newer $NAME |
+      sed '\,^/lib/firmware/,d
+           \,^/lib/firmware$,d
+           \,^/lib/modules/,d
+           \,^/lib/modules$,d' |
+      grep -q .
  then return 1
  fi
 

@@ -1,0 +1,20 @@
+#!/bin/bash
+
+# Copyright 2013 by Kyle Sallee All Rights Reserved
+# logind is a daemon to identify an avaialble virtual console
+# and allow activation of the virtual console and login
+
+main(){
+ while :; do 
+  /bin/pgrep -u root "^rgetty$" ||
+  /bin/openvt -- /sbin/rgetty
+  sleep 5
+ done
+}
+
+if ! (( $UID == 0 )); then exit 1; fi
+
+trap : SIGHUP SIGINT SIGQUIT SIGILL SIGABRT
+[      -f /usr/libexec/bash/sleep ] &&
+enable -f /usr/libexec/bash/sleep sleep
+main < /dev/null &> /dev/null &

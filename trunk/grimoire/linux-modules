@@ -1,0 +1,107 @@
+with base    initramfs linux-config linux-headers
+with role    kernel
+with trait   console litelink makej solo
+# given solo trait in order to cast faster on smp using parallel make.
+with info    last 20130321
+with info    home http://www.kernel.org/
+with protect /lib/modules/
+with info    cite 'compiles and installs modules for source in /usr/src/linux/'
+
+kversion(){
+ local m=/usr/src/linux/Makefile
+
+ if   ! [ -f $m ]
+ then with version stable uncertain; with trait broke; return
+ fi
+
+ local v="s:^VERSION=::p;d"
+ local p="s:^PATCHLEVEL=::p;d"
+ local s="s:^SUBLEVEL=::p;d"
+ local e="s:^EXTRAVERSION=::p;d"
+ local c="s: ::g;"
+
+ v=$( sed "$c $v" $m )
+ p=$( sed "$c $p" $m )
+ s=$( sed "$c $s" $m )
+ e=$( sed "$c $e" $m )
+
+ [ -n "$p" ] && v+=".$p"
+ [ -n "$s" ] && v+=".$s"
+ [ -n "$e" ] && v+=".$e"
+
+ with version stable "$v"
+}
+
+kversion
+
+
+build(){
+ xz_modules(){
+  local KO="$DESTDIR/lib/modules/$VERSION$1/kernel/"
+  echo "xz compressing modules"
+  find "$KO" -type f -size +4096c -name \*.ko -printf '%p\t%s\n' |
+  while read file size; do
+   echo "xz $file"
+   xz -f -M 25% --lzma2=dict=$size,mf=bt4,nice=273 "$file" &&
+   ln     "$file"{.xz,} &&
+   unlink "$file.xz"
+  done
+ }
+
+ strip_modules(){
+  find $DESTDIR/lib/modules/$VERSION$1/kernel -type f -name \*.ko |
+  xargs --max-lines=256 strip --strip-unneeded
+ }
+
+ compile_and_install(){
+  local    d=/usr/src/linux
+  local m=$d/Makefile
+  local c=$d/.config.custom
+  local s=$d/.config.stock
+
+  if ! [ -f $m ]; then
+   echo "$m is missing"
+   echo "Try casting linux-source first"
+   return 1
+  elif [ -f $c ]; then cp $c .config
+  elif [ -f $s ]; then cp $s .config
+  else
+   echo "$c does not exist"
+   echo "$s does not exist"
+   echo "$c or $s must exist"
+   echo "try casting linux-config first"
+   return 1
+  fi
+
+  if   ! grep -q "CONFIG_MODULES=y" .config
+  then echo "Not a modular kernel"; return
+  fi
+
+  cd /usr/src/linux/ &&
+  make distclean &&
+# yes '' |
+# make O="$BUILD_DIR" silentoldconfig &&
+  yes '' |
+  make O="$BUILD_DIR" oldconfig &&
+  make O="$BUILD_DIR" modules &&
+  make O="$BUILD_DIR" modules_install INSTALL_MOD_PATH="$DESTDIR" &&
+  cd     "$BUILD_DIR" &&
+  strip_modules &&
+  xz_modules
+ }
+
+ export   CFLAGS="${CFLAGS//-fstack-protector-all/}"
+ export   CFLAGS="${CFLAGS//-fstack-protector/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector-all/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector/}"
+
+ compile_and_install
+}
+
+post_install(){
+ grep -lr   '^/lib/modules/' "$INSTALL_LOGS" |
+ sed        "s:.*[/]::;/^$/d;/^$SPELL$/d"    |
+ pipe_queue "$MOIL_QUEUE"
+
+ default_post_install
+}

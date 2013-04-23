@@ -1,0 +1,54 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $syslog $remote_fs xen xen-modules
+# Required-Stop:  $syslog $remote_fs
+# Default-Start: 1 2 3 5
+# Default-Stop: 0 6
+# Short-Description: starts and stops xenstored
+### END INIT INFO
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+only start stop restart try-restart status
+
+if   [ -f /etc/sysconfig/xencommons ]
+then .    /etc/sysconfig/xencommons
+elif [ -f /etc/default/xencommons ]
+then .    /etc/default/xencommons
+fi
+
+start(){
+ [     -d /var/run/xend ] ||
+ mkdir -p /var/run/xen
+
+ if   ! $( xenstore-read -s / >/dev/null 2>&1 ); then
+  rm -f "${XENSTORED_ROOTDIR:=/var/lib/xenstored}"/tdb*
+
+  if   [ -n "$XENSTORED_TRACE" ]
+  then options -T /var/log/xen/xenstored-trace.log
+  fi
+
+  if   [ -n "$XENSTORED" ]; then
+   if   log_warning_msg "$XENSTORED starting"; $XENSTORED $OPTS
+   then log_success_msg "$XENSTORED started"
+   else log_failure_msg "$XENSTORED failed to start"; false
+   fi
+  elif [ -x /usr/sbin/oxenstored ]; then
+   if   log_warning_msg "oxenstored starting"; /usr/sbin/oxenstored $OPTS
+   then log_success_msg "oxenstored started"
+   else log_failure_msg "oxenstored failed to start"; false
+   fi
+  elif [ -x /usr/sbin/xenstored ]; then
+   if   log_warning_msg "xenstored starting"; /usr/sbin/xenstored $OPTS
+   then log_success_msg "xenstored started"
+   else log_failure_msg "xenstored failed to start"; false
+   fi
+  else
+   log_failure_msg "xenstored not found"; exit 1
+  fi
+ fi
+}

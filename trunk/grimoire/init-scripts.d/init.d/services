@@ -10,6 +10,8 @@
 # Copyright 2011 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
+[ -d /etc/services.d ] || exit 0
+
 . /lib/lsb/init-functions
 
 only stop
@@ -17,13 +19,13 @@ deny control
 
 check(){
  ! [ -f /etc/services ] ||
- find   /etc/services.d -type f -cnewer /etc/services | grep -q .
+ [ -n "$( /bin/find /etc/services.d -type f -cnewer /etc/services )" ]
 }
 
 update(){
- find /etc/services.d/ -maxdepth 1 -type f |
- xargs -r --max-lines=256 \
- sed 's: *#.*::;s:  *:\t:g' > /etc/services
+ /bin/find  /etc/services.d/ -maxdepth 1 -type f |
+ /bin/xargs -r --max-lines=256 \
+ /bin/sed   's: *#.*::;s:  *:\t:g' > /etc/services
 }
 
 stop(){

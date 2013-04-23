@@ -3,9 +3,11 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Provides: $local_fs
-# Required-Start: mtab root-rw dev-bind
-# Required-Stop: cryptmount cryptsetup finale halt mdadm reboot reboot-kexec root-ro vgchange
-# Default-Start: S
+# Required-Start: fsck mtab
+# Should-Start: root-rw
+# Required-Stop: cryptmount cryptsetup finale halt mdadm reboot reboot-kexec vgchange
+# Should-Stop: root-ro
+# Default-Start: S 1 2 3 4 5
 # Default-Stop: 0 6
 # Short-Description: mounts and un-mounts file systems
 ### END INIT INFO
@@ -15,24 +17,38 @@
 only start stop
 deny control
 
-start(){
- local r=0
- if    [ -d /home ]; then
-  if   log_warning_msg "mount -a executing"; mount -a
-  then log_success_msg "mount -a executed"
-  else log_success_msg "mount -a execution failed"; r=1
-  fi
- else
-  for d in /media/root/*; do
-   if [ "$d" == /media/root/rootfs ] || ! [[ -f $d/etc/fstab ]]
-   then continue
-   elif log_warning_msg "chroot $d mount -a executing"; chroot "$d" mount -a
-   then log_success_msg "chroot $d mount -a executed"
-   else log_success_msg "chroot $d mount -a execution failed"; r=1
-   fi
-  done
+if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+then FSTAB=/etc/fstab.rootfs
+else FSTAB=/etc/fstab
+fi
+
+mkdirs(){
+ local mkdir
+ if   [      -x /usr/libexec/bash/mkdir ]
+ then enable -f /usr/libexec/bash/mkdir mkdir &&
+      mkdir=mkdir
+ else mkdir=/bin/mkdir
  fi
- return $r
+
+ while read s d t; do
+  if   [[    $s =~ \#     ]]; then continue
+  elif [[    $t =~ noauto ]]; then continue
+  elif [[ -z $d           ]]; then continue; fi
+  $mkdir -pm 0755 "$d"
+ done < $FSTAB
+}
+
+run(){
+ if   [ -f $FSTAB ]
+ then mkdirs && /bin/mount -a -T $FSTAB
+ fi
+}
+
+start(){
+ if   log_warning_msg "/bin/mount -a -T $FSTAB executing"; run
+ then log_success_msg "/bin/mount -a -T $FSTAB executed"
+ else log_success_msg "/bin/mount -a -T $FSTAB execution failed"
+ fi
 }
 
 stop(){
@@ -40,18 +56,26 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-  cut  -d ' ' -f2 /proc/mounts  |
-  sed  '\,^/media/root,p;d'     |
-  sort -r | xargs -r --max-lines=256 umount -lr
+  if   [ ramfs == "$( /bin/stat -f -c %T / )" ]; then
+   cut  -d ' ' -f2 /proc/mounts  |
+   sed  '\,^/media/root,p;d'     |
+   sort -r | xargs -r --max-lines=256 umount -l
+  #else umount -ARl /
+  else
+   cut -d ' ' -f2 /etc/mtab |
+   sort -r | xargs -r --max-lines=256 umount -l
+  fi
 
-  sed  '\,^rootfs / rootfs,d
-        \,^proc /proc proc,d
-        \,^sysfs /sys sysfs,d
-        \,^tmpfs /run tmpfs,d
-        \,^devtmpfs /dev devtmpfs,d
-        \,^devpts /dev/pts devpts,d' /proc/mounts | cut -d ' ' -f2 |
-  sort -r | xargs -r --max-lines=256 umount -lr
+#  sed  '\,^rootfs / rootfs,d
+#        \,^proc /proc proc,d
+#        \,^sysfs /sys sysfs,d
+#        \,^tmpfs /run tmpfs,d
+#        \,^devtmpfs /dev devtmpfs,d
+#        \,^devpts /dev/pts devpts,d' /proc/mounts | cut -d ' ' -f2 |
+#  sort -r | xargs -r --max-lines=256 umount -lr
  }
+
+# run(){ sync; umount -Rlr /; }
 
  log_warning_msg 'File systems unmounting'; run
  log_success_msg 'File systems unmounted'

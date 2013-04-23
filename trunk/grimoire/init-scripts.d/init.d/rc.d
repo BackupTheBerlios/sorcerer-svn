@@ -3,7 +3,6 @@
 # Default-Mode: 500
 # Required-Stop: $local_fs
 # Should-Stop: initramfs tmp
-# Default-Stop: 0 6
 # Short-Description: updates symbolic links in /etc/rc.d/rc*.d/
 ### END INIT INFO
 
@@ -15,7 +14,11 @@
 only stop status
 deny control
 
-check(){ find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d | grep -q . || ! [ -d /etc/rc.d ]; }
+check(){
+ ! [ -d /etc/rc.d ] ||
+   [ -n "$( /bin/find /etc/init.d -maxdepth 1 -type f -cnewer /etc/rc.d )" ]
+}
+
 update(){ /lib/lsb/install_initd; }
 
 status(){

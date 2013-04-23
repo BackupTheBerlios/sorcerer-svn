@@ -1,3 +1,21 @@
+# Evert reports potential problems involving
+# version 1.6.2 of cups.
+# If it fails to print a tst page
+# then setting custom version progress to 1.6.1
+# and casting cups might circumvent the problem.
+# au progress cups custom 1.6.1; au begin cups
+# The command on the line bove will
+# cause the installed version of cups to revert to 1.6.1
+# and to stay there until the SA restores it to stable version progress.
+# Additionally,
+# au progress cups legacy; au begin cups
+# The above command will allow cups to remain at version
+# specified by legacy version progress
+# for as long as the legagy version progress exists.
+# I will probably keep a legacy version progress for cups
+# for as long as Evert reports problems with it.
+
+
 # espgs is needed but can't be placed as a requirement or
 # it causes a circuliar requirement loop
 #            'openssl:--enable-ssl:--disable-ssl:for secure socket connections' )
@@ -12,13 +30,14 @@
 # gnome-control-center version 3.4.2 can use.
 
 with version   stable 1.6.2 1.6.1 1.5.4
-with version unstable 1.6.2
+with version unstable 1.7b1
+with version   legacy 1.6.1
 with base    acl libpng mxml openslp popt tiff
 #with base    acl libcap libpng openslp popt tiff
 with elect   PAM       --enable-pam     --disable-pam     for pluggable authentication
 with elect   dbus      --enable-dbus    --disable-dbus    for dbus
 #with elect   gnutls    --enable-gnutls  --disable-gnutls  for SSL/TLS by gnutls
-with elect   heimdal   ''               ''                for kerberos 5
+with elect   krb5   ''               ''                for kerberos 5
 with elect   openldap  --enable-ldap    --disable-ldap    for LDAP
 #with elect   openssl   --enable-openssl --disable-openssl for SSL/TLS by openssl
 # Evert reports that firefox crashes during printing if
@@ -45,12 +64,21 @@ with source  unstable \
             ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
             ftp://ftp.ntua.gr/pub/gnu/ \
             cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-with source  $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
+with source    legacy \
+           http://ftp.easysw.com/pub/ \
+            ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
+            ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
+            ftp://ftp.ntua.gr/pub/gnu/ \
+            cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
+
+with source    stable $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
+with source  unstable $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
+with source    legacy $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
 with info    last 20130320
 with info    home http://www.cups.org/
 with info    docs http://www.cups.org/documentation.php
 with info    vurl http://www.cups.org/software.php
-with omit    /etc/cups/certs
+with omit    /etc/cups/certs/
 with protect /etc/printcap
 with hold    lpr
 with info    cite 'portable printing layer'

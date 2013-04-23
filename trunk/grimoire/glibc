@@ -43,12 +43,12 @@ build(){ (
  local arch setarch
 
  install_glibc(){
-  install -vm 600 ../nscd/nscd.conf $DESTDIR/etc/
-  mkdir  -pvm 755                   $DESTDIR/var/db
-  mkdir  -pvm 700                   $DESTDIR/var/db/nscd
+  install -vm 600 ../nscd/nscd.conf "$DESTDIR"/etc/
+  mkdir  -pvm 755                   "$DESTDIR"/var/db
+  mkdir  -pvm 700                   "$DESTDIR"/var/db/nscd
 
-  cd    $DESTDIR
-  rm -f $DESTDIR/etc/{localtime,ld.so.*}
+  cd    "$DESTDIR"
+  rm -f "$DESTDIR"/etc/{localtime,ld.so.*}
 
   true
  }
@@ -66,8 +66,8 @@ build(){ (
  }
 
  supported_locales(){
-  mkdir -pvm 755                $DESTDIR/usr/share/i18n
-  cp    ../localedata/SUPPORTED $DESTDIR/usr/share/i18n
+  mkdir -pvm 755                "$DESTDIR"/usr/share/i18n
+  cp    ../localedata/SUPPORTED "$DESTDIR"/usr/share/i18n
  }
 
  if   [ $HOSTTYPE == x86_64 ] && ! [[ $CFLAGS =~ -m32 ]]
@@ -98,9 +98,9 @@ build(){ (
  export CFLAGS LDFLAGS LC_ALL
  unset  CXXFLAGS
 
- mkdir -pvm 755 $DESTDIR/usr/include/sys
- mkdir -pvm 755 $DESTDIR/etc
- touch          $DESTDIR/etc/ld.so.conf
+ mkdir -pvm 755 "$DESTDIR"/usr/include/sys
+ mkdir -pvm 755 "$DESTDIR"/etc
+ touch          "$DESTDIR"/etc/ld.so.conf
 
  if   [ -f /usr/bin/uname ]
  then with also --enable-kernel=$( uname -r )
@@ -124,7 +124,7 @@ build(){ (
   --with-headers=/usr/include \
   $OPTS &&
  $setarch $arch make     all &&
- $setarch $arch make install install_root=$DESTDIR &&
+ $setarch $arch make install install_root="$DESTDIR" &&
  quick_test        &&
  supported_locales &&
  install_glibc
@@ -145,4 +145,10 @@ post_install(){
  fi
 
  true
+}
+
+current(){
+ case $VERSION in
+  2.17) grep Required-Start /etc/init.d/var_run_nscd | grep -q var_run ;;
+ esac
 }

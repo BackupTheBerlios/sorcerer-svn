@@ -1,0 +1,29 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $syslog $remote_fs xen
+# Default-Start: S
+# Short-Description: loads all modules required by xen
+### END INIT INFO
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+only start
+
+start(){
+ log_warning_msg "Some xen-* modules will not load"
+ local v
+ read j j v j < /proc/version
+ ( cat /proc/modules | cut -d ' ' -f1 | sed p
+   find "/lib/modules/$v/kernel/" -type f -name xen-*.ko -printf '%f\n' |
+   sed 's:\.ko$::'
+ ) | sort | uniq -u |
+ while read NAME; do startk; done
+}
+
+# stopping or unloading modules might not be possible?
+stop(){ lsmod | cut -d ' ' -f1 | grep '^xen' | xargs rmmod; }

@@ -9,8 +9,9 @@
 # /usr/lib/libsystemd-daemon.la
 # when other programs link with systemd.
 
-with version   stable 198 196 195
-with version unstable 198
+with version   stable 202 201 200
+with version unstable 202
+with info    last 20130420
 with base    acl cryptsetup dbus glib gperf intltool kmod libcap pci.ids pkgconfig qrencode sysvinit usbutils
 with elect   ConsoleKit
 #with elect   libgee
@@ -20,10 +21,10 @@ with also    --disable-audit --disable-introspection
 with also    --with-rootprefix=
 with also    --with-distro=other
 with role    utility
-with trait   console library lto makej multilib-concurrent optimize server
+with trait   console library lto multilib-concurrent optimize server
+#with trait   console library lto makej multilib-concurrent optimize server
 with source    stable http://www.freedesktop.org/software/systemd/systemd-$VERSION.tar.xz
 with source  unstable http://www.freedesktop.org/software/systemd/systemd-$VERSION.tar.xz
-with info    last 20130307
 with info    home http://www.freedesktop.org/wiki/Software/systemd
 with omit    /dev
 with omit    /lib/udev/dev/core
@@ -106,6 +107,12 @@ build(){
   fi
  }
 
+ disinformation_fix(){
+  rm -f "$DESTDIR"/etc/init.d/README
+  rm -f "$DESTDIR"/usr/share/man/man8/{halt,poweroff,reboot,runlevel,shutdown,telinit}.8
+  rm -f "$DESTDIR"/var/log/README
+ }
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --with-rootlibdir=/lib64
  else with also --with-rootlibdir=/lib
@@ -126,7 +133,8 @@ build(){
    pkgconfig_fix &&
      libtool_fix &&
           so_fix &&
-          ar_fix
+          ar_fix &&
+ disinformation_fix
 }
 
 libudev_location_fix(){
@@ -152,6 +160,6 @@ post_install(){
 
 current(){
  case $VERSION in
-  198) grep -q local_fs /etc/init.d/udevd-stop ;;
+  200) grep -q "S 1 2 3 4 5" /etc/init.d/dev   ;;
  esac
 }

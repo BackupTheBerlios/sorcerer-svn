@@ -1,0 +1,22 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Should-Start: proc
+# Default-Start: S
+# Short-Description: send keepalive packets frequently to prevent linux NAT from closing idle connections.
+### END INIT INFO
+
+KAT=900
+
+. /lib/lsb/init-functions
+
+only start stop status
+config /proc/sys/net/ipv4/tcp_keepalive_time
+
+start(){
+ if   log_warning_msg "echo $KAT > $CONF executing"; echo 1 > $CONF
+ then log_success_msg "echo $KAT > $CONF executed"
+ else log_failure_msg "echo $KAT > $CONF failed execution"; return 1
+ fi
+}

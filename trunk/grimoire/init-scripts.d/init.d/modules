@@ -1,0 +1,45 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Should-Start: root-rw
+# Default-Start: S
+# Short-Description: provides modules to root file systems that lack.
+### END INIT INFO
+
+if   ! [ ramfs == "$( /bin/stat -f -c %T / )" ]
+then echo "$0 can only be executed on the rootfs"; exit 1
+fi
+
+. /lib/lsb/init-functions
+
+only start
+deny control
+
+mod_copy(){
+ local d="$1"
+ if   ! [   -d      "$d/lib/modules/" ]
+ then mkdir -pm 755 "$d/lib/modules/" &&
+      cp    -av     {,"$d"}/lib/modules/"$V"
+ elif ! [   -d      "$d/lib/modules/$V/" ]
+ then cp    -av     {,"$d"}/lib/modules/"$V"
+ fi
+}
+
+mod_check(){ [ -d "$1/lib/modules/$V/" ]; }
+
+start(){
+ local V="$( cut -d ' ' -f3 /proc/version )"
+ local r
+ for d in /media/root/*; do
+  if   ! [ -f "$d/init" ]; then continue; fi
+  if   log_warning_msg "$d/lib/modules/$V/ checking"; mod_check "$d"
+  then log_success_msg "$d/lib/modules/$V/ exists"
+  elif log_warning_msg "$d/lib/modules/$V/ copying";  mod_copy  "$d"
+  then log_success_msg "$d/lib/modules/$V/ installed"
+  else log_failure_msg "$d/lib/modules/$V/ copy failed"; r=1
+  fi
+ done
+ return $r
+}

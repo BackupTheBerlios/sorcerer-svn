@@ -2,10 +2,11 @@
 # http://www.nvidia.com/Download/index.aspx?lang=en-us
 # It sometimes points to newer drivers.
 
-with version stable 310.32 310.19 304.60
+with version stable 310.44 310.40 310.32 310.19 304.60
+with version 319    319.12
 with version 314    314.14 314.07
 with version 313    313.96 313.18 313.09
-with version 310    310.32 310.19 310.14
+with version 310    310.44 310.40 310.32 310.19 310.14
 with version 304    304.64 304.60 304.43
 with version 295    295.75
 with version 290    290.10
@@ -13,7 +14,7 @@ with version 285    285.05.09 285.03
 with version 280    280.13
 with version 275    275.43 275.36 275.28 275.21
 with version 270    270.41.19 270.41.06
-with base    MesaLib gtk+ libXvMC linux-src xorg-server
+with base    MesaLib gtk+ libXvMC linux-source xorg-server
 with role    kernel
 with trait   library linux-module multilib-fail optimize solo x11 x86
 with source  http://us.download.nvidia.com/XFree86/Linux-x86/$VERSION/NVIDIA-Linux-x86-$VERSION.run
@@ -34,39 +35,67 @@ fi
 
 build(){
  fix_install(){
-  mv             $DESTDIR/usr/include      $DESTDIR/usr/nvidia
-  mkdir -pvm 755 $DESTDIR/usr/include
-  mv             $DESTDIR/usr/nvidia/vdpau $DESTDIR/usr/include
-  mv             $DESTDIR/usr/nvidia       $DESTDIR/usr/include
-  mkdir -pvm 755 $DESTDIR/etc/opengl/
-  mkdir -vpm 755                           $DESTDIR/usr/lib/nvidia
-  mv    -v       $DESTDIR/usr/lib/libGL.*  $DESTDIR/usr/lib/nvidia/
+  mv             "$DESTDIR"/usr/include/     "$DESTDIR"/usr/nvidia
+  mkdir -pvm 755 "$DESTDIR"/usr/include/
+  mv             "$DESTDIR"/usr/nvidia/vdpau "$DESTDIR"/usr/include/
+  mv             "$DESTDIR"/usr/nvidia       "$DESTDIR"/usr/include/
+  mkdir -pvm 755 "$DESTDIR"/etc/opengl/
+  mkdir -vpm 755                             "$DESTDIR"/usr/lib/nvidia/
+  mv    -v       "$DESTDIR"/usr/lib/libGL.*  "$DESTDIR"/usr/lib/nvidia/
 
   if   [[ $HOSTTYPE == x86_64 ]]
-  then rm -fr $DESTDIR/usr/{bin,include,man,share}
-  else echo /usr/lib/nvidia  >>            $DESTDIR/etc/opengl/nvidia
+  then rm -fr "$DESTDIR"/usr/{bin,include,man,share}
+  else echo /usr/lib/nvidia  >>              "$DESTDIR"/etc/opengl/nvidia
   fi
 
 # NVIDIA's wfb library can not be used by xorg and must not be installed
-  rm -f $DESTDIR/usr/lib/xorg/modules/*wfb*
+  rm -f "$DESTDIR"/usr/lib/xorg/modules/*wfb*
 
 ## libglx extension should be installed over xorg-server's libglx
-# rm -f $DESTDIR/usr/lib/xorg/modules/extensions/libglx.*
+# rm -f "$DESTDIR"/usr/lib/xorg/modules/extensions/libglx.*
 
   return 0
  }
 
- MOD_PATH=/usr/lib/xorg/modules
- PRO="$( get_provider linux-kernel )"
- if   spell_installed $PRO
- then LVER="$( installed_version $PRO  )"
- else LVER="$( available_version linux )"
- fi
+ lversion(){
+  local m=/usr/src/linux/Makefile
 
- case $LVER in
-  3.3) LVER=3.3.0 ;;
-  3.2) LVER=3.2.0 ;;
- esac
+  if   ! [ -f $m ]
+  then return
+  fi
+
+  local v="s:^VERSION=::p;d"
+  local p="s:^PATCHLEVEL=::p;d"
+  local s="s:^SUBLEVEL=::p;d"
+  local e="s:^EXTRAVERSION=::p;d"
+  local c="s: ::g;"
+
+  v=$( sed "$c $v" $m )
+  p=$( sed "$c $p" $m )
+  s=$( sed "$c $s" $m )
+  e=$( sed "$c $e" $m )
+
+  [ -n "$p" ] && v+=".$p"
+  [ -n "$s" ] && v+=".$s"
+  [ -n "$e" ] && v+=".$e"
+
+  LVER="$v"
+ }
+
+ lversion
+ MOD_PATH=/usr/lib/xorg/modules
+
+ local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
+ rm   -fr $BUILD_DIR
+ mkdir -p $BUILD_DIR
+ cd       $BUILD_DIR
+ echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUILD_DIR/lsmod
+ chmod a+x $BUILD_DIR/lsmod
+ export PATH=$BUILD_DIR:$PATH
+
+ mkdir -pvm 755 $DESTDIR/lib/modules/$LVER/kernel/drivers/video
+ mkdir -pvm 755 $DESTDIR/usr/{include,lib}
+
 
  PARAMETERS="
 --accept-license
@@ -79,9 +108,9 @@ build(){
 --installer-prefix=$DESTDIR/usr
 --utility-prefix=$DESTDIR/usr
 --documentation-prefix=$DESTDIR/usr
---kernel-source-path=/usr/src/linux
---kernel-install-path=$DESTDIR/lib/modules/$LVER/kernel/drivers/video
 --kernel-name=$LVER
+--kernel-source-path=$PWD/linux
+--kernel-install-path=$DESTDIR/lib/modules/$LVER/kernel/drivers/video
 --no-runlevel-check
 --no-abi-note
 --no-rpms
@@ -92,35 +121,43 @@ build(){
 --no-cc-version-check
 --no-distro-scripts"
 
-if     [[ $HOSTTYPE == x86_64 ]]; then PARAMETERS+=" --no-kernel-module"
-elif ! [ -d /usr/src/linux     ]; then PARAMETERS+=" --no-kernel-module"
- echo      "/usr/src/linux is missing."
- echo "Therefore, required kernel module will not be installed."
-fi
+ if     [[ $HOSTTYPE == x86_64 ]]; then
+  PARAMETERS+=" --no-kernel-module"
+  echo "kernel is x86_64 therefore the spell"
+  echo "NVIDIA-Linux-x86_64 provides the kernel module."
+ elif ! [ -d /usr/src/linux     ]; then
+  PARAMETERS+=" --no-kernel-module"
+  echo      "/usr/src/linux is missing."
+  echo "Therefore, required kernel module will not be installed."
+ else
+  local    d=/usr/src/linux
+  local c=$d/.config.custom
+  local s=$d/.config.stock
 
-local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
-rm   -fr $BUILD_DIR
-mkdir -p $BUILD_DIR
-cd       $BUILD_DIR
-echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUILD_DIR/lsmod
-chmod a+x $BUILD_DIR/lsmod
-export PATH=$BUILD_DIR:$PATH
+  cp -a /usr/src/linux .
 
-mkdir -pvm 755 $DESTDIR/lib/modules/$LVER/kernel/drivers/video
-mkdir -pvm 755 $DESTDIR/usr/{include,lib}
-
-if   [[ $HOSTTYPE == x86_64 ]]
-then yes Yes | setarch i686 sh "${SOURCE[0]}" $PARAMETERS --no-kernel-module
-else yes Yes |              sh "${SOURCE[0]}" $PARAMETERS
-fi &&
-
-fix_install
-}
-
-current(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f $INSTALL_LOGS/NVIDIA-Linux-x86_64 ]]
- then echo NVIDIA-Linux-x86_64 | pipe_queue $MOIL_QUEUE
+    if [ -f $c ]; then cp $c linux/.config
+  elif [ -f $s ]; then cp $s linux/.config
+  else
+   echo "$c does not exist"
+   echo "$s does not exist"
+   echo "$c or $s must exist"
+   echo "try casting linux-config first"
+   return 1
+  fi
+  cd linux
+  yes '' |
+  make oldconfig
+# make silentoldconfig
+  make prepare scripts
+  cd ..
  fi
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then yes Yes | setarch i686 sh "${SOURCE[0]}" $PARAMETERS --no-kernel-module
+ else yes Yes |              sh "${SOURCE[0]}" $PARAMETERS
+ fi &&
+ fix_install
 }
 
 # When using the dual architecture binary
@@ -131,4 +168,3 @@ current(){
 # Probably NVIDIA's installer deletes them.
 # Attempted with both multilib-dual and without.
 # Only means for flawless installation is to use 2 spells.
-

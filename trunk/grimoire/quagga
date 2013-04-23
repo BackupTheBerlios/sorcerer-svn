@@ -1,0 +1,30 @@
+with version stable 0.99.22.1 0.99.22
+with also    --disable-static --disable-tests
+with also    --enable-ipv6
+with also    --exec-prefix=
+with also    --sysconfdir=/etc/quagga
+with also    --localstatedir=/run/quagga
+with role    network network/route
+with trait   console server library makej multilib-concurent optimize
+with source  stable http://download.savannah.gnu.org/releases/quagga/quagga-$VERSION.tar.xz
+with info    last 20130411
+with info    home http://www.nongnu.org/quagga/
+with sys_user quagga
+with info    cite 'quagga is a fork of zebra routing server
+quagga implements OSPFv2, OSPFv3, RIP v1, RIPv2, RIPng, BGP-4'
+
+build(){
+ install_conf(){
+  local o="-m 0600 -o quagga -g quagga"
+  local ug=quagga:quagga
+
+  mkdir   -pm 0755 "$DESTDIR"/etc/quagga/
+  install $o -t    "$DESTDIR"/etc/quagga/ "$SCRIPT_DIR"/etc/quagga/*
+  chown   -R $ug   "$DESTDIR"/etc/quagga/
+  chmod       0700 "$DESTDIR"/etc/quagga/
+  chmod       0600 "$DESTDIR"/etc/quagga/*
+ }
+
+ default_build &&
+ install_conf
+}

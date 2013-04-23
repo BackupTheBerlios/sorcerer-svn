@@ -1,0 +1,254 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+# For use with the distribution Sorcerer Modern Magic only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: veth-setup
+# Should-Start: auto-networks networks
+# Default-Start: S
+# Short-Description: ports specified /etc/port.forward forwarded to veths
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+config /etc/port.forward
+only start configure status
+
+declare -A mnt_ipa  mnt_root
+declare -A root_mnt root_ipa
+declare -A ipa_mnt  ipa_root
+SELF=$0
+
+load_etc_roots(){
+ local      d n a
+ [ -f /etc/roots ] &&
+ while read d n a; do
+  root_mnt[$n]="$d"; root_ipa[$n]="$a"
+   mnt_ipa[$d]="$a"; mnt_root[$d]="$n"
+  ipa_root[$a]="$n";  ipa_mnt[$a]="$d"
+ done < /etc/roots
+}
+
+port_get(){
+ local TITLE=$"Port Selection"
+ local  HELP="$1\n"
+        HELP+=$"Please enter a port number or range of port numbers in the format x-y"
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE"     \
+  --timeout 60             \
+  --stdout --no-cancel     \
+  --inputbox "$HELP" 0 0
+}
+
+root_get(){
+ local TITLE=$"Root File System Selection"
+ local  HELP=$"Please enter the FQDN of a root file system"
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE"     \
+  --timeout 60             \
+  --stdout --no-cancel     \
+  --inputbox "$HELP" 0 0
+}
+
+list(){
+ [ -f "$CONF" ] || echo -n > "$CONF"
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --timeout 60             \
+  --textbox "$CONF" 20 70
+}
+
+line_get(){
+ local TITLE=$"Line Selection"
+ local  HELP=$"Please select line to delete"
+ local  IFS="
+"
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE"     \
+  --timeout 60             \
+  --stdout                 \
+  --menu      "$HELP" 20 70 10 \
+  $( sed "s:$:\nline:" "$CONF" )
+}
+
+delete(){
+ local l="$( line_get )"
+ if   [ -n "$l" ]
+ then sed -i "\,$l,d" "$CONF"
+ fi
+}
+
+command_get(){
+ local TITLE=$"Main Menu"
+ local  HELP=$"Please select a task"
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --title     "$TITLE"     \
+  --timeout 60             \
+  --stdout --no-cancel     \
+  --menu      "$HELP" 0 0 0 \
+  List '' Add '' Delete '' Help '' Exit ''
+}
+
+add(){
+ local r="$( root_get )"
+ local I=$"Please enter destination port or ports on network adapter in rootfs's net namespace"
+ local O=$"Please enter destination port on the veth adapter in $r unshare net namespace"
+ local i="$( port_get "$I" )"
+ local o="$( port_get "$O" )"
+ if   [ -n "$r" ] &&
+      [ -n "$i" ] &&
+      [ -n "$o" ]; then
+ sed -i "\,$r	$i	$o,d"  "$CONF"
+ echo "$r	$i	$o" >> "$CONF"
+ fi
+}
+
+help_msg(){
+ local HELP
+ local HELP+=$"$CONF specifies which ports go where."
+ local HELP+="\n"
+ local HELP+=$"$CONF is a file with 3 fields."
+ local HELP+="\n"
+ local HELP+=$"The first  field contains the FQDN for a root file system."
+ local HELP+="\n"
+ local HELP+=$"The second field contains destination ports."
+ local HELP+="\n"
+ local HELP+=$"The third  field contains destination ports."
+ local HELP+="\n"
+ local HELP+=$"DNAT rules that forward packets into root file system are created."
+ local HELP+="\n"
+ local HELP+="\n"
+ local HELP+=$"Supposed the FQDN for /media/root/www/ is www.eat.food."
+ local HELP+="\n"
+ local HELP+=$"Packets can be forward to www.eat.food's web server."
+ local HELP+="\n"
+ local HELP+=$"That line would read:"
+ local HELP+="\n"
+ local HELP+=$"www.eat.food 80 80"
+ local HELP+="\n"
+ local HELP+=$"To forward port 22 into main.eat.food the line would read:"
+ local HELP+="\n"
+ local HELP+=$"main.eat.food 22 22"
+ local HELP+="\n"
+ local HELP+=$"Or if forwarding from a higher port then perhaps?"
+ local HELP+="\n"
+ local HELP+=$"main.eat.food 2222 22"
+ local HELP+="\n"
+ local HELP+="\n"
+ local HELP+=$"Forwarding ports is not always convenient."
+ local HELP+="\n"
+ local HELP+=$"Direct routing to a FQDN remains possible."
+ local HELP+="\n"
+ local HELP+=$"Assign a static IP address to the FQDN."
+ local HELP+="\n"
+ local HELP+=$"Edit the /etc/hosts of the root file system for the FQDN."
+ local HELP+="\n"
+ local HELP+=$"Add a line with the IP address followed by the FQDN."
+ local HELP+="\n"
+ local HELP+=$"Complimentary routes are created for static IP addresss."
+ local HELP+="\n"
+ local HELP+=$"A static IP address enables access of all services within a FQDN."
+ local HELP+="\n"
+ local HELP+="Port forwarding is for when static assignment is not preferred."
+
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --timeout 300            \
+  --msgbox    "$HELP" 0 0
+}
+
+main_menu(){
+ local c
+ while c=$( command_get ); do
+  case $c in
+     List) list     ;;
+      Add) add      ;;
+   Delete) delete   ;;
+     Help) help_msg ;;
+     Exit) return 0 ;;
+  esac
+ done
+}
+
+main_root(){
+ /bin/sed 's:#.*::' /etc/fstab.rootfs |
+ /bin/tr  '\t' ' ' |
+ /bin/tr  -s ' ' |
+ /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
+ /bin/cut  -d ' ' -f2 |
+ /bin/head -n 1
+}
+
+configure(){
+ /bin/tty -s || return
+ local BACKTITLE=$"Port Forwarding Menu"
+ main_menu
+ if   [ ramfs == "$( /bin/stat -f -c %T / )" ]; then
+  start
+  local mr=$( main_root )
+  cp "$CONF" "$mr"/etc/
+ fi
+}
+
+start(){
+ run(){
+  local ipa r i o j
+  load_etc_roots
+
+  local host_ipa=$(
+   /sbin/ip  -o addr show |
+   /bin/tr   -s ' '       |
+   /bin/cut  -d ' ' -f4   |
+   /bin/grep -v "169\.254\.\|:" |
+   /bin/cut  -d / -f1 )
+
+  [ -f "$CONF" ] &&
+  while read r i o j; do
+   ipa="${root_ipa[$r]}"
+   /sbin/iptables -A INPUT -p tcp --dport "$i" -j ACCEPT
+   /sbin/iptables -A INPUT -p udp --dport "$i" -j ACCEPT
+   for a in $host_ipa; do
+    if [[ $i =~ \# ]]; then continue; fi
+    /sbin/iptables -t nat -A PREROUTING -p tcp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
+    /sbin/iptables -t nat -A PREROUTING -p udp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
+    /sbin/iptables -t nat -A OUTPUT     -p tcp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
+    /sbin/iptables -t nat -A OUTPUT     -p udp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
+   done
+  done < "$CONF"
+
+  a="$( echo "$host_ipa" | /bin/grep -v 127.0.0.1 | head -n 1 )"
+  /sbin/iptables -t nat -A POSTROUTING -p tcp  -j SNAT --to-source $a
+  /sbin/iptables -t nat -A POSTROUTING -p udp  -j SNAT --to-source $a
+  /sbin/iptables -t nat -A POSTROUTING -p icmp -j SNAT --to-source $a
+ }
+
+ if   log_warning_msg "$NAME executing"; run
+ then log_success_msg "$NAME executed"
+ else log_failure_msg "$NAME execution failed"
+ fi
+}
+
+stop(){
+ if   log_warning_msg "nat table flushing"; /sbin/iptables -t nat -F
+ then log_success_msg "nat table flushed"
+ else log_failure_msg "nat table flush failed"
+ fi
+}
+
+status(){
+ echo  "# /sbin/iptables -t nat -L"
+          /sbin/iptables -t nat -L
+ echo  "# /sbin/iptables -t filter -L"
+          /sbin/iptables -t filter -L
+}

@@ -6,20 +6,12 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: $local_fs
-# Default-Start: S
+# Should-Start: loadkeys proc
+# Default-Start: 1 2 3 4 5
 # Short-Description: checks and sets LANG in /etc/bash.d/noninteractive/LANG
 ### END INIT INFO
 
 # omit log
-
-e=
-for  d in /media/root/*; do
- if   [ -f   "$d"/usr/bin/locale ]
- then chroot "$d" "$@"; e=1
- fi
-done
-if [ -n "$e" ]; then exit 0; fi
 
 . /lib/lsb/init-functions
 
@@ -89,7 +81,9 @@ make_locale_archive(){
 }
 
 start(){ if choices && ! status; then configure_run; fi; }
+
 configure(){
+ /bin/tty -s || return
  rm -f $NAME
  make_locale_archive
  configure_run

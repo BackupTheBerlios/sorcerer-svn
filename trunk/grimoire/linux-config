@@ -1,0 +1,175 @@
+with base    linux-source
+with role    kernel
+with trait   console
+with info    last 20130321
+with info    home http://www.kernel.org/
+with protect /lib/modules/
+with info    cite 'installs /usr/src/linux/.config.stock
+
+If a custom config is preferred
+then write a spell which install
+the customized config file as
+/usr/src/linux/.config.custom'
+
+# [ -f   $GRIMOIRE/linux.d/trim ] &&
+# while read               CONF      SIZE  DESC
+# do    with switch  OMIT_$CONF "" "$SIZE $DESC"
+# done < $GRIMOIRE/linux.d/trim
+
+kversion(){
+ local m=/usr/src/linux/Makefile
+
+ if   ! [ -f $m ]
+ then with version stable uncertain; with trait broke; return
+ fi
+
+ local v="s:^VERSION=::p;d"
+ local p="s:^PATCHLEVEL=::p;d"
+ local s="s:^SUBLEVEL=::p;d"
+ local e="s:^EXTRAVERSION=::p;d"
+ local c="s: ::g;"
+
+ v=$( sed "$c $v" $m )
+ p=$( sed "$c $p" $m )
+ s=$( sed "$c $s" $m )
+ e=$( sed "$c $e" $m )
+
+ [ -n "$p" ] && v+=".$p"
+ [ -n "$s" ] && v+=".$s"
+ [ -n "$e" ] && v+=".$e"
+
+ with version stable "$v"
+}
+
+kversion
+
+build(){
+
+ geode(){
+  if    grep -q Geode /proc/cpuinfo; then
+   if   grep flags    /proc/cpuinfo | grep -wq 3dnow
+   then echo GEODE_LX
+   else echo MGEODGX1
+   fi
+  else false
+  fi
+ }
+
+ amd(){
+  if    grep "model name" /proc/cpuinfo | grep -q AMD; then
+     if grep "flags"      /proc/cpuinfo | grep -qw "lm";       then echo K8
+   elif grep "flags"      /proc/cpuinfo | grep -qw "3dnowext"; then echo K7
+                                                               else echo K6
+     fi
+  else false
+  fi
+ }
+
+ intel(){
+# pentium MMX and pentium II has MMX, but pentium pro does not
+# pentium III has SSE, but Pentium II does not.
+# CONFIG_M686 is Pentium Pro the default
+
+  if    grep "model name" /proc/cpuinfo | grep -q "Intel\|Celeron\|Pentium"; then
+   if   grep "model name" /proc/cpuinfo | grep -q "Core\|Xeon"    &&
+        grep "cpu family" /proc/cpuinfo | grep -q "6";            then echo CORE2
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium\|Xeon" &&
+        grep "cpu family" /proc/cpuinfo | grep -q "15";           then echo PENTIUM4
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium(R) M"; then echo PENTIUMM
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium III";  then echo PENTIUMIII
+   elif grep "flags"      /proc/cpuinfo | grep -qw "sse";         then echo PENTIUMIII
+   elif grep "model name" /proc/cpuinfo | grep -q "Pentium II";   then echo PENTIUMII
+   elif grep "flags"      /proc/cpuinfo | grep -qw "mmx";         then echo PENTIUMII
+   fi
+   else false
+  fi
+ }
+
+
+ get_cpu_ia32(){
+  geode ||
+  amd   ||
+  intel
+ }
+
+ get_cpu_x86_64(){
+  if   grep "model name" /proc/cpuinfo | grep -q "AMD";   then echo K8
+  elif grep "model name" /proc/cpuinfo | grep -q "Atom";  then echo ATOM
+  elif grep "model name" /proc/cpuinfo | "Core\|Xeon" &&
+       grep "cpu family" /proc/cpuinfo | grep -q "6";     then echo CORE2
+  elif grep "model name" /proc/cpuinfo | grep -q "Intel"; then echo PSC
+  else false
+  fi
+ }
+
+
+ adjust_config(){
+  if [ -n "$2" ]; then
+   sed -i "s:$1=y:# $1 is not set:" "$3"
+   sed -i "s:# CONFIG_M$2 is not set:CONFIG_M$2=y:" "$3"
+  fi
+ }
+
+ get_cpu(){
+  case $HOSTYPE in
+   x86_64) adjust_config "CONFIG_GENERIC_CPU" "$( get_cpu_x86_64 )" "$1" ;;
+        *) adjust_config "CONFIG_M686"        "$( get_cpu_ia32   )" "$1" ;;
+  esac
+ }
+
+ restore_linux_configs(){
+  local NAME
+  case $HOSTTYPE in
+   x86_64) NAME=x86_64 ;;
+        *) if   [ -f /root/linux-smp ]; then NAME="ia32-smp"
+           elif [ -f /root/linux-up  ]; then NAME="ia32-up"
+           elif gzip -cd /proc/config.gz | grep CONFIG_SMP=y
+           then NAME="ia32-smp"
+           else NAME="ia32-up"
+           fi ;;
+  esac
+
+  local v=$VERSION
+  while [[ $v =~ \. ]]; do
+   if   [ -f            "$SCRIPT_DIR/$v/$NAME" ]
+   then install -vm 600 "$SCRIPT_DIR/$v/$NAME" "$1"; break
+   fi
+   v="${v%.*}"
+  done
+
+  if   ! [ -f "$1" ]
+  then install -vm 600 "$SCRIPT_DIR/stable/$NAME" "$1"
+  fi
+
+  [ -n "${FEATURE[base]}" ] || get_cpu "$1"
+ }
+
+ trim_config(){
+  for OMIT in $OPTS; do
+   case $OMIT in
+    OMIT_NETDEV_1000)
+            sed -i "s:CONFIG_SCSI_BNX2_ISCSI=m:# CONFIG_SCSI_BNX2_ISCSI is not set:" "$1"
+            sed -i "s:${OMIT/OMIT_/CONFIG_}=.*:# ${OMIT/OMIT_/CONFIG_} is not set:" "$1" ;;
+    OMIT_*) sed -i "s:${OMIT/OMIT_/CONFIG_}=.*:# ${OMIT/OMIT_/CONFIG_} is not set:" "$1" ;;
+   esac
+  done
+ }
+
+ compile_and_install(){
+  local    d=/usr/src/linux
+  local m=$d/Makefile
+  local c=$d/.config.custom
+  local s=$d/.config.stock
+
+  if ! [ -f $m ]; then
+   echo "$m is missing"
+   echo "Try casting linux-source first"
+   return 1
+  fi
+
+  mkdir -pvm 755        "$DESTDIR/$d"
+  restore_linux_configs "$DESTDIR/$s"
+ }
+
+ compile_and_install
+}

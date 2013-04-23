@@ -1,0 +1,95 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: sys
+# Default-Start: 2 3 4 5
+# Short-Description: veth configures the provided veth device
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop status
+
+from_etc_hosts(){
+ /bin/sed 's:#.*::' /etc/hosts |
+ /bin/tr  '\t' ' ' |
+ /bin/tr  -s   ' ' |
+ /bin/sed "/$HOSTNAME/p;d" |
+ /bin/cut -d ' ' -f1
+}
+
+veth_num(){ /sbin/ip addr show | sed -r 's/[0-9]: veth\.2\.([0-9]): .*/\1/p;d'; }
+
+static(){
+ local p r
+ for p in $( from_etc_hosts ); do
+  if   [[ $p =~ : ]]; then
+    if [[ $p =~ / ]]; then p="${p%/*}/64"; else p+=/64; fi
+  elif [[ $p =~ / ]]; then p="${p%/*}/32"; else p+=/32; fi
+  /sbin/ip addr replace "$p" dev "$1" || r=1
+ done
+ return $r
+}
+
+start(){
+ veth_up(){
+  local v=$( veth_num )
+  local a="veth.2.$v"
+  local b="169.254.2.$v/16"
+  local r
+
+  if   [ -z "$v" ]
+  then log_error_message "veth device detection failed"; return 1
+  fi
+
+  /sbin/ip addr  flush      dev $a    || r=1; static "$a" || r=1
+  /sbin/ip addr  replace $b dev $a    || r=1
+  /sbin/ip link             set $a up || r=1
+  /sbin/ip route flush      dev $a    || r=1
+  /sbin/ip route replace to default via ${b%/*} || r=1
+
+  return $r
+ }
+
+ if   log_warning_msg "veth configuring"; veth_up
+ then log_success_msg "veth configured"
+ else log_failure_msg "veth configuration failed"; return 1
+ fi
+}
+
+stop(){
+ veth_down(){
+  local v=$( veth_num )
+  local a="veth.2.$v"
+  local r
+
+  if   [ -z "$v" ]
+  then log_error_message "veth device detection failed"; return 1
+  fi
+
+  /sbin/ip link set $a down  || r=1
+  /sbin/ip addr flush dev $a || r=1
+  return $r
+ }
+
+ if   log_warning_msg "veth downing"; veth_down
+ then log_success_msg "veth down"
+ else log_failure_msg "veth down failure"; return 1
+ fi
+}
+
+status(){
+ local v=$( veth_num )
+ local a="veth.2.$v"
+
+ if   [ -z "$v" ]
+ then log_error_message "veth device detection failed"; return 1
+ fi
+
+ echo "# /sbin/ip addr show $a"
+         /sbin/ip addr show $a
+ echo
+ echo "# /sbin/ip route show"
+         /sbin/ip route show
+}

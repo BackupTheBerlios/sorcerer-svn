@@ -1,0 +1,21 @@
+#!/bin/bash
+
+# seems buggy when used with namespace
+# the default mode changed from 500 to 400
+
+### BEGIN INIT INFO
+# Default-Mode: 400
+# Required-Start: proc
+# Default-Start: 2 3 4 5
+# Short-Description: var_db_nscd mounts tmpfs on /var/db/nscd
+### END INIT INFO
+
+[ -x /etc/init.d/var_run_nscd ] || exit 0
+[ -x /etc/init.d/nscd         ] || exit 0
+
+. /lib/lsb/init-functions
+
+only start stop restart status
+name /var/db/nscd
+config /etc/nscd.conf
+options '-o defaults,size=16m,nr_inodes=16,mode=700 -t tmpfs tmpfs'

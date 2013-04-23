@@ -1,0 +1,93 @@
+# Must later fix to allow reaping of linux-usermode modules
+# that are installed in /lib/modules/${VERSION}.um/
+
+# Attempts to compile modules with warnings translated into errors
+# this causes failures.
+# Not yet certain how to rid the -Werror and more
+# without sediting all of the Makefiles.
+
+inherit      linux-source
+with base    uml_utilities
+with trait   broke
+with info    home http://www.kernel.org/
+with info    cite 'usermode linux 
+
+usermode linux differs from regular linux.
+usermode linux is intended to be run
+as a process on an already booted linux kernel.
+Instead of talking directly to hardware
+usermode linux relays requests
+to the glibc and linux of the host.
+Consequently, usermode linux provides a type
+of virtualization that is suitable for servers.'
+
+build(){
+ install_kernel_um(){
+  BV="${KVERSION}"
+  strip linux
+  mkdir  -pvm 755       "$DESTDIR"/usr/bin/
+  install -vm 755 linux "$DESTDIR"/usr/bin/
+ }
+
+ restore_linux_configs_um(){
+  if   [[ $HOSTTYPE == x86_64 ]]
+  then cp "$SCRIPT_DIR/x86_64" .config
+  else cp "$SCRIPT_DIR/ia32"   .config
+  fi
+ }
+
+ xz_modules(){
+  local KO="$DESTDIR/lib/modules/$KVERSION$1/kernel/"
+  echo "xz compressing modules"
+  find "$KO" -type f -size +4096c -name \*.ko -printf '%p\t%s\n' |
+  while read file size; do
+   xz -f -M 25% --lzma2=dict=$size,mf=bt4,nice=273 "$file" &&
+   ln     "$file"{.xz,} &&
+   unlink "$file.xz"
+  done
+ }
+
+ strip_modules(){
+  find "$DESTDIR"/lib/modules/$KVERSION$1/kernel -type f -name \*.ko |
+  xargs --max-lines=256 strip --strip-unneeded
+ }
+
+ compile_and_install_um(){
+  if   ! restore_linux_configs_um
+  then rm -fr $BUILD_DIR; return
+  fi
+
+  unset CFLAGS CXXFLAGS LDFLAGS
+
+  LC_ALL=C grep -l /bin/pwd $( find * -type f -name Makefile ) |
+  xargs -r --max-lines=64 sed -i 's:/bin/pwd:pwd:'
+
+  sed -i "s:EXTRAVERSION =.*:EXTRAVERSION = .um:" Makefile
+  yes "" |
+  make ARCH=um oldconfig
+  make ARCH=um modules &&
+  make ARCH=um         &&
+  make ARCH=um modules_install INSTALL_MOD_PATH="$DESTDIR" &&
+  strip_modules .um &&
+  install_kernel_um &&
+  xz_modules    .um
+ }
+
+ kversion(){
+  fm() { sed "s:^$1 =::p;d" Makefile; }
+  local r
+  r=$( fm VERSION      ); [ -z "$r" ] || KVERSION="${r// /}"
+  r=$( fm PATCHLEVEL   ); [ -z "$r" ] || KVERSION+=".${r// /}"
+  r=$( fm SUBLEVEL     ); [ -z "$r" ] || KVERSION+=".${r// /}"
+  r=$( fm EXTRAVERSION ); [ -z "$r" ] || KVERSION+=".${r// /}"
+ }
+
+ export   CFLAGS="${CFLAGS//-fstack-protector-all/}"
+ export   CFLAGS="${CFLAGS//-fstack-protector/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector-all/}"
+ export CXXFLAGS="${CXXFLAGS//-fstack-protector/}"
+
+ kversion && compile_and_install_um
+}
+
+post_install(){ default_post_install; }

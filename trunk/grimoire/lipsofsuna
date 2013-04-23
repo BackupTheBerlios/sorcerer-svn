@@ -1,9 +1,12 @@
 # Does not install.
+# Does not currently compile and link
+# Probably not compatible with boost version 1_53_0
 
 with version stable 0.6.0 0.5.0 0.4.0
 with base    SDL_ttf bullet curl enet flac glew lua ogre ois openal sqlite libvorbis
-with role    game/3d
+with role    game game/3d
 with trait   x11
+with trait   broke
 with source  $SOURCEFORGE_URL lipsofsuna/lipsofsuna/$VERSION/lipsofsuna-$VERSION.tar.gz
 with info    last 20120603
 with info    home http://lipsofsuna.org/
@@ -13,19 +16,19 @@ with info    cite '3D tongue-in-cheek dungeon crawl game'
 
 build(){
  make_install(){
-  mkdir  -pvm 755 $DESTDIR/usr/{bin,libexec,share/lipsofsuna}
-  install -vm 755 .build/lipsofsuna $DESTDIR/usr/libexec/
-  echo -e "#!/bin/bash\ncd /usr/share/lipsofsuna\nexec ./lipsofsuna \"\$@\"" > $DESTDIR/usr/bin/lipsofsuna
-  chmod 755 $DESTDIR/usr/bin/lipsofsuna
+  mkdir  -pvm 755 "$DESTDIR"/usr/{bin,libexec,share/lipsofsuna}
+  install -vm 755 .build/lipsofsuna "$DESTDIR"/usr/libexec/
+  echo -e "#!/bin/bash\ncd /usr/share/lipsofsuna\nexec ./lipsofsuna \"\$@\"" > "$DESTDIR"/usr/bin/lipsofsuna
+  chmod 755 "$DESTDIR"/usr/bin/lipsofsuna
   chown -R root:root data
   find data -type d | xargs --max-lines=256 chmod 755
   find data -type f | xargs --max-lines=256 chmod 644
-  cp -a data $DESTDIR/usr/share/lipsofsuna
-  ln -v $DESTDIR/{usr/libexec,usr/share/lipsofsuna/}/lipsofsuna
+  cp -a data "$DESTDIR"/usr/share/lipsofsuna
+  ln -v "$DESTDIR"/{usr/libexec,usr/share/lipsofsuna/}/lipsofsuna
  }
 
- ./waf configure --prefix=/usr --destdir=$DESTDIR &&
- ./waf build     --prefix=/usr --destdir=$DESTDIR &&
- ./waf install   --prefix=/usr --destdir=$DESTDIR &&
+ ./waf configure --prefix=/usr --destdir="$DESTDIR" &&
+ ./waf build     --prefix=/usr --destdir="$DESTDIR" &&
+ ./waf install   --prefix=/usr --destdir="$DESTDIR" &&
  make_install
 }

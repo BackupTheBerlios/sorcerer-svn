@@ -1,15 +1,25 @@
-# Copyright Kyle Sallee 2012
+# Copyright Kyle Sallee 2012, 2013
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
 version_year_week
-
+with info    last 20130421
 with role    immune-system
-with trait   archive_off stale
-with info    good 20121121
+with trait   stale
 with info    home http://sorcerer.silverice.org/
 with info    cite "removal of obsolete source tarballs
 Weekly removal of old files from: $SOURCE_CACHE"
 
 build(){ :; }
-post_install(){ bash $SCRIPT_DIR/clean; }
+post_install(){
+
+ keep(){ view_index "keep" | sed "s:^:$SOURCE_CACHE/:"; }
+ have(){ find "$SOURCE_CACHE/" -mindepth 2 -maxdepth 2; }
+ both(){ keep sed p; have; }
+ safe(){ (( $( keep | wc -l ) > 4000 )); }
+ dead(){ both | sort | uniq -u | sed "\,^$SOURCE_CACHE,p;d"; }
+ ddir(){ safe || return 0; dead | while read; do rm -fr "$REPLY"; done; }
+
+ default_post_install
+ ddir
+}

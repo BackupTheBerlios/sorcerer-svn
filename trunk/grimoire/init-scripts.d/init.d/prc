@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011, 2012 by Kyle Sallee
+# Copyright 2011, 2012, 2013 by Kyle Sallee
 # All Rights Reserved
 # For use on Sorcerer only
 # Default-Mode: 500
@@ -8,9 +8,13 @@ trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 umask 022
 
+# if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+# then exit 0
+# fi
+
 allow_sulogin(){
- if   LC_ALL=C setleds       2>/dev/null | LC_ALL=C grep -q "Current flags:.*CapsLock on"
- then LC_ALL=C setleds -caps &>/dev/null; sulogin -t 10; echo
+ if   LC_ALL=C /bin/setleds       2>/dev/null | LC_ALL=C grep -q "Current flags:.*CapsLock on"
+ then LC_ALL=C /bin/setleds -caps &>/dev/null; sulogin -t 10; echo
  fi
 }
 
@@ -18,34 +22,6 @@ run(){
  if ! [ -f $1 ]; then return 1; fi
  if ! [ -x $1 ]; then return 1; fi
  $1 $2
-}
-
-load_newer(){
- rm -rf    /etc/{init.d,rc.d}
- cp -a "$p"/etc/{init.d,rc.d} /etc/
-}
-
-vfs(){
- sed  's:#.*::' /etc/fstab.rootfs |
- sed  's:\t: :g' | tr  -s ' '     |
- sed  's:^ ::'   | cut -d ' ' -f2 |
- grep /media/root/
-}
-
-primary_root(){ vfs | sed '1p;d'; }
-
-current(){
- local p="$( primary_root )"
- local vfs="$( vfs )"
-
- if   [ -z "$CP" ]; then
-  for d in $vfs; do
-   if   [ -x     "$d/etc/init.d/rc.d" ]
-   then chroot "$d" /etc/init.d/rc.d stop
-   fi
-  done
-  load_newer "$p"; exec /etc/init.d/prc "$@" "c"
- fi
 }
 
 linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2; allow_sulogin; done; }
@@ -78,54 +54,43 @@ ssm(){
  done
 }
 
-try_chroot(){
- local r
- if [ -z "$2" ]; then
-  for  d in  /media/root/*; do
-   [ "$d" == /media/root/rootfs ] && continue
-   if   [ -x "$d/etc/init.d/prc" ]
-   then /bin/chroot "$d" /etc/init.d/prc "$@" c; r=1
-   fi
-  done
- fi
- if [ -n "$r" ]; then exit 0; fi
+rl_ns(){
+ local ns
+ local r=1
+ while [ -n "$1" ]; do
+  if (( $1 == 1 )); then shift; continue; fi
+  ns=$( /bin/tr '\000' '\n' < /proc/$1/cmdline | /bin/grep /media/root/ )
+  echo "$ns Entering"
+## without being instructed to not fork nsenter created a zombie
+## by not waiting for prc to exit and read prc's exist status.
+## possible bug in nsenter?
+# /bin/nsenter -t $1 -i -m -n -p -r -u -w \
+  /bin/nsenter -t $1 -i -m -n -p -r -u -w -F \
+  /etc/init.d/prc $RL
+  echo "$ns Exiting"
+  shift
+  r=0
+ done
+
+ return $r
 }
 
-par_chroot(){
- current "$@"
- local r
- if [ -z "$2" ]; then
-  for  d in  /media/root/*; do
-   [ "$d" == /media/root/rootfs ] && continue
-   if [ -x "$d/etc/init.d/prc" ]; then 
-    /bin/chroot "$d" /etc/init.d/prc "$@" c
-    r=1
-   fi
-  done
- fi
-
- if [[ -z $r ]]; then
-  ssm $( rcl | LC_ALL=C sort | sed '0,/kill/p;d' | sed '/kill/d' ) 2>&1 |
-  tee /var/log/runlevel.$RL
-  if   [ -z "$2" ]
-  then ssm $( rcl | LC_ALL=C sort | sed '/kill/,999p;d' )
-  fi
- fi
-
- ssm $( rcl | LC_ALL=C sort | sed '/kill/,999p;d' )
- exit 0
-}
+rn(){ rl_ns $( /bin/pgrep -u 0 -f "init namespace /media/root/" ); }
 
 RL="$1"
-CP="$2"
+
+if   [ -z "$RL" ]
+then RL=$( /bin/grep initdefault /etc/inittab | cut -d : -f2 )
+fi
+RL=${RL:-5}
+
+if   ! [ -d /proc/$$/ ] &&
+       [ -x /etc/init.d/proc ]
+then        /etc/init.d/proc start
+fi
 
 case $RL in
- 1|2|3|4|5|7) try_chroot "$@" ;;
- 0|6)         par_chroot "$@" ;;
-esac
-
-case $RL in
- 3|5|1) log ssl ;;
-   2|4) log ssp ;;
-     7)     ssl ;;
+     0|6) rn || /etc/init.d/rc.d stop; log ssl ;;
+ 3|5|1|7) rn || log ssl ;;
+     4|2) rn || log ssp ;;
 esac

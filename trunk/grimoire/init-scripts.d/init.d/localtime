@@ -1,42 +1,49 @@
 #!/bin/bash
 
-# Copyright Kyle Sallee 2011, 2012
+# Copyright Kyle Sallee 2011, 2012, 2013
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: $local_fs
-# Default-Start: S
-# Short-Description: checks and sets symbolic link /etc/localtime
+# Default-Start: 1 2 3 4 5
+# Short-Description: checks and sets file /etc/localtime
 ### END INIT INFO
 
 # omit log
 
-e=
-for  d in /media/root/*; do
- if   [ -d   "$d"/usr/share/zoneinfo ]
- then        "$d" $0 "$@"; e=1
- fi
-done
-if [ -n "$e" ]; then exit 0; fi
+#zi=
+#if   [ -d /usr/share/zoneinfo ]
+#then   zi=/usr/share/zoneinfo
+#else
+# for d in /media/root/*; do
+#  if  [ -d "$d/usr/share/zoneinfo" ]
+#  then  zi="$d/usr/share/zoneinfo"; break
+#  fi
+# done
+#fi
+#
+#if [ -z "$zi" ]; then exit 0; fi
+
+if ! [ -d /usr/share/zoneinfo ]; then exit 0; fi
 
 . /lib/lsb/init-functions
 
-only start reload status
-config /usr/share/zoneinfo
+only configure start reload status
+config "$zi" # config /usr/share/zoneinfo
 name /etc/localtime
 
 run(){
 
- tz_menulist(){ find $CONF -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
+ tz_menulist(){ /bin/find $CONF -type f -printf '%P	Zone\n' | LC_ALL=C sort; }
 
  tz_menu(){
   BACKTITLE=$"Timezone Configuration Menu"
       TITLE=$"Timezone Selection"
        HELP=$"Please select the computer's location within 60 seconds."
 
-  dialog \
+  /bin/dialog \
    --backtitle "$BACKTITLE"  \
    --title     "$TITLE"      \
    --timeout 60              \
@@ -45,21 +52,21 @@ run(){
    $( tz_menulist )
  }
 
- LOCALTIME="$( tz_menu )" && redraw
- if [ "$LOCALTIME" ]; then
-  rm -f  $NAME
-  ln -sv $CONF/$LOCALTIME $NAME
+ local     lt="$( tz_menu )" && redraw
+ if [ -n "$lt" ]; then
+  /bin/rm -f $NAME
+  /bin/cp    "$CONF/$lt" $NAME
  fi
 }
 
 status(){
- symlinkedfile(){ [ -h $1 ] && [ -f $1 ]; }
-
- if   log_warning_msg "$NAME checking"; symlinkedfile $NAME
+ if   log_warning_msg "$NAME checking"; [ -f $NAME ]
  then log_success_msg "$NAME checked"
  else log_warning_msg "$NAME missing"; return 1
  fi
 }
 
-start(){ if ! status ; then [ -d /usr/share/zoneinfo ] && run; fi; }
-reload(){ rm -f $NAME; start; }
+start(){ if ! status && /bin/tty -s; then [ -d /usr/share/zoneinfo ] && run; fi; }
+
+   reload(){ rm -f $NAME; start; }
+configure(){ rm -f $NAME; start; }

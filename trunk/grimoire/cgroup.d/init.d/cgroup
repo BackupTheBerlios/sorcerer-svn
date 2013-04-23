@@ -1,0 +1,144 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011, 2012, 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: sys
+# Default-Start: S 1 2 3 4 5
+# Short-Description: mounts private cgroup on /sys/fs/cgroup/
+### END INIT INFO
+
+# Best to not change subsystems away from default.
+# cgroup subsystems on every root must match the same set
+# of subsystems as the cgroup mounted on rootfs.
+# Otherwise mounting of the cgroup will FAIL.
+
+. /lib/lsb/init-functions
+
+only start status configure
+name cgroup-rootfs
+deny control
+[ -n "$OPTS" ] ||
+options "freezer,memory,cpuacct,cpu,cpuset,clone_children"
+
+start(){
+ mcg(){
+  local o="-t cgroup -o $OPTS cgroup"
+
+  if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+  then mount $o /sys/fs/cgroup
+  else
+   local r=$RANDOM$RANDOM
+   local h=$HOSTNAME
+   if ! [      -d   /tmp ]; then
+   mkdir  -m 1777   /tmp  ; fi &&
+   mkdir  -m 0755   /tmp/$r    &&
+   mount  $o        /tmp/$r    &&
+   mkdir  -m 0755   /tmp/$r/$h &&
+   mount  -n --bind /tmp/$r/$h /sys/fs/cgroup &&
+   umount -n        /tmp/$r    &&
+   rmdir            /tmp/$r    &&
+   sed    -i "s:/tmp/$r:/sys/fs/cgroup:" /etc/mtab
+  fi
+ }
+
+ if   status &>/dev/null
+ then log_success_msg "/sys/fs/cgroup mounted"
+ elif log_warning_msg "/sys/fs/cgroup mounting"; mcg
+ then log_success_msg "/sys/fs/cgroup mounted";
+ else log_failure_msg "/sys/fs/cgroup mounting failed"; return 1
+ fi &&
+ if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+ then /etc/init.d/cgroup-init-rootfs start
+ else /etc/init.d/cgroup-init-root   start
+ fi
+}
+
+configure(){
+
+ subsys_default(){
+  if [ -z "${!subsys[*]}" ]; then
+   subsys[freezer]=1
+   subsys[memory]=1
+   subsys[cpuacct]=1
+   subsys[cpu]=1
+   subsys[cpuset]=1
+   subsys[clone_children]=1
+  fi
+ }
+
+ subsys_to_opts(){
+  OPTS=
+  for s in ${!subsys[*]}; do
+   if   [ -n "$OPTS" ]
+   then OPTS+=",$s"
+   else OPTS="$s"
+   fi
+  done
+ }
+
+ opts_to_subsys(){
+  subsys=()
+  local p=${OPTS//,/ }
+  for s in $p
+  do  subsys[$s]=1
+  done
+ }
+
+ subsys(){
+  declare -A subsys subsys_d
+
+  subsys_d[blkio]=$"control disk/storage I/O when CFQ scheduler is enabled"
+  subsys_d[clone_children]=$"sub cgroup inherits values from cgroup above"
+  subsys_d[cpu]=$"scheduling allocation of processing power"
+  subsys_d[cpuset]=$"mostly for SMP boxes and controlling task migration"
+  subsys_d[cpuacct]=$"track and report processing power used by each cgroup"
+  subsys_d[freezer]=$"pause and resume running of processes within a cgroup"
+  subsys_d[memory]=$"limit and control RAM and swap provided to cgroup"
+
+  subsys_checklist(){
+   for s in ${!subsys_d[*]}; do
+    echo "$s"
+    echo "subsys" 
+    if   [ -n "${subsys[$s]}" ]
+    then echo on
+    else echo off
+    fi
+    echo "${subsys_d[$s]}"
+   done
+  }
+
+  subsys_menu(){
+    BACKTITLE=$"cgroup"
+        TITLE=$"subsystem selection"
+         HELP=$"[x]=enabled [ ]=disabled  Space toggles and arrows navigate"
+
+   export IFS="
+"
+   dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --stdout --timeout 120 \
+    --no-cancel \
+    --ok-label $"Done" \
+    --item-help \
+    --separate-output \
+    --checklist "$HELP" 0 0 0 $( subsys_checklist )
+  }
+
+  opts_to_subsys
+  if ss=$( subsys_menu ); then
+   subsys_to_opts
+   local n="options $OPTS"
+   mkdir -pm 700           /etc/init.d/conf.d/
+   echo  -n ''           > /etc/init.d/conf.d/cgroup
+   sed   -i '/options/d'   /etc/init.d/conf.d/cgroup
+   echo     "$n"         > /etc/init.d/conf.d/cgroup
+  fi
+ }
+
+ subsys
+}

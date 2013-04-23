@@ -1,21 +1,21 @@
-# Copyright Kyle Sallee 2011, 2012
+# Copyright Kyle Sallee 2011, 2012, 2013
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-with version stable 20130320
+with version stable 20130413
 with base    md5crypt tomoyo-tools
 with role    immune-system
-with trait   archive_off solo stale
-with info    last 20130320
+with trait   solo stale
+with info    last 20130413
 with info    home http://sorcerer.silverice.org/
 with info    cite 'enhanced security
 
 Tomoyo on Sorcerer has 5 generally used domain
 <kernel> /sbin/init
-<kernel> /media/root/domain/freedom
-<kernel> /media/root/domain/user
-<kernel> /media/root/domain/limited
-<kernel> /media/root/domain/sorcery
+<kernel> /domain/freedom
+<kernel> /domain/user
+<kernel> /domain/limited
+<kernel> /domain/sorcery
 
 The first domain is a default domain and provides no restrictions.
 The second domain provides no restrictions
@@ -25,58 +25,65 @@ for servers/daemons that do not provide user login.
 The fifth domain has restrictions suitable for software compilation,
 but not software installation.
 
+The domains that begin with /domain/ are also mirrored
+for each root file system so that
+if a root file system is mounted on /media/root/main/
+then /media/root/main/domain/{freedom,user,limited,sorcery}
+domains also exist.
+
 Domain transition is accomplished by running
 a domain transition script installed in /domain/
 
 Transitioning to domain
-<kernel> /media/root/domain/freedom
-allowed only from
+<kernel> domain/freedom
+is allowed only from
 <kernel> /media/root/domain/user
-requires authentication with the root password when root.
-However, any user can authenticate with a password
+and requires authentication.
+Any user can authenticate with a password
 that was specified by the SA
 when the SA previously runs
 # /etc/init.d/tomoyo-freedom-password configure
 Authentication ensures that those who achieve root UID
 are rightfully entitled to the privilege of root
-rather than having acquired root by exploiting a bug
-in a process already running as root
-or by exploiting a bug in a SUID 0 executable file.
+rather than having acquired root
+by exploiting a bug in a  UID 0 process or
+by exploiting a bug in a SUID 0 executable file.
 
 Processes in domain
-<kernel> /media/root/domain/limited
-<kernel> /media/root/domain/user
+<kernel> /domain/limited
+<kernel> /domain/user
 will be unable to modify files in
-/bin /boot /etc /home /lib /lib64 /opt /usr /var/log/
+/aux/ /bin/ /boot/ /etc/ /home/ /lib/ /lib64/ /opt/ /usr/ /var/log/
 Mounting also is disabled.
 This limits the damage that can be done
-when someone acquires UID 0 without authentication.
+when someone acquires UID 0 or EUID 0 without authentication.
 
 Processes in domain
-<kernel> /media/root/domain/limited
+<kernel> /domain/limited
 will be unable to execute files on temporary directories
 and are unable to modify files in home directories.
 
-tomyo can still be configured to provide
-mandatory access control lists specific to programs
+tomyo can still be configured
+to provide mandatory access control lists specific to programs
 exactly as described in the tomoyo documentations.
 Write the new domain files in /etc/tomoyo/sorcerer/domain/
 Write the new exception files in /etc/tomoyo/sorcerer/exception/
-Write the transition scripts in  /etc/tomoyo/sorcerer/transition/
+Write the transition scripts  in /etc/tomoyo/sorcerer/transition/
 That way the modifications are merged
 with Sorcerer defaults and loaded into the kernel.
 
-Tomoyo on Sorcerer is not intended to replace traditional security.
-Rather the security model is enforced by ensuring that those
-who become root can also provide the root password
+Tomoyo on Sorcerer does not replace traditional security.
+Instead the traditional security model is enforced
+by ensuring that those who become root
+can also provide the root password or authenticate to /domain/freedom
 before gaining privilege to make potentially unwated modifications.
 
-Note that services might have custom domains
+Note that some services might have custom domains
 that that are far more restrictive than the limited domain.'
 
 build(){
- mkdir   -pvm 755                     $DESTDIR/usr/bin/
- install -pvm 755 $SCRIPT_DIR/sulogin $DESTDIR/usr/bin/
+ mkdir   -pvm 755                       "$DESTDIR"/usr/sbin/
+ install -pvm 755 "$SCRIPT_DIR"/sulogin "$DESTDIR"/usr/sbin/
 }
 
 post_install(){

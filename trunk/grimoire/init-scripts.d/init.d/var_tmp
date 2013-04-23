@@ -7,36 +7,39 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: $local_fs
-# Default-Start: 1 2 3 4 5
-# Short-Description: creates /var/tmp/ and assigns proper mode and ownership
+# Should-Start: tmp
+# Default-Start: S 1 2 3 4 5
+# Short-Description: validates {,/var}/tmp
 ### END INIT INFO
+
+(( UID == 0 )) || exit 0
 
 . /lib/lsb/init-functions
 
 only start
 name /var/tmp
 
-chkdir(){
- if    ! [ -d /var/tmp ]; then
-  if   log_warning_msg "rm -f /var/tmp && mkdir -pm 1777 /var/tmp/" &&
-                        rm -f /var/tmp && mkdir -pm 1777 /var/tmp/
-  then log_success_msg "/var/tmp/ created"
-  else log_failure_msg "/var/tmp/ creation failed"; return 1
-  fi
- elif    [ -d /var/tmp ] &&
-       ! [ -n "$( find /var/tmp -maxdepth 0 -uid 0 -gid 0 -perm 1777 )" ]
- then
-  if   log_warning_msg "chown root:root /var/tmp/ && chmod 1777 /var/tmp/" &&
-                        chown root:root /var/tmp/ && chmod 1777 /var/tmp/
-  then log_success_msg "/var/tmp/ ownership and mode adjusted"
-  else log_failure_msg "/var/tmp/ ownership and mode adjustment failed"; return 1
-  fi
+agu(){ [ "1777 0 0" == "$( /bin/stat -c "%a %g %u" "$1" )" ]; }
+
+init_tmp(){
+ if   ! [ -d $1 ]; then /bin/mkdir -pm 1777  "$1"
+ elif ! agu  $1  ; then /bin/chmod     1777  "$1"
+                        /bin/chown root:root "$1"
  fi
 }
 
 start(){
- if   log_warning_msg "/var/tmp/ existence ownership mode checking"; chkdir
- then log_success_msg "/var/tmp/ verified"
- else log_failure_msg "/var/tmp/ improper"
+ local r
+
+ if   log_warning_msg "/var/tmp/ validating"; init_tmp /var/tmp/
+ then log_success_msg "/var/tmp/ validated"
+ else log_failure_msg "/var/tmp/ validation failed"; r=1
  fi
+
+ if   log_warning_msg "/tmp/ validating"; init_tmp /tmp/
+ then log_success_msg "/tmp/ validated"
+ else log_failure_msg "/tmp/ validation failed"; r=1
+ fi
+
+ return $r
 }

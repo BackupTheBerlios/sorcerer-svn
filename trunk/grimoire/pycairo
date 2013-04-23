@@ -1,24 +1,49 @@
-# 1.8.10 is for Python >= 3.1.0
-# 1.8.8 is a tar.gz
-# 1.8.10 is a tar.bz2
-# 1.8.10 is for Python3 however it does not seem to compile
+# Requires Python for running waf.
+# Might indicate a problem with the installation of Python3?
+# versions that require waf to compile seem unstable
+# versions 1.8.10, 1.10.0 that require waf to compile seem
+# unsable by pygobject-3.0 when forced to compile with python2
+# and cause caribou to fail to compile
+# caribou seems to require Python 2 and not Python 3.
 
 with version   stable 1.8.8
 with version unstable 1.10.0 1.8.10
 with base    Python cairo
+case $VERSION in
+ 1.8.10)
+with base    Python3 ;;
+ 1.10.*)
+with base    Python3 ;;
+esac
 with role    graphic
 with trait   library
-#trait multilib-fail
-with source  stable http://www.cairographics.org/releases/pycairo-$VERSION.tar.gz
+with source    stable http://www.cairographics.org/releases/pycairo-$VERSION.tar.bz2
 with source  unstable http://www.cairographics.org/releases/pycairo-$VERSION.tar.bz2
-with info    good 20120701
+with info    good 20130326
 with info    last 20110418
 with info    home http://cairographics.org/pycairo
 with info    cite 'python wrapper for cairo'
 
-# build is for pycairo 1.8.10
 build_unstable(){
- ./waf configure --prefix=/usr &&
+ local  PATH=$PWD/bin:$PATH
+ export PATH
+
+ wrap_it(){
+  mkdir bin
+  echo -e "#!/bin/bash\nexec /usr/bin/python3 \"\$@\"" > bin/python
+  chmod 755 bin/python
+ }
+
+ case $VERSION in
+  1.10.0) sed -i 's:/usr/bin/env python:/usr/bin/env python2:' waf; wrap_it ;;
+ esac
+
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then with also --libdir=/usr/lib64
+ fi
+
+ ./waf configure --prefix=/usr $OPTS &&
  ./waf -j1 &&
  DESTDIR=$DESTDIR ./waf install
 }

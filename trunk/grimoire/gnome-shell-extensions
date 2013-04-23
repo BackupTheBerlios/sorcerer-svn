@@ -1,0 +1,33 @@
+with version   stable 3.8.1 3.8.0
+with version unstable 3.8.1
+with info    last 20130417
+with base    gnome-shell-extensions
+with also    --without-ca-certificates
+#     with also --with-ca-certificates=/etc/ssl/certs/ca-certificates.crt
+with role    utility utility/terminal-emulator
+with trait   gnome optimize
+with source    stable $GNOME_URL sources/gnome-shell-extensions/${VERSION:0:3}/gnome-shell-extensions-$VERSION.tar.xz
+with source  unstable $GNOME_URL sources/gnome-shell-extensions/${VERSION:0:3}/gnome-shell-extensions-$VERSION.tar.xz
+with info    home http://www.gnome.org
+with info    cite 'core user interface functions for the GNOME 3 desktop,
+like switching to windows and launching applications.
+GNOME Shell takes advantage of the capabilities of
+modern graphics hardware and introduces
+innovative user interface concepts
+to provide a visually attractive and easy to use experience.'
+
+build_old(){
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  if [ -d /usr/lib64/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/nvidia"; fi
+  if [ -d /usr/lib64/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/ati"; fi
+ else
+  if [ -d /usr/lib/nvidia ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/nvidia"; fi
+  if [ -d /usr/lib/ati    ]; then export LDFLAGS+=" -Wl,-rpath,/usr/lib/ati"; fi
+ fi
+
+ case $VERSION in
+  3.2.2.1) sed -i 's:-Werror::' configure ;;
+ esac
+ default_build
+}

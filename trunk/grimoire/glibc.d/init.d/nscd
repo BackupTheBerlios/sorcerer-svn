@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# seems buggy when used with namespace
+# the default mode changed from 510 to 400
+
+### BEGIN INIT INFO
+# Default-Mode: 400
+# Required-Start: $local_fs var_db_nscd var_run_nscd
+# Should-Start: $network
+# Required-Stop: $local_fs $network
+# Default-Start:
+# 2 3 4 5
+# Default-Stop:
+# 0 1 6
+# Short-Description: nscd provides a cache for the most common name service requests.
+# Description: nscd provides a cache for the most common name service requests.
+# The default configuration file, /etc/nscd.conf
+# determines the behavior of the cache daemon.
+# nscd provides caching for accesses of the passwd, group, and hosts databases.
+### END INIT INFO
+
+[ -x /etc/init.d/var_db_nscd  ] || exit 0
+[ -x /etc/init.d/var_run_nscd ] || exit 0
+
+. /lib/lsb/init-functions
+
+only start stop restart try-restart status
+#pid_file /var/run/nscd/nscd.pid
+server /usr/sbin/nscd
+config /etc/nscd.conf
+
+case $1 in
+ stop) options -K ;;
+esac
+
+restart(){ OPTS='-K' stop; sleep 1; start; }

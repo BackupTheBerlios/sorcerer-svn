@@ -1,0 +1,61 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: fsck mtab $local_fs
+# Should-Start: root-rw
+# Required-Stop: cryptmount cryptsetup finale halt mdadm reboot reboot-kexec vgchange
+# Should-Stop: root-ro
+# Default-Start: S
+# Short-Description: mounts root file systems in unshared namespaces and executes /init within each
+### END INIT INFO
+
+# Top stop a namespace simply kill all the processes within it.  :)
+# or from within it run /etc/init.d/prc 0 or /etc/init.d/prc 6
+# rebooting and halting sysvinit commands only run on rootfs.
+
+if   ! [ ramfs == "$( /bin/stat -f -c %T / )" ]
+then echo "$0 can only be executed on the rootfs"; exit 1
+fi
+
+. /lib/lsb/init-functions
+
+only start
+deny control
+
+can_unshare(){
+ if ! [ -h /proc/$$/ns/pid ]; then
+  log_error_message "g: PID namespace can not be unshared"
+  log_error_message "linux kernel improperly configured"
+  return 1
+ fi
+
+ if ! [ -f /bin/unshare ]; then
+  log_error_message "/bin/unshare not available"
+  log_error_message "version of installed util-linux"
+  log_error_message "must be 2.23-rc1 or later"
+  return 1
+ fi
+}
+
+run_unshare(){
+ while [ -n "$1" ]
+ do    /bin/setsid /bin/unshare -imnpu -- /init chroot "$1" & shift
+ done
+}
+
+find_roots(){
+ for r in /media/root/*/init
+ do  if [ -f $r ] && [ -x $r ]; then echo "${r%/*}"; fi
+ done
+}
+
+start(){
+ run(){ [ -f /etc/fstab.rootfs ] && /bin/namespace; }
+
+ if   can_unshare &&
+      log_warning_msg "namespace executing"; run_unshare $( find_roots )
+ then log_success_msg "namespace executed"
+ else log_success_msg "namespace execution failed"
+ fi
+}

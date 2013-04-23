@@ -1,7 +1,8 @@
 #!/bin/bash
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Stop: kexec $local_fs root-ro udev
+# Required-Stop: kexec $local_fs udev
+# Should-Stop: root-ro
 # Should-Stop: tmp
 # Default-Stop: 0 6
 # Short-Description: updates mime database in mime directories
@@ -20,8 +21,8 @@ check(){
   log_warning_msg "$DIR checking"
     if ! [ -d $DIR ]; then :
   elif ! [ -f $DIR/mime.cache ]; then echo "$DIR"
-  elif find   $DIR -mindepth 2 -newer $DIR/mime.cache | grep -q  .
-  then echo  "$DIR"
+  elif [ -n "$( /bin/find $DIR -mindepth 2 -newer $DIR/mime.cache )" ]
+  then echo "$DIR"
   fi
   log_success_msg "$DIR checked"
  done
@@ -29,7 +30,7 @@ check(){
 
 run(){
  while read DIR; do
-  if   log_warning_msg "update-mime-database $DIR executing"; update-mime-database $DIR &>/dev/null
+  if   log_warning_msg "update-mime-database $DIR executing"; /usr/bin/update-mime-database $DIR &>/dev/null
   then log_success_msg "update-mime-database $DIR executed"
   else log_failure_msg "update-mime-database $DIR failed"
   fi

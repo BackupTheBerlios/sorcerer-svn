@@ -2,19 +2,34 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: proc wpa_priv
+# Required-Start: proc wpa_priv var_run
 # Should-Start: udev
 # Required-Stop: kill
 # Default-Start: S
-# Default-Stop: 0 1 6
+# Default-Stop: 0 6
 # Short-Description: Starts wpa_supplicant for all wireless interfaces
 ### END INIT INFO
+
+. /lib/lsb/init-functions
 
 pnw(){
  [ -f          /proc/net/wireless ] &&
  tr ' ' '\n' < /proc/net/wireless |
  sed 's/://p;d'
 }
+
+guess_interface(){
+ if   [ -z "$INTERFACE" ]
+ then INTERFACE="$( pnw | sed "1p;d" )"
+ fi
+}
+
+only start stop configure status
+name wpa_supplicant
+server /sbin/wpa_supplicant
+guess_interface
+config /etc/wpa_supplicant/wpa_supplicant.conf
+options "-B -Dwext -i$INTERFACE -c $CONF"
 
 write_conf(){
  output(){
@@ -243,21 +258,8 @@ Configure WPA supplicant now?" 0 0
 #  done
 # }
 
-guess_interface(){
- if   [ -z "$INTERFACE" ]
- then INTERFACE="$( pnw | sed "1p;d" )"
- fi
-}
-
-. /lib/lsb/init-functions
-only start stop restart configure status
-name wpa_supplicant
-server /sbin/wpa_supplicant
-guess_interface
-config /etc/wpa_supplicant/wpa_supplicant.conf
-options "-B -Dwext -i$INTERFACE -c $CONF"
-#options "-B $( param )"
-##options "-B -g /var/run/wpa_supplicant $( param )"
+# Yes this odd code at the bottom should be at the bottom
+# because it requires functions defined above.
 
 if      [ start == "$1"    ]; then
  if     [ -z "$CONFIGURED" ] &&

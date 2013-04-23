@@ -1,0 +1,30 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $syslog $remote_fs xen xen-modules
+# Required-Stop: $syslog $remote_fs
+# Default-Start: 1 2 3 5
+# Default-Stop: 0 6
+# Short-Description: starts and stops xenconsoled
+### END INIT INFO
+
+# Probably should run on only one root file system.
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+only start stop restart try-restart status
+
+if   [ -f /etc/sysconfig/xencommons ]
+then .    /etc/sysconfig/xencommons
+elif [ -f /etc/default/xencommons ]
+then .    /etc/default/xencommons
+fi
+
+if   [ -n "$XENCONSOLED_TRACE" ]
+then options --log=$XENCONSOLED_TRACE
+fi
+
+server /usr/sbin/xenconsoled

@@ -1,12 +1,23 @@
-with version stable 0.6.2 0.2.4
+# 12.10.2 12.10.1 12.10.0 have an error in configure involving a macro and valgrind
+
+with version   stable 0.6.2 0.2.4
+with version unstable 12.10.2
+with info    last 20121003
 with base    dbus gtk+ json-glib
-with also    --enable-static=no
+with also    --enable-static=no --disable-tests
 with role    system
 with trait   hidden library makej multilib-concurrent x11
-with source  https://launchpad.net/dbusmenu/${VERSION:0:3}/$VERSION/+download/libdbusmenu-$VERSION.tar.gz
+with source    stable https://launchpad.net/dbusmenu/${VERSION:0:3}/$VERSION/+download/libdbusmenu-$VERSION.tar.gz
+with source  unstable https://launchpad.net/dbusmenu/${VERSION:0:5}/$VERSION/+download/libdbusmenu-$VERSION.tar.gz
 CURL_PARAM=-k
-with info    last 20120613
 with info    home https://launchpad.net/dbusmenu/
 with info    bugs 'https://bugs.launchpad.net/dbusmenu/+filebug/+login'
 with info    vurl https://launchpad.net/dbusmenu/
 with info    cite 'library to pass structures across dbus so a program can create a menu'
+
+build(){
+ case $VERSION in
+  0.6.2) sed -i 's: -Werror::' tools/Makefile.in ;;
+ esac
+ default_build
+}

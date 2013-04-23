@@ -15,6 +15,7 @@ name /aux/run/tmp
 options '-o defaults,size=256m,nr_inodes=256k,mode=700 -t tmpfs tmpfs'
 
 stop(){
+ [ -d /aux/run/tmp/ ] || return 0
  active(){
   pgrep -u root '^moil$'
   pgrep -u root '^post$'
@@ -27,7 +28,7 @@ stop(){
 
  abort_and_wait(){
   touch /aux/run/tmp/halt
-  augur queue | sed 's:moil/active/::' | augur abort
+  augur queue | sed 's:moil/active/::p;d' | augur abort
   log_warning_msg 'waiting for completion of sorcery'; echo
   log_warning_msg 'forcing power off will cause problems please be patient'
   while busy; do sleep 1; done

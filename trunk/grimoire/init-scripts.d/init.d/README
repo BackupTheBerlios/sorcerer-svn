@@ -77,33 +77,115 @@ on disk, by network, or by memory storage devices.
 Section 1.6 the end of sysinit
 
 The end portion of sysinit
-mounts the real root filesystems.
-File systems and binds specified in /etc/fstab.rootfs are mounted.
-Root file systems should be mounted
-on immediate subdirectories of /media/root/
-The primary or real root file system is typically mounted as:
-/media/root/real/
+creates unshared namespace containers
+for each root file system.
+/etc/fstab.rootfs is parsed
+during the creation of namespace containers.
 
-Then, virtual file systems such as /dev /proc /sys
-that mounted during sysinit
-are bound to /media/root/*/{dev,proc,sys}/ , respectively.
-Now that sysinit is complete
-runlevel begins in each root file system
-where /etc/init.d/prc is executable.
+3 types of mounts are specified in /etc/fstab.rootfs.
+File systems mounted on an immediate subdirectory of
+/media/root/ become root file systems.
+File systems mounted anywhere except within /media/root/
+are becomes accessible on the rootfs.
+If those file systems on the rootfs are to be accessed by
+or shared by multiple root file systems
+then /etc/fstab.rootfs will specify binds.
 
+Here is an example:
+
+/dev/sda2 /media/root/main         ext4 defaults 0 0
+/dev/sda1 /media/root/main/boot    ext4 defaults 0 0
+/dev/sda3 /media/root/work         ext4 defaults 0 0
+/dev/sda4 /media/root/play         ext4 defaults 0 0
+/dev/sdb1 /aux/can/                ext4 defaults 0 0
+/aux/can  /media/root/main/aux/can none bind     0 0
+/aux/can  /media/root/work/aux/can none bind     0 0
+/aux/can  /media/root/play/aux/can none bind     0 0
+
+In the above example /dev/sdb1 provides a file system
+that stores the content of /aux/can/ that is shared
+among all 3 root file by binding /aux/can
+to the /aux/can/ of /media/root/{main,home,work}/aux/can/
+
+Each root runs in an unshared mnt namespace.
+Therefore, a file system shared among multiple root file systems
+must first be mounted on the rootfs
+and then mount --bind into each unshared namespace.
+
+Here is the above example with a shared /home/
+
+/dev/sda2 /media/root/main         ext4 defaults 0 0
+/dev/sda1 /media/root/main/boot    ext4 defaults 0 0
+/dev/sda3 /media/root/work         ext4 defaults 0 0
+/dev/sda4 /media/root/play         ext4 defaults 0 0
+/dev/sdb1 /aux/can/                ext4 defaults 0 0
+/aux/can  /media/root/main/aux/can none bind     0 0
+/aux/can  /media/root/work/aux/can none bind     0 0
+/aux/can  /media/root/play/aux/can none bind     0 0
+/dev/sdb2 /home                    ext4 defaults 0 0
+/home     /media/root/main/home    none bind     0 0
+/home     /media/root/work/home    none bind     0 0
+/home     /media/root/play/home    none bind     0 0
+
+The columns in /etc/fstab and /etc/fstab.rootfs
+are explained in the fstab manual page.
+The manual page is displayed by executing the command:
+man fstab
+
+In the following example /home from /media/root/main/home
+is bind to /media/root/main/{work,play}/home
+This works because file systems specified in /etc/fstab.rootfs
+are mounted in rootfs' mnt namespace rather than
+the unshared mnt name spaces of each root file system.
+
+/dev/sda2             /media/root/main      ext4 defaults 0 0
+/dev/sda3             /media/root/work      ext4 defaults 0 0
+/dev/sda4             /media/root/play      ext4 defaults 0 0
+/media/root/main/home /media/root/work/home none bind     0 0
+/media/root/main/home /media/root/play/home none bind     0 0
+
+File /etc/fstab is still valid and used.
+File /etc/fstab is parsed by the mount that is run during the runlevel.
+Therefore, each root file system can have it's own private mounts.
 
 Section 1.7 gettys
 
-Following the completion of sysinit
-gettys are started on virtual consoles.
-gettys are specified in /etc/inittab.
-gettys can be made available for any root file system
-or denied for a root file system by editing /etc/inittab
-The default configuration provides several gettys
-that are chrooted to /media/root/real/
-and one getty that logs into / the rootfs.
-Logging into the rootfs can be useful for
-identifying and repairing problems without rebooting.
+/etc/inittab is the traditional location
+for specifying how gettys run.
+The concept works good on a single root file system.
+However, editing /etc/inittab
+to provide gettys for multiple root file systems is tedious.
+Consequently, the only getty specified in /etc/inittab
+is the getty which runs on the rootfs.
+
+Each root file system has an init-script /etc/init.d/ttyd
+ttyd dynamically allocates a virtual console
+for providing a prompt for running a login program.
+If the login program is activated
+then gettyd allocates another virtual console
+for providing an additional prompt
+for starting a login program.
+Therefore, multiple virtual console logins
+to a root file system remain possible.
+
+Linux provides a total of 64 virtual consoles.
+As many as 63 root file systems
+could run ttyd to provide login prompts.
+However, the limit for root file systems is 256.
+If running a massive amount of root file systems
+then alternate login methods
+for each root file system
+must be provided/
+sshd is a useful method for login into both
+locally hosted and remotely hosted root file systems.
+
+To prevent a root from offering a login on a virtual console
+enter it's root file system and execute the following 2 commands:
+bash      /etc/init.d/gettyd stop
+chmod 400 /etc/init.d/gettyd
+
+root file systems can be entered from the rootfs,
+or by ttyd, or by ssh, or by a method that the SA creates.
 
 Section 1.8 runlevel
 
@@ -188,7 +270,7 @@ CTRL-X y to save.
 Customization of init-scripts installed by spells such
 as the init-scripts spell is strongly discouraged.
 Customizing init-scripts can cause failure of services to start
-or even failure of a box being able to mount the real root file system.
+or even failure of a box being able to mount root file systems.
 
 Section 2.4 Configuration
 
@@ -204,7 +286,6 @@ can be run instead of selecting individual init-scripts.
 The dialog menu driven interface is used to select
 an init-script to execute and a parameter parameters to pass.
 
-
 Section 3.0 Logs
 
 Section 3.1 log names
@@ -214,17 +295,11 @@ Output from runlevel 0 and 6   is written to /var/log/runlevel.$RL
 
 Section 3.2 /var/log/init/
 
-Because the real only the initrf is mounted as the root filesystem
-during startup the real /var/log/ is unavailable at the time that
-init-script execution begins.
+Because the rootfs is mounted as the root filesystem during sysinit
+a disk based file system for /var/log/ is yet unavailable.
 Consequently, a tmpfs, temporary filesystem, is mounted on /var/log/init/
-The tmpfs on /var/log/init/ is initially mounted on the initrf.
-Later as a box progress to runlevels the /var/log/init/ temporary file system
-is moved onto the real root filesystem as /var/log/init/
-Therefore, when information about what happened during boot is desired
-then the place to look is always /var/log/init/
-regardless of whether the boot stage is sysinit or runlevel execution.
-
+Placing the files on tmpfs allows /var/log/init/
+to later be moved if desired.
 
 Section 3.3 Boot scroll
 

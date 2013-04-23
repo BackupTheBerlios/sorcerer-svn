@@ -13,14 +13,14 @@
 only start stop restart status
 deny control
 name /dev/pts
-options '-t devpts devpts'
 
-cat_config(){
-  if [ -f /proc/config.gz ]; then gzip -cd /proc/config.gz
-elif [ -f /proc/config    ]; then cat      /proc/config
-fi
-}
+# mi='-q CONFIG_DEVPTS_MULTIPLE_INSTANCES=y'
+# ni='-t devpts -o newinstance -o ptmxmode=0666 devpts'
+# c=/proc/config
 
-if   cat_config | grep -q CONFIG_DEVPTS_MULTIPLE_INSTANCES=y
-then OPTS="-t devpts -o newinstance -o ptmxmode=0666 devpts"
-fi
+# if   [ -f $c    ] &&                       /bin/grep $mi $c; then options "$ni"
+# elif [ -f $c.gz ] && /bin/gzip -cd $c.gz | /bin/grep $mi;    then options "$ni"
+# else options '-t devpts devpts'
+# fi
+
+options -t devpts -o newinstance -o ptmxmode=0666 devpts

@@ -1,8 +1,11 @@
 # Version 2.1.0 installed improperly using cmake
 # Double check names of installed libraries after casting.
 
+# While this dbus installs to --exec-prefix= so must expat
+
 with version stable 2.1.0 2.0.1
 with also    --enable-static=no
+with also    -exec-prefix=
 with role    development/interpreter
 with trait   library lto makej multilib-concurrent
 with source  $SOURCEFORGE_URL expat/expat/$VERSION/expat-$VERSION.tar.gz
@@ -16,4 +19,23 @@ build(){
   2.1.*) rm -f CMakeLists.txt ;;
  esac
  default_build
+}
+
+current(){
+ expat_moved(){
+  [ -d /usr/lib64/ ] && find /usr/lib64/ -maxdepth 1 -type f -name \*.la |
+  xargs -r --max-lines=64 grep -l /usr/lib64/libexpat.la |
+  show_from | cut -d : -f1 | sort -u | pipe_queue "$CAST_QUEUE/new"
+
+  [ -d /usr/lib/ ] && find /usr/lib/ -maxdepth 1 -type f -name \*.la |
+  xargs -r --max-lines=64 grep -l /usr/lib/libexpat.la |
+  show_from | cut -d : -f1 |  sort -u | pipe_queue "$CAST_QUEUE/new"
+
+  [ -f /lib64/libexpat.la ] ||
+  [ -f /lib///libexpat.la ]
+ }
+
+ case $VERSION in
+  2.1.0) expat_moved ;;
+ esac
 }

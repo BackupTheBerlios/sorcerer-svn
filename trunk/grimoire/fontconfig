@@ -2,15 +2,19 @@
 # Version 2.10.91 fontconfig is required for compiling pango vesion 1.32.6
 # pano is more important than vice so looks like vice will remain broke
 
-with version   stable 2.10.91 2.10.2 2.10.1
-with version unstable 2.10.91
+# when testing fontconfig next
+# reap it before testing to verify
+# that the tests do not prevent it from installing.
+
+with version   stable 2.10.92 2.10.91 2.10.2
+with version unstable 2.10.92
 with also    --enable-static=no
 with base    expat freetype
 with role    font/library
 with trait   library lto makej multilib-concurrent
 with source    stable http://fontconfig.org/release/fontconfig-$VERSION.tar.bz2
 with source  unstable http://fontconfig.org/release/fontconfig-$VERSION.tar.bz2
-with info    last 20130110
+with info    last 20130404
 with info    home http://www.freedesktop.org/wiki/Software/fontconfig
 with info    docs http://www.freedesktop.org/software/fontconfig/fontconfig-user.html
 with info    mail http://lists.freedesktop.org/mailman/listinfo/fontconfig
@@ -18,3 +22,12 @@ with info    cite 'library for configuring and customizing font access
 It contains two essential modules, the configuration module which
 builds an internal configuration from XML files and the matching module
 which accepts font patterns and returns the nearest matching font.'
+
+build(){
+ case $VERSION in
+  2.10.92) sed -i 's:conf\.d test :conf.d :' Makefile.in ;;
+  2.10.91) sed -i 's:conf\.d test :conf.d :' Makefile.in ;;
+ esac
+ default_build
+}
+

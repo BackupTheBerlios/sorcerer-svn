@@ -7,37 +7,51 @@
 # Short-Description: saves configuration files that were modified during sysinit
 ### END INIT INFO
 
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+
 . /lib/lsb/init-functions
 
 only start
 deny control
 
-vfs(){
- sed  's:#.*::' /etc/fstab.rootfs |
- sed  's:\t: :g' | tr  -s ' '     |
- sed  's:^ ::'   | cut -d ' ' -f2 |
- grep /media/root/
+parent_root(){
+ local d f r
+
+ if   ! [ -f     /etc/rootname ]; then return 1
+ elif ! read r < /etc/rootname  ; then return 1
+ fi
+
+ for d in /media/root/*; do
+  if   [   -f   "$d/etc/rootname" ] &&
+       read f < "$d/etc/rootname"   &&
+       [  "$f" == "$r" ]
+  then D="$d"; return 0
+  fi
+ done
+
+ return 1
 }
 
-primary_root(){ vfs | sed '1p;d'; }
+files_copy(){
+ [ -d "$D/etc/init.d/conf.d" ] || mkdir -m 700 "$D/etc/init.d/conf.d"
+
+ for  f in /etc/init.d/conf.d/*; do
+  if   [      "$f" -nt "$D/$f" ]
+  then cp -av "$f"     "$D/$f" || r=1
+  fi
+ done
+
+ return $r
+}
 
 start(){
+ if   log_warning_msg "parent root file system locating"; parent_root
+ then log_success_msg "parent root file system found"
+ else log_failure_msg "parent root file system unknown"; return 1
+ fi
 
- run(){
-  local r=0
-         d="$( primary_root )"
-  [ -d "$d/etc/init.d"        ] || continue
-  [ -d "$d/etc/init.d/conf.d" ] || mkdir -m 700 "$d/etc/init.d/conf.d"
-  for  f in /etc/init.d/conf.d/*; do
-   if   [      "$f" -nt "$d/$f" ]
-   then cp -av "$f"     "$d/$f" || r=1
-   fi
-  done
-  return $r
- }
-
- if   log_warning_msg "/etc/init.d/conf.d checking"; run
- then log_success_msg "/etc/init.d/conf.d checked"
- else log_failure_msg "/etc/init.d/conf.d failed"
+ if   log_warning_msg "{,$D}/etc/init.d/conf.d/ newer files copying"; files_copy
+ then log_success_msg "{,$D}/etc/init.d/conf.d/ newer files copied"
+ else log_failrue_msg "{,$D}/etc/init.d/conf.d/ newer files copy failure"; return 1
  fi
 }

@@ -1,0 +1,40 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $syslog $remote_fs xenstored
+# Required-Stop:  $syslog $remote_fs
+# Default-Start: 1 2 3 5
+# Short-Description: sets Domain-0 name
+### END INIT INFO
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+only start
+
+if   [ -f /etc/sysconfig/xencommons ]
+then .    /etc/sysconfig/xencommons
+elif [ -f /etc/default/xencommons ]
+then .    /etc/default/xencommons
+fi
+
+start() {
+ [      -f /usr/libexec/bash/sleep ] &&
+ enable -f /usr/libexec/bash/sleep sleep
+
+ log_warning_msg "Waiting for xenstored to start"
+
+ while ! $( xenstore-read -s / >/dev/null 2>&1 ) &&
+       (( 30 > SECONDS ))
+ do    sleep 0.1
+ done
+
+ if   ! $( xenstore-read -s / >/dev/null 2>&1 )
+ then log_failure_msg "xenstored did not start"; false
+ elif log_warning_msg "Domain 0 name setting"; xenstore-write "/local/domain/0/name" "Domain-0"
+ then log_success_msg "Domain 0 name set"
+ else log_failure_msg "Domain 0 name not set"; false
+ fi
+}

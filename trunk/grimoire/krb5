@@ -1,16 +1,27 @@
-with version stable 1.11 1.10.3
+# as of 20130413 krb5 is newer,
+# but installs ELFs with the same soname
+# but with a lesser value.
+# Therefore, kerberos 5 headers might be used for compilation
+# while heimdal's libraries are used for linking
+# and that could cause link failures.
+# hmm, what to do about multiple installed kerberos?
+
+with version stable 1.11.2 1.11 1.10.3
 case $VERSION in
+ 1.11.2)
+with also    --without-tcl ;;
  1.11)
 with also    --without-tcl ;;
 esac
 with base    keyutils perl
 with also    --enable-shared=yes  --enable-static=no
 with role    security/authentication security/encryption
-with trait   console library makej
+with trait   console library makej multilib-concurrent optimize
 with source  http://web.mit.edu/kerberos/dist/krb5/${VERSION:0:4}/krb5-$VERSION-signed.tar
-with info    last 20121218
+with info    last 20130412
 with info    vurl http://web.mit.edu/kerberos/dist/index.html
 with info    home http://web.mit.edu/kerberos/
+with hold    kerberos5
 with info    cite 'Kerberos 5 from mit'
 
 build(){

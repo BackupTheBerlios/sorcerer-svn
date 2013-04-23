@@ -1,9 +1,9 @@
 #!/bin/bash
-# must be /bin/bash for $RANDOM
+
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: dmsetup
-# Should-Start: loadkeys mdadm udev vgchange
+# Should-Start: loadkeys mdadm proc udev vgchange
 # Required-Stop: finale halt reboot reboot-kexec vgchange
 # Default-Start: S
 # Default-Stop: 0 6
@@ -19,12 +19,17 @@
 # Use a custom script if using luks on a loop device.
 ### END INIT INFO
 
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+
 . /lib/lsb/init-functions
 
 only start stop
 name cryptsetup
 
 start(){
+ local fstab=/etc/fstab
+       fstab=/etc/fstab.rootfs
+
  ldev(){
   sed 's, #.*,,
        \,noauto,d
@@ -72,7 +77,6 @@ start(){
  log_warning_msg "$NAME checking for luks devices"; run
  log_success_msg "$NAME luks mappings created"
 }
-
 
 stop(){
  run(){

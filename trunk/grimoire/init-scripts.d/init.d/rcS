@@ -1,8 +1,15 @@
 #!/bin/bash
-# Copyright 2011, 2012 by Kyle Sallee
+# Copyright 2011, 2012, 2013 by Kyle Sallee
 # All Rights Reserved
 # For use on Sorcerer only
 # Default-Mode: 500
+
+if   [ -d /home ]; then exit 0; fi
+if   [ -x /etc/init.d/proc ]; then /etc/init.d/proc start; fi
+if   [ -x /etc/init.d/dev  ]; then /etc/init.d/dev  start; fi
+if   [      -x /usr/libexec/bash/mkdir ]
+then enable -f /usr/libexec/bash/mkdir mkdir
+fi
 
 trap : INT QUIT TSTP
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
@@ -26,17 +33,12 @@ series(){
  echo "Sysinit ${SECONDS}s End"
 }
 
-if ! [ -d /home ]; then
- echo "rootfs file system login" > /etc/issue
- echo "rootfs file system login" > /etc/issue.rootfs
-fi
-
-/sbin/agetty tty12 -8 -h -s 115200 &
+/bin/openvt -- /bin/login &
 
 if   ! [    -f               /proc/mounts ] ||
      ! grep -q /var/log/init /proc/mounts; then
  mkdir -pm 700 /var/log/init
- mount -o size=4m,nr_inodes=1k,mode=700 -t tmpfs tmpfs /var/log/init
+ /bin/mount -o size=4m,nr_inodes=1k,mode=700 -t tmpfs tmpfs /var/log/init
 fi
 
 [     -d      /etc/init.d/conf.d ] ||
@@ -44,4 +46,4 @@ mkdir -pm 700 /etc/init.d/conf.d
 
 series
 
-if [ -f /proc/$!/cmdline ]; then kill $!; fi
+if [ -f /proc/$!/cmdline ]; then kill $!; /bin/deallocvt; fi

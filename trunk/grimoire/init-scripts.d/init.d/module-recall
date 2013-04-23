@@ -1,0 +1,34 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc $local_fs
+# Should-Start: tmp
+# Default-Start: 1 2 3 4 5
+# Short-Description: creates list of loaded modules
+### END INIT INFO
+
+# Copyright 2012, 2013 by Kyle Sallee, all rights reserved.
+# for use with Sorcerer only
+
+if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+then exit 0
+fi
+
+. /lib/lsb/init-functions
+
+only start
+name module-recall
+
+start(){
+ log_warning_msg "module-recall starting"
+ export LC_ALL=C
+ read j j v j < /proc/version
+ l=/lib/modules/$v/modules.loaded
+ t=/tmp/module-recall.$$$RANDOM$RANDOM
+ tac /proc/modules | cut -d ' ' -f1 > $t
+ if   ! [ -f $l ] || ! cmp -s $l $t
+ then log_warning_msg "$l updating"; cp $t $l
+      log_success_msg "$l updated"
+ fi
+ rm -f $t
+}

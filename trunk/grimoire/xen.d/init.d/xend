@@ -1,0 +1,18 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $syslog $remote_fs xenstored xenconsoled 
+# Required-Stop:  $syslog $remote_fs xenstored xenconsoled 
+# Default-Start: 1 2 3 5
+# Default-Stop: 0 6
+# Short-Description: start and stops xend
+### END INIT INFO
+
+[ -f   /proc/xen/capabilities ] &&
+read < /proc/xen/capabilities   &&
+[[ $REPLY =~ control_d ]] || exit 0
+
+. /lib/lsb/init-functions
+server /usr/sbin/xend
+options start
+

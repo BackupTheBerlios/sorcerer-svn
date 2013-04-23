@@ -1,0 +1,76 @@
+#!/bin/bash
+
+pid1(){
+ if ! (( $$ == 1 ));
+ then echo $"$0 Error: $0 must be run as process 1" 1>&2; exit 1
+ fi
+}
+
+load_modules(){
+ if [ -x /etc/init.d/proc ]; then /etc/init.d/proc start; fi
+ if [ -x /etc/init.d/dev  ]; then /etc/init.d/dev  start; fi
+ read j j v j < /proc/version
+ l=/lib/modules/$v/modules.loaded
+ if [ -f $l ]; then
+  while read; do
+   echo "Delays might occur.  Please cultivate patience."
+   echo "Module $REPLY loading."
+   modprobe -b "$REPLY"
+  done < $l
+ fi
+}
+
+solo(){ s(){ (( ${#@} == 1 )); }; while s /proc/[1-9]*; do $sleep 1; done; }
+proc(){ p(){ (( ${#@} >> 1 )); }; while p /proc/[1-9]*; do $sleep 1; done; }
+
+load_sleep(){
+ if   [      -f /usr/libexec/bash/sleep ]
+ then enable -f /usr/libexec/bash/sleep sleep
+      sleep=sleep
+ else sleep=/bin/sleep
+ fi
+}
+
+delayed_exit(){ load_sleep; solo; proc; exit 0; }
+
+unshared(){
+ ## Should work but was instead receiving
+ ## /etc/init.d/prc: fork: Cannot allocate memory
+ ## during runlevel execution.
+
+ if   [ -x /etc/init.d/proc ]; then /etc/init.d/proc start; fi
+ if   [ -x /etc/init.d/dev  ]; then /etc/init.d/dev  start; fi
+ if   [ -f /bin/unshare     ] &&
+      [ -f /bin/namespace   ]
+ then /bin/unshare -m -- /bin/namespace empty &
+ exec /bin/unshare -m -- /sbin/init "$@"
+ else
+ exec /sbin/init "$@"
+ fi
+}
+
+load_mkdir(){
+ if   [      -f /usr/libexec/bash/mkdir ] &&
+      enable -f /usr/libexec/bash/mkdir mkdir
+ then mkdir=mkdir
+ else mkdir=/bin/mkdir
+ fi
+}
+
+err(){ echo $"/init Error: $@" 1>&2; return 1; }
+
+exec_chroot(){
+ if [ -z "$1" ]; then err "root file system name must be provided"; return 1; fi
+ /bin/chroot "$1" /init namespace "$1"
+#/bin/setsid /bin/chroot "$1" /init namespace "$1"
+#exec /bin/chroot "$1" /init namespace "$1"
+}
+
+export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
+
+  if [ "$1" == chroot    ]; then shift; exec_chroot "$@"
+elif [ "$1" == namespace ]; then shift; pid1; delayed_exit
+elif [ "$1" == runlevel  ]; then shift; /etc/init.d/prc "$@"
+elif [[ $@  =~ bash     ]]; then pid1; load_modules; exec /bin/bash
+                            else pid1; exec /sbin/init "$@"
+fi

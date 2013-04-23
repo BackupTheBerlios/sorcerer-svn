@@ -1,17 +1,30 @@
-with version   stable 1.7.0 1.6.8 1.6.4
+# 1.7.0 is the unstable or developmental branch.
+# does anything explicitly require 1.7.0
+# or was the upgrade to 1.7.0 accidental?
+
+# While this dbus installs to --exec-prefix= so must expat
+
+# elective on doxygen creates broad recursive requirement loop
+
+with version   stable 1.6.8
 with version unstable 1.7.0
-with base    docbook-xml-4.4 expat init-functions pkgconfig xmlto
+with base    expat init-functions pkgconfig
+#with base    docbook-xml-4.1.2 docbook-xml-4.4 expat init-functions pkgconfig xmlto
 # libselinux
+#with elect   doxygen --enable-doxygen-docs --disable-doxygen-docs
 with elect   libSM  '' '' for x11 session managment support
 with elect   libX11 '' '' for x11 support
+with elect   xmlto  --enable-xml-docs --disable-xml-docs
 with also    --enable-static=no --disable-tests --disable-stats
 with also    --disable-systemd --disable-selinux --disable-libaudit
+with also    --exec-prefix=
 with sys_user messagebus
 with role    system
 with trait   console library lto makej multilib-dual x11
 #trait console library lto makej multilib-concurrent x11
 with source  http://dbus.freedesktop.org/releases/dbus/dbus-$VERSION.tar.gz
-with info    last 20130227
+with info    last 20120928
+#with info    last 20130222	# release date for 1.7.0
 with info    home http://www.freedesktop.org/Software/dbus
 with info    mail 'http://www.freedesktop.org/wiki/Software/dbus#MailingList'
 with iwall   'dbus will soon restart'
@@ -27,7 +40,28 @@ directly (without going through the message bus daemon).'
 
 build(){
  case $VERSION in
+  1.6.8) export LDFLAGS+=' -lrt' ;;
   1.7.0) export LDFLAGS+=' -lrt' ;;
  esac
  default_build
+}
+
+
+current(){
+ dbus_moved(){
+  [ -d /usr/lib64/ ] && find /usr/lib64/ -maxdepth 1 -type f -name \*.la |
+  xargs -r --max-lines=64 grep -l /usr/lib64/libdbus-1.la |
+  show_from | cut -d : -f1 | sort -u | pipe_queue "$CAST_QUEUE/new"
+
+  [ -d /usr/lib/ ] && find /usr/lib/ -maxdepth 1 -type f -name \*.la |
+  xargs -r --max-lines=64 grep -l /usr/lib/libdbus-1.la |
+  show_from | cut -d : -f1 | sort -u | pipe_queue "$CAST_QUEUE/new"
+
+  [ -f /lib64/libdbus-1.la ] ||
+  [ -f /lib///libdbus-1.la ]
+ }
+
+ case $VERSION in
+  1.6.8) dbus_moved ;;
+ esac
 }

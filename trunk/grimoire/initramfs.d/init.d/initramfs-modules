@@ -7,7 +7,7 @@
 # Short-Description: creates boot filesystems
 ### END INIT INFO
 
-# Copyright 2007 through 2011 by Kyle Sallee, all rights reserved.
+# Copyright 2007 through 2013 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 . /lib/lsb/init-functions
@@ -61,7 +61,9 @@ initrf_current(){
  while read; do
   if   log_warning_msg "$REPLY/modules $SKIP checking";
        [[ -f $REPLY/modules ]] &&
-       ! find /lib/modules/${REPLY##*/} -newer $REPLY/modules | grep -q .
+       ! find /lib/modules/${REPLY##*/} -newer $REPLY/modules |
+       grep -v "/modules\.loaded$" |
+       grep -q .
   then log_success_msg "$REPLY/modules $SKIP checked; status:     current"
   else log_warning_msg "$REPLY/modules $SKIP checked; status: not current"
        return 1

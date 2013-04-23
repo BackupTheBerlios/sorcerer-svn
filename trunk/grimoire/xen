@@ -1,23 +1,64 @@
+# Perhaps parts of xen should install into areas
+# where they would be available from the rootfs?
+# without ensuring that the xen init-scripts
+# start in the runlevel of only a single root file system
+# xen might not work as expected if at all.
+
 with version   stable 4.2.1 4.2.0
-QVERSION=1.3.1
+QVERSION=1.4.1
+#QVERSION=1.3.1
+with trait   broke
+with info    good 20130421
+with info    last 20121218
 with base    Dev86 acpica bridge-utils yajl
 with elect   SDL '' '--disable-sdl'
 with also    --disable-debug
 with role    development/emulator
 with trait   console hidden x11
-#with trait   console hidden makej optimize x11
-#with trait   broke
 with source    stable http://bits.xensource.com/oss-xen/release/$VERSION/xen-$VERSION.tar.gz
 with source    stable http://wiki.qemu.org/download/qemu-$QVERSION.tar.bz2
 with source  unstable http://bits.xensource.com/oss-xen/release/$VERSION/xen-$VERSION.tar.gz
 with source  unstable http://wiki.qemu.org/download/qemu-$QVERSION.tar.bz2
 with info    vurl http://www.xen.org/products/xen_source.html
-with info    last 20121218
 with info    home http://www.xen.org/products/xenhyp.html
-with info    cite 'xen hypervisor
-provides a software layer for running virtualized operating systems.'
+with info    cite "xen hypervisor
+provides a software layer for running virtualized operating systems.
+
+Caveats:
+xen has an inconvenient limitation concerning cpio initramfs images.
+It must be a a single cpio file.
+It can be xz, gzip, or bzip2 compressed.
+However, it can not be multiple initramfs images.
+It can not be multiple initramfs images concatenated together.
+The above limitations concerning initramfs images
+exist when booting a host computer with the xen hypervisor
+and when booting a guest computer with PV
+However, a guest booted HVM
+can using the normal multiple initramfs images.
+
+xen documentation suggests that
+performance is achieved through PV instead of HVM.
+PV requires more effort to configure.
+HVM is easier and to prepare and use.
+When using PV the pygrub script will be useless
+unless the guest operating system uses the grub bootloader.
+Sorcerer Modern Magic does NOT use grub.
+
+The host's kernel and the /boot/xen/initrf can be used for guests
+provided that the software loadouts are similar
+and updated at the same time.
+Otherwise install xen on the guest
+and use it's kernel and it's /boot/xen/initrf
+instead of the host's files."
 
 build(){
+ fix_install(){
+  mv            "$DESTDIR"/boot{,-xen}
+  mkdir -pm 755 "$DESTDIR"/boot
+  mv            "$DESTDIR"/{boot-xen,boot/xen}
+  rm    -f      "$DESTDIR"/etc/init.d/xencommons
+ }
+
  rm -fr            tools/qemu-xen
  mv qemu-$QVERSION tools/qemu-xen
 
@@ -26,10 +67,11 @@ build(){
  fi
 
  case $VERSION in
-  4.2.1) sed -i '\,debugger/gdbsx,d'   tools/Makefile
+  4.2.1) sed -i '\,debugger/gdbsx,d'    tools/Makefile
          sed -i 's:which $(DOT):false:'  docs/Makefile ;;
  esac
 
  unset LDFLAGS
- default_build
+ default_build &&
+ fix_install
 }

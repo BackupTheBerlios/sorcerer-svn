@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 by Kyle Sallee
+# Copyright 2011,2012,2013 by Kyle Sallee
 # All Rights Reserved
 # For use on Sorcerer only
 
@@ -14,6 +14,8 @@
 # and add function declarations:
 # rebound(){ :; }
 
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+
 . /lib/lsb/init-functions
 
 only start
@@ -21,43 +23,42 @@ deny control
 
 start(){
 
-rebound(){
- [ -f /proc/mounts ] || return
- find /var/log/init/ -mindepth 1 -maxdepth 1 |
- while read; do mv $REPLY{,.old}; done
- /etc/init.d/rcS
- telinit $REPLY
- exit
-}
+ rebound(){
+  [ -f /proc/mounts ] || return
+  /bin/find /var/log/init/ -mindepth 1 -maxdepth 1 |
+  while read; do /bin/mv $REPLY{,.old}; done
+  /etc/init.d/rcS
+  /sbin/telinit $REPLY
+  exit
+ }
 
-critical(){
-alert(){
- short(){ echo -en "\a"; }
-  long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
- pause(){ sleep 0.5; }
+ critical(){
+  alert(){
+   short(){ echo -en "\a"; }
+    long(){ for ((CX=0;CX<35;CX++)); do echo -en "\a"; sleep 0.0016; done; }
+   pause(){ sleep 0.5; }
 
- S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
- O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
+   S(){ echo -n "S"; short; pause; short; pause; short; pause; pause; }
+   O(){ echo -n "O"; long;  pause; long;  pause; long;  pause; pause; }
 
- S; O; S; echo; sleep 1; S; O; S;
-}
+   S; O; S; echo; sleep 1; S; O; S;
+  }
 
-warn(){
- echo "/etc/init.d/$1 reported an error"
- echo "reboot/shutdown request denied"
- echo "Rebounded to runlevel 3"
-}
+  warn(){
+   echo "/etc/init.d/$1 reported an error"
+   echo "reboot/shutdown request denied"
+   echo "Rebounded to runlevel 3"
+  }
 
-deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
+  deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
 
-   if [ -f /var/log/init/failed/extlinux/stop  ]; then deny extlinux
- elif [ -f /var/log/init/failed/initramfs/stop ]; then deny initramfs
+    if [ -f /var/log/init/failed/extlinux/stop  ]; then deny extlinux
+  elif [ -f /var/log/init/failed/initramfs/stop ]; then deny initramfs
+  fi
+ }
+
+ if   log_warning_msg "Final check begins"; critical
+ then log_success_msg "Final check completed"
+ else log_failure_msg "Final check failed"
  fi
-}
-
-if   log_warning_msg "Final check begins"; critical
-then log_success_msg "Final check completed"
-else log_failure_msg "Final check failed"
-fi
-
 }

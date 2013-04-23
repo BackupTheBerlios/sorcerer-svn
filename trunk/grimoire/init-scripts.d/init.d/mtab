@@ -2,9 +2,9 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: bind
-# Default-Start: S
-# Short-Description: creates /etc/mtab from /proc/mounts
+# Should-Start: bind
+# Default-Start: S 1 2 3 4 5
+# Short-Description: sanatizes /etc/mtab
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -14,14 +14,10 @@ deny control
 
 start(){
  run(){
-  rm -f                                   /etc/mtab
-  ln -s                 /proc/mounts      /etc/mtab
-  for d in   /media/root/*; do
-   [ "$d" == /media/root/rootfs ] && return
-   if   [ -f         "$d/proc/mounts" ]
-   then chroot "$d" cat /proc/mounts > "$d/etc/mtab"
-   fi
-  done
+  if   [  -h /etc/mtab ]; then rm -f /etc/mtab
+  elif [  -d /etc/mtab ]; then rmdir /etc/mtab
+  fi
+  echo -n > /etc/mtab
  }
 
  log_warning_msg '/etc/mtab creating'; run

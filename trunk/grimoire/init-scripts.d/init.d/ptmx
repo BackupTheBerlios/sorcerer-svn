@@ -1,21 +1,20 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Default-Mode: 500
-# Required-Start: pts
+# Default-Mode: 510
+# Should-Start: udevsettle
 # Default-Start: S 1 2 3 4 5
-# Short-Description: creates symbolic link from pts/ptmx to /dev/ptmx
+# Short-Description: creates /dev/ptmx symbolic link if it disappears
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 only start
-deny control
+fast
 
 start(){
- if   [ -c       /dev/pts/ptmx ] &&
-    ! [ -h       /dev/ptmx     ]; then
-  rm -f          /dev/ptmx
-  ln -s pts/ptmx /dev/ptmx
+ if ! [   -h          /dev/ptmx ]
+ then  rm -f          /dev/ptmx
+       ln -s pts/ptmx /dev/ptmx
  fi
 }

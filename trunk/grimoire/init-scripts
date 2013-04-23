@@ -5,28 +5,33 @@
 # findutils added as requirement for /etc/init.d/fstab
 # find also used by /etc/init.d/depmod
 
-with version stable 20130323
+with version stable 20130421
 with base    cgroup coreutils findutils grep init-functions sed util-linux vm
 with role    administration/boot profile
-with trait   archive_off console profile
-with info    last 20130323
+with trait   console profile
+with info    last 20130421
 with info    home http://sorcerer.silverice.org
 with info    cite 'several important scripts used during boot and shutdown'
 
 build(){
- mkdir -pvm 755 $DESTDIR/{s,}bin
- mkdir -pvm 755 $DESTDIR/etc/bash_completion.d
+ mkdir -pvm 755 "$DESTDIR"/{s,}bin
+ mkdir -pvm 755 "$DESTDIR"/etc/bash_completion.d
 
- for REPLY in $SCRIPT_DIR/bin/*
- do  install -vm 755 $REPLY $DESTDIR/bin/
- done
+ install -vm 755 -t "$DESTDIR"/bin/   "$SCRIPT_DIR"/bin/*
+ install -vm 755 -t "$DESTDIR"/sbin/  "$SCRIPT_DIR"/sbin/*
 
- for REPLY in  $SCRIPT_DIR/sbin/*
- do  install -vm 755 $REPLY $DESTDIR/sbin/
- done
+# for REPLY in "$SCRIPT_DIR"/bin/*
+# do  install -vm 755 "$REPLY" "$DESTDIR"/bin/
+# done
 
- install -vm 700 $SCRIPT_DIR/etc/bash_completion.d/init-scripts \
-                    $DESTDIR/etc/bash_completion.d/
- install -vm 755 $SCRIPT_DIR/etc/bash_completion.d/cpufreq \
-                    $DESTDIR/etc/bash_completion.d/
+# for REPLY in  $SCRIPT_DIR/sbin/*
+# do  install -vm 755 "$REPLY" "$DESTDIR"/sbin/
+# done
+
+ install -vm 700 "$SCRIPT_DIR"/init  "$DESTDIR"/init
+
+ install -vm 700 "$SCRIPT_DIR"/etc/bash_completion.d/init-scripts \
+                    "$DESTDIR"/etc/bash_completion.d/
+ install -vm 755 "$SCRIPT_DIR"/etc/bash_completion.d/cpufreq \
+                    "$DESTDIR"/etc/bash_completion.d/
 }

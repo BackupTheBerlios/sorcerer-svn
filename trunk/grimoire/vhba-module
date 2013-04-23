@@ -1,9 +1,9 @@
 # versions made from dates are newer than number versions.
 
 with version stable 20120422 20110915 1.2.1
+with base    linux-config
 with role    cd
 with trait   linux-module
-# trait broke
 with source  $SOURCEFORGE_URL cdemu/vhba-module/vhba-module-$VERSION.tar.bz2
 with info    last 20120510
 with info    home http://cdemu.sourceforge.net/pkg_vhba.php
@@ -13,13 +13,55 @@ build(){
  # The following sed breaks compilation
  #sed -i 's:CFLAGS:EXTRA_CFLAGS:' Makefile
 
- LVER=$( installed_version $( get_provider linux-kernel ) )
+ lversion(){
+  local m=/usr/src/linux/Makefile
 
- case $LVER in
-  3.3) LVER=3.3.0 ;;
-  3.2) LVER=3.2.0 ;;
- esac
+  if   ! [ -f $m ]
+  then return
+  fi
 
- make KERNELRELEASE="$LVER" &&
- make KERNELRELEASE="$LVER" install "INSTALL_MOD_PATH=$DESTDIR"
+  local v="s:^VERSION=::p;d"
+  local p="s:^PATCHLEVEL=::p;d"
+  local s="s:^SUBLEVEL=::p;d"
+  local e="s:^EXTRAVERSION=::p;d"
+  local c="s: ::g;"
+
+  v=$( sed "$c $v" $m )
+  p=$( sed "$c $p" $m )
+  s=$( sed "$c $s" $m )
+  e=$( sed "$c $e" $m )
+
+  [ -n "$p" ] && v+=".$p"
+  [ -n "$s" ] && v+=".$s"
+  [ -n "$e" ] && v+=".$e"
+
+  LVER="$v"
+ }
+
+ lversion
+ local    d=/usr/src/linux
+ local c=$d/.config.custom
+ local s=$d/.config.stock
+
+ cp -a /usr/src/linux .
+
+   if [ -f $c ]; then cp $c linux/.config
+ elif [ -f $s ]; then cp $s linux/.config
+ else
+  echo "$c does not exist"
+  echo "$s does not exist"
+  echo "$c or $s must exist"
+  echo "try casting linux-config first"
+  return 1
+ fi
+ cd linux
+#yes '' | make silentoldconfig prepare scripts
+ yes '' |
+ make oldconfig
+ make prepare scripts
+ cd ..
+
+ make KDIR="$PWD/linux" KERNELRELEASE="$LVER" &&
+ make KDIR="$PWD/linux" KERNELRELEASE="$LVER" \
+      INSTALL_MOD_PATH="$DESTDIR" install
 }

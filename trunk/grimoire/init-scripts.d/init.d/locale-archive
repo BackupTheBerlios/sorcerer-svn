@@ -6,12 +6,12 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: $local_fs
+# Required-Start: proc
 # Default-Start: 2 3 4 5
 # Short-Description: generates locales databases
 ### END INIT INFO
 
-if   grep -q boot=IR /proc/cmdline || ! [ -d /home ]
+if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
 then exit
 fi
 
@@ -45,6 +45,8 @@ choices(){
 }
 
 configure(){
+ /bin/tty -s || return
+
  locales_checklist(){
   sed -n 's: .*::;/\//p' /usr/share/i18n/SUPPORTED |
   while read; do
