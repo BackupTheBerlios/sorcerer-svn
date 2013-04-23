@@ -14,7 +14,11 @@ with version 285    285.05.09 285.03
 with version 280    280.13
 with version 275    275.43 275.36 275.28 275.21
 with version 270    270.41.19 270.41.06
+if   [ -f "$VERSION_LOGS/libX11" ]; then
 with base    MesaLib gtk+ libXvMC linux-source xorg-server
+else
+with base    linux-modules
+fi
 with role    kernel
 with trait   library linux-module multilib-fail optimize x86_64 solo x11
 with source  http://us.download.nvidia.com/XFree86/Linux-x86_64/$VERSION/NVIDIA-Linux-x86_64-$VERSION-no-compat32.run
@@ -56,6 +60,10 @@ build(){
 ## libglx extension should be installed over xorg-server's libglx
 # rm -f "$DESTDIR"/usr/lib64/xorg/modules/extensions/libglx.*
 
+  if   ! [ -f "$VERSION_LOGS/libX11" ]
+  then rm -fr "${DESTDIR:-/tmp/empty}"/usr
+  fi
+
   return 0
  }
 
@@ -88,15 +96,15 @@ build(){
  MOD_PATH=/usr/lib64/xorg/modules
 
  local     BUILD_DIR="$SOURCE_DIR/$SPELL/$SPELL-$VERSION"
- rm   -fr $BUILD_DIR
- mkdir -p $BUILD_DIR
- cd       $BUILD_DIR
- echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > $BUILD_DIR/lsmod
- chmod a+x $BUILD_DIR/lsmod
- export PATH=$BUILD_DIR:$PATH
+ rm   -fr "$BUILD_DIR"
+ mkdir -p "$BUILD_DIR"
+ cd       "$BUILD_DIR"
+ echo -e "#!/bin/bash\n/sbin/lsmod | grep -v \"nvidia\|rivafb\|nvidiafb\"" > "$BUILD_DIR"/lsmod
+ chmod a+x "$BUILD_DIR"/lsmod
+ export PATH="$BUILD_DIR":$PATH
 
- mkdir -pvm 755 "$DESTDIR/lib/modules/$LVER/kernel/drivers/video"
- mkdir -pvm 755 "$DESTDIR/usr/{include,lib64}"
+ mkdir -pvm 755 "$DESTDIR"/lib/modules/"$LVER"/kernel/drivers/video/
+ mkdir -pvm 755 "$DESTDIR"/usr/{include,lib64}/
 
  PARAMETERS="
 --accept-license
