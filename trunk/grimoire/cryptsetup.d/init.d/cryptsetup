@@ -31,9 +31,9 @@ start(){
        fstab=/etc/fstab.rootfs
 
  ldev(){
-  sed 's, #.*,,
+  sed 's,#.*,,
        \,noauto,d
-       \,/dev/mapper/luks-,p; d' /etc/fstab |
+       \,/dev/mapper/luks-,p; d' /etc/fstab.rootfs |
   while read DEV MNT TYP JNK; do
    REV="/dev/${DEV#*-}"
    MEV="/dev/mapper/${DEV#*-}"
@@ -60,31 +60,28 @@ start(){
     KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
     KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
-    echo "$KEY" | cryptsetup -c aes-xts-plain -s 512 luksFormat $REV 2>/dev/null
-    echo "$KEY" | cryptsetup luksOpen $REV ${DEV##*/} 2>/dev/null
+    echo "$KEY" | cryptsetup -c aes-xts-plain64 -s 512 luksFormat $REV 2>/dev/null
+    echo "$KEY" | cryptsetup open --type luks $REV ${DEV##*/} 2>/dev/null
     mkswap $DEV
    else
     dialog \
      --backtitle cryptsetup --stdout --no-cancel --timeout 300 \
      --title "Device Password Menu" \
      --passwordbox "Password for $DEV?" 0 0 |
-    cryptsetup luksOpen $REV ${DEV##*/}
+    cryptsetup open --type luks $REV ${DEV##*/}
     redraw
    fi
   done
- }  
+ }
 
  log_warning_msg "$NAME checking for luks devices"; run
  log_success_msg "$NAME luks mappings created"
 }
 
 stop(){
- run(){
-  find     /dev/mapper -type b             |
-  sed   's:/dev/mapper/\(luks-.*\):\1:p;d' |
-  xargs -r cryptsetup luksClose
- }
+ run(){ find /dev/mapper -type b | xargs -r cryptsetup close; }
 
+ if ! [ ramfs == "$( /bin/stat -f -c %T / )" ]; then return 0; fi
  log_warning_msg "$NAME closing luks devices"; run &&
  log_success_msg "$NAME luks devices closed."      ||
  log_failure_msg "$NAME luks devices not closed."

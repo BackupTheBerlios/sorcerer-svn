@@ -54,11 +54,26 @@ ssm(){
  done
 }
 
+match(){
+ local m="$1"
+ shift
+ while [ -n "$1" ]
+ do if [ "$m" == "$1" ]; then return 0; else shift; fi
+ done
+ return 1
+}
+
 rl_ns(){
  local ns
  local r=1
+ local rl
+ if   (( RL == 0 )) || (( RL > 5 ));   then rl="$RL"
+ elif match "$RL" $(< /proc/cmdline ); then rl="$RL"
+ fi
+
  while [ -n "$1" ]; do
   if (( $1 == 1 )); then shift; continue; fi
+
   ns=$( /bin/tr '\000' '\n' < /proc/$1/cmdline | /bin/grep /media/root/ )
   echo "$ns Entering"
 ## without being instructed to not fork nsenter created a zombie
@@ -66,7 +81,7 @@ rl_ns(){
 ## possible bug in nsenter?
 # /bin/nsenter -t $1 -i -m -n -p -r -u -w \
   /bin/nsenter -t $1 -i -m -n -p -r -u -w -F \
-  /etc/init.d/prc $RL
+  /etc/init.d/prc $rl
   echo "$ns Exiting"
   shift
   r=0
