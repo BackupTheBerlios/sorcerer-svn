@@ -1,8 +1,21 @@
 #!/bin/bash
 
 # Copyright 2013 by Kyle Sallee All Rights Reserved
-# logind is a daemon to identify an avaialble virtual console
+# logind is a daemon to identify an available virtual console
 # and allow activation of the virtual console and login
+
+NS=$( /bin/readlink /proc/$BASHPID/ns/pid )
+
+running(){
+ /bin/pgrep -u root "^rgetty$" |
+ /bin/sed   's:^:/proc/:;s:$:/ns/pid:' |
+ /bin/xargs -r --max-lines=64 \
+ /bin/readlink |
+ while read
+ do    if [ "$REPLY" == "$NS" ]; then return 0; fi
+ done
+ return 1
+}
 
 main(){
  while :; do 
