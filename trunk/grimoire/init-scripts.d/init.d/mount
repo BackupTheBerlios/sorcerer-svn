@@ -56,15 +56,13 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-  if   [ ramfs == "$( /bin/stat -f -c %T / )" ]; then
-   cut  -d ' ' -f2 /proc/mounts  |
-   sed  '\,^/media/root,p;d'     |
-   sort -r | xargs -r --max-lines=256 umount -l
-  #else umount -ARl /
-  else
-   cut -d ' ' -f2 /etc/mtab |
-   sort -r | xargs -r --max-lines=256 umount -l
-  fi
+  if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
+  then /bin/cut -d ' ' -f2 /etc/mtab /proc/mounts
+  else /bin/cut -d ' ' -f2 /etc/mtab
+  fi |
+  /bin/sort -ru |
+  /bin/xargs -r --max-lines=256 \
+  /bin/umount -l
 
 #  sed  '\,^rootfs / rootfs,d
 #        \,^proc /proc proc,d
