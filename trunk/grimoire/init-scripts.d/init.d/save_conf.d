@@ -7,7 +7,7 @@
 # Short-Description: saves configuration files that were modified during sysinit
 ### END INIT INFO
 
-[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
+rootfs || exit 0
 
 . /lib/lsb/init-functions
 
