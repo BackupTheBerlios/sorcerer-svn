@@ -11,5 +11,5 @@ with info    cite 'Middle French (ca. 1400-1600) language data files for tessera
 build(){
  mkdir  -pvm 755 "$DESTDIR"/usr/share/tessdata/
  find * -type f -name \*\.traineddata |
- xargs install -vm 644 "$DESTDIR"/usr/share/tessdata/
+ xargs install -vm 644 -t "$DESTDIR"/usr/share/tessdata/
 }
