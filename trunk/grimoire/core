@@ -1,28 +1,37 @@
-# omit from requirements: linux-kernel
-# linux-kernel  <--- downloads too many kernel sources to configure.
-
-with version stable 20130420
-with info    last   20130420
-with base    bash bc bison bzip2 config.site curl dialog diffutils file findutils flex gawk grep guile gzip init-scripts less logind make networks patch perl--XML-Parser procps sed shadow sorcery syslinux systemd sysvinit tar texinfo util-linux which xz
+with version stable 20130427
+with info    last   20130427
+with base    bash bc bison bzip2 config.site curl dialog diffutils file findutils flex gawk grep grimoire guile gzip immune init-scripts less logind make patch perl--XML-Parser procps protocols sed services shadow sorcery systemd sysvinit tar util-linux which xz
 with elect   PAM               '' '' for a flexible authentication method
 with elect   ccache            '' '' for faster compilation when updating installed software
-#with elect   cock              '' '' for more gentle rate limited I/O
-with elect   dhcp              '' '' for a client for automatic network configuration
-with elect   dhcpcd            '' '' another client for automatic network configuration
-with elect   immune            '' '' for the Sorcerer immune system
+with elect   openssh           '' '' for encrypted logins and file transfers over TCP/IP
+with elect   sdelta3           '' '' for downloading tiny source tarball patches
+
+if [ -d /boot/ ]; then		# root file system with /boot/
+
+with base    linux networks syslinux
+with elect   LVM2
+with elect   btrfs-progs
+with elect   dhcpcd            '' '' client for network adapter configuration
+with elect   iptables
+with elect   jfsutils
+with elect   mdadm
+with elect   multipath-tools
+with elect   parted
+with elect   rp-pppoe
+with elect   rsync
+with elect   wireless_tools
+with elect   wpa_supplicant
+
+else				# root file system without /boot/
+
+with base    man texinfo
+with elect   bind
 with elect   laptop-mode-tools '' '' for conserving battery power on laptops
 #with elect   mailutils         '' '' for mail, mailx, pop3d imapd
-with elect   man               '' '' for viewing manual pages
-with elect   openssh           '' '' for encrypted logins and file transfers over TCP/IP
 with elect   pcmciautils       '' '' for pcmcia networking tools
-with elect   protocols         '' '' for monthly updates to /etc/protocols for protocol numbers assigned by IANA
 with elect   quagga            '' '' for dynamic routing table updates
-with elect   sdelta3           '' '' for downloading tiny source tarball patches
-with elect   services          '' '' for monthly updates to /etc/services for port numbers assigned by IANA
 
- if [ -f $VERSION_LOGS/syslinux ]; then
-with base    syslinux
- fi
+fi
 
 case $MACHTYPE in
  *-gnu)
@@ -36,4 +45,6 @@ with trait   console
 with info    home http://sorcerer.silverice.org/
 with info    cite 'profile spell keeps important software installed
 Keep the core spell installed to avoid the risk of un-installing
-software critical for booting and running.'
+software critical for booting and running.
+The base and elected software components for the core profile spell
+vary depending upon whether /boot/ exists.'

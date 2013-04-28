@@ -1,15 +1,17 @@
 #!/bin/bash
 
 ### BEGIN INIT INFO
-# Default-Mode: 510
+# Default-Mode: 500
 # Required-Start: $local_fs $syslog run
 # Required-Stop: $local_fs
-# Default-Start: 1 2 3 4 5
+# Default-Start: S
 # Default-Stop: 0 6
 # Short-Description: laptop-mode extends battery life.
 ### END INIT INFO
 
 # config:  /etc/laptop-mode/laptop-mode.conf
+
+[ ramfs == "$( /bin/stat -f -c %T / )" ] || exit 0
 
 . /lib/lsb/init-functions
 
@@ -17,11 +19,26 @@
 PDIR=/var/run/laptop-mode-tools
 
 only start stop restart try-restart status
-pid_file $PDIR/enabled
-server /usr/sbin/laptop_mode
+#pid_file $PDIR/enabled
+server /sbin/laptop_mode
 name laptop-mode
 
-start(){ mkdir -p $PDIR; touch  $PIDF; $SERV auto init; }
-stop(){ rm -f $PIDF; $SERV stop init; }
-restart(){ $SERV stop; $SERV start; }
-status(){ $SERV status; }    
+start(){
+ run(){ /bin/mkdir -p "$PDIR" && /bin/touch "$PIDF" && "$SERV" auto init; }
+ if   log_warning_msg "laptop_mode starting"; run
+ then log_success_msg "laptop_mode started"
+ else log_failure_msg "laptop_mode start failure"
+ fi
+}
+
+stop(){
+ die(){ /bin/rm -f "$PIDF"; "$SERV" stop init; }
+
+ if   log_warning_msg "laptop_mode stopping"; die
+ then log_success_msg "laptop_mode stopped"
+ else log_success_msg "laptop_mode stop failure"
+ fi
+}
+
+restart(){ "$SERV" stop; /bin/sleep 1; "$SERV" start; }
+status(){  "$SERV" status; }
