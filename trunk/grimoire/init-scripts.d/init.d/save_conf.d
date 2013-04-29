@@ -7,9 +7,9 @@
 # Short-Description: saves configuration files that were modified during sysinit
 ### END INIT INFO
 
-rootfs || exit 0
-
 . /lib/lsb/init-functions
+
+if ! rootfs; then trap - EXIT; exit 0; fi
 
 only start
 deny control
