@@ -1,9 +1,11 @@
 with version stable 2.7.4 2.7.3 2.7.2
 with version secure 2.7.3
 with info    last 20130406
-with base    bzip2 db gdbm expat gmp ncurses pkgconfig readline zlib
+with base    bzip2 db gdbm expat gmp libffi ncurses pkgconfig readline zlib
 with elect   openssl '' '' for secure socket connections
 with elect   sqlite  '' '' for sqlite support
+with also    --with-system-expat --with-system-ffi
+with also    --prefix=/usr --enable-shared --enable-ipv6
 
 # Commenting outwit elect   on tk to avoid recursive requirement loop
 #with elect   tk      '' '' to use tk for GUI and graphics
@@ -52,6 +54,11 @@ build(){
   mv -v "$DESTDIR"/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
  }
 
+ rm_bytecode(){
+  find "$DESTDIR"/usr/lib* -type f -name \*\.pyc | while read; do rm -v "$REPLY"; done
+  find "$DESTDIR"/usr/lib* -type f -name \*\.pyo | while read; do rm -v "$REPLY"; done
+ }
+
  add_dlfcn(){
   Tools/scripts/h2py.py < /usr/include/dlfcn.h > DLFCN.py
   if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
@@ -70,9 +77,17 @@ build(){
   sed -i 's:lib/python:lib64/python:'       Modules/getpath.c
  fi
 
- ./configure --prefix=/usr --enable-shared --enable-ipv6 $OPTS &&
+ # The environment variable PYTHONDONTWRITEBYTECODE
+ # does not seem to to have the effect suggested
+ # by the Python manual page.
+
+ local  PYTHONDONTWRITEBYTECODE
+ export PYTHONDONTWRITEBYTECODE=1
+
+ ./configure $OPTS &&
  make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR" &&
  add_dlfcn &&
+ rm_bytecode &&
  if    [[ $HOSTTYPE == x86_64      ]] &&
      ! [[ -n ${TRAIT[monolib]} ]]; then
   if   [[ $CFLAGS   =~ -m32        ]]; then bit_move 32
@@ -97,13 +112,4 @@ post_install(){
    sort -u  | basenames |
    grep -v   "^Python"  |
    pipe_queue "$MOIL_QUEUE" )
-}
-
-
-current(){
- case $VERSION in
-  2.7.3) if   [[ $HOSTTYPE == x86_64 ]]
-         then grep -q "exec python" /usr/bin/python
-         fi ;;
- esac
 }
