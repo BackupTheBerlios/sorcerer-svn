@@ -66,35 +66,27 @@ build(){
 
 post_install(){
  auto_update(){
-  local p
-  if [ -f "$PROGRESS_LOGS/$1" ]; then return; fi
-  if [ "$VERSION" == "$2"     ]; then return; fi
+  local p v=uncertain
+  p="$( get_provider "$1" )"
+  p="${p:-$1}"
 
-  event "$1" "$VERSION"   "Cast New"
-  echo  "$1" | pipe_queue "$MOIL_QUEUE"
+  [ -f     "$VERSION_LOGS/$p" ] &&
+  read v < "$VERSION_LOGS/$p"
+
+  if [ "$VERSION" == "$v" ]; then return; fi
+
+  touch "$GRIMOIRE/$p"
+  event "$p" "$VERSION"   "Cast New"
+  echo  "$p" | pipe_queue "$MOIL_QUEUE"
  }
 
- local C F H K M c f h k m
+ touch "$GRIMOIRE"/linux-{config,firmware,headers,kernel,modules}
 
- C="$( get_provider linux-config   )"
- F="$( get_provider linux-firmware )"
- H="$( get_provider linux-headers  )"
- K="$( get_provider linux-kernel   )"
- M="$( get_provider linux-modules  )"
-
- [ -f "$VERSION_LOGS/$C" ] && read c < "$VERSION_LOGS/$C"
- [ -f "$VERSION_LOGS/$F" ] && read f < "$VERSION_LOGS/$F"
- [ -f "$VERSION_LOGS/$H" ] && read h < "$VERSION_LOGS/$H"
- [ -f "$VERSION_LOGS/$K" ] && read k < "$VERSION_LOGS/$K"
- [ -f "$VERSION_LOGS/$M" ] && read m < "$VERSION_LOGS/$M"
-
-                  auto_update "$C" "$c"
- [ -d /boot/ ] && auto_update "$F" "$f"
-                  auto_update "$H" "$h"
- [ -d /boot/ ] && auto_update "$K" "$k"
- [ -d /boot/ ] && auto_update "$M" "$m"
-
- touch "$GRIMOIRE/"{"$C","$F","$H","$K","$M"}
+                  auto_update linux-config
+                  auto_update linux-headers
+ [ -d /boot/ ] && auto_update linux-firmware
+ [ -d /boot/ ] && auto_update linux-kernel
+ [ -d /boot/ ] && auto_update linux-modules
 
  default_post_install
 }
