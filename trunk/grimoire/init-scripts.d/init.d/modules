@@ -14,7 +14,6 @@ if   ! rootfs
 then echo "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
 fi
 
-
 only start
 deny control
 
@@ -35,7 +34,10 @@ start(){
  local r
  for d in /media/root/*; do
   if   ! [ -f "$d/init" ]; then continue; fi
-  if   log_warning_msg "$d/lib/modules/$V/ checking"; mod_check "$d"
+  if   log_warning_msg "$d/bin/kmod        checking"; ! [ -f "$d/bin/kmod" ]
+  then log_success_msg "$d/bin/kmod        missing"
+       log_success_msg "$d/lib/modules/$V/ otiose"
+  elif log_warning_msg "$d/lib/modules/$V/ checking"; mod_check "$d"
   then log_success_msg "$d/lib/modules/$V/ exists"
   elif log_warning_msg "$d/lib/modules/$V/ copying";  mod_copy  "$d"
   then log_success_msg "$d/lib/modules/$V/ installed"
