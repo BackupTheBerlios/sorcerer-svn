@@ -120,7 +120,7 @@ runlevel_namespace(){
   shift
   (( v++ ))
   if   (( v == 256 ))
-  then log_error_message "256 root file systems is the limit!"; return 1
+  then log_failure_msg "256 root file systems is the limit!"; return 1
   fi
  done
  return $e
@@ -128,15 +128,15 @@ runlevel_namespace(){
 
 can_unshare(){
  if ! [ -h /proc/$$/ns/pid ]; then
-  log_error_message "PID namespace can not be unshared"
-  log_error_message "linux kernel improperly configured"
+  log_failure_msg "PID namespace can not be unshared"
+  log_failure_msg "linux kernel improperly configured"
   return 1
  fi
 
  if ! [ -f /bin/unshare ]; then
-  log_error_message "/bin/unshare not available"
-  log_error_message "version of installed util-linux"
-  log_error_message "must be 2.23-rc1 or later"
+  log_failure_msg "/bin/unshare not available"
+  log_failure_msg "version of installed util-linux"
+  log_failure_msg "must be 2.23-rc1 or later"
   return 1
  fi
 }
