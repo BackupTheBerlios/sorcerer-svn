@@ -1,0 +1,66 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011, 2012, 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc
+# Default-Start: 1 2 3 4 5
+# Short-Description: sets the root's hostname from /etc/rootname
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure
+
+configure(){
+ if rootfs; then
+  log_failure_msg $"This is rootfs."
+  log_failure_msg $"rootnames can only be set within a root file system."
+  return 1
+ fi
+
+ hostname_dialog(){
+  BACKTITLE=$"rootname configuration menu"
+      TITLE=$"rootname input"
+       HELP=$"The rootname are typically created from a hostname.\n
+First the base directory for the root file system must be known.\n
+That is wher the root file system is mounted.\n
+If it is mounted on /media/root/main then the basename is main.\n
+Now append a dot and the hostname for the computer.\n
+If the hostname is fruit.cup and the root file system is main\n
+then the rootname becomes main.fruit.cup\n
+The rootname will be saved to file /etc/rootname
+Please enter the rootname."
+
+  dialog \
+   --backtitle "$BACKTITLE"  \
+   --title     "$TITLE"      \
+   --timeout 60              \
+   --stdout --no-cancel      \
+   --inputbox "$HELP" 0 0
+ }
+
+ confirm_it(){ dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
+
+ local NAME=$( hostname_dialog )
+ if   echo "$NAME" | grep -q "\." || confirm_it
+ then echo "$NAME" > /etc/rootname
+ fi
+}
+
+start(){
+ local REPLY
+ log_warning_msg "rootname setting"
+ if   [ -f /etc/rootname ]; then read REPLY < /etc/rootname; fi
+ if   [ -z "$REPLY" ]
+ then REPLY="unknown$RANDOM$RANDOM"
+      log_failure_msg "/etc/init.d/rootname configure"
+      log_failure_msg "Executing the above command is recommended"
+ fi
+
+ echo "$REPLY" > /proc/sys/kernel/hostname 
+ log_success_msg "rootname is now $REPLY"
+}

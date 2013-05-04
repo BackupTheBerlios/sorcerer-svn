@@ -1,0 +1,151 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: namespace
+# Should-Start: wpa_supplicant networks
+# Default-Start: S
+# Short-Description: creates veth devices outside and inside root namespace
+### END INIT INFO
+
+# Read RFC 5735 and RFC 3927
+# to understand purpose of IP addresses
+# from 169.254.1.0 through 169.254.254.255
+# veth IP address assignments
+# will use 169.254.1.0 through 169.254.2.255
+# Please pardon the inconvenience.
+# Additional IP addresses can be assigned to the veth
+# in a root file system by running
+# /etc/init.d/veth configure
+
+. /lib/lsb/init-functions
+
+if   ! rootfs
+then echo "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
+fi
+
+# only start stop
+only start
+deny control
+
+load_cat(){
+ if   [      -f /usr/libexec/bash/cat ] &&
+      enable -f /usr/libexec/bash/cat cat
+ then cat=cat
+ else cat=/bin/cat
+ fi
+}
+
+rootname(){
+ local d="$1"
+ if   [ -f "$d"/etc/rootname ]
+ then $cat "$d"/etc/rootname
+ elif [ -f "$d"/etc/hostname ]
+ then echo -n "${d##*/}."
+      $cat "$d"/etc/hostname
+ else echo -n "${d##*/}."
+      $cat     /etc/hostname
+ fi
+}
+
+from_etc_hosts(){
+ local d="$1"	# directory where root is mounted
+ local n="$2"
+ [   -f             "$d/etc/hosts" ] &&
+ /bin/sed 's:#.*::' "$d/etc/hosts" |
+ /bin/tr  '\t' ' '  |
+ /bin/tr  -s   ' '  |
+ /bin/sed "/$n/p;d" |
+ /bin/cut -d   ' ' -f1
+}
+
+add_route(){
+ local d="$1"	# directory where root is mounted
+ local a="$2"	# device adapter name
+ local n="$3"
+ local r
+
+ for p in $( from_etc_hosts "$d" "$n" ); do
+  if   [[ $p =~ : ]]; then
+    if [[ $p =~ / ]]; then p="${p%/*}/64"; else p+=/64; fi
+  elif [[ $p =~ / ]]; then p="${p%/*}/32"; else p+=/32; fi
+  /sbin/ip route add "$p" dev "$a" || r=1
+# /sbin/ip addr  add "$p" dev "$a" || r=1
+ done
+ return $r
+}
+
+veth(){
+ local v="$1"	# veth counter
+ local p="$2"	# PID of the root's namespace
+ local d="$3"	# directory where root is mounted
+ local n="$( rootname "$d" )"
+ local r
+
+ if   /sbin/ip addr show | grep veth.1.$v
+ then return
+ fi
+
+ /sbin/ip link  add  name                   veth.1.$v type veth  \
+                peer name                   veth.2.$v            || r=1
+ /sbin/ip addr  replace 169.254.1.$v/16 dev veth.1.$v            || r=1
+ /sbin/ip link  set                         veth.1.$v up         || r=1
+ /sbin/ip route del     169.254.0.$v/16                          || r=1
+ /sbin/ip route add     169.254.2.$v    dev veth.1.$v            || r=1
+ /sbin/ip link  set                         veth.2.$v netns "$p" || r=1
+
+ add_route "$d" "veth.1.$v" "$n" || r=1
+
+ [ -f /etc/roots ] || echo -n          > /etc/roots
+ [ -f /etc/hosts ] || echo -n          > /etc/hosts
+ /bin/sed -i "/169\.254\.2\.$v/d"        /etc/roots
+ /bin/sed -i "/169\.254\.2\.$v/d"        /etc/hosts
+ echo "$d	$n	169.254.2.$v" >> /etc/roots
+ echo "$n	169.254.2.$v"         >> /etc/hosts
+
+ return $r
+}
+
+runlevel_namespace(){
+ load_cat
+
+ local e=0	# return status
+ local v=0	# veth counter
+ local d	# directory where root file system is mounted
+ while [ -n "$1" ]; do
+  if ! (( $1 == 1 )); then
+   d=$( /bin/tr '\000' '\n' < /proc/$1/cmdline | /bin/tail -n 1 )
+   veth "$v" "$1" "$d" || e=1
+  fi
+  shift
+  (( v++ ))
+  if   (( v == 256 ))
+  then log_error_message "256 root file systems is the limit!"; return 1
+  fi
+ done
+ return $e
+}
+
+can_unshare(){
+ if ! [ -h /proc/$$/ns/pid ]; then
+  log_error_message "PID namespace can not be unshared"
+  log_error_message "linux kernel improperly configured"
+  return 1
+ fi
+
+ if ! [ -f /bin/unshare ]; then
+  log_error_message "/bin/unshare not available"
+  log_error_message "version of installed util-linux"
+  log_error_message "must be 2.23-rc1 or later"
+  return 1
+ fi
+}
+
+start(){
+ if   log_warning_msg "veth devices creating"
+      can_unshare &&
+      runlevel_namespace $( /bin/pgrep -u 0 -f "init namespace" )
+ then log_success_msg "veth devices created"
+ else log_failure_msg "veth devices creation failed"; return 1
+ fi
+}
