@@ -1,11 +1,9 @@
-# Update expect when updating tcl
-
-with version stable 8.6.0 8.5.13 8.5.12 8.5.11
+with version stable 8.6.0 8.5.13 8.5.12
+with info    last 20121220
 with also    --disable-rpath
 with role    development/interpreter
 with trait   console library makej multilib-dual
 with source  $SOURCEFORGE_URL tcl/Tcl/$VERSION/tcl$VERSION-src.tar.gz
-with info    last 20121220
 with info    home http://www.tcl.tk/
 with info    freecode tcltk
 with info    cite 'multi-platform scripting environment
@@ -27,6 +25,9 @@ build(){
 
  make_shared_lib(){ ld --whole-archive -share -o $1.so $1.a; }
 
+ local  LD_LIBRARY_PATH
+ export LD_LIBRARY_PATH="$PWD/unix"
+
  cd unix &&
  ./configure \
  --prefix=/usr \
@@ -36,6 +37,6 @@ build(){
  --enable-threads \
  $OPTS &&
  make &&
- make install DESTDIR=$DESTDIR &&
- ln -sf tclsh${VERSION:0:3} $DESTDIR/usr/bin/tclsh
+ make install DESTDIR="$DESTDIR" &&
+ ln -sf tclsh${VERSION:0:3} "$DESTDIR"/usr/bin/tclsh
 }
