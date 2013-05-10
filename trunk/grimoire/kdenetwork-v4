@@ -7,7 +7,6 @@
 #     A library providing support for Gadu-Gadu protocol
 #     Required for Kopete Gadu-Gadu protocol
 
-
 with inherit kde-v4
 with base    kde-baseapps kde-workspace libktorrent
 #with base    kdepimlibs-v4 libktorrent ortp
@@ -48,3 +47,12 @@ if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
 then  with also    -DMOZPLUGIN_INSTALL_DIR=/usr/lib64/mozilla/plugins
 else  with also    -DMOZPLUGIN_INSTALL_DIR=/usr/lib/mozilla/plugins
 fi
+
+build(){
+ case $VERSION in
+  4.10.3) sed -i '/V4L2_CID_VCENTER/d
+                  /V4L2_CID_HCENTER/d' \
+              kopete/libkopete/avdevice/videodevice.cpp ;;
+ esac
+ kde_build
+}
