@@ -7,8 +7,8 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: cgroup
-# Default-Start:
-# S
+# Should-Start: memory.oom_control memory.use_hierarchy
+# Default-Start: S
 # Short-Description: initializes limits for rootfs cgroup
 # Long-Description: Used to allocate/partition resources among
 #	different root file systems.
@@ -26,7 +26,7 @@ deny control
 
 reset(){
  if   [ -d /aux/new$ecg ]; then
-  rm -fr             $ecg.old
+  rm -fr      $ecg.old
   mv     $ecg $ecg.old
   cp -a  /aux/new$ecg /etc/
   echo "Current configuration moved  from $ecg         to $ecg.old"
@@ -58,6 +58,10 @@ init_cgroup(){
 }
 
 configure(){
+
+ if   ! [ -d /boot/initrf/ ]
+ then log_failure_msg "configure on root file system that generates initramfs images"; exit 1
+ fi
 
  display(){
    BACKTITLE=$"cgroup init-script"
@@ -200,7 +204,7 @@ configure(){
 
   valid(){
    [ -n "$NEW" ] &&
-   [ -z "$( echo "$NEW" | tr -d '[:alnum:]/_-' )" ]
+   [ -z "$( echo "$NEW" | tr -d '[:alnum:]/_-.' )" ]
   }
 
   if   NEW=$( name_entry ) && valid

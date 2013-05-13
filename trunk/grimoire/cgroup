@@ -3,11 +3,11 @@
 # For use with the distribution sorcerer only!
 # Additional notes are at the bottom of the spell.
 
-with version stable 20130428
+with version stable 20130513
+with info    last   20130513
 with base    init-functions
 with role    administration/boot
 with trait   console solo
-with info    last 20130428
 with info    home http://sorcerer.silverice.org
 with info    cite 'cgroup setup utility
 cgroup provides init-script /etc/init.d/cgroup
@@ -67,31 +67,24 @@ can run slowly when demand for processing power exceeds supply.'
 
 
 build(){
- mkdir -pvm 700 $DESTDIR/etc/cgroup
- find        $SCRIPT_DIR/etc/cgroup -mindepth 1 -printf "%P\n" |
- tar  -C     $SCRIPT_DIR/etc/cgroup --exclude-vcs --no-recursion -cPT - |
- tar  -C        $DESTDIR/etc/cgroup -pxf -
- find           $DESTDIR/etc/cgroup -type f | xargs -r --max-lines=64 chmod 644
- find           $DESTDIR/etc/cgroup -type d | xargs -r --max-lines=64 chmod 755
- chmod -pvm 700 $DESTDIR/etc/cgroup
+ local d="$DESTDIR" s="$SCRIPT_DIR"
 
- mkdir -pvm 755             $DESTDIR/sbin
- for REPLY in            $SCRIPT_DIR/sbin/*
- do  install -vm 755 $REPLY $DESTDIR/sbin/
- done
+ icg(){
+  mkdir -pm 700 "$d"$1
+  find          "$s"$1 -mindepth 1 -printf "%P\n" |
+  tar  -C       "$s"$1 --exclude-vcs --no-recursion -cPT - |
+  tar  -C       "$d"$1 -pxf -
+  find          "$d"$1 -type f | xargs -r --max-lines=64 chmod 644
+  find          "$d"$1 -type d | xargs -r --max-lines=64 chmod 755
+  chmod  -m 700 "$d"$1
+ }
 
- mkdir -pvm 755             $DESTDIR/usr/bin
- for REPLY in                $SCRIPT_DIR/bin/*
- do  install -vm 755 $REPLY $DESTDIR/usr/bin/
- done
+ icg /etc/cgroup
+ icg /etc/cgroup.rootfs
 
- mkdir -pvm 755             $DESTDIR/lib/cgroup
- for REPLY in            $SCRIPT_DIR/lib/cgroup/*
- do  install -vm 755 $REPLY $DESTDIR/lib/cgroup/
- done
-
- mkdir -pvm 755             $DESTDIR/etc/bash_completion.d
- for REPLY in            $SCRIPT_DIR/etc/bash_completion.d/*
- do  install -vm 755 $REPLY $DESTDIR/etc/bash_completion.d/
- done
+ mkdir  -pvm 755    "$d"/{etc/bash_completion.d,lib/cgroup,sbin,usr/bin}
+ install -vm 755 -t "$d"/sbin/                  "$s"/sbin/*
+ install -vm 755 -t "$d"/usr/bin/               "$s"/bin/*
+ install -vm 755 -t "$d"/lib/cgroup/            "$s"/lib/cgroup/*
+ install -vm 755 -t "$d"/etc/bash_completion.d/ "$s"/etc/bash_completion.d/*
 }

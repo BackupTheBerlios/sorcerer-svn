@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: cgroup memory.oom_control
+# Default-Start: S
+# Short-Description: disable OOM-killer
+# Long-Description:  disable OOM-killer
+#	Useful when imposing memory limits on root file systems
+#	and the control groups they own.
+
+### END INIT INFO
+
+. /lib/lsb/init-functions
+only start
+
+start(){
+ local c=/sys/fs/cgroup/memory.use_hierarchy
+ if   log_warning_msg "echo 1 > $c"
+                       echo 1 > $c
+ then log_success_msg "echo 1 > $c # successful"
+ else log_failure_msg "echo 1 > $c # unsuccessful"; return 1
+ fi
+}

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: cgroup
+# Default-Start: S
+# Short-Description: disable OOM-killer
+# Long-Description:  disable OOM-killer
+#	Useful when memory limits are imposed upon roots
+#	and when immune-sentinel-memory can activate
+#	additional swap files upon demand
+
+### END INIT INFO
+
+. /lib/lsb/init-functions
+only start
+
+start(){
+ # Unfortunately, the kernel currently rejects the request
+ # to disable the OOM-killer
+
+ return 0
+
+ local c=/sys/fs/cgroup/memory.oom_control
+ if   log_warning_msg "echo 1 > $c"
+                       echo 1 > $c
+ then log_success_msg "echo 1 > $c # successful"
+ else log_failure_msg "echo 1 > $c # unsuccessful"; return 1
+ fi
+}
