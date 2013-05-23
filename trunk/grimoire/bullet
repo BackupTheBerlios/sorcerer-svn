@@ -1,8 +1,13 @@
 # might compile with gcc < 4.6
 
 # lipsofsuna does not link with bullet version 2.78-r2387
-with version stable 2.77
-   version latest 2.80-rev2531
+
+# 2.77 no longer compiles on 20130516
+
+#with trait broke
+with info    last 20121001
+with version stable 2.81-rev2613 2.77
+with version latest 2.81-rev2613 2.80-rev2531
 case $VERSION in
  2.77)
    use_gcc gcc-v4.5 ;;
@@ -14,14 +19,13 @@ with role    game
 with trait   library lto_off makej multilib-concurrent x11
 with source    stable http://bullet.googlecode.com/files/bullet-$VERSION.tgz
 with source    latest http://bullet.googlecode.com/files/bullet-$VERSION.tgz
-with info    good 20120603
-with info    last 20120314
 with info    home http://code.google.com/p/bullet/
 with info    cite '3D Game multiphysics library'
 
 bullet(){
  case $VERSION in
-  2.77) sed -i 's:-Werror::' acinclude.m4 ;;
+  2.77) export CXXFLAGS+=' -fpermissive'
+        sed -i 's:-Werror::' acinclude.m4 ;;
  esac
  default_build
 }

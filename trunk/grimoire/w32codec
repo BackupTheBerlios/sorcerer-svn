@@ -1,5 +1,6 @@
 with version stable 20071007
-#with elect   gcc-v3.3 '' '' for cook.so and drvc.so that require libstdc++.so.5
+with info    good   20120711
+with info    last   20071007
 with role    video/codec
 with trait   library
 case $HOSTTYPE in
@@ -12,18 +13,15 @@ with source  ftp://ftp1.mplayerhq.hu/MPlayer/releases/codecs/ \
            ftp://ftp2.mplayerhq.hu/MPlayer/releases/codecs/ \
            essential-${VERSION}.tar.bz2 ;;
 esac
-with info    good 20120711
-with info    last 20071007
 with info    home http://www.mplayerhq.hu/
 with info    cite 'codecs for decoding video & audio streams'
 
 build(){
-if   !  [ -f $VERSION_LOGS/gcc-v3.3 ]
-then rm   -f {cook,drvc}.so
-fi
-
-mkdir   -pvm 755 $DESTDIR/usr/lib/win32 &&
+# cook.so and drvc.so require libstdc++.so.5  from gcc-v3.3 and old glibc.
+# probably not usable.
+rm      -f {cook,drvc}.so
+mkdir   -pvm 755 "$DESTDIR"/usr/lib/win32 &&
 find *  -type f |
 xargs   --max-lines=1 --replace={} \
-install -vm 644 -o root -g root {} $DESTDIR/usr/lib/win32/
+install -vm 644 -o root -g root {} "$DESTDIR"/usr/lib/win32/
 }

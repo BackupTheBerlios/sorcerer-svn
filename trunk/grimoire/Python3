@@ -2,9 +2,8 @@
 # Version 3.2.3 and 3.2.1 failed compilation
 # Version 3.3.0 failed compilation
 
-with version   stable 3.3.1 3.3.0 3.2.2
-with version unstable 3.3.1
-with info    last 20130407
+with info    last 20130518
+with version   stable 3.3.2 3.3.1 3.3.0 3.2.2
 #case $VERSION in
 # 3.3.0)
 #with also    --without-pymalloc ;;
@@ -71,8 +70,8 @@ build(){
  --enable-shared \
  --enable-ipv6 \
  $OPTS &&
- make         "DESTDIR=$DESTDIR" &&
- make install "DESTDIR=$DESTDIR" &&
+ make         DESTDIR="$DESTDIR" &&
+ make install DESTDIR="$DESTDIR" &&
  if    [[ $HOSTTYPE == x86_64      ]] &&
      ! [[ -n ${TRAIT[monolib]} ]]; then
   if   [[ $CFLAGS   =~ -m32        ]]; then bit_move 32
@@ -80,13 +79,3 @@ build(){
   fi
  fi
 }
-
-# post_install(){
-#  ( export LC_ALL=C
-#    grep -r  "/usr/lib/python.../" $INSTALL_LOGS |
-#    grep -v ":/usr/lib/python${VERSION:0:3}/"    |
-#    cut  -d  : -f1       |
-#    sort -u  | basenames |
-#    grep -v   "^Python"  |
-#    pipe_queue "$MOIL_QUEUE" )
-# }

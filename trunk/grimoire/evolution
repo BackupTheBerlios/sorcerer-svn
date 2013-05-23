@@ -17,9 +17,14 @@
 # No versions are known to compile at the moment.
 # evolution-data-server version 3.8.1 failed to compile.
 
-with version   stable 3.8.0 3.6.4
-with version unstable 3.8.1
+with trait   broke
+with info    last 20130515
+with version   stable 3.8.2 3.8.0 3.6.4
+with version unstable 3.8.2
 with base    evolution-data-server gnome-desktop gstreamer-0.10 gtkhtml libcanberra libnotify libunique
+# The configure script requests --disable-bogofilter but does not acknowledge it
+with elect   bogofilter --disable-bogofilter --enable-bogofilter
+with base    bogofilter
 #with elect   Mail-SpamAssassin '' --disable-spamassassin
 with elect   enchant
 with also    --disable-spamassassin
@@ -35,10 +40,8 @@ with also    --disable-image-inline
  DBVERSION='3.1.17'
 with role    network/email
 with trait   client gnome
-#with trait   broke
 with source  $GNOME_URL sources/evolution/${VERSION:0:3}/evolution-$VERSION.tar.xz
 #   source ftp://ftp.sleepycat.com/releases/db-$DBVERSION.tar.gz
-with info    last 20130417
 with info    home http://www.novell.com/products/desktop/features/evolution.html
 with fill    email-client
 with info    cite 'information management solution
@@ -95,13 +98,13 @@ build_old(){
  --disable-gtk-doc    \
  $OPTS &&
  make  &&
- make install "DESTDIR=$DESTDIR"
+ make install DESTDIR="$DESTDIR"
 }
 
 
 # why is hicolor-icon-theme reinstalled after evolution?
 post_install(){
  if   is_installed hicolor-icon-theme
- then echo         hicolor-icon-theme | pipe_queue $MOIL_QUEUE
+ then echo         hicolor-icon-theme | pipe_queue "$MOIL_QUEUE"
  fi
 }

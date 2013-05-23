@@ -1,16 +1,17 @@
 #!/bin/bash
 
-# Copyright 2008, 2009, 2010, 2011, 2012 by Kyle Sallee,
+# Copyright 2008, 2009, 2010, 2011, 2012, 2013 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
 . /etc/sorcery/config
 
 expire_logs(){
- local EE=${EVENT_EXPIRE:-$EXPIRE}
-
- find "${EVENT_LOGS:=/aux/log/event}/" 
-      -type f -mtime +$EE 2>/dev/null |
+ ( find "${EVENT_LOGS:=/aux/log/event}/"              -type f -mtime +1000
+   find "${EVENT_INDEX:=/aux/run/tmp/index.d/event}/" -type f -mtime +1000
+   find "$EVENT_LOGS"  -type f -mtime +30 -name \*Time\ \*
+   find "$EVENT_INDEX" -type f -mtime +30 -name \*Time\ \*
+ ) |
  escape_qs | xargs -r --max-lines=64 rm -f
 }
 

@@ -1,15 +1,13 @@
-# Copyright Kyle Sallee 2012
+# Copyright Kyle Sallee 2012 2013
 # All rights reserved.
-# For use with the distribution sorcerer only!
+# For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20121127
+with version stable 20130515
+with info    last   20130515
 with role    immune-system
 with trait   solo stale
-with info    last 20121127
 with info    home http://sorcerer.silverice.org/
-with clash   kipi-plugins libkdcraw libkexiv2 libkipi libksane # 20120904
-with clash   eject # 20120905
-with clash   immune-sentinel-space # 20121014
+with clash   module-init-tools
 with info    cite 'applies adjustments as a box transitions through time
 
 Please also install spell immune-exam-dispel for automatic
@@ -43,11 +41,6 @@ post_install(){
   fi
  }
 
- pkgconfig_fixes(){
-  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue "$LOAD_QUEUE"
-  grep -lr "^/lib/pkgconfig\|^/lib64/pkgconfig" $INSTALL_LOGS | basenames | pipe_queue "$MOIL_QUEUE"
- }
-
  fix_inittab(){
   if   grep -q   /dev/tty       /etc/inittab
   then sed -i 's:/dev/tty:tty:' /etc/inittab
@@ -58,20 +51,6 @@ post_install(){
   if spell_installed ati-driver-installer; then
    echo amd-driver-installer | pipe_queue "$LOAD_QUEUE"
    echo amd-driver-installer | pipe_queue "$MOIL_QUEUE"
-  fi
- }
-
- # libgweather's libtool la will specify a requirement on libORBit2
- # however none of libgweather's ELFs will link with it
- # therefore requing is mandatory.
- # bad programmers!
-
- libgweather(){
-  if   spell_installed libgweather &&
-       spell_installed evolution-data-server
-       grep -q libORBit-2 $ELF_LOGS/evolution-data-server
-  then echo libgweather | pipe_queue "$MOIL_QUEUE"
-       echo libgweather | pipe_queue "$LOAD_QUEUE"
   fi
  }
 
@@ -207,13 +186,66 @@ post_install(){
   [ -s "$LA_LOGS/acl" ] || rm -f "$LA_LOGS"/*
  }
 
+
+# idr is used by function current_log_fix()
+ idr(){
+  while read r; do
+   if   [ -h "$d$r" ]; then echo "l$t$r"
+   elif [ -d "$d$r" ]; then echo "d$t$r/"
+   elif [ -f "$d$r" ]; then echo "f$t$r"
+   elif [ -b "$d$r" ]; then echo "b$t$r"
+   elif [ -c "$d$r" ]; then echo "c$t$r"
+   else
+    find "$d$r" -maxdepth 0 -printf "%y\t%p\n" | sed "s:$d::"
+   fi
+  done
+ }
+
+ current_log_fix(){
+  local c="${CURRENT_LOGS:=/aux/log/current}"
+  local i="${INSTALL_LOGS:=/aux/log/install}"
+  local v="${VERSION_LOGS:=/aux/log/version}"
+  local m="${MD5SUM_LOGS:=/aux/log/md5sum}"
+  local o="${LOG_DIR:=/aux/log}/obsolete"
+  local t="$TAB"
+
+  if   ! [ -d "$i" ] && ! [ -d "$v" ] && ! [ -d "$m" ]
+  then return
+  fi
+
+  mkdir -p  "$o" "$c"
+
+  local S V M
+
+  for S in "$i"/*; do
+   S="${S##*/}"
+   if [ -f "$c/$S" ]; then continue; fi
+   if [ -s "$v/$S" ] && [ -s "$i/$S" ] ; then
+    V="$(< "$v/$S" )"
+    ( echo "$S$TAB$V${TAB}file${TAB}$c/$S"
+      cut  -b35- < "$m/$S" |
+      sed  p               |
+      cat  - "$i/$S"       |
+      sort                 |
+      uniq -u              |
+      idr                  |
+      cat  - "$m/$S"       |
+      sort -k2             |
+      sed  "s:  /:\t/:; s:^:$S\t$V\t:"
+    ) | gzip -9 > "$c/$S"
+   fi
+  done
+  cp -al "$i" "$v" "$m" "$o/"
+  rm -fr "$i" "$v" "$m"
+  generate_index
+ }
+
  # Temporary fixes to provide for 6 months.
 
+ current_log_fix		#	20130515
  mod_mode			#	20110706
- pkgconfig_fixes		#	20110911
  fix_inittab			#	20110912
  ati_to_amd_fix			#	20120412
- libgweather			#	20120528
  aux_dirs			#	20120823
  remove_shared			#	20121007
  relocation			#	20121015

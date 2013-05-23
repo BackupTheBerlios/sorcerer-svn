@@ -7,7 +7,8 @@
 # cairo glitz is deprecated code that no longer works
 # therefore do not experiment with it.
 
-with version   stable 20.0.1 20.0 19.0.2
+with info    last 20130515
+with version   stable 21.0 20.0.1 20.0
 with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files zip
 #with base    GConf-dbus bzip2 hicolor-icon-theme libnotify startup-notification sqlite zip
 with also    --disable-gnomevfs --disable-crashreporter
@@ -66,8 +67,7 @@ with trait   solo
 
 #with trait   bottleneck client huge library makej multilib-dual optimize stack-protector x11
 with trait   litelink
-with source  http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/firefox-$VERSION.source.tar.bz2
-with info    last 20130412
+with source  stable http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/firefox-$VERSION.source.tar.bz2
 with info    home http://www.mozilla.com/en-US/firefox/firefox.html
 with hold    mozilla
 with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
@@ -75,26 +75,26 @@ with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
 build(){
 
  symlink_icons(){
-  install -vdm 755 $DESTDIR/usr/share/applications
-  install -vm  644 $SCRIPT_DIR/applications.d/firefox.desktop $DESTDIR/usr/share/applications
-  mkdir -p $DESTDIR/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps
+  install -vdm 755 "$DESTDIR"/usr/share/applications
+  install -vm  644 "$SCRIPT_DIR"/applications.d/firefox.desktop "$DESTDIR"/usr/share/applications
+  mkdir -p "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps
   ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default16.png \
-         $DESTDIR/usr/share/icons/hicolor/16x16/apps/firefox.png
+         "$DESTDIR"/usr/share/icons/hicolor/16x16/apps/firefox.png
   ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default32.png \
-         $DESTDIR/usr/share/icons/hicolor/32x32/apps/firefox.png
+         "$DESTDIR"/usr/share/icons/hicolor/32x32/apps/firefox.png
   ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default48.png \
-         $DESTDIR/usr/share/icons/hicolor/48x48/apps/firefox.png
+         "$DESTDIR"/usr/share/icons/hicolor/48x48/apps/firefox.png
   true
  }
 
  make_install(){
-  if   [ -d                    $DESTDIR/usr/lib64/firefox-$VERSION ]
-  then ln -fs firefox-$VERSION $DESTDIR/usr/lib64/firefox
-       ln -fs firefox-$VERSION $DESTDIR/usr/lib64/mozilla
+  if   [ -d                    "$DESTDIR"/usr/lib64/firefox-$VERSION ]
+  then ln -fs firefox-$VERSION "$DESTDIR"/usr/lib64/firefox
+       ln -fs firefox-$VERSION "$DESTDIR"/usr/lib64/mozilla
   fi
-  if   [ -d                    $DESTDIR/usr/lib/firefox-$VERSION ]
-  then ln -fs firefox-$VERSION $DESTDIR/usr/lib/firefox
-       ln -fs firefox-$VERSION $DESTDIR/usr/lib/mozilla
+  if   [ -d                    "$DESTDIR"/usr/lib/firefox-$VERSION ]
+  then ln -fs firefox-$VERSION "$DESTDIR"/usr/lib/firefox
+       ln -fs firefox-$VERSION "$DESTDIR"/usr/lib/mozilla
   fi
   rm -fr /usr/lib{,64}/mozilla
   symlink_icons
@@ -147,13 +147,13 @@ build(){
  --enable-optimize="$CFLAGS" \
  $OPTS &&
  make  &&
- make install "DESTDIR=$DESTDIR" &&
+ make install DESTDIR="$DESTDIR" &&
  make_install
 }
 
 post_install(){
  default_post_install
- grep -lr "^/usr/lib/mozilla/plugins/\|^/usr/lib64/mozilla/plugins/" $INSTALL_LOGS |
+ grep -lr "^/usr/lib/mozilla/plugins/\|^/usr/lib64/mozilla/plugins/" "$INSTALL_INDEX" |
  basenames |
  pipe_queue "$MOIL_QUEUE"
  true

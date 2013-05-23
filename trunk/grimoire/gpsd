@@ -1,17 +1,21 @@
+# requires chrpath which does not yet have a spell.
+
 # 2.7 and 2.8 and 2.10 2.30 have compile errors.
 # 2.90 has compile error
 
-with version   stable 2.39
-with version unstable 3.4
-with base    Python lesstif libXaw ncurses
+with trait   broke
+with info    last 20130501
+with version   stable 3.9
+with base    Python lesstif libXaw ncurses scons
 with also    --enable-static=no
 with role    GPS
 with trait   console makej x11
-with source    stable http://download.berlios.de/gpsd/gpsd-$VERSION.tar.gz
-with source  unstable http://download.berlios.de/gpsd/gpsd-$VERSION.tar.gz
-with info    last 20120407
-with info    home http://gpsd.berlios.de/
-with info    vurl http://developer.berlios.de/project/showfiles.php?group_id=2116
+with source  stable http://download.savannah.gnu.org/releases/gpsd/gpsd-$VERSION.tar.gz
+#with source    stable http://download.berlios.de/gpsd/gpsd-$VERSION.tar.gz
+#with source  unstable http://download.berlios.de/gpsd/gpsd-$VERSION.tar.gz
+with info     http://savannah.nongnu.org/projects/gpsd
+#with info    home http://gpsd.berlios.de/
+#with info    vurl http://developer.berlios.de/project/showfiles.php?group_id=2116
 with info    cite 'daemon that listens to GPS or Loran reciever
 gpsd is a daemon that listens to a GPS or Loran receiver and
 translates the positional data into a simplified format that
@@ -19,3 +23,11 @@ can be more easily used by other programs, like chart plotters.
 The package comes with a sample client that plots the location
 of the currently visble GPS satellites, if available, and a speedometer.
 It can also use DGPS/ip.'
+
+build(){
+# exporting prefix should work but apparently does not work
+# sedit the SConstruct file instead?
+ export DESTDIR prefix=/usr
+#scons install &&
+ scons install
+}

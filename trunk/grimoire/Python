@@ -1,6 +1,5 @@
-with version stable 2.7.4 2.7.3 2.7.2
-with version secure 2.7.3
-with info    last 20130406
+with info    last 20130518
+with version stable 2.7.5 2.7.4 2.7.3
 with base    bzip2 db gdbm expat gmp libffi ncurses pkgconfig readline zlib
 with elect   openssl '' '' for secure socket connections
 with elect   sqlite  '' '' for sqlite support
@@ -37,21 +36,21 @@ applications that need a programmable interface.'
 
 build(){
  wrappers(){
-  sed     -i 's:-m32::g'                $DESTDIR/usr/lib/python2.7/config/Makefile
-  install -m 644 $SCRIPT_DIR/pyconfig.h $DESTDIR/usr/include/python${VERSION:0:3}/
-  install -m 755 $SCRIPT_DIR/python     $DESTDIR/usr/bin/
-  cp      -al                           $DESTDIR/usr/bin/python{,${VERSION:0:3}}
-  cp      -al                           $DESTDIR/usr/bin/python{,${VERSION:0:1}}
+  sed     -i 's:-m32::g'                  "$DESTDIR"/usr/lib/python2.7/config/Makefile
+  install -m 644 "$SCRIPT_DIR"/pyconfig.h "$DESTDIR"/usr/include/python${VERSION:0:3}/
+  install -m 755 "$SCRIPT_DIR"/python     "$DESTDIR"/usr/bin/
+  cp      -al                             "$DESTDIR"/usr/bin/python{,${VERSION:0:3}}
+  cp      -al                             "$DESTDIR"/usr/bin/python{,${VERSION:0:1}}
  }
 
  bit_move(){
-  if [[ -h $DESTDIR/usr/bin/python ]]; then
-   rm -f  "$DESTDIR/usr/bin/python"
-   cp -al "$DESTDIR/usr/bin/python"{${VERSION:0:3},}
+  if [ -h  "$DESTDIR"/usr/bin/python ]; then
+   rm  -f  "$DESTDIR"/usr/bin/python
+   cp -al  "$DESTDIR/usr/bin/python"{${VERSION:0:3},}
   fi
-  mv -v "$DESTDIR"/usr/bin/python{,-$1}
-  mv -v "$DESTDIR"/usr/bin/python${VERSION:0:3}{,-$1}
-  mv -v "$DESTDIR"/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
+  mv   -v  "$DESTDIR"/usr/bin/python{,-$1}
+  mv   -v  "$DESTDIR"/usr/bin/python${VERSION:0:3}{,-$1}
+  mv   -v  "$DESTDIR"/usr/include/python${VERSION:0:3}/pyconfig{,-$1}.h
  }
 
  rm_bytecode(){
@@ -62,8 +61,8 @@ build(){
  add_dlfcn(){
   Tools/scripts/h2py.py < /usr/include/dlfcn.h > DLFCN.py
   if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then mv DLFCN.py $DESTDIR/usr/lib64/python2.7/DLFCN.py
-  else mv DLFCN.py $DESTDIR/usr/lib/python2.7/DLFCN.py
+  then mv DLFCN.py "$DESTDIR"/usr/lib64/python2.7/DLFCN.py
+  else mv DLFCN.py "$DESTDIR"/usr/lib/python2.7/DLFCN.py
   fi
  }
 
@@ -85,7 +84,7 @@ build(){
  export PYTHONDONTWRITEBYTECODE=1
 
  ./configure $OPTS &&
- make install "OPT=$CFLAGS" "DESTDIR=$DESTDIR" &&
+ make install "OPT=$CFLAGS" DESTDIR="$DESTDIR" &&
  add_dlfcn &&
  rm_bytecode &&
  if    [[ $HOSTTYPE == x86_64      ]] &&
@@ -96,17 +95,22 @@ build(){
  fi
 }
 
-
 post_install(){
  ( export LC_ALL=C
-   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
+   if   [ -n "$INSTALL_INDEX" ]
+   then grep -r  "/lib/python\|lib64/python" "$INSTALL_INDEX"
+   else grep -r  "/lib/python\|lib64/python" "$INSTALL_LOGS"
+   fi |
    grep -v ":/lib/python${VERSION:0:3}/" |
    cut  -d  : -f1       |
    sort -u  | basenames |
    grep -v   "^Python"  |
    pipe_queue "$LOAD_QUEUE"
    leech
-   grep -r  "/lib/python\|lib64/python" $INSTALL_LOGS |
+   if   [ -n "$INSTALL_INDEX" ]
+   then grep -r  "/lib/python\|lib64/python" "$INSTALL_INDEX"
+   else grep -r  "/lib/python\|lib64/python" "$INSTALL_LOGS"
+   fi |
    grep -v ":/lib/python${VERSION:0:3}/" |
    cut  -d  : -f1       |
    sort -u  | basenames |

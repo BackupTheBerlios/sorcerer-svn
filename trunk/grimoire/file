@@ -1,11 +1,10 @@
 with version stable 5.14 5.13 5.12
+with info    last 20130321
 with base    zlib
 with also    --disable-static
 with role    utility
 with trait   console library lto makej multilib-concurrent optimize solo
-#  source ftp://ftp.gw.com/mirrors/unix/file/file-$VERSION.tar.gz
-with source  ftp://ftp.astron.com/pub/file/file-$VERSION.tar.gz
-with info    last 20130322
+with source  stable ftp://ftp.astron.com/pub/file/file-$VERSION.tar.gz
 with info    home http://www.darwinsys.com/file/
 with info    mail http://mx.gw.com/mailman/listinfo/file
 with protect /usr/bin/file
@@ -25,34 +24,17 @@ build(){
   else export LD_LIBRARY_PATH="$DESTDIR/usr/lib"
   fi
 
-  mkdir mm; cp -a "$BUILD_DIR/magic/Magdir/"* mm/
+  mkdir mm; cp -a "$BUILD_DIR"/magic/Magdir/* mm/
   cd    mm
-  install -dvm 755   "$DESTDIR/usr/share/misc/mgc"
+  install -dvm 755   "$DESTDIR"/usr/share/misc/mgc
   find  * -type f              | xargs --max-lines=1  "$file" -Cm
   find  * -type f -name \*.mgc | xargs --max-lines=64 \
-  install -vm 644 -t "$DESTDIR/usr/share/misc/mgc"
+  install -vm 644 -t "$DESTDIR"/usr/share/misc/mgc
  }
 
- cp  $SCRIPT_DIR/magic         magic/Magdir/sorcerer
- cat $SCRIPT_DIR/magic.mime >> magic/magic.mime
+ cp  "$SCRIPT_DIR"/magic         magic/Magdir/sorcerer
+ cat "$SCRIPT_DIR"/magic.mime >> magic/magic.mime
  sed -i "\,Magdir/spectrum,aMagdir/sorcerer \\\\" magic/Makefile.*
  default_build &&
  more_magic
-}
-
-current(){
- elf_log_repair(){
-  find "${ELF_LOGS:-/aux/log/elf}/" -type f -newer \
-       "${VERSION_LOGS:-/aux/log/version}/$SPELL" |
-  xargs -r rm -f
-  rm    -f "${ELF_LOGS:-/aux/log/elf}/$SPELL"
-  false
- }
-
- local     iver
- read      iver < "${VERSION_LOGS:-/aux/log/version}/$SPELL"
- if   [ "$iver" == 5.13 ] &&
-      LC_ALL=C file /usr/share/misc/mgc/elf.mgc | grep -q "version 10"
- then elf_log_repair
- fi
 }

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2000 through 2012 by Kyle Sallee,
+# Copyright 2000 through 2013 by Kyle Sallee,
 # All rights reserved.
 # For use with the distribution Sorcerer only.
 # md5sum checks md5sums of files installed by spells.
@@ -23,20 +23,16 @@ WHAT='Unexpected md5sum'
  MIS=/tmp/md5sums.mis.$EXT
  CHK=/tmp/md5sums.chk.$EXT
 
-tsum(){ find $MD5SUM_LOGS -type f; }
-sums(){ tsum | xargs -r --max-lines=64 cat; }
- use(){ filter conf; }
- old(){ sums | use | limit_io 1 >  $OLD; }
+tsum(){ find "$CURRENT_INDEX" -type f | xargs -r --max-lines=64 cat; }
+sums(){ tsum | gzip -cd | cut -f3,4   | sed '/^[a-z]\t/d;s:\t:  :'; }
+ use(){ filter conf | filter vary; }
+ old(){ sums | use > $OLD; }
 name(){ cut -b 35-; }
-slow(){ escape_qs | xargs -r --max-lines=64 tar --no-recursion -cP | limit_io | tar -itf -; }
- now(){ cat $OLD | name | slow | escape_qs | xargs -r --max-lines=64 md5sum; }
-from(){ while read; do grep -rx "$REPLY" $INSTALL_LOGS; done | sed "s:$INSTALL_LOGS/::"; }
+ now(){ cat $OLD | name | escape_qs | xargs -r --max-lines=64 md5sum; }
+from(){ while read; do grep -rx "$REPLY" "$INSTALL_INDEX"; done | sed "s:$INSTALL_INDEX/::"; }
 peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee /dev/stderr | cut -f2 | sort -u; }
 this(){ pipe_queue "$MOIL_QUEUE"; }
 miss(){ sed 's/^md5sum: //;s/: No such file or directory$//p;d' $MIS; }
-prepare(){ echo -en "\r0%"; }
-percent(){ SOLD=$( finfo -s $OLD ); SCHK=$( finfo -s $CHK );
-           (( PER = SCHK * 100 / $SOLD )); echo -en "\r$PER%"; }
 
 why(){
  echo 1>&2; while read R; do
@@ -56,15 +52,7 @@ check(){
  rm -f $OLD $MIS $CHK
 }
 
-guess(){
- while [[ -f $OLD ]] && ! [[ -s $CHK ]]; do prepare; sleep 1;  done
- while [[ -f $OLD ]];                    do percent; sleep 10; done
- echo
-}
-
 touch     $OLD $MIS $CHK
 chmod 600 $OLD $MIS $CHK
 
 check
-# check &
-# guess 2>/dev/null
