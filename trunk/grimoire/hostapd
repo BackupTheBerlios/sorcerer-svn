@@ -1,3 +1,4 @@
+with info    last 20130117
 with version   stable 2.0 1.1 1.0
 with version unstable 2.0
 with base    libnl1 openssl
@@ -5,7 +6,6 @@ with role    network
 with trait   console client server
 with source    stable http://hostap.epitest.fi/releases/hostapd-$VERSION.tar.gz
 with source  unstable http://hostap.epitest.fi/releases/hostapd-$VERSION.tar.gz
-with info    last 20130117
 with info    home http://hostap.epitest.fi/hostapd/
 with info    cite 'a server and client for extended IEEE 802.11 management
 User space daemon for extended IEEE 802.11 management
@@ -18,21 +18,21 @@ build(){
   sed -i "s:-O2:$CFLAGS:" Makefile
   [ -f .config ] || cp defconfig .config
   make &&
-  mkdir -p $DESTDIR/usr/bin &&
+  mkdir -p "$DESTDIR"/usr/bin &&
   for FILE in *; do
    if   [ -f $FILE ] &&
         [ -x $FILE ]
-   then cp   $FILE $DESTDIR/usr/sbin
+   then cp   $FILE "$DESTDIR"/usr/sbin/
    fi
   done
  }
 
  sed -i "s:-O2 -Wall -g:$CFLAGS:"        src/lib.rules
- sed -i "s:/usr/local:$DESTDIR/usr:" hostapd/Makefile
+ sed -i "s:/usr/local:"$DESTDIR"/usr:" hostapd/Makefile
 
  cd hostapd
  [ -f .config ] || cp defconfig .config
- mkdir -pvm 755 $DESTDIR/usr/bin
+ mkdir -pvm 755 "$DESTDIR"/usr/bin/
  make &&
  make install
 }
