@@ -14,8 +14,8 @@ with elect   tcp_wrappers --with-tcp-wrappers '' for an optional method of contr
 with also    --bindir=/bin --sbindir=/sbin
 with sys_user sshd
 with role    network/security
-with trait   client console server
-with source  \
+with trait   client console makej server
+with source  stable \
 ftp://ftp.OpenBSD.org/pub/OpenBSD/OpenSSH/ \
 ftp://anga.funkfeuer.at/pub/OpenBSD/OpenSSH/ \
 ftp://ftp.eu.openbsd.org/pub/OpenBSD/OpenSSH/ \
@@ -145,7 +145,7 @@ http://mirror.rit.edu/pub/OpenBSD/OpenSSH/ \
 http://openbsd.mirror.frontiernet.net/pub/OpenBSD/OpenSSH/ \
 http://mirror.mcs.anl.gov/openssh/ \
 http://ftp.lambdaserver.com/pub/OpenBSD/OpenSSH/ \
-           portable/openssh-$VERSION.tar.gz
+             portable/openssh-$VERSION.tar.gz
 with info    home http://www.openssh.com/
 with protect /etc/ssh/
 with omit    /etc/ssh/ssh_host_dsa_key
@@ -160,12 +160,12 @@ openssh is 100% complete SSH protocol version 1.3, 1.5 and 2.0
 implementation and includes sftp client and server support.'
 
 build(){
- use_pam(){ sed -i 's:#UsePAM no:UsePAM yes:' $DESTDIR/etc/ssh/sshd_config; }
+ use_pam(){ sed -i 's:#UsePAM no:UsePAM yes:' "$DESTDIR"/etc/ssh/sshd_config; }
 
  rootfs_config(){
-  cp  -a $DESTDIR/etc/ssh/sshd_config{,-rootfs}
+  cp  -a "$DESTDIR"/etc/ssh/sshd_config{,-rootfs}
   sed -i 's:#PidFile /var/run/sshd.pid:PidFile /var/run/sshd-rootfs.pid:
-          s:#Port 22:Port 30:' $DESTDIR/etc/ssh/sshd_config-rootfs
+          s:#Port 22:Port 30:' "$DESTDIR"/etc/ssh/sshd_config-rootfs
  }
 
  if spell_installed libselinux; then OPTS+=' --with-selinux'; fi
@@ -187,7 +187,7 @@ build(){
  --with-md5-passwords  \
  $OPTS &&
  make  &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  rootfs_config &&
  use_pam
 }

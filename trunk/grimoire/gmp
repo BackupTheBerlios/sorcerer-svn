@@ -8,8 +8,7 @@ with base    automake libtool
 #with elect   on gcc-g++ creates circuliar requirement loop
 #with elect   gcc-g++
 with role    mathematics
-with trait   library optimize setarch solo
-#trait makej multilib-dual
+with trait   library makej multilib-concurrent optimize setarch solo
 with source    stable $GNU_URL gmp/gmp-$VERSION.tar.xz
 with source  unstable $GNU_URL gmp/gmp-$VERSION.tar.xz
 with info    home http://www.gmplib.org
@@ -34,9 +33,9 @@ build(){
  preserve_ia32_headers(){
    if [[ $HOSTTYPE == x86_64 ]] &&
       echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
-   mkdir -vpm 755 $DESTDIR/usr/include32/
-   mv $DESTDIR/usr/include/gmp.h   $DESTDIR/usr/include32/
-   mv $DESTDIR/usr/include/gmpxx.h $DESTDIR/usr/include32/
+   mkdir -vpm 755 "$DESTDIR"/usr/include32/
+   mv "$DESTDIR"/usr/include/gmp.h   "$DESTDIR"/usr/include32/
+   mv "$DESTDIR"/usr/include/gmpxx.h "$DESTDIR"/usr/include32/
   fi
  }
 
@@ -54,9 +53,9 @@ build_old(){
  preserve_ia32_headers(){
    if [[ $HOSTTYPE == x86_64 ]] &&
       echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
-   mkdir -vpm 755 $DESTDIR/usr/include32/
-   mv $DESTDIR/usr/include/gmp.h   $DESTDIR/usr/include32/
-   mv $DESTDIR/usr/include/gmpxx.h $DESTDIR/usr/include32/
+   mkdir -vpm 755 "$DESTDIR"/usr/include32/
+   mv "$DESTDIR"/usr/include/gmp.h   "$DESTDIR"/usr/include32/
+   mv "$DESTDIR"/usr/include/gmpxx.h "$DESTDIR"/usr/include32/
   fi
 }
 
@@ -87,7 +86,7 @@ build_old(){
   --build=$MACHTYPE    \
  $OPTS &&
  make  &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  preserve_ia32_headers
 )
 }

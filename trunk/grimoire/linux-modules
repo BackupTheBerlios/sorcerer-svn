@@ -1,8 +1,8 @@
+with info    last 20130524
 with base    initramfs linux-config linux-headers
 with role    kernel
 with trait   console litelink makej solo
 # given solo trait in order to cast faster on smp using parallel make.
-with info    last 20130321
 with info    home http://www.kernel.org/
 with protect /lib/modules/
 with info    cite 'compiles and installs modules for source in /usr/src/linux/'
@@ -37,20 +37,22 @@ kversion
 
 build(){
  xz_modules(){
-  local KO="$DESTDIR/lib/modules/$VERSION$1/kernel/"
+  local p="$( processors )"
+  local m="--max-lines=64"
+  local k="$DESTDIR/lib/modules/$VERSION$1/kernel/"
   echo "xz compressing modules"
-  find "$KO" -type f -size +4096c -name \*.ko -printf '%p\t%s\n' |
+  find "$k" -type f -size +4096c -name \*\.ko     | xargs -P $p $m xz -f -6
+  find "$k" -type f              -name \*\.ko\.xz |
   while read file size; do
-   echo "xz $file"
-   xz -f -M 25% --lzma2=dict=$size,mf=bt4,nice=273 "$file" &&
-   ln     "$file"{.xz,} &&
-   unlink "$file.xz"
+   ln     "$file" "${file%\.xz}" &&
+   unlink "$file"
   done
  }
 
  strip_modules(){
-  find $DESTDIR/lib/modules/$VERSION$1/kernel -type f -name \*.ko |
-  xargs --max-lines=256 strip --strip-unneeded
+  local p="$( processors )"
+  find "$DESTDIR/lib/modules/$VERSION$1/kernel" -type f -name \*.ko |
+  xargs -P $p --max-lines=256 strip --strip-unneeded
  }
 
  compile_and_install(){

@@ -1,11 +1,12 @@
+with info    good 20120713
+with info    last 20070918
 with version stable 29 28 27
 with elect   pcmciautils '' '' for PCMCIA Card Services
 with elect   crda
 with role    network
-with trait   console library
-with source  http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.$VERSION.tar.gz
-with info    good 20120713
-with info    last 20070918
+with trait   console library makej
+# multilib-concurrent
+with source  stable http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/wireless_tools.$VERSION.tar.gz
 with info    home http://hpl.hp.com/personal/Jean_Tourrilhes/Linux/Tools.html
 with info    cite 'tools for wireless networking
 Includes:
@@ -22,10 +23,10 @@ build(){
   local  LC_ALL
   export LC_ALL=C
 
-  find $DESTDIR -type f     |
+  find  "$DESTDIR" -type f  |
   xargs --max-lines=64 file |
-  grep ', not stripped'     |
-  cut -d : -f1              |
+  grep  ', not stripped'    |
+  cut   -d : -f1            |
   xargs --max-lines=64 strip --strip-unneeded
  }
 
@@ -45,6 +46,6 @@ build(){
          s/-Os/$CFLAGS/
          s:/usr/local:/usr:" Makefile
  make CC="$CC" &&
- make install PREFIX=$DESTDIR/usr INSTALL_DIR=$DESTDIR/sbin/ INSTALL_LIB=$DESTDIR/$LIB &&
+ make install PREFIX="$DESTDIR"/usr INSTALL_DIR="$DESTDIR"/sbin/ INSTALL_LIB="$DESTDIR"/$LIB &&
  strip_destdir
 }

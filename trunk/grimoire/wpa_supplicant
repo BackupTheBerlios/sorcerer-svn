@@ -12,6 +12,8 @@
 # requires revision for qt GUI
 # only acquires gcc-g++ when creating qt GUI
 
+with info    good 20130525
+with info    last 20130112
 with version   stable 2.0 1.1 1.0
 #with version unstable v2.0-devel-20120415
 with base    dbus docbook2X ncurses openssl readline
@@ -20,10 +22,9 @@ with base    dbus docbook2X ncurses openssl readline
 # pscs-lite spell currently unavailable
 #with elect   pscs-lite CONFIG_PCSC=y
 with role    network/security network/wireless
-with trait   console
+with trait   console makej
 with source    stable http://hostap.epitest.fi/releases/wpa_supplicant-$VERSION.tar.gz
 with source  unstable http://sources.silverice.org/wpa_supplicant/$VERSION/hostap-$VERSION.tar.xz
-with info    last 20130320
 with info    home http://hostap.epitest.fi/wpa_supplicant
 with sys_user wpapriv wpapriv /var/run_wpa_priv
 with info    cite 'WPA/WPA2 supplicant
@@ -42,7 +43,7 @@ It supports separate frontend programs and a text-based
 frontend (wpa_cli) is included with wpa_supplicant.'
 
 build(){
- create_config(){ cp $SCRIPT_DIR/config .config; }
+ create_config(){ cp "$SCRIPT_DIR"/config .config; }
 
  install_examples(){
   mv *.service *.conf examples
@@ -52,24 +53,24 @@ build(){
  install_man(){
   for i in doc/docbook/*.[0-9]; do
    if [ -f "$i" ]; then
-    mkdir   -pvm 755    $DESTDIR/usr/share/man/man${i##*.}
-    install  -vm 644 $i $DESTDIR/usr/share/man/man${i##*.}
+    mkdir   -pvm 755    "$DESTDIR"/usr/share/man/man${i##*.}
+    install  -vm 644 $i "$DESTDIR"/usr/share/man/man${i##*.}
    fi
   done
  }
 
  install_wpa_gui(){
   if          [ -f wpa_gui-qt4/wpa_gui ]; then
-   mkdir  -pvm 755                     $DESTDIR/usr/bin
-   install -vm 755 wpa_gui-qt4/wpa_gui $DESTDIR/usr/bin
+   mkdir  -pvm 755                     "$DESTDIR"/usr/bin
+   install -vm 755 wpa_gui-qt4/wpa_gui "$DESTDIR"/usr/bin/
   fi
  }
 
  install_wpa_files(){
-  install -dvm 755 $DESTDIR/etc/wpa_supplicant
-  install -dvm 755 $DESTDIR/etc/dbus-1/system.d/
+  install -dvm 755 "$DESTDIR"/etc/wpa_supplicant
+  install -dvm 755 "$DESTDIR"/etc/dbus-1/system.d/
   install  -vm 644 dbus-wpa_supplicant.conf 
-                   $DESTDIR/etc/dbus-1/system.d/wpa_supplicant.conf  
+                   "$DESTDIR"/etc/dbus-1/system.d/wpa_supplicant.conf  
   install_wpa_gui
   install_examples
   install_man
@@ -101,7 +102,7 @@ build(){
  create_config &&
  make &&
 #make_gui &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  install_wpa_files
 }
 

@@ -1,11 +1,11 @@
 # spell must have trait multilib-dual
 
+with info    good 20130525
+with info    last 20091228
 with version stable 1.0.13 1.0.12
 with role    audio/codec audio/library
-with trait   library lto multilib-dual
-with source  http://www.quut.com/gsm/gsm-$VERSION.tar.gz
-with info    good 20120609
-with info    last 20091228
+with trait   library lto makej multilib-dual
+with source  stable http://www.quut.com/gsm/gsm-$VERSION.tar.gz
 with info    home http://www.quut.com/gsm/
 with info    cite 'audio codec library'
 
@@ -19,32 +19,32 @@ build(){
  install_libs(){
   ld $FORMAT --whole-archive -shared              \
      -soname             libgsm.so.${VERSION:0:3} \
-     -o $DESTDIR/usr/lib/libgsm.so.${VERSION}     \
-        $DESTDIR/usr/lib/libgsm.a
-  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so.${VERSION:0:3}
-  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so.${VERSION:0:1}
-  ln -s libgsm.so.$VERSION $DESTDIR/usr/lib/libgsm.so
+     -o "$DESTDIR"/usr/lib/libgsm.so.${VERSION}     \
+        "$DESTDIR"/usr/lib/libgsm.a
+  ln -s libgsm.so.$VERSION "$DESTDIR"/usr/lib/libgsm.so.${VERSION:0:3}
+  ln -s libgsm.so.$VERSION "$DESTDIR"/usr/lib/libgsm.so.${VERSION:0:1}
+  ln -s libgsm.so.$VERSION "$DESTDIR"/usr/lib/libgsm.so
  }
 
  install_headers(){
   chmod 755 inc
   chmod 644 inc/*
-  mkdir -p            $DESTDIR/usr/include
-  cp    -av inc       $DESTDIR/usr/include/gsm
-  ln    -s  gsm/gsm.h $DESTDIR/usr/include/gsm.h
+  mkdir -p            "$DESTDIR"/usr/include
+  cp    -av inc       "$DESTDIR"/usr/include/gsm
+  ln    -s  gsm/gsm.h "$DESTDIR"/usr/include/gsm.h
  }
 
  sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:"     Makefile
  sed -i "s:-pedantic:-pedantic $CFLAGS:" Makefile
 
  make &&
- mkdir -pvm 755 $DESTDIR/usr/{bin,include,lib} &&
- make install INSTALL_ROOT=$DESTDIR/usr &&
+ mkdir -pvm 755 "$DESTDIR"/usr/{bin,include,lib} &&
+ make install INSTALL_ROOT="$DESTDIR"/usr &&
       install_headers &&
       install_libs    &&
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
- then mv $DESTDIR/usr/lib{,64}
+ then mv "$DESTDIR"/usr/lib{,64}
  fi &&
- rm -f $DESTDIR/usr/lib{,64}/*.a
+ rm -f "$DESTDIR"/usr/lib{,64}/*.a
 }

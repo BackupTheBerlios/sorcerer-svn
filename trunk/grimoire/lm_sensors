@@ -1,15 +1,17 @@
+with info    good 20130525
+with info    last 20121106
 with version stable 3.3.3 3.3.2
 with base    flex
 with elect   rrdtool sensord '' for sensord HW monitoring daemon
 with role    utility
-with trait   console library
+with trait   console library makej
 #trait makej multilib-concurrent
-with source  http://dl.lm-sensors.org/lm-sensors/releases/ \
+with source  stable \
+             http://dl.lm-sensors.org/lm-sensors/releases/ \
              http://secure.netroedge.com/~lm78/archive/ \
               ftp://ftp.netroedge.com/pub/lm-sensors/ \
              lm_sensors-$VERSION.tar.bz2
 with info    home http://www.lm-sensors.nu/
-with info    last 20121106
 with info    cite 'hardware health monitoring tools
 lm_sensors provides essential tools for
 monitoring the hardware health of Linux
@@ -21,7 +23,7 @@ build(){
   local  LC_ALL
   export LC_ALL=C
 
-  find $DESTDIR -type f     |
+  find "$DESTDIR" -type f   |
   xargs --max-lines=64 file |
   grep ', not stripped'     |
   cut -d : -f1              |
@@ -42,12 +44,12 @@ build(){
  fi
 
  make    user &&
- make    user_install PREFIX=/usr DESTDIR=$DESTDIR &&
- rm -f $DESTDIR/usr/lib{,64}/libsensors.a &&
+ make    user_install PREFIX=/usr DESTDIR="$DESTDIR" &&
+ rm -f "$DESTDIR"/usr/lib{,64}/libsensors.a &&
 
  if [ -n "$SENSORD" ]; then
-  mkdir -p $DESTDIR/usr/{bin,man/man8}
-  install -o 0 -g 0 -m 755 prog/sensord/sensord   $DESTDIR/usr/bin
-  install -o 0 -g 0 -m 644 prog/sensord/sensord.8 $DESTDIR/usr/man/man8
+  mkdir -pvm 755 "$DESTDIR"/usr/{bin,man/man8}
+  install -o 0 -g 0 -m 755 prog/sensord/sensord   "$DESTDIR"/usr/bin
+  install -o 0 -g 0 -m 644 prog/sensord/sensord.8 "$DESTDIR"/usr/man/man8
  fi && strip_destdir
 }

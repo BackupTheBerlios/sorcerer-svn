@@ -4,12 +4,13 @@
 # java enabled gcc is almost never used
 # therefore upgrading gcc to 4.6.3 to rid gcc's STUPID rpath.
 
-# I am aware of version 4.7.0 and waiting for version 4.7.1
+# I am aware of version 4.8.0 and waiting for version 4.8.1
 
 # occasional cast failures might be due to the makefiles
 # not being entirely parallel make compatible.
 
-
+with info    good 20130525
+with info    last 20120922
 with version stable 4.7.2 4.7.1 4.6.3
 with base    binutils cloog libelf mpfr multiprecision ppl
 #with base    binutils cloog-ppl libelf mpfr multiprecision
@@ -21,9 +22,8 @@ with also    --enable-cloog-backend=isl
 with role    development/compiler
 with trait   bias console library lto_off multilib-fail optimize solo
 #trait console library lto_off makej multilib-fail optimize solo
-with source  $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
-#   source ftp://sourceware.org/pub/java/ecj-4.5.jar
-with info    last 20120922
+with source  stable $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+#with source  stable ftp://sourceware.org/pub/java/ecj-4.5.jar
 with info    home http://gcc.gnu.org/
 with info    docs http://gcc.gnu.org/onlinedocs/
 with info    mail http://gcc.gnu.org/lists.html
@@ -48,7 +48,7 @@ build(){
 
  finish_install(){
   fix_la
-  local STRSTREAM=$DESTDIR/usr/include/c++/$VERSION/backward/strstream
+  local STRSTREAM="$DESTDIR"/usr/include/c++/$VERSION/backward/strstream
 
   if   [[ -f           $STRSTREAM   ]] &&
      ! [[ -f           $STRSTREAM.h ]]
@@ -120,7 +120,7 @@ build(){
  make "$BF"                     \
       "$LCF"  "$LCXF"  "$LDF"   \
       "$LJCF" "$LJCXF"          &&
- make  install "DESTDIR=$DESTDIR" &&
+ make  install DESTDIR="$DESTDIR" &&
  finish_install
 }
 
