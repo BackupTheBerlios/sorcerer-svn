@@ -2,16 +2,16 @@
 # 5.2.1 was announced on freshment, however
 # it is not available for download at http://www.lua.org/ftp/
 
+with info    good 20120729
+with info    last 20120608
 with version stable 5.1.5
 with version latest 5.2.1
 with base    ncurses readline
 with role    development/interpreter
-with trait   console library
+with trait   console library makej
 #trait multilib-fail
 with source    stable http://www.lua.org/ftp/lua-$VERSION.tar.gz
 with source    latest http://www.lua.org/work/lua-$VERSION.tar.gz
-with info    good 20120729
-with info    last 20120608
 with info    home http://www.lua.org/
 with info    docs http://www.lua.org/docs.html
 with info    wiki http://lua-users.org/wiki/
@@ -47,24 +47,24 @@ build(){
  sed -i 's:/usr/local:/usr:' etc/lua.pc
 
  make  linux   MYLDFLAGS="$LDFLAGS"                &&
- make  install INSTALL_TOP=$DESTDIR/usr            &&
+ make  install INSTALL_TOP="$DESTDIR"/usr          &&
  ld   $FORMAT --whole-archive -share -ldl -lm      \
        -soname            liblua.so.${VERSION:0:3} \
-      -o $DESTDIR/usr/lib/liblua.so.${VERSION}     \
-         $DESTDIR/usr/lib/liblua.a                 &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
- mkdir  -pvm 755            $DESTDIR/usr/lib/pkgconfig &&
- install -vm 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
+      -o "$DESTDIR"/usr/lib/liblua.so.${VERSION}   \
+         "$DESTDIR"/usr/lib/liblua.a               &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so.${VERSION:0:3} &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so.${VERSION:0:1} &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so &&
+ mkdir  -pvm 755            "$DESTDIR"/usr/lib/pkgconfig &&
+ install -vm 644 etc/lua.pc "$DESTDIR"/usr/lib/pkgconfig &&
  if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv "$DESTDIR"/usr/lib{,32}
+                                   else mv "$DESTDIR"/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv "$DESTDIR"/usr/lib{32,}; fi
+   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' "$DESTDIR"/usr/lib64/pkgconfig/lua.pc
   fi
  fi &&
- rm -f $DESTDIR/usr/lib{,64}/*.a
+ rm -f "$DESTDIR"/usr/lib{,64}/*.a
 }
 
 build_old(){
@@ -79,21 +79,21 @@ build_old(){
  sed -i 's:/usr/local:/usr:' etc/lua.pc
 
  make  linux   MYLDFLAGS="$LDFLAGS"                &&
- make  install INSTALL_TOP=$DESTDIR/usr            &&
+ make  install INSTALL_TOP="$DESTDIR"/usr          &&
  ld   $FORMAT --whole-archive -share -ldl          \
        -soname            liblua.so.${VERSION:0:3} \
-      -o $DESTDIR/usr/lib/liblua.so.${VERSION}     \
-         $DESTDIR/usr/lib/liblua.a                 &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:3} &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so.${VERSION:0:1} &&
- ln -vs liblua.so.$VERSION  $DESTDIR/usr/lib/liblua.so &&
- mkdir  -pvm 755            $DESTDIR/usr/lib/pkgconfig &&
- install -vm 644 etc/lua.pc $DESTDIR/usr/lib/pkgconfig &&
+      -o "$DESTDIR"/usr/lib/liblua.so.${VERSION}   \
+         "$DESTDIR"/usr/lib/liblua.a               &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so.${VERSION:0:3} &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so.${VERSION:0:1} &&
+ ln -vs liblua.so.$VERSION  "$DESTDIR"/usr/lib/liblua.so &&
+ mkdir  -pvm 755            "$DESTDIR"/usr/lib/pkgconfig &&
+ install -vm 644 etc/lua.pc "$DESTDIR"/usr/lib/pkgconfig &&
  if   [[ $HOSTTYPE == x86_64   ]]; then
-  if  [[ $CFLAGS   =~ -m32     ]]; then mv $DESTDIR/usr/lib{,32}
-                                   else mv $DESTDIR/usr/lib{,64}
-   if [[ -d $DESTDIR/usr/lib32 ]]; then mv $DESTDIR/usr/lib{32,}; fi
-   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' $DESTDIR/usr/lib64/pkgconfig/lua.pc
+  if  [[ $CFLAGS   =~ -m32     ]]; then mv "$DESTDIR"/usr/lib{,32}
+                                   else mv "$DESTDIR"/usr/lib{,64}
+   if [[ -d $DESTDIR/usr/lib32 ]]; then mv "$DESTDIR"/usr/lib{32,}; fi
+   sed -i 's:libdir=${exec_prefix}/lib:libdir=${exec_prefix}/lib64:' "$DESTDIR"/usr/lib64/pkgconfig/lua.pc
   fi
  fi
 }

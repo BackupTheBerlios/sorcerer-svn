@@ -2,6 +2,7 @@
 # ghostscript 9.02 checks for installed sdl but does not use it.
 # 9.06 failed linking
 
+with info    last 20130217
 with version   stable 9.07 9.02 9.01
 with version unstable 9.07
 with base    cairo gtk+ krb5 imake jpeg libpaper xorg-cf-files zlib
@@ -11,12 +12,11 @@ with elect   fontconfig ''       ''          for fontconfig support
 with elect   libXt      --with-x --without-x for x11 support
 with elect   libXext    --with-x --without-x for x11 support
 with role    printer
-with trait   console library multilib-dual x11
+with trait   console library makej multilib-dual x11
 # failed a parallel make
 #trait console library makej multilib-dual x11
 with source    stable http://downloads.ghostscript.com/public/ghostscript-$VERSION.tar.bz2
 with source  unstable http://downloads.ghostscript.com/public/ghostscript-$VERSION.tar.bz2
-with info    last 20130217
 with info    home http://www.ghostscript.com/
 with info    docs http://www.ghostscript.com/Documentation.html
 with info    mail http://ghostscript.com/mailman/listinfo/
@@ -37,19 +37,5 @@ build(){
   --prefix=/usr \
   --enable-dynamic &&
  make so &&
- make soinstall install "DESTDIR=$DESTDIR"
-}
-
-build_old(){
- export CFLAGS+=' -fPIC'
-# ./configure           \
-#  --prefix=/usr        \
-#  --sysconfdir=/etc    \
-#  --localstatedir=/var \
-#  $OPTS                &&
-# make                  &&
- default_build         &&
- make so               &&
-#make   install DESTDIR=$DESTDIR &&
- make soinstall DESTDIR=$DESTDIR
+ make soinstall install DESTDIR="$DESTDIR"
 }

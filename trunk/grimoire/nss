@@ -1,41 +1,40 @@
 # links without regard to CC CFLAGS and LDFLAGS and therefore is multilib-fail
 
+with info    good 20130526
+with info    last 20130215
 with version stable 3.14.3 3.14.2 3.14.1
 with base    nspr sqlite zlib
 with role    network/web
 # must be multilib-dual
 with trait   library multilib-dual no_patcher
-with source  ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
+#with trait   makej
+with source  stable ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
 case $VERSION in
  3.14.3) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.14.3-standalone-1.patch ;;
  3.14.2) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.14.1-standalone-1.patch ;;
  3.14.1) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.14.1-standalone-1.patch ;;
- 3.14)   with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.14-standalone-1.patch ;;
- 3.13.6) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.13.6-standalone-1.patch ;;
- 3.13.5) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.13.5-standalone-1.patch ;;
 esac
-with info    last 20130215
 with info    home http://www.mozilla.org/projects/security/pki/nss/
 with info    cite 'mozilla network security service libraries'
 
 build(){
  make_install(){
-  mkdir  -pvm 755 $DESTDIR/usr/{bin,include/nss,lib/pkgconfig}
+  mkdir  -pvm 755 "$DESTDIR"/usr/{bin,include/nss,lib/pkgconfig}
   cd mozilla/dist
   chmod 644 {public,private}/nss/*
-  cp -vRL   {public,private}/nss/* $DESTDIR/usr/include/nss
+  cp -vRL   {public,private}/nss/* "$DESTDIR"/usr/include/nss
   cd Linux*
-  install -vm 755 lib/*.so              $DESTDIR/usr/lib
-  install -vm 644 lib/{*.chk,libcrmf.a} $DESTDIR/usr/lib
-  install -vm 755 bin/nss-config        $DESTDIR/usr/bin
-  install -vm 644 lib/pkgconfig/nss.pc  $DESTDIR/usr/lib/pkgconfig
+  install -vm 755 lib/*.so              "$DESTDIR"/usr/lib
+  install -vm 644 lib/{*.chk,libcrmf.a} "$DESTDIR"/usr/lib
+  install -vm 755 bin/nss-config        "$DESTDIR"/usr/bin
+  install -vm 644 lib/pkgconfig/nss.pc  "$DESTDIR"/usr/lib/pkgconfig
 
   if    [[ $HOSTTYPE == x86_64 ]]; then
    if ! [[ $CFLAGS =~ -m32     ]]; then
-    mv    $DESTDIR/usr/lib{,64}
+    mv    "$DESTDIR"/usr/lib{,64}
     sed -i 's:${prefix}/lib$:${prefix}/lib64:
             s:-L${prefix}/lib :-L${prefix}/lib64 :' \
-        $DESTDIR/usr/lib64/pkgconfig/nss.pc
+        "$DESTDIR"/usr/lib64/pkgconfig/nss.pc
    fi
   fi
  }
