@@ -1,25 +1,28 @@
 # must be multilib-dual
 
-with version stable 1.2
+with info    good 20130527
+with info    last 20130319
+with version stable 1.10 1.2
 with base    cmake gcc-g++ glib libxml2 pkgconfig
 with elect   Python '' '' for Python bindings
 with role    audio/library
-with trait   hidden library multilib-dual
-with source  http://cloud.github.com/downloads/JonathanBeck/libplist/libplist-$VERSION.tar.bz2
-with info    good 20120620
-with info    last 20120111
+with trait   hidden library makej multilib-dual
+#with trait   hidden library multilib-dual
+with source  stable www.libimobiledevice.org/downloads/libplist-$VERSION.tar.bz2
+#with source  stable http://cloud.github.com/downloads/JonathanBeck/libplist/libplist-$VERSION.tar.bz2
 with info    home http://libimobiledevice.org/
+with info    vurl http://www.libimobiledevice.org/
 with info    cite 'library to handle Apple Property List format'
 
 build(){
  default_build &&
  if   [[ $HOSTTYPE == x86_64 ]] &&
     ! [[ $CFLAGS   =~ -m32   ]]; then
-  mkdir -pvm 755           $DESTDIR/usr/lib64
-  mv    $DESTDIR/usr/lib/* $DESTDIR/usr/lib64
-  rmdir $DESTDIR/usr/lib
+  mkdir -pvm 755             "$DESTDIR"/usr/lib64
+  mv    "$DESTDIR"/usr/lib/* "$DESTDIR"/usr/lib64
+  rmdir "$DESTDIR"/usr/lib
   sed -i 's:libdir=/usr/lib$:libdir=/usr/lib64:
           s:-L/usr/lib :-L/usr/lib64 :' \
-   $DESTDIR/usr/lib64/pkgconfig/libplist{,++}.pc
+   "$DESTDIR"/usr/lib64/pkgconfig/libplist{,++}.pc
  fi
 }

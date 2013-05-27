@@ -4,30 +4,30 @@
 # but is probably not compile time requirement
 # Category incorrect
 
-with version stable 0.2.2 0.2.1
+with info    good 20130527
+with info    last 20100327
+with version stable 0.2.2
 with base    spacenavd
 with also    --enable-static=no
 with role    xorg/driver
-with trait   library
-with source  $SOURCEFORGE_URL spacenav/spacenav%20library%20%28SDK%29/libspnav%20$VERSION/libspnav-$VERSION.tar.gz
-with info    good 20120621
-with info    last 20100327
+with trait   library makej multilib-dual
+with source  stable $SOURCEFORGE_URL spacenav/spacenav%20library%20%28SDK%29/libspnav%20$VERSION/libspnav-$VERSION.tar.gz
 with info    home http://spacenav.sourceforge.net/
 with info    cite "alternative driver and SDK for 3Dconnexion's 3D input devices"
 
 build(){
-with also    --prefix=$DESTDIR/usr
+with also    --prefix="$DESTDIR"/usr
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then sed -i 's:libdir=lib:libdir=lib64:' configure
-      mkdir -pm 755 $DESTDIR/usr/lib64
- else mkdir -pm 755 $DESTDIR/usr/lib
+      mkdir -pm 755 "$DESTDIR"/usr/lib64
+ else mkdir -pm 755 "$DESTDIR"/usr/lib
  fi
- mkdir -pm 755 $DESTDIR/usr/include
+ mkdir -pm 755 "$DESTDIR"/usr/include
  ./configure $OPTS &&
  if   [ -n    "$CC" ]
  then make "CC=$CC"
  else make
  fi &&
  make install &&
- rm -f $DESTDIR/usr/lib{,64}/*.a
+ rm -f "$DESTDIR"/usr/lib{,64}/*.a
 }

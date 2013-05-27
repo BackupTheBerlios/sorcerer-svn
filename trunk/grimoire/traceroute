@@ -1,9 +1,9 @@
-with version stable 1.4a12
-with role    network
-with trait   console
-with source  ftp://ftp.ee.lbl.gov/traceroute-$VERSION.tar.gz
 with info    good 20120711
 with info    last 20001218
+with version stable 1.4a12
+with role    network
+with trait   console makej
+with source  stable ftp://ftp.ee.lbl.gov/traceroute-$VERSION.tar.gz
 with info    home ftp://ftp.ee.lbl.gov/
 with info    cite 'traces the route Internet packets travel
 traceroute is a utility to trace the route ip packets from
@@ -15,7 +15,7 @@ build(){
   local  LC_ALL
   export LC_ALL=C
 
-  find $DESTDIR -type f     |
+  find "$DESTDIR" -type f     |
   xargs --max-lines=64 file |
   grep ', not stripped'     |
   cut -d : -f1              |
@@ -27,9 +27,9 @@ build(){
           sed -i 's:i\[34567\]86):i\[34567\]86|x86_64):' config.sub ;;
  esac
 
- mkdir -pvm 755 $DESTDIR/usr/{man/man8,sbin}
+ mkdir -pvm 755 "$DESTDIR"/usr/{man/man8,sbin}
  default_build &&
- make install-man DESTDIR=$DESTDIR &&
- chmod 755 $DESTDIR/usr/sbin/traceroute &&
+ make install-man DESTDIR="$DESTDIR" &&
+ chmod 755 "$DESTDIR"/usr/sbin/traceroute &&
  strip_destdir
 }
