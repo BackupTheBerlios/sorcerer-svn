@@ -44,6 +44,9 @@ start(){
   then log_failure_msg "veth device detection failed"; return 1
   fi
 
+  sed -i '/169\.254\.1\./d'         /etc/resolv.conf
+  echo "nameserver 169.254.1.$v" >> /etc/resolv.conf
+
   /sbin/ip addr  flush      dev $a    || r=1; static "$a" || r=1
   /sbin/ip addr  replace $b dev $a    || r=1
   /sbin/ip link             set $a up || r=1

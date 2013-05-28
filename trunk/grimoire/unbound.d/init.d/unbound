@@ -1,0 +1,24 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $network capability run
+# Should-Start: veth-setup
+# Required-Stop: $network
+# Default-Start: S
+# Default-Stop: 0 6
+# Short-Description: unbound provides name to IP address translation
+# Unbound is intended to be run from the rootfs to provide a
+# recursive name server for providing DNS resolution
+# for all root file systems.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+if ! rootfs; then trap - EXIT; exit 0; fi
+
+only start stop restart reload status
+
+server /sbin/unbound
+config /etc/unbound/unbound.conf
+domain limited
