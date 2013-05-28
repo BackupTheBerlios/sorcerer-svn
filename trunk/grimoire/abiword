@@ -2,18 +2,22 @@
 # and the fix below does not fix it.
 
 # Neither 2.8.6 nor 2.9.2 compile
+# However, 2.9.4 compiles
 
-#with info    good 20120530
-with info    last 20100613
-with trait   broke
-with version   stable 2.8.6 2.8.5
-with version unstable 2.9.2
-with base    gucharmap enchant fribidi goffice libgnomeprintui librsvg wv
+with info    good 20130528
+with info    last 20121125
+with version   stable 2.9.4 2.8.6 2.8.5
+with version unstable 2.9.4
+with base    goffice libchamplain redland
+with elect   enchant
+with elect   fribidi
+with elect   libical
+with elect   wv
+#with base    gucharmap enchant fribidi goffice libgnomeprintui librsvg wv
 with also    --disable-static
 case $VERSION in
- 2.8.6)
-with base    libpng14
-with use_gcc gcc-v4.5 ;;
+ 2.9.4)
+with also    --without-evolution-data-server ;;
 esac
 with role    utility/editor
 with trait   gnome
@@ -26,24 +30,6 @@ abiword is a free word processing program similar to Microsoft Word.
 It is suitable for typing papers, letter, reports, memos and so forth.'
 
 build(){
-# case $VERSION in
-#  2.8.6) sed -i 's:-no-undefined::' $( find * -type f -name Makefile.in ) ;;
-# esac
-
- fix_2_8_6(){
-  sed -i '\,glib/gerror\.h,d' src/af/util/xp/ut_go_file.h
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
- }
-
- case $VERSION in
-  2.8.6) fix_2_8_6 ;;
- esac
-
  cd abi
  sed -i 's:-static::' src/wp/main/unix/GNUmakefile.am
  ./autogen.sh
@@ -55,6 +41,6 @@ build(){
  --disable-peer-config \
  $OPTS                 &&
 #make                  &&
- make install "DESTDIR=$DESTDIR" &&
- rm -f $DESTDIR/usr/bin/AbiWord_s
+ make install DESTDIR="$DESTDIR" &&
+ rm -f "$DESTDIR"/usr/bin/AbiWord_s
 }

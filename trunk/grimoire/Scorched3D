@@ -7,8 +7,8 @@
 # since Scorched3D is failing to compile due to it's requirement
 # on ancient libpng API
 
-# last check 20130320
-
+with info    good 20130528
+with info    last 20120306
 with version stable 43.3d 43.3 43.2a
 with base    SDL_mixer SDL_net freealut wxWidgets
 # does not link properly with installed fftw; missing symbols?
@@ -18,12 +18,9 @@ case $VERSION in
 with base    libpng14 ;;
 esac
 with role    game
-with trait   x11
-with trait   broke
-with source  $SOURCEFORGE_URL scorched3d/scorched3d/Version%20${VERSION}/Scorched3D-${VERSION}-src.tar.gz
-with source  ftp://ftp.fftw.org/pub/fftw/fftw-3.2.2.tar.gz
-with info    omit 20130920
-with info    last 20120306
+with trait   makej x11
+with source  stable $SOURCEFORGE_URL scorched3d/scorched3d/Version%20${VERSION}/Scorched3D-${VERSION}-src.tar.gz
+with source  stable ftp://ftp.fftw.org/pub/fftw/fftw-3.2.2.tar.gz
 with info    home http://scorched3d.sourceforge.net/
 with info    docs http://www.scorched3d.co.uk/wiki/index.php/Main_Page
 with info    freecode scorched3d
@@ -48,7 +45,7 @@ build(){
   --enable-shared=no  \
   --enable-static=yes \
   --enable-float      \
-  --prefix=$PWD/installed &&
+  --prefix="$PWD"/installed &&
  make &&
  make install &&
  OPTS+=" --with-fftw=$PWD/installed" &&
@@ -61,8 +58,15 @@ build(){
 
  # LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
 
+ source_fix(){
+ set -x
+  sed -i "1i#include <unistd.h>" scorched/src/client/client/SecureID.cpp
+ set +x
+ }
+
  case $VERSION in
-  43.3d) libpng_fix ;;
+  43.3d) libpng_fix
+         source_fix ;;
  esac
 
  if [ -d scorched ]

@@ -1,27 +1,24 @@
 # disable introspection while introspection is broke with gst-plugins-base
 
 # 1.6.0 is clutter-gst-1.0
-with version   stable 2.0.2 2.0.0 1.9.92
-with version unstable 2.0.2
+
+with info    last 20130528
+with version   stable 2.0.4 2.0.2 2.0.0
+with version unstable 2.0.4
 with base    clutter gst-plugins-base
 case $VERSION in
+ 2.0.4)
+with also    --enable-introspection=no ;;
  2.0.2)
 with also    --enable-introspection=no ;;
  2.0.0)
-with also    --enable-introspection=no ;;
- 1.9.92)
-with also    --enable-introspection=no ;;
- 1.6.0)
-with also    --enable-introspection=no ;;
- 1.5.6)
 with also    --enable-introspection=no ;;
 esac
 
 with role    audio/cd
 with trait   gnome library makej multilib-concurrent
 #   source http://source.clutter-project.org/sources/clutter-gst/${VERSION:0:3}/clutter-gst-$VERSION.tar.xz
-with source  $GNOME_URL sources/clutter-gst/${VERSION:0:3}/clutter-gst-$VERSION.tar.xz
-with info    last 20130227
+with source  stable $GNOME_URL sources/clutter-gst/${VERSION:0:3}/clutter-gst-$VERSION.tar.xz
 with info    home http://clutter-project.org/
 with info    docs http://www.clutter-project.org/documentation
 with info    cite 'library for creating fast visually rich animated GUIs'
@@ -29,9 +26,9 @@ with info    cite 'library for creating fast visually rich animated GUIs'
 build(){
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build &&
- if   [ -f $DESTDIR/usr/lib64/pkgconfig/clutter-gst-1.0.pc ]
+ if   [ -f "$DESTDIR"/usr/lib64/pkgconfig/clutter-gst-1.0.pc ]
  then sed -i 's:-L${libdir}::
               s:libdir=${exec_prefix}/lib$:libdir=${exec_prefix}/lib64:' \
-          $DESTDIR/usr/lib64/pkgconfig/clutter-gst-1.0.pc
+          "$DESTDIR"/usr/lib64/pkgconfig/clutter-gst-1.0.pc
  fi
 }
