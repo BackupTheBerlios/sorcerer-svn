@@ -1,5 +1,5 @@
-with trait   broke
-with info    last 20120405
+with info    good 20130528
+with info    last 20120401
 with version stable 0.5.1.r1
 case $VERSION in
  0.5.1.r1)
@@ -7,7 +7,7 @@ with base    ffmpeg-v0.7 ;;
 esac
 with base    ffmpeg freeglut libtheora ogre
 with role    game game/3d/flightsim
-with trait   optimize x11
+with trait   makej optimize x11
 with source  stable $SOURCEFORGE_URL vegastrike/vegastrike/${VERSION:0:5}/vegastrike-src-$VERSION.tar.bz2
 with info    home http://vegastrike.sourceforge.net/
 with info    cite 'engine source tarball for vegastrike
@@ -32,10 +32,12 @@ build(){
  case $VERSION in
   0.5.1.r1) ffmpeg_legacy
             export   CFLAGS+=' -fpermissive'
-            export CXXFLAGS+=' -fpermissive';;
+            export CXXFLAGS+=' -fpermissive'
+            sed -i '1i#include <string.h>' objconv/basemaker/base_maker_texture.cpp
+            ;;
  esac
 
  ./configure --prefix=/usr $OPTS &&
  make &&
- make install "DESTDIR=$DESTDIR"
+ make install DESTDIR="$DESTDIR"
 }

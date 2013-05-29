@@ -2,23 +2,29 @@
 # then segmentation faults when run
 # However, so does version 1.1p
 
+with trait   broke
+#with info    good 20120922
 with version   stable 1.2 1.1p 1.0
 with version unstable 1.2
 with base    SDL_image SDL_mixer
 with role    game
-with trait   x11
-with trait   broke
+with trait   makej optimize x11
 with source    stable http://www.nongnu.org/tong/tong-$VERSION.tar.gz
 with source  unstable http://www.nongnu.org/tong/tong-$VERSION.tar.gz
-with info    good 20120922
 with info    home http://www.nongnu.org/tong/
 with info    cite 'Tetris and Pong in the same place at the same time'
 
 build(){
+ # The alternate libpng is for SDL_image version 1.2.12
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64 -L/opt/libpng/1.4.x/lib64 -lpng14'
+ else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib -L/opt/libpng/1.4.x/lib -lpng14'
+ fi
  sed -i "s:media/:/usr/share/games/tong/media/:" $( grep -rl "media/" *  )
  sed -i "s:-O3:$CXXFLAGS:" Makefile
+ sed -i "s:\$(SDL_LDFLAGS):\$(SDL_LDFLAGS) \$(LDFLAGS):" Makefile
  make &&
- mkdir   -pvm 755 $DESTDIR/usr/{bin,share/games/tong} &&
- install  -vm 755 -o root -g root -D tong $DESTDIR/usr/bin/tong &&
- cp       -r media $DESTDIR/usr/share/games/tong
+ mkdir   -pvm 755 "$DESTDIR"/usr/{bin,share/games/tong} &&
+ install  -vm 755 -o root -g root -D tong "$DESTDIR"/usr/bin/tong &&
+ cp       -r media "$DESTDIR"/usr/share/games/tong
 }
