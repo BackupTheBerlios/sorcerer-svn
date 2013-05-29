@@ -10,14 +10,19 @@
 # that should point to it's ELF libraries but point to nothing.
 
 # 2.36.2 failed to compile
+# glib uses gettext's /usr/bin/msgfmt
 
 with info    last 20130528
 with version bad      2.36.2
 with version   stable 2.36.1 2.36.0
 with version unstable 2.37.1
-with base    Python libffi pcre pkgconfig zlib
+with base    gettext libffi pcre pkgconfig zlib
+# Omit Python from the I/R if possible
+[ -f "${CURRENT_LOGS:-/aux/log/current}"/deployment-docent ] ||
+with base    Python
 with also    --with-pcre=system --with-threads=posix
 with also    --enable-static --enable-shared
+with also    --disable-modular-tests
 with role    development
 with trait   gnome library lto_off makej multilib-concurrent optimize
 with source    stable $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.xz

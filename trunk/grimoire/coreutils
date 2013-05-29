@@ -1,13 +1,14 @@
-# Uncertain if libcap iswit elect
+# Uncertain if libcap is elect
 
+with info    good 20130529
+with info    last 20130214
 with version stable 8.21 8.20 8.19
 with base    acl gmp libcap
 with switch  -static '' to make static linked cut sort uniq
 #with base    libselinux
 with role    utility
 with trait   console lto makej optimize solo
-with source  $GNU_URL coreutils/coreutils-$VERSION.tar.xz
-with info    last 20130217
+with source  stable $GNU_URL coreutils/coreutils-$VERSION.tar.xz
 with info    home http://www.gnu.org/software/coreutils/
 with info    docs http://www.gnu.org/software/coreutils/manual/
 with protect /bin/cat
@@ -136,7 +137,7 @@ build(){
  place_files(){
   echo 'Placing files'
   hash -r
-  cd $DESTDIR
+  cd "$DESTDIR"
   mkdir -pvm 755 bin
 
   mv -fv {usr/,}bin/cat		# /etc/init.d/mount
@@ -178,16 +179,16 @@ build(){
   hash -r
  }
 
- sync_fix(){ install -m 755 $SCRIPT_DIR/sync $DESTDIR/usr/bin/; hash -r; }
+ sync_fix(){ install -m 755 "$SCRIPT_DIR"/sync "$DESTDIR"/usr/bin/; hash -r; }
 
  make_static(){
   if [ -n "$STATIC" ]; then
    export LDFLAGS+=" $STATIC"
    rm -f src/{cut,sort,uniq}
    make "LDFLAGS=$LDFLAGS"
-   install -vm 755 src/cut  $DESTDIR/usr/bin/
-   install -vm 755 src/sort $DESTDIR/usr/bin/
-   install -vm 755 src/uniq $DESTDIR/usr/bin/
+   install -vm 755 src/cut  "$DESTDIR"/usr/bin/
+   install -vm 755 src/sort "$DESTDIR"/usr/bin/
+   install -vm 755 src/uniq "$DESTDIR"/usr/bin/
   fi
  }
 

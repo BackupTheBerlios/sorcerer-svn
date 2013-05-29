@@ -1,11 +1,13 @@
 # Compiling with lto produces smaller, but slower bash
 
+with info    good 20130529
+with info    last 20130307
 with version stable 4.2.045 4.2.042 4.2.039
 with base    readline
 with also    --without-libiconv-prefix --without-libintl-prefix
 with role    development/interpreter utility/shell
 with trait   console makej optimize solo
-with source  ftp://ftp.cwru.edu/pub/bash/ ftp://ftp.gnu.org/pub/gnu/bash/ bash-${VERSION:0:3}.tar.gz
+with source  stable ftp://ftp.cwru.edu/pub/bash/ ftp://ftp.gnu.org/pub/gnu/bash/ bash-${VERSION:0:3}.tar.gz
 
 case $VERSION in
  4.2.*) local l
@@ -17,7 +19,6 @@ case $VERSION in
     done
  ;;
 esac
-with info    last 20130304
 with info    home http://cnswww.cns.cwru.edu/~chet/bash/bashtop.html
 with info    docs http://tiswww.case.edu/php/chet/bash/bashref.html
 with shbin   /bin/bash /bin/sh
@@ -40,23 +41,23 @@ In addition, most sh scripts can be run by Bash without modification.'
 
 build(){
  install_loadables(){
-  install -vdm 755 $DESTDIR/usr/libexec/bash
+  install -vdm 755 "$DESTDIR"/usr/libexec/bash
   cd  examples/loadables
   for FILE in *.c
   do  make             ${FILE%.c}
-      install -vsm 755 ${FILE%.c} $DESTDIR/usr/libexec/bash
+      install -vsm 755 ${FILE%.c} "$DESTDIR"/usr/libexec/bash
   done
   true
  }
 
  install_etc(){
-  install -vm 755 -d                         $DESTDIR/etc/skel
-  install -vm 644 $SCRIPT_DIR/profile        $DESTDIR/etc
-  install -vm 644 $SCRIPT_DIR/profile        $DESTDIR/etc/skel/.bashrc
-  install -vm 644 $SCRIPT_DIR/profile        $DESTDIR/etc/skel/.bash_profile
-  install -vm 644 $SCRIPT_DIR/logout         $DESTDIR/etc/skel/.bash_logout
-  install -vm 755 -d                         $DESTDIR/etc/bash.d
-  install -vm 755 $SCRIPT_DIR/bash.d/default $DESTDIR/etc/bash.d/
+  install -vm 755 -d                           "$DESTDIR"/etc/skel
+  install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc
+  install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc/skel/.bashrc
+  install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc/skel/.bash_profile
+  install -vm 644 "$SCRIPT_DIR"/logout         "$DESTDIR"/etc/skel/.bash_logout
+  install -vm 755 -d                           "$DESTDIR"/etc/bash.d
+  install -vm 755 "$SCRIPT_DIR"/bash.d/default "$DESTDIR"/etc/bash.d/
  }
 
 
@@ -104,8 +105,8 @@ build(){
  --with-curses             \
  $OPTS                     &&
  make                      &&
- make install "DESTDIR=$DESTDIR" &&
- ln -sf bash  $DESTDIR/bin/sh    &&
+ make install DESTDIR="$DESTDIR" &&
+ ln -sf bash  "$DESTDIR"/bin/sh  &&
  install_loadables &&
  install_etc       &&
  clear_library_cache

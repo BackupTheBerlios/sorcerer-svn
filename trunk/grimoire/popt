@@ -1,13 +1,14 @@
 # When updating this also update cryptsetup and rsync
 
-with version stable 1.16 1.15 1.14
-with base    gettext pkgconfig
-with also    --enable-static=no
+with info    good 20130529
+with info    last 20100507
+with version stable 1.16
+with base    pkgconfig
+with elect   gettext
+with also    --enable-static=no --exec-prefix=
 with role    development
 with trait   library makej multilib-concurrent
-with source  http://rpm5.org/files/popt/popt-$VERSION.tar.gz
-with info    good 20120630
-with info    last 20100507
+with source  stable http://rpm5.org/files/popt/popt-$VERSION.tar.gz
 with info    cite 'library is for parsing command line options
 popt library is for parsing command line options.
 Some specific advantages of popt are no global variables
@@ -20,7 +21,17 @@ and automatica generation of help and usage messages.'
 
 build(){
  default_build &&
- if   [[  -f                $DESTDIR/usr/lib/pkgconfig/popt.pc ]]
- then sed -i 's:lib64:lib:' $DESTDIR/usr/lib/pkgconfig/popt.pc
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS =~ -m32 ]]
+  then sed -i 's:lib64:lib:' "$DESTDIR"/usr/lib/pkgconfig/popt.pc
+  else mkdir -pm 755         "$DESTDIR"/usr/lib64/pkgconfig
+       mv                    "$DESTDIR"/usr/lib{,64}/pkgconfig/popt.pc
+  fi
  fi
+}
+
+current(){
+ case $VERSION in
+  1.16) [ -f /lib64/libpopt.so ] || [ -f /lib/libpopt.so ] ;;
+ esac
 }

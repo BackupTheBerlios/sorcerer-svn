@@ -3,15 +3,15 @@
 # so that /etc/init.d/fstab provided by init-scripts can execute properly
 # Why are versions 4.5.x unstable?  Are they actually unstable?
 
+with info    good 20130529
+with info    last 20090606
 with version   stable 4.4.2
-with version unstable 4.5.10
+with version unstable 4.5.11	# 20130202
 with switch  -static '' to make static linked find
 with role    utility
 with trait   console lto makej solo
 with source    stable $GNU_URL findutils/findutils-$VERSION.tar.gz
-with source  unstable $GNU_URL findutils/findutils-$VERSION.tar.gz
-with info    good 20120607
-with info    last 20090606
+with source  unstable ftp://alpha.gnu.org/gnu/ findutils/findutils-$VERSION.tar.gz
 with info    home http://www.gnu.org/software/findutils/
 with info    docs http://www.gnu.org/software/findutils/manual/find.html
 with protect /bin/find
@@ -31,7 +31,7 @@ build(){
    export LDFLAGS+=" $STATIC"
    rm -f find/find
    make "LDFLAGS=$LDFLAGS"
-   install -vm 755 find/find  $DESTDIR/usr/bin/
+   install -vm 755 find/find  "$DESTDIR"/usr/bin/
   fi
  }
 
@@ -43,6 +43,6 @@ build(){
  sed -i 's:@bindir@:/bin:' locate/updatedb.sh
  default_build &&
  make_static   &&
- mkdir -pvm 755                   $DESTDIR/bin &&
- mv $DESTDIR/usr/bin/{find,xargs} $DESTDIR/bin/
+ mkdir -pvm 755 "$DESTDIR"/bin &&
+ mv "$DESTDIR"/usr/bin/{find,xargs} "$DESTDIR"/bin/
 }
