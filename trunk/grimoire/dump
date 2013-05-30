@@ -1,12 +1,14 @@
+with info    good 20130529
+with info    last 20110610
 with version stable 0.4b44
-with base    LVM2 bzip2 e2fsprogs ncurses readline zlib
+with base    LVM2 e2fsprogs ncurses readline
+with elect   bzip2
+with elect   zlib
 with also    --enable-largefile --enable-rmt --with-manowner=root --with-mangrp=root
-with also    --disable-transselinux
+with also    --disable-transselinux --exec-prefix=
 with role    disk/file-system
-with trait   console
-with source  $SOURCEFORGE_URL dump/dump/$VERSION/dump-$VERSION.tar.gz
-with info    good 20120716
-with info    last 20110621
+with trait   console lto makej
+with source  stable $SOURCEFORGE_URL dump/dump/$VERSION/dump-$VERSION.tar.gz
 with info    home http://dump.sourceforge.net/
 with info    docs http://dump.sourceforge.net/isdumpdeprecated.html
 with info    mail 'http://sourceforge.net/mail/?group_id=1306'
@@ -25,15 +27,12 @@ case $MACHTYPE in
  *-uclibc) trait broke ;;
 esac
 
-
 build(){
 
 sed -i 's:-lselinux::g;s:-lsepol::g' configure
 
 case $VERSION in
  0.4b44) export LDFLAGS+=' -lcom_err' ;;
- 0.4b38) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;
- 0.4b39) sed -i 's:linux/fs.h:ext2fs/ext2fs.h:' dump/main.c dump/tape.c ;;
 esac
 
     CC="--with-cc=gcc $CFLAGS"

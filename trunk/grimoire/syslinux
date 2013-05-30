@@ -6,21 +6,20 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with version   stable 4.06 4.05
+with info    last 20121207
+with version   stable 4.06
 with version unstable 5.01
 case $VERSION in
  5.00)
-   use_gcc gcc-v4.5 ;;
- 4.05)
    use_gcc gcc-v4.5 ;;
 esac
 with base    nasm md5crypt perl--Digest-SHA1
 with elect   mtools '' '' for creating msdos filesystems
 with role    administration/bootloader
 with trait   console makej
+# lto makes syslinux slightly larger
 with source  stable $KERNEL_URL pub/linux/utils/boot/syslinux/syslinux-$VERSION.tar.xz
 with source  pre    $KERNEL_URL pub/linux/utils/boot/syslinux/Testing/${VERSION:0:4}/syslinux-$VERSION.tar.xz
-with info    last 20121207
 with info    home http://syslinux.zytor.com/wiki/index.php/The_Syslinux_Project
 with protect /etc/extlinux/
 with vary    /boot/extlinux/extlinux.conf
@@ -37,8 +36,8 @@ build(){
  install_doc(){
   find doc -type d | xargs -r --max-lines=64 chmod 755
   find doc -type f | xargs -r --max-lines=64 chmod 644
-  mkdir -pvm 700 $DESTDIR/usr/doc/
-  mv         doc $DESTDIR/usr/doc/syslinux
+  mkdir -pvm 700 "$DESTDIR"/usr/doc/
+  mv         doc "$DESTDIR"/usr/doc/syslinux
  }
 
  install_menu(){
@@ -48,10 +47,10 @@ build(){
  }
 
  install_configs(){
-  mkdir   -pvm 700 $DESTDIR/{boot,etc/extlinux,usr/sbin}
-  install  -vm 600 $SCRIPT_DIR/head     $DESTDIR/etc/extlinux/
-  install  -vm 600 $SCRIPT_DIR/tail     $DESTDIR/etc/extlinux/
-  install  -vm 700 $SCRIPT_DIR/extlinux $DESTDIR/usr/sbin/
+  mkdir   -pvm 700 "$DESTDIR"/{boot,etc/extlinux,usr/sbin}
+  install  -vm 600 "$SCRIPT_DIR"/head     "$DESTDIR"/etc/extlinux/
+  install  -vm 600 "$SCRIPT_DIR"/tail     "$DESTDIR"/etc/extlinux/
+  install  -vm 700 "$SCRIPT_DIR"/extlinux "$DESTDIR"/usr/sbin/
  }
 
  case $VERSION in
@@ -65,7 +64,7 @@ build(){
  rm -f diag/geodsp/mk-lba-img
  make &&
  rm -f extlinux/extlinux &&
- make install INSTALLROOT=$DESTDIR DESTDIR=$DESTDIR &&
+ make install INSTALLROOT="$DESTDIR" DESTDIR="$DESTDIR" &&
  install_doc  &&
  install_menu &&
  install_configs

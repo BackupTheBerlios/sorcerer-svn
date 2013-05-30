@@ -1,10 +1,11 @@
 with version stable 20100323
-with base    bzip2 gzip
+with elect   bzip2
+with elect   gzip
 with elect   libgcrypt '' '' to use libgcrypt instead of openssl to generate sha1sum
 with elect   openssl   '' '' to use openssl instead of libgcrypt to generate sha1sum
 with role    archive
-with trait   console
-with source  ftp://ftp.berlios.de/pub/sdelta/files/sdelta3-$VERSION.tar.bz2
+with trait   console lto makej
+with source  stable ftp://ftp.berlios.de/pub/sdelta/files/sdelta3-$VERSION.tar.bz2
 with info    home http://sdelta.berlios.de
 with info    cite 'dictionary compressor
 sdelta3 primary use is to reduce
@@ -20,12 +21,6 @@ with source  upgrade patches.'
 
 build(){
 make &&
-make install PREFIX=$DESTDIR/usr &&
-sed -i  '/xz\*/a\        XZ*) echo "xz"    ;;' $DESTDIR/usr/bin/sd3
-}
-
-current(){
- case $VERSION in
-  20100323) grep -q XZ /usr/bin/sd3 ;;
- esac
+make install PREFIX="$DESTDIR"/usr &&
+sed -i  '/xz\*/a\        XZ*) echo "xz"    ;;' "$DESTDIR"/usr/bin/sd3
 }

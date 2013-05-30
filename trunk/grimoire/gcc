@@ -9,9 +9,9 @@
 # occasional cast failures might be due to the makefiles
 # not being entirely parallel make compatible.
 
-with info    good 20130525
-with info    last 20120922
-with version stable 4.7.2 4.7.1 4.6.3
+with info    good 20130529
+with info    last 20120411
+with version stable 4.7.3 4.7.2 4.7.1 4.6.3
 with base    binutils cloog libelf mpfr multiprecision ppl
 #with base    binutils cloog-ppl libelf mpfr multiprecision
 #with base    binutils cloog-parma libelf mpfr multiprecision
@@ -59,6 +59,20 @@ build(){
   mkdir -pvm 755      "$DESTDIR/lib"
   ln -fs /usr/bin/cpp "$DESTDIR/lib/cpp"
   ln -fs gcc          "$DESTDIR/usr/bin/cc"
+
+  # gptfdisk:/sbin/gdisk requires libstdc++.so.6
+
+  if [ -f        "$DESTDIR"/usr/lib64/libstdc++.la ]; then
+   mkdir -pm 755 "$DESTDIR"/lib64/
+   mv    -t      "$DESTDIR"/lib64/      "$DESTDIR"/usr/lib64/libstdc++*
+   sed   -i      "s:/usr/lib64:/lib64:" "$DESTDIR"/lib64/libstdc++.la
+  fi
+
+  if [ -f        "$DESTDIR"/usr/lib/libstdc++.la ]; then
+   mkdir -pm 755 "$DESTDIR"/lib/
+   mv    -t      "$DESTDIR"/lib/    "$DESTDIR"/usr/lib/libstdc++*
+   sed   -i      "s:/usr/lib:/lib:" "$DESTDIR"/lib/libstdc++.la
+  fi
  }
 
 # gcc version 4.7.1 does not want to compile without sse support
