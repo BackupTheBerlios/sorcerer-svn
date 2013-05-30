@@ -10,13 +10,13 @@
 
 # Something is odd, incorrect, or missing from the library it installs
 
+with info    good 20130530
+with info    last 20100522
 with version stable 0.4.9
 with base    LVM2 libaio ncurses readline udev
 with role    disk
-with trait   console makej
-with source  http://christophe.varoqui.free.fr/multipath-tools/multipath-tools-$VERSION.tar.bz2
-with info    good 20120625
-with info    last 20100522
+with trait   console lto makej
+with source  stable http://christophe.varoqui.free.fr/multipath-tools/multipath-tools-$VERSION.tar.bz2
 with info    home http://christophe.varoqui.free.fr/
 with info    cite 'multipathed storage environment (FC, SAN,...)
 The multipath term simply means that
@@ -29,7 +29,7 @@ build(){
   local  LC_ALL
   export LC_ALL=C
 
-  find $DESTDIR -type f     |
+  find "$DESTDIR" -type f   |
   xargs --max-lines=64 file |
   grep ', not stripped'     |
   cut -d : -f1              |
@@ -37,15 +37,15 @@ build(){
  }
 
 case $VERSION in
- 0.4.8) patch -p1 < $SCRIPT_DIR/kpartx.rules.diff 
-        patch -p1 < $SCRIPT_DIR/pid.patch  ;;
+ 0.4.8) patch -p1 < "$SCRIPT_DIR"/kpartx.rules.diff 
+        patch -p1 < "$SCRIPT_DIR"/pid.patch  ;;
 esac
 
 make &&
-make install DESTDIR=$DESTDIR &&
-mkdir  -pvm 755 $DESTDIR/etc &&
+make install DESTDIR="$DESTDIR" &&
+mkdir  -pvm 755 "$DESTDIR"/etc &&
 strip_destdir &&
-install -vm 644 -o root -g root multipath.conf.annotated $DESTDIR/etc/multipath.conf
+install -vm 644 -o root -g root multipath.conf.annotated "$DESTDIR"/etc/multipath.conf
 }
 
 current(){

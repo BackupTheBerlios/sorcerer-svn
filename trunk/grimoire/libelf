@@ -4,14 +4,15 @@
 # installs differently if libelf is already installed with header files
 # located directly in /usr/include/
 
-with version stable 0.8.13 0.8.12 0.8.11
+with info    good 20130530
+with version stable 0.8.13
 with base    pkgconfig
 with also    --disable-static
 with role    development
 with trait   library makej solo
+# lto makes libelf larger
 #trait multilib-concurrent multilib-dual
 with source  http://www.mr511.de/software/libelf-$VERSION.tar.gz
-with info    good 20120619
 with info    home http://www.mr511.de/software/
 # clashes with self in order to install properly.
 with clash   libelf
@@ -22,7 +23,7 @@ build(){
   local  LC_ALL
   export LC_ALL=C
 
-  find $DESTDIR -type f     |
+  find "$DESTDIR" -type f   |
   xargs --max-lines=64 file |
   grep ', not stripped'     |
   cut -d : -f1              |
@@ -35,13 +36,7 @@ build(){
   --prefix=/usr \
  $OPTS &&
  make &&
- make install instroot=$DESTDIR &&
+ make install instroot="$DESTDIR" &&
  strip_destdir &&
- rm -f $DESTDIR/usr/lib{,64}/*.a
-}
-
-current(){
- case $VERSION in
-  0.8.13) [ -f /usr/include/libelf.h ] ;;
- esac
+ rm -f "$DESTDIR"/usr/lib{,64}/*.a
 }
