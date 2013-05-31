@@ -4,12 +4,13 @@ with info    good 20130529
 with info    last 20121230
 with version   stable 0.16.3 0.16.1
 with version unstable 0.18.0
-with base    isl
+#with base    isl
 #with base    gmp polylib ppl
 #with base    gmp ppl
 with also    --enable-static=no --with-isl=bundled
-#     with also --enable-static=no --with-isl=system
-#     with also --with-ppl --enable-static=no
+# system isl too new for cloog version 0.16.3
+#with also --enable-static=no --with-isl=system
+# with also --with-ppl --enable-static=no
 with role    development/compiler
 with trait   library makej multilib-concurrent optimize setarch solo
 # lto makes cloog larger
@@ -32,15 +33,4 @@ build(){
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  sed -i 's:hardcode_absolute=yes:hardcode_absolute=no:' configure
  default_build
-}
-
-current(){
- case $VERSION in
-  0.16.1) if spell_installed cloog-ppl ||
-             spell_installed cloog-parma
-          then
-           echo cloog | pipe_queue $LOAD_QUEUE
-           echo cloog | pipe_queue $MOIL_QUEUE
-          fi ;;
- esac
 }
