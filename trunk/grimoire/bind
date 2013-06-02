@@ -4,7 +4,8 @@
 # 9.8.0 might refuse to start
 # never makes shared libraries even when instructed to do so.
 
-with version   stable 9.9.2-P2 9.9.2-P1 9.9.2
+with info    last 20130602
+with version   stable 9.9.3 9.9.2-P2 9.9.2-P1
 with base    init-functions libcap libxml2 openssl
 #with elect   krb5
 #with elect   krb5
@@ -17,8 +18,7 @@ with also    --disable-linux-caps ;;
 esac
 with role    network/dns
 with trait   console client hidden makej optimize server
-with source  ftp://ftp.isc.org/isc/bind9/$VERSION/bind-$VERSION.tar.gz
-with info    last 20130326
+with source  stable ftp://ftp.isc.org/isc/bind9/$VERSION/bind-$VERSION.tar.gz
 with info    home http://www.isc.org/software/bind
 with info    docs http://www.isc.org/software/bind/documentation
 with info    vurl http://www.isc.org/downloads/all/
@@ -37,8 +37,8 @@ major components of the Domain Name System, including:
 The named server will start during boot when /etc/bind/named.conf exists.'
 
 build(){
-#local JAIL=$DESTDIR/var/chroot/bind
- local JAIL=$DESTDIR
+#local JAIL="$DESTDIR"/var/chroot/bind
+ local JAIL="$DESTDIR"
  conf_install(){
   SNC="$SCRIPT_DIR/named.conf"
   SNR="$SCRIPT_DIR/named.root"
@@ -60,6 +60,6 @@ build(){
  --localstatedir=/var   \
  $OPTS &&
  make  &&
- make install "DESTDIR=$DESTDIR" &&
+ make install DESTDIR="$DESTDIR" &&
  conf_install
 }
