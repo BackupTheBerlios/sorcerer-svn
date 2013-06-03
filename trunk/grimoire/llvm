@@ -10,21 +10,27 @@
 # --enable-bindings=none circumvents the break
 # by not compiling the ocaml bindings
 
-with info    good 20130525
+with info    good 20130602
 with info    last 20121220
 with version   stable 3.2 3.0
 with version unstable 3.2
-with base    gcc-g++
+with base    cmake gcc-g++
 #with base    gcc-g++ perl--Pod-Simple
-with also    --enable-shared --disable-docs
-with also    --enable-bindings=none
-with also    --disable-assertions
-#     with also -DCMAKE_BUILD_TYPE=RELEASE -DBUILD_SHARED_LIBS:BOOL=TRUE
+# with also    --enable-shared --disable-docs
+# with also    --enable-bindings=none
+# with also    --disable-assertions
+with also    -DCMAKE_BUILD_TYPE=RELEASE
+with also    -DBUILD_SHARED_LIBS:BOOL=TRUE
+with also    -DLLVM_ENABLE_ASSERTIONS:BOOL=TRUE
+with also    -DLLVM_INCLUDE_TESTS:BOOL=FALSE 
+with also    -DLLVM_BUILD_TESTS:BOOL=FALSE
+with also    -DLLVM_INCLUDE_EXAMPLES:BOOL=FALSE
+with also    -DLLVM_BUILD_EXAMPLES:BOOL=FALSE
 with role    development/emulator
 # lto compilation requires too much RAM
-#only added makej for testing 3.2
-with trait   console library makej lto_off multilib-concurrent
-#trait console library lto_off makej multilib-concurrent
+with trait   console library makej lto_off multilib-dual
+# Must be multilib-dual while
+# ./configure accepts but source disregards --libdir=/usr/lib64
 with source    stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
 #with source    stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
 with source  unstable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
@@ -34,6 +40,55 @@ with info    vurl http://www.llvm.org/releases/
 with info    cite 'low level virtual machine'
 
 build(){
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then with also -DLLVM_LIBDIR_SUFFIX:STRING=64
+      sed -i 's:/lib:/lib64:' tools/llvm-config/llvm-config.cpp
+ fi
+ default_build
+}
+
+build_broke(){
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then sed -i 's:LLVM_LIBDIR="${prefix}/lib":LLVM_LIBDIR="${prefix}/lib64":' configure
+ fi
+ default_build
+}
+
+build_broke(){
+ sedit_files(){
+  if     [[ $HOSTTYPE == x86_64 ]] &&
+       ! [[ $CFLAGS   =~ -m32   ]]
+  then echo sed -i 's:LLVM_LIBDIR "/usr/lib":LLVM_LIBDIR "/usr/lib64":' include/llvm/Config/config.h
+            sed -i 's:LLVM_LIBDIR "/usr/lib":LLVM_LIBDIR "/usr/lib64":' include/llvm/Config/config.h
+  fi
+ }
+
+ mv_lib(){
+  if     [[ $HOSTTYPE == x86_64 ]] &&
+       ! [[ $CFLAGS   =~ -m32   ]]
+  then mv -v "$DESTDIR"/usr/lib{,64}
+  fi
+ }
+
+ ./configure -sysconfdir=/etc --localstatedir=/var --prefix=/usr $OPTS &&
+ sedit_files &&
+ make        &&
+ make install DESTDIR="$DESTDIR" &&
+ mv_lib
+}
+
+current(){
+ case $VERSION in
+  3.2) if     [[ $HOSTTYPE == x86_64 ]] &&
+            ! [[ $CFLAGS   =~ -m32   ]]
+       then llvm-config --ldflags | grep -q /usr/lib64
+       fi ;;
+ esac
+}
+
+build_broke(){
 # if     [[ $HOSTTYPE == x86_64 ]] &&
 #      ! [[ $CFLAGS   =~ -m32   ]]
 # then with also -DLLVM_LIBDIR_SUFFIX=64
@@ -49,6 +104,6 @@ build(){
  default_build &&
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
- then mv -v $DESTDIR/usr/lib{,64}
+ then mv -v "$DESTDIR"/usr/lib{,64}; true
  fi
 }
