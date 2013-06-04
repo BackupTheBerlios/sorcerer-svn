@@ -17,16 +17,31 @@
 config /etc/port.receive
 only start configure status
 
+declare -A mnt_ipa  mnt_root
 declare -A root_mnt root_ipa
+declare -A ipa_mnt  ipa_root
+SELF=$0
 
-load_root_mnt_ipa(){
- local      r m a
+load_etc_roots(){
+ local      d n a
  [ -f /etc/roots ] &&
- while read r m a; do
-  root_mnt[$r]="$m"
-  root_ipa[$r]="$a"
+ while read d n a; do
+  root_mnt[$n]="$d"; root_ipa[$n]="$a"
+   mnt_ipa[$d]="$a"; mnt_root[$d]="$n"
+  ipa_root[$a]="$n";  ipa_mnt[$a]="$d"
  done < /etc/roots
 }
+
+# declare -A root_mnt root_ipa
+
+# load_root_mnt_ipa(){
+#  local      r m a
+#  [ -f /etc/roots ] &&
+#  while read r m a; do
+#   root_mnt[$r]="$m"
+#   root_ipa[$r]="$a"
+#  done < /etc/roots
+# }
 
 port_get(){
  local TITLE=$"Port Selection"
@@ -216,18 +231,18 @@ start(){
  rootname(){
   local d="$1"
   if   [ -f "$d"/etc/rootname ]
-  then $cat "$d"/etc/rootname
+  then cat  "$d"/etc/rootname
   elif [ -f "$d"/etc/hostname ]
   then echo -n "${d##*/}."
-       $cat "$d"/etc/hostname
+       cat  "$d"/etc/hostname
   else echo -n "${d##*/}."
-       $cat     /etc/hostname
+       cat      /etc/hostname
   fi
  }
 
  run(){
   local ipa f r i o j
-  load_root_mnt_ipa
+  load_etc_roots
 
   local host_ipa=$(
    /sbin/ip  -o addr show |
