@@ -267,6 +267,12 @@ start(){
     done
    done < "$f"
   done
+
+  a="$( echo "$host_ipa" | /bin/grep -v 127.0.0.1 | head -n 1 )"
+  /sbin/iptables -t nat -A POSTROUTING -p tcp  -j SNAT --to-source $a
+  /sbin/iptables -t nat -A POSTROUTING -p udp  -j SNAT --to-source $a
+  /sbin/iptables -t nat -A POSTROUTING -p icmp -j SNAT --to-source $a
+
  }
 
  if   ! rootfs
