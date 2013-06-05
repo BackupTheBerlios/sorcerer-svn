@@ -13,19 +13,24 @@ traveling_minstrels.ogg
 wanderer.ogg'
 
 build(){
+ local  mus="breaking_the_chains.ogg casualties_of_war.ogg "
+       mus+="knolls.ogg traveling_minstrels.ogg wanderer.ogg"
+
  cd data/core/music
  local                 d="$DESTDIR"/usr/share/wesnoth/data/core/music/
  mkdir   -pvm 755    "$d" &&
  if   [ -f /usr/bin/oggdec ] &&
       [ -f /usr/bin/oggenc ]
  then
-  for file in breaking_the_chains.ogg casualties_of_war.ogg \
-              knolls.ogg traveling_minstrels.ogg wanderer.ogg
-  do  oggdec -R -o - $file | oggenc -Q -q -1 -r -o "$d/$file" -
+  # connecting oggdec and oggenc with a pipe produces static.
+  for file in $mus; do
+(  oggdec -Q -R       ${file}
+   rm                 ${file}
+   oggenc -Q -r -q -1 ${file%.ogg}.raw
+) &
   done
-  true
- else
-  install  -vm 644 -t "$d" breaking_the_chains.ogg casualties_of_war.ogg \
-                           knolls.ogg traveling_minstrels.ogg wanderer.ogg
+  wait
  fi
+
+ install -vm 644 -t "$d" $mus
 }
