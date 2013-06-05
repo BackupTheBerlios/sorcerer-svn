@@ -3,20 +3,24 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: dmsetup
-# Should-Start: loadkeys mdadm proc udev vgchange
+# Should-Start: encryption-custom loadkeys mdadm proc udev vgchange
 # Required-Stop: finale halt reboot reboot-kexec vgchange
 # Default-Start: S
 # Default-Stop: 0 6
 # Short-Description: cryptsetup finds luks encrypted devices and maps them to /dev/mapper/
 #
 # luks devices must have names in /etc/fstab such as
-# /dev/mapper/luks-sda3       where /dev/sda3              is a LUKS encrypted partition or
-# /dev/mapper/luks-total-root where /dev/mapper/total-root is a LUKS encrypted LVM2 logical volume
-# /dev/mapper/luks-1234-5678  where /dev/disk/by-uuid      is a LUKS encrypted partition
+# /dev/mapper/luks-sda3 where /dev/sda3                  is a LUKS encrypted partition or
+# /dev/mapper/luks-lvm  where /dev/mapper/lvm            is a LUKS encrypted LVM2 logical volume
+# /dev/mapper/luks-1234 where /dev/disk/by-uuid/1234     is a LUKS encrypted partition
+# /dev/mapper/luks-5678 where /dev/disk/by-partuuid/5678 is a LUKS encrypted partition
+# /dev/mapper/luks-lab  where /dev/disk/by-partlabel/lab is a LUKS encrypted partition
 #
-# Not supported:
-# lukes encrypted filesystems in files attached to loop devices
-# Use a custom script if using luks on a loop device.
+# LUKS on a loop device   is not supported.
+# Encryption without LUKS is not supported.
+# Create /etc/init.d/encryption-custom init-script
+# to handle activation of unsupported encryption types.
+# and it will be invoked before cryptsetup during sysinit.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -27,62 +31,76 @@ only start stop
 name cryptsetup
 
 start(){
- local fstab=/etc/fstab
-       fstab=/etc/fstab.rootfs
-
- ldev(){
-  sed 's,#.*,,
-       \,noauto,d
-       \,/dev/mapper/luks-,p; d' /etc/fstab.rootfs |
-  while read DEV MNT TYP JNK; do
-   REV="/dev/${DEV#*-}"
-   MEV="/dev/mapper/${DEV#*-}"
-   UEV="/dev/disk/by-uuid/${DEV#*-}"
-   if   [ -b "$MEV" ] && cryptsetup isLuks $MEV; then echo "$MEV|$DEV|$TYP"
-   elif [ -b "$REV" ] && cryptsetup isLuks $REV; then echo "$REV|$DEV|$TYP"
-   elif [ -b "$UEV" ] && cryptsetup isLuks $UEV; then echo "$UEV|$DEV|$TYP"
-   fi
-  done
+ set_dev(){
+  local b="${fs_spec##*/}"; b="${b#luks-}"
+    if [ -b "/dev/$b"                   ]; then dev="/dev/$b"
+  elif [ -b "/dev/mapper/$b"            ]; then dev="/dev/mapper/$b"
+  elif [ -b "/dev/disk/by-label/$b"     ]; then dev="/dev/disk/by-label/$b"
+  elif [ -b "/dev/disk/by-partlabel/$b" ]; then dev="/dev/disk/by-partlabel/$b"
+  elif [ -b "/dev/disk/by-partuuid/$b"  ]; then dev="/dev/disk/by-partuuid/$b"
+  elif [ -b "/dev/disk/by-uuid/$b"      ]; then dev="/dev/disk/by-uuid/$b"
+  else log_failure_msg "Unknown backing device for $fs_spec"; return 1
+  fi
  }
 
-# dialogs nested inside of of another pipe will not work
-# when executed during sysinit, there for this ugly compaction
-# an uncompaction is being used instead for now.
-
- run(){
-  for LINE in $( ldev ); do
-   REV=${LINE%%|*}
-   TYP=${LINE##*|}
-   DEV=${LINE%|*}
-   DEV=${DEV##*|}
-   if   [ "$TYP" = swap ]; then
-     KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
-    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
-    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
-    KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
-    echo "$KEY" | cryptsetup -c aes-xts-plain64 -s 512 luksFormat $REV 2>/dev/null
-    echo "$KEY" | cryptsetup open --type luks $REV ${DEV##*/} 2>/dev/null
-    mkswap $DEV
-   else
-    dialog \
-     --backtitle cryptsetup --stdout --no-cancel --timeout 300 \
-     --title "Device Password Menu" \
-     --passwordbox "Password for $DEV?" 0 0 |
-    cryptsetup open --type luks $REV ${DEV##*/}
-    redraw
-   fi
-  done
+ not_luks(){ 
+  if   ! cryptsetup isLuks $dev
+  then log_failure_msg "$fs_spec backed by $dev is not a LUKS device"
+       return 0
+  else return 1
+  fi
  }
 
- log_warning_msg "$NAME checking for luks devices"; run
- log_success_msg "$NAME luks mappings created"
+ random_key_swap(){
+  local KEY
+   KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+  KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+  KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+  KEY+="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
+  echo "$KEY" | cryptsetup -c aes-xts-plain64 -s 512 luksFormat $dev
+  echo "$KEY" | cryptsetup open --type luks $dev ${fs_spec##*/}
+  mkswap $dev
+ }
+
+ log_warning_msg "$NAME checking for luks devices"
+ echo
+
+ local r=0
+ exec {stdin}<&0	# <&$stdin
+ while read fs_spec fs_file fs_vfstype fs_mntops fs_freq fs_passno; do
+  if     [[ -z $fs_file             ]] ||
+         [[ -z $fs_spec             ]] ||
+         [[    $fs_spec   =~ \#     ]] ||
+       ! [[    $fs_spec   =~ luks   ]] ||
+         [[    $fs_mntops =~ noauto ]] ||
+       ! set_dev                       ||
+         not_luks
+  then continue
+  fi
+
+  if   [[ $fs_vfstype == swap ]]
+  then random_key_swap &>/dev/null
+  else cryptsetup -t 60 open --type luks $dev ${fs_spec##*/} <&$stdin
+  fi
+
+  if   (( $? == 0 ))
+  then log_success_msg "${fs_spec} available"
+  else log_failure_msg "${fs_spec} unavailable"; r=1
+  fi
+
+ done < /etc/fstab.rootfs 
+
+ return $r
 }
 
 stop(){
- run(){ find /dev/mapper -type b | xargs -r cryptsetup close; }
+ run(){
+  find /dev/mapper/luks-* -type b 2>/dev/null |
+  xargs -r cryptsetup close
+ }
 
  if ! [ ramfs == "$( /bin/stat -f -c %T / )" ]; then return 0; fi
  log_warning_msg "$NAME closing luks devices"; run &&
- log_success_msg "$NAME luks devices closed."      ||
+ log_success_msg "$NAME luks devices closed." ||
  log_failure_msg "$NAME luks devices not closed."
 }

@@ -4,7 +4,8 @@
 # Why do the software authors continually release opal
 # with code that requires obsolete ffmpeg?
 
-with version stable 3.10.10 3.10.9 3.10.7
+with info    last 20130221
+with version stable 3.10.10
 with base    expat ffmpeg libtheora openldap ptlib speex x264
 with elect   celt
 # gsm source is missing
@@ -12,16 +13,6 @@ with elect   celt
 with elect   libtheora
 with elect   x264
 with also    --disable-static
-case $VERSION in
- 3.10.7)
-with also    --disable-plugins ;;
- 3.10.2)
-with also    --disable-plugins ;;
- 3.10.1)
-with also    --disable-plugins ;;
- 3.8.3)
-with also    --disable-celt ;;
-esac
 with role    utility
 with trait   gnome library makej optimize
 #trait makej multilib-concurrent
@@ -30,10 +21,7 @@ with source  unstable $GNOME_URL sources/opal/${VERSION:0:4}/opal-$VERSION.tar.x
 case $VERSION in
  3.10.10)
 with source http://ffmpeg.org/releases/ffmpeg-0.6.6.tar.bz2 ;;
- 3.10.9)
-with source http://ffmpeg.org/releases/ffmpeg-0.6.6.tar.bz2 ;;
 esac
-with info    last 20130221
 with info    home http://www.ekiga.org/
 with info    freecode none
 with info    cite 'undescribed library used by ekiga'
@@ -57,6 +45,7 @@ build(){
   fi
 
   cd ffmpeg-0.6.6 &&
+  sed -i 's:-Werror=implicit::' configure
   ./configure \
    --enable-swscale --enable-postproc --enable-gpl \
    --disable-debug  --enable-nonfree  --disable-doc \
