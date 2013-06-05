@@ -3,7 +3,7 @@
 # For use with the distribution sorcerer only!
 
 version_year_week
-with info    last 20130421
+with info    last 20130605
 with role    immune-system
 with trait   solo stale
 with info    home http://sorcerer.silverice.org/
@@ -12,14 +12,12 @@ Weekly removal of old files from: $SOURCE_CACHE"
 
 build(){ :; }
 post_install(){
-
- keep(){ view_index "keep" | sed "s:^:$SOURCE_CACHE/:"; }
+ keep(){ view_index "keep" | sed "s:^:$SOURCE_CACHE/:p"; }
  have(){ find "$SOURCE_CACHE/" -mindepth 2 -maxdepth 2; }
- both(){ keep sed p; have; }
+ both(){ keep; have; }
  safe(){ (( $( keep | wc -l ) > 4000 )); }
  dead(){ both | sort | uniq -u | sed "\,^$SOURCE_CACHE,p;d"; }
  ddir(){ safe || return 0; dead | while read; do rm -fr "$REPLY"; done; }
-
- default_post_install
  ddir
+ default_post_install
 }
