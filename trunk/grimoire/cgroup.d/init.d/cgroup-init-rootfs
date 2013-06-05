@@ -102,7 +102,12 @@ configure(){
  }
 
  edit(){
-  controls(){ find $ecg/norm/sys/ -type f -printf '%f control\n' | sort -u; }
+  controls(){ 
+   if   [[ -f $ecg/norm/sys/ ]]
+   then find  $ecg/norm/sys/ -maxdepth 1            -type f -printf '%f control\n'
+   else find  /sys/fs/cgroup -maxdepth 1 -perm /200 -type f -printf '%f control\n'
+   fi | sed '/^tasks/d;/^freezer.state/d' | sort -u
+  }
 
   control_menu(){
     BACKTITLE=$"cgroup init-script"

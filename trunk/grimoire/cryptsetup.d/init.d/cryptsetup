@@ -51,6 +51,14 @@ start(){
   fi
  }
 
+ activated(){
+  if   [ -b $fs_spec ]
+  then log_failure_msg "$fs_spec already activated"
+       return 0
+  else return 1
+  fi
+ }
+
  random_key_swap(){
   local KEY
    KEY="$RANDOM$RANDOM$RANDOM$RANDOM$RANDOM"
@@ -74,7 +82,8 @@ start(){
        ! [[    $fs_spec   =~ luks   ]] ||
          [[    $fs_mntops =~ noauto ]] ||
        ! set_dev                       ||
-         not_luks
+         not_luks                      ||
+         activated
   then continue
   fi
 

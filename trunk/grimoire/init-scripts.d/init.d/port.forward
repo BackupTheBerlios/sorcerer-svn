@@ -35,7 +35,7 @@ load_etc_roots(){
 port_get(){
  local TITLE=$"Port Selection"
  local  HELP="$1\n"
-        HELP+=$"Please enter a port number or range of port numbers in the format x-y"
+        HELP+=$"Please enter a port number"
 
  dialog \
   --backtitle "$BACKTITLE" \
@@ -64,6 +64,14 @@ list(){
   --backtitle "$BACKTITLE" \
   --timeout 60             \
   --textbox "$CONF" 20 70
+}
+
+services(){
+ dialog \
+  --backtitle "$BACKTITLE" \
+  --timeout 60             \
+  --title   /etc/services  \
+  --textbox /etc/services 20 70
 }
 
 line_get(){
@@ -97,7 +105,7 @@ command_get(){
   --timeout 60             \
   --stdout --no-cancel     \
   --menu      "$HELP" 0 0 0 \
-  List '' Add '' Delete '' Help '' Exit ''
+  List '' Add '' Delete '' Help '' Services '' Exit ''
 }
 
 add(){
@@ -172,11 +180,12 @@ main_menu(){
  local c
  while c=$( command_get ); do
   case $c in
-     List) list     ;;
-      Add) add      ;;
-   Delete) delete   ;;
-     Help) help_msg ;;
-     Exit) return 0 ;;
+       List) list     ;;
+        Add) add      ;;
+     Delete) delete   ;;
+       Help) help_msg ;;
+   Services) services ;;
+       Exit) return 0 ;;
   esac
  done
 }
