@@ -56,13 +56,15 @@ stop(){
   sync
   [ -f /proc/mounts ] || mount -nrt proc proc /proc
 
-  if   rootfs
-  then /bin/cut -d ' ' -f2 /etc/mtab /proc/mounts
-  else /bin/cut -d ' ' -f2 /etc/mtab
-  fi |
-  /bin/sort -ru |
-  /bin/xargs -r --max-lines=256 \
-  /bin/umount -l
+  if   rootfs; then
+   /bin/cut -d ' ' -f2 /etc/mtab /proc/mounts |
+#   /bin/sed '\,^/$,;d \,^/dev$,d; \,^/dev/,d; \,^/proc$,d; \,^/sys$,d; \,^/sys/,d' |
+   /bin/sed '\,^/$,;d' |
+   /bin/sort -ru | /bin/xargs -r --max-lines=256 /bin/umount -l
+  else
+   /bin/cut -d ' ' -f2 /etc/mtab |
+   /bin/sort -ru | /bin/xargs -r --max-lines=256 /bin/umount -l
+  fi
 
 #  sed  '\,^rootfs / rootfs,d
 #        \,^proc /proc proc,d
