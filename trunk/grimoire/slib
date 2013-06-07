@@ -3,55 +3,35 @@
 # Version 3a4 does not support DESTDIR style installation
 # Version 3b2 does support DESTDIR
 
-with version stable 3b3
+with info    last 20130606
+with version stable 3b4 3b3
 with base    guile unzip
 with role    development
 with trait   library multilib-fail
-with source  http://swiss.csail.mit.edu/ftpdir/scm/ \
-           http://swissnet.ai.mit.edu/ftpdir/scm/ \
-           http://www.ibiblio.org/pub/gnu/slib/ \
-           http://swiss.csail.mit.edu/ftpdir/scm/OLD/ \
-           http://swissnet.ai.mit.edu/ftpdir/scm/OLD/ \
-           http://www.ibiblio.org/pub/gnu/slib/OLD/ \
-           slib-$VERSION.tar.gz
-#          slib$VERSION.tar.gz
-with info    good 20120705
-with info    last 20100630
+with source  stable \
+             http://swiss.csail.mit.edu/ftpdir/scm/ \
+             http://swissnet.ai.mit.edu/ftpdir/scm/ \
+             http://www.ibiblio.org/pub/gnu/slib/ \
+             http://swiss.csail.mit.edu/ftpdir/scm/OLD/ \
+             http://swissnet.ai.mit.edu/ftpdir/scm/OLD/ \
+             http://www.ibiblio.org/pub/gnu/slib/OLD/ \
+             slib-$VERSION.tar.gz
+#            slib$VERSION.tar.gz
 with info    home http://www-swiss.ai.mit.edu/~jaffer/SLIB.html
 with info    cite 'scheme library
 slib is a scheme library used primarily for gnuCash.'
-
-build_old(){
- sed -i 's:/usr/local:/usr:' Makefile &&
- make install &&
- ln -fs /usr/lib/slib /usr/share/guile/1.6/slib
-}
-
-# build(){
-#  sed -i 's:/usr/local:/usr:' Makefile
-#  make infoz            DESTDIR=$DESTDIR
-#  make install          DESTDIR=$DESTDIR
-#  mkdir -pvm 755       $DESTDIR/usr/share/guile/2.0
-#  ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/2.0/slib
-# }
 
 build(){
  case $VERSION in
   3b3) sed -i 's:collect.sc collect.scm:collect.scm:' Makefile ;;
  esac
  default_build &&
- mkdir -pvm 755       $DESTDIR/usr/share/guile/2.0 &&
- ln -fs /usr/lib/slib $DESTDIR/usr/share/guile/2.0/slib
+ mkdir -pvm 755       "$DESTDIR"/usr/share/guile/2.0 &&
+ ln -fs /usr/lib/slib "$DESTDIR"/usr/share/guile/2.0/slib
 }
 
 post_install(){
 echo "( require 'new-catalog)" |
 guile -l /usr/share/guile/1.6/slib/guile.init
 default_post_install
-}
-
-current(){
- case $VERSION in
-  3b2) [ -h /usr/lib/guile/2.0/slib ] ;;
- esac
 }

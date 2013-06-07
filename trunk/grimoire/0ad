@@ -1,0 +1,44 @@
+with info    last 20130506
+with version stable 0.0.13-alpha 0.0.12-alpha
+with base    DevIL SDL boost cmake curl enet gamin libpng libvorbis libxml2 openal wxWidgets zip
+with also    --with-system-enet
+#     with also --with-system-nvtt
+with role    game game/3d
+with trait   litelink makej x11
+with source  stable $SOURCEFORGE_URL zero-ad/releases/0ad-${VERSION}-unix-build.tar.xz
+with source  stable $SOURCEFORGE_URL zero-ad/releases/0ad-${VERSION}-unix-data.tar.xz
+with info    home http://play0ad.com/
+with info    screenshots 'http://wildfiregames.com/0ad/album_cat.php?cat_id=49'
+with info    forum 'http://www.wildfiregames.com/forum/index.php?act=idx'
+with info    wiki http://trac.wildfiregames.com/
+with info    contact http://www.wildfiregames.com/0ad/contact.php
+with info    cite 'game of ancient warfare
+
+Press alt and enter together to switch to windowed mode.
+To run game
+$ cd /usr/share/games/0ad/binaries/system/
+$ ./pyrogenesis
+'
+
+build(){
+ custom_install(){
+  cd ../../..
+  find binaries/data -type d | xargs --max-lines=256 chmod 755
+  find binaries/data -type f | xargs --max-lines=256 chmod 644
+  mkdir -pvm 755     "$DESTDIR"/usr/share/games/0ad/ "$DESTDIR"/usr/bin/
+  cp    -av binaries "$DESTDIR"/usr/share/games/0ad/
+  install -m 755     "$SCRIPT_DIR"/0ad               "$DESTDIR"/usr/bin/
+ }
+
+ case $HOSTTYPE in
+  x86_64) grep -rl "/usr/X11R6/lib\|/usr/X11/lib" build libraries |
+          xargs -r --max-lines=16 \
+          sed -i 's:/usr/X11R6/lib:/usr/lib64:
+                  s:/usr/X11/lib:/usr/lib64:' ;;
+ esac
+ cd build/workspaces &&
+ ./update-workspaces.sh $OPTS &&
+ cd gcc &&
+ make CONFIG=Release &&
+ custom_install
+}

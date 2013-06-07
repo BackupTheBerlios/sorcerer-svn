@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2000 through 2012 by Kyle Sallee,
+# Copyright 2000 through 2013 by Kyle Sallee,
 # All rights reserved.
 # For use with the distribution Sorcerer only.
 # alien examines parts of the filesystem
@@ -16,9 +16,10 @@ acad(){
 }
 
 allow(){
+ current_index
  if   [ -f /var/log/alien/visa.txt ]
- then find /var/log/alien/visa.txt $INSTALL_INDEX -type f
- else find                         $INSTALL_INDEX -type f
+ then find /var/log/alien/visa.txt "$INSTALL_INDEX" -type f
+ else find                         "$INSTALL_INDEX" -type f
  fi | xargs -r --max-lines=64 cat
 }
 
@@ -31,15 +32,16 @@ all(){
 }
 
 not(){
- sed '\,^/boot/.*/modules$,d
+ sed '\,^/boot/[^/]*/modules$,d
+      \,^/boot/[^/]*/linux$,d
+      \,^/boot/[^/]*/System.map$,d
+      \,^/boot/[^/]*/initrf,d
       \,^/boot/extlinux/extlinux.conf$,d
       \,^/boot/extlinux/ldlinux.sys$,d
-      \,^/boot/initrf/bin$,d
-      \,^/boot/initrf/etc$,d
-      \,^/boot/initrf/lib$,d
-      \,^/boot/initrf/lib64$,d
-      \,^/boot/initrf/sbin$,d
-      \,^/boot/initrf/usr$,d
+      \,^/boot/extlinux/mboot.c32$,d
+      \,^/boot/extlinux/menu.c32$,d
+      \,^/boot/extlinux/vesamenu.c32$,d
+      \,^/boot/initrf/,d
       \,^/etc/\.pwd\.lock$,d
       \,^/etc/aliases.db$,d
       \,^/etc/bash\.d/noninteractive/LANG$,d
@@ -47,6 +49,7 @@ not(){
       \,^/etc/bind/rndc.key$,d
       \,^/etc/extlinux/conf$,d
       \,^/etc/fstab$,d
+      \,^/etc/fsatb.rootfs$,d
       \,^/etc/gconf/,d
       \,^/etc/group$,d
       \,^/etc/group-$,d
@@ -59,6 +62,7 @@ not(){
       \,^/etc/hostname$,d
       \,^/etc/hosts$,d
       \,^/etc/init.d/bootmisc$,d
+      \,^/etc/issue$,d
       \,^/etc/ld.so.cache$,d
       \,^/etc/ld.so.conf$,d
       \,^/etc/lvm/,d
@@ -69,9 +73,12 @@ not(){
       \,^/etc/nsswitch\.conf$,d
       \,^/etc/passwd$,d
       \,^/etc/passwd-$,d
+      \,^/etc/port.forward$,d
+      \,^/etc/port.receive$,d
       \,^/etc/printcap$,d
       \,^/etc/protocols$,d
       \,^/etc/resolv\.conf$,d
+      \,^/etc/rootname$,d
       \,^/etc/services$,d
       \,^/etc/shadow$,d
       \,^/etc/shadow-$,d
