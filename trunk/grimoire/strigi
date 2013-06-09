@@ -5,15 +5,43 @@
 # Can no longer compile and link with clucene-core
 # want to give broke trait, but kdelibs-v4 has base requirement on strigi
 
-with version stable 0.7.7
-with version legacy 0.7.5
-#with trait   broke
-with info    last 20111231
-with info    good 20130104
+# 0.7.8 failed to compile
+# 0.7.8 no longer compiles after updating gcc to version 4.8.1
+
+# did not add strigi.d to grimoire
+# not yet able to spot and correct all the errors in the source.
+
+# Version 0.7.7, 0.7.8 can be made to compile
+# but then their libraries cause link errors
+# with anything links with them.
+
+with trait   broke
+with info    good 20130607
+with info    last 20130205
+
+with version   stable 0.7.7
+with version unstable 0.7.8
+with version   legacy 0.7.5
 case $VERSION in
- 0.7.7)
+ a1a3c64)
+#with use_gcc gcc-v4.7
+with also    -DENABLE_CLUCENE:BOOL=OFF -DENABLE_CLUCENE_NG:BOOL=OFF
+with also    -DENABLE_FFMPEG:BOOL=OFF
+with also    -DENABLE_QT4:BOOL=OFF
+#with also    -DCMAKE_BUILD_TYPE:STRING=Debug
+with also    -DENABLE_DBUS:BOOL=OFF ;;
+ 0.7.8)
+# It ignores the BUILD_DEEPTOOLS and BUILD_UTILS boolean variables
+with also    -DBUILD_DEEPTOOLS:BOOL=OFF -DBUILD_UTILS:BOOL=OFF
 with also    -DENABLE_CLUCENE:BOOL=OFF -DENABLE_CLUCENE_NG:BOOL=OFF
 with also    -DENABLE_FFMPEG:BOOL=OFF -DENABLE_QT4:BOOL=OFF -DENABLE_DBUS:BOOL=OFF ;;
+ 0.7.7)
+with use_gcc gcc-v4.7
+with also    -DENABLE_CLUCENE:BOOL=OFF -DENABLE_CLUCENE_NG:BOOL=OFF
+with also    -DENABLE_FFMPEG:BOOL=OFF
+with also    -DENABLE_QT4:BOOL=OFF
+#with also    -DCMAKE_BUILD_TYPE:STRING=Debug
+with also    -DENABLE_DBUS:BOOL=OFF ;;
  0.7.5)
 with also    -DENABLE_FFMPEG:BOOL=OFF -DENABLE_QT4:BOOL=OFF -DENABLE_DBUS:BOOL=OFF ;;
 esac
@@ -24,9 +52,23 @@ with base    bzip2 cmake dbus exiv2 gamin libxml2 zlib
 with elect   qt-everywhere-opensource '' '' for a graphical interface
 with role    utility/search
 with trait   kde4 library makej multilib-dual setarch
-with source  stable http://ftp.debian.org/debian/pool/main/s/strigi/strigi_$VERSION.orig.tar.bz2
-with source  legacy $SOURCEFORGE_URL strigi/strigi/strigi-$VERSION.tar.bz2
+# git repository seems obsolete ending around version 0.7.1?
+#with source  stable	strigi-$VERSION.tar $VERSION git://gitorious.org/strigi/strigi-split.git
+
+with source    stable \
+             http://www.vandenoever.info/software/strigi/ \
+             http://ftp.debian.org/debian/pool/main/s/strigi/ \
+             strigi_$VERSION.orig.tar.bz2
+#               strigi-$VERSION.tar.bz2
+with source  unstable http://www.vandenoever.info/software/strigi/strigi-$VERSION.tar.bz2
+# with source  legacy $SOURCEFORGE_URL strigi/strigi/strigi-$VERSION.tar.bz2
 #   source http://www.vandenoever.info/software/strigi/strigi-$VERSION.tar.bz2
+
+#case $VERSION in
+# 0.7.7)
+#with source  stable http://www.linuxfromscratch.org/patches/downloads/strigi/strigi-0.7.7-ffmpeg_fix-1.patch ;;
+#esac
+
 with info    home http://strigi.sourceforge.net/
 with info    home http://www.vandenoever.info/software/strigi/
 
@@ -35,11 +77,22 @@ with info    home http://www.vandenoever.info/software/strigi/
 with info    cite 'search engine'
 
 build(){
+# export CXXFLAGS+=' -fno-implicit-templates'
+
 # if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
 # then export PATH=/opt/32bit/usr/bin:$PATH
 # fi
  case $VERSION in
-  0.7.7) sed -i '1i#include <unistd.h>' strigidaemon/bin/daemon/eventlistener/eventlistenerqueue.cpp ;;
+  0.7.8)
+         sed -i '/add_subdirectory(strigiutils)/d
+                 /add_subdirectory(strigidaemon)/d
+                 /add_subdirectory(strigiclient)/d' CMakeLists.txt
+         sed -i '1i#include <unistd.h>' strigidaemon/bin/daemon/eventlistener/eventlistenerqueue.cpp ;;
+  0.7.7) rm -f libstreams/tests/data/libpdfstream.a
+#          sed -i '/add_subdirectory(strigiutils)/d
+#                 /add_subdirectory(strigidaemon)/d
+#                 /add_subdirectory(strigiclient)/d' CMakeLists.txt
+         sed -i '1i#include <unistd.h>' strigidaemon/bin/daemon/eventlistener/eventlistenerqueue.cpp ;;
   0.7.5) sed -i '1i#include <unistd.h>' strigidaemon/bin/daemon/eventlistener/eventlistenerqueue.cpp ;;
  esac
  default_build

@@ -3,6 +3,7 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Required-Start: $local_fs
+# Should-Start: wpa_supplicant
 # Default-Start: S
 # Short-Description: saves configuration files that were modified during sysinit
 ### END INIT INFO
