@@ -1,0 +1,46 @@
+with info    last 20130612
+with base    linux-source
+with role    documentation
+with trait   data
+with info    home http://www.kernel.org/
+with info    cite 'Provides /usr/src/linux/Documentation on I/R'
+
+build(){
+ mkdir -pm 755 "$DESTDIR"//usr/src/linux/
+ cp    -a    {,"$DESTDIR"}/usr/src/linux/Documentation
+}
+
+current(){
+ if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
+      [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
+ then return
+ else echo linux-documentation | pipe_queue "$REAP_QUEUE"
+ fi
+}
+
+kversion(){
+ local m=/usr/src/linux/Makefile
+
+ if   ! [ -f $m ]
+ then with version stable uncertain; with trait broke; return
+ fi
+
+ local v="s:^VERSION=::p;d"
+ local p="s:^PATCHLEVEL=::p;d"
+ local s="s:^SUBLEVEL=::p;d"
+ local e="s:^EXTRAVERSION=::p;d"
+ local c="s: ::g;"
+
+ v=$( sed "$c $v" $m )
+ p=$( sed "$c $p" $m )
+ s=$( sed "$c $s" $m )
+ e=$( sed "$c $e" $m )
+
+ [ -n "$p" ] && v+=".$p"
+ [ -n "$s" ] && v+=".$s"
+ [ -n "$e" ] && v+=".$e"
+
+ with version stable "$v"
+}
+
+kversion

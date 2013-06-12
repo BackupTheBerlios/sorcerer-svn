@@ -115,36 +115,37 @@ utilities, including a terminfo compiler tic,
 a decompiler infocmp, clear, tput, tset,
 and a termcap conversion tool captoinfo.'
 
-build(){
- move_clear_tput(){
-  mkdir -pvm 755 "$DESTDIR"/bin
-  mv     -v      "$DESTDIR"/{usr/bin/{clear,tput},bin/}
- }
+patch_ncurses(){
+ set -x
+ local r=0
+ local shs
+ local cx=1
+ while [ -n "${SOURCE[$cx]}" ]; do
+  if [[ ${SOURCE[$cx]} =~ sh.bz2 ]]; then
+   cp  "${SOURCE[$cx]}" .
+   shs="${SOURCE[$cx]}"
+   shs="${shs##*/}"
+   bunzip2 "$shs"
+   shs="${shs%.bz2}"
+   sh  "${shs}" || r=1
+  else
+   gzip -cd "${SOURCE[$cx]}" | patch -p1 || r=1
+  fi
+ (( cx++ ))
+ done
+ set +x
+ return $r
+}
 
- patchy(){
-  set -x
-  local r=0
-  local shs
-  local cx=1
-  while [ -n "${SOURCE[$cx]}" ]; do
-   if [[ ${SOURCE[$cx]} =~ sh.bz2 ]]; then
-    cp  "${SOURCE[$cx]}" .
-    shs="${SOURCE[$cx]}"
-    shs="${shs##*/}"
-    bunzip2 "$shs"
-    shs="${shs%.bz2}"
-    sh  "${shs}" || r=1
-   else
-    gzip -cd "${SOURCE[$cx]}" | patch -p1 || r=1
-   fi
-  (( cx++ ))
-  done
-  set +x
-  return $r
- }
+ncurses_move_to_bin(){
+ mkdir -pvm 755 "$DESTDIR"/bin
+ mv     -v      "$DESTDIR"/{usr/bin/{clear,tput,tset},bin/}
+}
+
+build(){
 
  case $VERSION in
-  5.9*) patchy || return 1;;
+  5.9*) patch_ncurses || return 1;;
  esac
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
@@ -162,24 +163,9 @@ build(){
  --with-normal     \
  --with-shared     \
  --disable-termcap \
+ --without-cxx-binding \
  $OPTS &&
  make  &&
  make install DESTDIR="$DESTDIR" &&
- make clean &&
-
- ./configure       \
- --prefix=/usr     \
- --libdir=$LIBDIR  \
- --with-normal     \
- --with-shared     \
- --disable-termcap \
- --enable-widec    \
- $OPTS  &&
- make   &&
- cd c++ &&
- make   &&
- make install DESTDIR="$DESTDIR" &&
- cd ..  &&
- make install DESTDIR="$DESTDIR" &&
- move_clear_tput
+ ncurses_move_to_bin
 }

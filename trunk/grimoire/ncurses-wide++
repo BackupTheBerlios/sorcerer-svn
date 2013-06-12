@@ -1,0 +1,39 @@
+with inherit ncurses-wide
+with base    ncurses-wide
+with info    cite 'wide character version of ncurses library'
+
+ncurses_trim(){
+ cat "$INSTALL_INDEX"/{ncurses,ncurses-wide} |
+ sed "s:^:$DESTDIR:" |
+ xargs -r xargs --max-lines=64 rm -f
+ find "$DESTDIR" -type d -empty | xargs -r --max-lines=64 rmdir
+ find "$DESTDIR" -type d -empty | xargs -r --max-lines=64 rmdir
+}
+
+build(){
+ case $VERSION in
+  5.9*) patch_ncurses || return 1;;
+ esac
+
+ if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then  LIBDIR=/lib64
+ else  LIBDIR=/lib
+ fi
+
+ mkdir -pvm 755 "$DESTDIR"/usr/{lib,share/tabset}
+
+# sed -i 's:-L${exec_prefix}/lib::' misc/ncurses-config.in
+
+ ./configure       \
+ --prefix=/usr     \
+ --libdir=$LIBDIR  \
+ --without-normal  \
+ --with-shared     \
+ --disable-termcap \
+ --enable-widec    \
+ $OPTS  &&
+ make   &&
+ make install DESTDIR="$DESTDIR" &&
+ ncurses_move_to_bin &&
+ ncurses_trim
+}

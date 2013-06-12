@@ -11,6 +11,8 @@
 
 with info    last 20130602
 with version stable 4.8.1 4.7.3 4.7.2
+[ -f "${CURRENT_LOGS:-/aux/log/current}/deployment-docent" ] ||
+with base    bzip2
 with base    binutils cloog libelf mpfr multiprecision ppl
 #with base    binutils cloog-ppl libelf mpfr multiprecision
 #with base    binutils cloog-parma libelf mpfr multiprecision
@@ -116,7 +118,9 @@ build(){
   --with-system-zlib
   --disable-bootstrap"
 
- if [ -f /sbin/sinstall ] && [ -f /root/compact-IR ]; then
+ if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
+      [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
+ then
   OPTS+=" --enable-libstdcxx-pch=no"
   OPTS+=" --enable-languages=c,c++";  else
   OPTS+=" --enable-languages=c,c++,fortran,objc"
@@ -156,5 +160,4 @@ post_install(){
  else grep -l   /usr/lib/libstdc++.la {,/usr}/lib/*.la
  fi | sort -u | from_spell | sort -u |
  while read; do touch "$MOIL_QUEUE/$REPLY" "$LOAD_QUEUE/$REPLY"; done
-
 }
