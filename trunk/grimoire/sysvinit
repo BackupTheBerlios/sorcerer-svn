@@ -71,22 +71,6 @@ build(){
  install_init
 }
 
-post_install(){
- force_inittab_upgrade(){
-  local ID="$( sed '/^id:/p;d' /etc/inittab | cut -d : -f2 )"
-  if   [ -n "$ID" ] && [ -f "$SCRIPT_DIR"/inittab ]
-  then sed "s/^id:[1-6]:initdefault/id:$ID:initdefault/" "$SCRIPT_DIR"/inittab > /etc/inittab
-  fi
- }
-
- if   ! grep -q "cgetty" /etc/inittab ||
-      ! grep -q "^vc7:"  /etc/inittab
- then force_inittab_upgrade
- fi
-
- default_post_install
-}
-
 current(){
  case $VERSION in
   2.88dsf)                    [ -f /aux/new/etc/inittab ] &&

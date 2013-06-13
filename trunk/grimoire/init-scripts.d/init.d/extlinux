@@ -7,7 +7,7 @@
 # Short-Description: generates configuration files and runs extlinux when necessary
 ### END INIT INFO
 
-# Copyright 2008-2011 by Kyle Sallee, all rights reserved.
+# Copyright 2008-2013 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
 [ -f /sbin/extlinux ] || exit 0
@@ -103,8 +103,12 @@ extlinux_conf_update(){
  chmod 600 $CONF $EXTL
 
  if ! [ -f /etc/init.d/find_ir ]; then
-  /sbin/extlinux -U /boot/extlinux ||
-  /sbin/extlinux -i /boot/extlinux
+  if ! [ "$(< /boot/extlinux///version )" ==
+         "$(  /sbin/extlinux --version )" ]; then
+   /sbin/extlinux --version > /boot/extlinux/version
+   /sbin/extlinux -U /boot/extlinux ||
+   /sbin/extlinux -i /boot/extlinux
+  fi
  fi
 }
 

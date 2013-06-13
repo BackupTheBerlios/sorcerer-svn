@@ -1,8 +1,8 @@
 # Compiling with lto produces smaller, but slower bash
 
-with info    good 20130529
+with info    good 20130613
 with info    last 20130307
-with version stable 4.2.045 4.2.042 4.2.039
+with version stable 4.2.045 4.2.042
 with base    readline
 with also    --without-libiconv-prefix --without-libintl-prefix
 with role    development/interpreter utility/shell
@@ -82,10 +82,12 @@ build(){
 #  (( CX++ ))
 # done
 
-
- if   [ -f /sbin/sinstall ]
- then BUILD=$MACHTYPE
- else BUILD="$( uname -m )-${MACHTYPE#*-}"
+ if    [ "$HOSTTYPE" == x86_64 ]
+ then  BUILD="$MACHTYPE"
+ elif  [ -f "$CURRENT_LOGS"/deployment-docent ] ||
+       [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
+ then  BUILD="i486-${MACHTYPE#*-}"
+ else  BUILD="$MACHTYPE"
  fi
 
  case $BUILD in
@@ -98,7 +100,7 @@ build(){
  esac
 
  ./configure               \
- --build=$BUILD            \
+ --build="$BUILD"          \
  --prefix=/usr             \
  --bindir=/bin             \
  --with-installed-readline \

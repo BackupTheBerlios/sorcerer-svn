@@ -1,5 +1,7 @@
 # removing library trait until something else links with it's ELF library.
 
+with info    good 20130613
+with info    last 20090510
 with version stable 3.2.8
 with base    ncurses
 # requiring init-functions creates a recursive requirement loop
@@ -8,8 +10,7 @@ with base    ncurses
 with role    utility
 with trait   console library lto makej multilib-fail solo
 #trait library
-with source  http://procps.sourceforge.net/procps-$VERSION.tar.gz
-with info    good 20120630
+with source  stable http://procps.sourceforge.net/procps-$VERSION.tar.gz
 with info    home http://procps.sourceforge.net/
 with protect /bin/kill
 with protect /bin/pgrep
@@ -20,21 +21,22 @@ including the states of running processes, amount of memory available and
 currently logged in users.'
 
 build(){
+ fix_lib(){
+  case $HOSTTYPE in
+   i?86) if [ -d "$DESTDIR"/lib64 ]; then mv "$DESTDIR"/lib{64,}; fi ;;
+  esac
+ }
+
  mv_to_bin(){
-  mkdir -pvm 755 $DESTDIR/bin
-  mv     -v      $DESTDIR/{usr/bin/{pgrep,pkill,top},bin/}
+  mkdir -pvm 755 "$DESTDIR"/bin
+  mv     -v      "$DESTDIR"/{usr/bin/{pgrep,pkill,top},bin/}
  }
 
  LD='-Wl,-warn-common'
  sed -i "s:-O2 -g3:$CFLAGS:
          s:$LD:$LD $LDFLAGS:" Makefile
  make &&
- make install -e XSCPT='' DESTDIR=$DESTDIR ldconfig=echo &&
- mv_to_bin
-}
-
-current(){
- case $VERSION in
-  3.2.8) [ -f /bin/pgrep ] ;;
- esac
+ make install -e XSCPT='' DESTDIR="$DESTDIR" ldconfig=echo &&
+ mv_to_bin &&
+ fix_lib
 }

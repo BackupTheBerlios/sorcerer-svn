@@ -85,7 +85,6 @@ build(){
   fi
  }
 
-
  get_cpu_ia32(){
   geode ||
   amd   ||
@@ -102,7 +101,6 @@ build(){
   fi
  }
 
-
  adjust_config(){
   if [ -n "$2" ]; then
    sed -i "s:$1=y:# $1 is not set:" "$3"
@@ -113,7 +111,7 @@ build(){
  get_cpu(){
   case $HOSTYPE in
    x86_64) adjust_config "CONFIG_GENERIC_CPU" "$( get_cpu_x86_64 )" "$1" ;;
-        *) adjust_config "CONFIG_M686"        "$( get_cpu_ia32   )" "$1" ;;
+        *) adjust_config "CONFIG_M486"        "$( get_cpu_ia32   )" "$1" ;;
   esac
  }
 
@@ -142,7 +140,10 @@ build(){
   then install -vm 600 "$SCRIPT_DIR/stable/$NAME" "$1"
   fi
 
-  [ -n "${FEATURE[base]}" ] || get_cpu "$1"
+  if   [ -n "${FEATURE[base]}" ]
+  then sed -i 's:# CONFIG_CC_OPTIMIZE_FOR_SIZE is not set:CONFIG_CC_OPTIMIZE_FOR_SIZE=y:' "$1"
+  else get_cpu "$1"
+  fi
  }
 
  trim_config(){
