@@ -2,7 +2,13 @@ with info    good 20120726
 with info    last 20120203
 with version stable 1.3.3
 with base    libogg
-with also    --enable-static=no
+with also    --enable-static=no --disable-examples
+## ./configure --help reports --enable-docs
+## yet takes no action when given --disable-docs
+#if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
+#     [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]; then
+#with also    --disable-docs
+#fi
 with role    audio/codec audio/library
 with trait   library lto makej multilib-concurrent
 with source  stable http://downloads.xiph.org/releases/vorbis/libvorbis-$VERSION.tar.xz
@@ -10,6 +16,12 @@ with info    home http://www.xiph.org/ogg/vorbis
 with info    cite 'high-quality lossy audio codec library'
 
 build(){
+ if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
+      [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
+ then sed -i 's:test doc examples::
+              s:test doc::' Makefile.in
+ fi
+
  sed -i 's:-O20 -ffast-math::' configure{,.in}
  default_build
 }
