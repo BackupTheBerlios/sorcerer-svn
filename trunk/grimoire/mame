@@ -1,9 +1,9 @@
-with version stable 0148s 0146s 0145s
+# 0149s failed to compile
+
+with info    last 20130618
+with version   stable 0148s 0146s
+with version unstable 0149s
 with base    GConf SDL_ttf gtk+ unzip
-case $VERSION in
- 0140s)
-   use_gcc gcc-v4.5 ;;
-esac
 with role    game development/emulator
 with trait   hiddden makej optimize x11
 with source  "http://mamedev.org/downloader.php?file=releases/mame$VERSION.zip"
@@ -11,7 +11,6 @@ with source  "http://mamedev.org/downloader.php?file=releases/mame$VERSION.zip"
 #   source http://mamedev.org/updates/0140u1_diff.zip
 #   source http://mamedev.org/downloader.php?&file=/mame$VERSION.zip
 with info    vurl http://mamedev.org/release.html
-with info    good 20130115
 with info    home http://mamedev.org
 with info    cite 'multi arcade machine emulator using SDL'
 CURL_PARAM='-A Mozilla/4.0'
@@ -19,15 +18,7 @@ CURL_PARAM='-A Mozilla/4.0'
 # Where it really is:
 # curl -A "Mozilla/4.0" -D head.txt "http://mamedev.org/downloader.php?&file=mame0140s.zip"
 
-
 build(){
-# patch does not apply?
-
-# case $VERSION in
-#  0140s) unzip ${SOURCE[1]} &&
-#         patch -p2 -E < 0140u1.diff ;;
-# esac
-
  if [ -f mame.zip ]; then
   unzip  mame.zip
   rm     mame.zip
@@ -39,10 +30,11 @@ build(){
  sed -i 's:$(CC):gcc:' src/lib/lib.mak
 
  make    -f makefile &&
- mkdir   -vpm 755                $DESTDIR/usr/bin &&
+ mkdir   -vpm 755                "$DESTDIR"/usr/bin &&
  case $HOSTTYPE in
-  i686)   install -vm 755 mame   $DESTDIR/usr/bin/     ;;
-  i586)   install -vm 755 mame   $DESTDIR/usr/bin/     ;;
-  x86_64) install -vm 755 mame64 $DESTDIR/usr/bin/mame ;;
+  i686)   install -vm 755 mame   "$DESTDIR"/usr/bin/     ;;
+  i586)   install -vm 755 mame   "$DESTDIR"/usr/bin/     ;;
+  i486)   install -vm 755 mame   "$DESTDIR"/usr/bin/     ;;
+  x86_64) install -vm 755 mame64 "$DESTDIR"/usr/bin/mame ;;
  esac
 }
