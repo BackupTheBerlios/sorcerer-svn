@@ -102,13 +102,11 @@ extlinux_conf_update(){
  cp $CONF    $EXTL
  chmod 600 $CONF $EXTL
 
- if ! [ -f /etc/init.d/find_ir ]; then
-  if ! [ -f   /boot/extlinux/version ]  ||
-     ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version )" ]; then
-   /sbin/extlinux --version 2> /boot/extlinux/version
-   /sbin/extlinux -U /boot/extlinux ||
-   /sbin/extlinux -i /boot/extlinux
-  fi
+ if ! [ -f   /boot/extlinux/version ]  ||
+    ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version 2>&1 )" ]; then
+  /sbin/extlinux --version 2> /boot/extlinux/version
+  /sbin/extlinux -U /boot/extlinux ||
+  /sbin/extlinux -i /boot/extlinux
  fi
 }
 

@@ -45,15 +45,13 @@ initrf_update(){
  rm -fr     $TEMPIF
  sync
 
- if ! [ -f /etc/init.d/find_ir ]; then
-  if $EXTL; then
-   if ! $DONE; then /etc/init.d/extlinux reload; fi
-   if ! [ -f   /boot/extlinux/version ]  ||
-      ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version )" ]; then
-    /sbin/extlinux --version 2> /boot/extlinux/version
-    /sbin/extlinux -U /boot/extlinux ||
-    /sbin/extlinux -i /boot/extlinux
-   fi
+ if $EXTL; then
+  if ! $DONE; then /etc/init.d/extlinux reload; fi
+  if ! [ -f   /boot/extlinux/version ] ||
+   ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version 2>&1 )" ]; then
+   /sbin/extlinux --version 2> /boot/extlinux/version
+   /sbin/extlinux -U /boot/extlinux ||
+   /sbin/extlinux -i /boot/extlinux
   fi
  fi
 }
