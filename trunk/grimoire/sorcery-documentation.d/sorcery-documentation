@@ -1,7 +1,8 @@
 Please note that much about sorcery changed in 2013.
 This documentation requires revision.
 
-			2012 Sorcery Documentation
+			2012/2013 Sorcery Documentation
+			currently in revision...
 
 
 0.	Table of Contents
@@ -9,7 +10,7 @@ This documentation requires revision.
 2.	Sorcery Tools
 3.	Catalog of Software
 4.	Spells
-5.	Installation CD
+5.	Deployment CD
 6.	Installation Program
 7.	First Boot: Networking
 8.	Set the passwords
@@ -26,11 +27,10 @@ This documentation requires revision.
 
 99.9% of software is provided by the effort
 of generous free software authors
-that are not affiliated with the Sorcerer project
-That is why Sorcerer developers do not write documentation.
-We read the documentation written by the software authors.
-Below are some useful hyperlinks to documentation
-used to develop Sorcerer, spells and the software catalog:
+that are not affiliated with this POSIX.
+Those software authors write documentation
+that describes their how to configure and use their software.
+Below are some useful hyperlinks to documentation:
 
 Linux Documentation Project:	http://www.tldp.org/
 Filesystem Hierarchy Standard:	http://www.pathname.com/fhs/pub/fhs-2.3.html
@@ -39,47 +39,106 @@ LSB specification:		http://www.linux-foundation.org/spec/refspecs/lsb.shtml
 The POSIX specification:	http://www.unix.org/version3/online.html
 
 
-
 2.	Sorcery Tools
 
-The sorcery tools are designed to be intuitive.
-Therefore, invoking them with the --help parameter
-provides most of their documentation.
-The installed sorcery tools are:
+Sorcery is the combination of many tools.
+Most have specific delegated tasks.
+Two of the tools are multi-purpose.
 
-/usr/sbin/augur
-/usr/sbin/cast
-/usr/sbin/dispel
-/usr/sbin/leech
-/usr/sbin/sorcery
+The tool called sorcery
+provides a menu driven interface
+that allows some configuration
+and menu driven selection of software
+for installation and removal.
+Most new SAs will try sorcery at first.
+However, the convenience provided by
+the menu driven sorcery tool
+is mostly limited to easy selection
+of software for removal.
 
-cast    is a tool for software installation
-dispel  is a tool for software removal
-leech   is a tool for download sources, patches, tarballs
-augur   provides a command line update and information  tool
-sorcery provides a menu for configuration,
-	         a menu for selecting software for   installation,
-                 a menu for selecting software for uninstallation
+augur is the command line interface.
+augur can be used to configure queues.
+It can configure compile time
+options and electives for software projects.
+And augur can provide excellent awareness
+of the current and historical state of installed software.
 
-sorcery provides menus for cast and dispel because
-sometimes using the menus can be faster and easier
-than invoking the augur, cast, and dispel tools.
+Eventually, everyone becomes mesmerized
+by the output of
+# augur scry
+It shows a heads up display
+of the current sorcery activity.
+The bottom 4 lines display the status of 11 or more queues.
+Each queue has an associated utility with the same name.
+The queues are not merely a computerized version
+of a bucket brigade or an assembly line.
 
-augur, dispel, and leech are automatically invoked by
-augur and sorcery.
-The SA will probably never want to invoke cast dispel and leech.
-cast dispel and leech accept no command line parameters
-and are not interactive.
+The queues allow high I/O tasks to be performed linearly
+in order to achieve optimial utilization of hardware
+and mitigate the creation of fragmentation
+on disk based file systems.
+Tasks that do not require immediate processing
+are delayed until the processing power becomes available.
+Less than time critical tasks are processed very slowly
+to help ensure that such tasks complete
+while using mostly the processor cycles
+that would otherwise be delegated to idle or to wait.
+And tasks that can run concurrently run concurrently.
+Concurrently running tasks optimally use available processing power.
 
-augur's help screen displays when augur was invoked without parameters.
-For detailed information about a specific command line parameter
-then invoke augur with the help parameter followed by
-the specific augur command line parameter.
-Example:
-# augur help log
+Learning the names of all the queues and utilities is unimportant.
+However, aside from the above mentioned utilities
+a few queues should be understood.
+The cast and dispel queues are considered staging queues.
+They do not have utilities that act upon them.
+cast/new is a queue that is populated from running:
+# augur newer
+Running # augur begin
+transfers the content of the cast and dispel queues
+into the appropriate utility owned queues.
+The use of the staging queues is provided
+for backward compatibility and convenience.
 
-augur and sorcery should only be invoked by an account
-with effective user identity 0, which should be root.
+Note that all queues and utilities
+have names that are 4 characters long.
+And the given name's dictionary definition
+provides a clue about the primary duty
+of the utility and queue.
+
+Some of the words are common vocabulary.
+Others are nautical or argicultural argot.
+The most important aspect is that they are all 4 bytes long.
+Therefore, the # augur scry
+status lines can be adequately displayed
+on virtual consoles and terminal emualtors of 80 width.
+
+Sometimes SAs ask,
+"Why are the queue/utility names
+not entirely magic affiliated argot?"
+The answer to that is simple.
+The theme was intended to aid the memorization
+of SAs that were transition
+from pre-compiled binary package based POSIXs
+to a source based POSIX.
+Source based POSIX have neither packages nor a package manager.
+Therefore, different argot was required.
+
+The magical theme is merely a nmemonic aid.
+Likewise the chosen names for the queues and utilities
+provides a nmemonic aid rather than assigning numbers
+such as 0 for stdin, 1 for stdout, and 2 for stderr.
+
+In the vernacular of POSIX
+program command names of size 2 and 3 bytes are popular.
+However, 1 and 4 byte names are less common.
+Consequently, the use of 4 byte English words
+for the names of queues and utilities
+was an exceedingly good selection.
+
+To gain a better explanation of the queues please view
+# augur help queue
+# augur help event
+
 
 3.	Catalog of Software
 
@@ -100,54 +159,86 @@ it resides as many spell files and directories in
 
 4.	Spells
 
-Spells contain instructions for
-downloading, compiling, and installing
+Spells contain terse instructions
+for downloading, compiling, and installing
 software projects are contained in spells.
-Spells are bash script fragments.
+Spells are BASH script fragments.
 The grimoire is a book of spells.
 Anyone with simple BASH scripting skills
 can write a spell by copying and editing
 a similar existing spell.
 
+If the magical argot seems confusing
+then consider the software catalog
+to be something like a cook book.
+And it is full of recipies
+for creating delicious software.
+Now it makes sense yes?
+
 All spells have a similar format with many optional components.
 The easiest way to make a new spell is to copy and edit
 an existing spell that is similar to the new spell.
-Spells are bash script fragments that and can easily
-be edited with any text editor such as "nano."
+Spells are easily edited BASH script fragments.
+Any texit editor such as "nano" can be used for editing spells.
 
-Because spells are "programs" rather than static data files;
+Because spells are "programs/scripts" rather than static data files;
 fewer limitations exist concerning what spells can accomplish.
 Therefore, the best way to learn how to craft spells
 is by looking at other spells and by reading
-the bash manual page which can be invoked with:
+the BASH manual page which can be invoked with:
 $ man bash
 
 
+5.	Deployment CD
 
-5.	Installation CD
+Deployment requires an Install/Rescue CD
+which matches the hardware architecture for the computer.
+The IA32 Install/Rescue CD can be deployed
+on both IA32 and x86_64 computers.
+The x86_64 Install/Rescue CD can only be deployed on x86_64 computers.
 
-Installation requires an Install CD that matches
-the hardware architecture of the box that being installed.
-The IA32 Install/Rescue CD can be installed on both ia32
-and x86_64 boxes, while the x86_64 Install/Rescue CD
-will only install onto x86_64 boxes.
+http://sorcerer.silverice.org/download/iso9660/
 
-http://sorcerer.silverice.org/download/iso9660/2008/
+The Install/Rescue images are already bootable CD images.
+They are ISO9660 file systems within a file.
+Burn them directly to a CD.
+Do not burn them to a CD
+by adding them to another ISO9660 file system.
+If they do not boot then they were probably burned to CD incorrectly.
 
-Only download the .7z compressed image if you have p7zip
-or 7zip compression program to decompress it before burning
-the image to CD.
+Those who do not want to burn to a CD use a USB SSD instead.
+Install the GPT bootable MBR file
+provided as boot/util/gptmbr.bin
+to the MBR of the USB SSD.
+Partition an USB SSD.
+Grant the first partition the legacy bootable BIOS attribute.
+Create an ext2 file system on the first partition.
+Mount the ext2 file system from the first partition of the USB SSD.
+Mount the ISO9660 image through a loop device.
+Copy the contents from the mount point
+to the file system on the USB SSD.
+Adjust the boot/extlinux/extlinux.conf file
+so that the single initramfs image will be loaded.
+Finally, install extlinux
+to the boot block of the ext2 partition of the USB SSD
+by using the statically linked extlinux program provided as
+boot/util/extlinux
 
-The Install/Rescue images are already bootable CD images
-ready to be burned directly onto a CD instead of being
-added to another iso9660 filesystem and burned onto a CD.
+Senior level SAs will prefer using a USB SSD.
+Neophytes will probably prefer burning a CD instead.
+The I/R image is provided as a bootable ISO9660
+suitable for burning onto CD instead as an ext2 file system,
+because transition from one to the other
+is simple for an experienced SA.
+Anyone else can probably gain that required lore
+by completing the steps recommended by the deployment docent.
 
-Writing a CD with linux is easy.
-Writing a CD with other opreating systems requires 
-additional software not normally provided with the operating system.
-Also adding the extention of .iso to the filename
-may be required for other operating systems to properly recognize
-the file is an iso9660 ready to be written.
+Instead of converting the ISO9660 to a bootable USB SSD
+it can also be deployed to a USB SSD.
+But it might be difficult to update and maintain
+if the USB SSD's size is less than 16G.
+If only transferring from ISO9660 to USB SSD
+then a 1G USB SSD would be sufficient.
 
 If the CD fails to boot check first
 that BIOS/CMOS parameters permit booting from CDROM.
@@ -158,28 +249,66 @@ then it wrote the image as a file within an iso9660 filesystem
 instead of writing the image directly to the CD.
 If the image file is written as a file on a CD
 then the CD will not be bootable and will be useless for installation.
- 
+
 
 6.	Installation Program
 
-Most SAs will prefer to type the precise commands required for
-partitioning, making volumes, and creating filesystems.
-However, there is a menu driven alternative.
-After booting and logging in as root execute:
-sinstall
+Prior to the 2013 the I/R also provided a menu driven program
+suitable for almost any simian SA to achieve deployment.
+With an emphasis on providing convenience
+many years elapsed before I realized
+that the menu driven deployment program
+was a disservice to SAs.
 
-Make some files systems,
-copy some programs,
-compile a few sources,
-umount filesystems
-and installation is complete.
+After much planning, implementation and testing
+resulted in a program that should be tantamount
+to a having an experienced SA standing behind
+willing to offer advise and instructions
+at each step of deployment.
+This new method for deployment is called
+the Deployment Docent.
+A docent performs the role
+of an assistant instructor or a tour guide.
+
+Follow the docent's recommendations
+and deployment can be a fun adventure.
 
 
 7.	First Boot: Networking
 
-Unfortunately, the most difficult aspect
-of deploying a box is network configuration.
-login as root and execute:
+Hopefully, networking was properly
+configured before copying a root file system
+to /media/root/main/
+If not then the main root file system
+is the place to configure networking.
+Unfortunately, it is not the place to activate networking.
+
+Each root file system receives one of a pair of VETH,
+virtual Ethernet adapters.
+The true wireless and Ethernet networking adapters
+that interface with the actual networking hardware
+remain in the rootfs.
+Therefore, making a network change to a booted computer
+requires logging into the rootfs either by the logind
+running on the ttyd that goes to the rootfs
+or by sshing to port 30 of IP address 169.254.1.0
+
+Programs such as dhcpcd will not work properly
+when run from a root file system,
+because an routing rule will not be implicitly
+configured in the rootfs.
+Therefore, only run dhcpcd from the rootfs.
+
+Network configuration tends to be the most
+difficult aspect of POSIX adminsitration.
+There is no right or wrong way to accomplish the task.
+The methods that work are correct.
+The methods that do not achieve networking are incorrect.
+
+If the SA lacks a favorite method
+then the recommended method is by using
+the networking templates.
+Run the following two commands:
 
 cd /etc/networks.d/
 less templates/README
@@ -187,30 +316,52 @@ less templates/README
 A few potentially useful templates are provided.
 But at least one must be copied to /etc/networks.d/
 and then properly edited and tested.
-Once that is complete networking can be started by executing:
-/etc/init.d/networks start
-
 On subsequent boots networking starts automatically.
+
+If configuring networking for subsequent boots
+then edit files on the main root file system.
+If merely testing networking configurations
+then edit files on the rootfs.
+Remember that the rootfs is like a combination of tmpfs and ramfs.
+Therefore, any files modified on the rootfs
+will be without that modification on the next boot.
+Therefore, permanenet modifications must be made
+on the main root file system.
 
 
 8.	Set passwords
 
-Now before doing anything else change the root password by executing:
-su -
+The SA should set the root account password during deployment.
+The root account password for the main root file system
+also becomes the root account password for the rootfs.
+All other root file systems can have
+their own separate and entirely different
+root account password.
 
-Now edit /etc/extlinux/head
-and change the password required for allowing parameters
-to be passed to the kernel at boot time.
-Now execute extlinux to save it:
-extlinux
+If editing files on the main root file system
+then adjusting the bootloader's password is also a good idea.
+That should have been accomplished by following
+the steps provided by the deployment docent.
+The file to edit is /etc/extlinux/head
+The program to create an encrypted password is md5crypt.
+Provide the new password on stdin
+and the encrypted password is printed on stdout.
+Then edit /etc/extlinux/head
+and write the encrypted password there.
 
-If the box does not already have a BIOS/CMOS password set
-in order to prevent it from booting from CDROM and floppy
-then issue:
-shutdown -r now
-And before booting the operating system,
-enter the BIOS CMOS configuration program
-and properly secure the box.
+If the BIOS/CMOS administration password
+was not already set
+then setting that is also recommended.
+Never set the bootloader and root account password the same.
+Never set the BIOS/CMOS  and root account password the same.
+However, if the bootloader's password was encrypted
+then it could be re-used for the BIOS/CMOS password.
+Please be aware that software exists for retrieval
+of previously set BIOS/CMOS passwords.
+Therefore, setting all 3 passwords differently is prudent.
+
+Consult the manual provided with the motherboard or mainboard
+for instructions on how to set the BIOS/CMOS password.
 
 
 9.	User Account

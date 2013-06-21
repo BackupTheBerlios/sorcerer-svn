@@ -1,14 +1,15 @@
 # this probably also comes with a strange rpath encoded into it.
-# 11.6.602.180 is not for linux
 
+with info    last 20130611
+with info    vurl http://helpx.adobe.com/flash-player/kb/archived-flash-player-versions.html
 case $HOSTTYPE in
  x86_64)
-with version stable 11.2.202.275
+with version stable 11.2.202.291 11.2.202.275
 #with source  http://fpdownload.macromedia.com/get/flashplayer/pdc/$VERSION/install_flash_player_11_linux_x86_64.tar.gz
 with info    home http://get.adobe.com/flashplayer/
 ;;
       *)
-with version stable 11.2.202.275
+with version stable 11.2.202.291 11.2.202.275
 #with source  http://fpdownload.macromedia.com/get/flashplayer/pdc/$VERSION/install_flash_player_11_linux_i386.tar.gz
 with info    home http://get.adobe.com/flashplayer/
 ;;
@@ -17,8 +18,6 @@ with source  stable http://download.macromedia.com/pub/flashplayer/installers/ar
 with base    firefox
 with role    network/web
 with trait   hidden mozilla-plugin x11
-with info    vurl http://helpx.adobe.com/flash-player/kb/archived-flash-player-versions.html
-with info    last 20130404
 with info    cite 'Macromedia Flash player plugin for mozilla and firefox'
 with disable scavenge
 with disable sdelta
@@ -36,23 +35,12 @@ build(){
  fi | xargs tar -xf &&
  
  [ -d usr ] &&
- find usr -type d | xargs chmod 755 &&
- find usr -type f | xargs chmod 644 &&
- mkdir -pvm 755 "$DESTDIR"  &&
+ find usr     -type d | xargs chmod 755 &&
+ find usr     -type f | xargs chmod 644 &&
+ find usr/bin -type f | xargs chmod 755 &&
+ mkdir -pvm 755 "$DESTDIR/" &&
  cp    -r usr   "$DESTDIR/" &&
  [ -f libflashplayer.so ]   &&
- mkdir   -pvm 755                   "$PD" &&
- install  -vm 644 libflashplayer.so "$PD"
-}
-
-build_old(){
- local LIBDIR=/usr/lib
- case $HOSTTYPE in
-  x86_64) LIBDIR+=64 ;;
- esac
- local PD=$DESTDIR$LIBDIR/mozilla/plugins
-
- [ -f libflashplayer.so ] &&
  mkdir   -pvm 755                   "$PD" &&
  install  -vm 644 libflashplayer.so "$PD"
 }
