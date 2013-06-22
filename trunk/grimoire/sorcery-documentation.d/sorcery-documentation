@@ -1,8 +1,4 @@
-Please note that much about sorcery changed in 2013.
-This documentation requires revision.
-
-			2012/2013 Sorcery Documentation
-			currently in revision...
+			2013 Sorcery Documentation
 
 
 0.	Table of Contents
@@ -406,8 +402,8 @@ etc			for menu driven editing of files in /etc
 
 Both augur and sorcery provide useful methods for
 discovering spells that can be installed.
-Since there are over 3000 spells in an official Sorcerer grimoire
-they will not be listed here.
+Too many spells exist in the software catalog
+to list them all here.
 
 
 12.	Advanced Usage
@@ -417,12 +413,12 @@ Below is an example Question and Answer
 Q. How can I find out what web servers are available?
 A.
 
-# augur category | grep web
+# augur role | grep web
 network/web
 video/webcam
 
-# ( augur category network/web
-    augur attribute server ) | sort | uniq -d
+# ( augur role network/web
+    augur trait server ) | sort | uniq -d
 
 
 As demonstrated a tool such as augur
@@ -434,8 +430,8 @@ more complex questions can be answered.
 Q. How can I tell what web servers are installed?
 A.
 
-# ( ( augur category network/web
-      augur attribute server ) | sort | uniq -d
+# ( ( augur role network/web
+      augur trait server ) | sort | uniq -d
     augur installed
   ) | sort | uniq -d
 
@@ -454,37 +450,31 @@ every Sorcerer SA gains awareness of eventually.
 
 /etc/sorcery/				Permanent storage for sorcery data
 /etc/sorcery/local.config		Modifiable configuration file
-/etc/sorcery/log/			Logs sorcery uses for tracking
+/aux/log/				Logs sorcery uses for tracking
 
-/root/.sorcery/				tmpfs containing generated data
-/var/log/sorcery/queue/cast/		The cast queue
-/var/log/sorcery/queue/dispel/		The dispel queue
-/var/log/sorcery/queue/leech/		The leech queue
-/root/.sorcery/grimoire/		The untarred merged grimorie
-/root/.sorcery/index			The grimoire index
-/root/.sorcery/index.d/arof		The all    requirements of index
-/root/.sorcery/index.d/aarof		The entire requirements of index
+/aux/run/tmp/				tmpfs containing generated data
+/aux/run/queue/				The master queue directory
+/aux/run/tmp/grimoire/			The untarred merged grimorie
+/aux/run/tmp/index			The catalog index
+/aux/run/tmp/index.d/			directory of additional indices
 
-
-/usr/share/sorcery/			Grimoire Directory
-/usr/share/sorcery/grimoire.tar		Sorcerer Grimoire
+/usr/share/sorcery/			Catalog directory
+/usr/share/sorcery/grimoire.tar		Sorcerer's catalog
 /usr/share/sorcery/local/		Local grimoire directory
 
-/usr/src/sorcery/			Where sources are compiled
-/tmp/.sorcery/				/usr/src/sorcery maybe bound here
+/aux/run/source/			Where sources are compiled
 
-/var/tmp/leech/				Where source tarballs download
-/var/tmp/failed/			Where failed compilations go
+/aux/can/load/				Where source tarballs download
+/aux/run/failed/			Where failed compilations go
 
-/var/cache/archive/			Tarball archives of installed software
-/var/cache/backup/			Tarball backups of main filesystem
-/var/cache/ccache/			Tarballs of reusable compiled objects
-/var/cache/sources/			Tarballs of downloaded sources
+/aux/can/archive/			Tarball archives of installed software
+/aux/can/ccache/			Tarballs of reusable compiled objects
+/aux/can/source/			Tarballs of downloaded sources
 
-
-Other directories and files that sorcery uses
+Other useful directories and files
 are listed in /etc/sorcery/config
-which is the non-editable configuration file for sorcery.
+/etc/sorcery/config is the non-editable configuration file.
+Override variables and functions in /etc/sorcery/local.config
 
 
 14. Staying Informed
@@ -508,17 +498,17 @@ A	No.
 Q	DPKG?
 A	No.
 
-Q	Distribution specific version
-	appended to software author's version?
+Q	Append a POSIX specific version
+	to the software author's version?
 A	No.
 
 Q	Linux kernel configuration menu during installation?
 A	No.
 
 Q	Linux kernel configuration menu?
-A	Not if using linux-modular.
-	However, traditional deployment with a custom configured
-	linux kernel is still possible.
+A	Writing a kernel config is atypical.
+	However, traditional deployment
+	with a custom configured linux kernel remains possible.
 
 Q	Plug 'n Pray
 A	Yes.
@@ -530,55 +520,93 @@ Q	udev?
 A	Yes
 
 Q	Precompiled softare?
-A	No, however Apache_OpenOffice and some
-        vendor provided video driver
+A	No.  However Apache_OpenOffice
+	and some vendor provided video drivers
 	are provided as pre-compiled software.
 
 Q	Expensive?
-A	No, free.
-	Why should a distribution charge you for using software
+A	No.  Free.
+	Why should a POSIX charge for providing software
 	that other people write and provide for free?
 
-Q	Yearly reinstallations?
-A	No. Install once, update continuously.
+Q	Yearly re-deployment?
+A	No.  Install once.  Update continuously.
 	However, a new Install/Rescue disk should be downloaded
-	and written to CD yearly incase it is required to rescue
-	a deployed box.
+	and written to CD yearly.
 
-Q	For updates software patches downloaded instead of full sources?
+Q	Software update patches downloaded instead of full sources?
 A	Yes.
 
 Q	Accelerated compilation during updates and rebuilds?
 A	Yes.
 
 Q	Archives of installed software for quick repair and regression?
-A	Yes.
+A	No.
+	However, paradigm support can allow a root file system
+	to be shifted to a paradigm created at an earlier date
+	such as a paradigm created prior to an update.
 
 Q	Japanese language support?
 A	Yes.  はい　できますよ
 
 Q	Installed software maintained at current stable releases?
-A	Yes.
+A	Mostly.  Some software projects are difficult to track.
+	Other software projects might not install
+	at the current released version due to bugs.
+	The software catalog attempts to provide software
+	that will compile, install, and be usable.
 
 Q	Easy to add custom and additional software to a deployed box?
-A	Yes, as easy as writing spells.
+A	Yes.  Installing unsupported software
+	is  as easy as writing spells.
 
 Q	This is the original Sorcerer created by Kyle Sallee?
 A	Yes this is the "real Sallee" and not a fork.
 
 Q	Better than a fork?
-A	The forks are copies of an alpha quality sorcery
-	and technology that is no longer used.
-	The forkers were people who did not want to listen
-	and who did not want to cooperate.
-	They wanted to lead a distribution
+A	The forks are copies of an alpha quality sorcery.
+	Forks are based upon obsolete unstable technology
+	that was abandoned and no longer used.
+	The forkers did not want to listen and did not want to cooperate.
+	They wanted to lead a POSIX
 	that they did not create and barely understand.
 
-Q	You listen to SAs?
-A	Exactly.  The modern Sorcerer distribution
-	is a great distribution not because of it's creator's effort.
-	but because the creator listens to the feedback and
-	recommendations of fellow SAs to create a distribution
-	that all Sorcerer SAs enjoy.
-	Sorcerer development from 2005+ has been entirely about 
-	giving SAs what they want.
+Q	Listen to SAs?
+A	Exactly.  This POSIX is awesome
+	because the creator listens to the feedback
+	and recommendations of fellow SAs
+	to create a POSIX that all SAs can enjoy.
+	Sorcerer development from 2005+ to 2011
+	was almost entirely about granting SAs what they wanted.
+	From 2012 to 2013 the emphasis was on creating tools
+	that perform with excellent on SMP computers.
+	From 2013 the emphasis was on creating a multi-root POSIX
+	with a deployment method suitable for honing the lore
+	of SA candidates of all skill levels.
+
+Q	Production/Enterprise quality POSIX?
+A	From 2005 through 2012 the emphasis was on providing
+	a production quality POSIX.
+	From 2013 onward the emphasis is creating a POSIX
+	that will hone SA lore so that the next generation of SAs
+	will not be blinded and bewildered by a blizzard
+	of GUI and fluffy tools; causing them to become
+	unable to effectively wield a command line and
+	unable to use command line tools.
+
+Q	Deploys with no questions asked?
+A	No.  Any senior level SA
+	can create a POSIX that deploys
+	while asking few if any questions.
+	Doing so is a disservice to SAs.
+	The person at the keyboard gains
+	no reason to master SA lore
+	when a POSIX can deploy
+	without interaction.
+
+Q	Can deployment be accomplished without lore?
+A	Deployment can be accomplished
+	if the person at the keyboard
+	is eager to acquire the lore
+	by following the recommendations
+	of the deployment docent.

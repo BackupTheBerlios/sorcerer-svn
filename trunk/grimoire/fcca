@@ -1,13 +1,22 @@
+with trait   broke
+#with info    good 20120606
+with info    last 20080202
 with version stable 0.8.0
 with base    SDL_image SDL_ttf ruby
+with also    --disable-sdltest
 with role    game
-with trait   x11
-with source  $SOURCEFORGE_URL fcca/fcca/$VERSION/fcca-$VERSION.tar.gz
-with info    good 20120606
-with info    last 20080202
+with trait   makej optimize x11
+with source  stable $SOURCEFORGE_URL fcca/fcca/$VERSION/fcca-$VERSION.tar.gz
 with info    home http://fcca.sourceforge.net/
 with info    cite 'reimplementation of Colonization'
+
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
+ else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib'
+ fi
+ default_build
+
  sed -i 's:-lruby1.8:-lruby:' configure
  default_build
 }
