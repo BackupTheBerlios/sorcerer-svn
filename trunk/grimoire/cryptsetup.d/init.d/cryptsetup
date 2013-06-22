@@ -73,6 +73,12 @@ start(){
  log_warning_msg "$NAME checking for luks devices"
  echo
 
+ local fstab
+   if [ -f /etc/fstab.rootfs ]; then fstab=/etc/fstab.rootfs
+ elif [ -f /etc/rootfs/fstab ]; then fstab=/etc/rootfs/fstab
+                                else fstab=/etc/fstab
+ fi
+
  local r=0
  exec {stdin}<&0	# <&$stdin
  while read fs_spec fs_file fs_vfstype fs_mntops fs_freq fs_passno; do
@@ -97,7 +103,7 @@ start(){
   else log_failure_msg "${fs_spec} unavailable"; r=1
   fi
 
- done < /etc/fstab.rootfs 
+ done < $fstab
 
  return $r
 }

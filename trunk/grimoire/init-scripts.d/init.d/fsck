@@ -29,15 +29,17 @@ start(){
  }
 
  fsc(){
+  local FSTAB_FILE
   local FORCE
   if grep -q fastboot  /proc/cmdline; then return;   fi
   if grep -q forcefsck /proc/cmdline; then FORCE=-f; fi
 
-  if   rootfs
-  then FSTAB_FILE=/etc/fstab.rootfs \
-       fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
-  else fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
+    if ! rootfs;                 then export FSTAB_FILE=/etc/fstab
+  elif [ -f /etc/fstab.rootfs ]; then export FSTAB_FILE=/etc/fstab.rootfs
+  elif [ -f /etc/rootfs/fstab ]; then export FSTAB_FILE=/etc/rootfs/fstab
   fi
+
+  fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
   if [ $? -gt 1 ]; then
    log_failure_msg 'fsck failed' 1>/dev/console 2>&1
    log_failure_msg 'Repair file systems by running /sbin/fsck' 1>/dev/console 2>&1

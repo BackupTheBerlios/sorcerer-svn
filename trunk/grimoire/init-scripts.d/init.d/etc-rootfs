@@ -1,0 +1,27 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Default-Start: S
+# Short-Description: copies /etc/rootfs/* to /etc/ on rootfs.
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+if ! rootfs || ! [ -d /etc/rootfs ]; then trap - EXIT; exit 0; fi
+
+only start
+deny control
+config 
+
+start(){
+ copy(){
+  find /etc/rootfs/ -mindepth 1 -maxdepth 1 |
+  xargs -r --max-lines=64 cp -at /etc/
+ }
+
+ if   log_warning_msg "/etc/rootfs/* to /etc/ copying"; copy
+ then log_success_msg "/etc/rootfs/* to /etc/ copied"
+ else log_failure_msg "/etc/rootfs/* to /etc/ copy failed"
+ fi
+}

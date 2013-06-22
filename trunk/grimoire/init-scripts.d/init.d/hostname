@@ -17,7 +17,8 @@
 only start configure
 
 main_root(){
- /bin/sed 's:#.*::' /etc/fstab.rootfs |
+ /bin/cat /etc/fstab.rootfs /etc/rootfs/fstab 2>/dev/null |
+ /bin/sed 's:#.*::' |
  /bin/tr  '\t' ' ' |
  /bin/tr  -s ' ' |
  /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
@@ -68,7 +69,9 @@ start(){
  rootfs || exit 0
  local REPLY
  log_warning_msg "hostname setting"
- if   [ -f /etc/hostname ]; then read REPLY < /etc/hostname; fi
+   if [ -f /etc/rootfs/hostname ]; then read REPLY < /etc/rootfs/hostname
+ elif [ -f /etc/hostname        ]; then read REPLY < /etc/hostname
+ fi
  if   [ -z "$REPLY" ]
  then REPLY="unknown$RANDOM$RANDOM"
       log_failure_msg "/etc/init.d/hostname configure"
