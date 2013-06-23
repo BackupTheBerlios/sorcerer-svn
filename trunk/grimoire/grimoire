@@ -19,9 +19,18 @@ echo "$LAG days behind available grimoire."
 [[ -f grimoire ]] &&
 [[ -f sorcery  ]] &&
 mkdir -pm 755 "$DESTDIR"/$GRIMOIRE_LIBRARY/ &&
-find  . -type f -printf "%P\n" |
-tar_files >   "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar &&
-chmod 600     "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar
+if   [ -f "$CURRENT_INDEX"/sorcerer-iso9660 ] ||
+     [ -f "$CURRENT_INDEX"/deployment-docent ]
+then
+ find  . -type f -printf "%P\n" |
+ tar_files |
+ xz -8     >   "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar.xz &&
+ chmod 600     "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar.xz
+else
+ find  . -type f -printf "%P\n" |
+ tar_files >   "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar &&
+ chmod 600     "$DESTDIR"/$GRIMOIRE_LIBRARY/$SPELL.tar
+fi
 }
 
 post_install(){
