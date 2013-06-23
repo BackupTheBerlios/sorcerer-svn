@@ -11,7 +11,8 @@
 # gettext can compile using it's internal version of libcroco
 # if libcroco is not installed.
 
-with info    last 20130306
+with info    good 20130623
+with info    last 20130305
 with version stable 0.18.2.1 0.18.2
 with base    acl gcc-g++ libunistring m4 xz
 #with base    acl gcc-g++ libcroco libunistring m4 xz
@@ -29,3 +30,12 @@ with info    docs http://www.gnu.org/software/gettext/manual/gettext.html
 with info    cite 'GNU internationalisation library
 Many programs that have translated messages depend upon this
 library and tools.'
+
+build(){
+ if   [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ] ||
+      [ -f "$CURRENT_LOGS"/deployment-docent ]
+ then sed -i 's:doc intl:intl:'                    gettext-*/Makefile.in
+      sed -i 's:tests gnulib-tests examples::' gettext-tools/Makefile.in
+ fi
+ default_build
+}
