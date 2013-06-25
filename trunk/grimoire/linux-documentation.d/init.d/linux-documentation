@@ -1,0 +1,27 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Default-Start: 1 2 3 4 5
+# Short-Description: Extracts Linux documentation
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+if   ! rootfs
+then echo "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
+fi
+
+only start
+deny control
+
+start(){
+ local txz=/usr/src/linux/Documentation/Documentation.tar.xz
+
+ if    [ -f $txz ]; then
+  if   log_warning_msg "$txz extracting"; tar -Pxf $txz && rm -f $txz
+  then log_success_msg "$txz extracted"
+  else log_failure_msg "$txz extraction failed"; return 1
+  fi
+ fi
+}

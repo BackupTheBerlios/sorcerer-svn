@@ -1,4 +1,4 @@
-with info    last 20130612
+with info    last 20130624
 with base    linux-source
 with role    documentation
 with trait   data
@@ -6,8 +6,15 @@ with info    home http://www.kernel.org/
 with info    cite 'Provides /usr/src/linux/Documentation on I/R'
 
 build(){
- mkdir -pm 755 "$DESTDIR"//usr/src/linux/
- cp    -a    {,"$DESTDIR"}/usr/src/linux/Documentation
+ local d=/usr/src/linux/Documentation
+ mkdir -pm 755 "$DESTDIR"$d
+ find                    $d -type f |
+ grep  -v "/DocBook/\|/devicetree/\|/Documentation.tar.xz$" |
+ tar   --no-recursion -cPT -        |
+ xz    -7 >    "$DESTDIR"$d/Documentation.tar.xz
+
+# mkdir -pm 755 "$DESTDIR"//usr/src/linux/
+# cp    -a    {,"$DESTDIR"}/usr/src/linux/Documentation
 }
 
 current(){
