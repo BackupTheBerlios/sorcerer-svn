@@ -28,17 +28,17 @@ pcre is a library that implement regular expression pattern matching
 using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
+ trim_html(){
+  if     [ -f "$CURRENT_LOGS"/sorcerer-iso9660 ] ||
+         [ -f "$CURRENT_LOGS"/deployment-docent ]
+  then rm -fr "$DESTDIR"/usr/share/doc/pcre/html
+  fi
+ }
+
  export   CFLAGS="${CFLAGS//-flto/}"
  export CXXFLAGS="${CXXFLAGS//-flto/}"
  export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
  rm -f CMakeLists.txt
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
- default_build
-}
-
-current(){
- case $VERSION in
-  8.13) [ -f /usr/lib64/pkgconfig/libpcre.pc ] ||
-        [ -f   /usr/lib/pkgconfig/libpcre.pc ] ;;
- esac
+ default_build && trim_html
 }
