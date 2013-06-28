@@ -1,13 +1,19 @@
 # No idea where to download translated manual pages now.
 
-with version stable 3.51 3.50 3.48
 with info    last 20130420
-with source  stable https://www.kernel.org/pub/linux/docs/man-pages/man-pages-$VERSION.tar.xz
+with version stable 3.51 3.50
 CURL_PARAM=-k
+with source  stable https://www.kernel.org/pub/linux/docs/man-pages/man-pages-$VERSION.tar.xz
 #   source http://man7.org/linux/man-pages/download/man-pages-$VERSION.tar.gz
 with role    documentation/i18n
 with trait   data
 with info    home http://man7.org/linux/man-pages/
 with info    cite 'installs manual pages written in English'
 
-build(){ make BZIP2=xz bz2 install DESTDIR=$DESTDIR; }
+build(){
+ make BZIP2=xz bz2 install DESTDIR="$DESTDIR" &&
+ if   [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ] ||
+      [ -f "$CURRENT_LOGS"/deployment-docent ]
+ then rm -fr "$DESTDIR"/usr/share/man/man{2,3}
+ fi
+}

@@ -1,4 +1,5 @@
-with version stable 2.10.0 2.9.6 2.9.5
+with info    last 20130625
+with version stable 2.10.1 2.10.0 2.9.6
 with base    db pcre
 with elect   PAM       '' '' for pluggable authentication
 with elect   mysql     '' '' for MySQL support
@@ -7,8 +8,7 @@ with elect   openssl   '' '' for postfix with TLS support
 with sys_user mail mail /var/spool/mail
 with role    network/email
 with trait   console makej server
-with source  $POSTFIX_URL official/postfix-$VERSION.tar.gz
-with info    last 20130217
+with source  stable $POSTFIX_URL official/postfix-$VERSION.tar.gz
 with info    home http://www.postfix.org/
 with info    docs http://www.postfix.org/documentation.html
 with protect /etc/aliases
@@ -67,15 +67,15 @@ build(){
  sed -i 's:DB_VERSION_MAJOR == 4 && DB_VERSION_MINOR > 0:DB_VERSION_MAJOR >= 4 \&\& DB_VERSION_MINOR >= 0:
          s:db, 0, db_path:db, (DB_TXN *) 0, db_path:' src/util/dict_db.c
  make  -f Makefile.init makefiles \
- "CC=gcc"                         \
- "AUXLIBS=$AUXLIBS"               \
- "CCARGS=$CCARGS"                 \
- "OPT=$CFLAGS"                    &&
- make                             &&
- mkdir -p $DESTDIR/{etc,usr/lib}  &&
- sh ./postfix-install    -non-interactive install_root=$DESTDIR &&
- ln -fs ../sbin/sendmail $DESTDIR/usr/lib/sendmail &&
- ln -fs postfix/aliases  $DESTDIR/etc/aliases
+ "CC=gcc" \
+ "AUXLIBS=$AUXLIBS" \
+ "CCARGS=$CCARGS" \
+ "OPT=$CFLAGS" &&
+ make &&
+ mkdir -pm 755 "$DESTDIR"/{etc,usr/lib} &&
+ sh ./postfix-install    -non-interactive install_root="$DESTDIR" &&
+ ln -fs ../sbin/sendmail "$DESTDIR"/usr/lib/sendmail &&
+ ln -fs postfix/aliases  "$DESTDIR"/etc/aliases
 }
 
 post_install(){

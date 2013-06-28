@@ -82,10 +82,22 @@ post_install(){
  rm      -f      $p/usr/lib{,64}/locale/locale-archive
  rm      -fr     $p/usr/src
  mkdir   -pm 755 $p/usr/src/linux/Documentation
- cp      -alxt   $p/usr/src/linux/Documentation/ \
-                   /usr/src/linux/Documentation/Documentation.tar.xz
+# cp      -alxt   $p/usr/src/linux/Documentation/ \
+#                   /usr/src/linux/Documentation/Documentation.tar.xz
+ cp      -alxt   $p/usr/src/linux/ /usr/src/linux/Documentation/
+ rm      -fr     $p/usr/src/linux/Documentation/{DocBook,devicetree}
  rm      -fr     $p/var/log/*
  cd              $p
+
+ find            $p/aux -printf "/aux/%P\n" | sort | tar --no-recursion -cPT - > /aux/aux.tar
+ find            $p/usr -printf "/usr/%P\n" | sort | tar --no-recursion -cPT - > /usr/usr.tar
+ xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 /aux/aux.tar
+ xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 /usr/usr.tar
+ rm      -fr     $p/{aux,usr}/
+ mkdir   -pm 755 $p/{aux,usr}/
+ cp      -alxt   $p/aux/     /aux/aux.tar.xz
+ cp      -alxt   $p/usr/     /usr/usr.tar.xz
+
  find            $p -printf "%P\n" | sort |
  cpio -o -H newc --quiet > $pt &&
  xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 $pt
@@ -102,6 +114,8 @@ post_install(){
  rm    -fr       $ISO/boot/*/modules
  rm    -fr       $ISO/boot/{$LVER,}/initrf
  mv    $pt.xz    $ISO/boot/$LVER/initrf
+
+ rm    -f        /aux/aux.tar{,.xz} /usr/usr.tar{,.xz}
 
  install_isolinux
  cp -a /usr/doc/sorcery/LICENSE.SPL $ISO

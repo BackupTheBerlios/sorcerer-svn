@@ -1,6 +1,6 @@
-with info    good 20130525
+with info    good 20130626
 with info    last 20130106
-with version stable 3.1.9 3.1.8 3.1.7
+with version stable 3.1.9
 with role    development
 with trait   console solo makej optimize
 with source  stable http://samba.org/ftp/ccache/ccache-$VERSION.tar.xz
@@ -27,21 +27,26 @@ build(){
   ln -fs ccache g++
  }
 
-        LDFLAGS+=' -static'
- export LDFLAGS+=" $OPTS"
 
-sed -i 's:$(CFLAGS):$(CFLAGS) $(LDFLAGS):' Makefile.in
+ if   ! [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ] &&
+      ! [ -f "$CURRENT_LOGS"/deployment-docent ]
+ then
+         LDFLAGS+=' -static'
+  export LDFLAGS+=" $OPTS"
+ fi
 
-ac_cv_func_getpwuid=no \
-./configure            \
---prefix=$ulc          \
---bindir=$ulc          \
---sysconfdir=/etc      \
---localstatedir=/var   \
---mandir=/usr/man      \
-$OPTS                  &&
-make                   &&
-mkdir -pvm 755 "$DESTDIR$ulc" &&
-make    install DESTDIR="$DESTDIR" &&
-symlink_install
+ sed -i 's:$(CFLAGS):$(CFLAGS) $(LDFLAGS):' Makefile.in
+
+ ac_cv_func_getpwuid=no \
+ ./configure            \
+  --prefix=$ulc         \
+  --bindir=$ulc         \
+  --sysconfdir=/etc     \
+  --localstatedir=/var  \
+  --mandir=/usr/man     \
+  $OPTS &&
+ make   &&
+ mkdir -pvm 755 "$DESTDIR$ulc" &&
+ make    install DESTDIR="$DESTDIR" &&
+ symlink_install
 }
