@@ -31,17 +31,19 @@ start(){
   if   rootfs
   then mount $o /sys/fs/cgroup
   else
-   local r=$RANDOM$RANDOM
-   local h=$HOSTNAME
+   local r=/tmp/$RANDOM$RANDOM
+   local h=$r/$HOSTNAME
+
    if ! [      -d   /tmp ]; then
    mkdir  -m 1777   /tmp  ; fi &&
-   mkdir  -m 0755   /tmp/$r    &&
-   mount  $o        /tmp/$r    &&
-   mkdir  -m 0755   /tmp/$r/$h &&
-   mount  -n --bind /tmp/$r/$h /sys/fs/cgroup &&
-   umount -n        /tmp/$r    &&
-   rmdir            /tmp/$r    &&
-   sed    -i "s:/tmp/$r:/sys/fs/cgroup:" /etc/mtab
+   mkdir  -m 0755   $r         &&
+   mount     $o     $r         &&
+   if ! [      -d   $h ]; then
+   mkdir  -m 0755   $h  ; fi   &&
+   mount  -n --bind $h /sys/fs/cgroup &&
+   umount -n        $r &&
+   rmdir            $r &&
+   sed    -i "s:$r:/sys/fs/cgroup:" /etc/mtab
   fi
  }
 
