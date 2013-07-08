@@ -1,0 +1,140 @@
+Achieving comprehension for the bash manual page
+might be the most difficult challenge for a SA.
+Acquiring the lore for /sbin/ip
+and deciphering it's manual pages
+was more challenging for me.
+
+/sbin/ip can be used for immediate network configuration.
+/sbin/dhcpcd can also be used for immediate network configuration.
+Either is a fine idea if wanting
+to immediately download files.
+However, other methods exist
+for creating a network connection
+that automatically configures itself on each boot.
+
+The network templates provide a method
+for static and dynamic network configurations.
+Fallback can be created so that mobile computer
+can connect with multiple networks.
+Or if a computer should connect to any available network
+and receive network configuration information from a DHCP server
+then nothing further is required.
+
+/etc/init.d/auto-networks runs dhcpcd
+on every wired and wireless network adapter.
+Of course contacting a DHCP server fails
+when a network requires an encryption key.
+A menu driven interface exists
+to assist with WPA configuration.
+The command is:
+
+/etc/init.d/wpa_supplicant configure
+
+The opportunity to configure wpa_supplicant
+was probably offered during booting.
+However, macho SAs prefer running the commands:
+
+man wpa_supplicant
+mkdir -p /etc/wpa_supplicant/
+nano     /etc/wpa_supplicant/wpa_supplicant.conf
+
+The only way to be absolutely certain
+that the configuration file is correct
+is to personally edit it
+instead of leaning upon the crutch
+of a menu driven interface.
+
+If the networks are not using WPA encryption
+then skip creating a WPA configuration file.
+If the networks are using WEP encryption
+then consider purchasing network hardware
+that is less than a decade old.
+
+Configuration of network adapters
+must happen during sysinit.
+The best time is before before the VETH adapters
+are created for root file systems.
+Whatever works becomes the correct method
+for accomplishing the task.
+
+However, do not edit files that already exist
+in /etc/init.d/
+Customized init-scripts are not preserved
+when installed software updates.
+Modifications to any configuration file in /etc/
+are preserved during software updates.
+However, init-scripts are NOT configuration files.
+Therefore, a custom init-script must have a unique name.
+
+udevd rule files can also be used
+for configuring network adapters
+at the moment that udevd detects the hardware.
+However, I have not attempted network configuration using udevd.
+
+Some SAs want to use NetworkManager
+or a GUI program that configures NetworkManager.
+NetworkManager has heavy ELF library requirements.
+Consequently, NetworkManager is not available on the rootfs.
+Forget about NetworkManager.
+
+Not all SAs like network configuration.
+However, all SAs can accomplish network configuration.
+When in doubt ask on an email list or IRC channel.
+
+If all the documentation and manual pages are read
+then an average person has a very good chance
+of being able to accomplish network configuration.
+A 50% chance of success or better exists.
+The longer a person continues trying
+the more favorable the odds become.
+
+Anyone who can accomplish the task
+would not describe network configuration as difficult.
+For a SA that seldom attempts network configuration
+then accomplishing the task could require extra tenacity.
+
+After a computer is deployed then network configuration
+becomes slightly more complex.
+To make a change that is effective on the next boot
+requires login to the main root file system and editing files there.
+To make a change that has an immediate effect such as
+running dhcpcd or configuring for a new wireless network
+requires logging into the rootfs.
+Logging into the rootfs can be accomplished by using
+the logind running on the tty that provides that login.
+Otherwise login to the rootfs can be accomplished from
+any root file system by sshing to port 30 of the
+IP address for the computer.
+
+From the perspective of the root file system
+127.0.0.1 is not the IP address of the computer.
+127.0.0.1 is the IP address for the VETH in the root file system.
+Try the command
+# ssh -p 30 169.254.1.0
+That is the IP address for the first VETH adapter pair created
+for the portion that resides in the rootfs.
+sshd from the rootfs probably bound to that adapter
+and is awaiting connections.
+
+Considering the root file systems to be like virtual computers
+is inaccurate but provides a closer approximation to what they are.
+Each root file system receives
+it's own unique PID namespace
+and it's own unique network namespace.
+Consequently, they do seem a bit like virtual computers
+although they still all utilize the same Linux kernel.
+
+Having multiple network namespace might seem inconvenient
+when compared to computers that have only one network stack
+where the Ethernet and wireless adapters immediately accessible.
+However, enduring the inconvenience provides additional security.
+The rootfs acts as a firewall for all the root file systems.
+Therefore, if unexpected software
+is running on a root file system
+that is listening to a port
+then connection attempts made to the computer on that port
+might not be forwarded to the process.
+Instructions for configuring port forwarding
+are provided at a later step.
+This step is successfully completed when networking
+is configured to begin on each boot.

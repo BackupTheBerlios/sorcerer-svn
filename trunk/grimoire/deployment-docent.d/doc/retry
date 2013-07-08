@@ -1,0 +1,179 @@
+When additional software is elected for installation
+and the spells with those elective requirements are already in queue
+then the newly elected spells might not enter the queue.
+That can be fixed immediately by running:
+# augur begin
+
+If required spells are not already installed
+by the time that a spell becomes eligible to moil
+then moil will automatically fail the spell.
+
+Software that failed to moil
+can be easily retried
+by typing on the command line:
+
+# a r
+
+"a" is a convenience macro.
+It is described by running
+# augur help a
+
+Of course another method is to run a command such as:
+
+# augur queue | sed 's:moil/failed/:moil/:p;d' | augur begin
+
+The above command displays queued spells,
+selects the spells which failed,
+renames their queue to the moil queue
+and then passes the list to # augur begin.
+Augur begin then readmits the spells into the queue
+and begin processing.
+
+Spells can fail for a variety of reasons.
+The most obvious reason which generates
+an "Fail Auto" event was already explained.
+
+Some software projects provide make files
+with rules that are less than adequate for parallel make.
+Sometimes those software projects compile and install.
+Sometimes they fail.
+Improper make files might be difficult to detect.
+Consequently, a spell might be granted the makej trait
+which approves it for concurrent make,
+but the outcome might not always be successful.
+
+Spells might fail to moil because the required
+source files do not exist.
+The most logical reason for a source to not exist
+is because it failed to download.
+No POSIX can provide sources for every software project.
+However, the master source cache provides sources
+for almost every supported software project.
+
+Some software projects have a license agreement
+that requires the user of the software
+to visit the website and explicitly agree to the license
+before being granted a download URL.
+Such sources can not be automatically downloaded
+with the "load" program.
+Do not complain to POSIX maintainers about it.
+Even the POSIX maintainers must also visit those websites
+and download the source files manually.
+The POSIX maintainers are not creating the problem.
+Complain to the the people that own the copyrights
+for the software which they are intentionally
+making downloading an interactive process.
+
+Except for software that must be manually acquired
+then deployment will happen successfully
+either on the first try or the first retry.
+If a source is manually acquired
+then it can be copied into the source cache
+with the command :
+# augur sources
+where the following command line parameter
+specifies either the source name or the directory
+that contains the source.
+Then the source file is copied into proper locations
+within /aux/can/source/
+
+Most of the time the sorcery utilities make adequate judgment.
+The outcome might not always be as the SA desires.
+However, the utilities provide detailed logs.
+The logs for events are stored in /aux/log/event/
+While easily parsed by command line
+two augur command modules also assist with the task.
+
+# augur event
+# augur event-menu
+
+The event command can show events for a spell
+or events that happened within the the amount of days specified.
+
+# augur event 30
+
+The above command displays events
+that happened within the last 30 days.
+
+Some event logs contain content.
+That content might be the reason for an event.
+Or it might be data that was created by the event.
+Therefore, event logs could contain
+installation logs or compilation logs.
+The event-menu augur command module allows
+easy display of the content of an event log.
+
+Sometimes the output for event-menu looks odd.
+That is due to a bug in the dialog program.
+The requested output is 2 columns.
+The first column gives the name of an event log.
+The final column gives a C to indicate that
+the event log contains content or
+E to indicate that the event log is empty.
+Selecting an event log and pressing enter displays the content.
+
+# augur scry; augur event; augur event-menu; augur queue
+are the four primary methods for obtaining information
+about what sorcery has done and what it is doing.
+
+# augur queue
+
+when run above without additional parameters
+displays the contents of the queues and therefore
+provides a clue about what the sorcery utilities are doing,
+what they failed to do, or what they will be doing in the near future.
+
+SAs are welcome to examine and parse the content of /aux/log/event/
+The files are either empty, UTF-8, or gzip compressed UTF-8.
+Beware that the file names include the tab character,
+which can be reproduced by pressing CTRL-v before pressing the Tab key.
+
+If the purpose of each queue is not evident by it's name
+then detailed information is provided by the command:
+
+# augur help queue
+
+The queue system allows for many tasks to be managed concurrently.
+Some of the tasks can be executed concurrently.
+Frequently, 2 spells can have source files downloaded concurrently.
+Frequently, several spells can moil concurrently.
+However, tasks that involve file system input/output
+are prevented from running concurrently.
+Tasks with heavy I/O run sequentially.
+If not explained by augur help queue
+then watching the queues in action
+eventually demystifies the order of processing.
+
+The sequentially processing of heavy I/O tasks
+allows for near optimal probability
+that files are written to disk without fragmentation
+and at near optimal throughput.
+This is important because often 4 and 8 processor computers
+are attached to a single fixed disk.
+Therefore, if 8 processes concurrently perform heavy I/O tasks
+then a workstation could become unresponsive to a user's request,
+a server could delay noticeably before responding,
+or new programs might not immediately load,
+some processes might temporarily suspend,
+or video might lag for a moment.
+
+One method for minimizing I/O induced latency
+is by having separate delegated file systems
+for /aux/run/ /aux/can/ /tmp/ and /home/ for a root file system.
+Of course the use of dedicated file systems is encouraged.
+
+The other method is to do less concurrent I/O.
+The sorcery utilities accomplish performance
+by running I/O intensive tasks sequentially.
+Consequently, several queues exist
+to ensure that when a task completes
+then the flow of progress
+can transfer to a new process
+when the situation becomes ideal
+for accomplishing the next task.
+The serialization of heavy file system I/O tasks
+allows the sorcery utilities
+to run concurrently with production services
+while causing minimal delay
+when multiple processes compete
+for throughput on a file system.

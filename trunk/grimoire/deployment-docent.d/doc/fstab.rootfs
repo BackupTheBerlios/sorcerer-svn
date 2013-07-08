@@ -1,0 +1,304 @@
+/etc/init.d/mount runs during sysinit.
+/etc/fstab.rootfs is processed.
+Root file systems are mounted.
+Binds created.
+The order lines appear in /etc/fstab.rootfs
+is the order in which the actions happen.
+Therefore, order is important.
+
+During sysinit rootfs is mounted as /
+rootfs is always mounted as /
+Never mount anything directly on /
+Any other directory can become a valid mount point.
+However, root file systems are always mounted
+on the immediate sub directories of /media/root/
+
+Run level execution happens chrooted.
+Therefore, during runlevel execution
+a root file system appears to be mounted as /
+/etc/init.d/mount also executes during the runlevel.
+During runlevel /etc/fstab is processed.
+
+Each root file system can have it's own /etc/fstab
+Only the main root file system used to generate
+the initramfs images should have /etc/fstab.rootfs.
+
+Or that file can exist as /etc/rootfs/fstab
+The contents of directory /etc/rootfs/
+are copied to /etc/ early during sysinit.
+By this means alternate configuration files
+and alternate user group and password files
+can be provided for the rootfs
+if the ones inherited
+from the main root file system
+are insufficient for the rootfs.
+
+fstab is the abbreviation for file system table.
+However, over many years the format was amended slightly
+to provide additional functionality.
+For example /etc/fstab can also specify swap systems
+that can be activated or should be activated during runlevel.
+/etc/fstab.rootfs will only specify file systems and binds.
+
+The format for the fstab file is described by the manual page
+which can be viewed with the command:
+man fstab
+
+The mount manual page best describes binds.
+The mount manual page can be viewed with the command:
+man mount
+
+Binds allow part of a file system
+to also appear at another place.
+A bind is like a bridge or wormhole
+which created between two directories.
+Only directories can be bound.
+A bind can not exist between files.
+Files can be hard linked which is similar to a bind.
+However, hard links can not cross file system boundaries.
+binds lack that limitation.
+
+All root file systems are mounted
+in immediate sub directories of /media/root/
+/etc/fstab.rootfs can also specify binds.
+A bind is useful for concurrently sharing
+/home/ or other portions of a file system
+across multiple root file systems.
+And portions of file systems such as
+/aux/can/
+can also be mounted from /etc/fstab.rootfs
+which is useful if it is to receive additional binds.
+Then it can be bound to /media/root/main/aux/can/
+and  it can also be bound to /media/root/main/work/can/
+It can be bound in as many locations as the SA desires.
+
+If multiple root file systems existed
+on the same file system then that file system
+could first be mounted to some place other than /media/root/
+And then the directories containing root file systems
+could be bind to sub directories of /media/root/
+Or if the file system directories were sub directories
+of the top level directory
+then that file system could be mounted on /media/root/
+
+Typically, SAs create root file systems
+on a dedicated partition
+or a dedicate logical volume.
+Performance is the reason for that.
+However, on a computer that could have many root file systems
+that might change periodically
+then the use of a single file system to hold them all
+might be preferred instead of using partitions and logical volumes.
+
+So in summary /etc/fstab.rootfs is used during sysinit
+for mounting root file systems and additional file systems
+somewhere on the rootfs
+/etc/fstab within a root file system is parsed
+during run level for mounting file systems
+that should be mounted only within that root file system.
+
+Consider a /etc/fstab.rootfs for the Simplicity Plan.
+It might look like the following two lines:
+
+/dev/sda2	/media/root/main	ext4	defaults	0 0
+/dev/sda1	/media/root/main/boot	ext2	defaults	0 1
+
+Please grant additional attention to the sequence.
+The file system which contains the mount point
+for the root file system must be mounted
+before the boot file system can be mounted.
+The mount command probably aught to sensibly reorder
+the contents of /etc/fstab and /etc/fstab.rootfs
+before attempting to mount file systems.
+However, it does not.
+Proper order is responsibility of the SA.
+
+An alternate method would be
+
+/dev/sda2	/media/root/main	ext4	defaults	0 0
+
+in /etc/fstab.rootfs while /etc/fstab contains
+
+/dev/sda1	/boot	ext2	defaults	0 1
+
+Run level execution for a root file system occurs
+chrooted within the root file system.
+Consequently, /boot specified above is mounted
+while already chrooted within /media/root/main
+and therefore becomes mounted as /media/root/main/boot
+
+However, because all root file systems have unshared mnt namespace
+/media/root/main/boot will continue to appear empty
+when viewed from the rootfs
+unless the unshared mnt namespace
+of the root file system is entered.
+
+The format of a fstab file
+is also given by the fstab manual page.
+
+The first field of a fstab command is the fs_spec.
+Traditionally, a device name is used such as in the above examples.
+During the first decade of 2000 use of device names
+in fstab files became unpopular.
+The reasons where because of the changing device names
+provided by the Linux kernel and the the less than certain
+order in which devices will be assigned names after a hot-plug-able
+device is introduced.
+Therefore, a few other methods were introduced for identifying
+devices or more accurately file and swap systems.
+
+Some types of file systems are assigned UUID at creation.
+UUID is the abbreviation for universal unique identifier.
+Some file systems support labels.
+Labels must be manually assigned to a file system.
+The limitations such as which characters can be used
+and the length of a label is determined by the file system.
+The limited length of some file system labels
+give cause for not wanting to use labels.
+For many years I preferred using UUIDs.
+However, comments in a fstab file are useful for recalling
+which UUID belonged with each partition.
+
+With the introduction of GPT partitioning
+the ideas of UUIDs and labels was introduced
+into the partition table.
+Again this is something the SA must plan to use.
+
+The fstab manual page describes how to use labels.
+UUID= and LABEL= must occur to use the UUIDs and labels
+that are assigned to a system.
+However, if the GPT assigned UUIDs and labels are desired
+then those are accessed with PARTUUID= and PARTLABEL=
+If any confusion or errors exist concerning the use of
+UUID and LABEL for identifying partitions or systems
+then the computer might not reboot.
+Careful reading of the manual page is advised.
+
+Special nomenclature must be used in /etc/fstab{,.rootfs}
+in order to specify that a file system on a LUKS encrypted device
+will be mounted.
+Either the device name or the logical volume name or the UUID can be used.
+However, they must be properly prefixed with
+/dev/mapper/luks-
+
+Therefore, the /etc/fstab.rootfs for the Secure Mobility plan would be:
+
+/dev/mapper/luks-sda2	/media/root/main	ext4	defaults	0 0
+/dev/sda1		/media/root/main/boot	ext2	defaults	0 1
+
+The reason for using labels and UUIDs
+is because device names can change
+when hardware is added or removed
+or when the Linux kernel is upgraded.
+An assigned label or UUID would not change
+unless changed by the system administrator.
+
+Please be certain to specify all the file systems
+required for the selected plan.
+Otherwise the file systems will not be mounted during boot.
+And that could cause space on / to deplete rapidly.
+Depleting a file system's available space
+can cause unanticipated failures.
+
+The UUIDs assigned to devices
+can be discovered with the command:
+
+ls -la /dev/disk/by-uuid/
+
+or with the command:
+
+blkid /dev/sda1
+
+where the /dev/sda1 is replaced with the desired partition.
+
+If desired then /etc/fstab.rootfs
+can be later re-edited to replace device names
+with UUIDs or labels.
+For now device names are sufficient.
+But remember to change it shortly after deployment
+otherwise a kernel upgrade or plugging in a USB device
+might create a box that no longer boots.
+
+An entry for /etc/fstab.rootfs
+that contains a UUID might look like:
+
+UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/media/root/main	ext4	defaults 0 0
+
+Remember that the correct UUID for the device can be discovered
+with the command:
+ls -la /dev/disk/by-uuid/
+
+The device node names can change during boot.
+However, the UUID will remain the same
+unless changed by the SA.
+
+Devices can also be identified using shorter 15 byte maximum labels.
+However, not all file systems support labels in the same way.
+Some file systems support label size large than 15.
+And the bytes allowed in a label could vary.
+Labels tend to be a popular way
+for specifying and identifying file systems.
+However, UUID is the most certain method
+for identifying a file system.
+
+The manual pages for the file system creation tool
+for each file system probably contains information
+concerning the label such as appropriate content and length.
+Not all file systems are created with equal capabilities.
+XFS for example lacks a boot block,
+yet ext2, ext3, and ext4 all reserve the boot block
+area of space so that a boot loader could be installed.
+Installing a boot loader into an XFS file system corrupts it,
+because the area known as the boot block is not reserved.
+Learn a file system's boons, banes, and limitations
+before deploying it.
+
+Every file system which is created is assigned a unique UUID,
+unique universal identifier.
+Consequently, UUID seems safe and easy to use.
+No concerns exist about it that are similar to labels.
+
+Add comments in /etc/fstab{.rootfs,}
+that associate the UUID with the purpose of the file system.
+That way the UUID for the file system
+which is utilized for /boot becomes apparent
+from reading the comment.
+Comments in /etc/fstab{.rootfs,} begin with #
+Therefore, anything after a # is a comment.
+Comments are ignored when fstab files are parsed.
+
+Almost all configuration files in /etc/
+of a POSIX support the use of comments.
+However, the comment character is not universally #
+# is the most frequently used comment delimiter.
+Consequently, SAs are encouraged to use comments
+to provide information, justification, reasoning
+and other information in a configuration file.
+When looking at it a few years from now
+or when someone else is looking at it
+then what was intended and accomplished becomes apparent.
+
+For example if binding home then that portion of /etc/fstab.rootfs
+might look something like:
+
+# share /home/ among root file systems dev www ftp gui
+
+UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/home ext4 defaults 0 0
+/home /media/root/dev/home none bind 0 0
+/home /media/root/www/home none bind 0 0
+/home /media/root/ftp/home none bind 0 0
+/home /media/root/gui/home none bind 0 0
+
+The above comment and lines indicate that the same /home/
+would be visible when logged into
+/media/root/dev/
+/media/root/www/
+/media/root/gui/
+
+Remember that the other root file systems
+must have their mount line before the bind.
+Therefore, binds should almost always
+exist towards the end of a fstab file.
+
+More about bind mounts can be learned
+from reading the mount manual page.

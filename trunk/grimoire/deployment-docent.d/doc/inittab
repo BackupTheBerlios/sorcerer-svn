@@ -1,0 +1,94 @@
+If a desktop environment was installed
+and the desktop environment includes
+a GUI login program such as gdm, kdm, xdm
+then changing the default run level to 4 or 5
+is required for the program to execute during boot.
+The command for that is either:
+
+nano /etc/inittab
+
+And then manually make the change and save it.
+
+Otherwise the file can be edited
+using the stream editor called sed with the command:
+
+sed -i 's/id:[0-9]:/id:5:/' /etc/inittab
+
+Additional caution is advised while typing the above command.
+Otherwise the outcome might not become as expected.
+
+Verify that the init default run level changed to 5
+with the command
+
+grep '^id:' /etc/inittab
+
+If it says 3 then it was not changed.
+Try using nano instead.
+Editing the file with nano provides
+an opportunity for reading the comments
+which describe what the various run levels achieve.
+
+For more information about /etc/inittab execute the command:
+
+man inittab
+
+If a configuration file should be reverted to stock defaults
+then a command for that is:
+
+augur uncustom
+
+The following parameter to uncustom augur command module
+can be a path name or the name of a spell.
+A spell name as parameter cause all the configuration
+files for that spell to be uncustomized.
+
+augur uncustom /etc/inittab
+
+The above command reverts /etc/inittab to stock.
+However, it only works if the stock file exists in
+/aux/new/
+Therefore, the above uncustom request would cause
+/aux/new/etc/inittab to be copied to /etc/
+and replace the one that was modified.
+
+Stock configuration files are saved.
+A decent sized collection requires between 1 and 10 megabytes.
+Saving them in /aux/new/
+also provides the SA with an opportunity to examine
+the stock configuration file and see how the
+currently customized configuration file differs.
+A command that could do that would be something like
+
+diff {,/aux/new}/etc/inittab
+
+The above command executes with bracket expansion as if
+the above command was typed as:
+
+diff /etc/inittab /aux/new/etc/inittab
+
+If a currently customized configuration file is not working
+then the SA might decide to save it to a different name,
+revert to stock and then customize the stock configuration file.
+That can be useful when doing major upgrades of httpd for example.
+Some programs allow for additional configuration files to be specified
+which allows minimizing the amount of lines modified in the
+the software installed configuration file.
+With httpd often that can be the addition of a single line
+at the end which includes a separate file.
+And that separate file includes additional separate files.
+When possible to store customized configurations in separate files
+then that minimizes the chance that the customization will be lost
+or accidentally overwritten due to a bug.
+
+Typically, /etc/inittab is modified
+when a different default run level is desired.
+However, the run level can also be specified as a kernel parameter.
+Therefore, the run level can be entered using extlinux's menus
+before the kernel is loaded.
+
+Historically /etc/inittab described gettys
+that should be started during run levels.
+However, the concept of assigning gettys to virtual consoles
+is inconvenient for a POSIX that supports multiple root file systems.
+Consequently, this POSIX provides logind which
+conveniently launches login programs on available virtual consoles.

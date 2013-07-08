@@ -1,0 +1,74 @@
+Placing a password on the boot loader
+hinders someone with keyboard access
+from gaining administrator rights
+by rebooting a computer with kernel parameter
+rdinit=/bin/bash
+
+When a password exists
+then the boot loader will prompt for the password
+before loading the non default label.
+After the password is supplied then a non default label
+can be booted or edited to append or modify kernel parameters.
+
+The boot password should not be stored anywhere in clear text.
+Therefore, the password is not stored in the configuration file.
+Instead a md5 hash of the password is stored in the configuration file.
+Provided that the same password is entered
+then the md5 hash of the password matches
+the md5 hash in the configuration file.
+If an unauthorized person looks at the configuration file
+the password can not become evident by recording the md5 hash.
+
+Before installing the boot loader
+setting a boot password is advised.
+Otherwise the default boot password
+will remain as "sorcerer"
+
+Substitute something clever for $password.
+Execute the following command
+
+md5crypt <<< "$password"
+
+The output begins with
+$1$NaCl$
+The entire string is the md5 hash of the password.
+This time put it someplace useful such as the content of a variable:
+
+HASH="$( md5crypt <<< "$password" )"
+
+The output of md5crypt is now stored in the variable $HASH
+To verify that it is then execute
+echo $HASH
+
+The following command edits the configuration file:
+
+sed -i "s|PASSWD.*|PASSWD\t$HASH|" /etc/extlinux/head
+
+Look carefully at the above command and notice
+the locations of the 3 pipe symbols and one backslash symbol.
+And literally type $HASH rather than trying to manually
+substitute the hash value displayed on a line above.
+
+Verify a successful edit with the command:
+echo $HASH; grep PASSWD /etc/extlinux/head
+
+The same hash should be shown twice.
+
+Memorize the boot password.
+Never write it.
+Only type it when prompted to do so.
+
+Computers normally boot without prompting for the boot password.
+Therefore, the boot password remains
+a security measure rather than an inconvenience.
+However, if the computer is unable to boot the default label
+then trying the other labels requires the boot password.
+Without the boot password the above scenario
+can be fixed only by booting an Install/Rescue image.
+
+A variation or mutation of the root password
+can become a sensible possibility for the boot password.
+The system administrator might enter root's password
+several times each day.
+However, a boot password might only be entered quarterly.
+A unique boot password requires infrequent changing.

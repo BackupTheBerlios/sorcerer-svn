@@ -1,0 +1,225 @@
+Random Access Memory or RAM   is similar to short term memory.
+Space on mass storage devices is similar to long  term memory.
+Accessing data in RAM is fast.
+Accessing data from a mass storage devices is slow.
+
+A swap system is a portion of a mass storage device.
+A swap system temporarily store the content
+of less frequently accessed RAM.
+Then the RAM can be re-tasked when required.
+Swap systems are not an adequate substitute for RAM
+when tasks require significant amounts of RAM
+such as linking MesaLib or linking firefox.
+
+When a partition is initialized as a swap system
+then that partition is called a swap partition.
+When a file is initialized as a swap system
+then that file is called a swap file.
+Both swap partitions and swap files
+are collectively called swap space.
+
+Usage of RAM is made more efficient
+by moving infrequently accessed RAM contents
+into swap space.
+This is called swapping out.
+When RAM is backed by swap
+then the RAM can remain at it's current task
+or be immediately re-tasked.
+If re-tasked then the data remains
+in the swap system.
+When the data is accessed
+then it is read from the swap system into RAM.
+
+Not all of RAM contents can be swapped out.
+RAM used directly by the kernel for holding
+the kernel's own instruction code and data
+can not be swapped.
+Several factors control when RAM contents
+will be copied into the swap system.
+
+Processes are running programs.
+tmpfs are temporary file systems that exist in memory.
+Cache is the utilization of RAM
+to remember recently accessed data on block devices.
+Processes and tmpfs can use RAM and swap.
+Cache only utilizes RAM.
+A recent improvement in kernel version 3.9.0
+allows a SSD to be used for block device caching.
+
+When sufficient RAM is available
+then processes run at maximum speed
+without delay caused by swapping data
+between RAM and space space.
+However, not everything in memory
+will necessarily be accessed.
+Therefore, swap space can be used
+to prevent fast RAM from being wasted
+on the task of storing neglected data.
+
+Some plans have dedicated swap partitions.
+If the plan has a dedicated swap partition
+then initialize the swap partition.
+Also add the swap partition to file
+/media/root/main/etc/fstab
+The above file is created at a later step
+So do not edit it yet.
+
+/bin/swapon -a
+The above command does not yet support
+the -T parameter for specifying the fstab file.
+Therefore, /etc/init.d/swap activates the swap spaces
+specified in /etc/fstab on a root file system during runlevel.
+/etc/fstab.rootfs is used during sysinit
+for mounting file systems that attach to the rootfs.
+
+Some plans lack a dedicated swap partition.
+That is not problematic.
+swap files are automatically initialized
+and automatically activated
+to prevent excessive memory use
+from causing a swap lock scenario.
+Swap lock is when all processes
+remain suspend indefinitely
+while the kernel thrashes swap space.
+
+Automatically generated swap files
+are discarded during the next boot.
+Swap files do not require
+permanent delegation of disk space
+provided that available space exists
+where the swap file is created.
+
+Swap partitions and swap files serve the same purpose.
+However swap partitions have 3 additional benefits.
+Swap partitions are faster.
+Swap partitions do not fragment a file system.
+Suspend to disk requires an adequately sized swap partition.
+1/2 the size of installed RAM swap partition is usually sufficient.
+When performance or being able to suspend matters
+then a swap partition is a must.
+
+Even with a massive amount of installed RAM
+a 1 gigabyte swap system can provide a benefit.
+RAM can become fragmented.
+RAM can be de-fragmented.
+However, RAM being used by a process is not de-fragmented.
+The swap area can store the content
+of infrequently accessed RAM.
+Then the RAM can be de-fragmented.
+If the content is required again
+then it can be reloaded into less fragmented RAM.
+
+RAM that is not fragmented
+can be allocated in 2 megabyte pages.
+Granting a 2 megabyte page of RAM to a process
+is faster than having that process page fault
+512 times in order to receive the same amount of RAM
+provided at the rate of 4096 byte per page fault.
+
+RAM is not provided when a process invokes malloc.
+Malloc provides address space.
+When a process attempts to access/modify it's address space
+then a page fault can occur.
+During that page fault the process is suspended
+while the Linux kernel maps RAM to the address.
+Page faults reduce performance.
+Providing a 2 MB page of RAM increases performance.
+
+To gain a view of the current memory situation
+run the following command:
+cat /proc/meminfo
+
+The kernel can de-fragment memory to create 2 MB pages.
+When pressure for RAM exists the kernel can also
+reduce a 2 MB page into 512 4 kilobyte pages.
+Currently, only content of 4K pages of RAM
+can be transferred to a swap space.
+However, it can be read back into a 2 MB page of RAM.
+
+Obviously, the kernel can more efficiently manage RAM
+when the RAM is allocated sequentially in 2 MB pages.
+However, POSIX are multi-tasking operating systems.
+Processes can demand RAM concurrently.
+And so the kernel grants RAM
+on a nearly first come first served basis.
+
+When an abundance of RAM exists
+then the kernel can de-fragment it
+and also use it for the task of caching.
+Over-stocking installed RAM is possible.
+However, such boxes are rarely encountered.
+The kernel will use the excess RAM for cache
+while attempting to maintain a small yet sane
+amount of free RAM to rapidly start new processes
+or fulfill the needs of existing processes.
+That is why 512M of swap space could become
+a clubhouse for seldom accessed data
+on a workstation with many gigabytes of installed RAM.
+
+Unless configured to do otherwise
+the Linux kernel will happily over commit it's RAM.
+That is because Linux expects processes
+will not entirely use the address space requested.
+And Linux expects to be able to swap out
+infrequently accessed RAM contents.
+
+Read the following file to discover more about 2 MB pages:
+/usr/src/linux/Documentation/vm/transhuge.txt
+
+If Linux was an automobile rather than a kernel
+then transparent huge pages would be the turbo charger.
+And a 1G swap system would be the added inlets in the hood
+to provide additional air forced into the turbo charger.
+Certainly, Linux and transparent huge pages
+will work without a swap system.
+It will work less effectively.
+The more available RAM linux can create
+then the better it's probability
+of being able to de-fragment it.
+
+Allowing infrequently accessed RAM content to be swapped to disk
+allows the RAM to be re-tasked to kernel cache
+and to the task of maintaining an amount of free RAM.
+Having plenty of RAM available
+for the kernel's cache
+is an important factor in performance!
+
+Swap is about performance.
+Swap is not merely for enabling a computer
+with less than copious amounts of RAM to perform.
+Swap can enhance the performance of a computer
+that has copious amounts of installed RAM.
+
+Finally, as previously mentioned limits can be created
+to prevent Linux from allocating more than a specific
+amount of RAM and SWAP to a process.
+However, limiting each process is inconvenient.
+Therefore, several processes can be grouped together.
+Then the limit can be applied to the group.
+
+Limits can be applied to root file systems
+by modifying the control groups initialization
+that is done during sysinit.
+The command to run from the root file system
+that generates the initramfs images would be
+/etc/init.d/cgroup-init-rootfs configure
+
+If within a root file system
+and limits are desired for a user or users
+or system started services, etc...
+then those limits can be adjusted by running
+/etc/init.d/cgroup-init-root configure
+
+Controls groups are explained in directory
+/usr/src/linux/Documentation/cgroups/
+The documentation for the memory subsystem is in
+/usr/src/linux/Documentation/cgroups/memory.txt
+
+When running
+/etc/init.d/cgroup-init-rootfs configure
+then the directories are the FQDN for each root file system.
+If the FQDN for the testing root file system is
+test.bcgnt.gov
+then /sys/fs/cgroup/test.bcgnt.gov/ would exist
+and contain the hierarchy for that root file system.
+Limits can be set there.

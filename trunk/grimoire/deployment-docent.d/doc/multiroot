@@ -1,0 +1,622 @@
+Until 2013 most POSIX were single root POSIX.
+In 2013 Modern Magic evolved into a full multi-root POSIX.
+
+About 60 root file systems can exist.
+However, testing involved no more than 6 root file systems.
+Each root file system is mounted
+on an immediate sub directory of /media/root/
+Any deployment should have at least 2 root file systems.
+However, deployment with a single root file system remains possible.
+
+/media/root/main/ is the root file system common to all deployments.
+The main file system provides a minimal manifest of software
+for the purpose of updating and constructing the initramfs images.
+initramfs provide the files that populate the rootfs booting.
+The password for the root account on /media/root/main/
+becomes the password for the root account on the rootfs.
+Consequently, the person responsible
+for the computer should know the password.
+
+Other root file systems can be created
+that are specific to the role being performed.
+Root file systems on a server might be:
+/media/root/main/ /media/root/test/
+/media/root/mail/ /media/root/www/
+/media/root/ftp/  /media/root/dns/
+
+/media/root/ftp/ could contain software that is required
+for running a ftp server and for updating itself.
+Similar to /media/root/ftp/
+Each root file system will contain the software
+required for updating itself
+and software required to perform it's designated role.
+Consequently, each root file system
+also acts like a chroot jail
+which helps mitigate the penetration of an intrusion.
+
+If immune-security-tomoyo is also deployed
+then tomoyo can lock interlopers
+nearly inescapably within a root file system.
+EUID 0 processes could view as much as expected,
+but be surprised when unable to modify
+areas of the file system
+where system files are stored such as
+/etc/ /bin/ /sbin/ /usr/
+
+While able to exploit a current vulnerability
+in order to gain unauthorized access;
+tomoyo domains can prevent the interloper
+from installing a rootkit which would create a permanent backdoor.
+Consequently, an update could fix the vulnerability
+and prohibit the interloper's continued unauthorized access.
+
+The idea of running services with non root user,
+with capabilities dropped,
+and chrooted are not new ideas.
+A dedicated root file system
+for a service is not a new idea.
+
+For years those ideas were implemented
+by having role specific computers.
+When computers became over powered
+then a single computer's resources
+were partitioned and provided
+to several virtual computers.
+
+The new implementation is a host computer
+that runs multiple root file systems
+without running virtual computers.
+This can be accomplish by using
+chrooting and unshared namespace.
+The effect is that a single root kernel
+governs all aspects of system resource allocation
+and security for each root file system.
+The unshared name space
+gives each root file system
+it's own unique PIDs for processes,
+unique network stack,
+and other conveniences
+that allow each root file system
+to run while creating the illusion
+that it is the only root file system.
+
+If a development or test computer
+does not exist on a LAN
+then it should exist as a root file system.
+/media/root/dev/ or /media/root/test/ are suitable names.
+The manifest should including all the software
+that is installed on other root file systems.
+It should be updated prior to updating other root file systems.
+
+Problems with updates can be observed.
+Services can be verify expected responses verified.
+Encountering unwanted surprises
+on a root file system that has the purpose of testing
+helps mitigate down time on production file systems.
+Anticipated problems can be investigated, solved,
+circumvented, reported, and propagation of problems prevented.
+Therefore, root file systems that are hosting
+mission critical services can maintain maximum up-time.
+
+/media/root/www/ is obviously where the web server runs.
+However, if vhosting then the possibility exists
+that each FQDN can receive it's own root file systems.
+However, that could require additional IP address
+since vhosting typically associates multiple FQDNs
+with a single IP address.
+
+/media/root/dns/ could be the place
+where an authoritative name server for a domain runs.
+In contrast the names and roles of workstation's
+root file systems would probably differ.
+
+A possible configuration is:
+/media/root/main/ ;
+/media/root/work/ ;
+/media/root/user/
+
+/media/root/work/ could contain company approved software.
+/media/root/work/ could be intended for use on work related tasks only.
+However, a desire to install and run unapproved software could exist.
+/media/root/user/ can provide a root file system for unapproved software.
+The assigned user of the mobile computer can be granted
+the root account password for /media/root/user/
+Multiple root file systems allow for the possibility
+of delegation of authority to separate system administrators.
+
+If not granted an approved method for running unapproved software
+then clever users typically circumvent monitoring and rules
+by installing and running unapproved software
+inside a virtual machine.
+The disk file for the virtual machine
+would likely reside within the user's home directory
+or on the user's personal USB SSD.
+
+However, less than clever users run unapproved software directly.
+That grants the software an opportunity
+for gaining unauthorized access,
+reading user owned files, installing spyware, etc...
+And the less than clever use might have a password
+or two accidentally stored in clear text within ~/.bash_history
+How convenient is that?
+
+Every clever SA knows what each person
+is doing with their computers.
+When half or more of the staff violates rules
+then what becomes the best course of action?
+Terminating half the employees
+is no more an option than Roman army decimation.
+Both tactics create fear and distrust.
+Punishment and retribution does not promote
+quality nor productivity in a work place.
+
+Above all the SA must maintain the security
+of computers for which the SA is responsible.
+Therefore, the best course of action
+is to plan contingencies
+that help promote sufficient security
+even by those violating rules.
+
+People who make rules expect reality to warp
+in accordance with print on paper.
+In contrast, experienced SAs are always prepared
+to investigated, fix, and circumvent
+everything which does not go according to plan.
+If a problem can not be immediately fixed
+then it must be circumvented or mitigated
+as best as possible.
+That is what skilled SAs must do.
+
+Are virtual computers preferred
+to multiple root file systems?
+The answer varies.
+Security might seem more favorable with virtual computers.
+However, immune-security-tomoyo
+can help close many security gaps.
+
+Resource utilization is more favorable
+with multiple root file systems.
+Multiple root file systems
+are governed by a single Linux kernel.
+A single kernel can
+more effectively use RAM, SWAP, and block device caching.
+A host kernel and guest kernel in a virtual computer
+with memory ballooning is not as efficient as a single Linux kernel.
+The performance costs for using unshared namespace
+is considerably less than running para virtual computers.
+
+Unshared namespace allows multiple root file systems
+to approximate virtual computing.
+Each root file system will have it's own hostname
+which is stored in the file /etc/rootname.
+Each root file system can have
+it's own list of users groups and passwords.
+Each root file system contains it's own VETH for networking.
+
+If the hostname for the computer is ronin.net
+with root file systems such as:
+/media/root/main/ /media/root/dev/ /media/root/www/
+then the SA might write the rootnames for each as:
+main.ronin.net; dev.ronin.net; www.ronin.net.
+
+The first line from /etc/rootname becomes the rootname.
+Consequently, the hostname of the box can differ.
+The rootname specified in /etc/rootname
+must be a FQDN, fully qualified domain name.
+A DNS "A record" is not required.
+
+Each root file system also receives an unshared net namespace.
+A VETH, virtual Ethernet adapter,
+is created for each root file system.
+VETH devices are created in pairs.
+Each part of the pair acts like endpoints of a tunnel.
+One VETH adapter is moved into each root file system
+and the other portion of the pair remains in the rootfs.
+This way root file systems can send and receive packets
+with the networking stack in the rootfs.
+Consequently, the actual network adapters
+can remain in the rootfs's net namespace.
+
+IP addresses are assigned to each VETH.
+The IP addresses assigned to VETH are
+from the non-routable 169.254.1.0 to 169.254.254.255 range.
+Those IP addresses are designated for dynamic assignment
+in situations where DHCP is not used.
+The network stack in the rootfs is configured as a NAT,
+network address translator, for each root file system.
+Outbound TCP and UDP connections from root file systems
+will work without additional configuration.
+However, SAs must explicitly designate the ports
+that are forwarded from the rootfs network adapters
+to ports on the VETH in a root file system.
+In that configuration the rootfs network stack
+acts as a NATting firewall for root file systems.
+
+If the /etc/hosts in a root file system specifies
+an IP address and the FQDN that matches the rootname
+then the VETH is configured also with that IP address
+and a route is created in the net namespace of the rootfs
+that directs all packets with that destination
+to the VETH for that root file system.
+With a routed IP address
+then the NAT functionality can be ignored
+and all ports for the routed IP address can connect.
+The IP address assigned to a root file system
+can be globally routable or
+from the non-routable IP address ranges
+provided that it does not conflict
+with assignment of IP address
+of other computers on the network.
+
+Using explicit port forwarding and NATting provides
+additional security for a minuscule inconvenience
+of additional configuration.
+Using routable IP address provides the convenience
+of directly connecting to the ports of the VETH.
+Both are excellent choices.
+
+The non VETH network adapters in the rootfs net namespace
+can be assigned IP addresses by a DHCP server.
+However, root file systems
+should NEVER have their VETH configured by DHCP.
+Such a configuration does not work as expected.
+Nothing informs the rootfs net namespace
+to create a routing rule.
+Without a rule;
+the rootfs network stack rejects packets
+that would reach a VETH
+if the proper rule existed.
+
+/etc/port.forward in the rootfs describes
+the ports to forward from the rootfs's network adapters
+to ports of the VETH within root file systems.
+The file must exist also on the root file system
+which generates the intiramfs images
+that are used to populate the rootfs during booting.
+/etc/port.receive in a root file system
+requests that ports be forward to
+that root file system's VETH.
+
+The content of those files determine which ports are forwarded.
+
+Each line of /etc/port.forward contain 3 fields.
+The field separator can be space or tab.
+The first field is the FQDN for a root file system.
+The FQDN must match the content of only one
+/etc/rootname in all of the root file systems.
+The second field provides a port number or range
+for the actual network adapters in the rootfs.
+The final field provides the port numbers or range
+for the VETH adapter in the root file system.
+
+/etc/port.receive syntax is nearly the same as 
+/etc/port.forward
+Since the FQDN of the root file system
+is already known; delete the first field.
+Consequently, /etc/port.receive files
+contain only two fields
+and a single field separator per line.
+
+For menu driven configuration run:
+
+/etc/init.d/port.forward configure
+
+within the root file system
+that constructs the initramfs images used for booting.
+Or for menu driven configuration run:
+
+/etc/init.d/port.receive configure
+
+within the root file system that is requesting
+ports to be forwarded.
+
+Security is the reason
+for implementing two methods for forwarding ports.
+If the SA determines that requests for port forwarding
+should be ignored then that can be accomplished with the command:
+
+chmod 400 /etc/init.d/port.receive
+
+Changing the mode to read only for /etc/init.d/port.receive
+must be done within the root file system
+that is used to construct the initramfs images
+that provide the content for the rootfs.
+
+As previously mentioned,
+static assignment of an IP address to a VETH
+automatically grants a complimentary route
+from the rootfs network adapters to the VETH.
+If done then the VETH adapter should be accessible on the network.
+The root file system will appear as if
+it were a stand-alone computer on the network.
+Port forwarding is not required when a VETH
+was assigned a routable IP address.
+However, port forwarding still works.
+
+The port forwarding method provides security.
+The static assignment of IP address provides convenience.
+If an IPv6 address is desired for a VETH
+then that IPv6 address must be entered into the /etc/hosts
+inside that root file system.
+IP_ADDRESS	rootname	nickname
+If the format for /etc/hosts is not already known
+then the manual page for it provides the details.
+man hosts
+The above command displays the manual page for /etc/hosts
+
+The unshared PID namespace creates the illusion
+that process processes running in the root file system
+are the only processes begin run by the Linux kernel.
+
+Using a combination of unshared
+MNT, UTS, IPC, NET and PID namespace
+allows each root file system to seem
+nearly as if it was it's own computer.
+If Linux capabilities are discarded
+from the processes in the namespace
+or if services for that name space
+run in the limited or user tomoyo domains
+then escape from the name space
+becomes difficult or perhaps impossible.
+
+Obviously, since a single Linux kernel
+is in use for all of the root file systems;
+a certain amount of damage can be accomplished
+with EUID 0 and a malicious intent.
+
+The combination of limits by control groups,
+installing immune-security-tomoyo,
+and possibly dropping Linux capabilities
+can help mitigate potential for damage.
+
+Performance and memory sharing
+is better than can be achieved with virtual computers.
+The security and isolation might not be perfect, yet.
+The situation is improving.
+
+Use of unshared namespace was conceived in 2000.
+However, the kernel implementation, glibc functions,
+and command line tools are new toys for 2012/2013.
+Consequently, not all POSIX will be revised
+to support multiple root file systems
+when using virtual computers
+provides a similar solution.
+
+Now that the concept of individual root file systems
+mounted on /media/root/*/ is understood
+the difference between rootfs and /media/root/main/
+should be learned.
+
+rootfs is a combination of TMPFS and RAMFS.
+RAMFS is a Random Access Memory File System that exists
+entirely in RAM without limits on capacity and inodes.
+TMPFS is like a RAMFS because it exists in RAM.
+However, the content of TMPFS can be swapped.
+And TMPFS is assigned a capacity and inode limit.
+The rootfs has all of the characteristics of RAMFS
+yet can be swapped like TMPFS.
+
+The purpose of rootfs is to provide a root file system
+until disk or network based file systems can be mounted.
+At that point most POSIX discard the content of their rootfs
+and entirely chroot into the root file system.
+
+The rootfs is populated from the content of initramfs images.
+initramfs images are cpio archive files.
+Begin compressed by gzip or xz is optional.
+
+The content of rootfs is not a clone of /media/root/main/
+Instead portions of /media/root/main/
+are are provided in the initramfs images.
+/bin/ /etc/ /init/ /lib/ /lib64/ /sbin/ are typically provided.
+However, only useful portions from each are provided.
+Only a few files from /usr/ are provided.
+/media/root/main/ might contain between 2 and 8 gigabytes.
+However, the rootfs might only contain 200 megabytes.
+
+/media/root/main/ and rootfs roles differ.
+The initramfs images contain files for booting,
+trouble shooting, and administrative tasks.
+/media/root/main/ contains the files provided on the rootfs
+and also developmental tools for updating installed software.
+
+Since the initramfs images are compressed
+about half the size is loaded from disk or network.
+After content from the cpio images extract onto the rootfs
+then the RAM storing those initramfs images becomes available.
+When more RAM becomes required
+then most of the rootfs' content
+can be swapped to disk.
+
+If the concept of rootfs is not yet clearly understood
+then a person might feel tempted to ask the question,
+"Does the rootfs require modification or updates?"
+Obviously, it does not.
+The rootfs exists only in memory.
+Consequently, modifications to the rootfs
+are discarded during reboot and shutdown.
+
+/media/root/main/ is the typical origin of the rootfs.
+The root file system that generates
+the initramfs images should be updated and modified.
+Modifications made to that file system
+become modifications to the rootfs on the following boot.
+
+The final question is probably,
+"If rootfs is a shadow of /media/root/main/
+then why have rootfs instead of using /media/root/main/ ?"
+
+First, the Linux kernel has a size limit.
+If the kernel is too large to boot
+then it reports that and fails to boot.
+Second, compiling some drivers directly into the Linux kernel
+causes the Linux kernel to crash.
+Third, providing modules allows their size to be reduced.
+Forth, modules can be loaded into the kernel when required.
+Fifth, modules that fail can be unloaded and re-loaded.
+Sixth, the content of RAM required by the kernel
+can not be sent to swap.
+Therefore, having a minimal selection of modules loaded
+allows more RAM to be tasked to processes and caching.
+
+Some POSIX might appear to be able to boot
+without using separate initramfs images.
+Those Linux kernels have the initramfs image
+linked directly into the kernel itself.
+A large Linux kernel file
+is loaded from disk during booting.
+However the POSIX still boots using a rootfs.
+
+Of course a rare exception exists.
+Sometimes a SA creates a monolithic kernel configuration.
+Such kernels contain compiled in drivers for all the
+devices, file systems, protocols, expected to be used on that computer.
+Monolithic kernels typically can boot
+only the computer for which the kernel was designed.
+Few SAs possess the skills to correctly custom craft
+a usable monolithic kernel configuration.
+POSIX that are designed
+to be deployed on a variety of hardware
+will not provide monolithic kernels
+nor monolithic kernel configurations.
+A monolithic kernel configuration
+fails to properly boot and shutdown
+on a Modern Magic box.
+
+Because a file system must be extracted
+from initramfs onto rootfs
+then why do other POSIX discard the rootfs?
+A typical POSIX creates minimally sized initramfs.
+It boots or fails.
+Failure requires an Install/Rescue CD.
+If the rootfs is successful
+then the content of the rootfs is removed
+and execution continues after chrooting
+into a single root file system.
+
+For all the effort and time required
+to generate initramfs images
+and to load initramfs images on each boot;
+why discard the content of the rootfs?
+Instead why not fill it with useful programs?
+Then the rootfs can be used
+to trouble shoot problems.
+
+The rootfs remains a stable platform
+for investigating and sniping problems
+from a vantage point beyond potential retaliation.
+The rootfs can be logged into.
+Then all root file systems can be unmounted.
+File systems can be fscked.
+New file systems can be created.
+Backups can be restored.
+Nearly any type of software related repair
+can be accomplished from the rootfs
+without rebooting with an Install/Rescue image.
+
+As suggested in the above paragraph,
+this POSIX retains the rootfs after booting.
+Inactive portions of the rootfs
+can be swapped out of RAM.
+Consequently, the benefit of retaining the rootfs
+costs minimal amounts of RAM.
+
+Booting can fail when less than 1G of RAM is installed.
+The actual limit might be closer to 0.5G,
+but gradually grows over time.
+Sufficient installed RAM is required during booting 
+because contents of RAM can not be swapped to disk
+until after the swap systems are activated.
+The cpio images must be decompressed
+and have their content extracted to rootfs
+before swap systems can activate.
+
+An exception might exists involving
+the passing of a kernel command line parameter.
+However, I have not tried it.
+It is not described in
+/usr/src/linux/Documentation/kernel-parameters.txt
+
+Some of the software projects,
+such as MesaLib and firefox,
+use about 1 gigabyte of RAM during linking.
+Therefore, the amount of RAM required
+for software compilation and linking
+also serves as an acceptable limit.
+
+Why create smaller less functional initramfs
+that are suitable for booting
+legacy computers and embedded devices
+when such computers lack sufficient RAM
+for compiling and linking software?
+Consider sacrificing the 75% or more
+of the initramfs's functionality
+to become able to boot computers
+that are incapable of installing software.
+Every year people beg me to do this.
+I tell them to install more RAM.
+
+If deployment on a legacy computer
+or embedded device is desired
+then the solution is to deploy
+a pre-compiled binary package based POSIX.
+Package based POSIX conform to the paradigm
+which expects computers to lack
+sufficient CPU, RAM, and file system space
+that required for software compilation and linking.
+That is why those POSIX provide
+pre-compiled packages
+instead of source tarballs.
+
+Source based POSIX should never be designed
+for deployment on computer hardware
+that is older than top of the line for 10 years ago.
+I do not deploy a workstations
+with less than 2 gigabytes of installed RAM.
+With only 1G of installed RAM;
+users complain about unresponsiveness during updates.
+With 2 gigabytes of installed RAM users do not complain.
+
+Wielding the amazing power of an amazing POSIX
+requires an amazing computer.
+Mediocre POSIX are required for mediocre computers.
+
+Icing enhances the flavor of cake.
+How about a vanilla lemon icing on a red building brick?
+Does it taste like cake?
+Or does the gritty tooth destroying texture
+remain less than palatable?
+
+Deploying Modern Magic on a computer 
+that has less than 1G installed RAM
+is not impossible for a clever SA.
+However, the computer will nearly swap lock
+as it thrashes for hours while attempting
+to link large software projects.
+If the device that contains the swap system
+is very fast and the computer almost has enough RAM
+then linking might only require between
+1 and 24 hours where the computer
+becomes incapable of doing anything else.
+Is that not the metaphorical meal
+of gnawing an icing covered red building brick?
+
+Compilation and linking of large software projects
+requires at least 1G of RAM.
+Some will soon require more than 1G RAM
+And more than 1G of RAM is required
+for the computer to maintain smooth operation
+during software compilation and linking
+instead of enduring process suspension during swapping.
+Consequently, a work station should have
+at least 2G of installed RAM.
+
+The software authors are responsible
+for the amount of RAM required for compilation and linking.
+Therefore, computers that are incapable
+of software compilation and linking
+should deploy legacy package based POSIX.
+Packages provide software
+that is already compiled and linked.
+This POSIX does not provide packages,
+because it is source based.
