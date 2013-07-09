@@ -7,15 +7,16 @@
 
 # recursive requirement on portaudio
 
+with trait   broke
 with info    good 20130709
-with version stable 0.121.3
+with version stable 1.9.9.5
 with base    celt libsamplerate libsndfile libvorbis ncurses readline
 with elect   alsa-lib  --with-alsa --disable-alsa for audio ouput using alsa
 #with elect   portaudio ''          ''             for portaudio cross platform audio library support
 with also    --enable-stripped-jackd
 with role    audio/mixer
-with trait   library makej multilib-concurrent server
-with source  stable http://jackaudio.org/downloads/jack-audio-connection-kit-$VERSION.tar.gz
+with trait   library makej multilib-dual server
+with source  stable jackaudio.org/downloads/jack-$VERSION.tar.bz2
 #   source $SOURCEFORGE_URL jackit/jack-audio-connection-kit/$VERSION/jack-audio-connection-kit-$VERSION.tar.gz
 with info    vurl http://jackaudio.org/download
 with info    home http://jackit.sourceforge.net/
@@ -33,9 +34,19 @@ all clients, and low latency operation.'
 
 
 build(){
+ ./waf configure --prefix=/usr && 
+ ./waf build &&
+ DESTDIR=$DESTDIR ./waf install
+
+# Various compilation options can be seen using ./waf --help.
+}
+
+build_sord(){
+ ./waf configure --prefix=/usr &&
+ ./waf -j1 &&
+ DESTDIR=$DESTDIR ./waf install &&
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then with also --libdir=/usr/lib64
- else with also --libdir=/usr/lib
+ then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+      sed -i 's:/lib$:/lib64:' $DESTDIR/usr/lib64/pkgconfig/*.pc
  fi
- default_build
 }
