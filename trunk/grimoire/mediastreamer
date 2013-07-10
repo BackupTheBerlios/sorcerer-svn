@@ -1,48 +1,19 @@
-# Has a base requirement on speex.
-
-#with trait   broke
-#with info    good 20130227
-with info    omit 20140101
+with info    good 20130709
 with info    last 20130618
 with version stable 2.9.0 2.8.2
-with base ortp v4l-utils
+with base    ortp v4l-utils
 with elect   alsa-lib   --enable-alsa       --disable-alsa
+with elect   ffmpeg     --enable-ffmpeg     --disable-ffmpeg
 with elect   gsm        --enable-gsm        --disable-gsm
+# elective on libvpx inherited from ffmpeg
+#with elect   libvpx
 with elect   portaudio  --enable-portaudio  --disable-portaudio
 with elect   pulseaudio --enable-pulseaudio --disable-pulseaudio
 #with elect   speex      --enable-speex      --disable-speex
 with also    --disable-speex
 with also    --enable-static=no --disable-tests
-case $VERSION in
- 2.8.2)
-with also    --disable-ffmpeg
-#with base    ffmpeg-v0.7 ;;
-esac
 with role    network/telephone
 with trait   console gnome library makej multilib-fail
 with source  stable http://download.savannah.nongnu.org/releases/linphone/mediastreamer/mediastreamer-$VERSION.tar.gz
 with info    home http://www.linphone.org/
 with info    cite 'streaming engine required for google talk libjingle in kopete'
-
-build(){
- ffmpeg_legacy(){
-  local SUFFIX
-
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then SUFFIX=64
-  else SUFFIX=
-  fi
-
-  export   CFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
-  export CXXFLAGS+=' -I/opt/ffmpeg/0.7/usr/include'
-  export      PKG_CONFIG_PATH="/opt/ffmpeg/0.7/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
-  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/0.7/usr/lib$SUFFIX"
- }
-
-# case $VERSION in
-#  2.8.2) ffmpeg_legacy ;;
-# esac
- default_build
-}
-
-# current(){ echo mediastreamer | pipe_queue "$REAPL_QUEUE"; }
