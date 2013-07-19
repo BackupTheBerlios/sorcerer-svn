@@ -1,0 +1,38 @@
+# Could probably benefit from some init-scripts
+# However, I prefer to read the documentation before writing them.
+# So maybe later if anyone wants to use nginx send me an email - KS
+
+# This installs some files in /
+# apparently disregards what was given to ./configure
+
+with trait   broke
+#with info    good 20130715
+with info    last 20130507
+with version   stable   1.4.1
+with version   mainline 1.5.2
+# with base
+# with elect
+with role    network/proxy
+with trait   console makej optimize server
+with source  stable   http://nginx.org/download/nginx-$VERSION.tar.gz
+with source  mainline http://nginx.org/download/nginx-$VERSION.tar.gz
+with sys_user nginx nginx /var/empty
+with info    home http://nginx.org/
+with info    cite 'nginx is a HTTP and reverse proxy server and mail proxy server'
+
+build(){
+ ./configure \
+  --user=nginx \
+  --group=nginx \
+  --prefix=/usr/share/nginx \
+  --sbin-path=/usr/sbin \
+  --pid-path=/run \
+  --lock-path=/run/lock \
+  --error-log-path=/var/log/nginx \
+  --conf-path=/etc \
+  --with-ipv6 \
+  $OPTS
+ make &&
+ make install DESTDIR="$DESTDIR"
+}
+
