@@ -36,14 +36,25 @@ with trait   console library makej lto_off multilib-dual
 # Must be multilib-dual while
 # ./configure accepts but source disregards --libdir=/usr/lib64
 with source    stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
-#with source    stable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.tar.gz
+with source    stable http://www.llvm.org/releases/$VERSION/cfe-$VERSION.src.tar.gz
+with source    stable http://www.llvm.org/releases/$VERSION/clang-tools-extra-$VERSION.src.tar.gz
 with source  unstable http://www.llvm.org/releases/$VERSION/llvm-$VERSION.src.tar.gz
+with source  unstable http://www.llvm.org/releases/$VERSION/cfe-$VERSION.src.tar.gz
+with source  unstable http://www.llvm.org/releases/$VERSION/clang-tools-extra-$VERSION.src.tar.gz
 with info    home http://www.llvm.org
 with info    vurl http://www.llvm.org/releases/
 #with clash   ocaml
 with info    cite 'low level virtual machine'
 
 build(){
+ if   [  -d cfe-3.3.src ]
+ then mv -v cfe-3.3.src tools/clang
+ fi
+
+ if   [  -d clang-tools-extra-$VERSION.src ]
+ then mv -v clang-tools-extra-$VERSION.src tools/clang/tools/clang
+ fi
+
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
  then with also -DLLVM_LIBDIR_SUFFIX:STRING=64
