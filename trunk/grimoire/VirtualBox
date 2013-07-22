@@ -1,5 +1,5 @@
-# Use qemu-kvm instead.
-# qemu-kvm is better.
+# Use qemu instead.
+# qemu is better.
 
 # Version 4.1.8 compiles and installs
 # however I have not created any init-scripts for it.
@@ -8,8 +8,10 @@
 # Version 4.2.2 4.2.0 4.1.14 4.1.12 4.1.10 fail compilation
 # 4.2.6 not tested
 
-with version   stable 4.1.8
-with version unstable 4.2.6
+with info    good 20130722
+with info    last 20130704
+with version   stable 4.2.16 4.1.8
+#with version unstable 4.2.6
 with base    Dev86 Python SDL acpica makeself pulseaudio
 with elect   curl
 with also    --disable-hardening --disable-qt4 --disable-java --build-headless --disable-docs --disable-xpcom
@@ -18,25 +20,59 @@ with trait   x11
 with source    stable http://download.virtualbox.org/virtualbox/$VERSION/VirtualBox-$VERSION.tar.bz2
 with source  unstable http://download.virtualbox.org/virtualbox/$VERSION/VirtualBox-$VERSION.tar.bz2
 with info    vurl http://www.virtualbox.org/wiki/Downloads/
-with info    last 20121021
 with info    home http://www.virtualbox.org/
 with info    docs http://www.virtualbox.org/wiki/Documentation
 with info    cite 'a computer emulator'
 
 build(){
+ copy_linux_source(){
+  local    d=/usr/src/linux
+  local c=$d/.config.custom
+  local s=$d/.config.stock
+
+  if   ! [ -d "$d" ]; then
+   echo "$d must exist"
+   echo "Execute: au begin linux-source"
+   return 1
+  fi
+
+  cp -a $d .
+
+    if [ -f $c ]; then cp $c linux/.config
+  elif [ -f $s ]; then cp $s linux/.config
+  else
+   echo "$c does not exist"
+   echo "$s does not exist"
+   echo "$c or $s must exist"
+   echo "Execute: au begin linux-config"
+   return 1
+  fi
+
+  cd linux
+  yes '' |
+  make oldconfig
+  make prepare scripts
+  cd ..
+  linux_dir="$PWD/linux"
+  with also --with-linux="$linux_dir"
+ }
+
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export LDFLAGS+=" -L/lib64"
  else export LDFLAGS+=" -L/lib"
  fi
 
  sed -i 's:LIBX11=.*:LIBX11="-lXext -lX11":' configure
+ sed -i 's:WITH_LIBIDL=1:WITH_LIBIDL=0:' configure
 
+ local linux_dir
+ copy_linux_source &&
  ./configure $OPTS &&
  . ./env.sh      &&
  kmk         all &&
  cd out/*/release/bin/src &&
- make    install "DESTDIR=$DESTDIR" &&
+ make    install DESTDIR="$DESTDIR" KERN_DIR="$linux_dir" &&
  cd      ../../ &&
- mkdir -pvm 755 $DESTDIR/opt &&
- cp -av bin     $DESTDIR/opt/VirtualBox
+ mkdir -pvm 755 "$DESTDIR"/opt &&
+ cp -av bin     "$DESTDIR"/opt/VirtualBox
 }
