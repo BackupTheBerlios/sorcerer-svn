@@ -32,21 +32,6 @@ build(){ :; }
 
 post_install(){
 
- mod_mode(){
-  inits(){ find /etc/init.d -mindepth 1 -maxdepth 1 -type f "$@"; }
-  if   [ -z "$( inits -perm 510 )" ]; then
-   inits -perm 700 | xargs -r --max-lines=256 chmod 510
-   inits -perm 740 | xargs -r --max-lines=256 chmod 500
-   inits -perm 600 | xargs -r --max-lines=256 chmod 400
-  fi
- }
-
- fix_inittab(){
-  if   grep -q   /dev/tty       /etc/inittab
-  then sed -i 's:/dev/tty:tty:' /etc/inittab
-  fi
- }
-
  ati_to_amd_fix(){
   if spell_installed ati-driver-installer; then
    echo amd-driver-installer | pipe_queue "$LOAD_QUEUE"
@@ -244,8 +229,6 @@ post_install(){
  # Temporary fixes to provide for 6 months.
 
  current_log_fix		#	20130515
- mod_mode			#	20110706
- fix_inittab			#	20110912
  ati_to_amd_fix			#	20120412
  aux_dirs			#	20120823
  remove_shared			#	20121007

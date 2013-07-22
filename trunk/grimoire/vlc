@@ -47,7 +47,7 @@ with elect   x264        --enable-x264     --disable-x264     for H264 encoding 
 #with switch  --enable-v4l      --disable-v4l      for Video4Linux support
 with also    --enable-static=no --disable-nls --disable-swscale
 with role    video/dvd video/player
-with trait   kde4 library makej multilib-dual x11
+with trait   kde4 library makej multilib-dual optimize x11
 with source    stable http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.xz
 with source  unstable http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.xz
 with source    secure http://download.videolan.org/pub/videolan/vlc/$VERSION/vlc-$VERSION.tar.xz
@@ -85,6 +85,19 @@ build(){ (
 # case $VERSION in
 #  2.0.5) sed -i 's:-Werror::' aclocal.m4 configure{,.ac} m4/visibility.m4 ;;
 # esac
+
+## The following 4 lines does not fix the excessive linking for the plugin.
+# if ! echo "$OPTS" | grep -q -- --disable-pulse; then
+#  export PULSE_CFLAGS="$(  pkg-config libpulse --cflags )"
+#  export PULSE_LDFLAGS="$( pkg-config libpulse --libs   )"
+# fi
+
+ if ! echo "$OPTS" | grep -q -- --disable-pulse; then
+  if   ! [[ $CFLAGS =~ -m32 ]]
+  then export LDFLAGS+=' -Wl,-rpath,/usr/lib64/pulseaudio'
+  else export LDFLAGS+=' -Wl,-rpath,/usr/lib/pulseaudio'
+  fi
+ fi
 
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  ./configure \
