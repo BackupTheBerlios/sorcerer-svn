@@ -85,18 +85,22 @@ with hold    mozilla
 with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
 
 build(){
+ link_icons(){
+  local hi="$DESTDIR"/usr/share/icons/hicolor
+  local id="$DESTDIR"/usr/lib
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then id+=64
+  fi
+  id+=/firefox-$VERSION/browser/chrome/icons/default/default
 
- symlink_icons(){
-  install -vdm 755 "$DESTDIR"/usr/share/applications
-  install -vm  644 "$SCRIPT_DIR"/applications.d/firefox.desktop "$DESTDIR"/usr/share/applications
-  mkdir -p "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default16.png \
-         "$DESTDIR"/usr/share/icons/hicolor/16x16/apps/firefox.png
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default32.png \
-         "$DESTDIR"/usr/share/icons/hicolor/32x32/apps/firefox.png
-  ln -fs /usr/lib/firefox-$VERSION/chrome/icons/default/default48.png \
-         "$DESTDIR"/usr/share/icons/hicolor/48x48/apps/firefox.png
-  true
+  install -dvm 755 "$DESTDIR"/usr/share/applications/ \
+                   "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps/
+  install  -vm 644 "$SCRIPT_DIR"/applications.d/firefox.desktop \
+                   "$DESTDIR"/usr/share/applications/
+
+  ln -f "${id}16.png" "$hi/16x16/apps/firefox.png"
+  ln -f "${id}32.png" "$hi/32x32/apps/firefox.png"
+  ln -f "${id}48.png" "$hi/48x48/apps/firefox.png"
  }
 
  make_install(){
@@ -109,7 +113,7 @@ build(){
        ln -fs firefox-$VERSION "$DESTDIR"/usr/lib/mozilla
   fi
   rm -fr /usr/lib{,64}/mozilla
-  symlink_icons
+  link_icons
  }
 
  if    [[ $HOSTTYPE == x86_64 ]]; then

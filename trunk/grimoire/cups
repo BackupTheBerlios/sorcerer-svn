@@ -31,11 +31,11 @@
 
 # No luck downloading 1.6.3 on 20130716
 
-with info    last 20130711
-with version   stable 1.6.2 1.6.1
-#with version   stable 1.6.3 1.6.2 1.6.1
-with version unstable 1.7rc1 1.7b1
-with version   legacy 1.6.1
+# 1.6.3 failed to link?
+# 1.6.3 attempted to compile and link using clang rather than gcc.
+
+with info    last 20130722
+with version   stable 1.6.3 1.6.2 1.6.1
 with base    acl libpng mxml openslp popt tiff
 #with base    acl libcap libpng openslp popt tiff
 with elect   PAM       --enable-pam     --disable-pam     for pluggable authentication
@@ -56,28 +56,8 @@ with also    --enable-openssl --disable-gnutls --without-rcdir
 
 with role    printer
 with trait   console library makej multilib-dual
-with source  stable \
-           http://ftp.easysw.com/pub/ \
-            ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
-            ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
-            ftp://ftp.ntua.gr/pub/gnu/ \
-            cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-with source  unstable \
-           http://ftp.easysw.com/pub/ \
-            ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
-            ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
-            ftp://ftp.ntua.gr/pub/gnu/ \
-            cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-with source    legacy \
-           http://ftp.easysw.com/pub/ \
-            ftp://ftp.funet.fi/pub/mirrors/ftp.easysw.com/pub/ \
-            ftp://ftp.mpg.goe.ni.schule.de/pub/internet/printing/ \
-            ftp://ftp.ntua.gr/pub/gnu/ \
-            cups/${VERSION/*svn*/snapshots}/cups-$VERSION-source.tar.bz2
-
-with source    stable $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
-with source  unstable $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
-with source    legacy $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
+with source  stable http://www.cups.org/software/$VERSION/cups-$VERSION-source.tar.bz2
+with source  stable $SOURCEFORGE_URL cups/cups-drivers/0.3.6/cups-drivers-all-0.3.6.tar.gz
 with info    home http://www.cups.org/
 with info    docs http://www.cups.org/documentation.php
 with info    vurl http://www.cups.org/software.php
@@ -91,8 +71,8 @@ build(){
  check_for_smb_backend(){
   if spell_installed samba; then  
    echo "Setting smb backend for cups"
-   mkdir -pvm 755           $DESTDIR/usr/lib/cups/backend/
-   ln  -s /usr/bin/smbspool $DESTDIR/usr/lib/cups/backend/smb
+   mkdir -pvm 755           "$DESTDIR"/usr/lib/cups/backend/
+   ln  -s /usr/bin/smbspool "$DESTDIR"/usr/lib/cups/backend/smb
   fi
  }
 
@@ -105,17 +85,20 @@ with also    --libdir=/usr/lib64
  else with also --libdir=/usr/lib
  fi
 
+ sed -i 's:clang cc gcc:cc gcc clang:
+         s: clang++ c++ g++: c++ g++ clang++:' configure
+
  ./configure              \
   --sysconfdir=/etc        \
   --localstatedir=/var     \
   --prefix=${PREFIX:-/usr} \
  $OPTS &&
  make  &&
- make install "BUILDROOT=$DESTDIR"
- cp     -vR     usr/* $DESTDIR/usr &&
- cp     -vR     var/* $DESTDIR/var &&
- cd             var/cups/conf      &&
- mkdir -pvm 755       $DESTDIR/etc/cups &&
- cp     -v          * $DESTDIR/etc/cups &&
+ make install BUILDROOT="$DESTDIR"
+ cp     -vR       usr/* "$DESTDIR"/usr &&
+ cp     -vR       var/* "$DESTDIR"/var &&
+ cd               var/cups/conf      &&
+ mkdir -pvm 755         "$DESTDIR"/etc/cups &&
+ cp     -v            * "$DESTDIR"/etc/cups &&
  check_for_smb_backend
 }

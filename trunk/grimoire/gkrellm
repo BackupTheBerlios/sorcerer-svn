@@ -19,21 +19,22 @@ case $SPELL in
  gkrellm-*)
 with base    gkrellm ;;
  gkrellm)
-with version stable 2.3.5 2.3.4
-with source  http://members.dslextreme.com/users/billw/gkrellm/gkrellm-$VERSION.tar.bz2
+with info    good 20130724
+with info    last 20101007
+with version stable 2.3.5
+with source  stable http://members.dslextreme.com/users/billw/gkrellm/gkrellm-$VERSION.tar.bz2
 with base    gettext gnutls gtk+
 with elect   lm_sensors '' '' for hardware monitoring and reporting
 with elect   openssl
-with info    good 20120716
-with info    last 20101007
 esac
 
 build(){
  install_gkrellm(){
   sed -i 's:/usr/local:/usr:' Makefile
 
+  export LDFLAGS+=" $( pkg-config gmodule-2.0 --libs )"
   make &&
-  make install DESTDIR=$DESTDIR/usr
+  make install DESTDIR="$DESTDIR"/usr
  }
 
  install_plugin(){
@@ -46,7 +47,7 @@ build(){
 
   make     $NLS $PPD &&
   mkdir -pvm 755 $PD &&
-  make install $NLS $PPD DESTDIR=$DESTDIR
+  make install $NLS $PPD DESTDIR="$DESTDIR"
  }
 
  case $SPELL in
