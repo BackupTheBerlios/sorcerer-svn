@@ -9,20 +9,7 @@ if   [ -f /etc/init.d/conf.d/locale-archive ]
 then .    /etc/init.d/conf.d/locale-archive
 fi
 
-delay(){ while (( $( pgrep -u root localedef | wc -l ) > LOAD )); do sleep 1; done; }
-
-acad(){
- if [ -f /proc/acpi/ac_adapter/*/state ]; then local REPLY
-  read < /proc/acpi/ac_adapter/*/state
-  [[ $REPLY =~ on-line ]]
- fi
-}
-
 generate_locales(){
- while ! acad; do sleep 60; done
-
- LOAD=$( sed "/^processor/p;d" /proc/cpuinfo | wc -l )
-
  local SUPPORTED="/usr/share/i18n/SUPPORTED"
 
  if   [[ $HOSTTYPE == x86_64 ]]
@@ -38,14 +25,8 @@ generate_locales(){
      NAME="${REPLY%/*}"
    SOURCE="${NAME%.*}"
   echo localedef --no-archive -i $SOURCE -c -f $CHARMAP $NAME
-       localedef --no-archive -i $SOURCE -c -f $CHARMAP $NAME &
-  sleep 1
-  delay
+       localedef --no-archive -i $SOURCE -c -f $CHARMAP $NAME
  done
-
- wait
- LOAD=0
- delay
 
  rm -f /usr/lib{64,}/locale/locale-archive
 
@@ -70,9 +51,5 @@ generate_locales(){
 }
 
 start(){ generate_locales &>/var/log/locale-archive & }
-
-if   [      -f /usr/libexec/bash/sleep ]
-then enable -f /usr/libexec/bash/sleep sleep
-fi
 
 start

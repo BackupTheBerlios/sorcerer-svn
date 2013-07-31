@@ -1,9 +1,15 @@
 with info    last 20130723
 with version   stable 3.8.4 3.8.3 3.8.2
-with version unstable 3.9.3
+with version unstable 3.9.5
 with base    GConf colord cups gnome-desktop krb5 ibus json-c libXtst libXxf86misc libcanberra libgnomekbd libnotify libsndfile libwacom nss upower xf86-input-wacom
 with also    --enable-static=no
 with also    --with-pnpids=/usr/share/libgnome-desktop-3.0/pnp.ids
+case $VERSION in
+ 3.8.*)
+with also    --disable-ibus ;;
+ 3.9.*)
+with also    --disable-ibus ;;
+esac
 with elect   libcap
 with elect   pulseaudio
 #case $VERSION in
@@ -19,5 +25,7 @@ with info    cite 'daemon for adjusting settings for gnome'
 
 build(){
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+# It actually requires the newer ibus which does not work.
+# sed -i 's:IBUS_REQUIRED_VERSION=1.4.99:IBUS_REQUIRED_VERSION=1.4.2:' configure
  default_build
 }

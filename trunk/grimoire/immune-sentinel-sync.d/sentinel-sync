@@ -1,14 +1,9 @@
 #!/bin/bash
-# Copyright 2011, 2012 by Kyle Sallee,
+# Copyright 2011, 2012, 2013 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
 # sentinel-sync periodically synchronizes installed software
-
-busy(){
- pgrep -u root "^xz$" ||
- pgrep -u root "^cast$"
-}
 
 neglected(){
  ! find /aux/log/event -type f -mtime -$DAYS |
@@ -23,7 +18,7 @@ acad(){
 }
 
 scan(){
- if acad && neglected && ! busy; then
+ if acad && neglected; then
   ( . /etc/sorcery/config
     event immune-sentinel-sync "$( date +%Y%m%d )" "Auto Sync"
   )

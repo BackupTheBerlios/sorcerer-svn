@@ -22,6 +22,13 @@ run(){
 
 linear(){ for F in /etc/rc.d/rc${RL}.d/${1}*; do run $F $2; allow_sulogin; done; }
 
+linear(){
+#for F in              /etc/rc.d/rc${RL}.d/${1}*;
+ for F in $( /bin/find /etc/rc.d/rc${RL}.d/ -type l -name $1\* | /bin/sort )
+ do $F $2
+ done
+}
+
 # Breaking out of the loop early might cause a bug.
 
 parallel(){
@@ -61,7 +68,7 @@ match(){
 
 rl_ns(){
  local ns
- local r=1
+ local ran=1
  local rl
  if   (( RL == 0 )) || (( RL > 5 ));   then rl="$RL"
  elif match "$RL" $(< /proc/cmdline ); then rl="$RL"
@@ -78,12 +85,12 @@ rl_ns(){
 # /bin/nsenter -t $1 -i -m -n -p -r -u -w \
   /bin/nsenter -t $1 -i -m -n -p -r -u -w -F \
   /etc/init.d/prc $rl
+  ran=0
   echo "$ns Exiting"
   shift
-  r=0
  done
 
- return $r
+ return $ran
 }
 
 rn(){ rl_ns $( /bin/pgrep -u 0 -f "init namespace /media/root/" ); }

@@ -12,7 +12,7 @@ WHITE="[37m"
 NORM="[0m"
 
 log_line(){ echo -en "\r$CL$BLUE[$1$BLUE]$NORM $2 " 1>&2;}
-log_success_msg(){ log_line "${GREEN}success" "$1\n";}
+log_success_msg(){ log_line "${GREEN}success" "$1";}
 log_failure_msg(){ log_line "${RED}failure" "$1\n";}
 log_warning_msg(){ log_line "${WHITE}message" "$1";}
 
@@ -286,11 +286,19 @@ startm(){
 }
 
 startk(){
- if   conf
- then log_warning_msg "$NAME module not loaded; $CONF does not exist"
- elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
- then log_success_msg "$NAME loaded"
- else log_failure_msg "$NAME not loaded"
+ if [ "${NAME:0:2}" == '-r' ]; then
+  NAME="${NAME:2:256}"
+  if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME 
+  then log_success_msg "$NAME unloaded"
+  else log_warning_msg "$NAME not loaded"
+  fi
+ else
+  if   conf
+  then log_warning_msg "$NAME module not loaded; $CONF does not exist"
+  elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
+  then log_success_msg "$NAME loaded"
+  else log_failure_msg "$NAME not loaded"
+  fi
  fi
 }
 
@@ -437,10 +445,11 @@ on_exit(){
  then return  $E
  fi
  if [ -n "$FAST" ]; then
-  case $RUNLEVEL in
-   2|4) parse ${ARGS[*]} & ;;
-     *) parse ${ARGS[*]}   ;;
-  esac
+#  case $RUNLEVEL in
+#   2|4) parse ${ARGS[*]} & ;;
+#     *) parse ${ARGS[*]}   ;;
+#  esac
+        parse ${ARGS[*]} &
  else   parse ${ARGS[*]}
  fi
 }

@@ -1,6 +1,6 @@
 # multilib-fail because apr-util is multilib-fail
-with info    last 20130606
-with version stable 1.2.1 1.2.0 1.1.1
+with info    last 20130731
+with version stable 1.3.0 1.2.1 1.2.0
 with base    apr-util
 with role    network/web
 with trait   console library server
@@ -11,8 +11,20 @@ with info    vurl http://code.google.com/p/serf/downloads/list
 with info    cite 'C based HTTP client that uses apr'
 
 build(){
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then with also --libdir=/usr/lib64
- fi
- default_build
+ fix_install(){
+  if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+   mv "$DESTDIR"/usr/lib{,64}
+   sed -i 's:/lib$:/lib64:' "$DESTDIR"/usr/lib64/pkgconfig/serf-1.pc
+  fi
+ }
+
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then with also --libdir=/usr/lib64
+# fi
+# default_build
+# scons APR=/path/to/apr APU=/path/to/apu OPENSSL=/openssl/base PREFIX=/usr &&
+mkdir -pvm 755 "$DESTDIR"/usr
+scons PREFIX=/usr &&
+scons PREFIX="$DESTDIR"/usr install &&
+fix_install
 }

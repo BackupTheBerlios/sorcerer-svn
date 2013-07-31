@@ -139,6 +139,10 @@ swapfile_command_dialog(){
 
 
 start(){
+ if   ! [ -f /etc/fstab ] ||
+        [ -z "$( sed 's:#.*::;/swap/p;d' /etc/fstab )" ]
+ then return
+ fi
  if   log_warning_msg "swap starting"; swapon -a
  then log_success_msg "swap started"
  else log_failure_msg "swap not started"
@@ -146,6 +150,10 @@ start(){
 }
 
 stop(){
+ if   ! [ -f /etc/fstab ] ||
+        [ -z "$( sed 's:#.*::;/swap/p;d' /etc/fstab )" ]
+ then return
+ fi
  if   log_warning_msg "swap stopping"; swapoff -a
  then log_success_msg "swap stopped"
  else log_failure_msg "swap not stopped"

@@ -32,6 +32,10 @@ build(){
   mv     -v      "$DESTDIR"/{usr/bin/{pgrep,pkill,top},bin/}
  }
 
+ case $VERSION in
+  3.2.8) sed -i '/Unknown HZ value/d' proc/sysinfo.c ;;
+ esac
+
  LD='-Wl,-warn-common'
  sed -i "s:-O2 -g3:$CFLAGS:
          s:$LD:$LD $LDFLAGS:" Makefile
@@ -39,4 +43,14 @@ build(){
  make install -e XSCPT='' DESTDIR="$DESTDIR" ldconfig=echo &&
  mv_to_bin &&
  fix_lib
+}
+
+current(){
+ local s
+ if [[ $HOSTTYPE == x86_64 ]]; then s=64; fi
+ local l=/lib$s/libproc-3.2.8.so
+
+ case $VERSION in
+  3.2.8) ! grep -q "Unknown HZ value" $l ;;
+ esac
 }

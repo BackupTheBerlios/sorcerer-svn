@@ -2,7 +2,7 @@
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Stop: $local_fs swap tmp
+# Required-Stop: $local_fs swap term tmp
 # Default-Stop: 0 6
 # Short-Description: issues kill signals to lingering processes
 ### END INIT INFO
@@ -17,4 +17,9 @@ flare(){
  log_success_msg "$1 signal sent"
 }
 
-stop(){ flare TERM -15; sleep 3; flare KILL -9;  sleep 1; }
+stop(){
+ if   rootfs
+ then flare KILL  -9; sleep 0.1
+ else flare TERM -15; sleep 2
+ fi
+}

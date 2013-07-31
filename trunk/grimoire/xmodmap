@@ -1,8 +1,17 @@
-with version   stable 1.0.7 1.0.5
-with base    libX11
+with info    good 20130730
+with info    last 20120420
+with version   stable 1.0.7
+with base    libX11 util-macros
+with also    --disable-strict-compilation
 with role    xorg/app
 with trait   X11R7 x11 makej
-with source  $XORG_URL app/xmodmap-$VERSION.tar.bz2
-with info    good 20120713
-with info    last 20120420
+with source  stable $XORG_URL app/xmodmap-$VERSION.tar.bz2
 with info    cite 'Modify keymaps and pointer button mappings'
+
+build(){
+ case $VERSION in
+  1.0.7) sed -i '1i#define _GNU_SOURCE
+                 1i#include <stdio.h>' xmodmap.c ;;
+ esac
+ default_build
+}

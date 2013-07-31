@@ -25,22 +25,18 @@ options "settle --timeout $TIMEOUT"
 # Using an init-script for proper notification.
 
 start(){
- if   log_warning_msg "$NAME starting";
-      $SERV $OPTS
- then log_success_msg "$NAME started";     [ -h /dev/ptmx ] || /etc/init.d/ptmx start; true
- else log_failure_msg "$NAME not started"; [ -h /dev/ptmx ] || /etc/init.d/ptmx start; status
+ local r=0
+ if   log_warning_msg "$NAME starting"; $SERV $OPTS
+ then log_success_msg "$NAME started"
+ else log_failure_msg "$NAME --timeout $TIMEOUT duration is insufficient"; r=1
  fi
+ [ -h /dev/ptmx ] || /etc/init.d/ptmx start; true
+ return $r
 }
 
 display(){ echo "Timeout $TIMEOUT"; }
 
-status(){
- log_warning_msg "udevsettle timeout set for $TIMEOUT seconds";
-# if   [ -n "$( pidofproc /sbin/udevadm )" ]
-# then log_warning_msg "udevsettle is running"
-# else log_warning_msg "udevsettle is not running"
-# fi
-}
+status(){ log_warning_msg "Maximum delay duration set at $TIMEOUT seconds."; }
 
 configure(){
 
