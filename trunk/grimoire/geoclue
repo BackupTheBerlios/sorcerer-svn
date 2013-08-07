@@ -1,11 +1,13 @@
 # The software authors are not providing a URL that actually
 # leads to the tarball, therefore using debian's copy.
 
+# might not appear to require nss, but it does
+
 with info    good 20130731
 with info    last 20120731
 with version stable 0.12.99
-with base    GConf NetworkManager libsoup
-with also    --disable-static
+with base    GConf NetworkManager libsoup nss
+with also    --disable-static --disable-tests
 with role    network
 with trait   library makej multilib-dual
 with source  stable http://freedesktop.org/~hadess/geoclue-$VERSION.tar.gz
@@ -19,5 +21,6 @@ build(){
   0.12.0) sed -i 's:-Werror::' configure
           export LDFLAGS+=' -lgthread-2.0' ;;
  esac
+ sed -i '/noinst_PROGRAMS =/d' src/Makefile.in
  default_build
 }
