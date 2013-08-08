@@ -1,9 +1,21 @@
-with version stable 1.5.4 1.5.3 1.5.2 1.5.1 1.5.0 1.4.0
+# Compilation fixed, but segmentation fauls when run;
+# must actually update neverball source to become compatible
+# with the newer libpng library that SDL links with
+# rather than expecting static linking neverball with an older libpng
+# will work.
+
+with trait   broke
+#with info    good 20130808
+with info    last 20090920
+with version stable 1.5.4
 with base    MesaLib SDL_image SDL_mixer SDL_ttf physfs
 with role    game
-with trait   x11
-with source  http://neverball.org/neverball-$VERSION.tar.gz
-with info    good 20120625
+with trait   optimize x11
+with source  stable http://neverball.org/neverball-$VERSION.tar.gz
+case $VERSION in
+1.5.4)
+with source  stable $SOURCEFORGE_URL libpng/libpng12/1.2.50/libpng-1.2.50.tar.xz ;;
+esac
 with info    home http://neverball.org/
 with info    cite 'table tilting marble game
 Tilt the floor to roll a ball through an obstacle course.
@@ -13,24 +25,39 @@ Balance on narrow bridges, navigate mazes, ride moving platforms,
 and dodge pushers and shovers to get to the goal.
 Race against the clock to collect coins to earn extra balls.'
 
-
 build(){
+ obsolete_libpng(){
+  cd libpng-1.2.50 &&
+  ./configure --prefix=$PWD/install \
+              --disable-shared \
+              --enable-static \
+              --with-pic &&
+  make install &&
+  cd .. &&
+  export   CFLAGS+=" -I$PWD/libpng-1.2.50/install/include" &&
+  export CXXFLAGS+=" -I$PWD/libpng-1.2.50/install/include" &&
+  export  LDFLAGS+=" -L$PWD/libpng-1.2.50/install/lib -lX11 -lm"
+ }
 
-sed -i "s:./data:/usr/share/neverball:" share/config.h
-sed -i "s: -o : $LDFLAGS -o :" Makefile
+ case $VERSION in
+  1.5.4) obsolete_libpng
+ esac
 
-CF="CFLAGS=$CFLAGS -ansi $( sdl-config --cflags )"
-DD=$( find data -type d )
+ sed -i "s:./data:/usr/share/neverball:" share/config.h
+ sed -i "s: -o : $LDFLAGS -o :" Makefile
 
-# X11="X11_PATH=-L/usr/X11R6/lib"
+ CF="CFLAGS=$CFLAGS -ansi $( sdl-config --cflags )"
+ DD=$( find data -type d )
 
-echo "Compiling both neverball and neverputt."
+ # X11="X11_PATH=-L/usr/X11R6/lib"
 
-#ake "$CF" "$X11"       &&
-make "$CF" &&
-chmod   -R a+r data &&
-chmod      755 $DD  &&
-mkdir   -pvm 755   $DESTDIR/usr/{bin,share/neverball} &&
-cp      -av data/* $DESTDIR/usr/share/neverball &&
-install  -vm 755 mapc neverball neverputt $DESTDIR/usr/bin
+ echo "Compiling both neverball and neverputt."
+
+ #ake "$CF" "$X11"   &&
+ make "$CF" &&
+ chmod   -R a+r data &&
+ chmod      755 $DD  &&
+ mkdir   -pvm 755   "$DESTDIR"/usr/{bin,share/neverball}/ &&
+ cp      -av data/* "$DESTDIR"/usr/share/neverball/ &&
+ install  -vm 755 mapc neverball neverputt "$DESTDIR"/usr/bin/
 }

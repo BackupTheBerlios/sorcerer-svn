@@ -1,11 +1,12 @@
-with version stable 1.58rc1 1.57
-with role    kernel network wireless
 with trait   broke
-with trait   console linux-module
-with source  $SOURCEFORGE_URL ndiswrapper/testing/ndiswrapper-$VERSION.tar.gz
-#   source $SOURCEFORGE_URL ndiswrapper/stable/$VERSION/ndiswrapper-$VERSION.tar.gz
-with info    good 20120625
+#with info    good 20130808
 with info    last 20120501
+with version stable 1.58rc1
+with base    linux-modules
+with role    kernel network wireless
+with trait   console linux-module
+with source  stable $SOURCEFORGE_URL ndiswrapper/testing/ndiswrapper-$VERSION.tar.gz
+#   source $SOURCEFORGE_URL ndiswrapper/stable/$VERSION/ndiswrapper-$VERSION.tar.gz
 with info    home http://ndiswrapper.sourceforge.net/joomla/
 with info    cite 'wrapper for using windows drivers on linux
 
@@ -38,10 +39,60 @@ http://ndiswrapper.sourceforge.net/joomla/index.php?/component/option,com_openwi
 The above URL provides a list of supported cards and/or devices.'
 
 build(){
- local KVERS=$( installed_version $( get_provider linux-kernel ) )
-case  $KVERS in
- 3.2)  KVERS=3.2.0 ;;
-esac
- make KBUILD=/usr/src/linux KVERS=$KVERS &&
- make KBUILD=/usr/src/linux KVERS=$KVERS DESTDIR=$DESTDIR install
+ lversion(){
+  local m=/usr/src/linux/Makefile
+
+  if   ! [ -f $m ]
+  then return
+  fi
+
+  local v="s:^VERSION=::p;d"
+  local p="s:^PATCHLEVEL=::p;d"
+  local s="s:^SUBLEVEL=::p;d"
+  local e="s:^EXTRAVERSION=::p;d"
+  local c="s: ::g;"
+
+  v=$( sed "$c $v" $m )
+  p=$( sed "$c $p" $m )
+  s=$( sed "$c $s" $m )
+  e=$( sed "$c $e" $m )
+
+  [ -n "$p" ] && v+=".$p"
+  [ -n "$s" ] && v+=".$s"
+  [ -n "$e" ] && v+=".$e"
+
+  LVER="$v"
+ }
+
+ lversion
+ if ! [ -f /usr/src/linux/Makefile ]; then
+  echo    "/usr/src/linux is missing."
+  echo    "ndiswrapper can not be installed."
+  return 1
+ else
+  local    d=/usr/src/linux
+  local c=$d/.config.custom
+  local s=$d/.config.stock
+
+  cp -a /usr/src/linux .
+
+    if [ -f $c ]; then cp $c linux/.config
+  elif [ -f $s ]; then cp $s linux/.config
+  else
+   echo "$c does not exist"
+   echo "$s does not exist"
+   echo "$c or $s must exist"
+   echo "try casting linux-config first"
+   return 1
+  fi
+  cd linux
+  yes '' |
+  make oldconfig
+# make silentoldconfig
+  make prepare scripts
+  cd ..
+ fi
+
+ make KBUILD=$PWD/linux KVERS=$LVER &&
+ make KBUILD=$PWD/linux KVERS=$LVER DESTDIR="$DESTDIR" install
 }

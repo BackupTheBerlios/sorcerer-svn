@@ -1,12 +1,12 @@
 # Where is the 2.20.0 version comming from?
 
-with version stable 2.5.4-1 2.5.3 2.5.2.3
+with info    good 20130808
+with info    last 20091208
+with version stable 2.5.4-1
 with base    perl
 with role    network/email
 with trait   console
-with source  http://www.mml.org.ua/LIST/minimalist-$VERSION.tgz
-with info    good 20120625
-with info    last 20091208
+with source  stable http://www.mml.org.ua/LIST/minimalist-$VERSION.tgz
 with info    home http://www.mml.org.ua/
 with info    cite 'mailing lists manager
 Although it is declared as minimalistic,
@@ -18,7 +18,7 @@ fast, simple for setup and maintenance.'
 build() {
 files_install() {
 # Create config files directory
-mkdir -p  $DESTDIR{/etc/minimalist,usr/sbin}
+mkdir -pm 755  "$DESTDIR"{/etc/minimalist,usr/sbin}/
 
 # First, add the global entry in aliases
 (
@@ -28,25 +28,25 @@ echo  '#'
 echo  '# sample mailing list:'
 echo  'list-sample:	"|/usr/sbin/minimalist.pl -d /etc/minimalist list-sample"'
 echo  'list-sample-owner:	owner@myhost.mydomain.myzone'
-)  >  $DESTDIR/etc/aliases.minimalist-sample
+)  >  "$DESTDIR"/etc/aliases.minimalist-sample
 
 # Copy sample files
-cp      ./sample/lists.lst       $DESTDIR/etc/minimalist/lists.lst-sample
-cp  -R  ./sample/sample          $DESTDIR/etc/minimalist/
-cp      ./minimalist.conf-sample $DESTDIR/etc/minimalist/
+cp      ./sample/lists.lst       "$DESTDIR"/etc/minimalist/lists.lst-sample
+cp  -R  ./sample/sample          "$DESTDIR"/etc/minimalist/
+cp      ./minimalist.conf-sample "$DESTDIR"/etc/minimalist/
 
 # Copy the progam file...
-cp    ./minimalist.pl  $DESTDIR/usr/sbin
+cp    ./minimalist.pl  "$DESTDIR"/usr/sbin/
 
 # Make spool dir
-mkdir -p  $DESTDIR/var/spool/minimalist/list-sample
-echo      "user@domain.zone"  >  $DESTDIR/var/spool/minimalist/list-sample/list
-chown     nobody.nogroup         $DESTDIR/var/spool/minimalist/list-sample
-chown     nobody.nogroup         $DESTDIR/var/spool/minimalist/list-sample/list
+mkdir -pm 755  "$DESTDIR"/var/spool/minimalist/list-sample/
+echo      "user@domain.zone"  >  "$DESTDIR"/var/spool/minimalist/list-sample/list
+chown     nobody.nogroup         "$DESTDIR"/var/spool/minimalist/list-sample
+chown     nobody.nogroup         "$DESTDIR"/var/spool/minimalist/list-sample/list
 
 # Copy the help files
-mkdir  -p          $DESTDIR/usr/doc/minimalist
-cp     -R  ./docs  $DESTDIR/usr/doc/minimalist
+mkdir  -pm 755     "$DESTDIR"/usr/doc/minimalist/
+cp     -R  ./docs  "$DESTDIR"/usr/doc/minimalist/
 }
 
 files_install
