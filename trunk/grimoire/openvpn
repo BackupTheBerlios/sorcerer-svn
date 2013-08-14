@@ -1,3 +1,5 @@
+with info    good 20130814
+with info    last 20120220
 with version stable 2.1.3
 with base    lzo2 openssl
 #with base    lzo2 libselinux openssl
@@ -7,9 +9,7 @@ with switch  --enable-password-save '' allow passwords to be read from a file
 # May als need (wit elect) something called pkcs11-helper
 with role    security
 with trait   console server
-with source  http://www.openvpn.net/release/openvpn-$VERSION.tar.gz
-with info    good 20120627
-with info    last 20120220
+with source  stable http://www.openvpn.net/release/openvpn-$VERSION.tar.gz
 with info    home http://www.openvpn.net
 with info    cite 'application to securely tunnel IP networks
 over a single UDP port, with support for SSL/TLS-based
@@ -40,7 +40,7 @@ build(){
   for pi in $PLUGINS; do
     cp plugin/$pi/README README.$pi             &&
     install -c -m 755 plugin/$pi/openvpn-$pi.so \
-         $DESTDIR/usr/share/openvpn/plugin/lib/ ||
+         "$DESTDIR"/usr/share/openvpn/plugin/lib/ ||
     return 1
   done
   cp plugin/README README.plugins
@@ -59,9 +59,9 @@ build(){
  $OPTS &&
  make  &&
  make_plugins &&
- make install "DESTDIR=$DESTDIR" &&
- mkdir -p $DESTDIR{/etc/openvpn,/usr/share/openvpn/plugin/lib} &&
- mkdir -p $DESTDIR/usr/doc/openvpn &&
+ make install DESTDIR="$DESTDIR" &&
+ mkdir -vpm 755 "$DESTDIR"{/etc/openvpn,/usr/share/openvpn/plugin/lib}/ &&
+ mkdir -vpm 755 "$DESTDIR"/usr/doc/openvpn/ &&
  install_plugins &&
- cp -r contrib/ easy-rsa/ sample-*/ $DESTDIR/usr/doc/openvpn/
+ cp -r contrib/ easy-rsa/ sample-*/ "$DESTDIR"/usr/doc/openvpn/
 }
