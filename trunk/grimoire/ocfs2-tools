@@ -1,3 +1,7 @@
+# Not downloading, wonder why.
+with trait   broke
+with info    good 20130809
+with info    last 20110208
 with version stable 1.6.4
 with base    e2fsprogs pkgconfig util-linux
 with also    --disable-glibtest --enable-dynamic-fsck=yes --enable-dynamic-ctl=yes
@@ -6,27 +10,25 @@ with also    --disable-static
 with role    disk/file-system
 with trait   console
 #trait makej
-with source  http://oss.oracle.com/projects/ocfs2-tools/dist/files/source/v${VERSION:0:3}/ocfs2-tools-$VERSION.tar.gz
-with info    good 20120716
-with info    last 20110208
+with source  stable http://oss.oracle.com/projects/ocfs2-tools/dist/files/source/v${VERSION:0:3}/ocfs2-tools-$VERSION.tar.gz
 with info    home http://oss.oracle.com/projects/ocfs2-tools/
 with info    vurl http://oss.oracle.com/projects/ocfs2-tools/files/source/
 with info    cite 'tools for ocfs2 file system'
 
 build(){
  install_rules(){
-  local RULES=$DESTDIR/etc/udev/rules.d
+  local RULES="$DESTDIR"/etc/udev/rules.d
   mkdir  -pvm 755 $RULES
-  install -vm 644 -o root -g root vendor/common/51-ocfs2.rules $RULES
+  install -vm 644 -o root -g root vendor/common/51-ocfs2.rules "$RULES/"
  }
 
  install_init(){
-  local INIT=$DESTDIR/etc/init.d/
-  mkdir -p   $DESTDIR/etc/{default,ocfs2,sysconfig} $INIT
-  install -m 700 -o root -g root vendor/common/o2cb.init.sh $INIT/o2cb
-  install -m 700 -o root -g root vendor/common/ocfs2.init   $INIT/ocfs2
-  install -m 700 -o root -g root documentation/samples/cluster.conf $DESTDIR/etc/ocfs2/
-  echo > $DESTDIR/etc/sysconfig/o2cb
+  local INIT="$DESTDIR"/etc/init.d/
+  mkdir -p   "$DESTDIR"/etc/{default,ocfs2,sysconfig}/ "$INIT"
+  install -m 700 -o root -g root vendor/common/o2cb.init.sh "$INIT"/o2cb
+  install -m 700 -o root -g root vendor/common/ocfs2.init   "$INIT"/ocfs2
+  install -m 700 -o root -g root documentation/samples/cluster.conf "$DESTDIR"/etc/ocfs2/
+  echo > "$DESTDIR"/etc/sysconfig/o2cb
  }
 
  default_build &&

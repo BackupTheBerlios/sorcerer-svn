@@ -1,0 +1,19 @@
+with info    last         20130801
+with version   stable 1.8
+with version unstable 1.8.20130801
+with also    -DUPNPC_BUILD_STATIC:BOOL=OFF
+with role    network/ftp network/web
+with trait   library makej multilib-dual
+with source  stable http://miniupnp.free.fr/files/miniupnpc-$VERSION.tar.gz
+with info    home http://miniupnp.free.fr/
+with info    vurl http://miniupnp.free.fr/files/
+with info    cite 'retreives files from web and ftp sites'
+
+build(){
+ default_build &&
+ install -vm 644 ../portlistingparse.h "$DESTDIR"/usr/include/miniupnpc/ &&
+ install -vm 644 ../miniupnpctypes.h   "$DESTDIR"/usr/include/miniupnpc/ &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then mv "$DESTDIR"/usr/lib{,64}
+ fi
+}
