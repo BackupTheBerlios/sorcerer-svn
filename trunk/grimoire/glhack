@@ -1,42 +1,25 @@
 # ../win/gl/gl_image.c: In function 'sdlgl_load_png_file':
 # ../win/gl/gl_image.c:489:23: error: dereferencing pointer to incomplete type
 
-with info    good 20130724
+with info    good 20130814
 with info    last 20040624
 with version stable 1.2
-case $VERSION in
- 1.2)
-with base    libpng14 ;;
-esac
 with base    MesaLib SDL libpng
 with role    game
-with trait   x11
+with trait   optimize x11
 with source  stable $SOURCEFORGE_URL glhack/glhack/$VERSION/glhack-$VERSION.tar.gz
 with info    home http://glhack.sourceforge.net/
 with info    cite 'SDL port of NetHack, the CRPG'
 
 build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
- }
-
  case $VERSION in
-  1.2) libpng_fix
-       sed -i "s:CFLAGS =: CFLAGS = $CFLAGS:
+  1.2) sed -i "s:CFLAGS =: CFLAGS = $CFLAGS:
                s:LFLAGS =: LFLAGS = $LDFLAGS:" src/Makefile
        sed -i 's:-L/usr/lib/X11R6/lib::'       src/Makefile ;;
  esac
 
  make &&
  mkdir -pvm 755      "$DESTDIR"/usr/share/man/man6/ &&
- make install PREFIX="$DESTDIR"/usr
+ make install PREFIX="$DESTDIR"/usr &&
+ sed -i 's:/aux/run/destdir/glhack::' "$DESTDIR"/usr/bin/glhack
 }

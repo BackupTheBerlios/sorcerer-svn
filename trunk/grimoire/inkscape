@@ -18,23 +18,21 @@
 # 0.48.4 previously compiled, but is currently broke
 # perhaps broke due to the gcc update?
 
-with trait   broke
+#with trait   broke
 with info    good 20130526
 with info    last 20121217
 with version stable 0.48.4
+case $VERSION in
+ 0.48.4)
+with use_gcc gcc-v4.7 ;;
+esac
 with base    ImageMagick Python boost gc gsl gtkmm-2.4 perl--XML-XQL poppler popt
 with elect   aspell
 with elect   gtkspell
 with elect   lcms      --enable-lcms    --disable-lcms      for light weight color management library
 with role    graphic/editor
-with trait   makej x11
+with trait   makej optimize x11
 with source  stable $SOURCEFORGE_URL inkscape/inkscape/$VERSION/inkscape-$VERSION.tar.bz2
-case $VERSION in
- 0.48.3*)
-   use_gcc gcc-v4.5
-#with base    libpng14 ;;
-with source  stable $SOURCEFORGE_URL libpng/libpng12/1.2.50/libpng-1.2.50.tar.xz ;;
-esac
 with info    home http://www.inkscape.org/
 with info    docs http://inkscape.org/doc/
 with info    cite 'vector graphics editor
@@ -55,31 +53,3 @@ We also aim to maintain a thriving user and developer community
 by using open, community-oriented development.
 
 The above description is from http://www.inkscape.org/'
-
-build(){
- obsolete_libpng(){
-  cd libpng-1.2.50 &&
-  ./configure --prefix=$PWD/install --enable-static=yes --enable-shared=no &&
-  make install &&
-  export  LDFLAGS+=" -L$PWD/install/lib" &&
-  export   CFLAGS+=" -I$PWD/install/include" &&
-  export CXXFLAGS+=" -I$PWD/install/include" &&
-  cd ..
- }
-
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
- }
-
- case $VERSION in
-  0.48.3.1) obsolete_libpng ;;
-# 0.48.3.1) libpng_fix ;;
- esac
-
- default_build
-}
