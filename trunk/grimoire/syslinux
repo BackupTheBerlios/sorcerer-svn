@@ -6,19 +6,21 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with info    last 20121207
-with version   stable 4.06
-with version unstable 5.01
+with info    good 20130814
+with info    last 20130704
+with version   stable 6.01 4.06
+with version unstable 6.01
 case $VERSION in
  5.00)
    use_gcc gcc-v4.5 ;;
 esac
-with base    nasm md5crypt perl--Digest-SHA1
+with base    gnu-efi nasm md5crypt perl--Digest-SHA1
 with elect   mtools '' '' for creating msdos filesystems
 with role    administration/bootloader
 with trait   console makej
 # lto makes syslinux slightly larger
-with source  stable $KERNEL_URL pub/linux/utils/boot/syslinux/syslinux-$VERSION.tar.xz
+with source    stable $KERNEL_URL pub/linux/utils/boot/syslinux/syslinux-$VERSION.tar.xz
+with source  unstable $KERNEL_URL pub/linux/utils/boot/syslinux/syslinux-$VERSION.tar.xz
 with source  pre    $KERNEL_URL pub/linux/utils/boot/syslinux/Testing/${VERSION:0:4}/syslinux-$VERSION.tar.xz
 with info    home http://syslinux.zytor.com/wiki/index.php/The_Syslinux_Project
 with protect /etc/extlinux/
@@ -42,6 +44,7 @@ build(){
 
  install_menu(){
   mkdir -pvm 700 "$DESTDIR"/boot/extlinux
+  cp     -av     "$DESTDIR"/{usr/share/syslinux/libutil.c32,boot/extlinux/}
   cp     -av     "$DESTDIR"/{usr/share/syslinux/*menu.c32,boot/extlinux/}
   cp     -av     "$DESTDIR"/{usr/share/syslinux/mboot.c32,boot/extlinux/}
  }
@@ -54,8 +57,13 @@ build(){
  }
 
  case $VERSION in
+  6.*) unset LDFLAGS ;;
   5.*) unset LDFLAGS ;;
   4.*) unset LDFLAGS ;;
+ esac
+
+ case $VERSION in
+  6.01) sed -i 's:/bin/pwd:pwd:' Makefile ;;
  esac
 
  sed -i '/INSTALL_AUX_OPT/d
@@ -68,10 +76,4 @@ build(){
  install_doc  &&
  install_menu &&
  install_configs
-}
-
-current(){
- case $VERSION in
-  4.06) [ -f /boot/extlinux/mboot.c32 ] ;;
- esac
 }

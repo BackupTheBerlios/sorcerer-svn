@@ -1,0 +1,27 @@
+# 3.0u fails during link
+# 3.0t compile errors with EFI_SERVICE_BINDING unknown type name
+# 3.0s was not recognized as installed by syslinux
+
+with info    last 20130612
+with version   stable 3.0u
+with version unstable 3.0u
+with role    administration/bootloader
+with trait   console library makej multilib-dual
+with source    stable $SOURCEFORGE_URL gnu-efi/gnu-efi_$VERSION.orig.tar.gz
+with info    home http://gnu-efi.sourceforge.net/
+with info    cite 'GNU tool chain for EFI development'
+
+build(){
+ if  [[ $HOSTTYPE == x86_64 ]]; then
+  if [[ $CFLAGS   =~ -m32   ]]; then
+   make ARCH=ia32 PREFIX=/usr INSTALLROOT="$DESTDIR" &&
+   make ARCH=ia32 PREFIX=/usr INSTALLROOT="$DESTDIR" install
+  else
+   make           PREFIX=/usr INSTALLROOT="$DESTDIR" LIBDIR=/usr/lib64 &&
+   make           PREFIX=/usr INSTALLROOT="$DESTDIR" LIBDIR=/usr/lib64 install
+  fi
+ else
+  make PREFIX=/usr INSTALLROOT="$DESTDIR" &&
+  make PREFIX=/usr INSTALLROOT="$DESTDIR" install
+ fi
+}

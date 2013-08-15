@@ -1,41 +1,20 @@
+with info    good 20130814
+with info    last 20030408
 with version stable 0.8.2
-case $VERSION in
- 0.8.2)
-   use_gcc gcc-v4.5
-with base    libpng14 ;;
-esac
+with base    libpng
 with base    SDL jpeg libpng libvorbis
 with role    game
 with trait   x11
-with source  ftp://ftp.debian.org/debian/pool/main/t/tuxpuck/tuxpuck_$VERSION.orig.tar.gz
+with source  stable ftp://ftp.debian.org/debian/pool/main/t/tuxpuck/tuxpuck_$VERSION.orig.tar.gz
 #     info home http://www.efd.lth.se/~d00jkr/tuxpuck/
-with info    good 20120711
-with info    last 20030408
 with info    cite 'shufflepuck game, in alpha stage of development
 tuxpuck is a shufflepuck game written in C/C++ using SDL.
 The player moves a pad around a board and tries to shoot
 down the puck through the opponents defense.'
 
 build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
- }
-
- case $VERSION in
-  0.8.2) libpng_fix ;;
- esac
-
  make &&
- mkdir   -pvm 755 $DESTDIR/usr/{bin,man/man6} &&
- install -vDm 755     tuxpuck      $DESTDIR/usr/bin/tuxpuck &&
- install -vDm 644 man/tuxpuck.6.gz $DESTDIR/usr/man/man6/tuxpuck.6.gz
+ mkdir   -pvm 755                  "$DESTDIR"/usr/{bin,man/man6}/ &&
+ install -vDm 755     tuxpuck      "$DESTDIR"/usr/bin/ &&
+ install -vDm 644 man/tuxpuck.6.gz "$DESTDIR"/usr/man/man6/
 }

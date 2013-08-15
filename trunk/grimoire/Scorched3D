@@ -10,17 +10,14 @@
 # compiles and runs fine, but crashes when starting a game.
 # says foam must be a 128x128 texture or something like that.
 
-with trait   broke
-with info    good 20130528
+# requires more editing to become compatible with current libpng
+
+with info    good 20130814
 with info    last 20120306
 with version stable 43.3d 43.3 43.2a
-with base    SDL_mixer SDL_net freealut wxWidgets
+with base    SDL_mixer SDL_net freealut libpng wxWidgets
 # does not link properly with installed fftw; missing symbols?
 with also    --disable-fftwtest
-case $VERSION in
- 43.3d)
-with base    libpng14 ;;
-esac
 with role    game
 with trait   makej x11
 with source  stable $SOURCEFORGE_URL scorched3d/scorched3d/Version%20${VERSION}/Scorched3D-${VERSION}-src.tar.gz
@@ -31,19 +28,6 @@ with info    freecode scorched3d
 with info    cite 'a 2D an artillery game'
 
 build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
- }
-
  cd fftw-3.2.2
  ./configure \
   --enable-shared=no  \
@@ -55,26 +39,8 @@ build(){
  OPTS+=" --with-fftw=$PWD/installed" &&
  cd .. &&
 
- # export PATH=$PWD/scorched-dep-osx/config:$PATH
- # chmod u+x   $PWD/scorched-dep-osx/config/openal-config
- # sed -i 's:prefix=.*:prefix=/usr:' \
- #             $PWD/scorched-dep-osx/config/openal-config
-
- # LC_ALL=C grep -rl fftw3f * | xargs -r --max-lines=256 sed -i 's:fftw3f:fftw3:'
-
- source_fix(){
- set -x
-  sed -i "1i#include <unistd.h>" scorched/src/client/client/SecureID.cpp
- set +x
- }
-
- case $VERSION in
-  43.3d) libpng_fix
-         source_fix ;;
- esac
-
- if [ -d scorched ]
- then cd scorched
+ if   [ -d scorched ]
+ then   cd scorched
  fi &&
  default_build
 }

@@ -1,0 +1,74 @@
+diff -r -U2 Scorched3D-43.3d/scorched/src/client/client/LoadPNG.cpp Scorched3D-43.3d/scorched/src/client/client/LoadPNG.cpp
+--- Scorched3D-43.3d/scorched/src/client/client/LoadPNG.cpp	2010-08-15 16:26:12.000000000 -0700
++++ Scorched3D-43.3d/scorched/src/client/client/LoadPNG.cpp	2010-08-15 16:26:12.000000000 -0700
+@@ -19,4 +19,6 @@
+ 	png_infop info_ptr;
+ 	png_uint_32 width, height;
++	png_colorp png_palette;
++	int        num_palette;
+ 	int bit_depth, color_type, interlace_type;
+ 	Uint32 Rmask;
+@@ -59,5 +61,5 @@
+ 	 * set up your own error handlers in png_create_read_struct() earlier.
+ 	 */
+-	if ( setjmp(png_ptr->jmpbuf) ) {
++	if ( setjmp(png_jmpbuf(png_ptr)) ) {
+ 		error = "Error reading the PNG file.";
+ 		goto done;
+@@ -128,7 +130,7 @@
+ 			Gmask = 0x0000FF00;
+ 			Bmask = 0x00FF0000;
+-			Amask = (info_ptr->channels == 4) ? 0xFF000000 : 0;
++			Amask = (png_get_channels(png_ptr,info_ptr) == 4) ? 0xFF000000 : 0;
+ 		} else {
+-		        int s = (info_ptr->channels == 4) ? 0 : 8;
++		        int s = (png_get_channels(png_ptr,info_ptr) == 4) ? 0 : 8;
+ 			Rmask = 0xFF000000 >> s;
+ 			Gmask = 0x00FF0000 >> s;
+@@ -138,5 +140,5 @@
+ 	}
+ 	surface = SDL_AllocSurface(SDL_SWSURFACE, width, height,
+-			bit_depth*info_ptr->channels, Rmask,Gmask,Bmask,Amask);
++			bit_depth*png_get_channels(png_ptr,info_ptr), Rmask,Gmask,Bmask,Amask);
+ 	if ( surface == NULL ) {
+ 		error = "Out of memory";
+@@ -177,4 +179,5 @@
+ 
+ 	/* Load the palette, if any */
++	png_get_PLTE(png_ptr, info_ptr, &png_palette, &num_palette);
+ 	palette = surface->format->palette;
+ 	if ( palette ) {
+@@ -186,10 +189,10 @@
+ 		    palette->colors[i].b = i;
+ 		}
+-	    } else if (info_ptr->num_palette > 0 ) {
+-		palette->ncolors = info_ptr->num_palette; 
+-		for( i=0; i<info_ptr->num_palette; ++i ) {
+-		    palette->colors[i].b = info_ptr->palette[i].blue;
+-		    palette->colors[i].g = info_ptr->palette[i].green;
+-		    palette->colors[i].r = info_ptr->palette[i].red;
++	    } else if (num_palette > 0 ) {
++		palette->ncolors = num_palette; 
++		for( i=0; i<num_palette; ++i ) {
++		    palette->colors[i].b = png_palette[i].blue;
++		    palette->colors[i].g = png_palette[i].green;
++		    palette->colors[i].r = png_palette[i].red;
+ 		}
+ 	    }
+diff -r -U2 Scorched3D-43.3d/scorched/src/client/client/SecureID.cpp Scorched3D-43.3d/scorched/src/client/client/SecureID.cpp
+--- Scorched3D-43.3d/scorched/src/client/client/SecureID.cpp	2010-07-19 17:28:35.000000000 -0700
++++ Scorched3D-43.3d/scorched/src/client/client/SecureID.cpp	2010-07-19 17:28:35.000000000 -0700
+@@ -1,2 +1,3 @@
++#include <unistd.h>
+ #include <client/SecureID.h>
+ #include <net/NetInterface.h>
+diff -r -U2 Scorched3D-43.3d/scorched/src/common/image/ImagePngFactory.cpp Scorched3D-43.3d/scorched/src/common/image/ImagePngFactory.cpp
+--- Scorched3D-43.3d/scorched/src/common/image/ImagePngFactory.cpp	2012-01-09 17:51:51.000000000 -0700
++++ Scorched3D-43.3d/scorched/src/common/image/ImagePngFactory.cpp	2012-01-09 17:51:51.000000000 -0700
+@@ -63,5 +63,5 @@
+ static void user_png_error(png_structp png_ptr, png_const_charp msg) 
+ {
+-	longjmp(png_ptr->jmpbuf,1);
++	longjmp(png_jmpbuf(png_ptr),1);
+ }
+ 

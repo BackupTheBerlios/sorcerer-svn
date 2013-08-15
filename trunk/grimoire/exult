@@ -1,19 +1,19 @@
+with info    good 20130814
+with info    last 20101021
 with version stable 1.4.9rc1
-with base    SDL_mixer flex libpng14 unzip
+with base    SDL_mixer flex libpng unzip
 case $VERSION in
  1.4.9rc1) use_gcc gcc-v4.5 ;;
 esac
 with role    game development/emulator
 with trait   optimize makej x11
-with source  $SOURCEFORGE_URL exult/exult-all-versions/$VERSION/exult-$VERSION.tar.gz
-with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/jmsfx.zip
-with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/sqsfxbg.zip
-with source  $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/jmsfxsi.zip
-with source  $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/sqsfxsi.zip
-with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_1of2.zip
-with source  $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_2of2.zip
-with info    good 20130116
-with info    last 20101021
+with source  stable $SOURCEFORGE_URL exult/exult-all-versions/$VERSION/exult-$VERSION.tar.gz
+with source  stable $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/jmsfx.zip
+with source  stable $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/sqsfxbg.zip
+with source  stable $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/jmsfxsi.zip
+with source  stable $SOURCEFORGE_URL exult/SI-data/Sound%20Packs/sqsfxsi.zip
+with source  stable $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_1of2.zip
+with source  stable $SOURCEFORGE_URL exult/BG-data/Sound%20Packs/U7MusicOGG_2of2.zip
 with info    home http://exult.sourceforge.net/
 with info    docs http://exult.sourceforge.net/docs.php
 with info    forum 'http://exult.sourceforge.net/forum/list.php?f=1'
@@ -38,14 +38,6 @@ build(){
 # export   CFLAGS="-O0"
 # export CXXFLAGS="-O0"
 
- # exult version 1.4.9rc1 requires libpng 1.4.x
- export   CFLAGS+=' -I/opt/libpng/1.4.x/include'
- export CXXFLAGS+=' -I/opt/libpng/1.4.x/include'
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib64'
- else export LDFLAGS+=' -Wl,-rpath,/opt/libpng/1.4.x/lib'
- fi
-
  ./configure           \
   --prefix=/usr        \
   --sysconfdir=/etc    \
@@ -53,7 +45,7 @@ build(){
   --disable-timidity   \
   $OPTS &&
  make &&
- make install        "DESTDIR=$DESTDIR" &&
+ make install        DESTDIR="$DESTDIR" &&
  mkdir -pvm 755              "$DESTDIR"/usr/share/exult/music &&
  cp    $SCRIPT_DIR/exult.cfg "$DESTDIR"/usr/share/exult/ &&
  cp -av *.flx                "$DESTDIR"/usr/share/exult/ &&

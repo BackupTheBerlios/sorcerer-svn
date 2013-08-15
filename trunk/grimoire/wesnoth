@@ -4,16 +4,12 @@
 # upgrade from boost version from 1_49_0 to 1_50_0 broke wesnoth compilation
 # the fix below to use boost 1_46_1 does not fix the break.
 
+with info    good 20130814
 with info    last 20130320
 with version   stable 1.10.6 1.10.5 1.10.4
 with version unstable 1.11.5
-#case $VERSION in
-# 1.10.3)
-#   use_gcc gcc-v4.5
-#with base    boost-v1_46_1 ;;
-#esac
-with base    SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi libpng14 lua pango subversion
-#     with also --disable-strict-compilation
+with base    SDL_image SDL_mixer SDL_net SDL_ttf dbus boost fribidi lua pango subversion
+# with also --disable-strict-compilation
 with also    -DENABLE_STRICT_COMPILATION:BOOL=FALSE
 with role    game
 with trait   makej x11
@@ -24,23 +20,3 @@ with info    cite 'fantasy themed turn-based strategy game
 Battle for control of villages, using a variety of units
 which have advantages and disadvantages in different
 types of terrain and against different types of attacks.'
-
-build(){
- old_boost(){
-  if  [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
-   export BOOST_INCLUDEDIR=/opt/boost/1_46_1/usr/include
-   export BOOST_LIBRARYDIR=/opt/boost/1_46_1/usr/lib64
-#   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_46_1/usr/lib64"
-  else
-   export BOOST_INCLUDEDIR=/opt/boost/1_46_1/usr/include
-   export BOOST_LIBRARYDIR=/opt/boost/1_46_1/usr/lib
-#   export LDFLAGS+=" -Wl,-rpath,/opt/boost/1_46_1/usr/lib"
-  fi
- }
-
-# case $VERSION in
-#  1.10.3) old_boost ;;
-# esac
-
- default_build
-}

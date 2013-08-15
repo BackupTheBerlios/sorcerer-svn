@@ -1,0 +1,57 @@
+diff -r -U2 tuxpuck-0.8.2/png.c tuxpuck-0.8.2/png.c
+--- tuxpuck-0.8.2/png.c	2002-11-08 03:50:07.000000000 -0700
++++ tuxpuck-0.8.2/png.c	2002-11-08 03:50:07.000000000 -0700
+@@ -27,4 +27,6 @@
+   png_infop info_ptr;
+   png_uint_32 width, height;
++  png_colorp png_palette;
++  int        num_palette;
+   int bit_depth, color_type, interlace_type;
+   Uint32 Rmask;
+@@ -75,5 +77,5 @@
+    * set up your own error handlers in png_create_read_struct() earlier.
+    */
+-  if (setjmp(png_ptr->jmpbuf)) {
++  if (setjmp(png_jmpbuf(png_ptr))) {
+     SDL_SetError("Error reading the PNG file.");
+     goto done;
+@@ -143,7 +145,7 @@
+       Gmask = 0x0000FF00;
+       Bmask = 0x00FF0000;
+-      Amask = (info_ptr->channels == 4) ? 0xFF000000 : 0;
++      Amask = (png_get_channels(png_ptr,info_ptr) == 4) ? 0xFF000000 : 0;
+     } else {
+-      int s = (info_ptr->channels == 4) ? 0 : 8;
++      int s = (png_get_channels(png_ptr,info_ptr) == 4) ? 0 : 8;
+       Rmask = 0xFF000000 >> s;
+       Gmask = 0x00FF0000 >> s;
+@@ -153,5 +155,5 @@
+   }
+   surface = SDL_AllocSurface(SDL_SWSURFACE, width, height,
+-			     bit_depth * info_ptr->channels, Rmask, Gmask,
++			     bit_depth * png_get_channels(png_ptr,info_ptr), Rmask, Gmask,
+ 			     Bmask, Amask);
+   if (surface == NULL) {
+@@ -189,4 +191,5 @@
+ 
+   /* Load the palette, if any */
++  png_get_PLTE(png_ptr, info_ptr, &png_palette, &num_palette);
+   palette = surface->format->palette;
+   if (palette) {
+@@ -198,10 +201,10 @@
+ 	palette->colors[i].b = i;
+       }
+-    } else if (info_ptr->num_palette > 0) {
+-      palette->ncolors = info_ptr->num_palette;
+-      for (i = 0; i < info_ptr->num_palette; ++i) {
+-	palette->colors[i].b = info_ptr->palette[i].blue;
+-	palette->colors[i].g = info_ptr->palette[i].green;
+-	palette->colors[i].r = info_ptr->palette[i].red;
++    } else if (num_palette > 0) {
++      palette->ncolors = num_palette;
++      for (i = 0; i < num_palette; ++i) {
++	palette->colors[i].b = png_palette[i].blue;
++	palette->colors[i].g = png_palette[i].green;
++	palette->colors[i].r = png_palette[i].red;
+       }
+     }
