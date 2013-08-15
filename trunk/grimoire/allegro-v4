@@ -1,10 +1,6 @@
-with info    good  20130806
+with info    good  20130814
 with info    last  20110303
 with version stable 4.4.1.1
-case $VERSION in
- 4.4.1.1)
-with base    libpng14 ;;
-esac
 with elect   alsa-lib    '' '--disable-alsadigi --disable-alsamidi' for sound output through alsa
 with elect   esound      '' '--disable-esddigi'                     to work output through enlightenment sound mixer
 with elect   libXpm      '' '-without-x'                            for x11 graphics output
@@ -32,35 +28,12 @@ functions, 3D functions, file management functions,
 compressed datafile, and a GUI.'
 
 build(){
- libpng_fix(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then LIBPNGLIBDIR=/opt/libpng/1.4.x/lib64
-  else LIBPNGLIBDIR=/opt/libpng/1.4.x/lib
-  fi
-  export   CFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export CXXFLAGS+=" -I/opt/libpng/1.4.x/include"
-  export  LDFLAGS+=" -L$LIBPNGLIBDIR -Wl,-rpath,$LIBPNGLIBDIR"
-  export PKG_CONFIG_PATH="$LIBPNGLIBDIR/pkgconfig:$PKG_CONFIG_PATH"
-  echo "LDFLAGS=$LDFLAGS"
-  echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH"
- }
-
  adjust_config(){
   sed -i "s:allegro_ldflags=\"\":allegro_ldflags=\"-Wl,-rpath,$LIBPNGLIBDIR -lpng\":" "$DESTDIR/usr/bin/allegro-config"
  }
-
- case $VERSION in
-  4.4.1.1) libpng_fix ;;
- esac
 
  sed -i "s/-O2/$CFLAGS/" configure
  export LDFLAGS+=' -ldl'
  default_build &&
  adjust_config
-}
-
-current(){
- case $VERSION in
-  4.4.1.1) grep -q rpath /usr/bin/allegro-config ;;
- esac
 }
