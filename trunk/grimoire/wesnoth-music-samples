@@ -1,4 +1,5 @@
-with info    last 20121117
+with info    good 20130820
+with info    last 20130320
 with version stable 1.10.6
 with role    music
 with trait   data
@@ -13,24 +14,30 @@ traveling_minstrels.ogg
 wanderer.ogg'
 
 build(){
+ if ! [ -f /usr/bin/oggdec ]; then return 1; fi
+ if ! [ -f /usr/bin/oggenc ]; then return 1; fi
+
  local  mus="breaking_the_chains.ogg casualties_of_war.ogg "
        mus+="knolls.ogg traveling_minstrels.ogg wanderer.ogg"
 
  cd data/core/music
- local                 d="$DESTDIR"/usr/share/wesnoth/data/core/music/
- mkdir   -pvm 755    "$d" &&
- if   [ -f /usr/bin/oggdec ] &&
-      [ -f /usr/bin/oggenc ]
- then
   # connecting oggdec and oggenc with a pipe produces static.
-  for file in $mus; do
-(  oggdec -Q -R       ${file}
-   rm                 ${file}
-   oggenc -Q -r -q -1 ${file%.ogg}.raw
-) &
-  done
-  wait
- fi
+ for file in $mus; do
+  ( oggdec -Q -R       ${file}
+    rm                 ${file}
+    oggenc -Q -r -q -1 ${file%.ogg}.raw
+  ) &
+ done
+ wait
 
- install -vm 644 -t "$d" $mus
+ local                 d="$DESTDIR"/usr/share/music/
+ install -dvm 755    "$d" &&
+ install  -vm 644 -t "$d" $mus
+}
+
+current(){
+ if   ! [ -f "$CURRENT_LOGS"/sorcerer-iso9660 ]
+ then echo "$SPELL" | pipe_queue "$DISPEL_QUEUE"
+ else [ -f /usr/share/music/knolls.ogg ]
+ fi
 }

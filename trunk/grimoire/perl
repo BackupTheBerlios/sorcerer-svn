@@ -13,9 +13,17 @@
 # 5.18.0 has errors in /usr/bin/pod2man
 # 5.16.3 sometimes installs odd with many files with *.0 names in /
 
-with info    last 20130521
+# perl version 5.18.1 causes compile failure of openssl version 1.0.1e
+# cms.pod around line 457: Expected text after =item, not a number
+# cms.pod around line 461: Expected text after =item, not a number
+# cms.pod around line 465: Expected text after =item, not a number
+# cms.pod around line 470: Expected text after =item, not a number
+# cms.pod around line 474: Expected text after =item, not a number
+# POD document had syntax errors at /usr/bin/pod2man line 71.
+
+with info    last 20130820
 with version   stable 5.16.3 5.16.2
-with version   secure 5.16.3
+with version testing  5.18.1
 with version unstable 5.19.2
 with elect   gdbm '' '' for database support
 with elect   db   '' '' for database support
@@ -26,9 +34,14 @@ with trait   console library makej
 with trait   multilib-fail
 with trait   solo
 with source    stable http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
-with source    secure http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
 with source  unstable http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
+with source  secure   http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
+with source  testing  http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
 with info    home http://www.perl.org/
+with omit    /usr/lib/perl5/$VERSION/x86_64-linux-thread-multi/perllocal.pod
+with omit    /usr/lib/perl5/5.16.3/i686-linux-thread-multi-64int/perllocal.pod
+with omit    /usr/lib/perl5/5.16.3/i586-linux-thread-multi-64int/perllocal.pod
+with omit    /usr/lib/perl5/5.16.3/i486-linux-thread-multi-64int/perllocal.pod
 with info    cite 'practical extraction and reporting language by Larry Wall
 perl is a high-level, general-purpose programming language.
 It is optimized for scanning arbitrary
@@ -88,7 +101,9 @@ build(){
  else SETARCH=""
  fi
  $SETARCH \
- ./Configure -Dprefix=/usr -d -e $THREADS -A define:libpth="$libpth" $OPTS &&
+ ./Configure \
+   -Dprefix=/usr -Dinc_version_list=none \
+   -d -e $THREADS -A define:libpth="$libpth" $OPTS &&
  make "OPTIMIZE=$CFLAGS" &&
  make install DESTDIR="$DESTDIR" &&
  rm -f                "$DESTDIR"/*.0

@@ -1,19 +1,40 @@
+# The source ignores the -L/usr/lib and inserts -L/usr/lib64
+# and therefore ruins the multilib compile.
+# Is this still so?
+
+with info    good 20130820
 with info    last 20130703
-with version stable 1.8.6 1.8.5 1.8.4
+with version stable 1.8.6 1.8.5
 with base    gtk+ imake librsvg xorg-cf-files
 with elect   Canna       --with-canna ''               for canna Japanese input system
 with elect   anthy       ''           --without-anthy  for anthy Japanese input system
 #with elect   gnome-panel ''           --disable-applet for gnome applet indicator
 with elect   gtk+        ''           --without-gtk2   for gtk tools and immodule
 #with elect   prime       ''           --without-prime  for prime Japanese input system
-with also    --enable-dict --enable-static=no
+with elect   phonon      --with-qt4-immodule '' for KDE support
+with also    --enable-dict --enable-static=no --prefix=/usr
 with role    input
-with trait   library makej multilib-dual x11
+# Not certain how to allow this spell to also provide
+# an input manager for KDE and compile multilib
+with trait   library makej multilib-fail x11
+#with trait   library makej multilib-dual x11
 with source  stable http://uim.googlecode.com/files/uim-$VERSION.tar.bz2
 with info    home http://code.google.com/p/uim/
 #with info    home http://uim.freedesktop.org/wiki/
 with info    vurl http://code.google.com/p/uim/
 with info    cite 'multilingual input method library'
+
+build(){
+ if spell_installed $( get_provider phonon ); then
+  if    [[ $HOSTTYPE == x86_64 ]]; then
+   if   [[ $CFLAGS   =~ -m32   ]]
+   then export QTDIR=/opt/32bit/usr; export LDFLAGS+=' -L/usr/lib'
+   else export QTDIR=/usr;           export LDFLAGS+=' -L/usr/lib64'
+   fi
+  fi
+ fi
+ default_build
+}
 
 post_install(){
  if   spell_installed gtk-query-immodules-2.0

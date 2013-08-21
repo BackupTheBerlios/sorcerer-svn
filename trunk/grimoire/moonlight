@@ -1,0 +1,28 @@
+# Making this compile may be nearly hopeless because
+# it requires ancient obsolete libraries.
+with trait   broke
+with info    last 20110412
+with version stable 3.99.0.3
+with base    firefox
+#with base   gnome-desktop-sharp
+with role    graphic
+with trait   library makej multilib-fail no_patcher x11
+with source  stable http://download.mono-project.com/sources/moon/$VERSION/moonlight-$VERSION.tar.bz2
+with source  stable http://download.mono-project.com/sources/moon/$VERSION/mesa-3ed0a099c.tar.bz2
+with source  stable http://download.mono-project.com/sources/moon/$VERSION/mono-2.11.tar.bz2
+with source  stable http://download.mono-project.com/sources/moon/$VERSION/mono-basic-2.11.tar.bz2
+with info    home http://mono-project.com/Moonlight
+with info    cite 'open source implementation of silverlight'
+
+build(){
+ ln -s moonlight-$VERSION/mono-2.11       ../mono
+ ln -s moonlight-$VERSION/mono-basic-2.11 ../mono-basic
+ with also --with-cairo=system
+ with also --with-mono-path=$PWD/mono-2.11
+ with also --with-mono-basic-path=$PWD/mono-basic-2.11
+ with also --with-gallium-path=$PWD/mesa-3ed0a099c/src/gallium
+ with also --with-manual-mono=no
+ with also --with-manual-gallium=no
+ with also --with-curl=system
+ default_build
+}

@@ -13,14 +13,16 @@
 # Requirement on X perhaps unavodiable since texlive requires silgraphite
 # and silgraphite requires pango
 
-
-with version stable 20120701 20110705
+with info    good 20130820
+with info    last 20130530
+with version stable 20130530 20120701
 with clash   teTeX
-with base    freetype gd libpaper libpng poppler silgraphite t1lib zlib
-#with base    TECkit freetype gd libpaper libpng poppler silgraphite t1lib zlib
-# TECkit is broke and not compiling
+with base    TECkit freetype gd libpaper libpng poppler silgraphite t1lib t1utils zlib
 
 #with elect   clisp --enable-xindy --disable-xindy
+with elect   libvpx
+with also    --disable-t1utils --with-system-teckit
+
 with also    --disable-xindy
 ##     with also --enable-static=no --disable-dialog --with-system-freetype --with-system-freetype2 --with-system-t1lib --with-system-libpng --with-system-zlib --with-pic --with-system-xpdf --disable-native-texlive-build --with-freetype-includes=/usr/include/freetype --with-system-gd --with-system-teckit --with-system-graphite --with-teckit-includes=/usr/include/teckit --infodir=/usr/share/info --mandir=/usr/share/man --docdir=/usr/share/doc
 #      with also --enable-static=no --disable-dialog --with-system-freetype --with-system-freetype2 --with-system-t1lib --with-system-libpng --with-system-zlib --with-pic --disable-native-texlive-build --with-freetype-includes=/usr/include/freetype --with-system-gd --with-system-teckit --with-system-graphite --with-teckit-includes=/usr/include/teckit --infodir=/usr/share/info --mandir=/usr/share/man --docdir=/usr/share/doc
@@ -31,20 +33,19 @@ with also    --enable-static=no --disable-dialog --with-system-freetype2 --with-
 
 with role    documentation
 with trait   console makej
-with source  ftp://tug.org/historic/systems/texlive/${VERSION:0:4}/texlive-$VERSION-source.tar.xz
-with info    last 20120701
+with source  stable ftp://tug.org/historic/systems/texlive/${VERSION:0:4}/texlive-$VERSION-source.tar.xz
 with info    home http://www.tug.org/texlive/
 with info    cite 'TeX system with programs, macros, and fonts'
 
 build(){
  export PATH="${PATH/\/usr\/libexec\/ccache:/}"
-with also    --enable-build-in-source-tree
-with also            --datadir=/usr/share/texmf
- mkdir -pvm 755 $DESTDIR/usr/share/texmf
+ with also    --enable-build-in-source-tree
+ with also            --datadir=/usr/share/texmf
+ mkdir -pvm 755 "$DESTDIR"/usr/share/texmf/
  default_build
 }
 
 post_install(){
-default_post_install
-echo mktexlsr | pipe_queue $MOIL_QUEUE
+ default_post_install
+ echo mktexlsr | pipe_queue "$MOIL_QUEUE"
 }
