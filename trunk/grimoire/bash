@@ -1,6 +1,6 @@
 # Compiling with lto produces smaller, but slower bash
 
-with info    good 20130709
+with info    good 20130903
 with info    last 20130307
 with version stable 4.2.045 4.2.042
 with base    readline
@@ -41,38 +41,23 @@ In addition, most sh scripts can be run by Bash without modification.'
 
 build(){
  install_loadables(){
-  install -vdm 755 "$DESTDIR"/usr/libexec/bash
+  install -vdm 755 "$DESTDIR"/usr/libexec/bash/
   cd  examples/loadables
   for FILE in *.c
   do  make             ${FILE%.c}
-      install -vsm 755 ${FILE%.c} "$DESTDIR"/usr/libexec/bash
+      install -vsm 755 ${FILE%.c} "$DESTDIR"/usr/libexec/bash/
   done
   true
  }
 
  install_etc(){
-  install -vm 755 -d                           "$DESTDIR"/etc/skel
-  install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc
+  install -vm 755 -d                           "$DESTDIR"/etc/skel/
+  install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc/
   install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc/skel/.bashrc
   install -vm 644 "$SCRIPT_DIR"/profile        "$DESTDIR"/etc/skel/.bash_profile
   install -vm 644 "$SCRIPT_DIR"/logout         "$DESTDIR"/etc/skel/.bash_logout
-  install -vm 755 -d                           "$DESTDIR"/etc/bash.d
+  install -vm 755 -d                           "$DESTDIR"/etc/bash.d/
   install -vm 755 "$SCRIPT_DIR"/bash.d/default "$DESTDIR"/etc/bash.d/
- }
-
-
-# added because old readline ELF libraries must be removed from the library cache
-# as soon as new bash is compiled because new bash will contain symbols
-# that will only resolve with readline 6.1
-# However, now library cache will not prune while
-# there are any installed spells with missing required ELF libraries.
-
- clear_library_cache(){
-  case $VERSION in
-   4.1) rm -f $LIBRARY_CACHE/libhistory.so* \
-              $LIBRARY_CACHE/libreadline.so*
-        ldconfig ;;
-  esac
  }
 
 # cast automatically patches it.
@@ -110,6 +95,5 @@ build(){
  make install DESTDIR="$DESTDIR" &&
  ln -sf bash  "$DESTDIR"/bin/sh  &&
  install_loadables &&
- install_etc       &&
- clear_library_cache
+ install_etc
 }

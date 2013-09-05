@@ -1,12 +1,12 @@
-# requires an  ia32 installation or
-# a multilib x86_64 installation
+# requires multilib x86_64 installation or ia32 installation
+
+with info    good 20130829
+with info    last 20101212
 with version stable 0.3
-with base    SDL libpng libvorbis openal
+with base    Python SDL libpng libvorbis openal
 with role    game
 with trait   x11
-with source  http://swars.vexillium.org/files/swars-$VERSION.tar.bz2
-with info    good 20120709
-with info    last 20101212
+with source  stable http://swars.vexillium.org/files/swars-$VERSION.tar.bz2
 with info    home http://swars.vexillium.org/
 with info    cite 'game of syndicate wars ported to SDL
 This requires an original syndicate wars CD
@@ -14,6 +14,21 @@ The port lacks joystick and networking support.
 It was created by disassembling the original DOS executable.'
 
 build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  if   [[ $HOSTTYPE == x86_64 ]]
  then export CFLAGS+=' -m32'; export LDFLAGS+=' -m32'
  fi

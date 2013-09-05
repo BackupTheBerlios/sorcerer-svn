@@ -1,0 +1,30 @@
+with inherit coreutils
+with base    coreutils static--acl
+
+build(){
+# statically linked ls requires static--libcap
+
+ local progs
+  progs="src/cat src/chmod src/chown src/cp src/cut "
+#progs+="src/echo src/false src/head src/ln src/ls "
+ progs+="src/echo src/false src/head src/ln "
+ progs+="src/mkdir src/mv src/rm src/rmdir src/sort "
+ progs+="src/tail src/tee src/touch src/tr src/true src/uniq"
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64.a'
+ else export LDFLAGS+=' -L/usr/lib.a'
+ fi
+
+ # sed -i 's:SUBDIRS = po . gnulib-tests:SUBDIRS = .:' Makefile.in
+ FORCE_UNSAFE_CONFIGURE=1 \
+ ac_cv_sys_xsi_stack_overflow_heuristic=no \
+ ./configure --prefix=/usr $OPTS &&
+ make &&
+ export LDFLAGS+=' -static' &&
+ rm -f $progs &&
+ make "LDFLAGS=$LDFLAGS" &&
+ install -dvm 755        "$DESTDIR"/usr/bin/ &&
+ install  -vm 755 $progs "$DESTDIR"/usr/bin/ &&
+ hash -r
+}

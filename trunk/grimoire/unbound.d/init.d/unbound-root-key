@@ -1,0 +1,24 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $network empty run
+# Required-Stop:  $network
+# Default-Start: 1 2 3 4 5
+# Short-Description: creates a root key for unbound to do DNSSEC
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start
+server /sbin/unbound-anchor
+config /etc/unbound/unbound.conf
+
+start(){
+ if   [ -f /etc/unbound/root.key ]
+ then log_success_msg "/etc/unbound/root.key exists"
+ elif log_warning_msg "/etc/unbound/root.key generating" && /sbin/unbound-anchor -a /etc/unbound/root.key
+ then log_success_msg "/etc/unbound/root.key generated"
+ else log_failure_msg "/etc/unbound/root.key generation failed"; return 1
+ fi
+}

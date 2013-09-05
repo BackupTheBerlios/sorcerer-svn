@@ -1,0 +1,19 @@
+with inherit glib
+with base    glib static--pcre
+with trait   multilib-fail
+
+build(){
+with also    --enable-static --disable-shared
+
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/.*\.a$,d
+        \,/lib64.a/.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ default_build && remove_debris
+}

@@ -1,12 +1,12 @@
-with version stable 4.64 4.63
+with info    good 20130827
+with info    last 20050928
+with version stable 4.64
 with elect   PAM     '' '' for pluggable authentication
 with elect   stunnel '' '' for imaps or pops
 with elect   xinetd  '' '' for running servers
 with role    network/email utility/editor
 with trait   console client server
-with source  ftp://ftp.cac.washington.edu/pine/pine$VERSION.tar.bz2
-with info    good 20120630
-with info    last 20050928
+with source  stable ftp://ftp.cac.washington.edu/pine/pine$VERSION.tar.bz2
 with info    home http://www.washington.edu/pine/
 with fill    email-client pop3 pop3s imap imaps
 with info    cite 'pine is a text-based MIME Email client.
@@ -21,32 +21,26 @@ pine console email client'
 
 build(){
  make_install(){
-  mkdir -p $DESTDIR/usr/{bin,sbin,man/man1}
+  install -dvm 755 "$DESTDIR"/usr/{bin,sbin,man/man1}/
   cd bin
-  install -m 755 -o root -g root imapd  $DESTDIR/usr/sbin
-  install -m 755 -o root -g root ipop2d $DESTDIR/usr/sbin
-  install -m 755 -o root -g root ipop3d $DESTDIR/usr/sbin
-  install -m 755 -o root -g root rpload $DESTDIR/usr/sbin
-  install -m 755 -o root -g root rpdump $DESTDIR/usr/sbin
-  install -m 755 -o root -g root mtest  $DESTDIR/usr/bin
-  install -m 755 -o root -g root pico   $DESTDIR/usr/bin
-  install -m 755 -o root -g root pilot  $DESTDIR/usr/bin
-  install -m 755 -o root -g root pine   $DESTDIR/usr/bin
+  install -m 755 -o root -g root imapd  "$DESTDIR"/usr/sbin/
+  install -m 755 -o root -g root ipop2d "$DESTDIR"/usr/sbin/
+  install -m 755 -o root -g root ipop3d "$DESTDIR"/usr/sbin/
+  install -m 755 -o root -g root rpload "$DESTDIR"/usr/sbin/
+  install -m 755 -o root -g root rpdump "$DESTDIR"/usr/sbin/
+  install -m 755 -o root -g root mtest  "$DESTDIR"/usr/bin/
+  install -m 755 -o root -g root pico   "$DESTDIR"/usr/bin/
+  install -m 755 -o root -g root pilot  "$DESTDIR"/usr/bin/
+  install -m 755 -o root -g root pine   "$DESTDIR"/usr/bin/
 
-  mkdir  -p $DESTDIR/usr/include/imap $DESTDIR/usr/man/man1
-  chmod 755 $DESTDIR/usr/include/imap $DESTDIR/usr/man/man1
+  install -dvm 755 "$DESTDIR"/usr/{include/imap,man/man1}/
 
   cd ../c-client
   chmod 644 *.h
-  cp -f *.h $DESTDIR/usr/include/imap
-  install -m 644 -o root -g root c-client.a $DESTDIR/usr/lib/libc-client.a
+  install -m 644 -o root -g root *.h        "$DESTDIR"/usr/include/imap/
+  install -m 644 -o root -g root c-client.a "$DESTDIR"/usr/lib/libc-client.a
   cd ..
-
-  find doc -name \*.1 -type f |
-  while read; do
-   gzip    -9 $REPLY
-   install -m 644 -o root -g root $REPLY.gz $DESTDIR/usr/man/man1
-  done
+  install -m 644 -o root -g root doc/*.1    "$DESTDIR"/usr/man/man1/
 
   if spell_installed stunnel; then
    ln -sf stunnel.pem /etc/ssl/certs/imapd.pem

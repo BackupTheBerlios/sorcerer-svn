@@ -12,47 +12,22 @@ export LC_ALL=C
 
 renice 19      -p $$ &>/dev/null
 ionice -c2 -n7 -p $$ &>/dev/null
-# cgroup_join idle
-# If it joins the idle cgroup then # augur abort exam-integrity
-# will be unable to kill exam-integrity.
 
 WHAT='Unexpected md5sum'
  LOG='Cast MD5'
- EXT=$RANDOM$RANDOM$RANDOM
- OLD=/tmp/md5sums.old.$EXT
- MIS=/tmp/md5sums.mis.$EXT
- CHK=/tmp/md5sums.chk.$EXT
 
-tsum(){ find "$CURRENT_LOGS" -type f | xargs -r --max-lines=64 cat; }
-sums(){ tsum | gzip -cd | cut -f3,4   | sed '/^[a-z]\t/d;s:\t:  :'; }
- use(){ filter conf | filter vary; }
- old(){ sums | use > $OLD; }
-name(){ cut -b 35-; }
- now(){ cat $OLD | name | escape_qs | xargs -r --max-lines=64 md5sum; }
-from(){ while read; do grep -rx "$REPLY" "$INSTALL_INDEX"; done | sed "s:$INSTALL_INDEX/::"; }
-peal(){ sed  "s,:,\t,;s,^,$WHAT\t," | tee /dev/stderr | cut -f2 | sort -u; }
-this(){ pipe_queue "$MOIL_QUEUE"; }
-miss(){ sed 's/^md5sum: //;s/: No such file or directory$//p;d' $MIS; }
-
-why(){
- echo 1>&2; while read R; do
-  event "$R" "$( installed_version "$R" )" "$LOG"
-  echo  "$R"
- done
- }
-
-check(){
- old > $OLD
- now > $CHK 2>$MIS
-
- sort -u $CHK     | cat - $OLD $OLD |
- sort | uniq -u   |
- name | pipe miss | sort -u |
- from | peal      | why     | this
- rm -f $OLD $MIS $CHK
-}
-
-touch     $OLD $MIS $CHK
-chmod 600 $OLD $MIS $CHK
-
-check
+find "$POST_LOGS" -type f -printf "%P\n" |
+while read; do
+ MD5_OLD="$( xz -cd "$POST_LOGS/$REPLY" | sed -n 3p )"
+ MD5_NEW="$(
+  cut -b 35- < "$MD5_INDEX/$REPLY" | sed p       |
+  cat -    "$INSTALL_INDEX/$REPLY" | sort        | uniq -u   |
+  sed '\,/aux/,d' | files          | filter vary | escape_qs |
+  xargs -r --max-lines=256 cat     | md5sum      | sed 's:  -::'
+ )"
+ if ! [ "$MD5_NEW" == "$MD5_OLD" ]; then
+  event "$REPLY" "$( installed_version "$REPLY" )" "$LOG"
+  echo  "$REPLY" | pipe_queue "$LOAD_QUEUE"
+  echo  "$REPLY" | pipe_queue "$MOIL_QUEUE"
+ fi
+done

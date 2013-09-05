@@ -1,5 +1,8 @@
+# If poppler-qt-11-opensource is installed
+# then poppler must also be installed
+
 with inherit poppler
-with base    qt-everywhere-opensource
+with base    poppler qt-everywhere-opensource
 #      with also -DENABLE_XPDF_HEADERS:BOOL=TRUE
 #      with also -DWITH_GObjectIntrospection:BOOL=OFF
 # -DENABLE_XPDF_HEADERS:BOOL=TRUE installs unsupported xpdf headers (needed by calibre)
@@ -9,9 +12,9 @@ with info    cite 'PDF rendering library with qt-everywhere-opensource support'
 
 build(){
  missing_install(){
-  mkdir -vpm 755 "$DESTDIR"/usr/include/poppler
-  mkdir -vpm 755 "$DESTDIR"/usr/include/poppler/goo
-  mkdir -vpm 755 "$DESTDIR"/usr/include/poppler/splash
+  install -vdm 755 "$DESTDIR"/usr/include/poppler/
+  install -vdm 755 "$DESTDIR"/usr/include/poppler/goo/
+  install -vdm 755 "$DESTDIR"/usr/include/poppler/splash/
   find poppler -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler
   find splash  -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler/splash
   find goo     -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler/goo
@@ -38,16 +41,3 @@ build(){
  make install DESTDIR="$DESTDIR" &&
  missing_install
 }
-
-build_old(){ (
- if    [[ $HOSTTYPE == x86_64 ]]; then
-  if   [[ $CFLAGS   =~ -m32   ]]
-  then  export LDFLAGS+=' -Wl,-rpath,/opt/32bit/usr/lib'
-        export PATH="/opt/32bit/usr/bin:$PATH"
-with also    -DCMAKE_INSTALL_PREFIX:PATH=/opt/32bit/usr
-  else  with also -DCMAKE_INSTALL_PREFIX:PATH=/usr
-  fi
- else   with also -DCMAKE_INSTALL_PREFIX:PATH=/usr
- fi
- default_build
-) }

@@ -1,10 +1,10 @@
-with info    last 20130708
-with version stable 14 13 12 11
+with info    last 20130822
+with version stable 15 14 13
 with base    xz zlib
 with elect   libxslt --enable-manpages --disable-manpages for manual page generation
 with also    --bindir=/bin --with-xz --with-zlib
 with role    kernel
-with trait   console library lto makej multilib-concurrent
+with trait   console library lto makej multilib-concurrent optimize
 with source    stable $KERNEL_URL pub/linux/utils/kernel/kmod/kmod-$VERSION.tar.xz
 with source  unstable $KERNEL_URL pub/linux/utils/kernel/kmod/kmod-$VERSION.tar.xz
 with info    home http://www.politreco.com
@@ -15,20 +15,20 @@ with info    cite 'library and utility for loading linux kernel modules'
 
 build(){
  conf_install(){
-  mkdir -pvm 755 "$DESTDIR"/etc/modules.d
-  cp    -av       "$SCRIPT_DIR"/modules    "$DESTDIR"/etc/
-  cp    -av       "$SCRIPT_DIR"/modules.rm "$DESTDIR"/etc/
+  install -dvm 755                          "$DESTDIR"/etc/modules.d/
+  cp      -av      "$SCRIPT_DIR"/modules    "$DESTDIR"/etc/
+  cp      -av      "$SCRIPT_DIR"/modules.rm "$DESTDIR"/etc/
  }
 
  wrap_install(){
-  mkdir  -pvm 755                        "$DESTDIR"/usr/sbin/
-  install -vm 700 "$SCRIPT_DIR"/modprobe "$DESTDIR"/usr/sbin/
-  install -vm 700 "$SCRIPT_DIR"/rmmod    "$DESTDIR"/usr/sbin/
+  install -dvm 755                        "$DESTDIR"/usr/sbin/
+  install -vm  700 "$SCRIPT_DIR"/modprobe "$DESTDIR"/usr/sbin/
+  install -vm  700 "$SCRIPT_DIR"/rmmod    "$DESTDIR"/usr/sbin/
  }
 
  sym(){ while [ -n "$1" ]; do ln -sv ../bin/kmod "$DESTDIR/$1"; shift; done; } 
  syml_install(){
-  mkdir -pvm 755 "$DESTDIR"/{bin,sbin}
+  install -dvm 755 "$DESTDIR"/{bin,sbin}/
   sym sbin/{depmod,insmod,modinfo,modprobe,rmmod} bin/lsmod
  }
  

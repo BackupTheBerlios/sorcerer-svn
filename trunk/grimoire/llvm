@@ -56,70 +56,27 @@ build(){
  then mv -v clang-tools-extra-$VERSION.src tools/clang/tools/clang
  fi
 
+ ## Too many places to properly sedit
+ ## files invoke python from within and not merely python scripts
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
  then with also -DLLVM_LIBDIR_SUFFIX:STRING=64
       sed -i 's:/lib:/lib64:' tools/llvm-config/llvm-config.cpp
  fi
  default_build
-}
-
-build_broke(){
- if     [[ $HOSTTYPE == x86_64 ]] &&
-      ! [[ $CFLAGS   =~ -m32   ]]
- then sed -i 's:LLVM_LIBDIR="${prefix}/lib":LLVM_LIBDIR="${prefix}/lib64":' configure
- fi
- default_build
-}
-
-build_broke(){
- sedit_files(){
-  if     [[ $HOSTTYPE == x86_64 ]] &&
-       ! [[ $CFLAGS   =~ -m32   ]]
-  then echo sed -i 's:LLVM_LIBDIR "/usr/lib":LLVM_LIBDIR "/usr/lib64":' include/llvm/Config/config.h
-            sed -i 's:LLVM_LIBDIR "/usr/lib":LLVM_LIBDIR "/usr/lib64":' include/llvm/Config/config.h
-  fi
- }
-
- mv_lib(){
-  if     [[ $HOSTTYPE == x86_64 ]] &&
-       ! [[ $CFLAGS   =~ -m32   ]]
-  then mv -v "$DESTDIR"/usr/lib{,64}
-  fi
- }
-
- ./configure -sysconfdir=/etc --localstatedir=/var --prefix=/usr $OPTS &&
- sedit_files &&
- make        &&
- make install DESTDIR="$DESTDIR" &&
- mv_lib
-}
-
-current(){
- case $VERSION in
-  3.2) if     [[ $HOSTTYPE == x86_64 ]] &&
-            ! [[ $CFLAGS   =~ -m32   ]]
-       then llvm-config --ldflags | grep -q /usr/lib64
-       fi ;;
- esac
-}
-
-build_broke(){
-# if     [[ $HOSTTYPE == x86_64 ]] &&
-#      ! [[ $CFLAGS   =~ -m32   ]]
-# then with also -DLLVM_LIBDIR_SUFFIX=64
-# fi
-
-# Did not work.
- if     [[ $HOSTTYPE == x86_64 ]] &&
-      ! [[ $CFLAGS   =~ -m32   ]]
- then with also --libdir=/usr/lib64
- fi
-
- rm -f CMakeLists.txt
- default_build &&
- if     [[ $HOSTTYPE == x86_64 ]] &&
-      ! [[ $CFLAGS   =~ -m32   ]]
- then mv -v "$DESTDIR"/usr/lib{,64}; true
- fi
 }

@@ -2,6 +2,8 @@
 # Version 2.9.4 has odd installation error.
 # lrwxrwxrwx 1 root root 74 Aug 25 11:46 /usr/bin/wx-config -> /usr/src/sorcery/destdir/wxWidgets/64/usr/lib64/wx/config/gtk2-unicode-2.9
 
+with info    good 20130829
+with info    last 20110328
 with version   stable 2.8.12
 with version unstable 2.9.4
 with base    glu gtk+
@@ -18,8 +20,6 @@ with role    graphic/library graphic/toolkit
 with trait   library litelink makej multilib-dual
 with source    stable $SOURCEFORGE_URL wxwindows/$VERSION/wxWidgets-$VERSION.tar.bz2
 with source  unstable $SOURCEFORGE_URL wxwindows/$VERSION/wxWidgets-$VERSION.tar.bz2
-with info    good 20120713
-with info    last 20110328
 with info    home http://www.wxwidgets.org
 with info    freecode wxwidgets
 
@@ -39,10 +39,10 @@ writing GUI applications on multiple platforms.'
 
 build(){
  deref_wx_config(){
-                    [ -h "$DESTDIR/usr/bin/wx-config" ] || return
-  local from=$( readlink "$DESTDIR/usr/bin/wx-config" )
-  rm -f                  "$DESTDIR/usr/bin/wx-config"
-  cp -a "$from"          "$DESTDIR/usr/bin/wx-config"
+                    [ -h "$DESTDIR"/usr/bin/wx-config ] || return
+  local from=$( readlink "$DESTDIR"/usr/bin/wx-config )
+  rm -f                  "$DESTDIR"/usr/bin/wx-config
+  cp -a "$from"          "$DESTDIR"/usr/bin/wx-config
  }
 
  if   [ "${VERSION:0:3}" == 2.9 ]
@@ -57,7 +57,7 @@ build_old(){
   cd contrib/include
   find |
   while read
-  do    install -Dv $REPLY $DESTDIR/usr/include/wx-${VERSION:0:3}/$REPLY
+  do    install -Dv $REPLY "$DESTDIR"/usr/include/wx-${VERSION:0:3}/$REPLY
   done  
   true
 }
@@ -73,9 +73,9 @@ build_old(){
  cd   contrib &&
  make         &&
  cd   ..      &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  cd   contrib &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  cd   ..      &&
  install_contrib_headers
 }

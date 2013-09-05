@@ -1,25 +1,24 @@
 # --exec-prefix now / because gptfdisk requires icu4c
 
-with version stable 51_1 50_1_1
-with info    last 20130315
+with info    good 20130828
+with info    last 20130523
+with version stable 51_2 51_1
 with also    --exec-prefix=
 with base    gcc-g++
 # Why require glibc?  Does this only install on glibc and not uClibc?
 #with base    glibc
 with role    font/library
-with trait   hidden library lto makej multilib-dual
-with source  http://download.icu-project.org/files/icu4c/${VERSION//_/.}/icu4c-$VERSION-src.tgz
+with trait   hidden library lto makej multilib-dual optimize
+with source  stable http://download.icu-project.org/files/icu4c/${VERSION//_/.}/icu4c-$VERSION-src.tgz
 with info    home http://icu-project.org/
 with info    docs http://userguide.icu-project.org/
 #with info    vurl http://site.icu-project.org/download
 with info    cite 'set of C/C++ and Java libraries that provide Unicode and Globalization
 support for software applications'
 
-build(){ cd source/ && default_build; }
-
-build_old(){
+build(){
+ local  CC     CXX
+ export CC=gcc CXX=g++
  cd source/ &&
- ./runConfigureICU Linux --prefix=/usr &&
- make &&
- make install DESTDIR=$DESTDIR
+ default_build
 }

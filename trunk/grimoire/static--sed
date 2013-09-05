@@ -1,0 +1,17 @@
+with inherit sed
+with base    sed static--acl
+with info    cite 'installs statically linked /usr/bin/sed'
+
+build(){
+ sed -i 's:SUBDIRS = lib po sed doc testsuite:SUBDIRS = lib sed:' Makefile.in
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64.a -static -lattr -lacl'
+ else export LDFLAGS+=' -L/usr/lib.a   -static -lattr -lacl'
+ fi
+
+ ./configure --prefix=/usr $OPTS &&
+ make &&
+ install -dvm 755         "$DESTDIR"/usr/bin/ &&
+ install  -vm 755 sed/sed "$DESTDIR"/usr/bin/
+}

@@ -21,14 +21,13 @@
 # -r--r--r--  1 wietse  wheel   99438 Apr  8  1997 tcp_wrappers_7.6.tar.gz
 # tcp_wrapperswit elect   will be removed from openssh in 2009
 
-with version stable 7.6-ipv6.4 7.6
+with info    good 20130829
+with info    last 20040504
+with version stable 7.6-ipv6.4
 with base    libtool
 with role    network
 with trait   console server
-with source  ftp://ftp.porcupine.org/pub/security/tcp_wrappers_$VERSION.tar.gz
-with info    good 20120710
-with info    last 20040504
-#     info last 19970408
+with source  stable ftp://ftp.porcupine.org/pub/security/tcp_wrappers_$VERSION.tar.gz
 with info    home ftp://ftp.porcupine.org/pub/security/index.html
 with info    cite 'library for monitoring and filtering of inbound network request.
 The tcp_wrappers package allows you to 
@@ -52,15 +51,15 @@ build(){
  RDR="REAL_DAEMON_DIR=/usr/sbin"
 
  make "$RDR" linux &&
- mkdir -pvm 755 $DESTDIR/usr/{include,$LD,man/man{3,5,8},sbin} &&
+ install -dvm 755 "$DESTDIR"/usr/{include,$LD,man/man{3,5,8},sbin}/ &&
  for EXECUTABLE in *; do
   if   [ -x $EXECUTABLE ]
-  then cp   $EXECUTABLE $DESTDIR/usr/sbin
+  then cp   $EXECUTABLE "$DESTDIR"/usr/sbin/
   fi
  done &&
- cp -v tcpd.h    $DESTDIR/usr/include  &&
- cp -v libwrap.a $DESTDIR/usr/$LD      &&
- cp -v *.3       $DESTDIR/usr/man/man3 &&
- cp -v *.5       $DESTDIR/usr/man/man5 &&
- cp -v *.8       $DESTDIR/usr/man/man8
+ install -vm 644 tcpd.h    "$DESTDIR"/usr/include/  &&
+ install -vm 644 libwrap.a "$DESTDIR"/usr/$LD/      &&
+ install -vm 644 *.3       "$DESTDIR"/usr/man/man3/ &&
+ install -vm 644 *.5       "$DESTDIR"/usr/man/man5/ &&
+ install -vm 644 *.8       "$DESTDIR"/usr/man/man8/
 }

@@ -1,10 +1,11 @@
 # Uncertain if libcap is elect
 
+# perl--gettext required by help2man included in coreutils tarball
+
 with info    good 20130529
 with info    last 20130214
 with version stable 8.21 8.20 8.19
-with base    acl gmp libcap
-with switch  -static '' to make static linked cut sort uniq
+with base    acl gmp libcap perl--gettext
 #with base    libselinux
 with role    utility
 with trait   console lto makej optimize solo
@@ -132,8 +133,6 @@ uniq		remove duplicate lines from a sorted file
 wc		prints the number of bytes, words, and lines in files'
 
 build(){
- local STATIC
-
  place_files(){
   echo 'Placing files'
   hash -r
@@ -181,26 +180,9 @@ build(){
 
  sync_fix(){ install -m 755 "$SCRIPT_DIR"/sync "$DESTDIR"/usr/bin/; hash -r; }
 
- make_static(){
-  if [ -n "$STATIC" ]; then
-   export LDFLAGS+=" $STATIC"
-   rm -f src/{cut,sort,uniq}
-   make "LDFLAGS=$LDFLAGS"
-   install -vm 755 src/cut  "$DESTDIR"/usr/bin/
-   install -vm 755 src/sort "$DESTDIR"/usr/bin/
-   install -vm 755 src/uniq "$DESTDIR"/usr/bin/
-  fi
- }
-
- if [[ $OPTS =~ -static ]]; then
-    OPTS=${OPTS/-static}
-        STATIC="-static"
- fi
-
  FORCE_UNSAFE_CONFIGURE=1 \
  ac_cv_sys_xsi_stack_overflow_heuristic=no \
  default_build &&
- make_static   &&
  place_files   &&
  sync_fix
 }

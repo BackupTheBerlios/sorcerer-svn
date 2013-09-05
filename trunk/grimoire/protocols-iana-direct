@@ -2,11 +2,12 @@
 
 #with version stable "$( date -u +%Y-%m )" 
 
+with info    good 20140101
+with trait   broke
 version_year_month 12
 with role    network
 with trait   client server
-with trait   broke
-with source  http://www.iana.org/assignments/protocol-numbers/protocol-numbers.txt
+with source  stable http://www.iana.org/assignments/protocol-numbers/protocol-numbers.txt
 with info    home http://www.iana.org/
 with disable scavenge
 with protect /etc/protocols
@@ -19,7 +20,7 @@ build(){
 
  [[ -f $SOURCE ]] || return 1
 
- mkdir -pvm 755 $DESTDIR/etc
+ install -dvm 755 "$DESTDIR"/etc/
  cat $SOURCE      |
  tr  -d  '\r'     |
  tr  -s ' '       |
@@ -34,5 +35,5 @@ build(){
  while read PROTO NUM
  do    echo -n "$PROTO $NUM "; echo "$PROTO" | tr '[A-Z]' '[a-z]'
  done >          protocols &&
- install -vm 644 protocols $DESTDIR/etc
+ install -vm 644 protocols "$DESTDIR"/etc/
 }

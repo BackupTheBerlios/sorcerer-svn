@@ -1,4 +1,10 @@
-with version   stable 1.2.0
+with info    good 20130827
+with info    last 20130619
+with version   stable 1.2.2 1.2.0
+case $VERSION in
+ 1.2.0)
+with also    --disable-python-bindings ;;
+esac
 with base    cracklib
 with also    --disable-static
 with role    security/authentication
@@ -6,6 +12,24 @@ with trait   console library makej multilib-dual
 #trait console library makej multilib-concurrent
 CURL_PARAM=-k
 with source    stable https://fedorahosted.org/releases/l/i/libpwquality/libpwquality-$VERSION.tar.bz2
-with info    last 20120816
 with info    home https://fedorahosted.org/libpwquality/
 with info    cite 'password checking library used with Linux-PAM'
+
+build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
+ default_build
+}

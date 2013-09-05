@@ -1,0 +1,45 @@
+with info    good 20130823
+with info    last 20110303
+with version stable 102
+with base    ncurses
+with elect   SDL_mixer
+with elect   SDL_ttf
+with source  stable http://skills-angband.googlecode.com/files/sangband_source_$VERSION.zip
+with sys_user games
+with role    game
+with trait   console hidden makej x11
+with info    home http://code.google.com/p/skills-angband/
+with info    vurl http://code.google.com/p/skills-angband/downloads/list
+with vary    /usr/share/sangband/apex/
+with vary    /usr/share/sangband/bone/
+with vary    /usr/share/sangband/data/
+with vary    /usr/share/sangband/save/
+with info    cite 'single player CRPG also known as skill based angband'
+
+build(){
+ install_lib(){
+  cd ..
+  chgrp games lib/apex/scores.raw
+  rm    -f    lib/*/delete.txt
+  find lib -type f | xargs --max-lines=64 chmod 644
+  find lib -type d | xargs --max-lines=64 chmod 775
+  find lib -type d | xargs --max-lines=64 chgrp games
+  install -dm 755  "$DESTDIR"/usr/share/
+  cp      -a lib   "$DESTDIR"/usr/share/sangband
+ }
+
+ cd src
+ sed -i 's:# define DEFAULT_PATH "." PATH_SEP "lib" PATH_SEP:# define DEFAULT_PATH PATH_SEP "usr" PATH_SEP "share" PATH_SEP "sangband":' config.h
+
+ make -f Makefile.std &&
+ install -dvm 755 "$DESTDIR"/usr/bin/ &&
+ install  -vm 2755 -g games sangband "$DESTDIR"/usr/bin/ &&
+ if   LC_ALL=C grep -q SDL_mixer "$OPT_ON_LOGS/$SPELL" &&
+      LC_ALL=C grep -q SDL_ttf   "$OPT_ON_LOGS/$SPELL"
+ then
+  rm   -f sangband
+  make -f Makefile.sdl &&
+  install -vm 2755 -g games ../sangband "$DESTDIR"/usr/bin/sangbnd-sdl
+ fi &&
+ install_lib
+}

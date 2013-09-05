@@ -15,16 +15,18 @@
 with info    last 20130813
 with version bad      2.36.4 2.36.3 2.36.2
 with version   stable 2.36.1 2.36.0
-with version unstable 2.37.5
+with version unstable 2.37.7
 with base    gettext libffi pcre pkgconfig zlib
 # Omit Python from the I/R if possible
 [ -f "${CURRENT_LOGS:-/aux/log/current}"/deployment-docent ] ||
 with base    Python
-with also    --with-pcre=system --with-threads=posix
-with also    --enable-static --enable-shared
-with also    --disable-modular-tests
+with also    --with-pcre=system --with-threads=posix --disable-modular-tests --enable-shared
 with role    development
-with trait   gnome library lto_off makej multilib-concurrent optimize
+with trait   gnome library lto_off makej optimize
+if   [[ glib == $SPELL ]]; then
+with trait   multilib-concurrent
+with also    --disable-static
+fi
 with source    stable $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.xz
 with source  unstable $GNOME_URL sources/glib/${VERSION:0:4}/glib-$VERSION.tar.xz
 with info    home http://www.gtk.org/
@@ -38,7 +40,20 @@ build(){
   then rm -fr "$DESTDIR"/usr/share/gtk-doc
   fi
  }
+
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
    CFLAGS+=' -fPIC'
  CXXFLAGS+=' -fPIC'
  default_build && trim_html
+}
+
+current(){
+ case $VERSION in
+  2.36.1) LC_ALL=C grep -q /usr/bin/python2 /usr/bin/gdbus-codegen ;;
+ esac
 }

@@ -17,10 +17,11 @@ with version 285    285.05.09 285.03
 with version 280    280.13
 with version 275    275.43 275.36 275.28 275.21
 with version 270    270.41.19 270.41.06
-if   [ -f "${VERSION_LOGS:-/aux/log/version}/libX11" ] ||
-     [ -f "${CURRENT_LOGS:-/aux/log/current}/libX11" ]; then
+if   [ -f "$INSTALL_INDEX"/MesaLib     ] ||
+     [ -f "$INSTALL_INDEX"/xorg-server ]; then
 with base    MesaLib gtk+ libXvMC linux-source xorg-server
-else
+fi
+if   [ -f "$INSTALL_INDEX"/linux-modules ]; then
 with base    linux-modules
 fi
 with role    kernel
@@ -81,7 +82,8 @@ build(){
 # rm -f "$DESTDIR"/usr/lib64/xorg/modules/extensions/libglx.*
 
   if   ! [ -f "${VERSION_LOGS:-/aux/log/version}/libX11" ] &&
-       ! [ -f "${CURRENT_LOGS:-/aux/log/current}/libX11" ]
+       ! [ -f "${CURRENT_LOGS:-/aux/log/current}/libX11" ] &&
+       ! [ -f       "${POST_LOGS:-/aux/log/post}/libX11" ]
   then rm -fr "${DESTDIR:-/tmp/empty}"/usr/{bin,include,lib,lib64}
   fi
 

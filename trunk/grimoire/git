@@ -1,8 +1,9 @@
 # manual page for git-clone suggests a requirement on rsync
+# 1.8.4 failed compilation
 
-with info    last 20130723
-with version   stable 1.8.3.4 1.8.3.2 1.8.3.1 1.8.3
-#with version unstable 1.8.3.2
+with info    last 20130826
+with version   stable 1.8.3.4 1.8.3.2
+with version unstable 1.8.4
 with role    development
 with trait   console makej
 with info    home http://git-scm.com/
@@ -50,6 +51,13 @@ build(){
  then IG=install_gitweb; unset OPTS
  else IG=:
  fi
+
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:
+         s:PYTHON_PATH = /usr/bin/python$:PYTHON_PATH = /usr/bin/python2:'
 
  autoconf      &&
  default_build &&

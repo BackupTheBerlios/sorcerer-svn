@@ -1,9 +1,9 @@
-with version stable 2.3.0 2.2.0 2.1.0
+with info    last 20130306
+with version stable 2.3.0
 with base    Python
 with role    development
 with trait   console library makej multilib-dual
-with source  $SOURCEFORGE_URL scons/scons/$VERSION/scons-$VERSION.tar.gz
-with info    last 20130306
+with source  stable $SOURCEFORGE_URL scons/scons/$VERSION/scons-$VERSION.tar.gz
 with info    home http://www.scons.org
 with info    cite 'build tool substitute for make implemented in Python
 SCons configuration files are Python scripts
@@ -17,8 +17,15 @@ SCons also supports parallel builds and is easily
 extensible through user-defined builder and scanner objects.'
 
 build(){
- export SCONS_LIB_DIR=$PWD/src/engine
- python src/script/scons.py build/scons
- cd     build/scons
- python setup.py install --prefix=$DESTDIR/usr
+ export SCONS_LIB_DIR="$PWD"/src/engine
+ python2 src/script/scons.py build/scons
+ cd      build/scons
+ python2 setup.py install --prefix="$DESTDIR"/usr &&
+ sed -i 's:/usr/bin/env python:/usr/bin/python2:' "$DESTDIR"/usr/bin/*
+}
+
+current(){
+ case $VERSION in
+  2.3.0) LC_ALL=C grep -q /usr/bin/python2 /usr/bin/scons ;;
+ esac
 }

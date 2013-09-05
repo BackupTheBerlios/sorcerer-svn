@@ -1,6 +1,4 @@
-with trait   broke
-with info    omit 20140101
-#with info    good 20130602
+with info    good 20130827
 with info    last 20071227
 with version stable 1.3.12
 with base    gtk+
@@ -17,6 +15,11 @@ aewm codebase includes a few seperate programs to
 handle running programs, switching between windows, etc.'
 
 build(){
-make &&
-make install XROOT=/usr DESTDIR="$DESTDIR"
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then export LDFLAGS+=' -L/usr/lib64/ -lX11'
+# else export LDFLAGS+=' -L/usr/lib/ -lX11'
+# fi
+ sed -i 's:GTKLIB =:GTKLIB = -lX11:' Makefile
+ make &&
+ make install XROOT=/usr DESTDIR="$DESTDIR"
 }

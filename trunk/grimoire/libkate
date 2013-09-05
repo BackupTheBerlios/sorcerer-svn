@@ -1,7 +1,7 @@
-with info    good 20130608
+with info    good 20130827
 with info    last 20110801
 with version stable 0.4.1
-with base    libogg libpng
+with base    Python libogg libpng
 with also    --enable-static=no
 with role    audio/codec audio/library
 with trait   library makej multilib-concurrent
@@ -10,3 +10,22 @@ with info    vurl http://code.google.com/p/libkate/downloads/list
 with info    home http://code.google.com/p/libkate/
 with info    cite 'overlay codec, for karaoke and text, that can be multiplixed in Ogg
 Text and images can be carried by a Kate stream, and animated.'
+
+build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
+ default_build
+}

@@ -2,8 +2,8 @@
 # All rights reserved.
 # For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20130515
-with info    last   20130515
+with version stable 20130828
+with info    last   20130828
 with role    immune-system
 with trait   solo stale
 with info    home http://sorcerer.silverice.org/
@@ -32,207 +32,22 @@ build(){ :; }
 
 post_install(){
 
- ati_to_amd_fix(){
-  if spell_installed ati-driver-installer; then
-   echo amd-driver-installer | pipe_queue "$LOAD_QUEUE"
-   echo amd-driver-installer | pipe_queue "$MOIL_QUEUE"
-  fi
- }
-
- aux_dirs(){
-  local vco=/var/cache/old
-  local vct=/var/cache/tmp
-
-  if  ! [ -d /aux           ]; then mkdir -pm 755 /aux;                  fi
-  if  ! [ -d /aux/fit       ]; then mkdir -pm 700 /aux/fit;              fi
-  if  ! [ -d /aux/new       ]; then mkdir -pm 700 /aux/new;              fi
-  if  ! [ -d /aux/new/etc   ]; then mkdir -pm 700 /aux/new/etc;          fi
-  if  ! [ -d /aux/old       ]; then mkdir -pm 755 /aux/old;              fi
-  if  ! [ -d /aux/use       ]; then mkdir -pm 700 /aux/use;              fi
-  if  ! [ -d /aux/use/etc   ]; then mkdir -pm 700 /aux/use/etc;          fi
-
-  if    [ -d /lib64.sav     ]; then
-   if ! [ -d /aux/fit/lib64 ]; then mv        /lib64.sav /aux/fit/lib64;
-                               else rm    -fr /lib64.sav;            fi; fi
-  if    [ -d /lib.sav       ]; then
-   if ! [ -d /aux/fit/lib   ]; then mv        /lib.sav   /aux/fit/lib;
-                               else rm    -fr /lib.sav;              fi; fi
-
-  if    [ -d /lib64.bad     ]; then rm    -fr /lib64.bad;                fi
-  if    [ -d /lib.bad       ]; then rm    -fr /lib.bad;                  fi
-
-  if    [ -d /etc.sav       ]; then cp    -a  /etc.sav/* /aux/use/etc/;
-                                    rm    -fr /etc.sav;                  fi
-
-  if    [ -d /etc.ori       ]; then cp    -a  /etc.ori/* /aux/new/etc/;
-                                    rm    -fr /etc.ori;                  fi
-
-  if    [ -d $vct           ]; then rm    -fr $vct;                      fi
-  if    [ -d $vco           ]; then mv        $vco/*     /aux/old/;
-                                    rm    -fr $vco;
-                                    /sbin/ldconfig;                      fi
- }
-
- remove_shared(){
-  if   [  -f /usr/libexec/sorcery/shared ]
-  then rm -f /usr/libexec/sorcery/shared
-  fi
- }
-
- relocation(){
-
-  different_filesystems(){
-   stat -f -c "%i" /var/cache/{ccache,sources} \
-                   /aux/can | sort | uniq -u | grep -q .
-  }
-
-  required_space(){
-   du -cms /var/cache/{archive,ccache,sources} | sed 's:\ttotal::p;d'
-  }
-
-  available_space(){ stat -f -c '%a*%s/1048576' | bc; }
-
-  local  LC_ALL
-  export LC_ALL=C
-
-  local   A=/aux
-  local  AL=/aux/log
-  local ALE=/aux/log/event
-  local  OE=/var/log/sorcery/event
-  local  OL=/etc/sorcery/log
-# local OAC=/var/cache/archive
-  local OCC=/var/cache/ccache
-  local OSC=/var/cache/sources
-  local OGC=/var/cache/git
-  local   C=/aux/can
-# local  AC=/aux/can/archive
-  local  CC=/aux/can/ccache
-  local  SC=/aux/can/source
-  local  GC=/aux/can/git
-
-  mkdir  -pv        $ALE $AC $CC $SC
-
-  if   [ -d     $OL ]; then
-   cp    -av    $OL $A
-   grep  -lr    $OL $AL | xargs -r --max-lines=64 \
-   sed   -i  "s:$OL:$AL:"
-   rm    -frv   $OL
-  fi
-
-## does not work because of tabs in file names.
-## SA can move them manually if desired.
-#  if   [ -d     $OE ]; then
-#   mv               $ALE/* $OE/
-#   rm   -fr         $ALE
-#   mv   -av     $OE $AL
-#  fi
-
-  rm -frv /var/cache/sorcery /usr/src/sorcery /var/cache/download
-
-  if   different_filesystems &&
-       (( $( required_space ) > $( available_space ) ))
-  then return
-  # SA must manually move
-  # /var/cache/{archive,ccache,git,sources} to
-  #   /aux/can/{archive,ccache,git,source}  respectively
-  fi
-
-## previous archives are now useless generate new ones.
-
-#  if   [ -d    $OAC ] && ! [ -h $OAC ] && ! [ -h $AC ]; then
-#   find        $OAC -mindepth 1 -maxdepth 1 -type d -printf '%f\n' |
-#   while read D; do
-#    mkdir -pv  "$AC/$D"
-#    find      "$OAC/$D" -mindepth 1 -maxdepth 1 | xargs -r --max-lines=64 \
-#    mv   -vt   "$AC/$D/"
-#   done
-#   rm    -frv  "$OAC"
-#  fi
-
-  if   [ -d    $OSC ] && ! [ -h $OSC ] && ! [ -h $SC ]; then
-   find        $OSC -mindepth 1 -maxdpeth 1 | xargs -r --max-lines=64 \
-   mv    -vt    $SC/
-   rm    -frv  $OSC
-  fi
-
-  if   [ -d    $OCC ] && ! [ -h $OCC ] && ! [ -h $CC ]; then
-   find        $OCC -mindepth 1 -maxdpeth 1 | xargs -r --max-lines=64 \
-   mv    -vt    $CC/
-   rm    -frv  $OCC
-  fi
-
-  if   [  -d   $OGC ] && ! [ -h $GC ]
-  then mv -v   $OGC $C
-  fi
- }
-
- la_log_fix(){
-  [ -n "$LA_LOGS"     ] || return
-  [ -s "$LA_LOGS/acl" ] || rm -f "$LA_LOGS"/*
- }
-
-
-# idr is used by function current_log_fix()
- idr(){
-  while read r; do
-   if   [ -h "$d$r" ]; then echo "l$t$r"
-   elif [ -d "$d$r" ]; then echo "d$t$r/"
-   elif [ -f "$d$r" ]; then echo "f$t$r"
-   elif [ -b "$d$r" ]; then echo "b$t$r"
-   elif [ -c "$d$r" ]; then echo "c$t$r"
-   else
-    find "$d$r" -maxdepth 0 -printf "%y\t%p\n" | sed "s:$d::"
-   fi
+ event_log_transition(){
+  local d e="$EVENT_LOGS"
+  mkdir -pm 700 "$e/"{fore,yore}/
+  find "$e/" -mindepth 1 -maxdepth 1 -type f -printf '%#m\t%P\n' |
+  while read MODE SPELL REST; do
+   case $MODE in
+    0644) d=fore ;;
+    0604) d=yore ;;
+       *) continue ;;
+   esac
+   mkdir -pm 700              "$e/$d/$SPELL/"
+   mv    "$e/$SPELL$TAB$REST" "$e/$d/$SPELL/$REST"
   done
- }
-
- current_log_fix(){
-  local c="${CURRENT_LOGS:=/aux/log/current}"
-  local i="${INSTALL_LOGS:=/aux/log/install}"
-  local v="${VERSION_LOGS:=/aux/log/version}"
-  local m="${MD5SUM_LOGS:=/aux/log/md5sum}"
-  local o="${LOG_DIR:=/aux/log}/obsolete"
-  local t="$TAB"
-
-  if   ! [ -d "$i" ] && ! [ -d "$v" ] && ! [ -d "$m" ]
-  then return
-  fi
-
-  mkdir -p  "$o" "$c"
-
-  local S V M
-
-  for S in "$i"/*; do
-   S="${S##*/}"
-   if [ -f "$c/$S" ]; then continue; fi
-   if [ -s "$v/$S" ] && [ -s "$i/$S" ] ; then
-    V="$(< "$v/$S" )"
-    ( echo "$S$TAB$V${TAB}file${TAB}$c/$S"
-      cut  -b35- < "$m/$S" |
-      sed  p               |
-      cat  - "$i/$S"       |
-      sort                 |
-      uniq -u              |
-      idr                  |
-      cat  - "$m/$S"       |
-      sort -k2             |
-      sed  "s:  /:\t/:; s:^:$S\t$V\t:"
-    ) | gzip -9 > "$c/$S"
-   fi
-  done
-  cp -al "$i" "$v" "$m" "$o/"
-  rm -fr "$i" "$v" "$m"
-  rm -fr /aux/run/tmp/index.d/{install,md5,version}/
-  generate_index
  }
 
  # Temporary fixes to provide for 6 months.
-
- current_log_fix		#	20130515
- ati_to_amd_fix			#	20120412
- aux_dirs			#	20120823
- remove_shared			#	20121007
- relocation			#	20121015
- la_log_fix			#	20121127
+ event_log_transition			# 20130828
  default_post_install
 }

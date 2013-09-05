@@ -2,9 +2,11 @@ with info    good 20130525
 with info    last 20100602
 with version stable 3.00
 with version alpha 3.01a17
+if   [[ cdrtools == $SPELL ]]; then
 with base    acl
 with elect   syslinux     '' '' to create bootable CDROMs and DVDs
 with elect   zisofs-tools '' '' to create ISO9660s enabled with transparent compression
+fi
 with role    disk/cd
 with trait   console lto makej
 with source  alpha  ftp://ftp.berlios.de/pub/cdrecord/alpha/cdrtools-$VERSION.tar.gz
@@ -38,9 +40,15 @@ build(){
   xargs --max-lines=64 strip --strip-unneeded
  }
 
+ rm_static(){
+  rm -f "$DESTDIR"/usr/lib/{,profiled/}lib*.a
+  rmdir --ignore-fail-on-non-empty \
+        "$DESTDIR"/usr/lib/profiled/
+ }
+
 # sed -i "66i#include <linux/compiler.h>
 #         66itypedef unsigned char u8;" libscg/scsi-linux-sg.c
  make &&
  make install INS_BASE="$DESTDIR"/usr &&
- strip_destdir
+ strip_destdir && rm_static
 }

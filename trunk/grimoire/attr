@@ -1,28 +1,30 @@
 with info    last 20130521
-with version stable 2.4.47 2.4.46
+with version stable 2.4.47
 with base    automake libtool
-with also    --exec-prefix= --enable-shared=yes --enable-static=no
 with role    disk/file-system
-with trait   console library lto makej multilib-dual solo
-with source  http://download.savannah.gnu.org/releases/attr/attr-$VERSION.src.tar.gz
+with trait   console library lto makej optimize
+if   [[ attr == $SPELL ]]; then
+with trait   multilib-dual solo
+fi
+with source  stable http://download.savannah.gnu.org/releases/attr/attr-$VERSION.src.tar.gz
 with info    home http://savannah.nongnu.org/projects/attr
 with info    docs http://acl.bestbits.at/man/man.html
 with info    cite 'extended attribute (EA) support for XFS and ext3'
 
 build(){
+ with also --exec-prefix= --enable-shared=yes --enable-static=no
 
  fix_la(){
-  if   [    -f                $DESTDIR/lib/libattr.la ] &&
-       grep -q "/lib64"       $DESTDIR/lib/libattr.la
-  then sed  -i "s:lib64:lib:" $DESTDIR/lib/libattr.la
+  if   [    -f                "$DESTDIR"/lib/libattr.la ] &&
+       grep -q "/lib64"       "$DESTDIR"/lib/libattr.la
+  then sed  -i "s:lib64:lib:" "$DESTDIR"/lib/libattr.la
   fi
  }
 
- rid_ar(){ rm -f $DESTDIR/lib{,64}/libattr.a; }
+ rid_ar(){ rm -f "$DESTDIR"/lib{,64}/libattr.a; }
 
  # wants to install .la to /libexec but fails so this fixes that.
  sed -i 's:@libexecdir@@libdirsuffix@:@libdir@@libdirsuffix@:' include/builddefs.in
-
 
  local OPTIMIZER DEBUG DIST_ROOT LIBDIR
 
@@ -33,38 +35,6 @@ build(){
  export DIST_ROOT="$DESTDIR"
 
  ./configure --prefix=/usr $OPTS &&
- make &&
- make install install-lib install-dev &&
- fix_la &&
- rid_ar
-}
-
-build_old(){
-
- fix_la(){
-  if   [    -f                $DESTDIR/lib/libattr.la ] &&
-       grep -q "/lib64"       $DESTDIR/lib/libattr.la
-  then sed  -i "s:lib64:lib:" $DESTDIR/lib/libattr.la
-  fi
- }
-
- rid_ar(){ rm -f $DESTDIR/lib{,64}/libattr.a; }
-
- local OPTIMIZER DEBUG DIST_ROOT LIBDIR
-
- if   [ $HOSTTYPE == x86_64 ] && ! [[ $CFLAGS =~ -m32 ]]
- then LIBDIR=/lib64
- else LIBDIR=/lib
- fi
-
- export LDFLAGS+=" $CFLAGS"
- export OPTIMIZER="$CFLAGS"
- unset              CFLAGS
- export DEBUG=-DNDEBUG
- export DIST_ROOT="$DESTDIR"
-
-#make configure &&
- ./configure --prefix=/usr --libdir=$LIBDIR $OPTS &&
  make &&
  make install install-lib install-dev &&
  fix_la &&

@@ -1,12 +1,22 @@
-with info    good 20130326
+with info    good 20130821
 with info    last 20110501
 with version   stable 1.10.0 1.8.8
 with version unstable 1.10.0 1.8.10
 with base    Python cairo
 with role    graphic
 with trait   library
-with trait   broke
 with source    stable http://www.cairographics.org/releases/py2cairo-$VERSION.tar.bz2
 with source  unstable http://www.cairographics.org/releases/py2cairo-$VERSION.tar.bz2
 with info    home http://cairographics.org/pycairo
 with info    cite 'python wrapper for cairo'
+
+build(){
+ if     [[ $HOSTTYPE == x86_64 ]] &&
+      ! [[ $CFLAGS   =~ -m32   ]]
+ then with also --libdir=/usr/lib64
+ fi
+
+ python2 ./waf configure --prefix=/usr $OPTS &&
+ python2 ./waf -j1 &&
+ DESTDIR="$DESTDIR" python2 ./waf install
+}

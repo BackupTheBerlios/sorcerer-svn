@@ -1,0 +1,38 @@
+with inherit ncurses
+with base    ncurses
+
+build(){
+
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/lib.*\.a$,d
+        \,/lib64.a/lib.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ patch_ncurses
+
+ if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then  LIBDIR=/usr/lib64.a
+ else  LIBDIR=/usr/lib.a
+ fi
+
+ install -dvm 755 "$DESTDIR"/usr/{lib,share/tabset}/
+
+# sed -i 's:-L${exec_prefix}/lib::' misc/ncurses-config.in
+
+ ./configure       \
+ --prefix=/usr     \
+ --libdir=$LIBDIR  \
+ --with-normal     \
+ --without-shared  \
+ --disable-termcap \
+ --without-cxx-binding \
+ $OPTS &&
+ make  &&
+ make install DESTDIR="$DESTDIR" &&
+ remove_debris
+}

@@ -67,8 +67,8 @@ post_install(){
 #cp      -at     $p/         /boot
  rm      -f      $p/boot/extlinux/version
  rm      -fr     $p/aux/log/{config,elf,event,favor,init,la,opt.{on,off},progress,provide}
- rm      -fr     $p/aux/log/current/sorcerer-iso9660
- rm      -fr     $p/aux/log/current/linux-{config,source}
+ rm      -fr     $p/aux/log/post/sorcerer-iso9660
+ rm      -fr     $p/aux/log/post/linux-{config,source}
  rm      -fr     $p/boot/{,*}/initrf
  rm      -fr     $p/boot/*/modules
  rm      -fr     $p/boot/util
@@ -77,6 +77,7 @@ post_install(){
 #chmod 500       $p/etc/init.d/sentinel-memory
  rm      -fr     $p/etc/sorcery/local.config
  rm      -fr     $p/etc/ssh/*_key*
+ rm      -f      $p/etc/unbound/root.key
  rm      -fr     $p/root/.shishi
  rm      -fr     $p/root/.ssh
  rm      -f      $p/usr/lib{,64}/locale/locale-archive
@@ -89,14 +90,11 @@ post_install(){
  rm      -fr     $p/var/log/*
  cd              $p
 
- find            $p/aux -printf "/aux/%P\n" | sort | tar --no-recursion -cPT - > /aux/aux.tar
- find            $p/usr -printf "/usr/%P\n" | sort | tar --no-recursion -cPT - > /usr/usr.tar
- xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 /aux/aux.tar
- xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 /usr/usr.tar
- rm      -fr     $p/{aux,usr}/
- mkdir   -pm 755 $p/{aux,usr}/
- cp      -alxt   $p/aux/     /aux/aux.tar.xz
- cp      -alxt   $p/usr/     /usr/usr.tar.xz
+ find            $p/usr -printf "/usr/%P\n" | sort | tar --no-recursion -cPT - > /tmp/usr.tar
+ xz -M 1GiB --check=crc32 --x86 --lzma2=dict=16MiB,nice=273,mf=bt4 /tmp/usr.tar
+ rm      -fr     $p/usr/
+ mkdir -pm 755   $p/usr/
+ mv      -t      $p/     /tmp/usr.tar.xz
 
  find            $p -printf "%P\n" | sort |
  cpio -o -H newc --quiet > $pt &&

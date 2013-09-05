@@ -9,3 +9,13 @@ with source    stable $GNOME_URL sources/libqmi/${VERSION:0:3}/libqmi-$VERSION.t
 with source  unstable $GNOME_URL sources/libqmi/${VERSION:0:3}/libqmi-$VERSION.tar.xz
 with info    home http://libqmi.sourceforge.net/
 with info    cite 'tarball lacks description'
+
+build(){
+#sed -i 's:/usr/bin/env python:/usr/bin/python2:' build-aux/qmi-codegen/*.py
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+ default_build
+}

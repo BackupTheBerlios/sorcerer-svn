@@ -1,6 +1,6 @@
-with info    good 20130606
-with info    last 20130525
-with version stable 5.9-20130805 5.9-20130525 5.9-20130323
+with info    good 20130831
+with info    last 20130831
+with version stable 5.9-20130831 5.9-20130805 5.9-20130525 5.9-20130323
 case $VERSION in
  5.9*)
 with also    --without-gpm ;;
@@ -11,7 +11,7 @@ with base    bzip2
 with also    --without-debug
 with role    development
 # lto on ncurses more than doubles the installed size
-with trait   console library makej multilib-dual no_patcher solo
+with trait   console library makej multilib-dual no_patcher optimize solo
 with source  stable $GNU_URL ncurses/ncurses-${VERSION:0:3}.tar.gz
 case $VERSION in
  5.9*)
@@ -31,6 +31,9 @@ with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130713.
 with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130720.patch.gz
 with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130727.patch.gz
 with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130805.patch.gz
+with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130816.patch.gz
+with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130824.patch.gz
+with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20130831.patch.gz
 
 ##with source  stable ftp://invisible-island.net/ncurses/5.9/patch-5.9-20120616.sh.gz
 ##with source  stable ftp://invisible-island.net/ncurses/5.9/ncurses-5.9-20111224-patch.sh.bz2
@@ -153,10 +156,7 @@ ncurses_move_to_bin(){
 }
 
 build(){
-
- case $VERSION in
-  5.9*) patch_ncurses || return 1;;
- esac
+ patch_ncurses
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then  LIBDIR=/lib64
@@ -170,7 +170,7 @@ build(){
  ./configure       \
  --prefix=/usr     \
  --libdir=$LIBDIR  \
- --with-normal     \
+ --without-normal  \
  --with-shared     \
  --disable-termcap \
  --without-cxx-binding \

@@ -2,7 +2,6 @@ with info    good 20130529
 with info    last 20120716
 with version stable 6.2.004 6.1.002
 with base    ncurses
-with also    --exec-prefix= --enable-shared=yes
 with role    development
 with trait   console library lto makej multilib-concurrent optimize solo
 #with trait   console library lto optimize solo
@@ -28,6 +27,7 @@ to recall and perhaps reedit those lines, and perform
 csh-like history expansion on previous commands.'
 
 build(){
+with also    --exec-prefix= --enable-shared=yes --enable-static=no
  # because readline is not properly not adding a rpath although instructed
  sed -i 's:enable_rpath=yes:enable_rpath=no:' aclocal.m4
  sed -i 's:-Wl,-rpath,$(libdir) ::' support/shobj-conf
@@ -35,6 +35,6 @@ build(){
  export LDFLAGS+=" -lncurses $CFLAGS"
 
  default_build &&
- mkdir -pvm 755 "$DESTDIR"/etc &&
- install -m 644 -o root -g root "$SCRIPT_DIR"/inputrc "$DESTDIR"/etc
+ install -dvm 755 "$DESTDIR"/etc/ &&
+ install  -vm 644 -o root -g root "$SCRIPT_DIR"/inputrc "$DESTDIR"/etc/
 }

@@ -1,18 +1,19 @@
-with trait   broke
-#with info    good 20130724
+with info    good 20130827
 with info    last 20120608
 with version stable 1.2.0
-with base    gavl gtk+ libXv
+with base    gavl gtk+ libXtst libXv libexif v4l-utils
 with elect   alsa-lib       '' '--disable-alsa --disable-alsatest' for audio output through alsa
 with elect   doxygen        '' --without-doxygen                   for documentation generation
 with elect   esound         '' '--disable-esd --disable-esdtest'   for output through enlightenment sound daemon audio mixer
+with elect   jackit
 with elect   libcddb
 with elect   libcdio        '' ''                                  for controlling the CDROM drive
 with elect   libquicktime   '' --disable-lqt                       for quicktime codec support
 with elect   libmusicbrainz '' --disable-musicbrainz               to download metadata about CDs being played
+with elect   libvisual      '' --disable-libvisual
 with elect   pulseaudio     '' --disable-pulseaudio                for output through pulseaudio
 with role    audio/player
-with trait   library makej multilib-fail x11
+with trait   library makej multilib-dual x11
 #with trait   library makej multilib-dual x11
 with source  stable $SOURCEFORGE_URL gmerlin/gmerlin/$VERSION/gmerlin-$VERSION.tar.gz
 with info    home http://gmerlin.sourceforge.net/
@@ -30,5 +31,12 @@ build(){
 ## Neither works.
 #export LDFLAGS+=' -ldl'
 # export CFLAGS+=' -ldl'
+#  sed -i 's:LDFLAGS = @LDFLAGS@:LDFLAGS = @LDFLAGS@ -ldl:' Makefile.in
+ sed -i 's:plugins tests apps:plugins apps:' Makefile.in
+ sed -i 's:$(LDFLAGS):$(LDFLAGS) -ldl:' lib/Makefile.in
+ sed -i 's:$(LDFLAGS):$(LDFLAGS) -lgdk-x11-2.0 -lgdk_pixbuf-2.0 -lgobject-2.0 -lglib-2.0 -lgtk-x11-2.0:' \
+ apps/{alsamixer,kbd,player,plugincfg,recorder,transcoder,visualizer}/Makefile.in
+ sed -i 's:$(LDFLAGS):$(LDFLAGS) -lX11:' apps/kbd/Makefile.in
+
  default_build
 }

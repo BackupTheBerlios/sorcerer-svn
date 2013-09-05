@@ -1,10 +1,10 @@
+with info    good 20130829
+with info    last 20031117
 with version stable 0.2 v0.2.LinuxSource
 with base    SDL_mixer SDL_ttf
 with role    game
 with trait   x11
-with source  $SOURCEFORGE_URL stargun/stargun/$VERSION/StarGun.v$VERSION.LinuxSource.tar.gz
-with info    good 20120709
-with info    last 20031117
+with source  stable $SOURCEFORGE_URL stargun/stargun/$VERSION/StarGun.v$VERSION.LinuxSource.tar.gz
 with info    home http://stargun.sourceforge.net
 with info    cite 'verticle scrolling arcade game'
 
@@ -16,13 +16,13 @@ build(){
    RUN="#!/bin/bash\ncd $USG\n$UL/stargun"
 
   cd src
-  mkdir -pvm 755             $DESTDIR/$UL
-  mv        /usr/bin/stargun $DESTDIR/$UL
-  mkdir -pvm 755             $DESTDIR/$USG
-  cp    -a $DATA             $DESTDIR/$USG
-  mkdir -pvm 755             $DESTDIR/usr/bin
-  echo  -e "$RUN" >          $DESTDIR/usr/bin/stargun
-  chmod 755                  $DESTDIR/usr/bin/stargun
+  install -dvm 755           "$DESTDIR"/$UL/
+  mv        /usr/bin/stargun "$DESTDIR"/$UL/
+  install -dvm 755           "$DESTDIR"/$USG/
+  cp    -a $DATA             "$DESTDIR"/$USG/
+  install -dvm 755           "$DESTDIR"/usr/bin/
+  echo  -e "$RUN" >          "$DESTDIR"/usr/bin/stargun
+  chmod 755                  "$DESTDIR"/usr/bin/stargun
  }
 
 
@@ -32,6 +32,6 @@ build(){
 --localstatedir=/var \
 $OPTS &&
 make  &&
-make install DESTDIR=$DESTDIR &&
+make install DESTDIR="$DESTDIR" &&
 fix_install
 }

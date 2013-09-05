@@ -4,7 +4,9 @@
 # http://get.qt.nokia.com/qt/source/qt-everywhere-opensource-src-4.6.3.tar.gz 
 # Above is alternate download location?
 
-with version   stable 4.8.4 4.8.3
+with info    good 20130805
+with info    last 20130702
+with version   stable 4.8.5 4.8.4 4.8.3
 with base    alsa-lib dbus glib fontconfig libXcursor libXinerama libXrandr libiodbc libpng sqlite tiff
 #with base    alsa-lib dbus glib fontconfig libXcursor libXinerama libXrandr libiodbc libmng libpng sqlite tiff
 with elect   cups        -cups -no-cups                for common unix printing support
@@ -16,17 +18,20 @@ with elect   postgresql  ''    -no-sql-psql            for postgresql support
 with elect   libiodbc     ''    -no-sql-odbc            for connecting to windows database
 #with elect   unixODBC    ''    -no-sql-odbc            for connecting to windows database
 with also    -no-phonon -fontconfig -xmlpatterns -exceptions
+# Software developers might want to enable docs
+# However, it consumes about 300 megabytes of space
+# or double that on multilib
+with also    -nomake demos -nomake docs -nomake examples
 with role    graphic/library
-with trait   bias bottleneck huge kde4 library lto_off makej multilib-dual optimize
-with source    stable http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
-with source  unstable http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
-#with source    stable http://origin.releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
-#with source  unstable http://origin.releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
+with trait   bias bottleneck hidden huge kde4 library lto_off makej multilib-dual optimize
+with source  stable http://download.qt-project.org/official_releases/qt/${VERSION:0:3}/$VERSION/qt-everywhere-opensource-src-$VERSION.tar.gz
+#with source    stable http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
+#with source  unstable http://releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
+##with source    stable http://origin.releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
+##with source  unstable http://origin.releases.qt-project.org/qt4/source/qt-everywhere-opensource-src-$VERSION.tar.gz
 #   source   stable ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-$VERSION.tar.gz
 #   source   stable ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-4.7.4.tar.gz
 #   source unstable ftp://ftp.trolltech.com/qt/source/qt-everywhere-opensource-src-$VERSION.tar.gz
-with info    good 20121230
-with info    last 20120502
 with info    home http://qt-project.org
 #     info home http://www.trolltech.com/developer/downloads/qt/x11
 with info    freecode qt
@@ -34,6 +39,16 @@ with info    cite 'GUI toolkit'
 
 build(){
  local ARCH PREFIX
+
+ install_QtGui_private(){
+  ## qt's private headers required by calibre
+  ## however, installed this way they are useless.
+  # chown -R root:root include/QtGui/private/
+  # chmod 755          include/QtGui/private/
+  # chmod 644          include/QtGui/private/*
+  # cp    -r           include/QtGui/private/ "$DESTDIR""$PREFIX"/include/QtGui/
+  return 0
+ }
 
  add_rpath_to_la(){
   if  [[ $HOSTTYPE == x86_64 ]]; then
@@ -110,6 +125,7 @@ build(){
  -fast            \
  -release         \
  -shared          \
+ -opensource      \
  -optimized-qmake \
  -system-libjpeg  \
  -system-libpng   \
@@ -123,14 +139,10 @@ build(){
  -prefix $PREFIX  \
  -reduce-relocations \
  -no-separate-debug-info \
+ -no-pch \
  $OPTS &&
  setarch $ARCH make &&
- setarch $ARCH make install DESTDIR=$DESTDIR INSTALL_ROOT=$DESTDIR &&
+ setarch $ARCH make install DESTDIR=$DESTDIR INSTALL_ROOT="$DESTDIR" &&
+ install_QtGui_private &&
  add_rpath_to_la
-}
-
-current(){
- case $VERSION in
-  4.8.4) grep -qx "patching file src/tools/moc/main.cpp" "$COMPILE_LOGS/$SPELL" ;;
- esac
 }

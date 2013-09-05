@@ -3,8 +3,8 @@
 # For use with the distribution sorcerer only!
 # Additional notes are at the bottom of the spell.
 
-with version stable 20130702
-with info    last   20130702
+with info    last   20130827
+with version stable 20130827
 with base    init-functions
 with role    administration/boot
 with trait   console solo
@@ -70,21 +70,21 @@ build(){
  local d="$DESTDIR" s="$SCRIPT_DIR"
 
  icg(){
-  mkdir -pm 700 "$d"$1
-  find          "$s"$1 -mindepth 1 -printf "%P\n" |
-  tar  -C       "$s"$1 --exclude-vcs --no-recursion -cPT - |
-  tar  -C       "$d"$1 -pxf -
-  find          "$d"$1 -type f | xargs -r --max-lines=64 chmod 644
-  find          "$d"$1 -type d | xargs -r --max-lines=64 chmod 755
-  chmod  -m 700 "$d"$1
+  install -dvm 700 "$d/$1"
+  find             "$s/$1" -mindepth 1 -printf "%P\n" |
+  tar  -C          "$s/$1" --exclude-vcs --no-recursion -cPT - |
+  tar  -C          "$d/$1" -pxf -
+  find             "$d/$1" -type f | xargs -r --max-lines=64 chmod 644
+  find             "$d/$1" -type d | xargs -r --max-lines=64 chmod 755
+  chmod        700 "$d"$1
  }
 
  icg /etc/cgroup
  icg /etc/cgroup.rootfs
 
- mkdir  -pvm 755    "$d"/{etc/bash_completion.d,lib/cgroup,sbin,usr/bin}
- install -vm 755 -t "$d"/sbin/                  "$s"/sbin/*
- install -vm 755 -t "$d"/usr/bin/               "$s"/bin/*
- install -vm 755 -t "$d"/lib/cgroup/            "$s"/lib/cgroup/*
- install -vm 755 -t "$d"/etc/bash_completion.d/ "$s"/etc/bash_completion.d/*
+ install -dvm 755    "$d"/{etc/bash_completion.d,lib/cgroup,sbin,usr/bin}/
+ install  -vm 755 -t "$d"/sbin/                  "$s"/sbin/*
+ install  -vm 755 -t "$d"/usr/bin/               "$s"/bin/*
+ install  -vm 755 -t "$d"/lib/cgroup/            "$s"/lib/cgroup/*
+ install  -vm 755 -t "$d"/etc/bash_completion.d/ "$s"/etc/bash_completion.d/*
 }

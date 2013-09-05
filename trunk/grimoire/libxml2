@@ -1,18 +1,17 @@
 #            'Python:::for bindings to use libxml2 from Python' )
 # Python requirement commented out to avoid a recursive requirement loop
 
-# multilib-fail because Python is multilib-fail
-# 2.6.32 ?
-
 with info    good 20130612
 with info    last 20130419
 with version stable 2.9.1 2.9.0
 with base    Python zlib
+# itstool requires libxml2's Python module.
+## Uncertain if MesaLib's requirement on libxml2's Python module is still valid.
 # MesaLib requires libxml2's Python module
 #with elect   Python
 with also    --enable-static=no
 with role    development
-with trait   hidden library lto makej multilib-concurrent
+with trait   hidden library lto makej multilib-concurrent optimize
 with source  stable ftp://xmlsoft.org/libxml2/libxml2-$VERSION.tar.gz
 with info    home http://xmlsoft.org/
 with info    freecode libxml
@@ -21,3 +20,12 @@ It offers SAX or DOM tree generation interfaces.
 It supports XML and HTML (real world ones) parsing,
 flexible DTD validation, XPath, XPointer-XInclude,
 and pull and push modes with FTP and HTTP modules.'
+
+build(){
+ with also --with-python=/usr/bin/python2
+
+ default_build &&
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --with-python=/usr/bin/python3; default_build
+ fi
+}

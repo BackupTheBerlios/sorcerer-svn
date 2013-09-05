@@ -1,8 +1,9 @@
 with info    last 20130723
 with version stable 3.10.0 3.9.0 3.8.0
-with base    bison db gmp init-functions iptables
+with base    bison gmp init-functions iptables
+with elect   db '--with-db' 'for arpd'
 with role    network
-with trait   console lto makej
+with trait   console lto makej optimize
 #   source http://developer.osdl.org/dev/iproute2/download/iproute2-$VERSION.tar.gz
 with source  stable $KERNEL_URL pub/linux/utils/net/iproute2/iproute2-$VERSION.tar.xz
 with info    home http://www.linuxfoundation.org/collaborate/workgroups/networking/iproute2
@@ -14,6 +15,9 @@ It can be used tp configure adapters, and provides userland
 programs to control QoS settings in the kernel.'
 
 build(){
+ if   ! [[ $OPTS =~ --with-db ]]
+ then sed -i 's:TARGETS=ss nstat ifstat rtacct arpd lnstat:TARGETS=ss nstat ifstat rtacct lnstat:' misc/Makefile
+ fi
  sed -i 's:-Werror::' Makefile
  make &&
  make install DESTDIR="$DESTDIR" \

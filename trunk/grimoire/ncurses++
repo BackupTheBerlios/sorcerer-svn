@@ -1,6 +1,6 @@
 with inherit ncurses
 with base    ncurses
-with info    cite 'wide character version of ncurses library'
+with info    cite 'C++ wrapper for ncurses library'
 
 ncurses_trim(){
  sed "s:^:$DESTDIR:" "$INSTALL_INDEX"/ncurses |
@@ -10,9 +10,7 @@ ncurses_trim(){
 }
 
 build(){
- case $VERSION in
-  5.9*) patch_ncurses || return 1;;
- esac
+ patch_ncurses
 
  if    [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then  LIBDIR=/lib64
@@ -26,7 +24,7 @@ build(){
  ./configure       \
  --prefix=/usr     \
  --libdir=$LIBDIR  \
- --with-normal     \
+ --without-normal  \
  --with-shared     \
  --disable-termcap \
  $OPTS  &&

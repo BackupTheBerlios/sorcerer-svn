@@ -1,3 +1,6 @@
+# This spell might be of no use since
+# the kernel is compiled without ISDN support.
+
 # Does anyone use this?
 # isdn4k-utils.v3.2p1.tar.bz2  	5116 KB  	08/01/2002  	12:00:00 AM
 # No new source releases since 2002
@@ -19,6 +22,9 @@
 # hisax    has install error
 # vbox     installs improperly
 
+with info    omit 20140101
+with info    good 20130827
+with info    last 20020801
 with version stable v3.2p1 v3.1pre1
 #with elect   linuxdoc-tools --with-FAQ  '' frequently asked questions about isdn4linux
 #with elect   tcl            --with-vbox '' answering machine/voice mailbox
@@ -52,14 +58,13 @@ with switch    --with-pcbit '' setup utility for the pcbit driver
 
 with role    network
 with trait   console
-with source  ftp://ftp.isdn4linux.de/pub/isdn4linux/ \
-           ftp://ftp.gwdg.de/pub/linux/isdn/isdn4linux/ \
-           ftp://ftp.cs.tu-berlin.de/pub/net/isdn/isdn4linux/ \
-           ftp://ftp.leo.org/pub/comp/os/unix/linux/isdn/isdn4linux/ \
-           ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/isdn4linux/ \
-           utils/isdn4k-utils.$VERSION.tar.bz2
-with info    good 20120613
-with info    last 20020801
+with source  stable \
+             ftp://ftp.isdn4linux.de/pub/isdn4linux/ \
+             ftp://ftp.gwdg.de/pub/linux/isdn/isdn4linux/ \
+             ftp://ftp.cs.tu-berlin.de/pub/net/isdn/isdn4linux/ \
+             ftp://ftp.leo.org/pub/comp/os/unix/linux/isdn/isdn4linux/ \
+             ftp://linux.mathematik.tu-darmstadt.de/pub/linux/mirrors/misc/isdn4linux/ \
+             utils/isdn4k-utils.$VERSION.tar.bz2
 with info    home http://www.melware.org/Isdn4Linux/
 # with info    home http://www.isdn4linux.org/
 with info    mail http://listserv.isdn4linux.de/pipermail/isdn4linux/
@@ -112,7 +117,7 @@ build_old(){
   yes  "" |
   make subconfig &&
   make           &&
-  make install DESTDIR=$DESTDIR
+  make install DESTDIR="$DESTDIR"
  }
 
  restore_linux_configs
@@ -123,9 +128,9 @@ build_old(){
 build(){
  ind(){ echo "Entering directory: $PWD/$1"; }
 
- configure_in(){ ind $1; cd $1; sh ./configure --prefix=/usr  && cd $OLDPWD; }
- make_in(){      ind $1; cd $1; make                          && cd $OLDPWD; }
- install_in(){   ind $1; cd $1; make install DESTDIR=$DESTDIR && cd $OLDPWD; }
+ configure_in(){ ind $1; cd $1; sh ./configure --prefix=/usr    && cd $OLDPWD; }
+ make_in(){      ind $1; cd $1; make                            && cd $OLDPWD; }
+ install_in(){   ind $1; cd $1; make install DESTDIR="$DESTDIR" && cd $OLDPWD; }
 
 
  if   spell_installed $( get_provider tcl ); then
@@ -140,6 +145,6 @@ build(){
  for DIR in $OPTS; do DIRS+=" ${DIR/--with-/}";       done
  for DIR in $DIRS; do configure_in $DIR || return 1 ; done &&
  for DIR in $DIRS; do make_in      $DIR || return 1 ; done &&
- mkdir -p $DESTDIR/{bin,etc,lib,sbin,usr/{bin,lib,sbin}}   &&
+ install -dvm 755 "$DESTDIR"/{bin,etc,lib,sbin,usr/{bin,lib,sbin}} &&
  for DIR in $DIRS; do install_in   $DIR || return 1 ; done
 }

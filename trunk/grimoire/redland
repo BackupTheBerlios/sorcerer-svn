@@ -1,32 +1,6 @@
-# do not update separately from kde-v4 updates
-
-# The x.y.z version of redland and redland-bindings must agree
-# not using redland-bindings anymore?
-
-# 1.0.12 failed compilation
-# 1.0.11 failed compilation
-
-# When updating to redland version > 1.0.10
-# compile and check the kdelibs-v4 log to see
-# if soprano or redland support broke.
-
-# in 1.0.10 /usr/lib/redland/librdf_storage_virtuoso.so
-# is possibily linked incorrectly and causes soprano's compile log to read:
-# -- Found Redland storage: /usr/lib/redland/librdf_storage_mysql.so;/usr/lib/redland/librdf_storage_sqlite.so;/usr/lib/redland/librdf_storage_virtuoso.so
-# -- /usr/lib/redland/librdf_storage_virtuoso.so: undefined symbol: librdf_new_uri
-
-# redland 1.0.10 does not create
-# /usr/lib/redland/librdf_storage_virtuoso.so
-# properly even if virtuoso-opensource is installed
-# This causes soprano and kdelibs-v4 and other spells
-# to fail to discover installed redland due to something like:
-# -- /usr/lib/redland/librdf_storage_virtuoso.so: undefined symbol: librdf_new_uri
-# maybe some wrote a fix patch for redland,
-# but redland authors should instead have released a fixed version 1.0.11
-
-# redland version 1.0.13 requires rasqal > 0.9.21
-
-with version   stable 1.0.16 1.0.15 1.0.12
+with info    good 20130828
+with info    last 20111203
+with version   stable 1.0.16
 with version unstable 1.0.16
 with base    libiodbc mysql rasqal sqlite virtuoso-opensource
 #with elect   mysql      '' '' for mysql support
@@ -36,23 +10,6 @@ case $VERSION in
  1.0.16)
 with also    --disable-modular
 with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
- 1.0.15)
-with also    --disable-modular
-with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
- 1.0.13)
-with also    --disable-modular
-with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
- 1.0.12)
-with also    --disable-modular
-with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
- 1.0.11)
-with also    --disable-modular
-with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
- 1.0.10) require automake
-# Evert reports that --disable-modular is required 
-# to make redland 1.0.10 compile properly
-with also    --disable-modular
-with also    --with-bdb-dbname=db-5 --with-bdb-include=/usr/include --with-bdb-lib=/usr/lib --with-bdb=/usr ;;
 esac
 with also    --with-virtuoso=yes
 with also    --enable-static=no
@@ -60,8 +17,6 @@ with role    development
 with trait   library makej
 with source    stable http://download.librdf.org/source/redland-$VERSION.tar.gz
 with source  unstable http://download.librdf.org/source/redland-$VERSION.tar.gz
-with info    good 20120702
-with info    last 20111203
 with info    home http://librdf.org/
 with info    cite 'the RDF API and triple stores'
 
@@ -69,15 +24,6 @@ build(){
  case $VERSION in
   1.0.16) export   CFLAGS+=' -I/usr/include/mysql'
           export CXXFLAGS+=' -I/usr/include/mysql' ;;
-  1.0.15) export   CFLAGS+=' -I/usr/include/mysql'
-          export CXXFLAGS+=' -I/usr/include/mysql' ;;
-  1.0.13) export   CFLAGS+=' -I/usr/include/mysql'
-          export CXXFLAGS+=' -I/usr/include/mysql' ;;
-  1.0.12) export   CFLAGS+=' -I/usr/include/mysql'
-          export CXXFLAGS+=' -I/usr/include/mysql' ;;
-  1.0.10) sed -i 's:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@:librdf_storage_virtuoso_la_LIBADD = @ODBC_LIBS@ librdf.la:'  src/Makefile.am
-          aclocal; automake
-          sed -i 's:src examples utils:src utils:' Makefile.in ;;
  esac
 
  local RATH="$PATH"

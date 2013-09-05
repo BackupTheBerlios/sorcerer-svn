@@ -1,9 +1,12 @@
-with info    good 20130525
+with info    good 20130825
 with info    last 20100920
 with version stable 1.0.6
 with role    archive
-with trait   console library makej optimize solo
+with trait   console library makej optimize
 #with trait   console library optimize solo
+if   [[ bzip2 == $SPELL ]]; then
+with trait   console solo
+fi
 with source  stable http://www.bzip.org/$VERSION/bzip2-$VERSION.tar.gz
 with info    vurl http://www.bzip.org/downloads.html
 with info    home http://www.bzip.org/
@@ -16,14 +19,20 @@ and average decompression speed.'
 
 build(){
  make_install(){
-  mkdir -pvm 755                             "$DESTDIR"/$LIBDIR
-  cp -va         libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR
-  ln -fs         libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR/libbz2.so.1.0
-  ln -fs         libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR/libbz2.so
-  mv    -v       "$DESTDIR"/usr/lib/libbz2.a "$DESTDIR"/$LIBDIR/
-  mkdir -vpm 755                             "$DESTDIR"/bin
-  mv    -v       "$DESTDIR"/usr/bin/bzip2    "$DESTDIR"/bin/
-  rmdir          "$DESTDIR"/usr/lib
+  install -dvm 755                            "$DESTDIR"/$LIBDIR/
+  cp -va          libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR/
+  ln -fs          libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR/libbz2.so.1.0
+  ln -fs          libbz2.so.$VERSION          "$DESTDIR"/$LIBDIR/libbz2.so
+  mv    -v        "$DESTDIR"/usr/lib/libbz2.a "$DESTDIR"/$LIBDIR/
+  install -dvm 755                            "$DESTDIR"/bin/
+  mv    -v        "$DESTDIR"/usr/bin/bzip2    "$DESTDIR"/bin/
+  rmdir           "$DESTDIR"/usr/lib/
+  rm   -f         "$DESTDIR"/usr/bin/bz{cmp,fgrep,less,egrep}
+  ln   -s bzdiff  "$DESTDIR"/usr/bin/bzcmp
+  ln   -s bzgrep  "$DESTDIR"/usr/bin/bzfgrep
+  ln   -s bzmore  "$DESTDIR"/usr/bin/bzless
+  ln   -s bzgrep  "$DESTDIR"/usr/bin/bzegrep
+  rm   -f         "$DESTDIR"$LIBDIR/libbz2.a
  }
 
  if   [ $HOSTTYPE == x86_64 ] &&

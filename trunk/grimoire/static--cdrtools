@@ -1,0 +1,48 @@
+with inherit cdrtools
+with base    cdrtools static--acl
+
+build(){
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/lib.*\.a$,d
+        \,/lib64.a/lib.*\.a$,d
+        \,/lib.a/profiled/lib.*\.a$,d
+        \,/lib64.a/profiled/lib.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ strip_destdir(){
+  local  LC_ALL
+  export LC_ALL=C
+
+  find "$DESTDIR" -type f   |
+  xargs --max-lines=64 file |
+  grep ', not stripped'     |
+  cut -d : -f1              |
+  xargs --max-lines=64 strip --strip-unneeded
+ }
+
+ mv_libs(){
+  if   [[ $HOSTTYPE == x86_64 ]]; then
+   install -dvm 755 "$DESTDIR"/usr/lib64.a/profiled
+   mv       -v      "$DESTDIR"/usr/lib/lib*.a          "$DESTDIR"/usr/lib64.a/
+   mv       -v      "$DESTDIR"/usr/lib/profiled/lib*.a "$DESTDIR"/usr/lib64.a/profiled/
+  else
+   install -dvm 755 "$DESTDIR"/usr/lib.a/profiled
+   mv       -v      "$DESTDIR"/usr/lib/lib*.a          "$DESTDIR"/usr/lib.a/
+   mv       -v      "$DESTDIR"/usr/lib/profiled/lib*.a "$DESTDIR"/usr/lib.a/profiled/
+  fi
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64.a; LDFLAGS+=' -L/usr/lib64.a'
+ else with also --libdir=/usr/lib.a;   LDFLAGS+=' -L/usr/lib.a'
+ fi
+
+ make &&
+ make install INS_BASE="$DESTDIR"/usr &&
+ strip_destdir && mv_libs && remove_debris
+}

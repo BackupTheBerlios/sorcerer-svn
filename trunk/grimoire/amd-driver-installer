@@ -1,17 +1,24 @@
-# This probably does not compile
-# Compile log suggests that the source in amd-driver-installer has errors.
+# This probably compiles and installs
+# but omits the kernel module.
+# it does not appreciate the linux kernel source
+# provided for it.
+
 # Mon-Thu, eastern times
 # 1 877 284 1566
 # Phone number for ATI support
 
-with version stable 12-8-x86.x86_64 12-4-x86.x86_64
+with info    good 20130903
+with info    last 20130529
+with version stable 13-4-linux-x86.x86_64 12-8-x86.x86_64
 with base    MesaLib fontconfig libXcursor libXinerama libXrandr
-with elect   linux-kernel '' '' for kernel module
+if   [ -f "$VERSION_INDEX"/linux-modules ]; then
+with elect   linux-modules '' '' for kernel module
+fi
 with elect   rovclock '' '' to underclock the ATI GPU before the fan melts
 with role    kernel
 with trait   library linux-module multilib-fail x11
-with source  http://www2.ati.com/drivers/linux/amd-driver-installer-$VERSION.zip
-with info    last 20120814
+with source  stable http://www2.ati.com/drivers/linux/amd-driver-installer-catalyst-13-4-linux-x86.x86_64.zip
+# with source  stable http://www2.ati.com/drivers/linux/amd-driver-installer-$VERSION.zip
 with info    home http://support.amd.com/us/gpudownload/linux/Pages/radeon_linux.aspx
 with clash   ati-driver-installer
 with info    cite 'xorg and linux kernel drivers provided by ATI for radeon class graphics cards
@@ -54,59 +61,90 @@ build(){
   /sbin/ldconfig -n           arch/$AVER/usr/X11R6/lib
   rm -rf common/{lib,usr/src} arch/$AVER/lib
 
-  mkdir -pvm 755 $DESTDIR
-  cp -av common/* $XPIC/* arch/$AVER/* $DESTDIR
-  cp -a  $DESTDIR/usr/X11R6/*          $DESTDIR/usr/
-  rm -fr $DESTDIR/usr/X11R6
+  install -dvm 755 "$DESTDIR"/
+  cp -av common/* $XPIC/* arch/$AVER/* "$DESTDIR"/
+  cp -a  "$DESTDIR"/usr/X11R6/*        "$DESTDIR"/usr/
+  rm -fr "$DESTDIR"/usr/X11R6
  }
 
  move_dirs(){
-  if   [ -d       $DESTDIR/usr/lib64/modules ]; then
-   mkdir -pvm 755 $DESTDIR/usr/lib64/xorg
-   mv             $DESTDIR/usr/lib64/modules \
-                  $DESTDIR/usr/lib64/xorg/
+  if   [ -d         "$DESTDIR"/usr/lib64/modules ]; then
+   install -dvm 755 "$DESTDIR"/usr/lib64/xorg
+   mv               "$DESTDIR"/usr/lib64/modules \
+                    "$DESTDIR"/usr/lib64/xorg/
   fi
-  if   [ -d       $DESTDIR/usr/lib/modules ]; then
-   mkdir -pvm 755 $DESTDIR/usr/lib/xorg
-   mv             $DESTDIR/usr/lib/modules \
-                  $DESTDIR/usr/lib/xorg/
+  if   [ -d         "$DESTDIR"/usr/lib/modules ]; then
+   install -dvm 755 "$DESTDIR"/usr/lib/xorg
+   mv               "$DESTDIR"/usr/lib/modules \
+                    "$DESTDIR"/usr/lib/xorg/
   fi
 
-  if   [ -d $DESTDIR/usr/lib64/xorg/modules/dri ]; then
-   mv       $DESTDIR/usr/lib64/xorg/modules/dri \
-            $DESTDIR/usr/lib64/
+  if   [ -d "$DESTDIR"/usr/lib64/xorg/modules/dri ]; then
+   mv       "$DESTDIR"/usr/lib64/xorg/modules/dri \
+            "$DESTDIR"/usr/lib64/
   fi
-  if   [ -d $DESTDIR/usr/lib/xorg/modules/dri ]; then
-   mv       $DESTDIR/usr/lib/xorg/modules/dri \
-            $DESTDIR/usr/lib/
+  if   [ -d "$DESTDIR"/usr/lib/xorg/modules/dri ]; then
+   mv       "$DESTDIR"/usr/lib/xorg/modules/dri \
+            "$DESTDIR"/usr/lib/
   fi
  }
 
  activate_opengl(){
-  mkdir  -pvm 755 $DESTDIR/etc/opengl
-  if   [ -f       $DESTDIR/usr/lib64/fglrx/fglrx-libGL.so.1.2 ]; then
-   mkdir -pvm 755 $DESTDIR/usr/lib64/ati
-   mv             $DESTDIR/usr/lib64/fglrx/fglrx-libGL.so.1.2 \
-                  $DESTDIR/usr/lib64/ati/libGL.so.1.2
-   mv             $DESTDIR/usr/lib64/xorg/modules/extensions/fglrx/fglrx-libglx.so \
-                  $DESTDIR/usr/lib64/xorg/modules/extensions/libglx.so
-   ldconfig -n    $DESTDIR/usr/lib64/ati
-   echo                   /usr/lib64/ati > $DESTDIR/etc/opengl/ati
+  install -dvm 755  "$DESTDIR"/etc/opengl/
+  if   [ -f         "$DESTDIR"/usr/lib64/fglrx/fglrx-libGL.so.1.2 ]; then
+   install -dvm 755 "$DESTDIR"/usr/lib64/ati
+   mv               "$DESTDIR"/usr/lib64/fglrx/fglrx-libGL.so.1.2 \
+                    "$DESTDIR"/usr/lib64/ati/libGL.so.1.2
+   mv               "$DESTDIR"/usr/lib64/xorg/modules/extensions/fglrx/fglrx-libglx.so \
+                    "$DESTDIR"/usr/lib64/xorg/modules/extensions/libglx.so
+   ldconfig -n      "$DESTDIR"/usr/lib64/ati
+   echo                       /usr/lib64/ati > "$DESTDIR"/etc/opengl/ati
   fi
-  if   [ -f       $DESTDIR/usr/lib/fglrx/fglrx-libGL.so.1.2 ]; then
-   mkdir -pvm 755 $DESTDIR/usr/lib/ati
-   mv             $DESTDIR/usr/lib/fglrx/fglrx-libGL.so.1.2 \
-                  $DESTDIR/usr/lib/ati/libGL.so.1.2
-   mv             $DESTDIR/usr/lib/xorg/modules/extensions/fglrx/fglrx-libglx.so \
-                  $DESTDIR/usr/lib/xorg/modules/extensions/libglx.so
-   ldconfig -n    $DESTDIR/usr/lib/ati
-   echo                   /usr/lib/ati  >> $DESTDIR/etc/opengl/ati
+  if   [ -f         "$DESTDIR"/usr/lib/fglrx/fglrx-libGL.so.1.2 ]; then
+   install -dvm 755 "$DESTDIR"/usr/lib/ati
+   mv               "$DESTDIR"/usr/lib/fglrx/fglrx-libGL.so.1.2 \
+                    "$DESTDIR"/usr/lib/ati/libGL.so.1.2
+   mv               "$DESTDIR"/usr/lib/xorg/modules/extensions/fglrx/fglrx-libglx.so \
+                    "$DESTDIR"/usr/lib/xorg/modules/extensions/libglx.so
+   ldconfig -n      "$DESTDIR"/usr/lib/ati
+   echo                       /usr/lib/ati  >> "$DESTDIR"/etc/opengl/ati
   fi
  }
 
- local src=$( find  $BUILD_DIR -type f -name \*.run )
- sh $src --extract  $BUILD_DIR &&
- chown -R root:root $BUILD_DIR
+ prepare_linux_dir(){
+  if ! [ -f /usr/src/linux/Makefile ]; then
+   echo    "/usr/src/linux is missing."
+   echo    "Therefore, trying to compile and install without kernel module."
+  else
+   mkdir "$BUILD_DIR"/linux
+   cd    "$BUILD_DIR"/linux
+   local    d=/usr/src/linux
+   local c=$d/.config.custom
+   local s=$d/.config.stock
+
+   cp -a /usr/src/linux .
+
+     if [ -f $c ]; then cp $c linux/.config
+   elif [ -f $s ]; then cp $s linux/.config
+   else
+    echo "$c does not exist"
+    echo "$s does not exist"
+    echo "$c or $s must exist"
+    echo "try casting linux-config first"
+    cd "$OLDPWD"
+    return 1
+   fi
+
+   cd linux
+   yes '' |
+   make oldconfig
+ # make silentoldconfig
+   make prepare scripts
+   cd "$OLDPWD"
+  fi
+ }
+
+ prepare_linux_dir
 
  local MVER LVER XPIC AVER
 
@@ -115,23 +153,29 @@ build(){
  else MVER=x86
  fi
 
- LVER=$( installed_version $( get_provider linux-kernel ) )
+ LVER=$( installed_version $( get_provider linux-modules ) )
  LVER="${LVER:-$( uname -r )}"
 
- cp -v arch/$MVER/lib/modules/fglrx/build_mod/libfglrx_ip.a \
-           common/lib/modules/fglrx/build_mod
+ local src=$( find    "$BUILD_DIR" -type f -name \*.run )
+ sh "$src" --extract  "$BUILD_DIR" &&
+ chown -R root:root   "$BUILD_DIR" &&
+ cd                   "$BUILD_DIR" &&
 
- cd common/lib/modules/fglrx/build_mod
+ cp -v arch/$MVER/lib/modules/fglrx/build_mod/libfglrx_ip.a \
+           common/lib/modules/fglrx/build_mod &&
+
+ cd common/lib/modules/fglrx/build_mod &&
 
  sed -i "s:modprobe \$module:true:
-         s:rmmod \$module:true:"     ../make_install.sh
- sed -i "s:\`uname -r\`:\"$LVER\":"  ../make_install.sh make.sh
- sed -i "s:hit=0:hit=1:"                                make.sh
-#sed -i "s:\$\(shell uname -r\):$LVER:" 2.6.x/Makefile
-#sed -i "/LIBIP_PREFIX=/d"           make.sh
- sed -i '/LIBIP_PREFIX=\./d' make.sh
- sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh
- sed -i "s:OS_MOD=/lib/modules:OS_MOD=$DESTDIR/lib/modules:" ../make_install.sh
+         s:rmmod \$module:true:"     ../make_install.sh &&
+ sed -i "s:\`uname -r\`:\"$LVER\":"  ../make_install.sh make.sh &&
+ sed -i "s:hit=0:hit=1:"                                make.sh &&
+#sed -i "s:\$\(shell uname -r\):$LVER:" 2.6.x/Makefile &&
+#sed -i "/LIBIP_PREFIX=/d"           make.sh &&
+ sed -i '/LIBIP_PREFIX=\./d' make.sh &&
+ sed -i "s:LIBIP_PREFIX=\$.*:LIBIP_PREFIX=\$LIBIP_PREFIX \\\:" make.sh &&
+ sed -i "s:OS_MOD=/lib/modules:OS_MOD=$DESTDIR/lib/modules:" ../make_install.sh &&
+ sed -i "s:/usr/src/linux:$BUILD_DIR/linux:" make.sh &&
 
  if   LIBIP_PREFIX=../../../../../../arch/$MVER/lib/modules/fglrx/build_mod \
       sh ./make.sh &&
@@ -139,15 +183,14 @@ build(){
       cd .. &&
       sh ./make_install.sh
  then echo "Kernel Module fglrx.ko should be installed"
- else echo "A problem might exist in /usr/src/linux"
-      echo "Kernel module fglrx.ko will not be installed"
+ else echo "Kernel module fglrx.ko will not be installed"
       echo "3D will not be hardware accelerated."
  fi &&
- 
-      XPIC=xpic;     AVER=x86;    make_install &&
+
+       XPIC=xpic;     AVER=x86;    make_install &&
  if   [[ $HOSTTYPE == x86_64 ]]
  then XPIC=xpic_64a; AVER=x86_64; make_install
- fi
+ fi &&
  move_dirs &&
  activate_opengl
 }

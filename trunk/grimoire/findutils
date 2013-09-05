@@ -7,9 +7,8 @@ with info    good 20130529
 with info    last 20090606
 with version   stable 4.4.2
 with version unstable 4.5.11	# 20130202
-with switch  -static '' to make static linked find
 with role    utility
-with trait   console lto makej solo
+with trait   console lto makej optimize solo
 with source    stable $GNU_URL findutils/findutils-$VERSION.tar.gz
 with source  unstable ftp://alpha.gnu.org/gnu/ findutils/findutils-$VERSION.tar.gz
 with info    home http://www.gnu.org/software/findutils/
@@ -18,7 +17,6 @@ with protect /bin/find
 with protect /bin/xargs
 with info    cite 'utilities for locating files
 find finds files that match certain criteria.
-locate scans a database for file names that match a pattern.
 xargs converts a list of lines on stdin
 to parameters for a command that xargs executes.
 One or more lines from stdin become
@@ -26,23 +24,32 @@ command line parameters to the command that xargs executes.'
 
 build(){
 
+ move_to_bin(){
+  install -dvm 755 "$DESTDIR"/bin/
+  install  -vm 755 "$DESTDIR"{/usr/bin/{find,xargs},/bin/}
+  rmdir    --ignore-fail-on-non-empty "$DESTDIR"/usr/bin/
+ }
+
  make_static(){
   if [ -n "$STATIC" ]; then
-   export LDFLAGS+=" $STATIC"
-   rm -f find/find
+   export LDFLAGS+=' -static'
+   rm -f find/find xargs/xargs
    make "LDFLAGS=$LDFLAGS"
-   install -vm 755 find/find  "$DESTDIR"/usr/bin/
+   install -dvm 755                       "$DESTDIR"/usr/bin/
+   install  -vm 755 find/find xargs/xargs "$DESTDIR"/usr/bin/
   fi
  }
+
+ local STATIC
 
  if [[ $OPTS =~ -static ]]; then
     OPTS=${OPTS/-static}
         STATIC="-static"
  fi
 
- sed -i 's:@bindir@:/bin:' locate/updatedb.sh
- default_build &&
- make_static   &&
- mkdir -pvm 755 "$DESTDIR"/bin &&
- mv "$DESTDIR"/usr/bin/{find,xargs} "$DESTDIR"/bin/
+ # sed -i 's:@bindir@:/bin:' locate/updatedb.sh
+ sed -i 's:SUBDIRS = gnulib tests build-aux lib find xargs locate doc po m4:SUBDIRS = gnulib build-aux lib find xargs doc po m4:' Makefile.in
+ sed -i 's:find$(EXEEXT) oldfind$(EXEEXT):find$(EXEEXT):' find/Makefile.in
+
+ default_build && move_to_bin && make_static
 }

@@ -1,0 +1,17 @@
+with inherit grep
+with base    grep static--pcre
+
+build(){
+ sed -i 's:SUBDIRS = po lib doc src tests gnulib-tests:SUBDIRS = lib src:' Makefile.in
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LDFLAGS+=' -L/usr/lib64.a -static -lpcre'
+ else LDFLAGS+=' -L/usr/lib.a   -static -lpcre'
+ fi
+
+ # export LDFLAGS+=' -static -lpcre'
+ ./configure --prefix=/usr $OPTS &&
+ make &&
+ install -dvm 755          "$DESTDIR"/usr/bin/ &&
+ install  -vm 755 src/grep "$DESTDIR"/usr/bin/
+}

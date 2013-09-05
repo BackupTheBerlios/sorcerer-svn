@@ -28,9 +28,13 @@ loop found in event-driven network servers.'
 
 build_old(){
  default_build &&
- find /usr/lib/ -maxdepth 1 -name libevent\*\.so\* |
- while read; do
-  mv $REPLY /lib/ &&
-  ln -s ../../lib/${REPLY##*/} $REPLY
- done
+ if [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]; then
+  install -vdm 755 "$DESTDIR"/lib64/
+  mv "$DESTDIR"/usr/lib64/libevent* "$DESTDIR"/lib64/
+  sed -i 's:${prefix}/lib:/lib:'    "$DESTDIR"/lib64/pkgconfig/*.pc
+ else
+  install -vdm 755 "$DESTDIR"/lib/
+  mv "$DESTDIR"/usr/lib64/libevent* "$DESTDIR"/lib/
+  sed -i 's:${prefix}/lib:/lib:'    "$DESTDIR"/lib/pkgconfig/*.pc
+ fi
 }

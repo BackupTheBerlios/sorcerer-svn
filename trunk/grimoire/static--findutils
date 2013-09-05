@@ -1,0 +1,14 @@
+with inherit findutils
+with base    findutils
+
+build(){
+ # sed -i 's:@bindir@:/bin:' locate/updatedb.sh
+ sed -i 's:SUBDIRS = gnulib tests build-aux lib find xargs locate doc po m4:SUBDIRS = gnulib build-aux lib find xargs doc po m4:' Makefile.in
+ sed -i 's:find$(EXEEXT) oldfind$(EXEEXT):find$(EXEEXT):' find/Makefile.in
+
+ export LDFLAGS+=' -static'
+ ./configure --prefix=/usr $OPTS &&
+ make &&
+ install -dvm 755                       "$DESTDIR"/usr/bin/ &&
+ install  -vm 755 find/find xargs/xargs "$DESTDIR"/usr/bin/
+}

@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Default-Start: S
-# Short-Description: Extracts /usr/usr.tar.xz
+# Short-Description: Extracts /usr.tar.xz to /usr
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -16,10 +16,19 @@ only start
 deny control
 
 start(){
- local txz=/usr/usr.tar.xz
+ run(){
+  modprobe zram num_devices=1 &&
+  echo 1073741824 > /sys/block/zram0/disksize &&
+  mkfs.ext2 -q -m 0 -O sparse_super /dev/zram0 &&
+  mkdir -pm 755    /usr &&
+  mount /dev/zram0 /usr &&
+  tar -Pxf  $txz &&
+  rm  -f    $txz /etc/init.d/untar-usr
+ }
 
+ local       txz=/usr.tar.xz
  if    [ -f $txz ]; then
-  if   log_warning_msg "$txz extracting"; tar -Pxf $txz && rm -f $txz /etc/init.d/untar-usr
+  if   log_warning_msg "$txz extracting"; run
   then log_success_msg "$txz extracted"
   else log_failure_msg "$txz extraction failed"; return 1
   fi

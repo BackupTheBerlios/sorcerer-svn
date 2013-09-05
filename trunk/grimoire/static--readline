@@ -1,0 +1,30 @@
+with inherit readline
+with base    readline
+
+build(){
+ with also --enable-shared=no --enable-static=yes
+
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/lib.*\.a$,d
+        \,/lib64.a/lib.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64.a; LDFLAGS+=' -L/usr/lib64.a'
+ else with also --libdir=/usr/lib.a;   LDFLAGS+=' -L/usr/lib.a'
+ fi
+
+ # because readline is not properly not adding a rpath although instructed
+ sed -i 's:enable_rpath=yes:enable_rpath=no:' aclocal.m4
+ sed -i 's:-Wl,-rpath,$(libdir) ::' support/shobj-conf
+
+ export LDFLAGS+=" -lncurses $CFLAGS"
+
+ default_build &&
+ remove_debris
+}

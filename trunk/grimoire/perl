@@ -24,7 +24,7 @@
 with info    last 20130820
 with version   stable 5.16.3 5.16.2
 with version testing  5.18.1
-with version unstable 5.19.2
+with version unstable 5.19.3
 with elect   gdbm '' '' for database support
 with elect   db   '' '' for database support
 with also    -Duse64bitint
@@ -32,7 +32,7 @@ with clash   perl--File-Spec
 with role    development/interpreter
 with trait   console library makej
 with trait   multilib-fail
-with trait   solo
+with trait   optimize solo
 with source    stable http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
 with source  unstable http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
 with source  secure   http://www.cpan.org/src/${VERSION:0:1}.0/perl-$VERSION.tar.gz
@@ -100,9 +100,30 @@ build(){
  then SETARCH="setarch i686"
  else SETARCH=""
  fi
+
+# rm -fr cpan/*
+# sed -i '\,^cpan/,d' MANIFEST
+
+# modules Cwd Digest-MD5 Encode File-Glob required to compile perl
+# modules Socket does not want to compile separately
+# therefore allowing compilation with perl
+
+ local noextensions="$(
+# find cpan/ dist/ ext/ -mindepth 1 -maxdepth 1 -printf "%f\n" |
+  find cpan/ dist/      -mindepth 1 -maxdepth 1 -printf "%f\n" |
+  sed '/^Cwd$/d
+       /^Digest-MD5$/d
+       /^Encode$/d
+       /^File-Glob$/d
+       /^Socket$/d
+       p;s:-:/:g' | tr '\n' ' '
+ )"
+
+#   -Dstatic_ext="$static_ext" \
  $SETARCH \
  ./Configure \
    -Dprefix=/usr -Dinc_version_list=none \
+   -Dnoextensions="$noextensions" \
    -d -e $THREADS -A define:libpth="$libpth" $OPTS &&
  make "OPTIMIZE=$CFLAGS" &&
  make install DESTDIR="$DESTDIR" &&
@@ -110,9 +131,7 @@ build(){
 }
 
 post_install(){
- echo perl--XML-Parser      | pipe_queue "$LOAD_QUEUE"
- echo perl--XML-Parser      | pipe_queue "$MOIL_QUEUE"
- show_installed perl-module | pipe_queue "$LOAD_QUEUE"
- show_installed perl-module | pipe_queue "$MOIL_QUEUE"
+ show_installed perl-module     | pipe_queue "$LOAD_QUEUE"
+ show_installed perl-module     | pipe_queue "$MOIL_QUEUE"
  default_post_install
 }

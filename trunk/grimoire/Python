@@ -1,9 +1,11 @@
 # firefox's compilation require Python's bzip2 module.
 
 with info    last 20130518
-with version stable 2.7.5 2.7.4 2.7.3
-with base    bzip2 db expat gmp libffi ncurses pkgconfig readline zlib
+with version stable 2.7.5
+with base    bzip2 expat gmp libffi ncurses pkgconfig readline zlib
+#with base    bzip2 db expat gmp libffi ncurses pkgconfig readline zlib
 #with elect   bzip2
+with elect   db
 with elect   gdbm
 with elect   openssl '' '' for secure socket connections
 with elect   sqlite  '' '' for sqlite support
@@ -14,13 +16,13 @@ with also    --prefix=/usr --enable-shared --enable-ipv6
 #with elect   tk      '' '' to use tk for GUI and graphics
 
 with role    development/interpreter
-with trait   console hidden library makej x11
+with trait   console hidden library makej optimize x11
 with source  stable http://www.python.org/ftp/python/$VERSION/ \
-            ftp://ftp.python.org/pub/python/$VERSION/ \
-           Python-$VERSION.tar.bz2
+             ftp://ftp.python.org/pub/python/$VERSION/ \
+             Python-$VERSION.tar.bz2
 with source  secure http://www.python.org/ftp/python/$VERSION/ \
-            ftp://ftp.python.org/pub/python/$VERSION/ \
-           Python-$VERSION.tar.bz2
+             ftp://ftp.python.org/pub/python/$VERSION/ \
+             Python-$VERSION.tar.bz2
 with info    vurl http://www.python.org/download/
 with info    home http://www.python.org/
 with info    docs http://www.python.org/doc/
@@ -97,7 +99,7 @@ build(){
   elif [[ -f /lib/libc.so.6        ]]; then bit_move 64; wrappers
   fi
  fi &&
- rm -f "$DESTDIR"/usr/bin/2to3
+ rm -f "$DESTDIR"/usr/bin/{2to3,python}
  # Python3 installs /usr/bin/2to3
 }
 
@@ -122,4 +124,12 @@ post_install(){
    sort -u  | basenames |
    grep -v   "^Python"  |
    pipe_queue "$MOIL_QUEUE" )
+}
+
+current(){
+ case $VERSION in
+  2.7.5) if   [  -f /usr/bin/python ]
+         then rm -f /usr/bin/python
+         fi ;;
+ esac
 }

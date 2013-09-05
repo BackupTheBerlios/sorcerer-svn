@@ -1,0 +1,37 @@
+with inherit attr
+with base    attr
+with trait   multilib-fail
+
+build(){
+ with also --enable-shared=yes --enable-static=yes
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/.*\.a$,d
+        \,/lib64.a/.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ # wants to install .la to /libexec but fails so this fixes that.
+ sed -i 's:@libexecdir@@libdirsuffix@:@libdir@@libdirsuffix@:' include/builddefs.in
+
+ local OPTIMIZER DEBUG DIST_ROOT LIBDIR
+
+ export LDFLAGS+=" $CFLAGS"
+ export OPTIMIZER="$CFLAGS -fPIC"
+ unset              CFLAGS
+ export DEBUG=-DNDEBUG
+ export DIST_ROOT="$DESTDIR"
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64.a
+ else with also --libdir=/usr/lib.a
+ fi
+
+ ./configure --prefix=/usr $OPTS &&
+ make libattr &&
+ make install-dev &&
+ remove_debris
+}

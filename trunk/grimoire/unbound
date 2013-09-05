@@ -2,22 +2,33 @@
 # installs a library but probably nothing else will link with it
 # therefore not granted the library trait.
 
-with info    good 20130527
+with info    good 20130902
 with info    last 20130321
 with version stable 1.4.20
-with base    init-functions ldns
+with base    expat init-functions ldns
 with also    --disable-static --exec-prefix= --without-libevent
 with sys_user unbound unbound /var/chroot/unbound
 with role    network/dns
-with trait   console client library lto makej multilib-fail optimize server
+with trait   console client library lto makej multilib-concurrent optimize server
 # Nothing is expected to use unbound's libraries.
 with source  stable http://www.unbound.net/downloads/unbound-$VERSION.tar.gz
 with info    home http://www.unbound.net/
 with info    docs http://www.unbound.net/documentation/index.html
+# with protect /etc/unbound/root.key
 with info    cite 'validating, recursive, and caching DNS resolver'
 
 build(){
+# root.key created by init-script instead
+ root_key_create(){
+  install -dvm 755 "$DESTDIR"/etc/unbound/
+  if   [  -f /etc/unbound/root.key ]
+  then cp -a /etc/unbound/root.key       "$DESTDIR"/etc/unbound/
+  else "$DESTDIR"/sbin/unbound-anchor -a "$DESTDIR"/etc/unbound/root.key
+  fi
+ }  
+
  default_build &&
+#root_key_create &&
  sed -i 's/# username:/username:/
          s/# chroot:/chroot:/
          s:/etc/unbound/unbound\.pid:/run/unbound.pid:
@@ -26,4 +37,10 @@ build(){
          \,access-control: 127.0.0.0/8 allow,i\
 \taccess-control: 169.254.0.0/16 allow\n\taccess-control: 192.168.0.0/16 allow' \
      "$DESTDIR"/etc/unbound/unbound.conf
+}
+
+current(){
+ case $VERSION in
+  1.4.20) [ -f /lib/libunbound.so ] ;;
+ esac
 }

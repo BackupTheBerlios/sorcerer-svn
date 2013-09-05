@@ -1,0 +1,36 @@
+with inherit bzip2
+with base    bzip2
+
+build(){
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/lib.*\.a$,d
+        \,/lib64.a/lib.*\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then LIBDIR=/usr/lib64.a
+ else LIBDIR=/usr/lib.a
+ fi
+
+ make_install(){
+  install -dvm 755                             "$DESTDIR"/$LIBDIR/
+  mv       -v      "$DESTDIR"/usr/lib/libbz2.a "$DESTDIR"/$LIBDIR/
+ }
+
+ export  CFLAGS+=' -fPIC'
+
+ sed -i "s:ln \$(PREFIX):ln -f \$(PREFIX):" Makefile
+
+ make                \
+  "CFLAGS=$CFLAGS"   \
+  "LDFLAGS=$LDFLAGS" \
+  "PREFIX=/usr"      &&
+ make install PREFIX="$DESTDIR"/usr &&
+ make_install
+ remove_debris
+}

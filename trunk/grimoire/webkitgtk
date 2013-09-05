@@ -4,7 +4,7 @@
 with clash   WebKit
 with info    last 20130611
 with version   stable 2.0.3 2.0.2 2.0.1
-with version unstable 2.1.4
+with version unstable 2.1.90.1
 with base    Imaging enchant geoclue gst-plugins-base gtk+ gtk-doc libsecret libsoup libwebp ruby
 with also    --disable-gtk-doc --disable-glibtest
 with also    --with-gtk=3.0 --enable-introspection
@@ -52,6 +52,24 @@ and KJS libraries from KDE.
 This website is also the home of S60's S60 WebKit development."
 
 build(){
+
+ ## Too many places to properly sedit
+ ## files invoke python from within and not merely python scripts
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  if   [ -f autogen.sh ]
  then sh ./autogen.sh
  fi

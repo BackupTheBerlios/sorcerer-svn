@@ -45,7 +45,7 @@ main(){
  echo -1000 > /proc/$BASHPID/oom_score_adj
  while
   (( PASS++ ))
-  SWAP=$SDIR/swap.$$.$RANDOM.$PASS &&
+  SWAP="$SDIR"/swap.$$.$RANDOM.$PASS &&
   allocate &&
   mkswap  "$SWAP" &&
   chmod 0 "$SWAP" # &&
@@ -75,12 +75,12 @@ fi
 SDIR=${1:-/aux/run/swap}
 SIZE=${2:-1024M}
 
-if   [     -d      $SDIR ]
-then rm    -f      $SDIR/swap* &>/dev/null
-elif [     -e      $SDIR ]
-then rm    -fr     $SDIR
-     mkdir -pm 700 $SDIR
-else mkdir -pm 700 $SDIR
+if   [     -d      "$SDIR" ]
+then rm    -f      "$SDIR"/swap* &>/dev/null
+elif [     -e      "$SDIR" ]
+then rm    -fr     "$SDIR"
+     mkdir -pm 700 "$SDIR"
+else mkdir -pm 700 "$SDIR"
 fi
 
 trap on_exit EXIT

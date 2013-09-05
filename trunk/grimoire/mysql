@@ -22,13 +22,7 @@ with also    -DWITH_EMBEDDED_SERVER:BOOL=ON
 #     with also INSTALL_INCLUDEDIR:STRING=include/mysql
   sys_user mysql mysql /var/lib/mysql
 with role    db
-with trait   console library lto_off makej
-case $PROGRESS in
- legacy)
-with trait   multilib-dual ;;
-      *)
-with trait   multilib-concurrent ;;
-esac
+with trait   console library lto_off makej multilib-concurrent
 with source    stable $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
 with source  unstable $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
 with info    vurl http://dev.mysql.com/downloads/mysql/${VERSION:0:3}.html
@@ -49,55 +43,12 @@ build(){
  fi
 
  default_build &&
+ rm     -fr     "$DESTDIR"/usr/mysql-test/ &&
  if   [ -f      "$DESTDIR"/usr/include/mysql.h ]; then
   mv            "$DESTDIR"/usr/include "$DESTDIR"/usr/mysql
   mkdir -pm 755 "$DESTDIR"/usr/include
   mv            "$DESTDIR"/usr/mysql   "$DESTDIR"/usr/include/
  fi
-}
-
-build_legacy(){
- # It will not compile with --disable-static
-
- local LIBDIR=/usr/lib
-
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then LIBDIR+=64
- fi
-
- OPTS="--without-readline --with-pthread --with-embedded-server"
-
- # Added -fno-exceptions -felide-constructors -fno-rtti
- # From http://dev.mysql.com/doc/refman/5.1-maria/en/installing-source.html
-
- export   CFLAGS+=' -fPIC -fno-exceptions'
- export CXXFLAGS+=' -fPIC -fno-exceptions -felide-constructors -fno-rtti'
-
- ./configure                     \
-  --prefix=/usr                  \
-  --with-pic                     \
-  --enable-assembler             \
-  --enable-thread-safe-client    \
-  --localstatedir=/var/lib/mysql \
-  --enable-shared                \
-  --with-mysqld-user=mysql       \
-  --with-extra-charsets=complex  \
-  --exec-prefix=/usr             \
-  --libexecdir=/usr/sbin         \
-  --sysconfdir=/etc              \
-  --datadir=/usr/share           \
-  --infodir=/usr/info            \
-  --includedir=/usr/include      \
-  --mandir=/usr/man              \
-  --with-server-suffix='-Max'    \
-  --with-plugins=all             \
-  --with-comment="MySQL-MAX-$VERSION " \
-  --with-unix-socket-path=/var/lib/mysql/mysql.sock \
-  $OPTS &&
-  make pkglibdir=$LIBDIR &&
-  make pkglibdir=$LIBDIR install DESTDIR="$DESTDIR" &&
-  mkdir  -pvm 755 "$DESTDIR"/etc/ &&
-  install -vm 700 support-files/my-medium.cnf "$DESTDIR"/etc/my.cnf
 }
 
 post_install(){

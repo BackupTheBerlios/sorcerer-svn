@@ -5,14 +5,19 @@
 
 with info    last 20130528
 with version stable 8.33 8.32
+if   [[ pcre == $SPELL ]]; then
 with base    pkgconfig
 #with base    cmake pkgconfig
 with elect   gcc-g++
+fi
 with also    --exec-prefix= --bindir=/usr/bin
 with role    development
-with trait   library lto makej multilib-concurrent solo
+with trait   library lto makej optimize
+if   [[ pcre == $SPELL ]]; then
+with trait   multilib-concurrent solo
+fi
 with source  stable ftp://ftp.csx.cam.ac.uk/pub/software/programming/pcre/pcre-$VERSION.tar.bz2
-with also    --enable-utf8 --enable-unicode-properties --enable-static=no
+with also    --enable-utf8 --enable-unicode-properties
 #      with also -DCMAKE_INSTALL_PREFIX:PATH=/usr
 #      with also -DBUILD_SHARED_LIBS:BOOL=TRUE
 #      with also -DBUILD_STATIC_LIBS:BOOL=FALSE
@@ -28,6 +33,7 @@ pcre is a library that implement regular expression pattern matching
 using the same syntax and semantics as Perl 5, with just a few differences.'
 
 build(){
+ with also --enable-static=no
  trim_html(){
   if     [ -f "$CURRENT_LOGS"/sorcerer-iso9660 ] ||
          [ -f "$CURRENT_LOGS"/deployment-docent ]

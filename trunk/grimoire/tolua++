@@ -1,17 +1,18 @@
+with trait   broke
+#with info    good 20130829
+with info    last 20090215
 with version stable 1.0.93
 with base    lua scons
 with role    development/interpreter
 with trait   console library multilib-dual
-with source  http://www.codenix.com/~tolua/tolua++-$VERSION.tar.bz2
-with info    good 20120711
-with info    last 20090209
+with source  stable http://www.codenix.com/~tolua/tolua++-$VERSION.tar.bz2
 with info    home http://www.codenix.com/~tolua/
 with info    cite 'tool to integrate C/C++ code with lua'
 
 build(){
  fix_install(){
   if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then mv $DESTDIR/usr/lib $DESTDIR/usr/lib64
+  then mv "$DESTDIR"/usr/lib{,64}
   fi
  }
  export   CFLAGS+=' -fPIC'
@@ -20,6 +21,6 @@ build(){
  sed -i 's:/usr/local:/usr:' config_*.py
  sed -i "s:'lualib',::"      config_posix.py
  scons &&
- scons install "prefix=$DESTDIR/usr" &&
+ scons install prefix="$DESTDIR"/usr &&
  fix_install
 }

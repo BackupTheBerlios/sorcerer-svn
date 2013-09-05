@@ -1,0 +1,30 @@
+with inherit pcre
+with base    pcre
+with trait   multilib-fail
+with info    cite 'statically linked Perl compatible regular expression library'
+
+build(){
+ with also --enable-static=yes --enable-shared=no
+
+ remove_debris(){
+  find "$DESTDIR" -not -type d |
+  sed  '\,/lib.a/libpcre\.a$,d
+        \,/lib64.a/libpcre\.a$,d' |
+  xargs --max-lines=64 rm -f &&
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64.a
+ else with also --libdir=/usr/lib.a
+ fi
+
+ export   CFLAGS="${CFLAGS//-flto/}"
+ export CXXFLAGS="${CXXFLAGS//-flto/}"
+ export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
+ rm -f CMakeLists.txt
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
+ default_build && remove_debris
+}

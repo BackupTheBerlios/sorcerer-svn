@@ -1,12 +1,27 @@
-with version stable 0.18.2 0.18.0
+with info    last 20121230
+with version stable 0.18.2
 with role    audio/library
 with trait   library makej multilib-dual
-with source  http://download.drobilla.net/serd-$VERSION.tar.bz2
-with info    last 20121230
+with source  stable http://download.drobilla.net/serd-$VERSION.tar.bz2
 with info    home http://drobilla.net/software/serd
 with info    cite 'library for RDF syntax which supports r/w Turtle and NTtriples'
 
 build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  ./waf configure --prefix=/usr &&
  ./waf -j1 &&
  DESTDIR=$DESTDIR ./waf install &&

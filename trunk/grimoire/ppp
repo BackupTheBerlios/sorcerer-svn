@@ -21,15 +21,21 @@ Supports IP, TCP, UDP and (for Linux) IPX (Novell).'
 
 build(){
  fix_install(){
-  mkdir -pm 755 "$DESTDIR"/usr
-  if   [ -d     "$DESTDIR"/include ]
-  then mv       "$DESTDIR"/include "$DESTDIR"/usr/
+  install -dvm 755 "$DESTDIR"/usr/
+  if   [ -d        "$DESTDIR"/include/ ]
+  then mv          "$DESTDIR"/include/ "$DESTDIR"/usr/
   fi
-  if   [ -d     "$DESTDIR"/share ]
-  then mv       "$DESTDIR"/share   "$DESTDIR"/usr/
+  if   [ -d        "$DESTDIR"/share/ ]
+  then mv          "$DESTDIR"/share/   "$DESTDIR"/usr/
   fi
  }
   
+ install_pon(){
+  install -dvm 755      "$DESTDIR"/bin/
+  cp "$SCRIPT_DIR"/pon  "$DESTDIR"/bin/
+  cp "$SCRIPT_DIR"/poff "$DESTDIR"/bin/
+ }
+
 
  grep  -rl                        "net/bpf.h" * |
  xargs -r --max-lines=64 sed -i "s:net/bpf.h:pcap-bpf.h:"
@@ -59,7 +65,8 @@ build(){
  make $OPTS           \
       "Copts=$CFLAGS" &&
  make install $OPTS DESTDIR="$DESTDIR" &&
- fix_install
+ fix_install &&
+ install_pon
 }
 
 post_build(){
@@ -67,20 +74,17 @@ post_build(){
   [ -f $2 ] ||  cp $SCRIPT_DIR/$1 $2
  }
 
- mkdir -p /etc/ppp/{chat,peers}
+ install -dvm 755 /etc/ppp/{chat,peers}/
 
  ln -f /etc/ppp/resolv.conf /etc/resolv.conf
-
- cp $SCRIPT_DIR/pon  /bin
- cp $SCRIPT_DIR/poff /bin
 
  place_file options /etc/ppp/options
  place_file peers   /etc/ppp/peers/isp
  place_file isp     /etc/ppp/chat/isp
 
- cat $SCRIPT_DIR/message
+ cat "$SCRIPT_DIR"/message
 
- chown -R root:ppp /etc/ppp
+ chown -R root:ppp /etc/ppp/
  chmod 600         /etc/ppp/*-secrets
 
  default_post_build
