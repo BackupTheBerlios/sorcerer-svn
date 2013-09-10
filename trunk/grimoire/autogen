@@ -1,19 +1,13 @@
 # 5.16.1 failed to compile
+# Nothing but autogen links with autogen's shared libraries
 
-with info    last 20130723
-with version   stable 5.18 5.17.4 5.17.3
-with base    guile libxml2
+with info    last 20130909
+with version   stable 5.18.1 5.18 5.17.4
+with base    guile libxml2 xz
 with also    --enable-static=no
-case $VERSION in
- 5.17.4)
-with base    guile-1.8 ;;
- 5.17.3)
-with base    guile-1.8 ;;
- 5.17.2)
-with base    guile-1.8 ;;
-esac
 with role    development
-with trait   console hidden library makej multilib-concurrent
+with trait   console hidden library makej multilib-fail
+# with trait   console hidden library makej multilib-concurrent
 with source  stable $GNU_URL autogen/rel$VERSION/autogen-$VERSION.tar.xz
 #with source  stable $SOURCEFORGE_URL autogen/AutoGen/AutoGen-$VERSION/autogen-$VERSION.tar.bz2
 with info    home http://www.gnu.org/software/autogen/
@@ -27,24 +21,3 @@ blocks of such text that must be kept synchronized.
 Output is specified with a Scheme-enhanced output template.
 Input, if required by your template, may come
 from AutoGen definitions, CGI data, or XML files.'
-
-build(){
- local RATH=$PATH
- local PATH=$RATH
-
- old_guile(){
-  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
-  then export PATH="/opt/guile/1.8/bin:$PATH"
-       export LDFLAGS+=" -Wl,-rpath,/opt/guile/1.8/lib64"
-  else export PATH="/opt/guile/1.8/bin32:$PATH"
-       export LDFLAGS+=" -Wl,-rpath,/opt/guile/1.8/lib"
-  fi
- }
-
- case $VERSION in
-  5.17.4) old_guile ;;
-  5.17.3) old_guile ;;
-  5.17.2) old_guile ;;
- esac
- default_build
-}

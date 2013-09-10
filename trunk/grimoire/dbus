@@ -2,8 +2,8 @@
 # While this dbus installs to --exec-prefix= so must expat
 # elective on doxygen creates broad recursive requirement loop
 
-with info    last 20130613
-with version   stable 1.6.12 1.6.10 1.6.8
+with info    last 20130909
+with version   stable 1.6.14 1.6.12 1.6.10
 with version unstable 1.7.4
 with base    expat init-functions pkgconfig
 #with base    docbook-xml-4.1.2 docbook-xml-4.4 expat init-functions pkgconfig xmlto
@@ -33,34 +33,3 @@ and a per-user-login-session daemon
 Also, the message bus is built on top of a general one-to-one message
 passing framework, which can be used by any two apps to communicate
 directly (without going through the message bus daemon).'
-
-build(){
- case $VERSION in
-  1.6.8) export LDFLAGS+=' -lrt' ;;
-  1.7.0) export LDFLAGS+=' -lrt' ;;
- esac
- default_build
-}
-
-
-current(){
- dbus_moved(){
-  [ -d /usr/lib64/ ] && find /usr/lib64/ -maxdepth 1 -type f -name \*.la |
-  xargs -r --max-lines=64 grep -l /usr/lib64/libdbus-1.la |
-  show_from | cut -d : -f1 | sort -u | pipe_queue "$CAST_QUEUE/new"
-
-  [ -d /usr/lib/ ] && find /usr/lib/ -maxdepth 1 -type f -name \*.la |
-  xargs -r --max-lines=64 grep -l /usr/lib/libdbus-1.la |
-  show_from | cut -d : -f1 | sort -u | pipe_queue "$CAST_QUEUE/new"
-
-  [ -f /lib64/libdbus-1.la ] ||
-  [ -f /lib///libdbus-1.la ]
- }
-
- # moved bus with version 1.6.8 however added extra check
- # with version 1.6.10 for those who were slow to update.
- case $VERSION in
-   1.6.8) dbus_moved ;;
-  1.6.10) dbus_moved ;;
- esac
-}
