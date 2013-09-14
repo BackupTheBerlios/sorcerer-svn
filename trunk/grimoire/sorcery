@@ -1,17 +1,13 @@
-with info    last            20130912
-with version stable paradigm-20130912-0 paradigm-20130905-0 paradigm-20130702-0
+with info    last            20130914
+with version stable paradigm-20130914-0 paradigm-20130913-1 paradigm-20130912-0
 with role    utility
 with trait   bias solo sorcery
 with info    home http://sorcerer.silverice.org/
 with source    stable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
 with source  unstable http://sorcerer.silverice.org/download/sorcery/sorcery-$VERSION.tar.xz
 
-# Should /var/cache and /var/spool be excluded?
-# They used to be but that caused missing directories for cups
-
 with omit    /aux/run/
 with omit    /dev/
-with omit    /etc/sorcery/local.config
 with omit    /home/
 with omit    /proc/
 with omit    /root/
@@ -25,44 +21,27 @@ with vary    /aux/new/
 with vary    /etc/sorcery/config
 with vary    /etc/init.d/
 with vary    /usr/share/man/
-with vary    /usr/doc/
 with vary    /usr/share/doc/
 with vary    /usr/share/gtk-doc/
 with vary    /usr/share/locale/
 with vary    /usr/share/info/
 with vary    /usr/share/icons/
-with vary    /var/cache/
 with vary    /var/lib/
-with vary    /var/spool/
 with vary    /var/log/sorcery/
 with vary    '/lib/modules/.*/modules.*'
 with vary    /lib/udev/dev/
-with vary    "$CURRENT_LOGS/"
 with protect     /lib64/.link/
 with protect /usr/lib64/.link/
 with protect       /lib/.link/
 with protect   /usr/lib/.link/
 with protect /etc/sorcery/config
-with protect /usr/libexec/sorcery/augur
-with protect /usr/libexec/sorcery/augur.d/scry
 with protect /usr/libexec/sorcery/functions
-with protect /usr/libexec/sorcery/oust
 with protect /usr/libexec/sorcery/post
-with protect /usr/libexec/sorcery/reap
-with protect /usr/libexec/sorcery/rush
-with protect /usr/libexec/sorcery/save
 with protect /usr/libexec/sorcery/sign
-with protect /usr/libexec/sorcery/till
-with protect /usr/sbin/augur
-with protect /usr/sbin/oust
+with protect /usr/libexec/sorcery/wand
 with protect /usr/sbin/post
-with protect /usr/sbin/reap
-with protect /usr/sbin/rush
-with protect /usr/sbin/save
 with protect /usr/sbin/sign
-with protect /usr/sbin/till
-with protect /var/cache/
-with protect /var/spool/
+with protect /usr/sbin/wand
 with config  /etc/
 with info    cite 'sorcery contains source management tools.
 augur   - provides detailed information about the box
@@ -74,18 +53,9 @@ sorcery - menu driven source manager'
 build(){ DESTDIR=$DESTDIR ./install $VERSION; }
 
 post_install(){
-
- discard_old_index(){
-  merge_grimoires
-  generate_index   
-  . /etc/sorcery/config
-  run_details
- }
-
- discard_old_index
  pkill -u root wand &>/dev/null
- if   ! [ -f "$VERSION_INDEX"/immune-exam-transition ]
- then touch     "$MOIL_QUEUE"/immune-exam-transition
- fi
+ rm    -fr /aux/run/tmp/*
+ [     -f   "$POST_LOGS"/immune-exam-transition ] ||
+ touch     "$MOIL_QUEUE"/immune-exam-transition
  default_post_install
 }

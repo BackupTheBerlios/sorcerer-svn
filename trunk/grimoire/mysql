@@ -35,6 +35,14 @@ It is a client/server implementation that consists
 of a server daemon (mysqld) and client programs/libraries.'
 
 build(){
+ mv_docs(){
+  install -vdm 755 "$DESTDIR"/usr/share/doc/mysql/
+  mv      -t       "$DESTDIR"/usr/share/doc/mysql/ \
+                   "$DESTDIR"/usr/{COPYING,INSTALL-BINARY,README,docs/*,sql-bench,scripts,support-files}
+  rm      -fr      "$DESTDIR"/usr/docs/
+  return 0
+ }
+
  sed -i 's:"data":"/var/lib/mysql":' cmake/install_layout.cmake
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
@@ -43,6 +51,7 @@ build(){
  fi
 
  default_build &&
+ mv_docs       &&
  rm     -fr     "$DESTDIR"/usr/mysql-test/ &&
  if   [ -f      "$DESTDIR"/usr/include/mysql.h ]; then
   mv            "$DESTDIR"/usr/include "$DESTDIR"/usr/mysql
