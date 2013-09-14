@@ -1,11 +1,13 @@
-# Missing many requirements still.
+# Missing many requirements still?
+# Followed http://darling.dolezel.info/en/Build
+# It would not compile.
 
 with trait   broke
-with info    last 20130722
-with version stable de16c
-with base    git llvm
-with also    -DCMAKE_BUILD_TYPE=RELEASE
-with also    -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++
+with info    last 20130914
+with version stable 6407
+with base    gc git gnustep-gui gnustep-objc libav libbsd llvm systemd
+# with also    -DCMAKE_BUILD_TYPE=RELEASE
+# with also    -DCMAKE_CXX_COMPILER:FILEPATH=/usr/bin/clang++
 with role    development/emulator
 with trait   huge makej optimize x11
 with source  stable darling.tar $VERSION git://github.com/LubosD/darling.git
@@ -13,7 +15,14 @@ with info    home http://darling.dolezel.info/en/Darling
 with info    cite 'OSX emulation layer for Linux'
 
 build(){
- unset CC CXX
+ local ds
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then ds=64
+ else ds=32
+ fi
+
  export PATH="${PATH//\/usr\/libexec\/ccache:/}"
- default_build
+ CC=clang CXX=clang++ cmake -DSUFFIX=$ds &&
+ make &&
+ make install DESTDIR="$DESTDIR"
 }
