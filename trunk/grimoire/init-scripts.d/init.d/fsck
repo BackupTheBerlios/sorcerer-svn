@@ -16,19 +16,6 @@ deny control
 
 start(){
  fsc(){
-  local FORCE
-  if grep -q fastboot  /proc/cmdline; then return; fi
-  if grep -q forcefsck /proc/cmdline; then FORCE=-f; fi
-
-  fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
-  if [ $? -gt 1 ]; then
-   log_failure_msg 'fsck failed' 1>/dev/console 2>&1
-   log_failure_msg 'Repair file systems by running /sbin/fsck' 1>/dev/console 2>&1
-   sulogin -t 120 1>/dev/console 2>&1 0</dev/console
-  fi
- }
-
- fsc(){
   local FSTAB_FILE
   local FORCE
   if grep -q fastboot  /proc/cmdline; then return;   fi
@@ -39,7 +26,7 @@ start(){
   elif [ -f /etc/rootfs/fstab ]; then export FSTAB_FILE=/etc/rootfs/fstab
   fi
 
-  fsck -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
+  fsck -T -C -A -p $FORCE 1>/dev/console 2>&1 0</dev/console
   if [ $? -gt 1 ]; then
    log_failure_msg 'fsck failed' 1>/dev/console 2>&1
    log_failure_msg 'Repair file systems by running /sbin/fsck' 1>/dev/console 2>&1

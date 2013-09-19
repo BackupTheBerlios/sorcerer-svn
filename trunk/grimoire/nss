@@ -1,8 +1,9 @@
 # links without regard to CC CFLAGS and LDFLAGS and therefore is multilib-fail
 
+with info    edit 20130919
 with info    good 20130807
 with info    last 20130702
-with version stable 3.15.1 3.14.3
+with version stable 3.15.1
 with base    nspr sqlite zlib
 with role    network/web
 # must be multilib-dual
@@ -11,14 +12,13 @@ with trait   library multilib-dual no_patcher
 with source  stable ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
 case $VERSION in
  3.15.1) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.15.1-standalone-2.patch ;;
- 3.14.3) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.14.3-standalone-1.patch ;;
 esac
 with info    home http://www.mozilla.org/projects/security/pki/nss/
 with info    cite 'mozilla network security service libraries'
 
 build(){
  make_install(){
-  mkdir  -pvm 755 "$DESTDIR"/usr/{bin,include/nss,lib/pkgconfig}
+  install -dvm 755 "$DESTDIR"/usr/{bin,include/nss,lib/pkgconfig}/
 # cd mozilla/dist
   cd ../dist/
   chmod 644 {public,private}/nss/*
@@ -46,12 +46,6 @@ build(){
   fi
 
   patch -p1 < ${SOURCE[1]}
-
-  case $VERSION in
-   3.12.9) cp mozilla/security/coreconf/Linux{2.6,3.2}.mk
-           cp mozilla/security/coreconf/Linux{2.6,3.1}.mk
-           cp mozilla/security/coreconf/Linux{2.6,3.0}.mk ;;
-  esac
 
   export BUILD_OPT=1
   export NSS_USE_SYSTEM_SQLITE=1

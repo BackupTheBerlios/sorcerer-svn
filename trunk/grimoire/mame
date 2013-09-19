@@ -1,11 +1,12 @@
 # 0149s failed to compile
 
-with info    last 20130618
-with version   stable 0148s 0146s
+with info    last 20130919
+with version   stable 0150s 0148s 0146s
 with version unstable 0149s
 with base    GConf SDL_ttf gtk+ unzip
 with role    game development/emulator
-with trait   hiddden makej optimize x11
+with trait   hiddden optimize x11
+#with trait   hiddden makej optimize x11
 with source  "http://mamedev.org/downloader.php?file=releases/mame$VERSION.zip"
 #   source http://www.aarongiles.com/mirror/releases/mame$VERSION.zip
 #   source http://mamedev.org/updates/0140u1_diff.zip
@@ -28,6 +29,21 @@ build(){
  sed -i '1iCC = g++'   src/emu/cpu/cpu.mak
 #sed -i '1iCC = gcc'   src/lib/lib.mak
  sed -i 's:$(CC):gcc:' src/lib/lib.mak
+
+ LC_ALL=C grep -lr python * |
+ xargs -r --max-lines=64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
 
  make    -f makefile &&
  mkdir   -vpm 755                "$DESTDIR"/usr/bin &&
