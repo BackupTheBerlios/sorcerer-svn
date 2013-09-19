@@ -1,0 +1,35 @@
+with info    last 20070602
+with version stable 3.0-0602
+with base    AlephOne
+with role    game game/3d
+with trait   optimize x11
+with source  stable $SOURCEFORGE_URL "emr3/complete-scenario4%20%28linux%29/EMR%203.0%202007-06-02%20%28Linux%29/emr-$VERSION.tgz"
+with info    home http://emr.excaliburworld.com/emr3/index.html
+with info    cite 'first person arcade shooter
+Travel through the jurassic period, camelot period, and future
+while attempt to capture Morgana'
+
+build(){
+ sed 's:@ALEPHONE@:/usr/bin/alephone:
+      s:@DATADIR@:/usr/share/games:' < emr.in > emr
+ sed 's:@BINDIR@:/usr/bin:
+      s:@DATADIR@:/usr/share/games:' < emr.desktop.in > emr.desktop
+ sed 's:@DATADIR@:/usr/share/games:' < emr.6.in > emr.6
+
+ install -dvm 755 "$DESTDIR"/usr/{bin,share/{applications,doc/emr,games/emr/Themes/Default,icons,man/man6}}/
+ find share-doc-emr -type d -printf "$DESTDIR/usr/share/doc/emr/%P\n" |
+ xargs install -dvm 755
+ find share-emr -type d -printf "$DESTDIR/usr/share/games/emr/%P\n" |
+ xargs install -dvm 755
+
+ install  -vm 755 -t "$DESTDIR"/usr/bin/ emr
+ install  -vm 644 -t "$DESTDIR"/usr/share/applications/ emr.desktop
+ install  -vm 644 -t "$DESTDIR"/usr/share/icons/ emr.png
+ install  -vm 644 -t "$DESTDIR"/usr/share/man/man6/ emr.6
+
+ find share-doc-emr -type f -printf "%P\n" |
+ while read; do install -vm 755 "share-doc-emr/$REPLY" "$DESTDIR/usr/share/doc/emr/$REPLY"; done
+
+ find share-emr     -type f -printf "%P\n" |
+ while read; do install -vm 755 "share-emr/$REPLY" "$DESTDIR/usr/share/games/emr/$REPLY"; done
+}
