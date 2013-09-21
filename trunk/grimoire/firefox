@@ -31,10 +31,10 @@ with also    --enable-application=browser
 #with also --with-system-nss
 with also    --without-system-nss
 with also    --without-system-nspr
-with also    --enable-strip
+## toolkit=cairo-gtk3 failed compilation version 24.0
+# with also    --enable-default-toolkit=cairo-gtk3
 with also    --enable-default-toolkit=cairo-gtk2
 with also    --disable-mochitest
-with also    --disable-tests
 with also    --enable-official-branding
 #with also --enable-system-sqlite
 
@@ -136,14 +136,6 @@ build(){
  # case statement to remove references to curl's deprecated header
  # that was removed from curl during version 7.21.7.
 
- case $VERSION in
-  [5-7].0*) sed -i '\,curl/types\.h,d' js/src/config/system-headers \
-                toolkit/crashreporter/google-breakpad/src/common/linux/{http_upload.cc,libcurl_wrapper.cc}
-            cp security/coreconf/Linux{2.6,3.1}.mk
-            cp security/coreconf/Linux{2.6,3.0}.mk ;;
- esac
-
-
  # CFLAGS="${CFLAGS//-mno-mmx/}"
  # CFLAGS="${CFLAGS//-mno-sse2/}"
  # CFLAGS="${CFLAGS//-mno-sse/}"
@@ -163,6 +155,9 @@ build(){
  --sysconfdir=/etc \
  --localstatedir=/var \
  --enable-optimize="$CFLAGS" \
+ --disable-debug \
+ --disable-tests \
+ --enable-strip \
  $OPTS &&
  make  &&
  make install DESTDIR="$DESTDIR" &&
