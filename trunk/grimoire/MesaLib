@@ -3,18 +3,20 @@
 # i810, mach64, mga, r128, savage, sis, tdfx
 # Removal of i810 might effect some old desktops and laptops?
 
-with info    good 20130914
+with info    good 20130924
 with info    last 20130827
 with version   stable 9.1.6 9.1.5 9.1.4
 with version unstable 9.2.0
 with version   legacy 8.0.5
 #with version      git snb-magic-12212-g99f14bc
 
-with base    dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm libxml2 llvm makedepend systemd
+with base    dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm libxml2 llvm makedepend systemd wayland
 #with base    dri2proto glproto libXdamage libXi libXmu libXxf86vm libdrm llvm makedepend udev
 #with base    gcc-g++
 with also    --with-gallium-drivers=i915,nouveau,r300,r600,svga,swrast
 #with also    --with-gallium-drivers=i915,i965,nouveau,r300,r600,swrast
+with also    --enable-gles2 --enable-gbm --enable-shared-glapi --with-egl-platforms=x11,wayland,drm
+# weston requires MesaLib compiled with --enable-gles2 --enable-gbm --enable-shared-glapi --with-egl-platforms=x11,wayland,drm
 with role    graphic/library
 with trait   X11R7 hidden library optimize x11
 with trait   litelink
@@ -33,7 +35,6 @@ build(){
   install -dvm 755                     "$DESTDIR"/etc/
   install  -vm 644 "$SCRIPT_DIR"/drirc "$DESTDIR"/etc/
  }
- 
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then CONFIG_NAME=linux-dri-x86-64 ; LIB=lib64
