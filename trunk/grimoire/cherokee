@@ -1,9 +1,10 @@
-# version 1.0.12 does not recognize --without-php as a configure parameter
-
-with version stable 1.2.101
+with trait   broke
+with info    last 20130926
+with version stable 1.2.103 1.2.101
 case $VERSION in
  1.2.101) with also --without-ffmpeg ;;
 esac
+with base    automake libtool
 #with elect   ffmpeg
 with elect   gnutls    --enable-tls=gnutls              ''            for TLS support through gnutls
 with elect   mysql
@@ -13,12 +14,20 @@ with elect   php       --with-php=/usr/include/php/main --without-php for PHP su
 with also    --enable-static=no
 with role    network/web
 with trait   console makej server
-with source  http://www.cherokee-project.com/download/${VERSION:0:3}/$VERSION/cherokee-$VERSION.tar.gz
-with info    good 20121021
-with info    last 20111018
+CURL_PARAM=-k
+with source  stable https://github.com/cherokee/webserver/archive/v1.2.103.zip
+#with source  stable http://www.cherokee-project.com/download/${VERSION:0:3}/$VERSION/cherokee-$VERSION.tar.gz
 with info    home http://www.cherokee-project.com/
+with info    vurl http://cherokee-project.com/downloads.html
 with info    docs http://www.cherokee-project.com/doc/
 with info    cite 'fast and tiny web server
 cherokee is a tiny, ultrafast, lightweight Web server.
 It is embeddable, extensible with plug-ins, and supports
 on-the-fly configuration by reading files or strings.'
+
+build(){
+ if ! [ -f configure ] && [ -f autogen.sh ]
+ then sh ./autogen.sh
+ fi
+ default_build
+}
