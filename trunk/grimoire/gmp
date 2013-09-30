@@ -12,8 +12,6 @@ with trait   library lto makej multilib-concurrent optimize setarch solo
 with source    stable $GNU_URL gmp/gmp-$VERSION.tar.xz
 with source  unstable $GNU_URL gmp/gmp-$VERSION.tar.xz
 with info    home http://www.gmplib.org
-with also    --enable-cxx --enable-mpfr --enable-static=no
-#      with also --enable-cxx --enable-mpfr --enable-nails --enable-static=no
 with info    cite 'GNU mathematics precision library
 gmp is a library operating on signed integers,
 rational numbers, and floating point numbers.
@@ -28,17 +26,19 @@ GNUmp speed advantage increases with the operand size,
 since GNUmp in many cases has asymptomatically faster algorithms.'
 
 build(){
+with also    --enable-cxx --enable-static=no
 
  # gmp's 64-bit and 32-bit headers differ
  preserve_ia32_headers(){
    if [[ $HOSTTYPE == x86_64 ]] &&
       echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
-   mkdir -vpm 755 "$DESTDIR"/usr/include32/
-   mv "$DESTDIR"/usr/include/gmp.h   "$DESTDIR"/usr/include32/
-   mv "$DESTDIR"/usr/include/gmpxx.h "$DESTDIR"/usr/include32/
+   install -dvm 755 "$DESTDIR"/usr/include32/
+   mv -v "$DESTDIR"/usr/include/gmp.h   "$DESTDIR"/usr/include32/
+   mv -v "$DESTDIR"/usr/include/gmpxx.h "$DESTDIR"/usr/include32/
   fi
  }
 
+ local ABI
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then export ABI=64
  else export ABI=32
@@ -46,48 +46,4 @@ build(){
  default_build &&
  
  preserve_ia32_headers
-}
-
-build_old(){
-(
- # gmp's 64-bit and 32-bit headers differ
- preserve_ia32_headers(){
-   if [[ $HOSTTYPE == x86_64 ]] &&
-      echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"; then
-   mkdir -vpm 755 "$DESTDIR"/usr/include32/
-   mv "$DESTDIR"/usr/include/gmp.h   "$DESTDIR"/usr/include32/
-   mv "$DESTDIR"/usr/include/gmpxx.h "$DESTDIR"/usr/include32/
-  fi
-}
-
-# configure: error: ABI=64 is not among the following valid choices: 32
-#   x86_64) export ABI=64 ;;
- case $HOSTTYPE in
-  i[5-6]86) export ABI=32 ;;
- esac
-
- if   [[ $HOSTTYPE == x86_64 ]] &&
-      echo "$CFLAGS $CXXFLAGS" | grep -q "\-m32"
- then export ABI=32
- fi
-
-# CPPFLAGS=-fexceptions is required by
-# ppl to create a gmp that can do bounded memory capabilities
-# offered by ppl
-
- # to rid the rpath
- aclocal; automake -acf; libtoolize -cf; autoreconf -fi
- sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
-
- CPPFLAGS=-fexceptions \
- ./configure           \
-  --sysconfdir=/etc    \
-  --localstatedir=/var \
-  --prefix=/usr        \
-  --build=$MACHTYPE    \
- $OPTS &&
- make  &&
- make install DESTDIR="$DESTDIR" &&
- preserve_ia32_headers
-)
 }
