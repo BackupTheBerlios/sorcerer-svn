@@ -1,0 +1,28 @@
+with inherit binutils
+with base    binutils static--zlib
+with info    cite 'static--binutils provides statically linked binutils'
+
+build(){
+with also    --bindir=/usr/bin.a
+ export PATH="${PATH//\/usr\/bin.a:/}"
+ export CCACHE_PATH=/usr/bin
+
+ remove_debris(){
+  rm -fr "$DESTDIR"/usr/{include,lib{,64},share}
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+
+ TD="tooldir=/usr/share/td"
+ LDF="LDFLAGS=$LDFLAGS"
+
+ export LDFLAGS+=' -L/usr/lib64.a -L/usr/lib.a -static'
+ ./configure --prefix=/usr $OPTS &&
+ make     maybe-all-{binutils,gold} "$TD" "$LDF" &&
+ make maybe-install-{binutils,gold} "$TD" DESTDIR="$DESTDIR" &&
+ remove_debris
+}
