@@ -17,12 +17,14 @@ with also    --bindir=/usr/bin.a
  export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
  export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
 
+ export LDFLAGS+=' -L/usr/lib64.a -L/usr/lib.a -static'
  TD="tooldir=/usr/share/td"
  LDF="LDFLAGS=$LDFLAGS"
+ BLF="BOOT_LDFLAGS=$LDFLAGS"
+ LFB="LDFLAGS_FOR_BUILD=$LDFLAGS"
 
- export LDFLAGS+=' -L/usr/lib64.a -L/usr/lib.a -static'
- ./configure --prefix=/usr $OPTS &&
- make     maybe-all-{binutils,gold} "$TD" "$LDF" &&
+ ./configure --prefix=/usr $OPTS --disable-shared --enable-static &&
+ make     maybe-all-{binutils,gold} "$TD" "$LDF" "$BLF" "$LFB" &&
  make maybe-install-{binutils,gold} "$TD" DESTDIR="$DESTDIR" &&
  remove_debris
 }
