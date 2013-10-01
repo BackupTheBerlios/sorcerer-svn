@@ -9,11 +9,12 @@
 # occasional cast failures might be due to the makefiles
 # not being entirely parallel make compatible.
 
+with info    edit 20131001
 with info    last 20130602
 with version stable 4.8.1 4.7.3
 [ -f "${CURRENT_LOGS:-/aux/log/current}/deployment-docent" ] ||
 with base    bzip2
-with base    binutils mpfr multiprecision
+with base    binutils multiprecision
 #with base    binutils cloog-ppl libelf mpfr multiprecision
 #with base    binutils cloog-parma libelf mpfr multiprecision
 #with elect   ecj --with-ecj-jar=/usr/share/java/ecj.jar
@@ -56,23 +57,23 @@ build(){
   then ln -s strstream $STRSTREAM.h
   fi
 
-  rm    -f            "$DESTDIR/usr/info/dir"
-  mkdir -pvm 755      "$DESTDIR/lib"
-  ln -fs /usr/bin/cpp "$DESTDIR/lib/cpp"
-  ln -fs gcc          "$DESTDIR/usr/bin/cc"
+  rm    -f              "$DESTDIR"/usr/info/dir
+  install -dvm 755      "$DESTDIR"/lib/
+  ln -fs ../usr/bin/cpp "$DESTDIR"/lib/cpp
+  ln -fs gcc            "$DESTDIR"/usr/bin/cc
 
   # gptfdisk:/sbin/gdisk requires libstdc++.so.6
 
-  if [ -f        "$DESTDIR"/usr/lib64/libstdc++.la ]; then
-   mkdir -pm 755 "$DESTDIR"/lib64/
-   mv    -t      "$DESTDIR"/lib64/      "$DESTDIR"/usr/lib64/libstdc++*
-   sed   -i      "s:/usr/lib64:/lib64:" "$DESTDIR"/lib64/libstdc++.la
+  if [ -f           "$DESTDIR"/usr/lib64/libstdc++.la ]; then
+   install -dvm 755 "$DESTDIR"/lib64/
+   mv    -t         "$DESTDIR"/lib64/  "$DESTDIR"/usr/lib64/libstdc++*
+   sed   -i     "s:/usr/lib64:/lib64:" "$DESTDIR"/lib64/libstdc++.la
   fi
 
-  if [ -f        "$DESTDIR"/usr/lib/libstdc++.la ]; then
-   mkdir -pm 755 "$DESTDIR"/lib/
-   mv    -t      "$DESTDIR"/lib/    "$DESTDIR"/usr/lib/libstdc++*
-   sed   -i      "s:/usr/lib:/lib:" "$DESTDIR"/lib/libstdc++.la
+  if [ -f           "$DESTDIR"/usr/lib/libstdc++.la ]; then
+   install -dvm 755 "$DESTDIR"/lib/
+   mv    -t         "$DESTDIR"/lib/  "$DESTDIR"/usr/lib/libstdc++*
+   sed   -i       "s:/usr/lib:/lib:" "$DESTDIR"/lib/libstdc++.la
   fi
  }
 
@@ -115,15 +116,16 @@ build(){
  OPTS+="
   --prefix=/usr
   --enable-shared
-  --infodir=/usr/info
-  --mandir=/usr/man
+  --infodir=/usr/share/info
+  --mandir=/usr/share/man
   --datadir=/usr/share
   --enable-long-long
   --with-long-double-128
   --enable-threads
   --enable-tls
   --with-system-zlib
-  --disable-bootstrap"
+  --disable-bootstrap
+  --enable-lto"
 
  if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
       [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
@@ -135,6 +137,8 @@ build(){
  fi
 
 #cp ${SOURCE[1]} ecj.jar
+
+ export PATH="${PATH//\/usr\/bin.a:/}"
 
  rm -fr /tmp/gcc.previous.md5sum
  sed "\:  /usr/bin/:p;d" $MD5_INDEX/gcc > /tmp/gcc.previous.md5sum

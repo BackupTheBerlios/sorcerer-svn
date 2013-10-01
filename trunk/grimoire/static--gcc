@@ -1,0 +1,101 @@
+with inherit gcc
+with base    ccache gcc static--multiprecision
+with info    cite 'static--gcc provides a statically linked compiler collection
+Statically linking gcc
+sacrifices the benefit of -fuser-linker-plugin,
+sacrifices the benefit of native language translation,
+uses more disk space,
+uses more memory while executing,
+uses more memory in the kernel's block cache.
+However, it begins excution faster.
+It can begin execution without running relocation code.
+
+Having the pre-processor and compiler execute sooner
+gains a steady benefit when they are invoked
+hundreds or thousands of times
+during the compilation of a software project.
+Therefore, when RAM is sufficient
+then using a statically linked pre-processor program
+and statically linked compiler program
+can accomplish compilation faster.
+
+static--gcc does not replace the installed gcc.
+Instead it adds the statically linked components
+in directories that do not overlap with gcc.
+gcc must remain installed.
+
+static-gcc was graneted a base requirement on ccache.
+ccache also expdites compilation by making a hash
+from the pre-processor output and storing the compilation
+output in a file with a name derived from the hash.
+That way if the hash on an existing file matches
+then ccache can provide that content and omit
+the invocation of the compiler.
+ccache can expedite updates by comparing more and compiling less.
+However, ccache also utilizes more disk space to achieve the benefit.
+
+As expected no benefit is without a commensurate cost.
+static-gcc utilizes more RAM and disk to gain performance.
+It is optional and therefore can be declined if not desired."
+
+build(){
+
+ remove_debris(){
+  rm -fr "$DESTDIR"/usr/{include,lib{,64},share}
+  find "$DESTDIR" -type d |
+  LC_ALL=C sort -r |
+  xargs rmdir --ignore-fail-on-non-empty
+ }
+
+ case $MACHTYPE in
+  *-gnu)    with also --enable-__cxa_atexit --enable-clocale=gnu ;;
+ esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+ then with also --disable-multilib
+ fi
+
+## gcc: error: -fuse-linker-plugin is not supported in this configuration
+## Even if the linker plugin is properly installed and shared object
+## a statically linked gcc is still unable to use it.
+
+ export PATH="${PATH//\/usr\/bin.a:/}"
+ export CCACHE_PATH=/usr/bin
+
+ mkdir BUILD.{gcc,lto-plugin}
+ cd    BUILD.lto-plugin
+# ../configure \
+#  --prefix=/usr \
+#  --infodir=/usr/share/info \
+#  --mandir=/usr/share/man \
+#  --datadir=/usr/share \
+#  --disable-bootstrap \
+#  --enable-static=no \
+#  --enable-shared=yes \
+#  --libexecdir=/usr/libexec.a  &&
+# make     maybe-all-lto-plugin &&
+# make maybe-install-lto-plugin DESTDIR="$DESTDIR" &&
+ cd ../BUILD.gcc &&
+ export LDFLAGS+=' -L/usr/lib64.a -L/usr/lib.a -static' &&
+ ../configure \
+  --enable-languages=c,c++,fortran,objc \
+  --libexecdir=/usr/libexec.a \
+  --bindir=/usr/bin.a \
+  --prefix=/usr \
+  --infodir=/usr/share/info \
+  --mandir=/usr/share/man \
+  --datadir=/usr/share \
+  --enable-long-long \
+  --with-long-double-128 \
+  --enable-threads \
+  --enable-tls \
+  --with-system-zlib \
+  --disable-bootstrap \
+  --enable-static=yes \
+  --enable-shared=no \
+  $OPTS &&
+ make     maybe-all-gcc &&
+ make maybe-install-gcc DESTDIR="$DESTDIR" &&
+ ln -fs gcc "$DESTDIR"/usr/bin.a/cc &&
+ remove_debris
+}
