@@ -6,6 +6,7 @@
 # version of autotools that comes with libgcrypt version 1.4.5 and 1.4.6
 # is buggy and does not choose correct libgpg-error library when linking.
 
+with info    edit 20131001
 with info    good 20130806
 with info    last 20130725
 with version stable 1.5.3 1.5.0
@@ -20,24 +21,15 @@ with info    cite 'general purpose crypto library
 libgcrypt is a general purpose crypto
 library based on the code used in GnuPG.'
 
-case $VERSION in
- 1.4.6)
-with base    automake libtool ;;
-esac
-
-build(){ (
+build(){
  case $VERSION in
-  1.4.6) aclocal -I .
-         autoheader
-         libtoolize --automake
-         automake   --add-missing
-         autoconf ;;
+  1.5.3) sed -i 's:doc tests:doc:' Makefile.in ;;
  esac
 
  if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then OPTS+=" --host=${MACHTYPE/x86_64/i686}"
+ then with also --host=${MACHTYPE/x86_64/i686}
  fi
 
 # sed -i '/x$libdir/,+2d' src/libgcrypt-config.in
  default_build
-) }
+}

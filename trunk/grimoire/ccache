@@ -1,3 +1,4 @@
+with info    edit 20131001
 with info    good 20130626
 with info    last 20130106
 with version stable 3.1.9
@@ -27,15 +28,15 @@ build(){
   ln -fs ccache g++
  }
 
-
  if   ! [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ] &&
       ! [ -f "$CURRENT_LOGS"/deployment-docent ]
- then
-         LDFLAGS+=' -static'
-  export LDFLAGS+=" $OPTS"
+ then export LDFLAGS+=' -static'
  fi
 
  sed -i 's:$(CFLAGS):$(CFLAGS) $(LDFLAGS):' Makefile.in
+
+ export PATH="${PATH//\/usr\/bin.a:/}"
+ export CCACHE_PATH=/usr/bin
 
  ac_cv_func_getpwuid=no \
  ./configure            \
@@ -46,7 +47,7 @@ build(){
   --mandir=/usr/man     \
   $OPTS &&
  make   &&
- mkdir -pvm 755 "$DESTDIR$ulc" &&
+ install -dvm 755 "$DESTDIR$ulc" &&
  make    install DESTDIR="$DESTDIR" &&
  symlink_install
 }

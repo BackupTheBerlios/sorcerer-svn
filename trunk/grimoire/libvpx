@@ -2,8 +2,9 @@
 # 0.9.7-p1 was a repository snapshot
 # However 0.9.6 was removed from the download list
 
+with info    edit 20131001
 with info    last 20130909
-with version stable 1.2.0 1.1.0 1.0.0
+with version stable 1.2.0 1.1.0
 with base    yasm
 with also    --disable-install-docs --enable-pic --enable-vp8
 with also    --enable-runtime-cpu-detect --enable-shared
@@ -16,6 +17,9 @@ with info    vurl http://code.google.com/p/webm/downloads/list
 with info    cite 'library for the VP8 Codec'
 
 build(){
+ export PATH="${PATH//\/usr\/bin.a:/}"
+ export CCACHE_PATH=/usr/bin
+
  if   [[ $HOSTTYPE == x86_64 ]] &&
       [[ $CFLAGS   =~ -m32   ]]
  then OPTS+=" --target=x86-linux-gcc"
@@ -25,7 +29,7 @@ build(){
  cd build
  ../configure $OPTS &&
  make &&
- make install DIST_DIR=$DESTDIR/usr &&
+ make install DIST_DIR="$DESTDIR"/usr &&
  rm -f "$DESTDIR"/usr/lib{,64}/libvpx.a &&
  if     [[ $HOSTTYPE == x86_64 ]] &&
       ! [[ $CFLAGS   =~ -m32   ]]
