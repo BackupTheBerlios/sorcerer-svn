@@ -3,7 +3,7 @@
 # so that /etc/init.d/fstab provided by init-scripts can execute properly
 # Why are versions 4.5.x unstable?  Are they actually unstable?
 
-with info    good 20130529
+with info    good 20131102
 with info    last 20090606
 with version   stable 4.4.2
 with version unstable 4.5.11	# 20130202
@@ -23,33 +23,11 @@ One or more lines from stdin become
 command line parameters to the command that xargs executes.'
 
 build(){
-
- move_to_bin(){
-  install -dvm 755 "$DESTDIR"/bin/
-  install  -vm 755 "$DESTDIR"{/usr/bin/{find,xargs},/bin/}
-  rmdir    --ignore-fail-on-non-empty "$DESTDIR"/usr/bin/
- }
-
- make_static(){
-  if [ -n "$STATIC" ]; then
-   export LDFLAGS+=' -static'
-   rm -f find/find xargs/xargs
-   make "LDFLAGS=$LDFLAGS"
-   install -dvm 755                       "$DESTDIR"/usr/bin/
-   install  -vm 755 find/find xargs/xargs "$DESTDIR"/usr/bin/
-  fi
- }
-
- local STATIC
-
- if [[ $OPTS =~ -static ]]; then
-    OPTS=${OPTS/-static}
-        STATIC="-static"
- fi
+with also    --bindir=/bin
 
  # sed -i 's:@bindir@:/bin:' locate/updatedb.sh
  sed -i 's:SUBDIRS = gnulib tests build-aux lib find xargs locate doc po m4:SUBDIRS = gnulib build-aux lib find xargs doc po m4:' Makefile.in
  sed -i 's:find$(EXEEXT) oldfind$(EXEEXT):find$(EXEEXT):' find/Makefile.in
 
- default_build && move_to_bin && make_static
+ default_build
 }
