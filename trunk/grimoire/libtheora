@@ -1,15 +1,14 @@
-# disabling examples because compilation of examples requires SDL
-# and libthoera with a requirement on SDL creates a recursive requirement loop
+# When updating libetheora check to see if MPlayer
+# requires re-installation to properly run.
 
-with info    good 20130618
+with info    good 20131007
 with info    last 20100125
 with version   stable 1.1.1
 with version unstable 1.2.0alpha1
 with base    libogg
 with also    --enable-static=no --disable-examples
 with role    video
-with trait   library lto makej multilib-concurrent
-#trait multilib-fail
+with trait   library lto makej multilib-concurrent optimize
 with source    stable http://downloads.xiph.org/releases/theora/libtheora-$VERSION.tar.xz
 with source  unstable http://downloads.xiph.org/releases/theora/libtheora-$VERSION.tar.xz
 with info    home http://www.theora.org/
@@ -30,16 +29,4 @@ build(){
  then with also --host=${MACHTYPE/x86_64/i686}
  fi
  default_build
-}
-
-old_post_install(){
-# libtheora changed the name of it's installed library
-# mplayer does not properly link to it but instead attempts
-# to load the library when it runs.
-# that is why the ldd check fails to detect this problem.
-# MPlayer aught to let the operating system load libraries
-# instead of doing that itself.
- if   spell_installed MPlayer
- then echo            MPlayer | pipe_queue $MOIL_QUEUE
- fi
 }
