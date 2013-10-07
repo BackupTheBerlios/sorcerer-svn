@@ -3,21 +3,21 @@
 # Currently NVIDIA's kernel driver is not compatible
 # with current stable linux source.
 
-with info    last 20130930
-with version stable	3.10.13		3.10.12		3.10.11
-with version 3.11.x     3.11.2		3.11.1		3.11
-with version 3.10.x	3.10.13		3.10.12		3.10.11
+with info    last 20131007
+with version stable	3.10.15		3.10.14		3.10.13
+with version 3.11.x     3.11.4		3.11.3		3.11.2		
+with version 3.10.x	3.10.15		3.10.14		3.10.13
 with version 3.9.x	3.9.11		3.9.10		3.9.9
 with version 3.8.x	3.8.13		3.8.12		3.8.11
 with version 3.7.x	3.7.10		3.7.9		3.7.8
 with version 3.6.x	3.6.11		3.6.10		3.6.9
 with version 3.5.x	3.5.7		3.5.6		3.5.5
-with version 3.4.x	3.4.63		3.4.62		3.4.61
+with version 3.4.x	3.4.65		3.4.64		3.4.63
 with version 3.3.x	3.3.8		3.3.7		3.3.6
 with version 3.2.x	3.2.51		3.2.50		3.2.49
 with version "git 3.2.y"	3.2.51	3.2.50		3.2.49
 with version 3.1.x	3.1.10		3.1.9		3.1.6
-with version 3.0.x	3.0.97		3.0.96		3.0.95
+with version 3.0.x	3.0.99		3.0.98		3.0.97
 with version 2.6.39.x	2.6.39.4	2.6.39.3	2.6.39.2
 with version 2.6.38.x	2.6.38.8	2.6.38.6	2.6.38.5
 with version 2.6.37.x     2.6.37.6	2.6.37.4	2.6.37.3
@@ -65,8 +65,9 @@ build(){
  elif ! [ -f "Makefile"   ]; then return 1
  fi
 
- LC_ALL=C grep -l /bin/pwd $( find * -type f -name Makefile ) |
- xargs -r --max-lines=64 sed -i 's:/bin/pwd:pwd:'
+ find * -type f -name Makefile\* |
+ xargs -r --max-lines=64 -d '\n' grep -l    /bin/pwd |
+ xargs -r --max-lines=64 -d '\n' sed  -i 's:/bin/pwd:pwd:'
 
  make  distclean
  install -dvm 755                 "$DESTDIR/"usr/src/
@@ -92,11 +93,12 @@ post_install(){
   echo  "$p" | pipe_queue "$MOIL_QUEUE"
  }
 
- touch "$SPELL_DIR"/linux{,-config,-firmware,-headers,-kernel,-modules}
-
+ touch "$SPELL_DIR"/linux{,-config,-firmware,-headers,-kernel,-modules,-tools}
+ generate_index
                   auto_update linux
                   auto_update linux-config
                   auto_update linux-headers
+                  auto_update linux-tools
  [ -d /boot/ ] && auto_update linux-firmware
  [ -d /boot/ ] && auto_update linux-kernel
  [ -d /boot/ ] && auto_update linux-modules
