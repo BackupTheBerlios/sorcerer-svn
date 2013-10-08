@@ -1,10 +1,10 @@
 # spell must have trait multilib-dual
 
-with info    good 20130525
+with info    good 20131008
 with info    last 20091228
-with version stable 1.0.13 1.0.12
+with version stable 1.0.13
 with role    audio/codec audio/library
-with trait   library lto makej multilib-dual
+with trait   library lto makej multilib-dual optimize
 with source  stable http://www.quut.com/gsm/gsm-$VERSION.tar.gz
 with info    home http://www.quut.com/gsm/
 with info    cite 'audio codec library'
@@ -29,16 +29,16 @@ build(){
  install_headers(){
   chmod 755 inc
   chmod 644 inc/*
-  mkdir -p            "$DESTDIR"/usr/include
+  install -dvm 755    "$DESTDIR"/usr/include/
   cp    -av inc       "$DESTDIR"/usr/include/gsm
-  ln    -s  gsm/gsm.h "$DESTDIR"/usr/include/gsm.h
+  ln    -sv gsm/gsm.h "$DESTDIR"/usr/include/gsm.h
  }
 
  sed -i "s:^\(CCFLAGS.*\):\1 -fPIC:"     Makefile
  sed -i "s:-pedantic:-pedantic $CFLAGS:" Makefile
 
  make &&
- mkdir -pvm 755 "$DESTDIR"/usr/{bin,include,lib} &&
+ install -dvm 755 "$DESTDIR"/usr/{bin,include,lib}/ &&
  make install INSTALL_ROOT="$DESTDIR"/usr &&
       install_headers &&
       install_libs    &&
