@@ -1,4 +1,4 @@
-with info    good 20130521
+with info    good 20131009
 with info    last 20120329
 with version stable 1.2.4
 case $VERSION in
@@ -6,7 +6,7 @@ case $VERSION in
 with also    --without-gtk ;;
 esac
 with also    --without-doxygen
-with base    alsa-lib faac faad2 ffmpeg gtk+ lame libXaw libXv libvorbis schroedinger x264
+with base    alsa-lib faac faad2 ffmpeg-1.2 gtk+ lame libXaw libXv libvorbis schroedinger x264
 with elect   libraw1394 '' '' for capture from video recorder over firewire
 with elect   libdv      '' '' for mini-dv camcorder video codec
 with also    --enable-gpl
@@ -34,8 +34,23 @@ The configuration is stored in the home directory
 and is be used by all libquicktime applications.'
 
 build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/1.2/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/1.2/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/1.2/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/1.2/usr/lib$SUFFIX"
+ }
+
  case $VERSION in
-  1.2.4) sed -i 's:VORBIS_LIBS="-L.*:VORBIS_LIBS="":' configure ;;
+  1.2.4) sed -i 's:VORBIS_LIBS="-L.*:VORBIS_LIBS="":' configure
+         ffmpeg_legacy ;;
  esac
  default_build
 }

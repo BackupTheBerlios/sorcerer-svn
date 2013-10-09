@@ -1,20 +1,33 @@
 with info    good 20131009
-with info    last 20131006
-with version stable 0.7.16 0.7.13
+with info    last 20131003
+with version stable 1.2.4 1.2.3 1.2.2
 with base    bzip2 nasm zlib
 with also    --enable-swscale --enable-postproc --enable-gpl --enable-shared --enable-pthreads --disable-debug
-with also    --enable-nonfree --disable-static --disable-doc
+with also    --enable-nonfree --disable-static --disable-doc --enable-x11grab
+# --enable-pic causes compile failure
 #     with also --enable-pic
+
+# avisynth is broke so do not enable aswit elect
+#with elect   jackit
+
 with elect   SDL            ''                       --disable-ffplay  to build ffplay media player
 with elect   XviD           --enable-libxvid         --disable-libxvid
 with elect   a52dec
+# celtwit elect   for ffmpeg version 0.8 and later
+#with elect   celt           --enable-libcelt         --disable-libcelt
 with elect   faac           --enable-libfaac         --disable-libfaac
+# frei0r-plugins creates requirement loop with OpenCV and ffmpeg
+#with elect   frei0r-plugins --enable-frei0r          --disable-frei0r
 with elect   gsm            --enable-libgsm          --disable-libgsm
 with elect   lame           --enable-libmp3lame      --disable-libmp3lame
 with elect   libdc1394      --enable-libdc1394       --disable-libdc1394
 with elect   libtheora      --enable-libtheora       --disable-libtheora
 with elect   libvorbis      --enable-libvorbis       --disable-libvorbis
 with elect   libvpx         --enable-libvpx          --disable-libvpx
+# ffmpeg does not recognize the installation of openjpeg
+#with elect   openjpeg       --enable-libopenjpeg     --disable-libopenjpeg
+# ffmpeg does not recognize rtmpdump's librtmp library
+#with elect   rtmpdump       --enable-librtmp         --disable-librtmp
 with elect   schroedinger   --enable-libschroedinger --disable-libschroedinger
 with elect   x264           --enable-libx264         --disable-libx264
 with role    video
@@ -42,7 +55,7 @@ build(){
  export  LDFLAGS+=' -ldl'
 
  flags mmx      --disable-mmx
- flags mmx2     --disable-mmx2
+#flags mmx2     --disable-mmx2
  flags sse      --disable-sse
  flags sse3     --disable-ssse3
  flags 3dnow    --disable-amd3dnow
@@ -58,14 +71,14 @@ build(){
 # else LDFLAGS+=' -L/usr/lib'
 # fi
 
- local PREFIX=/opt/ffmpeg/0.7/usr
+ local PREFIX=/opt/ffmpeg/1.2/usr
 
  setarch $ARCH \
  ./configure   \
  --prefix=$PREFIX \
  $OPTS &&  sed -i 's:LDFLAGS=:LDFLAGS+=:' config.mak &&
- setarch $ARCH  make &&
- setarch $ARCH  make install "DESTDIR=$DESTDIR" &&
+ setarch $ARCH  make  &&
+ setarch $ARCH  make install "DESTDIR=$DESTDIR"     &&
  install -dvm 755                   "$DESTDIR"$PREFIX/etc/ &&
  install  -vm 644 doc/ffserver.conf "$DESTDIR"$PREFIX/etc/ &&
  sed -i 's:-L${libdir}::'           "$DESTDIR"$PREFIX/lib/pkgconfig/*.pc &&

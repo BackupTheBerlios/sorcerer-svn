@@ -1,3 +1,5 @@
+with info    good 20131009
+with info    last 20120609
 with version   stable 1.1.21
 with base    MesaLib gdk-pixbuf libXinerama libXvMC libpng v4l-utils
 #with base    MesaLib gdk-pixbuf libXinerama libXvMC libpng libv4l
@@ -7,7 +9,7 @@ with elect   SDL         ''                             --disable-sdl         fo
 with elect   XviD        --with-xvid-prefix=/usr        ''                    for mpeg 4 decoding
 with elect   esound      ''                             --disable-esd         for output through esound
 with elect   faad2       --enable-faad                  --disable-faad        to build the faad decoder
-with elect   ffmpeg      --with-external-ffmpeg         '' instead            of included ffmpeg
+with elect   ffmpeg-1.2  --with-external-ffmpeg         '' instead            of included ffmpeg
 with elect   flac        ''                             --disable-flac        for FLAC support
 with elect   glu
 with elect   jackit
@@ -20,13 +22,27 @@ with role    video
 with trait   library lto_off makej optimize setarch x11
 with source    stable $SOURCEFORGE_URL xine/xine-lib/$VERSION/xine-lib-$VERSION.tar.xz
 with source  unstable $SOURCEFORGE_URL xine/xine-lib/$VERSION/xine-lib-$VERSION.tar.xz
-with info    good 20130104
-with info    last 20120609
 with info    home http://xine.sourceforge.net
 with info    freecode xine
 with info    cite 'libraries for xine, a free video player'
 
 build(){
+ ffmpeg_legacy(){
+  local SUFFIX
+
+  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+  then SUFFIX=64
+  else SUFFIX=
+  fi
+
+  export   CFLAGS+=' -I/opt/ffmpeg/1.2/usr/include'
+  export CXXFLAGS+=' -I/opt/ffmpeg/1.2/usr/include'
+  export      PKG_CONFIG_PATH="/opt/ffmpeg/1.2/usr/lib$SUFFIX:$PKG_CONFIG_PATH"
+  export LDFLAGS+=" -Wl,-rpath,/opt/ffmpeg/1.2/usr/lib$SUFFIX"
+ }
+
+ ffmpeg_legacy
+
  with also --prefix=/opt/xine-lib/1.1/usr
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
  then with also --libdir=/opt/xine-lib/1.1/usr/lib64
