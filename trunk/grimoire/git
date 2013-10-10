@@ -1,9 +1,8 @@
 # manual page for git-clone suggests a requirement on rsync
 # 1.8.4 failed compilation
 
-with info    last 20130826
-with version   stable 1.8.3.4 1.8.3.2
-with version unstable 1.8.4
+with info    last 20131010
+with version   stable 1.8.4.1 1.8.3.4 1.8.3.2
 with role    development
 with trait   console makej
 with info    home http://git-scm.com/
@@ -28,20 +27,21 @@ fi
 
 build(){
  install_gitweb(){
-  install -vm 755 -d                       "$DESTDIR"/usr/share/gitweb
-  install -vm 644 "$BUILD_DIR"/gitweb/git* "$DESTDIR"/usr/share/gitweb
+  install -vm 755 -d "$DESTDIR"/usr/share/gitweb/
+  install -vm 644 -t "$DESTDIR"/usr/share/gitweb/ "$BUILD_DIR"/gitweb/git*
  }
 
  install_bc(){
   cd contrib/completion
-  install -vm 755 -d                  "$DESTDIR"/etc/bash_completion.d
-  install -vm 755 git-completion.bash "$DESTDIR"/etc/bash_completion.d/git
+  install -vm 755 -d "$DESTDIR"/usr/share/bash-completion/completions/
+  install -vm 755 -t "$DESTDIR"/usr/share/bash-completion/completions/ git-completion.bash
   cd ../..
  }
 
  install_contrib_hooks(){
-  install -vm 755 -d                "$DESTDIR"/usr/share/git-core/contrib/hooks &&
-  install -vm 755  contrib/hooks/*  "$DESTDIR"/usr/share/git-core/contrib/hooks
+  chown -R root:root                               contrib/hooks/ &&
+  install -vm 755 -d "$DESTDIR"/usr/share/git-core/contrib/hooks/ &&
+  cp      -a      -t "$DESTDIR"/usr/share/git-core/contrib/hooks/ contrib/hooks/*
  }
 
  grep -q '^sysconfdir'                config.mak.in ||
