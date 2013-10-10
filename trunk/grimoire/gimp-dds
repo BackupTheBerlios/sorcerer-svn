@@ -1,0 +1,22 @@
+with info    good 20131010
+with info    last 20120731
+with version stable 2.2.1
+with base    gimp
+with role    graphic/viewer graphic/editor
+with trait   library makej multilib-dual x11
+with source  stable http://gimp-dds.googlecode.com/files/gimp-dds-$VERSION.tar.bz2
+with info    home http://code.google.com/p/gimp-dds/
+with info    vurl http://code.google.com/p/gimp-dds/downloads/list
+with info    cite 'DirectDraw Surface plugin for gimp'
+
+build(){
+ local suf
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then suf=64
+ fi
+
+ export  CFLAGS+=" $( pkg-config --cflags gtk+-2.0 gimp-2.0 )"
+ make   "CFLAGS=$CFLAGS" &&
+ install -vm 755 -d "$DESTDIR"/usr/lib$suf/gimp/2.0/plug-ins/ &&
+ install -vm 755 -t "$DESTDIR"/usr/lib$suf/gimp/2.0/plug-ins/ dds
+}
