@@ -1,9 +1,7 @@
+with info    good 20131012
 with info    last 20130606
-with version   stable 4.0 3.0 2.1 2.0
-with version unstable 4.0 3.0
-case $VERSION in
- 2.0) with also --disable-udev ;;
-esac
+with version   stable 4.0
+with version unstable 4.0
 with base    audiofile avahi json-c libXtst libsamplerate libtool libvorbis
 #with base    audiofile avahi json-c libXtst libsamplerate libtool libvorbis
 with elect   GConf      --enable-gconf --disable-gconf for GConf support
@@ -30,3 +28,13 @@ for the Enlightened Sound Daemon (esound or esd).
 In addition to the features esound provides,
 pulseaudio has an extensible plugin architecture,
 support for more than one sink per source, etc...'
+
+build(){
+ default_build &&
+ if [ -f "$DESTDIR"/etc/bash_completion.d/pulseaudio-bash-completion.sh ]; then
+  install -vm 755 -d "$DESTDIR"/usr/share/bash-completion/
+  install -vm 755 -t "$DESTDIR"/usr/share/bash-completion/ \
+                     "$DESTDIR"/etc/bash_completion.d/pulseaudio-bash-completion.sh
+  rm      -fr        "$DESTDIR"/etc/bash_completion.d/
+ fi
+}
