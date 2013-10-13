@@ -1,5 +1,6 @@
-with info    last 20131008
-with version stable 4.0.10 4.0.9 4.0.8
+with info    good 20131013
+with info    last 20131011
+with version stable 4.1.0 4.0.10 4.0.9
 with version legacy 3.4.17
 with version 3.6.x  3.6.19 3.6.18 3.6.17
 with version 3.5.x  3.5.22 3.5.21
@@ -16,7 +17,7 @@ with elect   xinetd    ''                              ''             for runnin
 with also    --enable-fhs
 with role    network
 with trait   client console library makej multilib-dual server
-#with trait   client console library multilib-dual server
+# Do not trust makej with samba
 with trait   litelink
 with source  stable \
              http://us1.samba.org/samba/ftp/ \
@@ -168,6 +169,14 @@ samba provides Windows NT and LAN manager-style
 file and print services to SMB clients such as Windows.'
 
 build(){
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then with also --libdir=/usr/lib64
+ fi
+ export PYTHON=/usr/bin/python2
+ default_build
+}
+
+build_old(){
  if   [ -d source3 ]
  then   cd source3
  elif [ -d source ]
