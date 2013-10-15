@@ -6,16 +6,15 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with info    good 20130814
-with info    last 20130704
-with version   stable 6.01 4.06
-with version unstable 6.02-pre16
+with info    last 20131015
+with version   stable 6.02 6.01 4.06
+#with version unstable 6.02-pre16
 case $VERSION in
  5.00)
    use_gcc gcc-v4.5 ;;
 esac
 if   [[ syslinux == $SPELL ]]; then
-with base    gnu-efi nasm md5crypt perl--Digest-SHA1
+with base    gnu-efi nasm md5crypt perl--Digest-SHA1 util-linux
 with elect   mtools '' '' for creating msdos filesystems
 fi
 with role    administration/bootloader
@@ -66,10 +65,10 @@ build(){
  esac
 
  case $VERSION in
-  6.01) sed -i 's:/bin/pwd:pwd:' Makefile
-        if ! [[ $HOSTTYPE == x86_64 ]]
-        then sed -i 's:efi32 efi64:efi32:' Makefile
-        fi ;;
+  6.*) sed -i 's:/bin/pwd:pwd:' Makefile
+       if ! [[ $HOSTTYPE == x86_64 ]]
+       then sed -i 's:efi32 efi64:efi32:' Makefile
+       fi ;;
  esac
 
  sed -i '/INSTALL_AUX_OPT/d

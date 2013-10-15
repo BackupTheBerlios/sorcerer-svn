@@ -3,6 +3,7 @@
 # for photon support which is required for KDE 4.1.0
 # Having DirectFB require LibVNCServer creates
 # a recursive requirement loop.
+# Is the above still so?
 
 #with elect   LibVNCServer '' '' for vnc support
 # 1.6.0 does not compile because the source tree
@@ -12,20 +13,24 @@
 # 1.6.2 fails to compile.
 # 1.6.1 now fails to compile
 
-with info    last 20130723
-with version   stable 1.7.0 1.6.3 1.6.2 1.6.1
-with version unstable 1.7.0 1.6.3
+with info    last 20131015
+with version   stable 1.7.1 1.7.0 1.6.3
+with version unstable 1.7.1
 with base    flux freetype gcc-g++ jpeg libpng linux-fusion linux-headers
-#with elect   LibVNCServer --enable-vnc      --disable-vnc
-#with elect   SDL          --enable-sdl      --disable-sdl
+with elect   LibVNCServer  --enable-vnc     --disable-vnc
 with elect   MesaLib      --enable-mesa     --disable-mesa
+## DirectFB has recursive requirement loop with SDL
+#with elect   SDL          --enable-sdl      --disable-sdl
 #with elect   freetype     --enable-freetype --disable-freetype
 with elect   imlib2       --enable-imlib2   --disable-imlib2
 with elect   jasper       --enable-jpeg2000 --disable-jpeg2000
 #with elect   jpeg         --enable-jpeg     --disable-jpeg
 with elect   libXext      --enable-x11      --disable-x11 for X11 support
 #with elect   libpng       --enable-png      --disable-png
-with also    --disable-sdl --enable-multi --without-tests
+with elect   libwebp      --enable-webp    --disable-webp
+with elect   tiff         --enable-tiff    --disable-tiff
+with also    --enable-multi --without-tests
+#with also    --disable-sdl --enable-multi --without-tests
 with role    graphic
 # Insists that fluxconf be installed
 # when doing multilib-concurrent compilation with version 1.6.1
@@ -52,6 +57,6 @@ that is not supported by the underlying hardware.'
 
 build(){
  default_build &&
- mkdir -pvm 755  "$DESTDIR"/etc &&
- install -vm 644 "$SCRIPT_DIR"/directfbrc "$DESTDIR"/etc/
+ install -vm 755 -d "$DESTDIR"/etc/ &&
+ install -vm 644 -t "$DESTDIR"/etc/ "$SCRIPT_DIR"/directfbrc
 }
