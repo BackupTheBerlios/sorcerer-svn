@@ -2,6 +2,15 @@ with inherit ncurses-wide
 with base    ncurses-wide
 
 build(){
+ ncurses_trim(){
+  sed "\,^/usr/include/curses.h$,d
+       \,^/usr/include/ncurses.h$,d
+       s:^:$DESTDIR:" "$INSTALL_INDEX"/static--ncurses |
+  xargs -r xargs --max-lines=64 rm -f
+  find "$DESTDIR" -type d -empty | xargs -r --max-lines=64 rmdir
+  find "$DESTDIR" -type d -empty | xargs -r --max-lines=64 rmdir
+ }
+
  remove_debris(){
   find "$DESTDIR" -not -type d |
   sed  '\,/lib.a/lib.*\.a$,d
@@ -19,7 +28,7 @@ build(){
  else  LIBDIR=/usr/lib.a
  fi
 
- install -dvm 755 "$DESTDIR"/usr/{lib,share/tabset}/
+ install -vm 755 -d "$DESTDIR"/usr/{lib,share/tabset}/
 
 # sed -i 's:-L${exec_prefix}/lib::' misc/ncurses-config.in
 
