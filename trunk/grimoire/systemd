@@ -9,7 +9,7 @@
 # /usr/lib/libsystemd-daemon.la
 # when other programs link with systemd.
 
-with info    edit 20130919
+with info    edit 20131024
 with info    last 20130913
 with version   stable 207 206 205
 with base    acl cryptsetup dbus gperf intltool kmod libcap pci.ids pkgconfig sysvinit usbutils
@@ -39,7 +39,7 @@ with source    stable http://www.freedesktop.org/software/systemd/systemd-$VERSI
 with source  unstable http://www.freedesktop.org/software/systemd/systemd-$VERSION.tar.xz
 with info    home http://www.freedesktop.org/wiki/Software/systemd
 with omit    /dev
-with omit    /lib/udev/dev/core
+#with omit    /lib/udev/dev/core
 with vary    /lib/udev/dev/
 with info    cite 'replacement for sysvinit'
 
@@ -48,19 +48,19 @@ build(){
 # /dev/zero and /dev/mem are needed for uvesafb before udevd starts
 
  nod_sym_install(){
-  mkdir -vpm 755                        "$DESTDIR"/lib/udev/dev/{pts,shm}
-  /bin/ln -fns /proc/self/fd            "$DESTDIR"/lib/udev/dev/fd
-  /bin/ln -fns /proc/self/fd/0          "$DESTDIR"/lib/udev/dev/stdin
-  /bin/ln -fns /proc/self/fd/1          "$DESTDIR"/lib/udev/dev/stdout
-  /bin/ln -fns /proc/self/fd/2          "$DESTDIR"/lib/udev/dev/stderr
-  /bin/ln -fns /proc/kcore              "$DESTDIR"/lib/udev/dev/core
-  /bin/ln -fns /proc/asound/oss/sndstat "$DESTDIR"/lib/udev/dev/sndstat
-  rm    -f                              "$DESTDIR"/lib/udev/dev/{console,mem,null,zero}
-  mknod -m 600                          "$DESTDIR"/lib/udev/dev/console c 5 1
-  mknod -m 640                          "$DESTDIR"/lib/udev/dev/mem     c 1 1
-  mknod -m 666                          "$DESTDIR"/lib/udev/dev/null    c 1 3
-  mknod -m 444                          "$DESTDIR"/lib/udev/dev/zero    c 1 5
-  mknod -m 660                          "$DESTDIR"/lib/udev/dev/kmsg    c 1 11
+  install -vm 755 -d                      "$DESTDIR"/lib/udev/dev/{pts,shm}/
+  /bin/ln -fns ../proc/self/fd            "$DESTDIR"/lib/udev/dev/fd
+  /bin/ln -fns ../proc/self/fd/0          "$DESTDIR"/lib/udev/dev/stdin
+  /bin/ln -fns ../proc/self/fd/1          "$DESTDIR"/lib/udev/dev/stdout
+  /bin/ln -fns ../proc/self/fd/2          "$DESTDIR"/lib/udev/dev/stderr
+  /bin/ln -fns ../proc/kcore              "$DESTDIR"/lib/udev/dev/core
+  /bin/ln -fns ../proc/asound/oss/sndstat "$DESTDIR"/lib/udev/dev/sndstat
+  rm    -f                                "$DESTDIR"/lib/udev/dev/{console,mem,null,zero}
+  mknod -m 600                            "$DESTDIR"/lib/udev/dev/console c 5 1
+  mknod -m 640                            "$DESTDIR"/lib/udev/dev/mem     c 1 1
+  mknod -m 666                            "$DESTDIR"/lib/udev/dev/null    c 1 3
+  mknod -m 444                            "$DESTDIR"/lib/udev/dev/zero    c 1 5
+  mknod -m 660                            "$DESTDIR"/lib/udev/dev/kmsg    c 1 11
   true
  }
 
@@ -69,8 +69,8 @@ build(){
 # /dev/dsp, etc.
 
  rules_install(){
-  mkdir   -vpm 755                        "$DESTDIR"/lib/udev/rules.d
-  install -vm 644 "$SCRIPT_DIR"/rules.d/* "$DESTDIR"/lib/udev/rules.d/
+  install -vm 755 -d "$DESTDIR"/lib/udev/rules.d/
+  install -vm 644 -t "$DESTDIR"/lib/udev/rules.d/ "$SCRIPT_DIR"/rules.d/*
  }
 
  link_fix(){

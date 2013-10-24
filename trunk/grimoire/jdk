@@ -8,6 +8,7 @@
 # to their Oracle binary Code License Agreement
 # is insufficient for downloading.
 
+with info    edit 20131023
 with info    good 20130808
 with version stable 7u25
 with base    alsa-lib libXi libXp libXrender libXtst libiodbc
@@ -41,29 +42,33 @@ install_jdk(){
  esac
 
  set -x
- mkdir -pvm 755           $DESTDIR/{opt/$DIR,usr/bin}
+ install -vm 755 -d "$DESTDIR"/{opt/$DIR,usr/bin}
  # Copy the untarred package to the destination
- cp -ax *           $DESTDIR/opt/$DIR
- chown -R root.root $DESTDIR/opt/$DIR
+ cp -ax *           "$DESTDIR"/opt/$DIR/
+ chown -R root.root "$DESTDIR"/opt/$DIR
  # /opt/jdk should be a symbolic link to the current version and NOT a directory
- ln -fs $DIR        $DESTDIR/opt/jdk	
+ ln -fs $DIR         "$DESTDIR"/opt/jdk	
  # Make links to the binaries
- for        FILE in $DESTDIR/opt/jdk/bin/*
- do  ln -fs /opt/jdk/bin/${FILE##*/} $DESTDIR/usr/bin/${FILE##*/}
+ for        FILE in  "$DESTDIR"/opt/jdk/bin/*
+ do  ln -fs           ../../opt/jdk/bin/${FILE##*/} \
+                     "$DESTDIR"/usr/bin/${FILE##*/}
  done
 
- if   [  -x  $DESTDIR/opt/jdk/jre/bin/java_vm ]
- then ln -fs /opt/jdk/jre/bin/java_vm $DESTDIR/usr/bin/java_vm
+ if   [  -x  "$DESTDIR"/opt/jdk/jre/bin/java_vm ]
+ then ln -fs      ../../opt/jdk/jre/bin/java_vm \
+                     "$DESTDIR"/usr/bin/java_vm
  fi 
 
  local PD
  # Some pages say that only libnpjp2.so plugin is needed for Firefox
- if   [ -d   /usr/lib64/mozilla/plugins ]; then
-  PD=$DESTDIR/usr/lib64/mozilla/plugins; mkdir -vpm 755    $PD
-  ln -fs /opt/jdk/jre/lib/amd64/libnpjp2.so                $PD/
- elif [ -d         /usr/lib/mozilla/plugins ]; then
-  PD=$DESTDIR/usr/lib/mozilla/plugins;   mkdir -vpm 755    $PD
-  ln -fs /opt/jdk/jre/lib/i386/libnpjp2.so                 $PD/
+ if   [ -d     /usr/lib64/mozilla/plugins ]; then
+  PD="$DESTDIR"/usr/lib64/mozilla/plugins
+  install -vm 755 -d "$PD"
+  ln -fs ../../../../opt/jdk/jre/lib/amd64/libnpjp2.so "$PD"/
+ elif [ -d     /usr/lib/mozilla/plugins ]; then
+  PD="$DESTDIR"/usr/lib/mozilla/plugins
+  install -vm 755 -d "$PD"
+  ln -fs ../../../../opt/jdk/jre/lib/i386/libnpjp2.so  "$PD"/
  fi
 
  set +x
