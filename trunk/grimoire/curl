@@ -1,20 +1,35 @@
-# curl version 7.19.5 cmake support is broke or not yet complete
-# curl's x86_64 header files might not be usable for -m32 multilib compilation
-# 7.21 complains that the installed c-ares is too old
+# curl version 7.33.0 cmake method is badly broke
+# library installs without proper SONAME
 
+with info    good 20131030
 with info    last 20131015
 with version stable 7.33.0 7.32.0 7.31.0
-with base    libidn pkgconfig zlib
+with base    c-ares libidn pkgconfig zlib
+
+#with elect   c-ares   --enable-ares --disable-ares    for asynchronous IPv4 DNS resolution
 #with elect   c-ares   --enable-ares=/usr --disable-ares    for asynchronous IPv4 DNS resolution
-with elect   gnutls   --with-gnutls=/usr --without-gnutls  for ftps and https
+#with elect   gnutls   --with-gnutls=/usr --without-gnutls  for ftps and https
 with elect   libssh2  ''                 --without-libssh2 for sftp support
 with elect   openldap --enable-ldap      --disable-ldap    for LDAP support
 with elect   openssl  ''                 --without-ssl     for ftps and https
 with elect   rtmpdump ''                 --without-librtmp
-with also    --enable-static=no --enable-ipv6 --exec-prefix=
-with also    --disable-ares
+with also    --enable-static=no --enable-ipv6 --exec-prefix= --enable-ares
+
+#with base    cmake libidn pkgconfig zlib
+#with elect   c-ares   -DCURL_USE_ARES:BOOL=ON  \
+#                      -DCURL_USE_ARES:BOOL=OFF \
+#                      for asynchronous IPv4 DNS resolution
+#with elect   openldap '-DCURL_DISABLE_LDAP:BOOL=ON  -DCURL_DISABLE_LDAPS:BOOL=ON'  \
+#                      '-DCURL_DISABLE_LDAP:BOOL=OFF -DCURL_DISABLE_LDAPS:BOOL=OFF' \
+#                      for LDAP support
+#with elect   openssl  -DCMAKE_USE_OPENSSL:BOOL=ON  \
+#                      -DCMAKE_USE_OPENSSL:BOOL=OFF \
+#                      for ftps and https
+#with also    -DCURL_STATICLIB:BOOL=OFF \
+#             -DENABLE_IPV6:BOOL=ON
+
 with role    network/ftp network/http
-with trait   console library lto makej multilib-concurrent optimize
+with trait   console library lto makej multilib-dual optimize
 with source  stable http://curl.haxx.se/download/curl-$VERSION.tar.gz
 with info    home http://curl.haxx.se/
 with info    docs http://curl.haxx.se/docs/
@@ -33,15 +48,28 @@ It is powered by libcurl, the client-side URL transfer library.
 Program libcurl with C/C++ or by using the APIs available
 for Dylan, Java, Perl, PHP, Python, Rexx, Ruby, and Tcl.'
 
+build_cmake(){
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if   [[ $CFLAGS   =~ -m32   ]]
+  then also -DOPENSSL_SSL_LIBRARY:FILEPATH=/lib/libssl.so
+       also -DOPENSSL_CRYPTO_LIBRARY:FILEPATH=/lib/libcrypto.so
+       export LDFLAGS+=' -L/lib   -L/usr/lib'
+  else export LDFLAGS+=' -L/lib64 -L/usr/lib64'
+  fi
+ fi
+ default_build
+}
+
 build(){
- rm -f CMakeLists.txt
+ rm  -f CMakeLists.txt
+
  default_build &&
  if    [[ $HOSTTYPE == x86_64 ]] &&
        [[ -f /lib/libc.so.6   ]]; then
   if   [[ $CFLAGS =~ -m32     ]]
-  then mv -v "$DESTDIR"/usr/include/curl/curlbuild{,-32}.h
-  else mv -v "$DESTDIR"/usr/include/curl/curlbuild{,-64}.h
-       install -vm 644 {"$SCRIPT_DIR","$DESTDIR"/usr/include/curl}/curlbuild.h
+  then mv      -v         "$DESTDIR"/usr/include/curl/curlbuild{,-32}.h
+  else mv      -v         "$DESTDIR"/usr/include/curl/curlbuild{,-64}.h
+       install -vm 644 -t "$DESTDIR"/usr/include/curl/ "$SCRIPT_DIR"/curlbuild.h
   fi
  fi
 }

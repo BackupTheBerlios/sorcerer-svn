@@ -1,9 +1,22 @@
-with info    last 20130515
+with info    good 20131030
+with info    last 20130512
 with version stable 1.10.0 1.9.1 1.9.0
 with also    --enable-shared --disable-static
 with role    network/dns
-with trait   library makej multilib-concurrent
+with trait   library makej multilib-concurrent optimize
 with source  stable http://c-ares.haxx.se/download/c-ares-$VERSION.tar.gz
 with info    home http://c-ares.haxx.se/
 with info    docs http://c-ares.haxx.se/docs.html
 with info    cite 'fork of areas, a library for asynchronous DNS name resolution'
+
+build(){
+ default_build &&
+ if    [[ $HOSTTYPE == x86_64 ]] &&
+       [[ -f /lib/libc.so.6   ]]; then
+  if   [[ $CFLAGS =~ -m32     ]]
+  then mv      -v         "$DESTDIR"/usr/include/ares_build{,-32}.h
+  else mv      -v         "$DESTDIR"/usr/include/ares_build{,-64}.h
+       install -vm 644 -t "$DESTDIR"/usr/include/ "$SCRIPT_DIR"/ares_build.h
+  fi
+ fi
+}
