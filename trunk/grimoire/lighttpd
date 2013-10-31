@@ -1,3 +1,4 @@
+with info    good 20131031
 with info    last 20130930
 with version stable 1.4.33 1.4.32
 with base    bzip2 init-functions pcre zlib
@@ -5,9 +6,10 @@ with elect   php '' '' for php support
 with role    network/web
 with trait   console server
 #   source http://www.lighttpd.net/download/lighttpd-$VERSION.tar.gz
-with source  stable http://download.lighttpd.net/lighttpd/releases-${VERSION:0:3}.x/lighttpd-$VERSION.tar.bz2
-with source  secure http://download.lighttpd.net/lighttpd/releases-${VERSION:0:3}.x/lighttpd-$VERSION.tar.bz2
+with source  stable http://download.lighttpd.net/lighttpd/releases-${VERSION:0:3}.x/lighttpd-$VERSION.tar.xz
+with source  secure http://download.lighttpd.net/lighttpd/releases-${VERSION:0:3}.x/lighttpd-$VERSION.tar.xz
 with info    home http://www.lighttpd.net/
+with info    docs http://redmine.lighttpd.net/projects/lighttpd/wiki
 with info    cite 'secure, fast, compliant, flexible Web server
 It has been optimized for high-performance environments.
 It has a very low memory footprint compared to other Web servers,
@@ -17,8 +19,16 @@ CGI, Auth, Output-Compression, URL-Rewriting, and much more.
 It has support for PHP and CGI as well.'
 
 build(){
- sed -i 's:#server.pid-file:server.pid-file:' doc/lighttpd.conf
+ sed -i 's:#include :include :' doc/config/lighttpd.conf
+
+ with also --sysconfdir=/etc/lighttpd
+
  default_build &&
- install -dvm 755 "$DESTDIR"/etc/
- install -vm 600 doc/config/lighttpd.conf "$DESTDIR"/etc/
+
+ find doc/config -type d -printf "$DESTDIR/etc/lighttpd/%P\n" |
+ xargs -d '\n' --max-lines=256 install -vm 755 -d &&
+
+ find doc/config -type f -printf "%P\n" |
+ sed  '/Make/d' |
+ while read; do install -vm 644 "doc/config/$REPLY" "$DESTDIR/etc/lighttpd/$REPLY"; done
 }

@@ -1,7 +1,10 @@
+# /usr/sbin/apachectl invokes lynx upon status request
+
+with info    edit 20131031
 with info    last 20130723
 with version   stable 2.4.6 2.4.4 2.4.3
 with also    --with-apr=/usr/bin --with-apr-util=/usr/bin
-with base    Python apr-util
+with base    Python apr-util lynx
 with elect   openssl    --enable-ssl       --disable-ssl     for https enabled server
 with elect   expat      ''                 ''                for fast non-validating stream-oriented XML parsing 
 with elect   db         --with-berkeley-db --without-berkeley-db for berkeley database support
@@ -94,10 +97,10 @@ query(){ query_dialog "$@"; }
 
 build(){
  finish_install(){
-  mkdir -p $DESTDIR/usr/share/httpd/cgi-bin.ssl
-  mkdir -p $DESTDIR/usr/share/httpd/htdocs.ssl
-  mkdir -p $DESTDIR/usr/share/httpd/logs
-  mkdir -p $DESTDIR/var/lib/httpd/run
+  install -vm 755 -d "$DESTDIR"/usr/share/httpd/cgi-bin.ssl
+  install -vm 755 -d "$DESTDIR"/usr/share/httpd/htdocs.ssl
+  install -vm 755 -d "$DESTDIR"/usr/share/httpd/logs
+  install -vm 755 -d "$DESTDIR"/var/lib/httpd/run
  }
 
  fix_ssl_conf(){
@@ -145,17 +148,14 @@ build(){
  --enable-mime-magic      \
  --enable-proxy           \
  --enable-mods-shared=all \
- --with-mpm=worker        \
+ --with-mpm=event         \
  $OPTS"
 
  # export  LAYOUT="Sorcerer"
 
- if   [ "${VERSION:0:3}" == "2.2" ]
- then ./buildconf
- fi              &&
  ./configure $AC &&
  make            &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  finish_install
 }
 
