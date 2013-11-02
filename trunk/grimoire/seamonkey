@@ -1,14 +1,6 @@
-# 2.17 fails to download because admins changed mirroring policy
-
-# Version 2.14 fails to  complete the ./configuration portion of compilation.
-# 2.16 was not download, sever down?
-# 2.17.1 not downloaded, URL provided by
-# http://www.seamonkey-project.org/release/
-# was 404
-
 with trait   broke
-with info    last 20130919
-with version   stable 2.21 2.20 2.19
+with info    last 20131102
+with version   stable 2.22 2.21 2.20
 
 with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files zip
 #with base    GConf-dbus bzip2 hicolor-icon-theme libnotify startup-notification sqlite zip
@@ -65,7 +57,8 @@ with also    --disable-installer
 with role    network/web
 # Errors with message that -m32 is invalid.
 with trait   bottleneck client hidden huge library litelink makej multilib-fail x11
-with source  stable http://releases.mozilla.org/pub/mozilla.org/seamonkey/releases/$VERSION/source/seamonkey-$VERSION.source.tar.bz2
+with source  stable ftp://ftp.mozilla.org/pub/mozilla.org/seamonkey/releases/$VERSION/source/seamonkey-$VERSION.source.tar.bz2
+#with source  stable http://releases.mozilla.org/pub/mozilla.org/seamonkey/releases/$VERSION/source/seamonkey-$VERSION.source.tar.bz2
 with info    home http://www.seamonkey-project.org
 with hold    mozilla
 with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
@@ -73,9 +66,9 @@ with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
 build(){
 
  symlink_icons(){
-  install -vdm 755 $DESTDIR/usr/share/applications
-  install -vm  644 $SCRIPT_DIR/applications.d/seamonkey.desktop $DESTDIR/usr/share/applications
-  mkdir -p $DESTDIR/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps
+  install -vm 755 -d "$DESTDIR"/usr/share/applications/
+  install -vm 644 -t "$DESTDIR"/usr/share/applications/ "$SCRIPT_DIR"/applications.d/seamonkey.desktop
+  install -vm 755 -d "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps/
   ln -fs /usr/lib/seamonkey-$VERSION/chrome/icons/default/default16.png \
          $DESTDIR/usr/share/icons/hicolor/16x16/apps/seamonkey.png
   ln -fs /usr/lib/seamonkey-$VERSION/chrome/icons/default/default32.png \
@@ -137,37 +130,12 @@ build(){
  export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
 
  case $VERSION in
+  2.2*)   export     CFLAGS="${CFLAGS/-march=native/}"
+          export CXXFLAGS="${CXXFLAGS/-march=native/}"
+          export     CFLAGS="${CFLAGS/-O?/}"
+          export CXXFLAGS="${CXXFLAGS/-O?/}"
+          ;;
   2.17.1) export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-    2.17) export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-  2.16.2) export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-  2.16)   export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-  2.15.2) export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-  2.15.1) export     CFLAGS="${CFLAGS/-march=native/}"
-          export CXXFLAGS="${CXXFLAGS/-march=native/}"
-          export     CFLAGS="${CFLAGS/-O?/}"
-          export CXXFLAGS="${CXXFLAGS/-O?/}"
-          ;;
-  2.15)   export     CFLAGS="${CFLAGS/-march=native/}"
           export CXXFLAGS="${CXXFLAGS/-march=native/}"
           export     CFLAGS="${CFLAGS/-O?/}"
           export CXXFLAGS="${CXXFLAGS/-O?/}"
@@ -183,7 +151,7 @@ build(){
  --enable-optimize="$CFLAGS" \
  $OPTS &&
  make  &&
- make install "DESTDIR=$DESTDIR" &&
+ make install DESTDIR="$DESTDIR" &&
  make_install
 }
 

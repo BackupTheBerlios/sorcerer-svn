@@ -2,8 +2,8 @@
 # which is too new for libreoffice to use.
 
 # No deltas for this
-with info    last 20131007
-with version stable 4.1.2
+with info    last 20131102
+with version stable 4.1.3
 with base    GConf Python3 gtk+ neon perl--Archive-Zip
 with elect   cups
 with elect   gst-plugins-base-0.10
@@ -43,7 +43,7 @@ build(){
    --libdir=/opt/libreoffice${VERSION:0:3}/program \
    --enable-shared --disable-static &&
   make &&
-  make install "DESTDIR=$DESTDIR" &&
+  make install DESTDIR="$DESTDIR" &&
   cd ..
  }
 
@@ -53,9 +53,9 @@ build(){
 
  [ -d DEBS ] &&
  cd   DEBS   &&
- install -dvm 755 "$DESTDIR"/ &&
+ install -vm 755 -d "$DESTDIR"/ &&
  find * -type f -name \*.deb |
  while read
- do    ar x $REPLY data.tar.gz; tar -C $DESTDIR -xvf data.tar.gz || return 1
+ do    ar x $REPLY data.tar.gz; tar -C "$DESTDIR" -xvf data.tar.gz || return 1
  done
 }
