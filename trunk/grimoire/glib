@@ -12,15 +12,18 @@
 # 2.36.4 2.36.3 2.36.2 failed to compile
 # glib uses gettext's /usr/bin/msgfmt
 
-with info    edit 20131102
+# glib adds worthless rpaths to executable files
+
+with info    edit 20131106
 with info    last 20131023
 with version   stable 2.38.1 2.38.0 2.36.1
 with version unstable 2.39.0
-with base    gettext libffi pcre pkgconfig zlib
+with base    gettext libelf libffi pcre pkgconfig zlib
 # Omit Python from the I/R if possible
 [ -f "${CURRENT_LOGS:-/aux/log/current}"/deployment-docent ] ||
 with base    Python
 with also    --with-pcre=system --with-threads=posix --disable-modular-tests --enable-shared
+with also    --disable-rpath
 with role    development
 with trait   gnome library lto_off makej optimize
 if   [[ glib == $SPELL ]]; then
@@ -49,6 +52,7 @@ build(){
 
    CFLAGS+=' -fPIC'
  CXXFLAGS+=' -fPIC'
+ sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build && trim_html
 }
 
