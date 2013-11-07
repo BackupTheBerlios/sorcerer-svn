@@ -1,6 +1,7 @@
 # version 1.5.6 is not multilib compatible has link failure
 # version 1.5.8 fails to compile
 
+with info    edit 20131107
 with info    last 20131007
 with version   stable 1.4
 with version unstable 1.5.8
@@ -19,5 +20,18 @@ build(){
  then make install DESTDIR="$DESTDIR" LIBDIR=/lib64 USRLIBDIR=/usr/lib64
  else make install DESTDIR="$DESTDIR"
  fi &&
+ if   [ -h "$DESTDIR"/usr/lib64/libkeyutils.so ]
+ then mv   "$DESTDIR"/{usr/,}lib64/libkeyutils.so
+ fi &&
+ if   [ -h "$DESTDIR"/usr/lib/libkeyutils.so ]
+ then mv   "$DESTDIR"/{usr/,}lib/libkeyutils.so
+ fi &&
  rm -f "$DESTDIR"/{,/usr}/lib{,64}/*.a
+}
+
+current(){
+ case $VERSION in
+  1.4) [ -h /lib64/libkeyutils.so ] ||
+       [ -h   /lib/libkeyutils.so ] ;;
+ esac
 }
