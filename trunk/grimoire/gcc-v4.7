@@ -1,0 +1,112 @@
+# requiring coreutils creates recursive requirement loop
+# 4.6.3 failed compilation
+# 4.6.3 seems to only fail compilation when java is enabled
+# java enabled gcc is almost never used
+# therefore upgrading gcc to 4.6.3 to rid gcc's STUPID rpath.
+
+# occasional cast failures might be due to the makefiles
+# not being entirely parallel make compatible.
+
+with info    edit 20131108
+with info    last 20130602
+with version stable 4.7.3 4.7.2
+with base    binutils cloog libelf mpfr multiprecision ppl
+#with base    binutils cloog-ppl libelf mpfr multiprecision
+#with base    binutils cloog-parma libelf mpfr multiprecision
+#with elect   ecj --with-ecj-jar=/usr/share/java/ecj.jar
+with also    --with-ppl --with-cloog --disable-rpath
+with also    --enable-cloog-backend=isl
+#     with also --enable-cloog-backend=isl --disable-cloog-version-check
+with role    development/compiler
+with trait   console library lto_off makej multilib-fail solo
+with source  stable $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+#with source  stable ftp://sourceware.org/pub/java/ecj-4.5.jar
+with info    home http://gcc.gnu.org/
+with info    docs http://gcc.gnu.org/onlinedocs/
+with info    mail http://gcc.gnu.org/lists.html
+with info    cite 'GNU compiler collection'
+
+build(){
+
+ fix_la(){
+  # gcc writes it's library path strangely in libstdc++.la
+  # and other libtool la files and consequently libtool also
+  # fails to canonicalize and adds and explict rpath that
+  # ends up rpathing into /usr/lib64 or /usr/lib
+  # Both gcc and libtool authors are at fault
+  # for writing bad code.
+  # canonicalizing the libtool la files here prevents
+  # the rpath problem from spreading.
+
+  sed -i 's:/lib64/\.\./lib64:/lib64:
+          s:/lib64/\.\./lib:/lib:
+          s:/lib/\.\./lib:/lib:' "$DESTDIR"/usr/lib{,64}/*.la
+ }
+
+ finish_install(){
+  fix_la
+  rm -f "$DESTDIR"/opt/gcc/$VERSION/info/dir
+ }
+
+# gcc version 4.7.1 does not want to compile without sse support
+# when it detects the CPU has the sse instruction.
+# maybe -march=i586 might achieve desired results?
+
+ export   CFLAGS="${CFLAGS/-march=i686 -mno-sse -mno-sse2/-march=i586}"
+ export CXXFLAGS="${CXXFLAGS/-march=i686 -mno-sse -mno-sse2/-march=i586}"
+
+ export   CFLAGS="${CFLAGS/-fomit-frame-pointer/}"
+ export CXXFLAGS="${CXXFLAGS/-fomit-frame-pointer/}"
+ export CCACHE_DISABLE=1
+ export PATH="$( echo "$PATH" | sed "s/[^:]*ccache://" )"
+
+ case $MACHTYPE in
+  *-uclibc) with also --disable-__cxa_atexit --host=$HOSTTYPE-linux-uclibc --build=$HOSTTYPE-linux-uclibc --target=$HOSTTYPE-linux-uclibc ;;
+  *-gnu)    with also --enable-__cxa_atexit --enable-clocale=gnu ;;
+ esac
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ -f /lib/libc.so.6 ]]
+ then with also --disable-multilib
+ fi
+
+   LCF="LIBCFLAGS=$CFLAGS"
+  LCXF="LIBCXXFLAGS=$CXXFLAGS"
+    BF="BOOT_CFLAGS=$CFLAGS"
+  LJCF="LIBGCJ_CFLAGS=$CFLAGS"
+ LJCXF="LIBGCJ_CXXFLAGS=$CXXFLAGS"
+  LJJF="LIBGCJ_JAVAFLAGS=$CFLAGS"
+   LDF="LDFLAGS=$LDFLAGS"
+
+ OPTS+="
+  --prefix=/opt/gcc/$VERSION
+  --enable-shared
+  --infodir=/usr/info
+  --mandir=/usr/man
+  --datadir=/usr/share
+  --enable-long-long
+  --with-long-double-128
+  --enable-threads
+  --enable-tls
+  --with-system-zlib
+  --disable-bootstrap"
+
+ if [ -f /sbin/sinstall ] && [ -f /root/compact-IR ]; then
+  OPTS+=" --enable-libstdcxx-pch=no"
+  OPTS+=" --enable-languages=c,c++";  else
+  OPTS+=" --enable-languages=c,c++,fortran,objc"
+# OPTS+=" --enable-languages=c,c++,fortran,java,objc"
+ fi
+
+#cp ${SOURCE[1]} ecj.jar
+
+ rm -fr /tmp/gcc.previous.md5sum
+ sed "\:  /usr/bin/:p;d" $MD5_INDEX/gcc > /tmp/gcc.previous.md5sum
+ mkdir BUILD
+ cd    BUILD
+ ../configure $OPTS             &&
+ make "$BF"                     \
+      "$LCF"  "$LCXF"  "$LDF"   \
+      "$LJCF" "$LJCXF"          &&
+ make  install DESTDIR="$DESTDIR" &&
+ finish_install
+}
