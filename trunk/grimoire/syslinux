@@ -6,7 +6,7 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with info    edit 20131029
+with info    edit 20131110
 with info    last 20131015
 with version   stable 6.02 6.01 4.06
 #with version unstable 6.02-pre16
@@ -41,22 +41,20 @@ build(){
  install_doc(){
   find doc -type d | xargs -r --max-lines=64 chmod 755
   find doc -type f | xargs -r --max-lines=64 chmod 644
-  mkdir -pvm 700 "$DESTDIR"/usr/doc/
-  mv         doc "$DESTDIR"/usr/doc/syslinux
+  install -vm 755 -d "$DESTDIR"/usr/share/doc/
+  mv      -v  doc    "$DESTDIR"/usrshare//doc/syslinux
  }
 
  install_menu(){
-  install -dvm 700 "$DESTDIR"/boot/extlinux/
-  cp     -av       "$DESTDIR"/{usr/share/syslinux/libutil.c32,boot/extlinux/}
-  cp     -av       "$DESTDIR"/{usr/share/syslinux/*menu.c32,boot/extlinux/}
-  cp     -av       "$DESTDIR"/{usr/share/syslinux/mboot.c32,boot/extlinux/}
+  install -vm 700 -d "$DESTDIR"/boot/extlinux/
+  install -vm 644 -t "$DESTDIR"/boot/extlinux \
+                     "$DESTDIR"/usr/share/syslinux/{chain,libutil,mboot,*menu}.c32
  }
 
  install_configs(){
-  install -dvm 700 "$DESTDIR"/{boot,etc/extlinux,usr/sbin}
-  install  -vm 600 "$SCRIPT_DIR"/head     "$DESTDIR"/etc/extlinux/
-  install  -vm 600 "$SCRIPT_DIR"/tail     "$DESTDIR"/etc/extlinux/
-  install  -vm 700 "$SCRIPT_DIR"/extlinux "$DESTDIR"/usr/sbin/
+  install -vm 700 -d "$DESTDIR"/{boot,etc/extlinux,usr/sbin}/
+  install -vm 600 -t "$DESTDIR"/etc/extlinux/ "$SCRIPT_DIR"/{head,tail}
+  install -vm 700 -t "$DESTDIR"/usr/sbin/     "$SCRIPT_DIR"/extlinux
  }
 
  case $VERSION in
