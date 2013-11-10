@@ -2,8 +2,8 @@
 # All rights reserved.
 # For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20130828
-with info    last   20130828
+with version stable 20131110
+with info    last   20131110
 with role    immune-system
 with trait   solo stale
 with info    home http://sorcerer.silverice.org/
@@ -47,7 +47,20 @@ post_install(){
   done
  }
 
+ move_local_config(){
+  if   grep -q "declare -A" /etc/sorcery/config
+  then rm -f /etc/sorcery/config
+  fi
+  if   [ -f /etc/sorcery/local.config ]
+  then mv   /etc/sorcery/local.config /etc/sorcery/config
+  fi
+  if   [ -f /etc/sorcery/local.excluded ]
+  then mv   /etc/sorcery/local.excluded /etc/sorcery/exclude
+  fi
+ }
+
  # Temporary fixes to provide for 6 months.
  event_log_transition			# 20130828
+ move_local_config			# 20131110
  default_post_install
 }

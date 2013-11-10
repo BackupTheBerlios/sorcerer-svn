@@ -7,7 +7,7 @@
 ### END INIT INFO
 
 # Copyright 2008-2011 by Kyle Sallee, all rights reserved.
-# for use with Sorcerer only
+# for use with Modern Magic only
 
 . /lib/lsb/init-functions
 
