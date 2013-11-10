@@ -3,7 +3,8 @@ with info    last 20131010
 with version   stable 1.3.0 1.2.1
 with version unstable 1.3.0
 with base    expat
-with elect   doxygen --enable-documentation --disable-documentation
+## elect on doyxgen creates recursive requirement loop
+#with elect   doxygen --enable-documentation --disable-documentation
 with also    --disable-static
 with role    xorg/app
 with trait   library makej multilib-concurrent optimize
@@ -12,6 +13,10 @@ with source  un stable http://wayland.freedesktop.org/releases/wayland-$VERSION.
 with info    cite 'protocol between compositor and clients'
 
 build(){
+ if   ! [ -f "$POST_LOGS"/doxygen ]
+ then with also --disable-documentation
+ fi
+
  export PATH="${PATH//\/usr\/bin.a:/}"
  export CCACHE_PATH=/usr/bin
 
