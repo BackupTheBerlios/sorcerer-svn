@@ -1,7 +1,12 @@
 # OpenCV is a mandatory requirement
 
-with info    last 20131010
+with info    last 20131011
 with version   stable 3.5.0 3.4.0 3.3.0
+## OpenCV can not be disabled.
+#case $VERSION in
+# 3.5.0)
+#with also    -DWITH_OpenCV:BOOL=OFF ;;
+#esac
 with base    OpenCV kdepimlibs-v4 libkdcraw libkexiv2 libkipi marble
 with elect   lensfun
 with elect   libgphoto2  '' '' to operate digital cameras
@@ -31,6 +36,11 @@ import and export, etc.
 The kipi-plugins package contains many very useful extentions.'
 
 build(){
+## The if statement did not help.
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then with also -DOpenCV_LIB_DIR_OPT:PATH=/usr/lib64
+# else with also -DOpenCV_LIB_DIR_OPT:PATH=/usr/lib
+# fi
  local  MYSQL_TOOLS_PATH
  export MYSQL_TOOLS_PATH=/usr/scripts
  kde_build
