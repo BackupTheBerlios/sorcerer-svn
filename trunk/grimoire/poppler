@@ -20,8 +20,9 @@
 # 0.20.5 0.20.4, 0.20.3, 0.20.2 and 0.20.1 failed during linking.
 # 0.22.2 and 0.22.3 failed during linking
 
+with info    edit 20131111
 with info    last 20131030
-with version   stable 0.24.3 0.24.2 0.24.1
+with version   stable 0.24.3 0.24.2
 with base    cairo cmake jpeg lcms2 openjpeg poppler-data tiff
 with also    --enable-static=no --enable-xpdf-headers
 if   [[ $SPELL = poppler ]]
@@ -29,23 +30,21 @@ then with also    --disable-poppler-qt4 --disable-poppler-qt
 fi
 #     with also    -DCMAKE_INSTALL_PREFIX:PATH=/usr -DENABLE_XPDF_HEADERS:BOOL=TRUE
 with role    documentation
-with trait   library makej x11
+with trait   library makej optimize x11
 #trait library multilib-concurrent x11
 with source    stable http://poppler.freedesktop.org/poppler-$VERSION.tar.xz
-#with source    stable http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
-with source  unstable http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
-with source    latest http://poppler.freedesktop.org/poppler-$VERSION.tar.gz
+with source  unstable http://poppler.freedesktop.org/poppler-$VERSION.tar.xz
+with source    latest http://poppler.freedesktop.org/poppler-$VERSION.tar.xz
 with info    home http://poppler.freedesktop.org/
 with info    cite 'PDF rendering library'
 
 build(){
  missing_install(){
-  install -vdm 755 "$DESTDIR"/usr/include/poppler/
-  install -vdm 755 "$DESTDIR"/usr/include/poppler/goo/
-  install -vdm 755 "$DESTDIR"/usr/include/poppler/splash/
-  find poppler -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler
-  find splash  -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler/splash
-  find goo     -type f -name \*.h | xargs --max-lines=256 cp -t "$DESTDIR"/usr/include/poppler/goo
+  local p="$DESTDIR"/usr/include/poppler
+  install -vm 755 -d "$p"/{goo,splash}/
+  find poppler -type f -name \*.h | xargs -L64 install -vm 644 -t "$p"/
+  find splash  -type f -name \*.h | xargs -L64 install -vm 644 -t "$p"/splash/
+  find goo     -type f -name \*.h | xargs -L64 install -vm 644 -t "$p"/goo/
   true
  }
 
