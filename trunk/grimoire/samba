@@ -1,8 +1,8 @@
-with info    good 20131013
-with info    last 20131011
-with version stable 4.1.0 4.0.10 4.0.9
+with info    last 20131012
+with version stable 4.1.1 4.1.0 4.0.10
 with version legacy 3.4.17
-with version 3.6.x  3.6.19 3.6.18 3.6.17
+with version 4.0.x  4.0.11
+with version 3.6.x  3.6.20 3.6.19 3.6.18
 with version 3.5.x  3.5.22 3.5.21
 with version unstable 4.1.0rc4
 with base    avahi e2fsprogs init-functions keyutils libcap ncurses popt readline
@@ -115,6 +115,30 @@ with source  legacy \
              http://sambafr.idealx.org/samba/ftp/ \
              http://us1.samba.org/samba/ftp/ \
              stable/samba-$VERSION.tar.gz
+with source  4.0.x \
+             http://us1.samba.org/samba/ftp/ \
+             http://us5.samba.org/samba/ftp/ \
+             http://us2.samba.org/samba/ftp/ \
+             http://us3.samba.org/samba/ftp/ \
+             http://us4.samba.org/samba/ftp/ \
+              ftp://au1.samba.org/pub/samba/ \
+              ftp://ca.samba.org/ \
+              ftp://de.samba.org/samba.org/ \
+              ftp://ftp.easynet.be/samba/ \
+              ftp://ftp.k2.net/mirrors/samba/ \
+              ftp://ftp.oss.eznetsols.org/samba/ \
+              ftp://ftp.te8.com/pub/samba/ \
+              ftp://ftp.ucr.ac.cr/pub/Unix/samba/ \
+              ftp://gd.tuwien.ac.at/infosys/servers/samba/ \
+              ftp://giswitch.sggw.waw.pl/pub/unix/samba/ \
+              ftp://it.samba.org/pub/samba/ \
+              ftp://mirror.kn.vutbr.cz/pub/MIRRORS/samba/ \
+              ftp://pl.samba.org/pub/unix/net/samba/ \
+              ftp://ru.samba.org/pub/samba/ \
+              ftp://se.samba.org/pub/samba/ \
+             http://sambafr.idealx.org/samba/ftp/ \
+             http://us1.samba.org/samba/ftp/ \
+             stable/samba-$VERSION.tar.gz
 with source  3.6.x \
              http://us1.samba.org/samba/ftp/ \
              http://us5.samba.org/samba/ftp/ \
@@ -190,11 +214,8 @@ build_old(){
  --with-shared-modules=idmap_rid \
  $OPTS &&
  make  &&
- mkdir -p    $DESTDIR/lib             &&
- mkdir -p    $DESTDIR/etc/samba       &&
- mkdir -p    $DESTDIR/usr/share/samba &&
- mkdir -p    $DESTDIR/var/log/samba   &&
- make install DESTDIR=$DESTDIR        &&
+ install -vm -d "$DESTDIR"{/etc/samba,lib,usr/share/samba,var/log/samba}/ &&
+ make install DESTDIR="$DESTDIR"      &&
  rm    -rf   $DESTDIR/usr/private     &&
  if   [ -f   $DESTDIR/usr/lib/libsmbclient.so   ] &&
     ! [ -f   $DESTDIR/usr/lib/libsmbclient.so.0 ]
@@ -202,6 +223,6 @@ build_old(){
              $DESTDIR/usr/lib/libsmbclient.so.0
  fi &&
  if   [  -f  nsswitch/libnss_winbind.so ]
- then cp -av nsswitch/libnss_winbind.so $DESTDIR/lib/
+ then cp -av nsswitch/libnss_winbind.so "$DESTDIR"/lib/
  fi
 }
