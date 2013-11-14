@@ -10,8 +10,14 @@
 # Copyright 2008-2013 by Kyle Sallee, all rights reserved.
 # for use with Modern Magic only
 
-[ -f /sbin/extlinux ] || exit 0
-[ -f /boot/extlinux/menu.c32 ] || exit 0
+export LC_ALL=C
+
+if   ! [ -f /sbin/extlinux ] ||
+     ! [ -f /boot/extlinux/menu.c32 ] ||
+     ! [ -d /boot ]
+     ! [ -n "$( /bin/find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
+then exit 0
+fi
 
 . /lib/lsb/init-functions
 
@@ -21,6 +27,7 @@ only stop reload force-reload status
 deny control
 
 EXTL=/boot/extlinux/extlinux.conf
+SLXC=/boot/syslinux/syslinux.conf
 NAME=/boot/extlinux/extlinux.conf
 CONF=/etc/extlinux/conf
 HEAD=/etc/extlinux/head
@@ -98,9 +105,19 @@ extlinux_conf_update(){
  then cat  $TAIL >> $CONF.$$
  fi
 
- mv $CONF.$$ $CONF
- cp $CONF    $EXTL
+ mv        $CONF{.$$,}
+ cp        $CONF $EXTL
  chmod 600 $CONF $EXTL
+
+ if ! [ -d                 /boot/syslinux/ ]; then
+  rm    -f                 /boot/syslinux
+  ln    -s /boot/extlinux/ /boot/syslinux
+ fi
+
+ if ! [ -f       $SLXC ]; then
+  rm   -f        $SLXC
+  ln   -s  $EXTL $SLXC
+ fi
 
  if ! [ -f   /boot/extlinux/version ]  ||
     ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version 2>&1 )" ]; then
@@ -126,12 +143,14 @@ tomoyo_enabled(){
 }
 
 current(){ 
- [       -f  $EXTL ] &&
- [       -f  $CONF ] &&
- [ $CONF -nt $HEAD ] &&
- [ $CONF -nt $TAIL ] &&
- tomoyo_enabled      &&
- previously_passed   &&
+ [       -f  $EXTL   ] &&
+ [       -f  $SLXC   ] &&
+ [       -f  $CONF   ] &&
+ [ $CONF -nt $HEAD   ] &&
+ [ $CONF -nt $TAIL   ] &&
+ [ -d /boot/syslinux ] &&
+ tomoyo_enabled        &&
+ previously_passed     &&
  boot_labels
 }
 
@@ -152,10 +171,3 @@ status(){
 stop(){ status || run; }
 reload(){ DONE=true; stop; }
 force_reload(){ run; }
-
-export LC_ALL=C
-
-if ! [ -d /boot ] ||
-     [ -z "$( /bin/find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
-then exit 1
-fi
