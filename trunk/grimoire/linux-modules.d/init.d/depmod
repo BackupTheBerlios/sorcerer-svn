@@ -3,6 +3,7 @@
 # Default-Mode: 500
 # Required-Start: proc
 # Default-Start: S 1 2 3 4 5
+# Default-Stop: 0 6
 # Short-Description: runs depmod during boot
 ### END INIT INFO
 
@@ -13,13 +14,13 @@
 . /lib/lsb/init-functions
 
 cgroup none
-only start force-reload
+only start stop force-reload
 server /sbin/depmod
 #options -A
 # parameter -A does not appear to work properly for NVIDIA-Linux-x86*
 
 check(){
- for DIR in /lib/modules/*; do
+ while read DIR; do
   if [ -d "$DIR" ]; then
    log_warning_msg "$DIR checking"
    if   ! [ -f "$DIR/reference" ]
@@ -36,12 +37,14 @@ check(){
 update(){
  while read; do 
   if   log_warning_msg "depmod ${REPLY##*/} running"; /sbin/depmod "${REPLY##*/}"
-  then log_success_msg "depmod ${REPLY##*/} success"; /bin/touch "$REPLY/reference"
+  then log_success_msg "depmod ${REPLY##*/} success"; /bin/touch   "$REPLY/reference"
   else log_success_msg "depmod ${REPLY##*/} failure"
   fi
  done
 }
 
-start(){ check | update; }
-
-force_reload(){ find /lib/modules -maxdepth 1 -mindepth 1 -type d | update; }
+allm(){ /bin/find /lib/modules/ -mindepth 1 -maxdepth 1 -type d; }
+runm(){ echo -n   /lib/modules/; /bin/uname -r; }
+start()       { runm | check | update; }
+stop()        { allm | check | update; }
+force_reload(){ allm |         update; }

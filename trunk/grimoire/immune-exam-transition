@@ -2,8 +2,8 @@
 # All rights reserved.
 # For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20131112
-with info    last   20131112
+with version stable 20131115
+with info    last   20131115
 with base    sorcery
 with role    immune-system
 with trait   solo stale
@@ -60,8 +60,16 @@ post_install(){
   fi
  }
 
+ init_log_change(){
+  [ -d /var/log/init/ ] &&
+  find /var/log/init/ -mindepth 2 -type d |
+  xargs -r -L256 rm -rf
+  mkdir -pm 700 /var/log/init/{failed,passed,ran}/
+ }
+
  # Temporary fixes to provide for 6 months.
  event_log_transition			# 20130828
  move_local_config			# 20131110
+ init_log_change			# 20131115
  default_post_install
 }

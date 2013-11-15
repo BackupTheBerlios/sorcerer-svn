@@ -1,7 +1,7 @@
 # Functions for LSB-compliant init-scripts
 # Compatible with /bin/dash and /bin/bash
 # For use with the distribution Sorcerer only!
-# Copyright Kyle Sallee 2005 through 2012.
+# Copyright Kyle Sallee 2005 through 2013.
 # All rights reserved.
 
 CL="[K"
@@ -15,14 +15,6 @@ log_line(){ echo -en "\r$CL$BLUE[$1$BLUE]$NORM $2 " 1>&2;}
 log_success_msg(){ log_line "${GREEN}success" "$1";}
 log_failure_msg(){ log_line "${RED}failure" "$1\n";}
 log_warning_msg(){ log_line "${WHITE}message" "$1";}
-
-redraw(){
- clear
- log_success_msg "Redrawing ${LINES:-25} lines"
- if   [ -f /var/log/init/console ]; then tail -n ${LINES:-25} /var/log/init/console
- elif [ -f /var/log/console      ]; then tail -n ${LINES:-25} /var/log/console
- fi | cut -d : -f4- | cut -b2-
-}
 
 locked(){
  local S P REPLY
@@ -72,10 +64,9 @@ pidofproc(){
  BASE=${1##*/}
 
  if    [ -z "$PIDF" ]; then
-  if   pids_from_cgroup;             then echo "$REPLY"; return
-  elif [ -f "/var/run/$BASE.pid"  ]; then PIDF=/var/run/$BASE.pid
-  elif [ -f "/var/run/$BASE"      ]; then PIDF=/var/run/$BASE
-# else PIDS=$( /bin/pidof -o %PPID $BASE )
+  if   pids_from_cgroup;            then echo "$REPLY"; return
+  elif [ -f "/var/run/$BASE.pid" ]; then PIDF=/var/run/$BASE.pid
+  elif [ -f "/var/run/$BASE"     ]; then PIDF=/var/run/$BASE
   fi
  fi
 
@@ -125,12 +116,9 @@ killproc(){
 start_daemon(){
  run(){
   case $CGRP in
-   fast) cgroup_join fast/sys/$NAME $AFFINE ;;
-   idle) cgroup_join idle/sys/$NAME $AFFINE ;;
-   real) cgroup_join real/sys/$NAME $AFFINE ;;
-   slow) cgroup_join slow/sys/$NAME $AFFINE ;;
    none) : ;;
-      *) cgroup_join norm/sys/$NAME $AFFINE ;;
+     ?*) cgroup_join $CGRP/sys/$NAME $AFFINE ;;
+      *) cgroup_join  norm/sys/$NAME $AFFINE ;;
   esac
 
   # timeout is safe to use for starting daemons and servers
@@ -242,16 +230,7 @@ stop(){
  fi
 }
 
-mnt(){
- if [ -f /proc/mounts ]; then
-  while read DEV MNT JNK
-  do [ "$NAME" = "$MNT" ] && return
-  done < /proc/mounts
- fi
- return 1
-}
-
-mnt(){ [ -d "$NAME" ] && [ "$( /bin/stat -c "%m" "$NAME" 2>/dev/null )" == "$NAME" ]; }
+mnt(){ [ -d "$NAME" ] && [ "$( /bin/stat -c "%m" "$NAME" 2>/dev/null )" == "${NAME%/}" ]; }
 
 conf(){ [ "$CONF" ] && ! [ -e "$CONF" ]; }
 miss(){ ! [ -f "$SERV" ]; }
@@ -271,7 +250,6 @@ starts(){
 
 startm(){
  run(){
-  if      [ -h "$NAME" ]; then rm    -f "$NAME"; fi
   if    ! [ -d "$NAME" ]; then mkdir -p "$NAME"; fi &&
   mount $OPTS  "$NAME"
  }
@@ -335,56 +313,36 @@ parse(){
  numlock_off(){ setleds -num &>/dev/null; return 0; }
 
  permit(){
-  inside(){
-   local R=$1
-   while shift; [  -n "$1" ]
-   do    if [ "$R" == "$1" ]; then return 0; fi
-   done
-   return 1
-  }
-
-  if [ -n "$deny" ] &&   inside "$1" $deny; then help; return 3; fi
-  if [ -n "$only" ] && ! inside "$1" $only; then help; return 3; fi
+  if                              [ -n "${deny[$1]}" ]; then help; return 3; fi
+  if [ -n "${only[control]}" ] && [ -z "${only[$1]}" ]; then help; return 3; fi
  }
 
  event_start(){
-  local S
-  S=${SELF##*/}
-  S=${S#[SK][0-9][0-9]} 
-  [     -d  /var/log/init/run ] ||
-  mkdir -p  /var/log/init/run
-  echo $$ > /var/log/init/run/$S
+  [ -d $LOGD/ran/ ] || mkdir -pm 700 $LOGD/{failed,passed,ran}/
+  echo $$ > $LOGD/ran/"${NAME//\//_}"
  }
 
  event_end(){
   E=$?
-  if ! [ -d /var/log/init ]; then exit $E; fi
-  if   [ -z "$1" ]; then exit $E; fi
 
-  S=${SELF##*/}
-  S=${S#[SK][0-9][0-9]} 
-  P=/var/log/init/passed/$S
-  F=/var/log/init/failed/$S
-  R=/var/log/init/run/$S
+  rmf(){ if [ -f "$1" ]; then rm -f "$1"; fi; }
 
-  rm -fr $F $P $R
-
-  if [ $E == 0 ]; then
-   mkdir -p   $P
-   echo  -n > $P/$1
-  else
-   mkdir -p   $F
-   echo  $E > $F/$1
+  if   [ $E == 0 ]
+  then echo "$1" > $LOGD/passed/"${NAME//\//_}"; rmf $LOGD/failed/"${NAME//\//_}"
+  else echo "$1" > $LOGD/failed/"${NAME//\//_}"; rmf $LOGD/failed/"${NAME//\//_}"
   fi
-  numlock_off
+  # numlock_off
+
   exit $E
  }
 
  local p=$1 f=${1//-/_}
  shift 1
+ if [ -z "$p" ]; then help; exit 127; fi
+
+ # numlock_on
  event_start
  permit "$p" &&
- numlock_on  &&
  "$f" "$@"
  event_end "$p"
 }
@@ -424,8 +382,11 @@ control(){
  done
 }
 
-    only(){ only="$@ control"; }
-    deny(){ deny="$@"; }
+declare -A only
+declare -A deny
+
+only()    { while [ -n "$1" ]; do only[$1]=1; shift; done; only[control]=1; }
+deny()    { while [ -n "$1" ]; do deny[$1]=1; shift; done; }
 affine()  { AFFINE=${1:-0}; }
 affinity(){ AFFINE=${1:-0}; }
 pid_file(){ PIDF=$1; }
@@ -444,19 +405,15 @@ on_exit(){
  if ! [ 0 == "$E" ]
  then return  $E
  fi
- if [ -n "$FAST" ]; then
-#  case $RUNLEVEL in
-#   2|4) parse ${ARGS[*]} & ;;
-#     *) parse ${ARGS[*]}   ;;
-#  esac
-        parse ${ARGS[*]} &
- else   parse ${ARGS[*]}
+ if [ -n "$FAST" ]
+ then parse ${ARGS[*]} &
+ else parse ${ARGS[*]}
  fi
 }
 
 rootfs(){ [ 1 == "$( /bin/stat -c %D / )" ]; }
 
-if [ -z "$NAME" ]
+if   [ -z "$NAME" ]
 then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
 fi
 
@@ -470,10 +427,12 @@ cgroup_pids(){ false; }
 cgroup_oust(){ false; }
 cgroup_kill(){ false; }
 
+SELF="$0"
+ARGS=( "$@" )
+LOGD=/var/log/init
+
 if   [ -f /lib/cgroup/functions ]
 then .    /lib/cgroup/functions ]
 fi
 
-ARGS=( "$@" )
-SELF="$0"
 trap on_exit EXIT
