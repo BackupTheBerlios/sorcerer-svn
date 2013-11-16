@@ -22,7 +22,7 @@ allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
 every(){
- find ${NAME/\/boot\/initrf/} |
+ find "/${NAME##*/}" |
  sed "\
 \,^/sbin/dhcpd$,d
 \,^/sbin/dhcrelay$,d
@@ -54,7 +54,7 @@ initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
 
- if   find ${NAME/\/boot\/initrf/} -newer $NAME | grep -q .
+ if   find "/${NAME##*/}" -newer $NAME | grep -q .
  then return 1
  fi
 
