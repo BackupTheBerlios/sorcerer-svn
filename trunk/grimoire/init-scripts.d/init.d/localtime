@@ -13,27 +13,14 @@
 
 # omit log
 
-#zi=
-#if   [ -d /usr/share/zoneinfo ]
-#then   zi=/usr/share/zoneinfo
-#else
-# for d in /media/root/*; do
-#  if  [ -d "$d/usr/share/zoneinfo" ]
-#  then  zi="$d/usr/share/zoneinfo"; break
-#  fi
-# done
-#fi
-#
-#if [ -z "$zi" ]; then exit 0; fi
-
-if ! [ -d /usr/share/zoneinfo ]; then exit 0; fi
+if ! [ -d /usr/share/zoneinfo/ ]; then exit 0; fi
 
 zi=/usr/share/zoneinfo
 
 . /lib/lsb/init-functions
 
 only configure start reload status
-config "$zi" # config /usr/share/zoneinfo
+config "$zi"
 name /etc/localtime
 
 run(){
@@ -70,5 +57,5 @@ status(){
 
 start(){ if ! status && /bin/tty -s; then [ -d /usr/share/zoneinfo ] && run; fi; }
 
-   reload(){ rm -f $NAME; start; }
-configure(){ rm -f $NAME; start; }
+   reload(){ /bin/rm -f $NAME; start; }
+configure(){ /bin/rm -f $NAME; start; }

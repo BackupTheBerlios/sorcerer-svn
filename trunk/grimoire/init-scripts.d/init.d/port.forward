@@ -14,7 +14,11 @@
 
 . /lib/lsb/init-functions
 
-config /etc/port.forward
+if   [ -f          /etc/port.forward ]
+then config        /etc/port.forward
+else config /etc/rootfs/port.forward
+fi
+
 only start configure status
 
 declare -A mnt_ipa  mnt_root
@@ -37,7 +41,7 @@ port_get(){
  local  HELP="$1\n"
         HELP+=$"Please enter a port number"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -49,7 +53,7 @@ root_get(){
  local TITLE=$"Root File System Selection"
  local  HELP=$"Please enter the FQDN of a root file system"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -60,14 +64,14 @@ root_get(){
 list(){
  [ -f "$CONF" ] || echo -n > "$CONF"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --timeout 60             \
   --textbox "$CONF" 20 70
 }
 
 services(){
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --timeout 60             \
   --title   /etc/services  \
@@ -79,19 +83,19 @@ line_get(){
  local  HELP=$"Please select line to delete"
  local  IFS="
 "
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
   --stdout                 \
   --menu      "$HELP" 20 70 10 \
-  $( sed "s:$:\nline:" "$CONF" )
+  $( /bin/sed "s:$:\nline:" "$CONF" )
 }
 
 delete(){
  local l="$( line_get )"
  if   [ -n "$l" ]
- then sed -i "\,$l,d" "$CONF"
+ then /bin/sed -i "\,$l,d" "$CONF"
  fi
 }
 
@@ -99,7 +103,7 @@ command_get(){
  local TITLE=$"Main Menu"
  local  HELP=$"Please select a task"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -117,8 +121,8 @@ add(){
  if   [ -n "$r" ] &&
       [ -n "$i" ] &&
       [ -n "$o" ]; then
- sed -i "\,$r	$i	$o,d"  "$CONF"
- echo "$r	$i	$o" >> "$CONF"
+ /bin/sed -i "\,$r	$i	$o,d"  "$CONF"
+ echo          "$r	$i	$o" >> "$CONF"
  fi
 }
 
@@ -137,7 +141,7 @@ help_msg(){
  local HELP+=$"DNAT rules that forward packets into root file system are created."
  local HELP+="\n"
  local HELP+="\n"
- local HELP+=$"Supposed the FQDN for /media/root/www/ is www.eat.food."
+ local HELP+=$"Supposed the FQDN for /+/www/ is www.eat.food."
  local HELP+="\n"
  local HELP+=$"Packets can be forward to www.eat.food's web server."
  local HELP+="\n"
@@ -170,7 +174,7 @@ help_msg(){
  local HELP+="\n"
  local HELP+="Port forwarding is for when static assignment is not preferred."
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --timeout 300            \
   --msgbox    "$HELP" 0 0
@@ -191,8 +195,7 @@ main_menu(){
 }
 
 main_root(){
- /bin/cat /etc/fstab.rootfs /etc/rootfs/fstab 2>/dev/null |
- /bin/sed 's:#.*::' |
+ /bin/sed 's:#.*::' /etc/fstab |
  /bin/tr  '\t' ' ' |
  /bin/tr  -s ' ' |
  /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
@@ -204,10 +207,13 @@ configure(){
  /bin/tty -s || return
  local BACKTITLE=$"Port Forwarding Menu"
  main_menu
- if   rootfs; then
+ if rootfs; then
   start
-  local mr=$( main_root )
-  cp "$CONF" "$mr"/etc/
+  if   [ -d      /+/base/ ]; then
+   mkdir -pm 700 /+/base/etc/rootfs/
+   rm -f         /+/base/etc/port.forward
+   cp    "$CONF" /+/base/etc/rootfs/port.forward
+  fi
  fi
 }
 

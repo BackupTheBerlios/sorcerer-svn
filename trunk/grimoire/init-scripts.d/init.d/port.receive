@@ -32,23 +32,12 @@ load_etc_roots(){
  done < /etc/roots
 }
 
-# declare -A root_mnt root_ipa
-
-# load_root_mnt_ipa(){
-#  local      r m a
-#  [ -f /etc/roots ] &&
-#  while read r m a; do
-#   root_mnt[$r]="$m"
-#   root_ipa[$r]="$a"
-#  done < /etc/roots
-# }
-
 port_get(){
  local TITLE=$"Port Selection"
  local  HELP="$1\n"
         HELP+=$"Please enter a port number"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -60,7 +49,7 @@ root_get(){
  local TITLE=$"Root File System Selection"
  local  HELP=$"Please enter the FQDN of a root file system"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -71,14 +60,14 @@ root_get(){
 list(){
  [ -f "$CONF" ] || echo -n > "$CONF"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --timeout 60             \
   --textbox "$CONF" 20 70
 }
 
 services(){
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --timeout 60             \
   --title   /etc/services  \
@@ -90,19 +79,19 @@ line_get(){
  local  HELP=$"Please select line to delete"
  local  IFS="
 "
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
   --stdout                 \
   --menu      "$HELP" 20 70 10 \
-  $( sed "s:$:\nline:" "$CONF" )
+  $( /bin/sed "s:$:\nline:" "$CONF" )
 }
 
 delete(){
  local l="$( line_get )"
  if   [ -n "$l" ]
- then sed -i "\,$l,d" "$CONF"
+ then /bin/sed -i "\,$l,d" "$CONF"
  fi
 }
 
@@ -110,7 +99,7 @@ command_get(){
  local TITLE=$"Main Menu"
  local  HELP=$"Please select a task"
 
- dialog \
+ /bin/dialog \
   --backtitle "$BACKTITLE" \
   --title     "$TITLE"     \
   --timeout 60             \
@@ -127,8 +116,8 @@ add(){
  if   [ -n "$r" ] &&
       [ -n "$i" ] &&
       [ -n "$o" ]; then
- sed -i "\,$i	$o,d"  "$CONF"
- echo     "$i	$o" >> "$CONF"
+ /bin/sed -i "\,$i	$o,d"  "$CONF"
+ echo          "$i	$o" >> "$CONF"
  fi
 }
 
@@ -145,7 +134,7 @@ help_msg(){
  local HELP+=$"DNAT rules that forward packets into the root file system are created."
  local HELP+="\n"
  local HELP+="\n"
- local HELP+=$"Supposed the FQDN for /media/root/www/ is www.eat.food."
+ local HELP+=$"Supposed the FQDN for /+/www/ is www.eat.food."
  local HELP+="\n"
  local HELP+=$"Packets can be forward to www.eat.food's web server."
  local HELP+="\n"
@@ -153,7 +142,7 @@ help_msg(){
  local HELP+="\n"
  local HELP+=$"80 80"
  local HELP+="\n"
- local HELP+=$"To forward port 22 into main.eat.food the line would read:"
+ local HELP+=$"To forward port 22 into base.eat.food the line would read:"
  local HELP+="\n"
  local HELP+=$"22 22"
  local HELP+="\n"
@@ -174,7 +163,7 @@ help_msg(){
 #local HELP+=$"The über SA could have disabled port.receive with the command:"
  local HELP+=$"The uber SA could have disabled port.receive with the command:"
  local HELP+="\n"
- local HELP+=$"# chmod 400 /media/root/main/etc/init.d/port.receive"
+ local HELP+=$"# chmod 400 /+/base/etc/init.d/port.receive"
  local HELP+="\n"
  local HELP+="\n"
  local HELP+=$"Forwarding ports is not always convenient."
@@ -214,8 +203,7 @@ main_menu(){
 }
 
 main_root(){
- /bin/cat /etc/fstab.rootfs /etc/rootfs/fstab 2>/dev/null |
- /bin/sed 's:#.*::' |
+ /bin/sed 's:#.*::' /etc/fstab |
  /bin/tr  '\t' ' ' |
  /bin/tr  -s ' ' |
  /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
@@ -261,7 +249,7 @@ start(){
    /bin/grep -v "169\.254\.\|:" |
    /bin/cut  -d / -f1 )
 
-  for f in /media/root/*/"$CONF"; do
+  for f in /+/*/"$CONF"; do
    [ -f "$f" ] || continue
    r="$( rootname "${f%$CONF}" )"
    ipa="${root_ipa[$r]}"

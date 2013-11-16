@@ -12,7 +12,7 @@ tty_use(){  ( tty_open; tty_all ) | sort -g | uniq -u | sed "1p;d" | sed 's:^:/d
 tty_clr(){  deallocvt; printf "%b\033c"; }
 
 root_avail(){
- find /media/root/*/bin/login -maxdepth 0 -type f -executable |
+ find /+/*/bin/login -maxdepth 0 -type f -executable |
  cut -d / -f4 | sort -u
 }
 
@@ -36,7 +36,7 @@ root_select(){
  printf $"Please select a root file system by number: "
  if read -t 3600 index &&
                   [ -n "${roots[$index]}" ]
- then root="/media/root/${roots[$index]}"
+ then root="/+/${roots[$index]}"
  else return 1
  fi
 }
@@ -61,7 +61,7 @@ tty_await(){
 main(){ while :; do [ -n "$( jobs -p )" ] || tty_await; sleep 5; done; }
 
 not_root(){ ! (( $UID == 0 )); }
-not_rootfs(){ [ -z "$( find /media/root -mindepth 1 -maxdepth 1 -type d )" ]; }
+not_rootfs(){ [ -z "$( find /+ -mindepth 1 -maxdepth 1 -type d )" ]; }
 
 if not_root || not_rootfs; then exit 1; fi
 

@@ -395,13 +395,13 @@ stock DOCS[mkdir] \
 "less /usr/doc/docent/plan"
 
 stock GOAL[mkdir] $"Make mount points"
-stock HINT[mkdir] $"mkdir -pm 755 /media/root/main/" "\n" \
-$"The above command creates the directory /media/root/main/." "\n" \
+stock HINT[mkdir] $"mkdir -pm 755 /+/base/" "\n" \
+$"The above command creates the directory /+/base/." "\n" \
 $"The above command is correct for a computer with a single root file system."
 
 test_mkdir(){
-   if !   [ -d   /media/root/main/ ]
- then     echo $"/media/root/main/ is not a directory, but should be."
+   if !   [ -d   /+/base/ ]
+ then     echo $"/+/base/ is not a directory, but should be."
           echo $"Please request a hint to learn the command to execute."
  else     echo $"This step appears to be successfully completed."
  fi
@@ -416,7 +416,7 @@ stock GOAL[mount] $"Mount file systems"
 stock HINT[mount] $"Mount in proper order all of the file systems specified by the selected plan."
 
 test_mount(){
- local mrm=/media/root/main
+ local mrm=/+/main
 
  if   ! grep -q  $mrm       /proc/mounts
  then   echo   $"$mrm/ should be mounted, but is not mounted."
@@ -431,7 +431,7 @@ test_mount(){
  else   echo $"$mrm and $mrm/boot appear to be properly mounted."
         echo $"If the plan provides additional file systems"
         echo $"then mount those file systems also."
-        echo $"Only /media/root/main/ requires a boot subdirectory."
+        echo $"Only /+/base/ requires a boot subdirectory."
  fi
 }
 
@@ -480,8 +480,8 @@ field_check(){
 
 test_etc_fstab.rootfs(){
  local f=/etc/fstab.rootfs
- local m=/media/root/main
- local b=/media/root/main/boot
+ local m=/+/main
+ local b=/+/base/boot
 
  if   ! [ -f $f ]
  then echo $"$f does not exist, but should exist"; false
@@ -540,18 +540,18 @@ test_boothash(){
 stock DOCS[cp] "man cp" "\n" \
                "less /usr/doc/docent/cp"
 stock GOAL[cp] $"Copy rootfs to new root file system"
-stock HINT[cp] $"cp -ax / /usr/ /media/root/main/"	"$RIGHT" $"# copies the files."
+stock HINT[cp] $"cp -ax / /usr/ /+/base/"	"$RIGHT" $"# copies the files."
 stock ARGOT[cp] "cp"
 stock ASK[cp]  $"Who does not occasionally wonder why the copy command is called cp?"
 
 test_cp(){
- local r=/media/root/ n=/etc/rootname
+ local r=/+/ n=/etc/rootname
  if   ! cat $r*$n &>/dev/null
  then echo $"If files were copied then they did not go where expected"; false
  elif [ -n "$( cat $r*$n | sort | uniq -d )" ]
  then echo $"One or more root file systems has the same rootname."
       echo $"Fix that now by running the command:"
-      echo $"nano /media/root/*"; false
+      echo $"nano /+/*"; false
  else echo $"Seems that files copied."
  fi
 }
@@ -559,12 +559,12 @@ test_cp(){
 stock DOCS[rbind] "man mount" "\n" "less /usr/doc/docent/rbind"
 stock GOAL[rbind] $"rbind virtual file systems"
 stock HINT[rbind] \
-"mount --rbind {,/media/root/main}/dev"  "\n" \
-"mount --rbind {,/media/root/main}/proc" "\n" \
-"mount --rbind {,/media/root/main}/sys"
+"mount --rbind {,/+/main}/dev"  "\n" \
+"mount --rbind {,/+/main}/proc" "\n" \
+"mount --rbind {,/+/main}/sys"
 
 test_rbind(){
- local t=/etc/mtab m=/media/root/main
+ local t=/etc/mtab m=/+/main
  local d=$m/dev p=$m/proc s=$m/sys
  if   ! grep -q $d $t; then echo $"Please mount $d"; false
  elif ! grep -q $p $t; then echo $"Please mount $p"; false
@@ -576,11 +576,11 @@ test_rbind(){
 stock DOCS[chroot] "man chroot" "\n" "less /usr/doc/docent/chroot"
 stock GOAL[chroot] $"Install bootloader"
 stock HINT[chroot] \
-"chroot /media/root/main/ /etc/init.d/extlinux force-reload" "\n" \
+"chroot /+/base/ /etc/init.d/extlinux force-reload" "\n" \
 $"Execution of the above command completes this step."
 
 test_chroot(){
- if   [ -f /media/root/*/boot/initrf/etc ]
+ if   [ -f /+/*/boot/initrf/etc ]
  then echo $"chroot step successfully completed."
  else echo $"chroot step incomplete."; false
  fi
@@ -588,11 +588,11 @@ test_chroot(){
 
 stock DOCS[umount] "man umount"
 stock GOAL[umount] $"Unmount file systems"
-stock HINT[umount] 'grep /media/root/ /proc/mounts | cut -d \" \" -f2 | sort -r | xargs -r umount' "\n" \
+stock HINT[umount] 'grep /+/ /proc/mounts | cut -d \" \" -f2 | sort -r | xargs -r umount' "\n" \
 $"Execution of the above command completes this step."
 
 test_umount(){
- if   ! grep -q /media/root/ /proc/mounts
+ if   ! grep -q /+/ /proc/mounts
  then echo $"umount successful."
  else echo $"file systems are still mounted."; false
  fi

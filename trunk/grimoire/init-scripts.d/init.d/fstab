@@ -4,8 +4,10 @@
 # Default-Mode: 500
 # Should-Start: alt_boot find_ir udevsettle
 # Default-Start: S
-# Short-Description: avoids rdinit=/bin/bash when / is not in fstab
-# Description: fstab checks for / in /etc/fstab and rewrites it to /media/root/main
+# Short-Description: avoids kernel parameter bash when /+/base is not in /etc/fstab
+# Description: verifies /etc/fstab is sufficient
+#	auto modifies   /etc/fstab if necessary
+#	interacts with person at keyboard when baffled.
 ### END INIT INFO
 
 read < /proc/cmdline
@@ -15,6 +17,8 @@ fi
 
 . /lib/lsb/init-functions
 
+if ! rootfs; then trap - EXIT; exit 0; fi
+
 only start
 deny control
 
@@ -23,41 +27,29 @@ start(){
   block(){ /bin/find /dev -type b -printf '%p	%Y\n' | /bin/sed '/loop/d'; }
 
   /bin/dialog --backtitle fstab --stdout --no-cancel --title "Root Device Menu" \
-              --menu "Expected / in /etc/fstab" 0 0 0 /sbin/sulogin '' $( block )
+              --menu "Expected /+/base in /etc/fstab" 0 0 0 /sbin/sulogin '' $( block )
  }
 
  interact(){
-  # usb disk device may not be immediately available?
+  # usb storage devices may not be immediately available?
   /bin/sleep 5
   ROOT=$( root_menu )
   case $ROOT in
    /sbin/sulogin) /sbin/sulogin -t 300 1>/dev/console 2>&1 0</dev/console ;;
-   /dev*) echo "$ROOT /media/root/main auto defaults 0 0" >> /etc/fstab.rootfs
+   /dev*) echo "$ROOT /+/base auto defaults 0 0" >> /etc/fstab
   esac
  }
 
- check(){
-  if   [ -f /etc/fstab.rootfs ]
-  then [ -n "$( /bin/sed "s/#.*//;s:\t: :g;\: $1:p;d" /etc/fstab.rootfs )" ]
-  elif [ -f /etc/rootfs/fstab ]
-  then [ -n "$( /bin/sed "s/#.*//;s:\t: :g;\: $1:p;d" /etc/rootfs/fstab )" ]
-  else return 1
-  fi
+ modify(){
+  /bin/sed  -i 's:[ \t]\{1\}/[ \t]\{1\}: /+/base :
+                s:[ \t]\{1\}/media/root/: /+/:g' /etc/fstab
+  /bin/grep -q '/+/' /etc/fstab
  }
 
- copy(){
-  /bin/sed 's:#.*::' /etc/fstab |
-  /bin/sed 's:\t: :g' |
-  /bin/sed 's: / : /media/root/main :p;d' > /etc/fstab.rootfs
- }
-
- if   ! [ -f /etc/fstab.rootfs ] &&
-      ! [ -f /etc/rootfs/fstab ]
- then copy
- fi
-
- if   log_warning_msg '/etc/fstab.rootfs contains /media/root checking'; check /media/root/
- then log_success_msg '/etc/fstab.rootfs contains /media/root verified'
- else log_failure_msg 'root file system search failed'; interact
+ if   log_warning_msg '/etc/fstab contains /+/ checking'; /bin/grep -q '/+/' /etc/fstab
+ then log_success_msg '/etc/fstab contains /+/ verified'
+ elif log_success_msg '/etc/fstab automatic modification attempting'; modify
+ then log_success_msg '/etc/fstab automatic modification successful'
+ else log_failure_msg '/etc/fstab lacks root file systems'; interact
  fi
 }

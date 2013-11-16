@@ -15,26 +15,20 @@ if ! rootfs; then trap - EXIT; exit 0; fi
 only start
 deny control
 
-parent_root(){
- local d f r
-
- if   ! [ -f     /etc/rootname ]; then return 1
- elif ! read r < /etc/rootname  ; then return 1
+origin_root(){
+ if   ! [ -f     /etc/origin ] ||
+      ! read r < /etc/origin
+ then return 1
  fi
 
- for d in /media/root/*; do
-  if   [   -f   "$d/etc/rootname" ] &&
-       read f < "$d/etc/rootname"   &&
-       [  "$f" == "$r" ]
-  then D="$d"; return 0
-  fi
- done
-
- return 1
+ D="$( /bin/grep -lsx "$r" /+/*/etc/{host,root}name | /bin/sed 's:/etc/.*::' )"
+ [ -n "$D" ]
 }
 
 files_copy(){
  [ -d "$D/etc/init.d/conf.d" ] || mkdir -m 700 "$D/etc/init.d/conf.d"
+
+ local r=0
 
  for  f in /etc/init.d/conf.d/*; do
   if   [      "$f" -nt "$D/$f" ]
@@ -46,9 +40,9 @@ files_copy(){
 }
 
 start(){
- if   log_warning_msg "parent root file system locating"; parent_root
- then log_success_msg "parent root file system found"
- else log_failure_msg "parent root file system unknown"; return 1
+ if   log_warning_msg "origin root file system locating"; origin_root
+ then log_success_msg "origin root file system found"
+ else log_failure_msg "origin root file system unknown"; return 1
  fi
 
  if   log_warning_msg "{,$D}/etc/init.d/conf.d/ newer files copying"; files_copy

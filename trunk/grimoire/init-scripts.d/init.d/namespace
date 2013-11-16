@@ -17,26 +17,18 @@
 . /lib/lsb/init-functions
 
 if   ! rootfs
-then echo "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
+then log_failure_msg "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
+fi
+
+if ! [ -h /proc/$$/ns/pid ]; then
+ log_failure_msg "PID namespace can not be unshared."
+ log_failure_msg "The linux kernel was improperly configured."
+ trap - EXIT
+ exit 1
 fi
 
 only start
 deny control
-
-can_unshare(){
- if ! [ -h /proc/$$/ns/pid ]; then
-  log_failure_msg "g: PID namespace can not be unshared"
-  log_failure_msg "linux kernel improperly configured"
-  return 1
- fi
-
- if ! [ -f /bin/unshare ]; then
-  log_failure_msg "/bin/unshare not available"
-  log_failure_msg "version of installed util-linux"
-  log_failure_msg "must be 2.23-rc1 or later"
-  return 1
- fi
-}
 
 run_unshare(){
  while [ -n "$1" ]
@@ -45,14 +37,13 @@ run_unshare(){
 }
 
 find_roots(){
- for r in /media/root/*/init
+ for r in /+/*/init
  do  if [ -f $r ] && [ -x $r ]; then echo "${r%/*}"; fi
  done
 }
 
 start(){
- if   can_unshare &&
-      log_warning_msg "namespace executing"; run_unshare $( find_roots )
+ if   log_warning_msg "namespace executing"; run_unshare $( find_roots )
  then log_success_msg "namespace executed"
  else log_success_msg "namespace execution failed"
  fi

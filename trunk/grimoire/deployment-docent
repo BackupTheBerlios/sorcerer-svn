@@ -1,8 +1,8 @@
 # deployment-docent spell is for use with only Sorcerer Modern Magic
 # Copyright 2013 by Kyle Sallee, all rights reserved.
 
-with version stable 20131103
-with info    last   20131103
+with version stable 20131116
+with info    last   20131116
 with base    Linux-HOWTOs LVM2 alsa-utils bash-completion btrfs-progs ccache cdrtools core cpufrequtils dhcpcd dmidecode fhs gptfdisk hdparm intltool iptables jfsutils kbd libao links linux linux-documentation logind lsof lsscsi man-pages mdadm moc nano nmap ntp openssh parted pciutils pcmciautils ppp protocols qemu-quick-console rp-pppoe rsync sdelta3 sdparm services sg3_utils smartmontools sorcery-documentation traceroute tzdata unbound unzip usbutils wesnoth-music-samples wireless_tools wpa_supplicant
 # static--syslinux currently broke
 #with base    static--syslinux
@@ -46,10 +46,10 @@ with trait   console solo
 with info    cite 'the deployment docent'
 
 build(){
- mkdir  -pvm 755    "$DESTDIR"/usr/{libexec,sbin,doc/docent}/
- install -vm 700    "$SCRIPT_DIR"/deployment-docent  "$DESTDIR"/usr/libexec/
- install -vm 700    "$SCRIPT_DIR"/sbin/docent-deploy "$DESTDIR"/usr/sbin/
- install -vm 644 -t "$DESTDIR"/usr/doc/docent/       "$SCRIPT_DIR"/doc/*
+ install -vm 755 -d "$DESTDIR"/usr/{libexec,sbin,doc/docent}/
+ install -vm 700 -t "$DESTDIR"/usr/libexec/    "$SCRIPT_DIR"/deployment-docent
+ install -vm 700 -t "$DESTDIR"/usr/sbin/       "$SCRIPT_DIR"/sbin/docent-deploy
+ install -vm 644 -t "$DESTDIR"/usr/doc/docent/ "$SCRIPT_DIR"/doc/*
 }
 
 post_install(){
@@ -62,7 +62,7 @@ post_install(){
  xargs -r --max-lines=256 rm -rf
  find "$SOURCE_CACHE" -mindepth 1 -type d -empty|xargs -r --max-lines=256 rmdir
  find "$SOURCE_CACHE" -mindepth 1 -type d -empty|xargs -r --max-lines=256 rmdir
- leech $(< $SCRIPT_DIR/sources.txt )
+ pipe_queue "$LOAD_QUEUE" < "$SCRIPT_DIR"/sources.txt
  default_post_install
 }
 

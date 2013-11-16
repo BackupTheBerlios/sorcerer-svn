@@ -1,82 +1,81 @@
 # intiramfs spell is for the Sorcerer distribution only
 # Copyright 2007-2013 by Kyle Sallee, all rights reserved.
 
-with info    last   20130621
-with version stable 20130621
+with info    last   20131116
+with version stable 20131116
 with base    coreutils cpio findutils grep init-scripts kmod sed udev util-linux
 with role    administration/bootloader
 with trait   console
 with info    cite "creates the initramfs images used for booting
 
-An inital random access memory file system
-is extracted onto the rootfs.
-The ROOTFS, root file system, is a hybrid RAMFS and TMPFS.
+initramfs means initial random access memory file system.
+Content of initramfs files are extracted to rootfs during booting.
+
+The rootfs is a hybrid RAMFS and TMPFS.
 A RAMFS is a RAM based file system that has no limits on capacity.
-A TMPFS is similar to a RAMFS except TMPFS can receive a limitation
-on capacity and inodes when mounting and will enforce those limits.
-Also a TMPFS can transfers it's content from RAM to swap space and back
-when more RAM is required by processes.
+A TMPFS is similar to a RAMFS except TMPFS enforces capacity and inode limits.
+A TMPFS can also transfers it's content from RAM to swap space and back.
+
 The ROOTFS lacks the limitations of TMPFS,
-but retains the swapping capabilities.
+yet retains the swapping capability.
 
 If stat is asked to identify a ROOTFS
 then stat will report that the file system type is ramfs.
+However, the device number for toofs is 0
 
 Only the linux kernel can mount rootfs.
-Nothing can unmount the rootfs.
-Other file systems are mounted on directories on the rootfs.
-Multiple disk based, cluster based, and network based file systems
-can be mounted on direct subdirectories of /media/root/
+rootfs can not be unmounted.
+Other file systems are mounted on           directories on the rootfs.
+Root  file systems are mounted on direct subdirectories of /+/
 
-Most POSIX discard the content of rootfs after booting.
-However, the rootfs is not discarded with this POSIX.
+The rootfs is not discarded after booting.
 The rootfs is retained until shutdown.
-The rootfs acts as a valid root file system.
-Howver, since the rootfs is RAM based
-no changes made to the rootfs survive reboot.
+The rootfs acts similar to a root file system.
+However, since the rootfs is memory based
+changes made to the rootfs do not survive reboot.
 Therefore, changes to the rootfs
 must be made on the root file system
-which creates the initramfs images
+used to create the initramfs images
 that are loaded during booting.
 
-Most linux kernels lack compiled in drivers
-essential for accessing disk devices and file systems.
-Instead those are provided as modules
-that can be loaded into a running kernel.
-Off hand I remember 5 reasons for this,
-which I will omit discussing.
-A modern POSIX will not typically provide
-a linux kernel that is capable of booting without initramfs images
-unless that kernel boots only on a very specific hardware configuration.
+Most Linux kernels receive few compiled in drivers.
+Most file systems, protocols, and device drivers
+are provided as modules.
+Modules can be loaded into the kernel.
 
-Consequently, booting typically involves the BIOS
-loading and executing code from the MBR of a fixed disk.
+A modern POSIX provides a Linux kernel that is
+incapable of booting without initramfs images
+unless the kernel is boots only on precise hardware.
+
+During booting
+BIOS loads and executes code from the MBR.
+The Master Boot Record is the first sector on a fixed disk.
 That code examines the partition table and loads the code
 from the boot block of the first partition that was granted
 the bootable flag.
 The code loaded from the boot block of the partition is the bootloader.
-The bootloader loads the linux kernel and initramfs images
+The bootloader loads the Linux kernel and initramfs images
 from disk into RAM.
-Then the bootloader passes execution to the linux kernel.
-The linux kernel decompresses itself and it's initramfs images.
+Then the bootloader passes execution to the Linux kernel.
+The Linux kernel decompresses itself and it's initramfs images.
 Then it loads the content from the initramfs images onto the rootfs.
-And finally, linux begins execution of /init from the rootfs
+And finally, Linux begins execution of /init from the rootfs
 as process identifier 1.
 
-Some bootloader programs and BIOS are capable
-of downloading a bootable kernel and initramfs images
-from a tftp server from a server attached to the network.
-Both disk and network based booting
-still requires an initramfs image
-when the linux kernel lacks essential compiled in drivers.
+Thin clients, computers booted from network,
+became rare when fixed disks became inexpensive.
+Therefore, network booting is not supported.
+However, some BIOS and the syslinux boot loader
+are capable of downloading a kernel and initramfs images
+from a tftp server attached to the network.
+Network booting can be achieved by system administrators
+that possesses sufficient lore and time to configure it.
 
-A bash shell can be immediately provided
-instead of booting /init normally
-when bash is appened to kernel parameters.
-This is useful when the only keyboard attaches via USB."
+A bash shell can be provided instead of normal booting
+by providing bash as a kernel parameter."
 
 build(){
- mkdir  -pvm 755                   "$DESTDIR"/sbin
+ install -vm 755 -d                "$DESTDIR"/sbin/
  ln      -fs /etc/init.d/initramfs "$DESTDIR"/sbin/mkinitrd
  ln      -fs /etc/init.d/initramfs "$DESTDIR"/sbin/mkinitrf
 }

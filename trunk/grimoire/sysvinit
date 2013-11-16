@@ -1,3 +1,4 @@
+with info    edit 20131116
 with info    good 20130530
 with info    last 20100414
 with version stable 2.88dsf
@@ -46,13 +47,9 @@ http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Cor
 
 build(){
  install_init(){
-  sed    -i "s:ulimit :# ulimit :" \
-                  src/initscript.sample
-  mkdir  -pvm 755                       "$DESTDIR"/etc
-  install -vm 700 src/initscript.sample "$DESTDIR"/etc/
-  install -vm 600 "$SCRIPT_DIR"/inittab "$DESTDIR"/etc/
-
-  return
+  install -vm 755 -d "$DESTDIR"/etc/rootfs/
+  install -vm 600 -t "$DESTDIR"/etc/rootfs/ "$SCRIPT_DIR"/inittab
+  install -vm 600 -t "$DESTDIR"/etc/        "$SCRIPT_DIR"/inittab
  }
 
  case $HOSTTYPE in
@@ -66,7 +63,7 @@ build(){
  fi
 
  make -C src $SEL &&
- mkdir -pvm 755 "$DESTDIR"/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}} &&
+ install -vm 755 -d "$DESTDIR"/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}}/ &&
  make -C src $SEL install ROOT="$DESTDIR" &&
  install_init &&
  rm -f "$DESTDIR"{/bin/mountpoint,/sbin/sulogin}

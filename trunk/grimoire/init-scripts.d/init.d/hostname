@@ -16,38 +16,30 @@
 
 only start configure
 
-main_root(){
- /bin/cat /etc/fstab.rootfs /etc/rootfs/fstab 2>/dev/null |
- /bin/sed 's:#.*::' |
- /bin/tr  '\t' ' ' |
- /bin/tr  -s ' ' |
- /bin/sed '/noauto/d;/ bind /d; s:^ ::' |
- /bin/cut  -d ' ' -f2 |
- /bin/head -n 1
-}
-
 configure(){
  hostname_dialog(){
   BACKTITLE=$"hostname configuration menu"
       TITLE=$"hostname input"
-       HELP=$"Boxes typically have host names such as:\n
-cream.puf; party.tea; workstation26.lab4.pu.edu.\n
-The hostname is written to /etc/hostname\n
-The hostname is valid for the computer and the rootfs file system.\n
-Root file systems have their hostname set from /etc/rootname\n
-/etc/init.d/rootname is the init-script that sets the rootname.\n
-If root file systems /media/root/main and /media/root/www exists\n
-then their rootnames will likely be something like\n
-main.cream.puff and www.party.tea.\n
-The rootname can be entirely different from the hostname,\n
-however more often than not the rootname will become\n
-the basename of where the root file system is mounted\n
-dot the hostname for the computer.\n
-Later please set the rootname for each root file system.\n
-At this moment please enter the hostname for this computer\n
-which will be the hostname for the rootfs."
+       HELP=$"
+Rootfs and root file systems each receive a FQDN,\n
+fully qualified domain names.\n
+When a computer serves multiple roles\n
+then the hostname for the rootfs could be the domain name.\n
+Then the hostname for each root file system\n
+could be the root file system's name dot hostname.\n
+If the hostname for rootfs is party.tea\n
+then /+/base could could be named base.party.tea,\n
+and  /+/www  could could be named  www.party.tea.\n
+Hostnames must be unique.\n
+Hostnames for root file systems\n
+can entirely differ from the hostname for the rootfs.\n
+\n
+The hostname for the rootfs        is written to /etc/rootfs/hostname\n
+The hostname for root file systems is written to /etc/hostname\n
+The init-script for configuring the hostname\n
+for a root file system is called /etc/rootname"
 
-  dialog \
+  /bin/dialog \
    --backtitle "$BACKTITLE"  \
    --title     "$TITLE"      \
    --timeout 60              \
@@ -55,13 +47,16 @@ which will be the hostname for the rootfs."
    --inputbox "$HELP" 0 0
  }
 
- confirm_it(){ dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
+ confirm_it(){ /bin/dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
 
+ /bin/mkdir -pm 700  /etc/rootfs/
  local NAME=$( hostname_dialog )
- if   echo "$NAME" | grep -q "\." || confirm_it
- then echo "$NAME" > /etc/hostname
-      local mr=$( main_root )
-      cp /etc/hostname "$mr"/etc/
+ if  echo "$NAME" | /bin/grep -q "\." || confirm_it; then
+     echo "$NAME" >        /etc/rootfs/hostname
+    if   [ -d       /+/base ]; then
+     mkdir -pm 700  /+/base/etc/rootfs/
+     echo "$NAME" > /+/base/etc/rootfs/hostname
+    fi
  fi
 }
 
@@ -69,9 +64,7 @@ start(){
  rootfs || exit 0
  local REPLY
  log_warning_msg "hostname setting"
-   if [ -f /etc/rootfs/hostname ]; then read REPLY < /etc/rootfs/hostname
- elif [ -f /etc/hostname        ]; then read REPLY < /etc/hostname
- fi
+ if   [ -f /etc/hostname ]; then read REPLY < /etc/hostname; fi
  if   [ -z "$REPLY" ]
  then REPLY="unknown$RANDOM$RANDOM"
       log_failure_msg "/etc/init.d/hostname configure"

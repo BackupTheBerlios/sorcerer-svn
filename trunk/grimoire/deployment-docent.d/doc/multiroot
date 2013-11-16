@@ -4,15 +4,15 @@ In 2013 Modern Magic evolved into a full multi-root POSIX.
 About 60 root file systems can exist.
 However, testing involved no more than 6 root file systems.
 Each root file system is mounted
-on an immediate sub directory of /media/root/
+on an immediate sub directory of /+/
 Any deployment should have at least 2 root file systems.
 However, deployment with a single root file system remains possible.
 
-/media/root/main/ is the root file system common to all deployments.
+/+/base/ is the root file system common to all deployments.
 The main file system provides a minimal manifest of software
 for the purpose of updating and constructing the initramfs images.
 initramfs provide the files that populate the rootfs booting.
-The password for the root account on /media/root/main/
+The password for the root account on /+/base/
 becomes the password for the root account on the rootfs.
 Consequently, the person responsible
 for the computer should know the password.
@@ -20,13 +20,13 @@ for the computer should know the password.
 Other root file systems can be created
 that are specific to the role being performed.
 Root file systems on a server might be:
-/media/root/main/ /media/root/test/
-/media/root/mail/ /media/root/www/
-/media/root/ftp/  /media/root/dns/
+/+/base/ /+/test/
+/+/mail/ /+/www/
+/+/ftp/  /+/dns/
 
-/media/root/ftp/ could contain software that is required
+/+/ftp/ could contain software that is required
 for running a ftp server and for updating itself.
-Similar to /media/root/ftp/
+Similar to /+/ftp/
 Each root file system will contain the software
 required for updating itself
 and software required to perform it's designated role.
@@ -83,7 +83,7 @@ that it is the only root file system.
 If a development or test computer
 does not exist on a LAN
 then it should exist as a root file system.
-/media/root/dev/ or /media/root/test/ are suitable names.
+/+/dev/ or /+/test/ are suitable names.
 The manifest should including all the software
 that is installed on other root file systems.
 It should be updated prior to updating other root file systems.
@@ -98,29 +98,29 @@ circumvented, reported, and propagation of problems prevented.
 Therefore, root file systems that are hosting
 mission critical services can maintain maximum up-time.
 
-/media/root/www/ is obviously where the web server runs.
+/+/www/ is obviously where the web server runs.
 However, if vhosting then the possibility exists
 that each FQDN can receive it's own root file systems.
 However, that could require additional IP address
 since vhosting typically associates multiple FQDNs
 with a single IP address.
 
-/media/root/dns/ could be the place
+/+/dns/ could be the place
 where an authoritative name server for a domain runs.
 In contrast the names and roles of workstation's
 root file systems would probably differ.
 
 A possible configuration is:
-/media/root/main/ ;
-/media/root/work/ ;
-/media/root/user/
+/+/base/ ;
+/+/work/ ;
+/+/user/
 
-/media/root/work/ could contain company approved software.
-/media/root/work/ could be intended for use on work related tasks only.
+/+/work/ could contain company approved software.
+/+/work/ could be intended for use on work related tasks only.
 However, a desire to install and run unapproved software could exist.
-/media/root/user/ can provide a root file system for unapproved software.
+/+/user/ can provide a root file system for unapproved software.
 The assigned user of the mobile computer can be granted
-the root account password for /media/root/user/
+the root account password for /+/user/
 Multiple root file systems allow for the possibility
 of delegation of authority to separate system administrators.
 
@@ -195,7 +195,7 @@ Each root file system contains it's own VETH for networking.
 
 If the hostname for the computer is ronin.net
 with root file systems such as:
-/media/root/main/ /media/root/dev/ /media/root/www/
+/+/base/ /+/dev/ /+/www/
 then the SA might write the rootnames for each as:
 main.ronin.net; dev.ronin.net; www.ronin.net.
 
@@ -383,8 +383,8 @@ when using virtual computers
 provides a similar solution.
 
 Now that the concept of individual root file systems
-mounted on /media/root/*/ is understood
-the difference between rootfs and /media/root/main/
+mounted on /+/*/ is understood
+the difference between rootfs and /+/base/
 should be learned.
 
 rootfs is a combination of TMPFS and RAMFS.
@@ -405,19 +405,19 @@ The rootfs is populated from the content of initramfs images.
 initramfs images are cpio archive files.
 Begin compressed by gzip or xz is optional.
 
-The content of rootfs is not a clone of /media/root/main/
-Instead portions of /media/root/main/
+The content of rootfs is not a clone of /+/base/
+Instead portions of /+/base/
 are are provided in the initramfs images.
 /bin/ /etc/ /init/ /lib/ /lib64/ /sbin/ are typically provided.
 However, only useful portions from each are provided.
 Only a few files from /usr/ are provided.
-/media/root/main/ might contain between 2 and 8 gigabytes.
+/+/base/ might contain between 2 and 8 gigabytes.
 However, the rootfs might only contain 200 megabytes.
 
-/media/root/main/ and rootfs roles differ.
+/+/base/ and rootfs roles differ.
 The initramfs images contain files for booting,
 trouble shooting, and administrative tasks.
-/media/root/main/ contains the files provided on the rootfs
+/+/base/ contains the files provided on the rootfs
 and also developmental tools for updating installed software.
 
 Since the initramfs images are compressed
@@ -436,15 +436,15 @@ The rootfs exists only in memory.
 Consequently, modifications to the rootfs
 are discarded during reboot and shutdown.
 
-/media/root/main/ is the typical origin of the rootfs.
+/+/base/ is the typical origin of the rootfs.
 The root file system that generates
 the initramfs images should be updated and modified.
 Modifications made to that file system
 become modifications to the rootfs on the following boot.
 
 The final question is probably,
-"If rootfs is a shadow of /media/root/main/
-then why have rootfs instead of using /media/root/main/ ?"
+"If rootfs is a shadow of /+/base/
+then why have rootfs instead of using /+/base/ ?"
 
 First, the Linux kernel has a size limit.
 If the kernel is too large to boot

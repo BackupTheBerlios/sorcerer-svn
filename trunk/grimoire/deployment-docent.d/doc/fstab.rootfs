@@ -11,7 +11,7 @@ rootfs is always mounted as /
 Never mount anything directly on /
 Any other directory can become a valid mount point.
 However, root file systems are always mounted
-on the immediate sub directories of /media/root/
+on the immediate sub directories of /+/
 
 Run level execution happens chrooted.
 Therefore, during runlevel execution
@@ -59,7 +59,7 @@ However, hard links can not cross file system boundaries.
 binds lack that limitation.
 
 All root file systems are mounted
-in immediate sub directories of /media/root/
+in immediate sub directories of /+/
 /etc/fstab.rootfs can also specify binds.
 A bind is useful for concurrently sharing
 /home/ or other portions of a file system
@@ -68,18 +68,18 @@ And portions of file systems such as
 /aux/can/
 can also be mounted from /etc/fstab.rootfs
 which is useful if it is to receive additional binds.
-Then it can be bound to /media/root/main/aux/can/
-and  it can also be bound to /media/root/main/work/can/
+Then it can be bound to /+/base/aux/can/
+and  it can also be bound to /+/base/work/can/
 It can be bound in as many locations as the SA desires.
 
 If multiple root file systems existed
 on the same file system then that file system
-could first be mounted to some place other than /media/root/
+could first be mounted to some place other than /+/
 And then the directories containing root file systems
-could be bind to sub directories of /media/root/
+could be bind to sub directories of /+/
 Or if the file system directories were sub directories
 of the top level directory
-then that file system could be mounted on /media/root/
+then that file system could be mounted on /+/
 
 Typically, SAs create root file systems
 on a dedicated partition
@@ -100,8 +100,8 @@ that should be mounted only within that root file system.
 Consider a /etc/fstab.rootfs for the Simplicity Plan.
 It might look like the following two lines:
 
-/dev/sda2	/media/root/main	ext4	defaults	0 0
-/dev/sda1	/media/root/main/boot	ext2	defaults	0 1
+/dev/sda2	/+/base	ext4	defaults	0 0
+/dev/sda1	/+/base/boot	ext2	defaults	0 1
 
 Please grant additional attention to the sequence.
 The file system which contains the mount point
@@ -115,7 +115,7 @@ Proper order is responsibility of the SA.
 
 An alternate method would be
 
-/dev/sda2	/media/root/main	ext4	defaults	0 0
+/dev/sda2	/+/base	ext4	defaults	0 0
 
 in /etc/fstab.rootfs while /etc/fstab contains
 
@@ -124,11 +124,11 @@ in /etc/fstab.rootfs while /etc/fstab contains
 Run level execution for a root file system occurs
 chrooted within the root file system.
 Consequently, /boot specified above is mounted
-while already chrooted within /media/root/main
-and therefore becomes mounted as /media/root/main/boot
+while already chrooted within /+/base
+and therefore becomes mounted as /+/base/boot
 
 However, because all root file systems have unshared mnt namespace
-/media/root/main/boot will continue to appear empty
+/+/base/boot will continue to appear empty
 when viewed from the rootfs
 unless the unshared mnt namespace
 of the root file system is entered.
@@ -183,8 +183,8 @@ However, they must be properly prefixed with
 
 Therefore, the /etc/fstab.rootfs for the Secure Mobility plan would be:
 
-/dev/mapper/luks-sda2	/media/root/main	ext4	defaults	0 0
-/dev/sda1		/media/root/main/boot	ext2	defaults	0 1
+/dev/mapper/luks-sda2	/+/base	ext4	defaults	0 0
+/dev/sda1		/+/base/boot	ext2	defaults	0 1
 
 The reason for using labels and UUIDs
 is because device names can change
@@ -222,7 +222,7 @@ might create a box that no longer boots.
 An entry for /etc/fstab.rootfs
 that contains a UUID might look like:
 
-UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/media/root/main	ext4	defaults 0 0
+UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/+/base	ext4	defaults 0 0
 
 Remember that the correct UUID for the device can be discovered
 with the command:
@@ -284,16 +284,16 @@ might look something like:
 # share /home/ among root file systems dev www ftp gui
 
 UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/home ext4 defaults 0 0
-/home /media/root/dev/home none bind 0 0
-/home /media/root/www/home none bind 0 0
-/home /media/root/ftp/home none bind 0 0
-/home /media/root/gui/home none bind 0 0
+/home /+/dev/home none bind 0 0
+/home /+/www/home none bind 0 0
+/home /+/ftp/home none bind 0 0
+/home /+/gui/home none bind 0 0
 
 The above comment and lines indicate that the same /home/
 would be visible when logged into
-/media/root/dev/
-/media/root/www/
-/media/root/gui/
+/+/dev/
+/+/www/
+/+/gui/
 
 Remember that the other root file systems
 must have their mount line before the bind.

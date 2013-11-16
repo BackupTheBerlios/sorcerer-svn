@@ -1,7 +1,7 @@
 #!/bin/bash
 less << EOF
 
-Sorcerer System V Initialization and Shutdown Script Documentation
+Modern Magic System V Initialization and Shutdown Script Documentation
 
 Sections:
 
@@ -11,152 +11,290 @@ Sections:
 
 Section 1.0 Overview
 
+Define booting related concepts,
+their inter-relationship,
+and order of execution.
+
 Section 1.1 POST
 
-Following power on the Power On Self Test, or POST begins.
-Following a successful POST the BIOS, basic input output,
+During booting the POST, Power On Self Test, executes first.
+Following a successful POST the BIOS, basic input output system,
 attempts to load an operating system.
-Depending on the capability and configuration
-the BIOS will attempt to load an operating system from CDROM,
-fixed disks, floppy disks, network, or removeable drives.
-When loading an operating system from fixed disk BIOS
-first loads and runs the content of the MBR, master boot record,
-of the primary fixed disk.
+BIOS can load operating systems from various media.
+When  loading  from a fixed disk
+the first sector of a fixed disk into RAM.
+The first sector of a fixed disk is called the MBR,
+Master Boot Record.
+Processor instructions stored in the MBR begin execution.
 
-Section 1.2 MBR / ms-sys
+
+Section 1.2 MBR
 
 The MBR must contain bootable code.
-The code is typically from the ms-sys project.
-However, other bootloaders are can be used.
-The code in the MBR does not typically load the linux kernel
-but instead loads and begins execution of the code in the boot block
-of the first partition that has the bootable flag enabled.
+The syslinux project provides bootable MBR code.
+The code installed into the MBR should be compatible
+with the GUID, Global Unique Identifier, partition table.
+The partition table specifies the start and size of partitions.
+Partitions divide a fixed disk into regions
+dedicated for use as file systems and swap systems.
 
-Section 1.3 boot block / extlinux
+At least one partition will receive
+the attribute value of 2 for legacy BIOS bootable.
+The MBR code loads the partition table.
+The first partition with the
+legacy BIOS bootable attribute is determined.
+The first sector from that partition is loaded.
+The first sector of a partition is called the boot block.
+Code from the boot block begins execution.
 
-If a box has a dedicated ext2 /boot partition
-then extlinux installed in the the boot block
-of that partition is run.
-Otherwise extlinux installed in the
-boot block of the / partition is run.
-extlinux is the default boot loader.
-It's task is to load the initrams and kernel
-from disk into RAM and to pass control to the kernel.
 
-Section 1.4 linux kernel
+Section 1.3 /boot
 
-The linux kernel begins.
-It initializes hardware devices
-such as the screen and keyboard.
-Then the kernel decompresses, if necessary, and
-extracts the cpio initramfs images to the rootfs.
-The rootfs is automatically mounted on /
-Finally, the kernel begins execution of the file /init as process 1.
+Each media storage device should
+have one dedicated ext2 /boot partition.
+ext2 stands for second extended file system.
+It is a type of file system.
+/boot refers to the mount point and also the role.
+The /boot filesystem stores the linux kernel file
+and compressed cpio archive files that contain
+linux kernel modules, and essential portions
+from a root file system.
+The partition which contains the ext2 file system
+mounted as /boot should be the partition which
+receives the Legacy BIOS bootable attribute.
 
-However, using the kernel paramter rdinit=/bin/bash
-the kernel can be instructed to execute a shell instead of /init.
-Executing a shell instead of the normal /init is useful
-for debugging problems that occur during sysinit.
 
-Section 1.5 sysinit
+Section 1.4 extlinux from syslinux
 
-Sysinit runs from entirely from the initramfs.
-Sysinit is the third stage of the boot process.
-During sysinit udev automatically loads
-kernel drivers, modules, firmware for installed hardware.
-Udev also creates device nodes in /dev with permission
-and ownership as specified by udev rule files.
-As sysinit progress
-kernel modules are loaded for filesystems
-and other commonly used protocols and methods such as FUSE,
-file system in user space, and networking protocols.
-The purpose of the sysinit is to complete required preparations
-for being able to successfully mount filesystems provided
-on disk, by network, or by memory storage devices.
+extlinux is the name of the bootloader program
+which is installed in the boot block of the /boot partition.
+The syslinux software project provides extlinux.
 
-Section 1.6 the end of sysinit
+The task of a bootloader is the load the linux kernel
+and additional files called initramfs into memory.
+initramfs means initial random access memory file system.
 
-The end portion of sysinit
-creates unshared namespace containers
-for each root file system.
-/etc/fstab.rootfs is parsed
-during the creation of namespace containers.
 
-3 types of mounts are specified in /etc/fstab.rootfs.
-File systems mounted on an immediate subdirectory of
-/media/root/ become root file systems.
-File systems mounted anywhere except within /media/root/
-are becomes accessible on the rootfs.
-If those file systems on the rootfs are to be accessed by
-or shared by multiple root file systems
-then /etc/fstab.rootfs will specify binds.
+Section 1.5 rootfs
+
+The content of the rootfs, a special memory based file system,
+is constructed in memory from the content of the initramfs files.
+The rootfs has various support purposes apart from the main
+role assigned to a computer.
+rootfs is used during booting, shutdown, and
+by the SA to identify and fix problems.
+It also acts as a firewall/router/gateway for
+one or more root file systems.
+
+Remember that rootfs is not the same as a root file system.
+rootfs is constructed from a root file system,
+but it does not have the complete content.
+Any modifications to rootfs are lost during shutdown or reboot,
+because rootfs exists in memory.
+A root file system is backed by mass storage device
+and can provide much more installed software.
+Only the adminsitrator would want to log into the rootfs.
+All user accounts log into root file systems instead.
+
+
+Section 1.6 Linux kernel
+
+extlinux does not construct the rootfs.
+extlinux merely loads files into memory.
+After completion extlinux executes Linux.
+Linux initializes hardware devices
+and constructs the rootfs by decompressing
+and extracting content from the initramfs.
+The rootfs is mounted on /
+As such it is considered the root
+of the file system hierarchy.
+But it is not the same as a root file system.
+
+When minimal device initialization and
+rootfs construction completes
+linux begins execution of /init as process one.
+
+
+1.7 Booting to BASH
+
+Booting to a BASH, bourne again shell, prompt
+is useful only for debugging severe boot bugs.
+
+extlinux can be instructed to pass additional kernel parameters.
+Kernel parameter rdinit=/bin/bash
+causes  Linux to execute /bin/bash
+as process one.
+
+However, input from a USB keyboard will not be received.
+Therefore, if a BASH shell is desired for debugging
+then append bash to the kernel parameters.
+/init will provide a BASH shell
+after loading device driver modules.
+Then a USB keyboard can be used.
+
+
+Section 1.8 Sysinit
+
+Sysinit refers to a stage of booting.
+Everyone calls it sysinit instead of system initialization.
+Sysinit runs from entirely on the rootfs.
+
+During sysinit firmware for hardware devices are loaded.
+Also kernel driver modules are loaded.
+And kernel modules for protocols and file systems are loaded.
+
+During sysinit file systems are checked,
+file systems are mounted, and some
+programs execute and become resident
+to continue performing their task.
+
+Upon completion of sysinit runlevel execution begins.
+
+
+Section 1.9 Runlevels
+
+Each root file system has an initialization stage.
+Instead of sysinit this stage is called the runlevel.
+During runlevel execution file systems mount
+and programs that provide services begin execution
+and remain resident in memory.
+
+The conclusion of runlevel execution provides the computer
+in what should be a completely operational state.
+If allowed to do so then users can log in.
+And the software will be exeucting that performs
+the roles designated for the computer.
+This concludes the process of booting.
+
+Section 1.A Root File Systems
+
+Non root file systems can be mounted anywhere on the rootfs.
+However, a root file systems must be mounted in a specific location.
++ is directory which holds mount points for root file systems.
+
+/+/base/
+
+The above is the mount point for the root file system called base.
+The base root file system has only one role.
+Base is used for constructing the initramfs used to populate the rootfs.
+The base root file system will have the least amount of installed software.
+However, base is a root file system capable of being updated and repaired.
+If granting 10G to the partition backing base
+then the file system fill will be approximately 33%
+The name for the base root file system is arbitrarily selected.
+It could be called the key root file system if preferred.
+
+Every computer will have at least one base root file system.
+Other root file systems should also exist.
+Other root file systems should be role specific.
+
+/+/work/
+
+The above could be the mount point for the work file system
+which provides a root file system suitable for the task
+of providing a workstation.
+
+/+/web/
+
+The above could be the mount point for the web file system
+which provides a root file system that runs a web server.
+
+Delegating root file systems to roles
+provides a method that mitigates the scope
+of both bugs and intrusion.
+It is also superior in both performance and resource management
+as compared to both HVM and PVM virtual computers.
+
+HVM stands for hardware virtual machine.
+PVM stands for     para-virtual machine.
+PVM or more often called PV are an implementation
+that lacks BIOS and lacks hardware.
+Instead the Linux kernel within the virtual machine
+makes requests directly to the Linux kernel on the host computer.
+
+Multiple root file systems provides
+an eloquent alternative to virtual machines.
+Only one Linux kernel is loaded.
+Precise resource allocation is achieved by the use of control groups.
+Control groups is the kernel provide method
+for creating groups which limit access to resources
+for the processes that a group contains.
+
+
+Section 1.B Sharing File Systems
+
+A non  root file system can be shared.
+A dedicated file system can be mounted on /aux/can/
+/aux/can/ can be bound to directories /+/*/aux/can/
+/aux/can/ becomes accessbile from all root file systems.
 
 Here is an example:
 
-/dev/sda2 /media/root/main         ext4 defaults 0 0
-/dev/sda1 /media/root/main/boot    ext4 defaults 0 0
-/dev/sda3 /media/root/work         ext4 defaults 0 0
-/dev/sda4 /media/root/play         ext4 defaults 0 0
-/dev/sdb1 /aux/can/                ext4 defaults 0 0
-/aux/can  /media/root/main/aux/can none bind     0 0
-/aux/can  /media/root/work/aux/can none bind     0 0
-/aux/can  /media/root/play/aux/can none bind     0 0
+/dev/sda2 /+/base         ext4 defaults 0 0
+/dev/sda1 /+/base/boot    ext4 defaults 0 0
+/dev/sda4 /+/http         ext4 defaults 0 0
+/dev/sda3 /+/work         ext4 defaults 0 0
+/dev/sdb1 /aux/can/       ext4 defaults 0 0
+/aux/can  /+/base/aux/can none bind     0 0
+/aux/can  /+/http/aux/can none bind     0 0
+/aux/can  /+/work/aux/can none bind     0 0
 
-In the above example /dev/sdb1 provides a file system
-that stores the content of /aux/can/ that is shared
-among all 3 root file by binding /aux/can
-to the /aux/can/ of /media/root/{main,home,work}/aux/can/
+In the above example the content of /aux/can/
+is visible also at: /+/base/aux/can/; /+/work/aux/can/; /+/http/aux/can/.
 
 Each root runs in an unshared mnt namespace.
-Therefore, a file system shared among multiple root file systems
-must first be mounted on the rootfs
-and then mount --bind into each unshared namespace.
+A file system that should be shared
+must be mounted first on the rootfs.
+Then it can be bound within root file systems.
+The following example shares /home/ and /aux/can/
 
-Here is the above example with a shared /home/
+/dev/sda2 /+/base         ext4 defaults 0 0
+/dev/sda1 /+/base/boot    ext4 defaults 0 0
+/dev/sda4 /+/http         ext4 defaults 0 0
+/dev/sda3 /+/work         ext4 defaults 0 0
+/dev/sdb1 /aux/can/       ext4 defaults 0 0
+/aux/can  /+/base/aux/can none bind     0 0
+/aux/can  /+/http/aux/can none bind     0 0
+/aux/can  /+/work/aux/can none bind     0 0
+/dev/sdb2 /home           ext4 defaults 0 0
+/home     /+/base/home    none bind     0 0
+/home     /+/http/home    none bind     0 0
+/home     /+/work/home    none bind     0 0
 
-/dev/sda2 /media/root/main         ext4 defaults 0 0
-/dev/sda1 /media/root/main/boot    ext4 defaults 0 0
-/dev/sda3 /media/root/work         ext4 defaults 0 0
-/dev/sda4 /media/root/play         ext4 defaults 0 0
-/dev/sdb1 /aux/can/                ext4 defaults 0 0
-/aux/can  /media/root/main/aux/can none bind     0 0
-/aux/can  /media/root/work/aux/can none bind     0 0
-/aux/can  /media/root/play/aux/can none bind     0 0
-/dev/sdb2 /home                    ext4 defaults 0 0
-/home     /media/root/main/home    none bind     0 0
-/home     /media/root/work/home    none bind     0 0
-/home     /media/root/play/home    none bind     0 0
-
-The columns in /etc/fstab and /etc/fstab.rootfs
-are explained in the fstab manual page.
+The fstab manual page explains the columns
+found in /etc/rootfs/fstab
 The manual page is displayed by executing the command:
 man fstab
 
-In the following example /home from /media/root/main/home
-is bind to /media/root/main/{work,play}/home
-This works because file systems specified in /etc/fstab.rootfs
-are mounted in rootfs' mnt namespace rather than
-the unshared mnt name spaces of each root file system.
+A dedicated file system for /aux/run/
+can also be shared.
+However, each root file system must have it's own private view.
 
-/dev/sda2             /media/root/main      ext4 defaults 0 0
-/dev/sda3             /media/root/work      ext4 defaults 0 0
-/dev/sda4             /media/root/play      ext4 defaults 0 0
-/media/root/main/home /media/root/work/home none bind     0 0
-/media/root/main/home /media/root/play/home none bind     0 0
+/dev/sda2     /+/base         ext4 defaults 0 0
+/dev/sda1     /+/base/boot    ext4 defaults 0 0
+/dev/sda4     /+/http         ext4 defaults 0 0
+/dev/sda3     /+/work         ext4 defaults 0 0
+/dev/sdb3     /aux/run/       ext4 defaults 0 0
+/aux/run/base /+/base/aux/run none bind     0 0
+/aux/run/http /+/http/aux/run none bind     0 0
+/aux/run/work /+/work/aux/run none bind     0 0
 
-File /etc/fstab is still valid and used.
-File /etc/fstab is parsed by the mount that is run during the runlevel.
-Therefore, each root file system can have it's own private mounts.
+In the above example the binds involving /aux/run/
+only work after the relevant subdirectories are created on /aux/run/
+The following command line would suffice:
 
-Section 1.7 gettys
+mount /aux/run; mkdir /aux/run/{base,http,work}/
+
+
+Section 1.C gettys
 
 /etc/inittab is the traditional location
 for specifying how gettys run.
-The concept works good on a single root file system.
-However, editing /etc/inittab
-to provide gettys for multiple root file systems is tedious.
-Consequently, the only getty specified in /etc/inittab
-is the getty which runs on the rootfs.
+It worked for single root file systems.
+It is futile for multiple root file systems.
+Consequently, gettys specified in /etc/inittab
+only run on the rootfs.
+Launching gettys from /etc/inittab is NOT recommended.
 
 Each root file system has an init-script /etc/init.d/ttyd
 ttyd dynamically allocates a virtual console
@@ -187,20 +325,40 @@ chmod 400 /etc/init.d/gettyd
 root file systems can be entered from the rootfs,
 or by ttyd, or by ssh, or by a method that the SA creates.
 
-Section 1.8 runlevel
-
-/etc/inittab contains a description of runlevels.
-And the default runlevel can be changed by editing /etc/inittab
-Run levels 1 through 5 are valid for init default.
-However, runlevels 3 through 5 are most popular.
-The purpose of a runlevel is to start services
-such as webservers, secure socket shell server,
-system logger, cron, X server and other services
-that make computers friendly and useful.
-
-
 
 Section 2.0 Customization
+
+/etc/ and subdirectories of /etc/ are the traditional storage
+locations for configuration files.
+The exceptions are /etc/init.d/ /etc/rc.d/
+
+/etc/init.d/ is the storage location for init-scripts.
+/etc/rc.d/   is the storage location for symbolic links to init-scripts.
+init-scripts are not configuration files.
+Configuration files for init-scripts are stored in
+/etc/init.d/conf.d/
+
+Custom init-scripts can be created.
+However, existing init-scripts can NOT be customized.
+The sorcery source management utilities
+detect a modified init-script as a corrupt file.
+sorcery will re-install the software project
+which provided the init-script.
+The modified init-script will be overwritten
+with a stock version of the init-script.
+
+The rootfs is populated with files extracted from initramfs images
+which are constructed from the base or key root file system.
+However, the content of /etc/ for the rootfs can differ.
+The content of /etc/rootfs/ is copied to /etc/ during sysinit.
+Therefore, the /etc/fstab on the rootfs should be provided
+as /etc/rootfs/fstab
+And the /etc/{passwd,group,shadow} files for the rootfs
+should be provided as /etc/rootfs/{passwd,group,shadow}, respectively.
+The use of {} indicates path name expansion.
+/etc/rootfs/{passwd,group,shadow} when expanded becomes
+/etc/rootfs/passwd /etc/rootfs/group /etc/rootfs/shadow.
+
 
 Section 2.1 init-script
 
@@ -214,33 +372,25 @@ where init-scripts are added, removed,
 and sometimes customized as necessary
 in order to adjust to installed software.
 
-Section 2.2 init-scripts in detail
 
-Sorcerer provides a system for running LSB compliant
-system V init-scripts with capabilities defined at the following URL:
+Section 2.2 Init-scripts in Detail
+
+Nearly LSB compliant init-scripts can be run.
+They can be run with slight modification.
+The following URL describes LSB compliant System V init-scripts:
 http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Core-generic/iniscrptfunc.html
-However, Sorcerer init-scripts are not themselves LSB compliant.
-Sorcerer init-scripts have nearly all common code factorized out
-and made available in /lib/lsb/init-functions.
-This makes small, fast, uniform, easy to edit init-script.
 
-init-scripts that run during sysinit
-are frequently specialized and sometimes complex.
-However, the more simple init-scripts
-that are executed during runlevel are
-often short and simple.
-Each init-script tends to perform a single specific task such as:
-mounting a virtual file system;
-loading a kernel module;
-unloading a kernel module;
-or starting a server.
+The init-scripts in /etc/init.d/ are not LSB compliant.
+Much of the code that an init-script executes
+is provided in file /lib/lsb/init-functions.
+Each init-script contains very little code.
+This factorization makes init-scripts small,
+fast, uniform, and easily edited.
 
-The best way to understand a Sorcerer init-script
-is to first learn about LSB compliant init-scripts
-and then view some of the already installed init-scripts.
-Since the format of most init-scripts is similar
-new init-scripts are usually created
-by copying and modifying old init-scripts.
+Three categories of tasks exist for init-scripts:
+Linux kernel module loading; file system mounting; service running.
+Services can remain resident or execute and terminate.
+
 
 Section 2.3 init-script customization
 
@@ -272,12 +422,14 @@ as the init-scripts spell is strongly discouraged.
 Customizing init-scripts can cause failure of services to start
 or even failure of a box being able to mount root file systems.
 
+
 Section 2.4 Configuration
 
 Some init-scripts support dialog menu driven configuration.
 If running the init-script with parameter "help" reports
 that an init-script supports accepts the parameter configure
 then configure can be run to accept input for configuration variables.
+
 
 Section 2.5 Init-script Menu
 
@@ -286,51 +438,65 @@ can be run instead of selecting individual init-scripts.
 The dialog menu driven interface is used to select
 an init-script to execute and a parameter parameters to pass.
 
+
 Section 3.0 Logs
 
-Section 3.1 log names
+Almost all logging is directed to files
+within the /var/log/ directory hierarchy.
+The exception are sorcery generated spell logs.
+Spell logs exist within the /aux/log/ directory hierarchy
 
-Output from runlevel 0 and 6   is written to /var/log/runlevel.$RL
 
-Section 3.2 /var/log/init/
+Section 3.1 /var/log/init/
 
-Because the rootfs is mounted as the root filesystem during sysinit
-a disk based file system for /var/log/ is yet unavailable.
-Consequently, a tmpfs, temporary filesystem, is mounted on /var/log/init/
-Placing the files on tmpfs allows /var/log/init/
-to later be moved if desired.
+/var/log/init/dmesg is a copy of the Linux kernel's ring buffer
+made just before the completion of sysinit or completion of runlevel.
+
+/var/log/init/{failed,passed,ran}/
+are directories that store empty files
+which indicate most recent execution status for init-scripts.
+
+Time stamps of files within /var/log/init/ran/
+indicate when an init-script was began execution.
+Upon successfully exit of an init-script
+empty file /var/log/init/passed/$INIT_SCRIPT is created,
+where $INTIT_SCRIPT is the base name of the init-script.
+Upon unsuccessful exit of an init-script
+empty file /var/log/init/failed/$INIT_SCRIPT is created,
+
+A quick scan of /var/log/init/failed/
+will tell what failed during boot,
+but not why it failed.
+Reasons for failure may recorded in the system log
+or the kernel ring buffer, or displayed on stderr
+when the init-script ran.
+
+Providing instruction for debugging init-scripts
+is beyond the scope of this document.
+
 
 Section 3.3 Boot scroll
 
-Currently, there is no SA, system administrator, consensus
-about whether reading boot scroll is useful or desirable.
-Some SAs prefer that the sysinit and runlevel scroll is redirected
-to virtual consoles rather than scrolling on the main console.
-If this is selected then the default virtual console for sysinit scroll
-is /dev/tty9 which can be accessed by pressing the keys ALT F9 or CTRL ALT F9.
-The defautl virtual console for runlevel scroll is /dev/tty10
-As expected it can be viwed with the key sequence ALT F10 or CTRL ALT F10.
-The primary virtual console,
-which is typically used for logging in,
-can be returned to with the key sequence ALT F1 or CTRL ALT F1
-Holding ALT and pressing right or left arrow keys
-switches sequentially among available virtual consoles.
+Read   boot scroll?
+Ignore boot scroll?
+Consensus is lacking.
+Some POSIX display a logo during boot
+instead of displaying boot scroll.
 
-The default for most Sorcerer boxes is to simply send both scrolls to /dev/console .
-/dev/console causes scroll to appear on any actively selected virtual console.
-However, this can be changed by executing the following command at a root prompt:
-augur forget sysvinit; cast sysinit
-Then in the sysinit spell configuration menu
-nearly any available character device can be selected.
+If an error message prints then better to read than ignore?
+If so then this init scroll method may be preferred.
+Messages begin with a carriage return.
+Carriage return moves the cursor to the line beginning.
+Informational messages conclude without a line feed.
+Error messages conclude with a line feed.
 
-Execution of some programs cause uncategorized messags to be printed.
-However, messages printed by init-scripts fall into 3 categories:
-white [ warning ]; green [ success ]; and red [ failure ].
-If the logs in /var/log/init/ are cat
-then holding SHIFT while pressing PAGE UP
-can be used to scroll up while looking for red [ failure ] messages.
-A failure message is not necessarily bad,
-but it can indicate something that the SA should be
-aware of and might want to do something about.
+Hundreds of lines indicating success overwrite each other
+while the lines that indicate problems stack on the console.
+The result is that error messages that occur
+during booting and shutdown are easily read.
+
+The above convenience applies only to messages written by init-scripts.
+Messages written by the kernel or by processes have line feeds.
+Some scroll may occur which is not produced by an error condition.
 
 EOF

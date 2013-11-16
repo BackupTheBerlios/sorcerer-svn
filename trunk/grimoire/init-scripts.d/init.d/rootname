@@ -8,7 +8,7 @@
 # Default-Mode: 500
 # Required-Start: proc
 # Default-Start: 1 2 3 4 5
-# Short-Description: sets the root's hostname from /etc/rootname
+# Short-Description: sets the root file system hostname from /etc/hostname
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -25,17 +25,14 @@ configure(){
  hostname_dialog(){
   BACKTITLE=$"rootname configuration menu"
       TITLE=$"rootname input"
-       HELP=$"The rootname are typically created from a hostname.\n
-First the base directory for the root file system must be known.\n
-That is wher the root file system is mounted.\n
-If it is mounted on /media/root/main then the basename is main.\n
-Now append a dot and the hostname for the computer.\n
-If the hostname is fruit.cup and the root file system is main\n
-then the rootname becomes main.fruit.cup\n
-The rootname will be saved to file /etc/rootname
+       HELP=$"\
+The hostname for assigned to a root file system\n
+is also called the rootname.\n
+Each root file system's hostname must be unique.\n
+The rootname will be saved to file /etc/hostname\n
 Please enter the rootname."
 
-  dialog \
+  /bin/dialog \
    --backtitle "$BACKTITLE"  \
    --title     "$TITLE"      \
    --timeout 60              \
@@ -43,11 +40,11 @@ Please enter the rootname."
    --inputbox "$HELP" 0 0
  }
 
- confirm_it(){ dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
+ confirm_it(){ /bin/dialog --nocancel --yesno "Missing dot.  Use $NAME as is?" 0 0; }
 
  local NAME=$( hostname_dialog )
- if   echo "$NAME" | grep -q "\." || confirm_it
- then echo "$NAME" > /etc/rootname
+ if   echo "$NAME" | /bin/grep -q "\." || confirm_it
+ then echo "$NAME" > /etc/hostname; /bin/rm -f /etc/rootname
  fi
 }
 
@@ -65,5 +62,5 @@ start(){
  fi
 
  echo "$REPLY" > /proc/sys/kernel/hostname 
- log_success_msg "rootname is now $REPLY"
+ log_success_msg "$rootname is now $REPLY"
 }
