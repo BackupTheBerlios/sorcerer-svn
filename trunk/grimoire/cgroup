@@ -3,88 +3,202 @@
 # For use with the distribution sorcerer only!
 # Additional notes are at the bottom of the spell.
 
-with info    last   20131028
-with version stable 20131028
+with info    last   20131116
+with version stable 20131116
 with base    init-functions
 with role    administration/boot
 with trait   console solo
 with info    home http://sorcerer.silverice.org
 with info    cite 'cgroup setup utility
-cgroup provides init-script /etc/init.d/cgroup
-that mounts a cgroup file system on /sys/fs/cgroup
-It also creates the top level cgroup directories.
-And it sets values within those cgroups
-which may be default or SA defined.
 
-This implementation provides
-individual cgroups for system services under
-/sys/fs/cgroup/{fast,norm,slow,idle}/sys/$SERVICE
-and individual cgroups for user owned processes within
-/sys/fs/cgroup/{fast,norm,slow,idle}/user/$USER
+The cgroup spell provides 3 init-scripts:
+/etc/init.d/cgroup;
+/etc/init.d/cgroup-init-rootfs;
+/etc/init.d/cgroup-init-root.
 
-The init-script of each service
-specifies which of the 4 possible cgroups
-that a service will run within.
-For example kdm, gdm, xdm, and X run in
-/sys/fs/cgroup/fast/sys/{kdm,gdm,xdm}
+# /etc/init.d/cgroup start
+mounts a private control group on /sys/fs/cgroup/
+It runs during sysinit and runlevel.
+
+# /etc/init.d/cgroup-init-rootfs configure
+Allows creation and configuration of persistent control groups.
+The rootfs control group is for partitioning resources,
+such as processors and processor cycles and memory,
+among multiple root file systems.
+Each root file system will receives a control group
+with the same name as the root file system hostname.
+Configuration must be done only from the root file system
+that was used to generate the initramfs used to populate the rootfs.
+If that is not known then log into the rootfs
+and the file /etc/origin contains the hostname for the progenitor.
+
+# /etc/init.d/cgroup-init-root configure
+Allows creation and configuration of persistent control groups
+used by processes within a root file systems.
+Partitioning resource utilization
+provides many advantages that are described below.
+
+The control group implementation for the rootfs
+partitions resources among root file systems.
+Each root file system receives a virtual private control group.
+The hostname for the root file system
+becomes the name of the control group.
+The control groups are visible on /sys/fs/cgroup/
+when logged into the rootfs.
+The file system mounted on /+/base/
+received the hostname of base.posixnow.com
+received the control group
+/sys/fs/cgroup/base.posixnow.com/
+When logged into base.posixnow.com
+then the above control group is mounted on /sys/fs/cgroup/
+That is what makes it virtual private.
+
+The control group implementation for root file systems differs.
+Individual control groups for system services exist as:
+/sys/fs/cgroup/{fast,norm,slow,idle}/sys/$SERVICE/
+Individual control groups for user owned processes exist as:
+/sys/fs/cgroup/{fast,norm,slow,idle}/user/$USER/
+
+Processes within the "fast" "norm" "slow" "idle"
+control group hierarchies compete for processing cycles
+when processing cycles are a scarce commodity.
+Processes in the "fast" control group hierarchy
+receive the most processing cycles.
+Processes in the "idle" control group hierarchy
+receive the least.
+
+The idle control group hierarchy sufficiently low low cpu.shares
+that processes within tend to run mostly with processing cycles
+that would otherwise be spent on idle or wait.
+If processing power is available in abundance
+then processes within the idle control group run at full speed.
+If processing power is scarce
+then processes within the idle control group run slowest.
+
+The kdm, gdm, xdm, and X processes run
+within the fast control group hierarchy.
 This ensures that the X server
-can not be starving for processing power.
+can not be starved for processing cycles
+while competing with aggressive processes.
+An aggressive process could be a program
+running with the assistance of the wine API.
+Programs designed to run on win32 compatible
+operating systems might not yield idle cycles.
+Instead such processes attempt
+to greedily consume all processing power.
+The control group hierarchy ensures that
+frames per second in X do not drop
+when running megalomaniac processes.
 
-Users are allowed to migrate their processes
-to different task files when
-/sys/fs/cgroup/{fast,slow,idle}/user
-exists.
-Therefore, the SA can disallow
-user migration of processes into the task file
-/sys/fs/cgroup/fast/user/$USER/tasks
-when
-/sys/fs/cgroup/fast/user
-does not exist
+Sorcery tools processes execute
+within the slow control group hierarchy.
+When processing cycles are scarce
+the slow control group receives
+no more than 1/64th of available processing power.
+Therefore, updates and installation of software projects
+proceed without measurable primary role performance loss.
+
+Users are allowed to migrate owned processes
+to different task files when those task files exist.
+/sys/fs/cgroup/{fast,norm,slow,idle}/user/$USER/tasks
+The above line indicates expected task file names.
+
+Migration into the fast control group hierarchy
+is denied while the /sys/fs/cgroup/fast/$USER/
+control group does not exist.
+Therefore, the system administrator must run:
+# /etc/init.d/cgroup-init-root configure
+and create the persistent control groups
+for users granted the privilege
+of unfair resource consumption.
 
 The preference for use as a server or workstation
-can be adjusted by changing the value of
+can be adjusted by changing the value within
 /sys/fs/cgroup/norm/{sys,user}/cpu.shares
 With each at 1024 the competing load is balanced
 evenly between the roles of server and workstation.
+Granting 2408 to /sys/fs/cgroup/norm/sys/cpu.shares
+shifts the balance towards a server.
+Granting 2408 to /sys/fs/cgroup/norm/user/cpu.shares
+shifts the balance towards a workstation.
 
-sorcery utilities such as cast, dispel, and leech
-run in sub control groups of
-/sys/fs/cgroup/slow/
-A system with competing processes
-can run /sys/fs/cgroup/slow/ as slow as 1.5% full speed.
+When a POSIX could only boot with a single root file system;
+adjusting resource utilization balance was important.
+Now separate root file systems can be delegate
+for each primary role that a computer performs.
+Therefore resource limits are typically set for each root file system
+by running the command
+# /etc/init.d/cgroup-init-rootfs configure
 
-/sys/fs/cgroup/idle/ sub control groups contain
-processes that do background compression of tarballs,
-cleaning, and other less than urgent roles.
-A system with competing processes
-can run /sys/fs/cgroup/idle/ as slow as 0.2% full speed.
+Imagine a computer with 3 root file systems:
+/+/base/; /+/work/; /+/test/.
+The test root file system is only used for testing updates.
+Better to know that the effectiveness in the role of workstation
+will not be compromised following an update.
+Therefore, /+/test/ is updated first.
+However, completion of the update is not urgent,
+because the computer is currently being used as a workstation.
+Therefore, resource limits of 1 processor and 2G of RAM
+and no more than 1/64th cpu.shares might be set
+the root file system by creating a persistent control group for it.
 
-This implementation is designed to be suitable
-for both workstations and servers.
-Almost all processing power is diverted to urgent matters
-while the less urgent tasks
-can run slowly when demand for processing power exceeds supply.'
+Now that the resource limits for /+/test/ are set
+the bulk of the available resources can be utilized
+by the /+/work/ root file system or the /+/base/ root file system.
+Or limits can also be applied to the /+/base/ root file system.
 
+Not explicitly granting resource limits
+allows processes on root file system
+to complete for resources as group
+in a fair yet unlimited fashion.
+
+A fair yet unlimited fashion implies two aspects.
+First, "first come first served" is honored.
+Second, equality is granted only when the resource is scarce.
+
+Processes on a workstation or web server root file system
+might consume 90% RAM not being using for the block cache.
+The percentage can change when processes
+from another root file system demand memory.
+Content of RAM allocated to processes running
+in the workstation root file system
+might be written to swap space.
+Then the RAM is re-tasked to address space
+allocated to processes within another root file system.
+
+Creation of persistent control groups
+and prudent setting of resource consumption
+rarely creates "less than ideal" resource utilization.
+"Less than ideal" resource utilization more often happens
+as a result of a process utilizing excessive resources
+because it is not running within a control group
+that limits resource consumption.
+Megalomaniac processes are rare,
+with the exception of win32 programs
+running with the help of wine API translation.
+
+This control group implementation is designed
+to be suitable for both workstations, servers,
+and computers tasked to many roles.'
 
 build(){
  local d="$DESTDIR" s="$SCRIPT_DIR"
 
  icg(){
-  install -dvm 700 "$d/$1"
-  find             "$s/$1" -mindepth 1 -printf "%P\n" |
-  tar  -C          "$s/$1" --exclude-vcs --no-recursion -cPT - |
-  tar  -C          "$d/$1" -pxf -
-  find             "$d/$1" -type f | xargs -r --max-lines=64 chmod 644
-  find             "$d/$1" -type d | xargs -r --max-lines=64 chmod 755
-  chmod        700 "$d"$1
+  install -vm 700 -d "$d/$1"
+  find               "$s/$1" -mindepth 1 -printf "%P\n" |
+  tar     -C         "$s/$1" --exclude-vcs --no-recursion -cPT - |
+  tar     -C         "$d/$1" -pxf -
+  find               "$d/$1" -type f | xargs -r -L=64 chmod 644
+  find               "$d/$1" -type d | xargs -r -L=64 chmod 755
+  chmod       700    "$d"$1
  }
 
- icg /etc/cgroup
- icg /etc/cgroup.rootfs
-
- install -dvm 755    "$d"/{lib/cgroup,sbin,usr/{bin,share/bash-completion/completions}}/
- install  -vm 755 -t "$d"/sbin/                      "$s"/sbin/*
- install  -vm 755 -t "$d"/usr/bin/                   "$s"/bin/*
- install  -vm 755 -t "$d"/lib/cgroup/                "$s"/lib/cgroup/*
- install  -vm 755 -t "$d"/usr/share/bash-completion/completions/ "$s"/bash-completion/*
+ install -vm 755 -d "$d"/{etc,lib/cgroup,sbin,usr/{bin,share/bash-completion/completions}}/
+ install -vm 755 -t "$d"/sbin/       "$s"/sbin/*
+ install -vm 755 -t "$d"/usr/bin/    "$s"/bin/*
+ install -vm 755 -t "$d"/lib/cgroup/ "$s"/lib/cgroup/*
+ install -vm 755 -t "$d"/usr/share/bash-completion/completions/ \
+                                     "$s"/bash-completion/*
+ icg /etc
 }
