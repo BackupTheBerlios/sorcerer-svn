@@ -1,0 +1,36 @@
+# Copyright Kyle Sallee 2012, 2013
+# All rights reserved.
+# For use with the distribution sorcerer only!
+
+version_year_week
+
+with info    good 20131120
+with role    immune-system
+with trait   solo stale
+with info    home http://sorcerer.silverice.org/
+with info    cite "obsolete software automatic removal
+
+immune-exam-reap performs a weekly check
+for installed software that lacks a spell.
+When a spell is no longer provided
+then immune-exam-reap reaps the obsolte software."
+
+build(){ :; }
+
+post_install(){
+ default_post_install
+
+ local s g v
+
+ g=$( augur gone )
+
+ if [ -n  "$g" ]; then
+  for s in $g; do
+   v="$(< "$VERSION_INDEX/$s" )"
+   event "$s" "$v" "Miss Self"
+   echo  "$s" | pipe_queue "$SAVE_QUEUE"
+   echo  "$s" | pipe_queue "$REAP_QUEUE"
+  done
+  dispel
+ fi
+}
