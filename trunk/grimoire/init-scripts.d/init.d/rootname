@@ -49,8 +49,8 @@ Please enter the rootname."
 }
 
 start(){
- local REPLY
- log_warning_msg "rootname setting"
+ local REPLY ret=0
+ log_warning_msg "rootname set"
  if   [ -f /etc/rootname ]; then read REPLY < /etc/rootname
  elif [ -f /etc/hostname ]; then read REPLY < /etc/hostname
  fi
@@ -59,8 +59,10 @@ start(){
  then REPLY="unknown$RANDOM$RANDOM"
       log_failure_msg "/etc/init.d/rootname configure"
       log_failure_msg "Executing the above command is recommended"
+      ret=1
  fi
 
  echo "$REPLY" > /proc/sys/kernel/hostname 
- log_success_msg "$rootname is now $REPLY"
+ log_success_msg "$rootname is $REPLY"
+ return $ret
 }

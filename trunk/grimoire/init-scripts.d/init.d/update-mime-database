@@ -18,23 +18,25 @@ deny control
 check(){
  local DIR
  while read DIR; do
-  log_warning_msg "$DIR checking"
+  log_warning_msg "$DIR check"
     if ! [ -d $DIR ]; then :
   elif ! [ -f $DIR/mime.cache ]; then echo "$DIR"
   elif [ -n "$( /bin/find $DIR -mindepth 2 -newer $DIR/mime.cache )" ]
   then echo "$DIR"
   fi
-  log_success_msg "$DIR checked"
+  log_success_msg "$DIR check"
  done
 }
 
 run(){
+ local ret=0
  while read DIR; do
-  if   log_warning_msg "update-mime-database $DIR executing"; /usr/bin/update-mime-database $DIR &>/dev/null
-  then log_success_msg "update-mime-database $DIR executed"
-  else log_failure_msg "update-mime-database $DIR failed"
+  if   log_warning_msg "update-mime-database $DIR execute"; /usr/bin/update-mime-database $DIR &>/dev/null
+  then log_success_msg "update-mime-database $DIR execute"
+  else log_failure_msg "update-mime-database $DIR execute"; ret=1
   fi
  done
+ return $ret
 }
 
 stop(){

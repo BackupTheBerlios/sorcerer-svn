@@ -5,16 +5,18 @@
 # All rights reserved.
 
 CL="[K"
+NORM="[0m"
+BOLD="[1m"
 RED="[31m"
 GREEN="[32m"
 BLUE="[34m"
 WHITE="[37m"
-NORM="[0m"
+BEAM="$WHITE$BOLD"
 
-log_line(){ echo -en "\r$CL$BLUE[$1$BLUE]$NORM $2 " 1>&2;}
-log_success_msg(){ log_line "${GREEN}success" "$1";}
-log_failure_msg(){ log_line "${RED}failure" "$1\n";}
-log_warning_msg(){ log_line "${WHITE}message" "$1";}
+log_line(){ echo -en "\r$CL$BLUE[$1$BLUE]$BEAM $SELFFILE$NORM $2" 1>&2;}
+log_success_msg(){ log_line "${GREEN}pass" "$1";}
+log_failure_msg(){ log_line "${RED}fail" "$1\n";}
+log_warning_msg(){ log_line "${WHITE}info" "$1";}
 
 locked(){
  local S P REPLY
@@ -42,11 +44,13 @@ pids_from_cgroup(){
 }
 
 cgroup_rmdir(){
- cgroup_oust norm/sys/$NAME ||
- cgroup_oust idle/sys/$NAME ||
- cgroup_oust real/sys/$NAME ||
- cgroup_oust fast/sys/$NAME ||
- cgroup_oust slow/sys/$NAME
+ if [ -z "$CGROUP_RETAIN" ]; then
+  cgroup_oust norm/sys/$NAME ||
+  cgroup_oust idle/sys/$NAME ||
+  cgroup_oust real/sys/$NAME ||
+  cgroup_oust fast/sys/$NAME ||
+  cgroup_oust slow/sys/$NAME
+ fi
 }
 
 pidofproc(){
@@ -169,24 +173,24 @@ start_daemon(){
 
 stats(){
  PIDS="$( pidofproc -p "$PIDF" "$SERV" )"
- if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
- elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
+ if   [    "$PIDS" ]; then log_warning_msg "$NAME runs"; return 0
+ elif [ -f "$PIDF" ]; then log_warning_msg "$NAME died and $PIDF exists"; return 1
  elif [    "$LOCK" ] &&
-      [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
+      [ -f "$LOCK" ]; then log_warning_msg "$NAME died and $LOCK exists"; return 2
                       else log_warning_msg "$NAME is not running"; return 3
  fi
 }
 
 statm(){
  if   mnt
- then log_warning_msg "$NAME is mounted"; return 0
+ then log_warning_msg "$NAME mounted"; return 0
  else log_warning_msg "$NAME is not mounted"; return 3
  fi
 }
 
 statk(){
  if   lsmod | LC_ALL=C grep -qws "${NAME//-/.}"
- then log_warning_msg "$NAME module is loaded"; return 0
+ then log_warning_msg "$NAME module loaded"; return 0
  else log_warning_msg "$NAME module is not loaded"; return 3
  fi
 }
@@ -201,22 +205,22 @@ status(){
 }
 
 stops(){
- if   log_warning_msg "$NAME stopping"; killproc -p "$PIDF" -s 15 "$SERV" || ! status &>/dev/null
- then log_success_msg "$NAME stopped"
+ if   log_warning_msg "$NAME stop"; killproc -p "$PIDF" -s 15 "$SERV" || ! status &>/dev/null
+ then log_success_msg "$NAME stop"
  else log_failure_msg "$NAME not stopped"; status
  fi
 }
 
 stopm(){
- if   log_warning_msg "$NAME unmounting"; umount $NAME
- then log_success_msg "$NAME unmounted"
+ if   log_warning_msg "$NAME unmount"; umount $NAME
+ then log_success_msg "$NAME unmount"
  else log_failure_msg "$NAME not unmounted"; status
  fi
 }
   
 stopk(){
- if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME
- then log_success_msg "$NAME unloaded"
+ if   log_warning_msg "$NAME module unload"; /sbin/modprobe -r $NAME
+ then log_success_msg "$NAME unload"
  else log_failure_msg "$NAME not unloaded"
  fi
 }
@@ -242,40 +246,40 @@ starts(){
  elif miss
  then log_warning_msg "$NAME not started"
       log_warning_msg "$NAME missing $SERV"; return 5
- elif log_warning_msg "$NAME starting"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
- then log_success_msg "$NAME started"
- else log_failure_msg "$NAME not started"; status
+ elif log_warning_msg "$NAME start"; start_daemon -l "$LOGF" -p "$PIDF" "$SERV" $OPTS
+ then log_success_msg "$NAME start"
+ else log_failure_msg "$NAME start"; status
  fi
 }
 
 startm(){
  run(){
-  if    ! [ -d "$NAME" ]; then mkdir -p "$NAME"; fi &&
-  mount $OPTS  "$NAME"
+  if    ! [ -d "$NAME" ]; then /bin/mkdir -p "$NAME"; fi &&
+  /bin/mount $OPTS  "$NAME"
  }
 
  if mnt; then return; fi
  if   conf
  then log_warning_msg "$NAME not mounted; $CONF does not exist"
- elif log_warning_msg "$NAME mounting"; run
- then log_success_msg "$NAME mounted"
- else log_failure_msg "$NAME not mounted"
+ elif log_warning_msg "$NAME mount"; run
+ then log_success_msg "$NAME mount"
+ else log_failure_msg "$NAME mount"
  fi
 }
 
 startk(){
  if [ "${NAME:0:2}" == '-r' ]; then
   NAME="${NAME:2:256}"
-  if   log_warning_msg "$NAME module unloading"; /sbin/modprobe -r $NAME 
-  then log_success_msg "$NAME unloaded"
-  else log_warning_msg "$NAME not loaded"
+  if   log_warning_msg "$NAME module unload"; /sbin/modprobe -r $NAME 
+  then log_success_msg "$NAME module unload"
+  else log_warning_msg "$NAME module not loaded"
   fi
  else
   if   conf
   then log_warning_msg "$NAME module not loaded; $CONF does not exist"
-  elif log_warning_msg "$NAME module loading"; /sbin/modprobe $NAME $OPTS
-  then log_success_msg "$NAME loaded"
-  else log_failure_msg "$NAME not loaded"
+  elif log_warning_msg "$NAME module load"; /sbin/modprobe $NAME $OPTS
+  then log_success_msg "$NAME module load"
+  else log_failure_msg "$NAME module not loaded"
   fi
  fi
 }
@@ -414,8 +418,12 @@ on_exit(){
 rootfs(){ [ 1 == "$( /bin/stat -c %D / )" ]; }
 rootfs(){ [ 0 == "$( /bin/stat -f -c %i / )" ]; }
 
+
+SELFFILE=${0##*/}
+SELFFILE=${SELFFILE#[SK][0-9][0-9]}
+
 if   [ -z "$NAME" ]
-then NAME=${0##*/}; NAME=${NAME#[SK][0-9][0-9]}
+then NAME="$SELFFILE"
 fi
 
 if   [ -f /etc/init.d/conf.d/$NAME ]

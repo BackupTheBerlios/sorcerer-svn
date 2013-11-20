@@ -23,7 +23,6 @@
 . /lib/lsb/init-functions
 
 only start stop restart configure display
-name 'System clock from hardware clock time restoring'
 server /sbin/hwclock
 
 display(){ echo "Mode $MODE"; }
@@ -52,16 +51,16 @@ Please select either UTC or localtime."
 }
 
 start(){
- if   log_warning_msg 'System clock from hardware clock'; /sbin/hwclock -s ${MODE:---utc}
+ if   log_warning_msg 'System clock set'; /sbin/hwclock -s ${MODE:---utc}
  then log_success_msg 'System clock set'
- else log_failure_msg 'System clock not set'
+ else log_failure_msg 'System clock set'; return 1
  fi
 }
 
 stop(){
- if   log_warning_msg 'Hardware clock from system clock'; /sbin/hwclock -w ${MODE:---utc}
+ if   log_warning_msg 'Hardware clock set'; /sbin/hwclock -w ${MODE:---utc}
  then log_success_msg 'Hardware clock set'
- else log_failure_msg 'Hardware clock not set'
+ else log_failure_msg 'Hardware clock set'; return 1
  fi
 }
 

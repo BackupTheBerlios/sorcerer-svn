@@ -22,15 +22,15 @@ check(){
 update(){ /lib/lsb/install_initd; }
 
 status(){
- if   log_warning_msg '/etc/rc.d checking'; check
- then log_warning_msg '/etc/rc.d checked; status not current'; return 1
- else log_success_msg '/etc/rc.d checked; status     current'
+ if   log_warning_msg '/etc/rc.d check'; check
+ then log_warning_msg '/etc/rc.d check status: not current'; return 1
+ else log_success_msg '/etc/rc.d check status:     current'
  fi
 }
 
 stop(){
  if ! status; then
-  log_warning_msg '/etc/rc.d updating'; update
-  log_success_msg '/etc/rc.d updated'
+  log_warning_msg '/etc/rc.d update'; update
+  log_success_msg '/etc/rc.d update'
  fi
 }

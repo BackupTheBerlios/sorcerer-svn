@@ -62,15 +62,17 @@ for a root file system is called /etc/rootname"
 
 start(){
  rootfs || exit 0
- local REPLY
- log_warning_msg "hostname setting"
+ local REPLY ret=0
+ log_warning_msg "hostname set"
  if   [ -f /etc/hostname ]; then read REPLY < /etc/hostname; fi
  if   [ -z "$REPLY" ]
  then REPLY="unknown$RANDOM$RANDOM"
       log_failure_msg "/etc/init.d/hostname configure"
       log_failure_msg "Executing the above command is recommended"
+      ret=1
  fi
 
  echo "$REPLY" > /proc/sys/kernel/hostname
  log_success_msg "hostname is now $REPLY"
+ return $ret
 }

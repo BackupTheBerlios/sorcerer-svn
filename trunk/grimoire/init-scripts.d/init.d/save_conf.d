@@ -40,13 +40,13 @@ files_copy(){
 }
 
 start(){
- if   log_warning_msg "origin root file system locating"; origin_root
- then log_success_msg "origin root file system found"
- else log_failure_msg "origin root file system unknown"; return 1
+ if   log_warning_msg "origin root file system locate"; origin_root
+ then log_success_msg "origin root file system locate"
+ else log_failure_msg "origin root file system locate"; return 1
  fi
 
- if   log_warning_msg "{,$D}/etc/init.d/conf.d/ newer files copying"; files_copy
- then log_success_msg "{,$D}/etc/init.d/conf.d/ newer files copied"
- else log_failrue_msg "{,$D}/etc/init.d/conf.d/ newer files copy failure"; return 1
+ if   log_warning_msg "{,$D}/etc/init.d/conf.d/ newer files copy"; files_copy
+ then log_success_msg "{,$D}/etc/init.d/conf.d/ newer files copy"
+ else log_failrue_msg "{,$D}/etc/init.d/conf.d/ newer files copy"; return 1
  fi
 }
