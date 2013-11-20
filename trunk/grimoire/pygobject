@@ -2,13 +2,18 @@
 # pygobject 2.28.6 no longer compiles
 # compiles after removing a deprecated symbol -ks
 
-with info    good 20131023
+with info    good 20131120
 with info    last 20110613
 with version   stable 2.28.6
 with base    glib gobject-introspection libffi py2cairo
+#case $VERSION in
+# 2.28.6)
+#with base    glib-2.36.1 ;;
+#esac
 with also    --disable-docs
 with role    development
-with trait   gnome library makej python-module
+with trait   gnome library python-module
+#with trait   gnome library makej python-module
 with source    stable $GNOME_URL sources/pygobject/${VERSION:0:4}/pygobject-$VERSION.tar.xz
 with source  unstable $GNOME_URL sources/pygobject/${VERSION:0:4}/pygobject-$VERSION.tar.xz
 with info    home http://www.pygtk.org/
@@ -19,6 +24,18 @@ build(){
  case $VERSION in
   2.28.6) sed -i '/GI_INFO_TYPE_ERROR_DOMAIN/d' gi/pygi-info.c ;;
  esac
+
+# case $VERSION in
+#  2.28.6)
+#   export   CFLAGS+=' -I/opt/glib/2.36.1/include'
+#   export CXXFLAGS+=' -I/opt/glib/2.36.1/include'
+#   if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+#   then export LDFLAGS+=' -L/opt/glib/2.36.1/lib64 -Wl,-rpath,/opt/glib/2.36.1/lib64/'
+#        export PKG_CONFIG_PATH="/opt/glib/2.36.1/lib64/pkgconfig:$PKG_CONFIG_PATH"
+#   else export LDFLAGS+=' -L/opt/glib/2.36.1/lib   -Wl,-rpath,/opt/glib/2.36.1/lib/'
+#        export PKG_CONFIG_PATH="/opt/glib/2.36.1/lib/pkgconfig:$PKG_CONFIG_PATH"
+#   fi ;;
+# esac
 
 # LC_ALL=C grep -lr python * |
 # xargs -r --max-lines=64 \
@@ -35,7 +52,7 @@ build(){
 # local  PATH="$PWD/bin:$RATH"
 # export PATH
 
- local PYTHON
+ local  PYTHON
  export PYTHON=/usr/bin/python2
  default_build
 }
