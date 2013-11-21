@@ -22,9 +22,24 @@ build(){
   export PKG_CONFIG_PATH=/opt/32bit/usr/lib/pkgconfig:/usr/lib/pkgconfig
  fi
 
- local d="$DESTDIR"
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then              make && install -vm 755 -d "$d"; cp -avt "$d/" dist/linux64/*
- else setarch i686 make && install -vm 755 -d "$d"; cp -avt "$d/" dist/linux/*
- fi
+ local d="$DESTDIR/usr" f
+ install -vm 755 -d "$d"
+
+ if    [[ $HOSTTYPE == x86_64 ]]; then
+  if ! [[ $CFLAGS   =~ -m32   ]]; then
+   f=dist/linux64
+   make &&
+   mv dist/linux64/lib{,64}
+  else
+   f=dist/linux
+   setarch i686 make
+  fi
+ else 
+  f=dist/linux
+  setarch i686 make
+ fi &&
+ mv           "$f"/{doc,oiio} &&
+ mkdir -m 755 "$f"/doc/ &&
+ mv           "$f"/{oiio,doc/} &&
+ cp    -av    "$f"/* "$d"
 }
