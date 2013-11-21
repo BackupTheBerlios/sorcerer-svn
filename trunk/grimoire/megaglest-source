@@ -2,7 +2,6 @@
 # but is rather the source file for data which is not required
 # unless one wants to explicitly use blender on it.
 
-#with trait   broke
 with inherit megaglest
 with base    SDL autoconf cmake ftgl glew jam libvorbis lua megaglest-data openal wxWidgets xerces-c
 with base    ftgl fribidi libircclient miniupnpc vlc
@@ -15,5 +14,12 @@ build(){
   3.6.0.1)
    sed -i '1i#include <unistd.h>' source/shared_lib/sources/util/util.cpp ;;
  esac
- default_build
+
+ local ret=0
+ Xvfb :64 -screen 0 1920x1080x24 &
+ export DISPLAY=:64
+ sleep 1
+ default_build || ret=1
+ kill -15 $!
+ return $ret
 }
