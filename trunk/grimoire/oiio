@@ -1,0 +1,30 @@
+with info    good 20131121
+with info    last 20131101
+with version stable Release-1.2.3
+with base    OpenCV boost glew libwebp
+with elect   qt-everywhere-opensource '' USE_QT=0
+with role    graphic graphic/library
+with trait   hidden library makej multilib-dual
+with source  stable oiio-$VERSION.tar $VERSION git://github.com/OpenImageIO/oiio.git
+with info    home https://sites.google.com/site/openimageio/home
+with info    docs https://sites.google.com/site/openimageio/documentation
+with info    mail https://sites.google.com/site/openimageio/mail-lists
+with info cite 'Library for reading and writing images
+Used in animation studios all around the world'
+
+build(){
+ local  RATH="$PATH"
+ local  PATH="$RATH"
+ export PATH
+
+ if [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS   =~ -m32   ]]; then
+  export            PATH=/opt/32bit/usr/bin:$PATH
+  export PKG_CONFIG_PATH=/opt/32bit/usr/lib/pkgconfig:/usr/lib/pkgconfig
+ fi
+
+ local d="$DESTDIR"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then              make && install -vm 755 -d "$d"; cp -avt "$d/" dist/linux64/*
+ else setarch i686 make && install -vm 755 -d "$d"; cp -avt "$d/" dist/linux/*
+ fi
+}
