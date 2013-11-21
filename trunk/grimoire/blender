@@ -1,37 +1,13 @@
-# Evert reports that blender requires:
-# https://github.com/OpenImageIO/oiio
-
-# might be unusable on x86_64
-# Please direct complaints and inquiries concerning blender
-# to the blender email lis rather than Sorcerer.
-# I do not know how, why, nor where the ELF 32-bit shared object files
-# come from that appear in 
-# /opt/blender/2.62/python/lib/python3.2/lib-dynload/
-# best guess is that blender downloads and installs them from
-# pre-compiled binary packages while blender compiles.
-# Very sneaky if so.
-
-# Not linking properly during last test on x86_64
-# trying to link with libraries in /usr/lib
-# yet the compile log gives no indication why.
-
-with trait   broke
+with info    good 20131121
 with info    last 20131104
 with version   stable 2.69 2.68a 2.68
-
-# case $VERSION in
-#  2.57)
-#       with also WITH_BF_FFMPEG=False ;;
-# esac
-
-with base    MesaLib Python3 SDL ffmpeg fftw lame libpng libsamplerate libspnav libtheora libvorbis openal openexr openssl pth scons sqlite subversion tiff tk x264
-#with base    MesaLib Python3 SDL ffmpeg fftw lame libpng libsamplerate libspnav libtheora libvorbis openal openexr openssl pth scons sqlite subversion tiff tk x264
+with base    MesaLib Python3 SDL ffmpeg fftw lame libpng libsamplerate
+with base    libspnav libtheora libvorbis oiio openal openexr openssl
+with base    pth scons sqlite subversion tiff tk x264
 with elect   openjpeg
-
-#with base    Python3  alsa-lib freealut freetype jpeg libvorbis firefox scons
-#with elect   yasm '' '' for fast x264 encoding
+with also    -DWITH_INSTALL_PORTABLE=FALSE
 with role    graphic/editor video/editor
-with trait   x11
+with trait   makej optimize x11
 with source    stable http://download.blender.org/source/blender-$VERSION.tar.gz
 with source  unstable http://download.blender.org/source/blender-$VERSION.tar.gz
 with info    vurl http://www.blender.org/download/get-blender
@@ -41,35 +17,3 @@ with info    cite 'a 3d modeling environement
 Blender is a fully integrated 3D graphics creation suite allowing
 modeling, animation, rendering, post-production, real-time interactive
 3D, and game creation and playback with cross-platform compatibility.'
-
-build(){
- default_build &&
- if [ -d "$DESTDIR"/$SOURCE_DIR/blender/blender-$VERSION/build ]; then
-  mkdir -pvm 755 "$DESTDIR"/opt/blender
-  mv -v "$DESTDIR"/$SOURCE_DIR/blender/blender-$VERSION/build/* \
-                 "$DESTDIR"/opt/blender/
- fi
-}
-
-build_old(){
-
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export LDFLAGS+=' -L/lib64 -L/usr/lib64'
- else export LDFLAGS+=' -L/lib -L/usr/lib'
- fi
-
- fix_nasm_inc(){
-  cd extern/xvidcore/src/
-  find . -type d -exec cp -v nasm.inc '{}' \;
-  cd ../../..
- }
-
- case $VERSION in
- 2.49b) fix_nasm_inc ;;
- esac
-
- export  LDFLAGS+=' -lalut'
-#scons -Q $OPTS &&
- scons &&
- scons install BF_INSTALLDIR="$DESTDIR"/opt/blender
-}
