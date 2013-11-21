@@ -1,6 +1,7 @@
 # OpenCV version 2.4.4a is not compatible wtih ilmbase version 2.0.0
 # ilmbase 2.0.0 compiled and linked fine after fixes
 
+with info    edit 20131121
 with info    last 20131120
 with version   stable 2.1.0 1.0.2
 with version unstable 2.1.0
@@ -28,10 +29,19 @@ build(){
  export CCACHE_PATH=/usr/bin
 
  case $VERSION in
-  2.0.0) rm -f CMakeLists.txt ;;
   1.0.2) sed -i '1i#include <cstring>' Imath/ImathMatrix.h
          export LDFLAGS+=" -lpthread" ;;
  esac
+
+ rm -f CMakeLists.txt
  sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  default_build
+}
+
+current(){
+ case $VERSION in
+  2.1.0) if   [[ $HOSTTYPE == x86_64 ]]
+         then [ -f /usr/lib64/pkgconfig/IlmBase.pc ]
+         fi ;;
+ esac
 }
