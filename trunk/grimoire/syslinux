@@ -6,7 +6,7 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with info    edit 20131114
+with info    edit 20131123
 with info    last 20131015
 with version   stable 6.02 6.01 4.06
 #with version unstable 6.02-pre16
@@ -27,7 +27,6 @@ with source  unstable $KERNEL_URL pub/linux/utils/boot/syslinux/syslinux-$VERSIO
 with source  pre    $KERNEL_URL pub/linux/utils/boot/syslinux/Testing/${VERSION:0:4}/syslinux-$VERSION.tar.xz
 with info    home http://syslinux.zytor.com/wiki/index.php/The_Syslinux_Project
 with protect /etc/extlinux/
-with vary    /boot/extlinux/extlinux.conf
 with info    cite 'bootloader for Linux and other operating systems
 syslinux works on FAT
 isolinux, also provided by isolinux, works on ISO9660 file systems.
@@ -44,12 +43,6 @@ build(){
   install -vm 755 -d "$DESTDIR"/usr/share/doc/syslinux/
   find doc -type f | xargs -r -d '\n' --max-lines=64 \
   install -vm 644 -t "$DESTDIR"/usr/share/doc/syslinux/ --
- }
-
- install_menu(){
-  install -vm 700 -d "$DESTDIR"/boot/extlinux/
-  install -vm 644 -t "$DESTDIR"/boot/extlinux \
-                     "$DESTDIR"/usr/share/syslinux/{chain,libcom32,libutil,mboot,*menu}.c32
  }
 
  install_configs(){
@@ -81,6 +74,5 @@ build(){
  rm -f extlinux/extlinux &&
  make install INSTALLROOT="$DESTDIR" DESTDIR="$DESTDIR" &&
  install_doc  &&
- # install_menu &&
  install_configs
 }
