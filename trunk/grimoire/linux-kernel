@@ -1,11 +1,10 @@
-# given solo trait in order to cast faster on smp using parallel make.
+# granted solo trait for faster moil on smp using parallel make.
 
-with info    last 20130524
+with info    edit 20131124
 with base    linux-config linux-firmware linux-modules linux-headers
 with role    kernel
 with trait   console litelink makej optimize solo
 with info    home http://www.kernel.org/
-with protect /boot/
 with info    cite 'compiles and installs a linux kernel'
 
 kversion(){
@@ -39,6 +38,18 @@ kversion
 build(){
 
  install_kernel(){
+  local d="$DESTDIR/usr/share/linux-kernel/"
+  local v="$d/$VERSION/"
+  local m="System.map"
+  local i="$( find . -type f -name bzImage )"
+
+  install -vm 755 -d   "$d"
+  install -vm 700 -d   "$v"
+  install -vm 600 "$i" "${v}linux"
+  install -vm 600 "$m" "$v"
+ }
+
+ install_kernel_old(){
   SM="System.map"
   BV="$VERSION"
   BZ=$( find . -type f -name bzImage )

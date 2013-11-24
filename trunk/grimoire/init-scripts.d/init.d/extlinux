@@ -10,11 +10,7 @@
 # Copyright 2008-2013 by Kyle Sallee, all rights reserved.
 # for use with Modern Magic only
 
-export LC_ALL=C
-
-if   ! [ -f /sbin/extlinux ] || ! [ -d /boot/ ]
-then exit 0
-fi
+if ! [ -d /boot/ ] || ! [ -f /sbin/extlinux ]; then exit 0; fi
 
 . /lib/lsb/init-functions
 
@@ -22,6 +18,7 @@ if rootfs; then trap - EXIT && exit 0; fi
 
 only stop reload force-reload status
 deny control
+export LC_ALL=C
 
 EXTL=/boot/extlinux/extlinux.conf
 SLXC=/boot/syslinux/syslinux.conf
@@ -66,8 +63,6 @@ extlinux_conf_update(){
  fi
 
  local APPEND ICX=0
- local LVER="$( uname -r )"
- [ -f /boot/$LVER/linux ] || LVER=
 
  if   [ -f /sbin/tomoyo-init    ]; then APPEND="security=tomoyo"; fi
  if   [ -f /etc/extlinux/append ]; then APPEND+=" $(< /etc/extlinux/append )"; fi
@@ -84,11 +79,8 @@ extlinux_conf_update(){
   if   (( 0 == ICX )) && [ -f /usr/sbin/xl ]
   then img "	MENU PASSWD"
        img_xen "	MENU PASSWD"
-  elif (( 4 > ICX ))
+  elif (( 5 > ICX ))
   then img "	MENU PASSWD"
-  elif [ "$LVER" == "$REPLY" ]
-  then continue
-  else rm -fr /boot/$REPLY /lib{,.sav}/modules/$REPLY{,.old}
   fi
   (( ICX++ ))
  done >> $CONF.$$

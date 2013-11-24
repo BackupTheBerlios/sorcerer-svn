@@ -1,6 +1,6 @@
 # Compiling with lto produces smaller, but slower bash
 
-with info    good 20131011
+with info    good 20131124
 with info    last 20130307
 with version stable 4.2.045 4.2.042
 with base    readline
@@ -100,6 +100,9 @@ build(){
 
 current(){
  case $VERSION in
-  4.2.045) xz -cd "$POST_LOGS"/bash | grep -q "^l${TAB}sh${TAB}bash$" ;;
+  4.2.045) if   !  [ bash == "$( readlink /bin/sh )" ]
+           then rm -f /bin/sh; ln -s bash /bin/sh
+           fi
+           xz -cd "$POST_LOGS"/bash | grep -q "^l${TAB}sh${TAB}bash$" ;;
  esac
 }
