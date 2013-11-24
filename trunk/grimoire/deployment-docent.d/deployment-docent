@@ -35,8 +35,9 @@ progress(){ YORE[$1]="$2"; FORE[$1]="$3"; }
 
 progress origin			Introduction		Introduction
 progress Introduction		Introduction		POST
-progress POST			Introduction		date
-progress date			POST			password
+progress POST			Introduction		rootfs
+progress rootfs			POST			date
+progress date			rootfs			password
 progress password		date			ALSA
 progress ALSA			password		multiroot
 progress multiroot		ALSA			Plan
@@ -53,9 +54,9 @@ progress mkfs.ext2		LUKS			mkfs
 progress mkfs			mkfs.ext2		mkswap
 progress mkswap			mkfs			mkdir
 progress mkdir			mkswap			mount
-progress mount			mkdir			/etc/fstab.rootfs
-progress /etc/fstab.rootfs	mount			boothash
-progress boothash		/etc/fstab.rootfs	hostname
+progress mount			mkdir			fstab
+progress fstab			mount			boothash
+progress boothash		fstab			hostname
 progress hostname		boothash		rootname
 progress rootname		hostname		hosts
 progress hosts			rootname		network
@@ -109,6 +110,11 @@ stock DOCS[POST] \
 "less /usr/doc/docent/POST_to_Present"	"$RIGHT" $"# learn the steps of booting"
 stock GOAL[POST] $"Understand booting"
 stock HINT[POST] $"Proper deployment achieves successful booting."
+
+stock DOCS[rootfs] "less /usr/src/linux/Documentation/filesystems/ramfs-rootfs-initramfs.txt" \
+"\n" "less /usr/doc/docent/rootfs"
+stock GOAL[rootfs] $"Understand the purpose and position of rootfs"
+stock HINT[rootfs] $"Learn how rootfs and root file system differ."
 
 stock DOCS[date] "man date hwclock"
 stock GOAL[date] $"Set the Date and Time"
@@ -435,13 +441,13 @@ test_mount(){
  fi
 }
 
-stock DOCS[/etc/fstab.rootfs] \
+stock DOCS[fstab] \
 "man fstab" "\n" \
-"less /usr/doc/docent/fstab.rootfs"
+"less /usr/doc/docent/fstab"
 
-stock GOAL[/etc/fstab.rootfs] $"Make a valid /etc/fstab.rootfs"
-stock HINT[/etc/fstab.rootfs] "cp /usr/doc/docent/fstab.rootfs.sample /etc/fstab.rootfs" "\n" \
-"nano /etc/fstab.sample" "\n" \
+stock GOAL[fstab] $"Make a valid /etc/rootfs/fstab"
+stock HINT[fstab] "cp /usr/doc/docent/fstab.sample /etc/rootfs/fstab" "\n" \
+"nano /etc/rootfs/fstab.sample" "\n" \
 $"When uncertain the above commands create an easy to edit template."
 
 field_check(){
@@ -478,9 +484,9 @@ field_check(){
  done
 }
 
-test_etc_fstab.rootfs(){
- local f=/etc/fstab.rootfs
- local m=/+/main
+test_fstab(){
+ local f=/etc/rootfs/fstab
+ local m=/+/base
  local b=/+/base/boot
 
  if   ! [ -f $f ]

@@ -1,0 +1,231 @@
+/usr/src/linux/Documentation/filesystems/ramfs-rootfs-initramfs.txt
+
+Please read document listed above.
+The rootfs is the like the hub of a wheel
+where invisible spokes lead from the rootfs
+into each root file system.
+The hub of a wheel imparts strength to a wheel.
+Likewise knowledge of the rootfs imparts
+understanding and ability to the SA.
+
+Rootfs differs from a root file system.
+Rootfs is not backed by a media storage device.
+Rootfs content is lost during reboot and shutdown.
+Rootfs is a generated file system.
+Rootfs is backed by swap.
+Rootfs is populated by content from compressed cpio archives.
+
+The cpio images are also called initramfs,
+"initial random access file system."
+One root file systems is delegated the duty
+of generating the initramfs files.
+/+/base/             is typical.
+/+/base/boot/initrf/ is where the initramfs files are stored.
+/+/base/boot/        is frequently an ext2 file system
+                     on a dedicated 1 gigabyte partition.
+/+/base/boot/        as a dedicated file system allows
+/+/base/             to be on any Linux supported file system.
+
+The boot loader loads files into RAM, random access memory.
+The files loaded are a Linux kernel and cpio files.
+The loaded files are compressed to expedite loading
+from a mass storage device via BIOS calls into RAM.
+
+Linux decompresses itself.
+Then Linux decompresses the cpio files.
+Linux creates the rootfs.
+Linux transfers the decompressed content
+of cpio files to the rootfs.
+
+Rootfs is a file system.
+Rootfs suffices for booting, trouble shooting,
+networking, and running some services.
+Rootfs is not a root file system.
+Rootfs receives only a subset of the files
+installed on a root file system.
+
+Rootfs appears to be mounted as /
+to processes running on the rootfs.
+A root file system appears to be mounted as /
+to processes running on a root file system.
+
+Each root file system runs nearly independently.
+Each root file system is like a virtual computer.
+Each root file system requires less resources than a virtual computer.
+The rootfs's role become similar to a host computer or a hypervisor.
+
+Rootfs receives the actual networking devices.
+Root file systems receive only one half of a VETH pair.
+VETH is a virtual Ethernet adapter.
+A VETH pair provides a tunnel.
+Each VETH adapter receives it's own IP address.
+A VETH pair acts like a tunnel.
+Rootfs acts like a firewall/router for all root file systems.
+
+Only one root file system is obliged
+to create Linux, modules, and the initramfs.
+That root file system will have /boot/ and /lib/modules/
+Other root file systems are not obliged
+to provide /boot/ and /lib/modules/
+
+/+/base/ manifest of installed software
+can be limited to the role of updating
+and generating Linux, modules, and the initramfs.
+/+/work/ manifest of installed software
+can be limited to the role of updating
+and providing workstation software.
+Delegation of roles allows for concise
+manifests of installed software.
+Each root file system retains autonomy.
+
+/+/base/ can provide additional boons.
+/+/base/ can be copied to nearly any size USB SSD.
+The USB SSD can then be used for deployment and rescue.
+
+/+/base/aux/{can,run}/can be excluded to conserve space.
+However, if still too large a repair only USB SSD can be generated.
+/+/base/boot/ provides sufficient content
+for booting and repairing.
+The required space might be about 100 megabytes.
+
+The downloadable Install/Rescue image is specially crafted.
+It provides all the content expected for /+/base/
+yet is highly compressed to reduce download
+size to about 10% deployment size.
+Creating a compact I/R tends to require considerable testing.
+In contrast a bootable USB SSD generated from /+/base/
+performs nearly the same as /+/base/
+However, the fstab file for the rootfs should differ.
+
+The last item of importance are configuration files.
+Configuration files are stored in /etc/
+The configuration files used for a root file system
+have the same name as the configuration files
+used on the rootfs.
+However, files with different content and the same name;
+can not exist within the same directory.
+Therefore, they must exist in different directories.
+
+The rootfs inherits the /etc/ of it's progenitor root file system.
+Therefore, before sysinit begins the content of
+/etc/ and /+/base/etc do not differ.
+However, early within sysinit the content from
+/etc/rootfs/ is copied to /etc/
+Therefore, a file such as /etc/rootfs/fstab overwrites /etc/fstab
+In that fashion the rootfs receives a custom fstab file.
+The rootfs can also have a custom password file.
+That file would be /+/base/etc/rootfs/shadow
+During sysinit /etc/rootfs/shadow overwrites /etc/shadow
+And that allows the passwords to change.
+
+/etc/ is the historical location for storing configuration files.
+The path and name of several configuration files are hard coded.
+Adjustment is not a simple matter.
+Therefore, /etc/rootfs/ provides a simple method
+for allowing configuration files intended for rootfs
+to be utilized by the rootfs.
+
+Unfortunately, confusion can exist concerning /etc/rootfs/
+Expression of that confusion impelled this document's creation.
+Please brace while confusion is obliterated.
+
+A computer only has one rootfs.
+The rootfs is like the hub of a wheel.
+Only one  root file system constructs the rootfs.
+Only that root file system requires directory /etc/rootfs/
+Early during sysinit files from /etc/rootfs/ are copied to /etc/
+Therefore, the configuration files specific to the rootfs
+must be stored in /etc/rootfs/.
+
+The components of path names should already be understood.
+However, subtle confusion might yet exist.
+/ is a separator.
+However, a leading / is special.
+A path that begins with slash is called absolute.
+A path that begins any other way is called relative.
+
+The leading slash of a path has a special name.
+Unlike the other slashes the leading slash is called the root
+/
+The above is often referred to as root.
+This differs from the root account's home directory.
+The root account's home directory is often /root/
+The compounded uses of the word root create cause for confusion.
+Fortunately, the distinction become more apparent with experience.
+
+The slash is a path name separator.
+Anything in front of a slash is necessarily
+a directory or a symbolic link to a directory.
+Anything following a slash could be nearly anything.
+Ending a path with a slash eases confusion
+by implying that the end point is either
+a directory or a symbolic link to a directory.
+
+Rootfs exists on all Linux based POSIX.
+Most single-root POSIX empty the rootfs
+and then mount the root file system on top.
+The rootfs on those computers becomes completely inaccessible.
+However, on a multi-root POSIX
+the rootfs exists at all times.
+Yet the rootfs is also occluded to processes
+that are running within a root file system.
+What appears to be mounted as /
+differs depending upon where a process runs.
+
+/etc/rootfs/
+/+/base/etc/rootfs/
+both directories exist.
+When only the first is used
+does it refer to the directory
+as seen from the rootfs
+or the directory as seen from /+/base/
+since /+/base is the only root file system
+which should have /etc/rootfs/ ?
+
+The answer is that location is understood through context.
+When discussing a root file system
+then absolute paths might be relative
+to the root file system rather than
+specifying a location on the rootfs.
+
+After deployment and a reboot
+then logging into root file systems becomes possible.
+During deployment the object is to create those root file systems.
+Log in to a root file system is not available until after the first reboot.
+
+During deployment most documents provide path names
+from the perspective of being logged into the rootfs.
+However, when discussing a root file system
+the path might be intended as absolute
+only when logged in to that root file system.
+Having at least two locations
+for nearly every file and path
+can become cause for confusion.
+However, odds on a guess are about 50% correct.
+
+Some SAs make incorrect assumptions.
+Through trial, error, observation, retry,
+and achieving the desired outcome;
+the incorrect assumption is discovered and fixed.
+
+For a skilled SA understanding where one is logged in
+is easily achieved by reading the prompt.
+Novice SAs might experience a slight headache
+while keeping it straight.
+Endure the strain.
+It diminishes with experience.
+
+Before leaving this document answer 3 questions please.
+What is the rootfs?
+Where is the rootfs?
+What root file system generates the rootfs?
+This document should answer those 3 questions.
+If confusion persists then please re-read this document
+along with the document suggested in the beginning.
+
+Lastly, remember that rootfs != root file system.
+rootfs is read exactly as rootfs.
+Realizing that rootfs is a shorter
+helps with remembering that rootfs only provides a subset.
+The word rootfs and phrase root file system appear frequently.
+Mastering the distinction avoids bewilderment.
