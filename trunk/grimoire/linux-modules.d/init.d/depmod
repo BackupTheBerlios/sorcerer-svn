@@ -9,7 +9,7 @@
 
 # Never rely upon depmod -A
 
-(( UID == 0 )) || exit 0
+[ -d /lib/modules/ ] || exit 0
 
 . /lib/lsb/init-functions
 
@@ -36,9 +36,9 @@ check(){
 
 update(){
  while read; do 
-  if   log_warning_msg "depmod ${REPLY##*/} running"; /sbin/depmod "${REPLY##*/}"
-  then log_success_msg "depmod ${REPLY##*/} success"; /bin/touch   "$REPLY/reference"
-  else log_success_msg "depmod ${REPLY##*/} failure"
+  if   log_warning_msg "${REPLY##*/}"; /sbin/depmod "${REPLY##*/}"
+  then log_success_msg "${REPLY##*/}"; /bin/touch   "$REPLY/reference"
+  else log_success_msg "${REPLY##*/}"
   fi
  done
 }
