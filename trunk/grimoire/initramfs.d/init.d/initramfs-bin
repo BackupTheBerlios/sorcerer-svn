@@ -15,38 +15,41 @@
 only stop reload force-reload status
 name /boot/initrf/bin
 INIT=initramfs-bin
-SKIP="[32G"
 
-allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+allpaths(){ /bin/sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | /bin/sort -u; }
 
 exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
-every(){ find "/${NAME##*/}" | sed "\,^/bin/bashbug$,d"; }
+every(){ /bin/find "/${NAME##*/}" | /bin/sed "\,^/bin/bashbug$,d"; }
 
 initrf_update(){
 
- local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
- rm    -rf     $TEMPIF
- mkdir -pm 700 $TEMPIF/boot/initrf
+ local               TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ /bin/rm    -rf     $TEMPIF
+ /bin/mkdir -pm 700 $TEMPIF/boot/initrf
 
  local  COMMON="$TEMPIF/$NAME"
 
- every | allpaths | exists | cpio -o -H newc --quiet | gzip -1 > $COMMON
- chmod 600 $COMMON
+ cd /
+ every |  allpaths | exists |
+ /bin/cut -b2-1024 |
+ /bin/cpio -o -H newc --quiet |
+ /bin/gzip -1 > $COMMON
+ /bin/chmod 600 $COMMON
 
- [  -f /boot/initrf ] &&
- rm -f /boot/initrf
+ [  -f      /boot/initrf ] &&
+ /bin/rm -f /boot/initrf
 
- cp -a  $TEMPIF/boot /
- rm -fr $TEMPIF
- sync
+ /bin/cp -a  $TEMPIF/boot /
+ /bin/rm -fr $TEMPIF
+ /bin/sync
 }
 
 initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
 
- if   find "/${NAME##*/}" -newer $NAME | grep -q .
+ if   /bin/find "/${NAME##*/}" -newer $NAME | /bin/grep -q .
  then return 1
  fi
 
@@ -55,16 +58,16 @@ initrf_current(){
 } 
 
 run(){
- if   log_warning_msg "$NAME $SKIP updating"; initrf_update
- then log_success_msg "$NAME $SKIP updated"
- else log_failure_msg "$NAME $SKIP failed"; false
+ if   log_warning_msg "update"; initrf_update
+ then log_success_msg "update"
+ else log_failure_msg "update"; false
  fi
 }
 
 status(){
- if   log_warning_msg "$NAME $SKIP checking"; initrf_present && initrf_current
- then log_success_msg "$NAME $SKIP checked; status:     current"
- else log_warning_msg "$NAME $SKIP checked; status: not current"; return 1
+ if   log_warning_msg "check"; initrf_present && initrf_current
+ then log_success_msg "check status:     current"
+ else log_warning_msg "check status: not current"; return 1
  fi
 }
 

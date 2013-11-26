@@ -1,4 +1,4 @@
-with info    last 20130625
+with info    edit 20131126
 with base    linux-source
 with role    documentation
 with trait   data
@@ -6,21 +6,15 @@ with info    home http://www.kernel.org/
 with info    cite 'Provides /usr/src/linux/Documentation on I/R'
 
 build(){
-# local d=/usr/src/linux/Documentation
-# mkdir -pm 755 "$DESTDIR"$d
-# find                    $d -type f |
-# grep  -v "/DocBook/\|/devicetree/\|/Documentation.tar.xz$" |
-# tar   --no-recursion -cPT -        |
-# xz    -7 >    "$DESTDIR"$d/Documentation.tar.xz
-
- mkdir -pm 755 "$DESTDIR"//usr/src/linux/
- cp    -a    {,"$DESTDIR"}/usr/src/linux/Documentation
- rm    -fr     "$DESTDIR"//usr/src/linux/Documentation/{DocBook,devicetree}/
+ install -vm 755 -d "$DESTDIR"/usr/src/linux/
+ cp      -a      -t "$DESTDIR"/usr/src/linux/ \
+                              /usr/src/linux/Documentation
+ rm      -fr        "$DESTDIR"/usr/src/linux/Documentation/{DocBook,devicetree}/
 }
 
 current(){
- if   [ -f "$CURRENT_LOGS"/deployment-docent ] ||
-      [ -f "$CURRENT_LOGS"/sorcerer-iso9660  ]
+ if   [ -f "$POST_LOGS"/deployment-docent ] ||
+      [ -f "$POST_LOGS"/sorcerer-iso9660  ]
  then return
  else echo linux-documentation | pipe_queue "$REAP_QUEUE"
  fi

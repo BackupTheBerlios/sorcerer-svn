@@ -15,57 +15,55 @@
 only stop reload force-reload status
 name initramfs-modules
 INIT=initramfs-modules
-SKIP="[32G"
 
-allpaths(){ sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
+allpaths(){ /bin/sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | sort -u; }
 
 exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
 
 mkinitrf(){
- ( echo -e "/lib\n/lib/modules\n/lib/modules/$1"
-   find /lib/modules/$1 |
-   LC_ALL=C sort -u
- ) | cpio -o -H newc --quiet | gzip -1
+ cd /
+ ( echo -e "/lib\n/lib/modules\n/lib/modules/${1##*/}"
+   /bin/find /lib/modules/${1##*/} |
+   LC_ALL=C /bin/sort -u
+ ) | /bin/cut -b2-1024 | /bin/cpio -o -H newc --quiet | /bin/gzip -1
 }
 
 initrf_update(){
 
- local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
- rm    -rf     $TEMPIF
- mkdir -pm 600 $TEMPIF/boot
+ local               TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ /bin/rm    -rf     $TEMPIF
+ /bin/mkdir -pm 600 $TEMPIF/boot
 
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- cut -d / -f3 | sed '\,rescue,d' |
+ /bin/find /boot/linux/ -maxdepth 2 -mindepth 2 -type f -name kernel -printf '%h\n' |
+ /bin/sed '\,rescue,d' |
  while read; do
-  if   [ -n "$1" ] || ! [ -f /boot/$REPLY/modules ] ||
-       find /lib/modules/${REPLY##*/} -newer /boot/$REPLY/modules | grep -q .
-  then
-   log_warning_msg "/boot/$REPLY/modules $SKIP updating"
-   mkdir             $TEMPIF/boot/$REPLY
-   mkinitrf $REPLY > $TEMPIF/boot/$REPLY/modules
-   chmod 600         $TEMPIF/boot/$REPLY/modules
-   log_success_msg "/boot/$REPLY/modules $SKIP updated"
+  if   [ -n "$1" ]; then
+   log_warning_msg "$REPLY/modules update"
+   /bin/mkdir -p     $TEMPIF/$REPLY
+   mkinitrf $REPLY > $TEMPIF/$REPLY/modules
+   /bin/chmod 600    $TEMPIF/$REPLY/modules
+   log_success_msg "$REPLY/modules update"
   fi
  done
 
- cp -a  $TEMPIF/boot /
- rm -fr $TEMPIF
- sync
+ /bin/cp -a  $TEMPIF/boot /
+ /bin/rm -fr $TEMPIF
+ /bin/sync
 }
 
 initrf_current(){
  if [ -f /var/log/init/failed/$INIT/stop ]; then return 1; fi
 
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- sed '\,/boot/rescue,d' |
+ /bin/find /boot/linux/ -maxdepth 2 -mindepth 2 -type f -name kernel -printf '%h\n' |
+ /bin/sed '\,/boot/linux/rescue,d' |
  while read; do
-  if   log_warning_msg "$REPLY/modules $SKIP checking";
+  if   log_warning_msg "$REPLY/modules check";
        [[ -f $REPLY/modules ]] &&
-       ! find /lib/modules/${REPLY##*/} -newer $REPLY/modules |
-       grep -v "/modules\.loaded$" |
-       grep -q .
-  then log_success_msg "$REPLY/modules $SKIP checked; status:     current"
-  else log_warning_msg "$REPLY/modules $SKIP checked; status: not current"
+       ! /bin/find /lib/modules/${REPLY##*/} -newer $REPLY/modules |
+       /bin/grep -v "/modules\.loaded$" |
+       /bin/grep -q .
+  then log_success_msg "$REPLY/modules check status:     current"
+  else log_warning_msg "$REPLY/modules check status: not current"
        return 1
   fi
  done

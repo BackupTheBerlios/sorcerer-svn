@@ -30,25 +30,27 @@ DONE=false
 
 extlinux_conf_update(){
  img(){
-  local INITRF
-  if   [ -f /boot/$REPLY/modules ]; then INITRF="../$REPLY/modules"; fi
-  if   [ -f /boot/$REPLY/initrf  ]; then INITRF="../$REPLY/initrf";
-  elif [ -h /boot/$REPLY/initrf  ]; then
-   local FILE
-   for   FILE in /boot/$REPLY/initrf/*
-   do  INITRF+=",../$REPLY/initrf/${FILE##*/}"
+  local i f
+  if   [ -f /boot/linux/$REPLY/modules ]; then i="../linux/$REPLY/modules,"; fi
+  if   [ -f /boot/linux/$REPLY/initrf  ]; then i="../linux/$REPLY/initrf,";
+  elif [ -d /boot/linux/$REPLY/initrf  ]; then
+   for f in /boot/linux/$REPLY/initrf/*
+   do  i+="../linux/$REPLY/initrf/${f##*/},"
+   done
+  else
+   for f in /boot/initrf/*
+   do  i+="../initrf/${f##*/},"
    done
   fi
   echo "LABEL	$REPLY"
-  echo "	KERNEL	../$REPLY/linux"; [ -n "$INITRF" ] &&
-  echo "	INITRD	$INITRF";         [ -n "$APPEND" ] &&
-  echo "	APPEND	$APPEND";         [ -n "$1" ] &&
+  echo "	KERNEL	../linux/$REPLY/kernel"; [ -n "$i" ] &&
+  echo "	INITRD	${i%,}";                 [ -n "$APPEND" ] &&
+  echo "	APPEND	$APPEND";                [ -n "$1" ] &&
   echo "$1"
   echo
  }
 
  img_xen(){
-  local INITRF
   echo "LABEL	xen-$REPLY"
   echo "	KERNEL	mboot.c32"
   echo "	APPEND ../xen.gz dom0_mem=1G,max:4G --- ../$REPLY/linux $APPEND --- ../xen/initrf"; [ -n "$1" ] &&
@@ -69,12 +71,13 @@ extlinux_conf_update(){
 
  if ! [ -f $HEAD ]; then exit 1; fi
 
- cp $HEAD $CONF.$$
+ /bin/cp $HEAD $CONF.$$
 
- find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%T@\t%h\n' |
- sort -gr |
- cut -f2  |
- sed '\,/boot/rescue,d; \,/boot/xen,d; s:.*/::' |
+ /bin/find /boot/linux/ -mindepth 2 -maxdepth 2 \
+                        -type f -name kernel -printf '%T@\t%h\n' |
+ /bin/sort -gr |
+ /bin/cut  -f2 |
+ /bin/sed  '\,/boot/linux/rescue,d; \,/boot/linux/xen,d; s:.*/::' |
  while read REPLY; do
   if   (( 0 == ICX )) && [ -f /usr/sbin/xl ]
   then img "	MENU PASSWD"
@@ -85,27 +88,26 @@ extlinux_conf_update(){
   (( ICX++ ))
  done >> $CONF.$$
 
- if   [ -f /boot/rescue/linux  ] &&
-      [ -f /boot/rescue/initrf ]
+ if   [ -f /boot/linux/rescue/kernel ]
  then REPLY=rescue; img "	MENU PASSWD" >> $CONF.$$
  fi
 
- if   [ -f $TAIL ]
- then cat  $TAIL >> $CONF.$$
+ if   [ -f     $TAIL ]
+ then /bin/cat $TAIL >> $CONF.$$
  fi
 
- mv        $CONF{.$$,}
- cp        $CONF $EXTL
- chmod 600 $CONF $EXTL
+ /bin/mv        $CONF{.$$,}
+ /bin/cp        $CONF $EXTL
+ /bin/chmod 600 $CONF $EXTL
 
- if ! [ -d                 /boot/syslinux/ ]; then
-  rm    -f                 /boot/syslinux
-  ln    -s /boot/extlinux/ /boot/syslinux
+ if ! [ -d          /boot/syslinux/ ]; then
+  rm    -f          /boot/syslinux
+  ln    -s extlinux /boot/syslinux
  fi
 
- if ! [ -f       $SLXC ]; then
-  rm   -f        $SLXC
-  ln   -s  $EXTL $SLXC
+ if ! [ -f               /boot/syslinux/syslinux.conf ]; then
+  rm    -f               /boot/syslinux/syslinux.conf
+  ln    -s extlinux.conf /boot/syslinux/syslinux.conf
  fi
 
  if ! [ -f   /boot/extlinux/version ]  ||
@@ -113,14 +115,16 @@ extlinux_conf_update(){
   /sbin/extlinux --version 2> /boot/extlinux/version
   /sbin/extlinux -U /boot/extlinux ||
   /sbin/extlinux -i /boot/extlinux
-  find  /usr/share/syslinux/ -mindepth 1 -maxdepth 1 -type f -name \*.c32 |
-  xargs -r -L64 install -m 600 -t /boot/extlinux/
+  /bin/find  /usr/share/syslinux/ -mindepth 1 -maxdepth 1 \
+                                  -type f -name \*.c32 |
+  /bin/xargs -r -L64 /usr/bin/install -m 600 -t /boot/extlinux/
  fi
 }
 
 both(){
- /bin/find /boot -mindepth 2 -maxdepth 2 -type f -name linux -printf '%h\n'
- /bin/sed 's:#.*::;s: ::g;s:\t::g;s:LABEL:/boot/:p;d' $CONF
+ /bin/find /boot/linux -mindepth 2 -maxdepth 2 \
+                       -type f -name kernel -printf '%h\n'
+ /bin/sed 's:#.*::;s: ::g;s:\t::g;s:LABEL:/boot/linux/:p;d' $CONF
 }
 
 boot_labels(){ ! both | /bin/sort | /bin/uniq -u | /bin/grep -q .; }
@@ -128,8 +132,8 @@ boot_labels(){ ! both | /bin/sort | /bin/uniq -u | /bin/grep -q .; }
 previously_passed(){ ! [ -d /var/log/init/failed/extlinux ]; }
 
 tomoyo_enabled(){
- if   [    -f    /sbin/tomoyo-init ]
- then grep -q security=tomoyo $CONF
+ if   [ -f /sbin/tomoyo-init ]
+ then /bin/grep -q security=tomoyo $CONF
  fi
 }
 
@@ -139,23 +143,22 @@ current(){
  [       -f  $CONF   ] &&
  [ $CONF -nt $HEAD   ] &&
  [ $CONF -nt $TAIL   ] &&
- [ -d /boot/syslinux ] &&
  tomoyo_enabled        &&
  previously_passed     &&
  boot_labels
 }
 
 run(){
- if   log_warning_msg "$NAME update"; extlinux_conf_update
- then log_success_msg "$NAME update"
- else log_failure_msg "$NAME update"; return 1
+ if   log_warning_msg "update"; extlinux_conf_update
+ then log_success_msg "update"
+ else log_failure_msg "update"; return 1
  fi
 }
 
 status(){
- if   log_warning_msg "$NAME check"; current
- then log_success_msg "$NAME check status:     current"
- else log_warning_msg "$NAME check status: not current"; return 1
+ if   log_warning_msg "check"; current
+ then log_success_msg "check status:     current"
+ else log_warning_msg "check status: not current"; return 1
  fi
 }
 

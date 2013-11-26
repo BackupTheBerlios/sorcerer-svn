@@ -1,6 +1,6 @@
 # granted solo trait for faster moil on smp using parallel make.
 
-with info    edit 20131124
+with info    edit 20131126
 with base    linux-config linux-firmware linux-modules linux-headers
 with role    kernel
 with trait   console litelink makej optimize solo
@@ -38,30 +38,15 @@ kversion
 build(){
 
  install_kernel(){
-  local d="$DESTDIR/usr/share/linux-kernel/"
+  local d="$DESTDIR/usr/share/linux/"
   local v="$d/$VERSION/"
   local m="System.map"
   local i="$( find . -type f -name bzImage )"
 
   install -vm 755 -d   "$d"
   install -vm 700 -d   "$v"
-  install -vm 600 "$i" "${v}linux"
+  install -vm 600 "$i" "${v}kernel"
   install -vm 600 "$m" "$v"
- }
-
- install_kernel_old(){
-  SM="System.map"
-  BV="$VERSION"
-  BZ=$( find . -type f -name bzImage )
-
-  mkdir  -pvm 755            "$DESTDIR/"boot/$BV
-  install -vm 600 $BZ        "$DESTDIR/"boot/$BV/linux
-  chmod 600                  "$DESTDIR/"boot/$BV/linux
-  install -vm 600 System.map "$DESTDIR/"boot/$BV
-  rm    -f                   "$DESTDIR/"boot/System.map
-  ln    -s $BV/System.map    "$DESTDIR/"boot/System.map
-#  mkdir -pvm 755             "$DESTDIR/"usr/src/
-#  mv    -v "$BUILD_DIR"      "$DESTDIR/"usr/src/linux-kernel
  }
 
  import_previous(){
@@ -115,3 +100,5 @@ build(){
 
  compile_and_install
 }
+
+current(){ [ -f /usr/share/linux/$VERSION/kernel ]; }

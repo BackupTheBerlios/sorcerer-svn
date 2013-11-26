@@ -21,7 +21,6 @@
 only stop reload force-reload status
 name initramfs
 DONE=false
-SKIP="[32G"
 
 initrf_update(){
 
@@ -29,21 +28,21 @@ initrf_update(){
  do  bash $REPLY $1
  done
 
- local          TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
- rm    -rf     $TEMPIF
- mkdir -pm 600 $TEMPIF/boot
+ local               TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
+ /bin/rm    -rf     $TEMPIF
+ /bin/mkdir -pm 600 $TEMPIF/boot
 
- find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- cut -d / -f3 | sed '\,rescue,d' |
+ /bin/find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
+ /bin/cut -d / -f3 | /bin/sed '\,rescue,d' |
  while read; do
-  mkdir           $TEMPIF/boot/$REPLY
-  ln -s ../initrf $TEMPIF/boot/$REPLY/initrf
+  /bin/mkdir           $TEMPIF/boot/$REPLY
+  /bin/ln -s ../initrf $TEMPIF/boot/$REPLY/initrf
  done
 
- if ! cp -a $TEMPIF/boot /; then rm -f /boot/*/initrf.old
-      cp -a $TEMPIF/boot /; fi
- rm -fr     $TEMPIF
- sync
+ if ! /bin/cp -a $TEMPIF/boot /; then /bin/rm -f /boot/*/initrf.old
+      /bin/cp -a $TEMPIF/boot /; fi
+ /bin/rm -fr     $TEMPIF
+ /bin/sync
 
  if $EXTL; then
   if ! $DONE; then /etc/init.d/extlinux reload; fi
@@ -57,15 +56,15 @@ initrf_update(){
 }
 
 run(){
- if   log_warning_msg "$NAME $SKIP updating"; initrf_update $1
- then log_success_msg "$NAME $SKIP updated"
- else log_failure_msg "$NAME $SKIP failed"; false
+ if   log_warning_msg "update"; initrf_update $1
+ then log_success_msg "update"
+ else log_failure_msg "update"; false
  fi
 }
 
 status(){
  for REPLY in /etc/init.d/initramfs-*
- do  bash $REPLY status || return 1
+ do  /bin/bash $REPLY status || return 1
  done
 }
 
@@ -73,10 +72,7 @@ stop(){ status || run stop; }
 force_reload(){ run force-reload; }
 reload(){ DONE=true; stop; }
 
-if ! [[ -d /boot ]] ||
-     [ -z "$( find /boot -mindepth 2 -maxdepth 2 -type f -name linux )" ]
-then log_failure_msg "$NAME unknown boot method"; exit 1
-fi
+if ! [[ -d /boot/ ]]; then log_failure_msg "$NAME unknown boot method"; exit 1; fi
 
 EXTL=false
 

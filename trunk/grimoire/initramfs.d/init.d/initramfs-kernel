@@ -1,0 +1,83 @@
+#!/bin/bash
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Stop: kexec $local_fs root-ro udev
+# Should-Stop: tmp
+# Default-Stop: 0 6
+# Short-Description: populates /boot/linux/ and prunes /boot/linux/
+### END INIT INFO
+
+# Copyright 2013 by Kyle Sallee, all rights reserved.
+# for use with Modern Magic only
+
+if ! [ -d /boot/linux/ ]; then
+ if   /bin/find /usr/share/linux/ -type f -name kernel | /bin/grep -q .
+ then /bin/mkdir -m 700 /boot/linux/
+ else exit 0
+ fi
+fi
+
+. /lib/lsb/init-functions
+
+if rootfs; then trap - EXIT && exit 0; fi
+
+only stop reload force-reload status
+deny control
+export LC_ALL=C
+
+available(){
+ [ -d      /usr/share/linux/ ] &&
+ /bin/find /usr/share/linux/ -mindepth 2 -maxdepth 2 \
+                             -type f -name kernel -printf "%T@\t%P\n" |
+ /bin/sort -gr | /bin/head -n1 | /bin/cut -f2 | /bin/sed 's:/kernel$::'
+}
+
+lversion(){
+ if   [ -f /bin/uname ]
+ then      /bin/uname -r
+ elif [ -f /proc/version ]
+ then  /bin/cut -d ' ' -f3 /proc/version
+ else echo unknown; false
+ fi
+}
+
+prune(){
+ /bin/find /boot/linux/ -mindepth 2 -maxdepth 2 -type f -name kernel -printf "%T@\t%P\n" |
+ /bin/sort -gr |
+ /bin/cut  -f2 |
+ /bin/sed  "1,4d; s:/kernel$::; \,/$( lversion )$,d; \,/rescue$,d" |
+ while read; do /bin/rm -fr /boot/linux/$REPLY/; done
+}
+
+update(){
+ /bin/rm -f  /boot/System.map
+ /bin/cp -at /boot/ /usr/share/linux/
+ /bin/ln -st /boot/ "linux/$AV/System.map"
+ prune
+}
+
+current(){
+ local h="/usr/share/linux/$AV/kernel"
+ local      w="/boot/linux/$AV/kernel"
+
+ [ -f "$h" ] && [ -f "$w" ] && ! [ "$h" -nt "$w" ] && ! [ "$h" -ot "$w" ]
+}
+
+run(){
+ if   log_warning_msg "update"; update
+ then log_success_msg "update"
+ else log_failure_msg "update"; return 1
+ fi
+}
+
+status(){
+ if   log_warning_msg "check"; current
+ then log_success_msg "check status:     current"
+ else log_warning_msg "check status: not current"; return 1
+ fi
+}
+
+AV="$( available )"
+stop(){ status || run; }
+reload(){ stop; }
+force_reload(){ run; }
