@@ -1,217 +1,209 @@
-Plans determine how mass storage devices
-will be utilized for deployment.
+Plans determine how mass storage devices are utilized.
 A fixed disk is an example of a mass storage device.
 A solid state device, SSD, of size 64G of larger
 is also considered a mass storage device.
 
-Mass storage devices are not used without preparation.
-A mass storage device is typically partitioned.
-Partitioning is verbosely explained in a later step.
-Partitioning designates areas of a mass storage device.
-The designated areas are called partitions.
-For now know that a typical deployment requires
-at least one mass storage device with at least 2 partitions.
+Mass storage devices require preparation.
+Partitioning is typical preparation.
+Partitions desginated areas.
+Each partition is delegated a use.
+A partition or suitable block device
+is utilized for a file system, swap area, or database.
+A reasonably simple deployment requires 5 partitions.
 
+Simply Workstation Plan:
+Part #	Size		Type	Mount Point
+1	1G		ext2	/+/base/boot/
+2	1G		swap
+3	8G		ext4	/+/base/
+4	30G		ext4	/+/work/
+5	Varies		ext4	/+/home/
 
-Simplicity Plan:
-Partition number	Size		Type	Mount Point
-2			maximum     	ext4	/+/base
-1			1G          	ext2	/+/base/boot
+Partition numbers specify order of creation.
+The boot partition should occur first.
+What is now a tradition was historically necessary.
 
-The partition number refers to the order
-in which partitions are created
-with a partitioning program such as gdisk.
-Plans present partitions in the order
-which partitions would appear in files
-/etc/fstab.rootfs and /etc/fstab
-fstab is short for file system table.
-It describes the file and swap systems
-that can be mounted or activated during boot
-or after booting.
+/+/base/ is also called the foundation file system.
+The primary purpose is to provide the cpio initramfs images
+used to populate the rootfs during booting.
+However, the terse manifest of installed software grants additional boons.
 
-The simplicity plan separates a fixed disk into two partitions.
-The first partition stores
-only a few large files that are used when a box boots.
-These are placed on their own partition for many important reasons.
-For the sake of brevity and simplicity
-every deployment plan should have
-a 1 gigabyte sized dedicated partition
-at the start of the disk with low cylinder numbers
-where an ext2 file system is created
-and mounted as /boot on the main root file system.
-A boot partition can be omitted
-when the SA knows without exception
-that successful deployment can be achieved without
-and wants to omit the benefits.
+Other root file systems can be updated more frequently.
+/+/base/ updates faster than othe root file systems.
+/+/base/ can be updated prior to reboot.
 
-New system administrators should omit reading
-the remainder of this document.
-The remainder of this document is intended
-for experienced SAs that require a sophisticated plan.
+/+/base/ can be copied to a USB SSD and made bootable.
+/+/base/ on USB SSD can be used to deploy and rescue.
+/+/base/ can be used to rescue the deployed computer.
+Installed software on the I/R eventually becomes too old
+to rescue a deployed and updated computer.
 
-Plans for advanced deployment by experienced SAs follow.
+/+/base/ installed software should always be sufficient 
+for accomplishing the tasks of updating and booting.
+However, some of the installed software
+is not necessary for other root file systems.
+File systems smaller than base are atypical.
+A server root file system might be smaller.
+A workstation root file system requires more space.
 
-File and swap systems are created on partitions.
-However, partitions can also be further divided by LVM2,
-or joined together for the creation of a RAID,
-Redundant Array of Inexpensive Disks,
-or serve as backing for an encrypted block device.
+New system administrators can
+omit reading the remainder of this document.
+Definitions for vernacular in this document
+from this point forward is not provided.
+The following plans are more sophisticated.
+Successful prior deployment is required.
 
-LVM2, Logical Volume Management Version 2,
-is explained in a later step.
-mdRAIDs, Redundant Arrays of Inexpensive Disks,
-is explained in a later step.
-LUKS, Linux Unified Key Setup,
-is explained in a later step.
+Order of Device Initialization:
 
-An experienced POSIX SA,
-that already possess the lore of LVM2 mdRAID and LUKS,
-is encouraged to continue reading.
-Those who lack the lore might want to skip ahead
-and assimilate the lore prior to making a decision
-about about which deployment plan to use/modify.
+Partitions       can be designated physical volumes.
+Partitions       can be joined into a mdRAID device.
+mdRAID devices   can be desginated physical volumes.
+mdRAID devices   can be partitioned.
+Physical volumes can be joined to     volume groups.
+Logical  volumes can be carved from a volume group.
+A LUKS device    can be created from:
+a partition; a raid device; a logical volume.
+
+Variation is possible.
+Partitioning a mdRAID to provide /boot/ never works.
+Instead partition each mass storage device.
+Join partitions into mdRAID devices.
+A mdRAID for /boot/ must be type RAID 1.
+Only type RAID 1 is bootable.
+
+Other partitions can be joined
+in types RAID 2, 3, 4, 5, 6, 10
+The resultant mdRAID can be partitioned.
+Or it can be made into a physical volume.
+
+Physical volumes can be added to volume group.
+Logical  volumes can be carved from a volume group.
+Logical  volumes are suitable for a file system, swap area, or database.
+
+Utilization of RAID or LVM2 with inadequate understanding
+may result in deployment that is unable to boot.
+Use of a file system other than ext2 for /boot/
+may result in file system that corrupts
+and fails to boot soon after deployment.
+ext2 provides a reserved boot block.
+XFS does not provide a reserved boot block.
+Read file system documention prior to creating a plan
+that utilizes diferent file systems than are recommended.
 
 
 Suspendable Plan:
-Partition number	Size		Type	Mount Point
-3			maximum		ext4	/+/base
-2			RAM/2		swap
-1			1G		ext2	/+/base/boot
+Part #	Size	Type	Mount Point
+3	8G		ext4	/+/base/
+1	1G		ext2	/+/base/boot/
+2	RAM/2		swap
+4	30G		ext4	/+/work/
+5	Varies		ext4	/+/home/
 
-Dedicated swap partitions can frequently provide faster swapping.
-Swap partitions activted on disks
-other than the disks hosting root file systems
-provide near ideal performance.
-Swap partitions require less RAM overhead than a swap file.
-Swap partitions can become fragmentted,
-but not begin with the fragmentation
-that comes from being backed by a file on a file system.
-A swap partition is a dedicated use of disk space.
-Swap files can be created and activated upon demand.
+Dedicated swap partitions provide better performance for less RAM.
+Performance is further enhanced by activating swap partitions
+that reside on a disk that does not host root file systems.
 
-When a sufficient size swap partition exists
-then the entire content of RAM, except caches and buffers,
-can be stored in the swap partition.
-Then the system can be halted.
-Writing RAM to disk before halting is called suspending to disk.
-During booting the content can be read from swap and resumed.
-Resuming from suspension differs from booting.
-On some computers resuming is faster than booting.
-However, it loads the previously running kernel.
-Therefore, suspend to disk and resuming
-is unsuitable following kernel upgrades.
+Swap files may become fragmented faster than swap partitions.
+Swap files require more RAM.
+However, files can be automatically created and activited upon demand.
 
-Not all hardware is compatible with suspend and resume.
-Switching from X to a virtual console
-and syncing file systems are prudent steps before suspending.
-Upon resume the active virtual console can be switched to X
-and that should properly re-initialize the graphics/video adapter.
+A single adequately sized swap partition is mandatory
+if a computer should be able to suspend to disk.
+Suspend to disk involves writing RAM to disk before halting.
+On reboot content is read from the swap partition into RAM.
 
-Booting instead of resuming from a suspend to disk
-can cause file system errors,
-file inconsistency and data loss.
-The risk for corrupting file systems
-is greater when using suspend and resume,
-and even greater when using suspend to RAM.
-If battery and AC power is interrupted
-while suspending to RAM
-then resume will not be possible
-and data loss or file system corruption can occur.
+Suspend to disk and resume can not be utilized
+after the installed Linux on /+/boot/ was updated.
+Attempting to do so will cause loss of information
+and the possibility of file system corruption.
+Therefore, rebooting after /+/base/ updates
+is always a good idea and mandatory for a computer
+which can suspend to disk.
 
-A full boot can require a minute to complete.
-Suspend to RAM creates constant battery drain.
-Resuming from suspend from disk could be faster than booting,
-but it could consume just as much battery power.
-Even when doing a resume from disk
-kernel and initramfs images are loaded from disk.
-The resume from disk occurs
-part way through the sysinit of a full boot.
+Where BIOS is adequate for suspend to disk;
+suspend to RAM is also possible.
+If power is interrupted or batteries become depleted
+then resume becomes impossible.
+Data will be locst and file system corruption may result.
 
-Utilization of suspend and resume
-depend upon whether data on the mobile computer is important.
-When data is not important then suspend is useful.
-When data integrity is essential then suspend is not used.
-
+A mobile computer that stores only unimportant information
+is ideal for suspend and resume.
+Suspend and resume should not be used on servers.
 
 Secure Mobility Plan:
-Partition number	Size		Type		Mount Point
-2			maximum		LUKS ext4	/+/base
-1			1G		ext2		/+/base/boot
+Part #	Size		Type		Mount Point
+3	8G		LUKS ext4	/+/base/
+1	1G		ext2		/+/base/boot/
+2	RAM/2		LUKS swap
+4	30G		LUKS ext4	/+/work/
+5	Varies		LUKS ext4	/+/home/
 
-If /+/base/boot is created on a USB SSD
-then a single partition on the fixed disk can be used
-for creating the ext4 root file system on a LUKS encrypted partition.
 
-This plan is also useful for mobile computers.
-A secured computer has two points of vulnerability:
-the network connection;
-the person who possesses the USB SSD
-that contains the /boot partition.
+The Secure Mobility Plan resembles the Suspendable plan.
+However, this plan can not be suspended because
+the encryption keys for swap are stored on swap
+which is an encrypted partition.
+An unencrypted swap defeats the security
+of the Secure Mobility Plan
+even when the computer is never suspended to disk.
 
-Having the file system on an encrypted device
-does not prevent theft of the computer.
-However, when powered down
-theft of the data stored on it's encrypted device is prevented.
-Therefore, locking the USB SSD /boot partition
-in a safe could discourage theft.
-Stealing the data requires
-the fixed disk, the USB SSD used for booting,
-and the encryption pass phrase.
-Or at the very least an image of the encrypted partition
-and the encryption pass phrase would be required
-by an expert data thief.
+If /+/base/boot/ is created on a USB SSD
+then it can be worn carried with the person
+and stored in a safe when not in use.
+A secure computer with no unencrypted partitions
+in a powered down state is secuerd against data theft.
 
-To further harden the computer while networking
-a custom tomoyo domain implementation is recommended.
-Also minimize the amount of services started
-which listen on network ports.
-The box will not be rooted via ssh when
-sshd is not running on the box.
-Every network port that a process listens upon
-is a potential avenue for intrusion.
+The two points of vulnerability are
+the operator and the potential for intrusion
+when attached to a network.
+If the USB SSD is sized
+then it can be trojaned and returned.
+But without passphrases the USB SSD alone
+can not be utilized to mount partitions
+on LUKS devices.
 
-Another possibility is to create multiple root file systems
-where some are encrypted and others are not.
-Or perhaps only the file system that provides /home/
-should exist on an encrypted device.
-That provides slightly less protection against data theft.
-And better performance is achieved when
-a root file system is not on a LUKS encrypted device.
+To further harden the computer installation
+of immune-system-tomoyo is recommended.
+Until able to transition out of a restricted tomoyo domain
+then access to system areas of root file systems
+remains read only all EUID including EUID 0.
 
 
 Performance Workstation Plan:
-Partition number	Size		Type		Mount Point
-2			RAM/2		swap
-3			5G		ext4		/tmp
-4			30G		ext4		/aux/can
-5			20G		ext4		/aux/run
-6			10G		ext4		/+/base
-1			1G		ext2		/+/base/boot
-7			40G		ext4		/+/work
-8			maximum		LUKS ext4	/+/work/home
+Part #	Size		Type		Mount Point
+3	8G		ext4		/+/base/
+1	1G		ext2		/+/base/boot/
+2	1G		swap
+4	5G		ext4		/tmp/
+5	60G		ext4		/aux/can/
+6	20G		ext4		/aux/run/
+7	20G		ext4		/+/work/
+8	Varies		LUKS ext4	/+/work/home/
 
 Binds
 
 From			To
 /aux/can/		/+/base/aux/can/
 /aux/can/		/+/work/aux/can/
-/aux/can/run/main/	/+/base/aux/run/
+/aux/can/run/base/	/+/base/aux/run/
 /aux/can/run/work/	/+/work/aux/run/
-/tmp/main/		/+/base/tmp/
+/tmp/base/		/+/base/tmp/
 /tmp/work/		/+/work/tmp/
 
 The binds allow /aux/can/source/
 to be shared by all the root file systems.
-Each root file system also gains private use
-of the dedicated /tmp/ and dedicated /aux/run/ file systems.
+Each root file system also gains private use of /tmp/ and /aux/run/
 
-Assuming the size of the swap partition is 4G
-then the system overhead for this plan is is 110G.
-Therefore, 110G of disk space is allocated
-and the remainder can be used for /+/work/home/
+The large size of /aux/can/ permits
+an extensive collection of source tarballs.
+Currently, 40G might suffice,
+but each year the amount grows.
 
-If the selection of installed software remains concise
-then the size of /+/work/ could be reduced to 30G
+Currently, 20G for /+/work/ sufficies for installing
+xorg, firefox, and one desktop environment.
+For a deluxe manifest of software increase the size to 30G.
+For adequate space for installing game software
+increase the size to 40G.
 
 Or slightly more space can be used to provide
 /+/user/ or /+/play/
@@ -226,207 +218,130 @@ This is acceptable because a computer with a LUKS encrypted device
 should never be suspended to disk, because that would cause
 the encryption key to be written to the swap space.
 
-The performance plans combines
-aspects of aforementioned plans.
-However, suspend to RAM and suspend to disk are not used.
-That prevents the encryption key for /home/ 
-from being written to the swap during suspend to disk.
-Optionally, /home/ can exist on a partition without
-the benefit of LUKS encryption.
-
-The performance plan requires optimization.
-The size of /aux/run/ should not be reduced.
-However, it can be doubled if intending to use ccache
-to expedite/rush upgrades of installed software.
-
-//                 stores files installed by the operating system.
-/srv/              stores files intended for use by the system administrator.
-/home/             stores files created by and downloaded by users.
-/aux/can/          stores source tarballs, archive tarballs,
-                   ccache tarballs, and git repositories.
-/aux/log/          stores files essential log files.
-/aux/run/          stores files used during
-                   compilation, linking, and installing 
-                   of software projects.
-
-/aux/can/ccache/   can always be cleared.  Better to prune.
-/aux/can/source/   can always be cleared.  Better to prune.
-/aux/can/git/      can always be cleared.
-/aux/run/failed/   can always be cleared.
-
-Certain spells perform automatic pruning or clearing.
-immune-clean-ccache  prunes /aux/can/ccache/;
-immune-clean-event   prunes /aux/log/event/;
-immune-clean-failed  prunes /aux/run/failed/;
-immune-clean-source  prunes /aux/can/source/
+Multi-User Laptop Plan:
+Part #	Size		Type		Mount Point
+2	8G		LUKS ext4	/+/base/
+1	1G		ext2		/+/base/boot/
+3	40G		LUKS ext4	/+/user1/
+4	40G		LUKS ext4	/+/user2/
+5	40G		LUKS ext4	/+/user3/
 
 
-RAID 5 Plan:
-Define N = number of disks.
-Define n = number of disks - 1.
-2	RAM/N/2		swap
-...
+The above plan provides less performance.
+Each user receives their own /+/base/boot/ on USB SSD.
+Each LUKS device receives a unique password.
+Each user receives one passphrase that unlocks
+only one of the user root file systems.
+Therefore, each users's /home/ files and root file systems remain.
+
+Large capacity USB SSD sacrifice performance.
+However, entire deployment can be made
+to a USB SSD of size 32G or larger.
+The SA can always ssh into the laptop while it is on
+in order to update the active USB key
+and active root file system.
+However, local login should be used for updating /+/base/
 
 
-The RAID 5 Plan adapts the performance plan
-for deployment across a minimum of 3 fixed disks.
-The /boot/ partition of each disk is joined as a RAID 1
-which makes all of the /boot/ partitions identical.
-The swaps are all listed in /etc/fstab with the same priority.
-This allows the kernel to stripe data
-across the swap space as if was a RAID 0.
-The other partitions are each grouped into their own RAID 5.
-Therefore, each fixed disk will be partitioned identical
-and then the non swap partitions will be joined into RAIDs
-that correspond to each partition.
+Corporate Workstation Plan:
+Part #	Size		Type		Mount Point
+3	8G		ext4		/+/base/
+1	1G		ext2		/+/base/boot/
+2	1G		swap
+4	5G		ext4		/tmp/
+5	60G		ext4		/aux/can/
+6	20G		ext4		/aux/run/
+7	30G		ext4		/+/work/
+8	40G		ext4		/+/user/
 
-A dedicated /boot/ partition should always be used with a RAID device.
-Boot loaders can load blocks from a single device.
-A file with with blocks striped across different devices
-can not be loaded during boot.
-The exception is when BIOS can join devices into a RAID.
-A hardware RAID is somewhat different than the Linux mdRAID.
-Boot loaders can load blocks from a single device.
-So a hardware RAID which appears to be a single device
-can contain contain Linux and initramfs files.
 
-Is the performance of a hardware RAID superior
-to the performance of a Linux mdRAID?
-The implementation provided with Linux
-allows selection of many RAID types.
-It allows RAIDs to be created from partitions.
-It allows partitions to be created from RAIDs.
-Consequently, I prefer the superior configuration
-potential of Linux mdRAID.
+This plan differs slightly from the Performance Workstation Plan.
+/+/user/ becomes an additional root file system.
+The regular user of the workstation is granted
+the root password for the /+/user/ root file system.
+Permission is also granted to install software projects.
+This way the company policy software remains installed in /+/work/
+while the user preferred software is         installed in /+/user/.
 
-RAID 6 Plan:
-Define N = number of disks.
-Define n = number of disks - 2.
-2	RAM/N/2		swap
-...
+Those higher in managment hierarchy than system administrator
+fail to comprehend the reason for a /+/user/ root file system.
+Users violate company policy
+by installing software without permission
+and using a computer for unauthorized activity.
+Users will install software within their home directory;
+run a virtual computer from a file within their home directory;
+boot Live CDs POSIX;
+boot Live USB POSIX.
 
-The RAID 6 Plan is almost identical to the RAID 5 plan.
-However, a RAID 6 allows for at most 2 disks in the RAID to fail.
-Consequently, the amount of available space is reduced.
-And the minimum amount of disks increases from 3 to 4.
+Due to sloppiness and ignorance
+non work related activities can compromise security.
+Better to compromise the /+/user/ root file system
+than   to compromise the /+/work/ root file system.
 
+Providing, a separate root file system
+for the user to log into
+for non work related activity
+helps mitigate threat of intrusion and data theft.
+
+/+/work/home/ and
+/+/user/home/ must never be bound together.
+That mitigates intrusion into /+/work/
+by a program that originally implanted within the /+/user/home/ hierarchy.
+ 
+Adapt any aforementioned plan to create the mdRAID Plan.
+Each disk should have a 1G /boot/ partition
+that is joined in a mdRAID 1
+Other partitions can be joined in any type of mdRAID desired.
+The non /boot/ mdRAID device can be partitioned
+or converted to a physical volume.
 
 LVM2 Plan:
-...
-1		1G		ext2	/boot
-2		maximum		LVM2	logical group
+1	1G		ext2	/+/base/boot/
+2	variable	LVM2	mdRAID or partition converted to physical volume
 
-The LVM2 plan still requires a dedicated partition for /boot/
-The dedicated /boot/ partition provides a boot block
-for installing syslinux.
-And it also ensures that that the bootloader
-will be able to load the kernel and initramfs images from disk.
+Adapt any aforementioned plant to create a LVM2 plan.
+Join the physical volume to a volume group.
+Carve logcal volume block devices from the volume group.
 
-Instead of creating partitions
-the LVM2 tools can created logical volumes.
-Logical volumes are conceptually like partitions,
-but the implementation entirely differs.
-If desired a RAID 5 or RAID 6
-can be created from partitions on separate devices.
-Then the LVM2 plan can be applied
-so that the RAID is added to the logical group.
-The advantage of doing a RAID first
-and instead of adding the partitions directly
-is that the MDRAID provides fault tolerance
-while the same might not be achieved with LVM2.
-If it is possible to achieve with LVM2 alone
-then I would still prefer LVM2 on top of mdRAID.
+If utilizing LVM2 on a single disk
+then a dedicated /boot/ partition is mandatory.
+Linux understands LVM2.
+Bootloaders do not understand LVM2.
 
-Creating a volume group and
-then separating it into logical volumes
-is a method of utilizing a disk
-that is similar to partitioning.
+Logical volumes are conceptually like partitions.
+However, the implementation entirely differs.
+A partition is defined in the partition table.
+A partition utilizes only continuous space on a device.
+
+Logical volumes are mapped
+from any available space a volume group can provide.
+Fragmentation of a logical volume
+incurs the same performance penalty of fragmented files.
+Space within a volume group can be mapped
+or unmapped to any number of logical volumes.
+A volume group can provide an ideal scratch
+pad for playing with file systems that
+are intended to be eventually discarded.
+
+Considerations for Plan Selection:
 
 LVM2   is an implementation specific to the Linux kernel.
 mdRAID is an implementation specific to the Linux kernel.
 LUKS   is an implementation specific to the Linux kernel.
-Consequently, if file systems of a disk
-should be readable by a different operating system
-then mdRAID, LVM2 and LUKS should not be used.
-
-Whether to use only partitioning
-or partitioning with LVM2 or mdRAID
-can be a difficult choice.
-Both have significant advantages and disadvantages.
-
-LVM2 can create logical volumes
-that uses discontinuous available
-space within a volume group.
-Additional physical volumes can be added
-to an existing volume group to provide additional space.
-In contrast partitions must be defined
-using continuous space on a device.
-Being able to grant any available space to a logical volume
-makes LVM2 seem superior at first glance.
-
-However, nearly all operating systems recognize partition tables.
-On second glance the portability of partitions
-can be preferred when deploying multiple operating systems
-that are not all Linux kernel based operating systems.
-
-The order of initialization during sysinit is:
-partitions -> mdRAID -> LVM2 -> LUKS
-Step that occurs later
-can be applied to the earlier steps.
-A LUKS encrypted device can be created
-from a partition, a RAID device, or a logical volume.
-Volume groups and logical volumes
-can be carved from a RAID device or partitions.
-
-Partitioning a mdRAID device
-is also possible but not recommended.
-Most sensible plans add partitions to a RAID device.
-However, hardware RAID implementations
-join disks disks rather than partitions.
-Hardware RAIDs differ from the Linux kernel's
-mdRAID software RAID implementation.
-Partitioning is recommended for a hardware RAID device.
-
-The following summarize which plan to select in reverse order.
-
-The LVM2 plan could be useful
-when multiple Linux kernel based operating systems
-are installed on a single fixed disk.
-LVM2 is also useful when leaving additional space
-for later allocation for guest PV opearting systems
-while booting with the Xen hypervisor.
-
-RAID plans are used
-when deployment of an operating system
-spans 3 or more disks.
-
-The Performance plan is used
-by an experienced system administrator
-to maximum system performance.
-
-The Secure Mobility plan is used
-for laptops, notebooks, tablets and gadgets
-when data theft must be prevented.
-
-The Suspendable plan is used by commuters
-who enjoy frequently backing-up
-and redeploying from previous backups.
-
-And the Simplicity plan is for use
-by anyone who lacks prior POSIX experience.
-
-Anyone who feels like asking someone which plan to use
-should select the Simplicity Plan.
+Partition tables and partitions
+can be read by various operating systems.
 
 A nearly infinite amount of plans can be envisioned.
 No single plan is ideal.
-Some plans are more advantageous than others.
-And some plans are failures.
+Some plans are more advantageous.
+Some plans are predetermined failures.
 The following gives demonstration of FAIL plans.
 
 Fail to Read File System Documentation Plan 1:
-1	maximum		xfs	/+/base
+1	maximum		xfs	/+/base/
 
+Why not install everything on a single partition
+instead of doing a multi-root installation?
 Deployment seems smooth.
 But the computer fails on either the first or second boot.
 Why does this plan fail?
@@ -437,194 +352,42 @@ to the boot block of / on XFS
 corrupts the file system.
 
 Failure to Partition Plan 2:
-/dev/sda		maximum		ext4	/+/base
+/dev/sda	maximum		ext4	/+/base/
 
 Some people claim that this works.
 If the boot loader is installed to /dev/sda will it work?
-Try if curious.
-A gigantic file system can reduce performance.
+A leviathan for a root file system severely impacts performance.
 
 
-Too Tiny /boot Partition Plan:
-2	maximum		ext4	/+/base
-1	16M		ext2	/+/base/boot
+Tiny /boot Partition Plan:
+2	maximum		ext3	/+/base/
+1	16M		ext2	/+/base/boot/
 
-Certainly this plan worked perfectly
-when deploying a computer during the 1990s.
-Ancient 80386 SX class microprocessor
-had 16 megabytes of installed RAM or less.
-Ancient Linux based POSIX could boot
-from two or three 1.44M floppy disks.
-DOS was even smaller requiring less than 100K
-of a 360K 5 and 1 quarter inch floppy disk for booting.
-And DOS ran on computers that had between
-256 and 640 kilobytes of installed RAM.
-Operating systems were tiny during the 1970s 1980s and 1990s.
-However, reduce /boot and risk bust.
+It worked perfectly in 1990, why not now?
+A POSIX that ceased updating in 1990
+is suitable for deployment on a computer from 1990.
+Deploying modern software requires
+appropriate utilization of modern hardware.
 
-Modern computer require plenty of RAM to boot.
-1G installed RAM to boot is not unreasonable.
-Many of the files stored on /boot are compressed.
-If about 100 megabytes of files are loaded from disk
-and expand to twice their size in RAM
-then the amount of RAM required during booting will
-be about 3x the size of bytes loaded from disk.
+Modifying recommended plans incur the peril of inducing failures.
+Deviate from recommended plans when the consequence is known.
+Prudent modifications involve adding more and increasing sizes.
 
-The initramfs images
-from the Install/Rescue ISO9660
-are approximately 75% to 80% compressed.
-About 250 megabytes of xz compressed cpio images
-require 1.1 gigabytes on the rootfs.
-Therefore, the actual RAM required for booting
-might be closer to 1.5G than to 2G.
-
-If immune-boot-rescue is installed
-then the initramfs images from an Install/Rescue ISO9660
-are provided within /boot/rescue/
-Therefore, /boot/ must provide sufficient space for it,
-and 4 other kernel images and their module initramfs images.
-that currently require about 40 megabytes each.
-1G for /boot/ might seem like overkill at first,
-but it can fill over time.
-
-Modifying recommended plans incur
-the peril of inducing failures.
-As demonstrated by the first example,
-the failure of the plan might not become immediately obvious.
-The failure of a plan might not be realized
-during the first year of deployment.
-
-Prudent modification of suggested plans involves
-increasing sizes of partitions,
-adding     more     partitions,
-increasing sizes of RAIDs, and
-increasing sizes of logical volumes,
-adding     more     logical volumes,
-creating additional root file systems.
-
-Increasing sizes should not cause problems.
-Decreasing sizes can cause problems.
-
-The possibilities for plan modification are endless.
-A partition can be created that is utilized:
-directly by a data base program;
-directly by a web server cache;
-directly by a network file server cache;
-for virtual disks for virtual computers;
-for the installing commercial games;
-for storing wine prefixes;
-for alternate root file systems.
-
-When multiple operating systems
-are to be deployed concurrently
-then the recommended configuration
-is to use separate fixed disks
-for each operating system
-rather than sharing a single fixed disk.
-
-Operating systems concurrently deployed
-to a single fixed disk incur the risks
-of corrupting the previously deployed operating system.
-Or while booted an operating system
-might annex and utilize areas of the disk
-that were allocate to a different operating system.
-
-Some notorious operating systems,
-which will remain unnamed, annex the MBR.
-Such operating systems
-aught not be deployed to the first fixed disk.
-They should be deployed to the second fixed disk.
-The boot loader in the boot partition
-of the first fixed disk
-should swap the BIOS identities
-of the first and second fixed disk
-when selecting the label
-which boots the notorious operating system.
-That way the notorious operating system
-can annex the MBR of the second fixed disk
-while the MBR of the first fixed disk remains unscathed.
-
-While no guarantee of success is provided
-the SA might check the BIOS provided menus
-for a configuration option that would prohibit
-writing to the MBR of the fixed disks.
-That way the SA can install a suitable MBR
-and the lock it in place using BIOS.
-This functionality is sometimes called
-something like MBR virus protection,
-or boot virus protection.
-
-This POSIX will not annex the MBR.
-A proper POSIX will not annex the MBR.
-A proper POSIX updates the boot block of it's /boot/ partition.
-
-However, some POSIX insist upon installing
-a boot loader called grub to the MBR.
-They do so and claim that this is proper.
-However, the code in the MBR
-should be the decision of the SA
-and not the decision of the POSIX.
-
-The possibility of deploying this POSIX
-concurrently with a notorious operating system
-depends upon whether the MBR can be protected
-and whether the SA can modify a boot loader
-to properly chain to another boot loader.
-
-This deployment docent and documentation
-provide no steps, instructions nor clues
-about how to chain boot loaders together.
-Chaining boot loaders is discouraged
-unless the SA already possess sufficient lore
-for accomplish the task without assistance.
-Chaining boot loaders increases the probability
-of making a passable deployment unable to boot.
-Deploying multiple operating systems
-to a single fixed disk increases the probability
-of accidentally obliterating a previous deployment.
-For those who demand the lore
-the documentation included in the syslinux source tarball
-describes how to configure chain loading.
+Dual or multi-booting is not recommended.
+If ignoring then at least deploy each to different disks.
+If ignoring then sob when the MBR is auto-annexed.
 
 No warranty is provided.
 Be careful.
 Make backups.
 
-A popular method for deploying multiple operating systems
-is to deploy additional operating systems to virtual computers.
-Virtual computers run as a process on the host operating system.
-Virtual computers can can isolate the utilization of disk resources.
-Therefore, the operating system running on the virtual computer
-should be unable to annex disk areas used by the host computer.
-More succinctly stated an operating system
-which is running inside of a virtual computer
-should be unable to wreck the host's operating system.
+Deploy to a quem virtual machine for a test drive.
+Every plan's performance benefits are mitigated
+when deployed on a virtual computer.
+The Simplicity Plan is suitable.
+Boot the virtual computer using HVM.
+If PV booting is desired then ask on qemu's email list or message forums.
 
-The Simplicity Plan is the most suitable plan
-for deploying on a virtual computer.
-Or a single file system plan can be used
-for deploying on a virtual computer
-provided that the file system has a reserved boot block
-or if the virtual computer is booted as a PV instead of HVM.
-PV  stands for para-virtual.
-HVM stands for hardware virtual machine.
-The argot is specific to virtual computing.
-
-Virtual computer deployment is a specialized SA skill.
-The lore is outside of the scope required
-for deploying a multi-root POSIX.
-Deploying additional root file systems is recommended
-instead of deploying virtual computers.
-However, virtual computers can be used for boot testing
-without rebooting the host computer.
-Therefore, virtual computers are not without a practical use.
-
-Using the KVM hypervisor with qemu provides
-what might be the easiest method
-for creating and starting HVM guests.
-kvm is a Linux kernel module.
-qemu is software that can be installed by the qemu spell.
-Booting the xen hypervisor is not required.
 Visit the qemu website for extensive documentation
 that describe how to create virtual disk files
 and the command line parameters for launching qemu.
