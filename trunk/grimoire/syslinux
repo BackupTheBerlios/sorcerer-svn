@@ -6,18 +6,19 @@
 # 5.00 compiled with gcc version 4.7.2 fails to boot
 # 5.00 not tested with gcc version 4.5 but itm ight work
 
-with info    good 20131126
+with info    good 20131129
 with info    last 20131015
-with version   stable 6.02 6.01 4.06
+with version   stable 6.02 6.01
 #with version unstable 6.02-pre16
-case $VERSION in
- 5.00)
-   use_gcc gcc-v4.5 ;;
-esac
+
 if   [[ syslinux == $SPELL ]]; then
 with base    gnu-efi nasm md5crypt perl--Digest-SHA1 util-linux
+[ -f "$POST_LOGS/sorcerer-installer" ] ||
+[ -f "$POST_LOGS/sorcerer-iso9660"   ] ||
+with base    Python
 with elect   mtools '' '' for creating msdos filesystems
 fi
+
 with role    administration/bootloader
 with trait   console
 #with trait   makej
@@ -50,6 +51,22 @@ build(){
   install -vm 600 -t "$DESTDIR"/etc/extlinux/ "$SCRIPT_DIR"/{head,tail}
   install -vm 700 -t "$DESTDIR"/usr/sbin/     "$SCRIPT_DIR"/extlinux
  }
+
+
+ LC_ALL=C grep -lr python * |
+ xargs -r -L64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
 
  case $VERSION in
   6.*) unset LDFLAGS ;;

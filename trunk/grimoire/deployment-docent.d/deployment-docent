@@ -57,9 +57,8 @@ progress mkdir			mkswap			mount
 progress mount			mkdir			fstab
 progress fstab			mount			boothash
 progress boothash		fstab			hostname
-progress hostname		boothash		rootname
-progress rootname		hostname		hosts
-progress hosts			rootname		network
+progress hostname		boothash		hosts
+progress hosts			hostname		network
 progress network		boothash		cp
 progress cp			network			rbind
 progress rbind			cp			chroot
@@ -551,14 +550,14 @@ stock ARGOT[cp] "cp"
 stock ASK[cp]  $"Who does not occasionally wonder why the copy command is called cp?"
 
 test_cp(){
- local r=/+/ n=/etc/rootname
+ local r=/+/ n=/etc/hostname
  if   ! cat $r*$n &>/dev/null
- then echo $"If files were copied then they did not go where expected"; false
+ then echo $"Copied files did not arrive."; false
  elif [ -n "$( cat $r*$n | sort | uniq -d )" ]
- then echo $"One or more root file systems has the same rootname."
+ then echo $"One or more root file systems have the same hostname."
       echo $"Fix that now by running the command:"
-      echo $"nano /+/*"; false
- else echo $"Seems that files copied."
+      echo $"nano /+/*$n"; false
+ else echo $"Files copied."
  fi
 }
 
@@ -614,12 +613,9 @@ $"The above command immediately reboots without executing runlevel 6." "\n" \
 $"Remember to eject CDROMs DVDs or disconnect USB SSDs." "\n" \
 $"The next boot will use the mass storage device."
 
-stock DOCS[hostname]  "man -a hostname"
-stock GOAL[hostname] $"Give the computer a hostname"
-stock HINT[hostname]  "nano /etc/hostname"
-stock DOCS[rootname]  "less /usr/doc/docent/rootname"
-stock GOAL[rootname] $"Give a name to a root file system"
-stock HINT[rootname]  "nano /etc/rootname"
+stock DOCS[hostname]  "man -a hostname" "\n" "less /usr/doc/docent/hostname"
+stock GOAL[hostname] $"Assign hostnames"
+stock HINT[hostname]  "nano /etc/{,rootfs/}hostname"
 stock DOCS[hosts]     "man hosts" "\n" "less /usr/doc/docent/hosts"
 stock GOAL[hosts]    $"Edit /etc/hosts"
 stock HINT[hosts]     "nano /etc/hosts"
@@ -631,12 +627,14 @@ test_exists_file(){
  fi
 }
 
-test_hosts(){    test_exists_file /etc/hosts; }
-test_hostname(){ test_exists_file /etc/hostname; }
-test_rootname(){ test_exists_file /etc/rootname
- if   [ "$(< /etc/hostname )" == \
-        "$(< /etc/rootname )" ]
- then $"Content of /etc/hostname and /etc/rootname must differ."; false
+test_hosts(){ test_exists_file /etc/hosts; }
+
+test_hostname(){
+ test_exists_file /etc/rootfs/hostname
+ test_exists_file        /etc/hostname
+ if       [ "$(< /etc/rootfs/hostname )" == \
+            "$(<        /etc/hostname )" ]
+ then $"Content of /etc/hostname and /etc/rootfs/hostname must differ."; false
  fi
 }
 
@@ -702,7 +700,7 @@ stock HINT[scry] "au begin; au scry"
 
 stock DOCS[retry] "au help" "\n" "less /usr/doc/docent/retry"
 stock GOAL[retry] "Retry software that failed to install"
-stock hint[retry] "au queue | sed 's:moil/failed/:moil/:p;d' | au begin"
+stock HINT[retry] "au queue | sed 's:moil/failed/:moil/:p;d' | au begin"
 
 new_prompt(){
  . /etc/bash.d/interactive/PS1
@@ -755,7 +753,7 @@ yore(){
 hint(){
  HH=
  if   [ -n "${HINT[$STEP]}" ]
- then echo -e "$BLINK${HINT[$STEP]}$NORM"; echo
+ then echo -e "$BLINK${HINT[$STEP]}$NORM"; echo; sleep 2
  else echo $"No hint is provided for step $STEP."
  fi
 }

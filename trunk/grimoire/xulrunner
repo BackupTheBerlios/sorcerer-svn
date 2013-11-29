@@ -4,39 +4,50 @@
 # 17.0.1 failed compilat with different error than 18.0.1 and 18.0
 # 19.0 failed to compile
 
-with version   stable 16.0.2 16.0
-with version unstable 19.0
+# included java script library not makej compatible?
+
+with trait   broke
+with info    edit 20131129
+with info    last 20131025
+with version   stable 25.0 16.0.2
 # Using internal mng
 with base    GConf imake jdk libXScrnSaver libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
 #with base    GConf imake jdk libXScrnSaver libIDL libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
 # with switch  --enable-glitz --disable-glitz 'enable glitz for use with cairo'
 with role    network/web
-with trait   client library litelink makej solo x11
-#with trait   client library litelink makej multilib-dual solo x11
+with trait   client library litelink makej multilib-fail optimize solo x11
+
+#with source  stable \
+#             http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
+#                   ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
+#             firefox-$VERSION.source.tar.bz2
+#with source  unstable \
+#             http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
+#                   ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
+#             firefox-$VERSION.source.tar.bz2
+
 with source    stable http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
 with source  unstable http://ftp.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-#   source http://releases.mozilla.org/pub/mozilla.org/xulrunner/releases/$VERSION/source/xulrunner-$VERSION.source.tar.bz2
-with info    last 20130215
+
 with info    home http://developer.mozilla.org/en/XULRunner
 with info    vurl http://developer.mozilla.org/en/XULRunner
 #with also    --with-system-jpeg
-with also    --with-system-zlib
-with also    --with-system-bz2
-with also    --enable-startup-notification
-with also    --disable-static
+with also    --with-system-zlib --with-system-bz2
+with also    --enable-startup-notification --disable-static
 #     with also --enable-system-cairo
+with also    --disable-gstreamer
 with also    --disable-system-cairo
 with also    --enable-system-lcms
-with also    --enable-application=xulrunner
-with also    --enable-libxul
+with also    --enable-application=xulrunner --enable-libxul
 with also    --with-java-include-path=/opt/jdk/include
 with also    --with-java-bin-path=/opt/jdk/bin
-with also    --with-system-nspr
-with also    --with-system-nss
+with also    --with-system-nspr --with-system-nss
 with also    --enable-strip
 with also    --enable-default-toolkit=cairo-gtk2
-with also    --disable-mochitest
-with also    --disable-tests
+with also    --disable-tests --disable-mochitest --disable-crashreporter
+with also    --enable-system-sqlite
+with also    --with-system-png
+
 #     with also --enable-system-sqlite
 # xulrunner version 1.9.2.9 requires ancient version of sqlite
 # checking for sqlite3 >= 3.6.22... yes
@@ -49,33 +60,29 @@ with also    --disable-tests
 ## --with-system-png requires png with apng support and currently the patch does not apply
 #     with also --with-system-png
 
-
-           #--enable-cpp-rtti
-#            'jdk:::for building the javaXPCOM components' )
-# compilation with javaXPCOM component support is not working
 with info    cite 'HTML rendering and javascript library'
 
 build(){
  add_symlinks(){
   # symbolic links to libmozjs.so help gnome-shell to compile
 
-  if   [[ -d                            $DESTDIR/usr/lib/xulrunner-$VERSION ]]; then
-   ln -s xulrunner-$VERSION             $DESTDIR/usr/lib/xulrunner
-   ln -s xulrunner-$VERSION/libmozjs.so $DESTDIR/usr/lib/libmozjs.so
+  if   [[ -d                            "$DESTDIR"/usr/lib/xulrunner-$VERSION ]]; then
+   ln -s xulrunner-$VERSION             "$DESTDIR"/usr/lib/xulrunner
+   ln -s xulrunner-$VERSION/libmozjs.so "$DESTDIR"/usr/lib/libmozjs.so
   fi
 
-  if   [[ -d                            $DESTDIR/usr/lib64/xulrunner-$VERSION ]]; then
-   ln -s xulrunner-$VERSION             $DESTDIR/usr/lib64/xulrunner
-   ln -s xulrunner-$VERSION/libmozjs.so $DESTDIR/usr/lib64/libmozjs.so
+  if   [[ -d                            "$DESTDIR"/usr/lib64/xulrunner-$VERSION ]]; then
+   ln -s xulrunner-$VERSION             "$DESTDIR"/usr/lib64/xulrunner
+   ln -s xulrunner-$VERSION/libmozjs.so "$DESTDIR"/usr/lib64/libmozjs.so
   fi
 
-  ln -s xulrunner-$VERSION $DESTDIR/usr/include/xulrunner
+  ln -s xulrunner-$VERSION "$DESTDIR"/usr/include/xulrunner
  }
 
  export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
 
  if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
- then with also --host="${MACHTYPE/x86_64/i686}" --disable-crashreporter
+ then with also --host="${MACHTYPE/x86_64/i686}"
  fi
 
  export   CFLAGS="${CFLAGS//-flto/}"
@@ -89,6 +96,6 @@ build(){
  --enable-optimize="$CFLAGS" \
  $OPTS &&
  make &&
- make install DESTDIR=$DESTDIR &&
+ make install DESTDIR="$DESTDIR" &&
  add_symlinks
 }

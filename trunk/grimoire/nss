@@ -1,33 +1,33 @@
 # links without regard to CC CFLAGS and LDFLAGS and therefore is multilib-fail
 
-with info    edit 20130919
-with info    good 20130807
-with info    last 20130702
-with version stable 3.15.1
+with info    good 20131129
+with info    last 20131111
+with version stable 3.15.3 3.15.1
 with base    nspr sqlite zlib
 with role    network/web
 # must be multilib-dual
-with trait   library multilib-dual no_patcher
+with trait   library multilib-dual optimize no_patcher
 #with trait   makej
 with source  stable ftp://ftp.mozilla.org/pub/mozilla.org/security/nss/releases/NSS_${VERSION//\./_}_RTM/src/nss-$VERSION.tar.gz
 case $VERSION in
- 3.15.1) with source http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.15.1-standalone-2.patch ;;
+ 3.15.3)
+with source  stable http://www.linuxfromscratch.org/patches/blfs/svn/nss-3.15.3-standalone-2.patch ;;
 esac
 with info    home http://www.mozilla.org/projects/security/pki/nss/
 with info    cite 'mozilla network security service libraries'
 
 build(){
  make_install(){
-  install -dvm 755 "$DESTDIR"/usr/{bin,include/nss,lib/pkgconfig}/
+  install -vm 755 -d "$DESTDIR"/usr/{bin,include/nss,lib/pkgconfig}/
 # cd mozilla/dist
   cd ../dist/
   chmod 644 {public,private}/nss/*
-  cp -vRL   {public,private}/nss/* "$DESTDIR"/usr/include/nss
+  cp -vRL   {public,private}/nss/*      "$DESTDIR"/usr/include/nss
   cd Linux*
-  install -vm 755 lib/*.so              "$DESTDIR"/usr/lib
-  install -vm 644 lib/{*.chk,libcrmf.a} "$DESTDIR"/usr/lib
-  install -vm 755 bin/nss-config        "$DESTDIR"/usr/bin
-  install -vm 644 lib/pkgconfig/nss.pc  "$DESTDIR"/usr/lib/pkgconfig
+  install -vm 755 lib/*.so              "$DESTDIR"/usr/lib/
+  install -vm 644 lib/{*.chk,libcrmf.a} "$DESTDIR"/usr/lib/
+  install -vm 755 bin/nss-config        "$DESTDIR"/usr/bin/
+  install -vm 644 lib/pkgconfig/nss.pc  "$DESTDIR"/usr/lib/pkgconfig/
 
   if    [[ $HOSTTYPE == x86_64 ]]; then
    if ! [[ $CFLAGS =~ -m32     ]]; then

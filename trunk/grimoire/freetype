@@ -1,21 +1,34 @@
 # remember to update fontforge also
+# freetype version 2.5.1 breaks compilation of firefox version 25.0.1
 
-with info    last 20130619
-with version stable 2.5.0.1 2.4.12 2.4.11
+with info    last 20131129
+with version   stable 2.5.0.1 2.4.12
+with version unstable 2.5.1
 with base    bzip2 libpng zlib
 with also    --enable-static=no
 with role    font/library
 with trait   library makej lto
 #with trait   library makej multilib-concurrent lto
 #trait makej multilib-concurrent
-with source  stable $SOURCEFORGE_URL freetype/freetype2/${VERSION:0:5}/freetype-$VERSION.tar.bz2
+with source    stable $SOURCEFORGE_URL freetype/freetype2/$VERSION/freetype-$VERSION.tar.bz2
+with source  unstable $SOURCEFORGE_URL freetype/freetype2/$VERSION/freetype-$VERSION.tar.bz2
 with info    home http://freetype.sourceforge.net/
 with info    docs http://freetype.sourceforge.net/freetype2/documentation.html
 with info    mail 'http://freetype.sourceforge.net/developer.html#mailing-lists'
 with info    cite 'free, quality, portable font engine'
 
 build(){
+ rm -f CMakeLists.txt
  default_build &&
- mkdir -pvm 755          "$DESTDIR"/usr/include &&
- cp -av include/freetype "$DESTDIR"/usr/include/
+ rm -f                        "$DESTDIR"/usr/include/freetype2/freetype2 &&
+ if   [  -d  include/freetype ]
+ then cp -av include/freetype "$DESTDIR"/usr/include/
+ else ln -s         freetype2 "$DESTDIR"/usr/include/freetype
+ fi
 }
+
+# build(){
+#  default_build &&
+#  install -vm 755 -d      "$DESTDIR"/usr/include/ &&
+#  cp -av include/freetype "$DESTDIR"/usr/include/
+# }

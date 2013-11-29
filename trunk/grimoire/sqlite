@@ -5,7 +5,7 @@ with version stable 3080100 3080002 3071700
 with also    --disable-rpath --enable-shared=yes --enable-static=no
 with base    ncurses pkgconfig readline
 with role    db
-with trait   library lto makej multilib-concurrent
+with trait   library lto makej multilib-concurrent optimize
 with source  stable http://www.sqlite.org/2013/sqlite-autoconf-$VERSION.tar.gz
 with info    vurl http://www.sqlite.org/download.html
 with info    home http://www.sqlite.org/
@@ -19,3 +19,16 @@ administrativehassles of supporting a separate database server.
 Because it omits the client-server interaction overhead
 and writes directly to disk, SQLite is also faster than
 the big database servers for most operations.'
+
+build(){
+ echo '-DSQLITE_SECURE_DELETE -DSQLITE_ENABLE_UNLOCK_NOTIFY'
+ export CFLAGS+=' -DSQLITE_SECURE_DELETE -DSQLITE_ENABLE_UNLOCK_NOTIFY'
+ default_build
+}
+
+current(){
+ case $VERSION in
+  3080100) xz   -cd "$EVENT_LOGS"/fore/sqlite/*Pass\ Moil |
+           grep -qx -- '-DSQLITE_SECURE_DELETE -DSQLITE_ENABLE_UNLOCK_NOTIFY' ;;
+ esac
+}

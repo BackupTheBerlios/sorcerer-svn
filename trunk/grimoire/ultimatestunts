@@ -1,3 +1,5 @@
+with info    good 20131129
+with info    last 20120907
 with version stable 0771 0761
 case $VERSION in
  0771)
@@ -8,24 +10,23 @@ esac
 with base    MesaLib SDL_image freealut libvorbis
 with role    game
 with trait   x11
-with source  $SOURCEFORGE_URL ultimatestunts/sourcecode/ultimatestunts-srcdata-$VERSION.tar.gz
-with info    last 20120907
+with source  stable $SOURCEFORGE_URL ultimatestunts/sourcecode/ultimatestunts-srcdata-$VERSION.tar.gz
 with info    home http://www.ultimatestunts.nl/
 with info    docs http://www.ultimatestunts.nl/documentation/index.htm
 with info    cite '3D OpenGL car driving simulation
 
 similar to DOS game known as stunts,
-yet feels incomplete and seems less entertaining.
-'
+yet feels incomplete and seems less entertaining.'
 
 build(){
- find data -type d | xargs -r --max-lines=64 chmod 755
- find data -type f | xargs -r --max-lines=64 chmod 644
+ find data -type d | xargs -r -L64 -- chmod 755 --
+ find data -type f | xargs -r -L64 -- chmod 644 --
  default_build &&
  cd data &&
- make install "usdatadir=$DESTDIR/usr/share/ultimatestunts" &&
- find "$DESTDIR/usr/share/ultimatestunts" -type d | xargs --max-lines=64 chmod 755 &&
- find "$DESTDIR/usr/share/ultimatestunts" -type f | xargs --max-lines=64 chmod 644 &&
+ install -vm 755 -d     "$DESTDIR"/usr/share/ultimatestunts &&
+ make install usdatadir="$DESTDIR"/usr/share/ultimatestunts &&
+ find "$DESTDIR/usr/share/ultimatestunts" -type d | xargs -L64 -- chmod 755 -- &&
+ find "$DESTDIR/usr/share/ultimatestunts" -type f | xargs -L64 -- chmod 644 -- &&
  case $VERSION in
   0761) sed -i 's:/usr/local:/usr:' "$DESTDIR/etc/ultimatestunts.conf" ;;
  esac

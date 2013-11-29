@@ -15,59 +15,39 @@ with also    --disable-gnomevfs --disable-crashreporter
 #with elect   yasm       '' --disable-webm     for webm video codec
 # webm must not be disabled otherwise firefox fails to compile
 # with switch  --enable-glitz --disable-glitz 'enable glitz for use with cairo'
-#with also    --with-system-jpeg
-with also    --with-system-zlib
-with also    --with-system-bz2
-with also    --enable-startup-notification
-with also    --disable-static
-#with also --enable-system-cairo
-with also    --enable-system-lcms
-with also    --enable-application=browser
-#with also --with-system-libxul
-#with also --with-libxul-sdk=/usr
-#with also --disable-libxul
-#with also --disable-xul
-#with also --with-system-nspr
-#with also --with-system-nss
-with also    --without-system-nss
-with also    --without-system-nspr
+
+with also    --with-system-zlib --with-system-bz2
+with also    --enable-startup-notification --disable-static
+with also    --enable-system-lcms --enable-application=browser
+with also    --without-system-nss --without-system-nspr --disable-gstreamer
+with also    --with-system-png --enable-system-sqlite
+with also    --with-system-jpeg
+
+#with also    --with-system-libxul --with-libxul-sdk=/usr
+#with also    --disable-libxul --disable-xul
+#with also    --with-system-nspr --with-system-nss
+
 ## toolkit=cairo-gtk3 failed compilation version 24.0
-# with also    --enable-default-toolkit=cairo-gtk3
-with also    --enable-default-toolkit=cairo-gtk2
-with also    --disable-mochitest
-with also    --enable-official-branding
-#with also --enable-system-sqlite
-
-## --with-system-png requires png with apng support and currently the patch does not apply
-#     with also --with-system-png
-
-# Avoid failed cast when iwlib.h is not installed (provided by wireless-tools)
-# Why does firefox need wireless anyway? 
-# Furthermore, necko-wifi may not me supported on Linux anyway if I understand
-# things correctly (J. Merka, 03/01/10).
-with also    --disable-necko-wifi
-
+#with also --enable-system-cairo
+with also    --enable-default-toolkit=cairo-gtk3
+#with also    --enable-default-toolkit=cairo-gtk2
+with also    --disable-debug --disable-tests --disable-mochitest
+with also    --enable-strip --enable-official-branding
 # Enable official branding should be fine because we are not 
 # distributing the builds. This option names the browser Firefox instead
 # of Minefield but launches a EULA on the first start:
-#      with also --enable-official-branding
-#      with also --with-distribution-id='sorcerer'
-# These two should be safe for Sorcerer
-with also    --disable-updater
-with also    --disable-installer
 
-           #--with-system-png
-           #--enable-cpp-rtti
-#            'jdk:::for building the javaXPCOM components' )
-# compilation with javaXPCOM component support is not working
+with also    --disable-necko-wifi
+# necko-wifi is not supported
+
+with also    --disable-updater --disable-installer
+# These two should be safe for Sorcerer
 
 with role    network/web
-#with trait   clang
-with trait   bottleneck client huge library makej multilib-fail optimize stack-protector x11
+with trait   bottleneck client huge library litelink makej multilib-fail optimize stack-protector solo x11
 # granted solo trait to compile faster using makej on SMP boxes
-with trait   solo
+#with trait   clang
 
-with trait   litelink
 # release.mozilla.org might no longer be serving source tarballs.
 # also mirrored at sourceforge, but can not write the source statements
 # as $SOURCEFORGE_URL
@@ -92,10 +72,10 @@ build(){
   fi
   id+=/firefox-$VERSION/browser/chrome/icons/default/default
 
-  install -dvm 755 "$DESTDIR"/usr/share/applications/ \
-                   "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps/
-  install  -vm 644 "$SCRIPT_DIR"/applications.d/firefox.desktop \
-                   "$DESTDIR"/usr/share/applications/
+  install -vm 755 -d "$DESTDIR"/usr/share/applications/ \
+                     "$DESTDIR"/usr/share/icons/hicolor/{16x16,32x32,48x48}/apps/
+  install -vm 644 -t "$DESTDIR"/usr/share/applications/ \
+                     "$SCRIPT_DIR"/applications.d/firefox.desktop
 
   ln -f "${id}16.png" "$hi/16x16/apps/firefox.png"
   ln -f "${id}32.png" "$hi/32x32/apps/firefox.png"
@@ -160,9 +140,6 @@ build(){
  --sysconfdir=/etc \
  --localstatedir=/var \
  --enable-optimize="$CFLAGS" \
- --disable-debug \
- --disable-tests \
- --enable-strip \
  $OPTS &&
  make  &&
  make install DESTDIR="$DESTDIR" &&
