@@ -8,6 +8,13 @@ with role    graphic/library
 with trait   library lto makej multilib-dual optimize setarch
 with source    stable $SOURCEFORGE_URL libjpeg-turbo/$VERSION/libjpeg-turbo-$VERSION.tar.gz
 with info    home http://sourceforge.net/projects/libjpeg-turbo/
+with hold    jpeg
 with info    cite 'derivative of jpeg with accelerated performance'
 
-build(){ rm -f CMakeLists.txt; default_build; }
+build(){
+ rm -f CMakeLists.txt
+ default_build &&
+ install -vm 755 -d "$DESTDIR"/usr/share/doc/libjpeg-turbo/ &&
+ find "$DESTDIR"/usr/share/doc/ -type f |
+ xargs -r -L64 mv -vt "$DESTDIR"/usr/share/doc/libjpeg-turbo/
+}

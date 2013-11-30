@@ -7,9 +7,10 @@
 # cairo glitz is deprecated code that no longer works
 # therefore do not experiment with it.
 
+with info    good 20131130
 with info    last 20131120
 with version   stable 25.0.1 25.0 24.0
-with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libnotify startup-notification sqlite xorg-cf-files yasm zip
+with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libjpeg-turbo libnotify startup-notification sqlite xorg-cf-files yasm zip
 with base    corefonts webfonts
 with also    --disable-gnomevfs --disable-crashreporter
 #with elect   yasm       '' --disable-webm     for webm video codec
@@ -19,21 +20,19 @@ with also    --disable-gnomevfs --disable-crashreporter
 with also    --with-system-zlib --with-system-bz2
 with also    --enable-startup-notification --disable-static
 with also    --enable-system-lcms --enable-application=browser
-with also    --without-system-nss --without-system-nspr --disable-gstreamer
-with also    --with-system-png
-#with also --enable-system-sqlite
+with also    --with-system-nss --with-system-nspr --disable-gstreamer
+#with also    --without-system-nss --without-system-nspr --disable-gstreamer
+with also    --with-system-png --with-system-jpeg
+with also    --enable-shared-js --enable-system-sqlite
+with also    --enable-system-cairo --enable-system-pixman
+with also    --enable-system-ffi
 
-#with also    --with-system-jpeg
-# firefox wants jpeg version < 62 ?  How odd is that?
-
-#with also    --with-system-libxul --with-libxul-sdk=/usr
+with also    --with-system-libxul # --with-libxul-sdk=/usr
 #with also    --disable-libxul --disable-xul
-#with also    --with-system-nspr --with-system-nss
 
-## toolkit=cairo-gtk3 failed compilation version 24.0
-#with also --enable-system-cairo
-with also    --enable-default-toolkit=cairo-gtk3
-#with also    --enable-default-toolkit=cairo-gtk2
+## toolkit=cairo-gtk3 failed compilation version 24.0 and 25.0.1
+#with also    --enable-default-toolkit=cairo-gtk3
+with also    --enable-default-toolkit=cairo-gtk2
 with also    --disable-debug --disable-tests --disable-mochitest
 with also    --enable-strip --enable-official-branding
 # Enable official branding should be fine because we are not 
@@ -47,7 +46,7 @@ with also    --disable-updater --disable-installer
 # These two should be safe for Sorcerer
 
 with role    network/web
-with trait   bottleneck client huge library litelink makej multilib-fail optimize stack-protector solo x11
+with trait   bottleneck client huge library litelink makej multilib-fail optimize solo stack-protector x11
 # granted solo trait to compile faster using makej on SMP boxes
 #with trait   clang
 
@@ -135,6 +134,13 @@ build(){
  export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
  export        PATH="${PATH//\/usr\/bin.a:/}"
  export CCACHE_PATH=/usr/bin
+
+ export   CFLAGS+=' -I/usr/include/xulrunner'
+ export CXXFLAGS+=' -I/usr/include/xulrunner'
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export  LDFLAGS+=' -L/usr/lib64/xulrunner -Wl,-rpath,/usr/lib64/xulrunner'
+ else export  LDFLAGS+=' -L/usr/lib/xulrunner -Wl,-rpath,/usr/lib/xulrunner'
+ fi
 
  mkdir BUILD
  cd    BUILD
