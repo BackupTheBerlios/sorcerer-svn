@@ -1,219 +1,96 @@
-Installed software is eventually reaped.
-Reaping removes an installed software project's files.
+Reap removes a software project's installed files.
+Two types of reap events exist.
+"Reap Void" event is when when files are removed without     installing others.
+"Reap Omit" event is when files      are removed prior to re-installing.
 
-Reaping generates one of two types of events.
-The least common event is "Reap Void."
-A "Reap Void" is not followed by a "Past Post" event.
-The software project is not expected to be re-installed.
+A software project can be re-installed for several reasons.
+A software project can be updated to a newer version.
+A software project method for installation could change.
+A software project installed files may be linked with
+older shared libraries which are no longer installed.
 
-The most common event is "Reap Omit."
-"Reap Omit" is followed by a "Past Post" event.
-"Past Post" event logs a software project's files installed files.
-The software project is expected to update.
+If a software project installed files provide shared libraries
+then an update that change a shared library soname, shared object name,
+causes "Miss ELF" events.
+A "Miss ELF" event is when an installed software project files
+link with a shared library that is no longer installed.
 
-The Install/Rescue image provides
-a significant amount of installed software projects.
-The software projects that remains useful
-depends upon the type of deployment.
+"Miss ELF" events are extremely common.
+"Miss ELF" events are not an error indication.
+"Miss ELF" events are automatically fixed.
+Effected software projects re-compile and re-link.
+The cascade of updates ensures that installed software projects
+properly communicate with each other.
 
-cryptsetup must remain installed if the deployment involved encryption.
-LVM2       must remain installed if the deployment involved volumes.
-mdadm      must remain installed if the deployment involved software RAID.
+To provide a flexible deployment;
+the DI, Deployment Image, provides more software projects
+than are required deployment.
 
-Software required for booting and updating installed software
-should also remain installed.
-Software required for creating backups, restoring backups,
-and creating file systems should remain installed.
+Each root file system must provide
+installed software projects used during software updating.
+/+/base/ root file system must also provide
+installed software projects that are used during sysinit.
 
-Several rules exist for reaping software.
-Know what the software project does.
-Know why  the software project was installed.
-Know that the software project is no longer required
-by other installed software projects.
-Know that the software project is no longer desired for installation.
+A non /+/base/ root file system does not require /lib/modules/ and /boot/
+However, xorg-server may attempt to load DRM modules.
+Ideally, /+/base/etc/rootfs/fstab should bind
+/+/base/lib/modules/ to the same location within each root file system.
+That way each root file system can load modules.
+Otherwise modules specified in file /+/base/etc/rootfs/modules
+are loaded during sysinit.
 
-Does it seem like too much to know?
-What happens if binutils, gcc or make is reaped?
-Re-install them from source, yes?
-No.
+Before using reap to remove an installed software project's files
+be certain to asceratin the purpose of the software project.
+Next verify that the software project is no longer required.
+# au lone
+The above command prints the names of installed software projects
+that are not required by another installed software project.
+Finally, evalaute that the installed software project is not desired.
 
-binutils, gcc, make are software projects
-used during compilation and linking.
-If not already installed
-then a previously compiled version must be installed.
-Previously compiled version can be extracted
-from the xz compressed cpio archive initramfs file
-provided on the Install/Rescue ISO9660.
-The mistake requires a duration of 3 to 5 minutes to repair.
+When a spell is removed from the catalog
+then immune-exam-reap can automatically remove
+the software project's installed files.
+Years of deployment accumulates some
+yet not a significant amount
+of unused yet installed software projects.
 
-If doubt concerning software removal exists
-then create a paradigm.
-If important software is reaped
-then shift the root file system
-to the previously created paradigm.
+Seems too much to immediately grasp?
+That is a common feeling among neophytes.
+Software projects such as bash, binutils, gcc, make, ncurses, readline
+are essentail for development and must remain installed
+yet neophyte SAs are unaware of what each provides.
 
-The easiest method for selecting
-installed software projects for removal
-might be the menu driven interface of sorcery.
-However, the other method involves using augur.
+The most important software projects are required
+by the installed software project called "core."
+"core" is a profile.
+A profile installs other software projects.
+A profile only logs itself as being installed
+A profile itself does not provide useful software.
 
-A list of installed software projects
-that are not required by other installed software projects
-can be provided by the command:
+If "core" is installed then the list of lone spells
+excludes software projects required by "core."
+"core" provides a modest amount of protection.
+However, reap will remove installed files
+for any software project regardless
+of whether that software project is required.
 
-augur lone
+firmware linux-{kernel,modules,firmware} initramfs
+software projects can reap on non /+/base/ root file systems.
+Afterwards, run
+# augur merge
+so that the core spell's requirement list
+no longer contain the above spells.
+Reap of the aforementioned software projects on
+/+/base/ will render /+/base/ useless.
+/+/base/ will require redeployment from a DI.
+Reap can not be undone.
+Exercise caution.
 
-A description of the software project can be provided by:
-
-augur lone | while read; do echo $REPLY:; augur long $REPLY; done | less
-
-SAs that already recognize software projects by name
-could be interested in the space in bytes
-being occupied by an installed software project's files.
-A size list can be useful for creating free space.
-
-Try:
-
-au lone | au size | sort -g | tee /tmp/size
-
-Not only is the list displayed on the console,
-but it is also saved in the file /tmp/size
-
-And if I want the same ordered list,
-but without the bytes per spell
-then I can modify the command so what is run is:
-
-au lone | au size | sort -g | cut -f2 | tee /tmp/soft
-
-Notice that au is typed instead of augur.
-au is an alias for augur.
-au is prefect for the SA which is too lazy to type augur.
-au is the chemistry symbol for gold.
-Since nothing else is using au;
-au was annexed as an alias for augur.
-
-aug is also an alias for augur.
-It was requested by a SA that preferred
-to type aug instead of au.
-
-Most commands do not have multiple aliases.
-However, commands that become unique at a certain point
-can be completed by pressing tab
-to invoke BASH's command completion.
-If a command can not be completed
-then pressing tab twice could display
-a list of possible completions.
-
-Typing au and pressing tab twice
-might print something such as:
-
-au             auto-network   autom4te       autopoint      autoupdate
-aug            autoconf       automake       autoreconf     
-augur          autoheader     automake-1.13  autoscan
-
-However, if au is followed by pressing space tab tab
-then the command line completion provides
-a list of supported command line parameters
-for the augur command.
-Yes, it looks like magic, but it is not.
-BASH completions were programmed for the convenience of SAs.
-However, the software project called bash-completion
-also provides a collection of completions
-for several common installed software projects.
-
-Providing BASH completions requires several kilobytes
-of environment space for interactive shells.
-But it provides a convenience that users and SAs enjoy.
-Processes inherit environment variables.
-However, completions and aliases are not inherited.
-And they are not loaded when running shell scripts.
-
-If writing a shell script to invoke augur
-then augur must be invoked as augur or as
-/usr/sbin/augur
-Aliases will not be provided for au and aug.
-Please pardon the digression.
-
-Reaping installed software reduces
-the size of generated initramfs images.
-This is good.
-Smaller initramfs images
-generate faster, load faster from disk,
-and reduces the memory used by rootfs.
-However, rootfs content can also be sent to swap space.
-Initramfs images brimming with useful software
-does not waste RAM.
-It enhances the SA's ability and probability
-of recovering from unexpected problems.
-
-rootfs acts as a work bench for mounting root file systems.
-rootfs acts as a router/firewall for root file systems.
-rootfs acts as an alternate file system
-that is useful for investigating problems
-that are happening within root file systems.
-rootfs is only as adequate as the software provided on it.
-Adequate initramfs images are worth every additional second of boot duration.
-
-SAs occasionally ask about shaving the initramfs images.
-Several years ago I provided a fast boot label.
-The initramfs generated for fast booting contained
-an exact manifest of files that were used
-during the previous boot.
-The fast boot label booted fast or not at all.
-90% of the initramfs content was shaved.
-Then it becomes useful for the sole task of booting.
-
-The rootfs has 3 primary tasks:
-boot/shutdown; router/firewall; backup/fixing.
-The load time of an initramfs image
-is commensurate with it's worth.
-
-When a box has only one root file system
-then that root file system must contain
-installed software projects for all the roles
-that the computer performs.
-However, when more than one root file system exists
-then each root file system can be role specific.
-
-A role specific main root file system
-should provide software for updating itself
-and software for constructing the initramfs.
-Additional software should support
-the three primary roles of the rootfs.
-A 10 gigabyte partition
-should be more than adequate
-for a main root file system in year 2013.
-How that changes in the future
-might not yet be apparent.
-
-Update installed software projects.
-Reap superfluous software projects.
-
-The main root file system definitely requires linux-{kernel,modules}.
-Those are required for booting.
-However, other root file systems can do without.
-A root file system not involved in booting will not require
-software project syslinux to be installed
-nor initramfs generation scripts nor a /boot/ directory
-Properly trimming the other root file systems that are not
-/+/base/ is a bit difficult to describe.
-However, after properly trimmed
-then the "core" spell which lists software that either
-should be installed or is recommended for installation
-will provide selections appropriate for a root file system
-that is not involve creating a Linux kernel, Linux modules,
-and initramfs images for booting.
-
-Trimmed root file systems require less space
-access files faster, reduce the availability
-of installed software that might become the target of an exploit.
-Reaping superfluous software projects
-improves a root file system's
-performance and security.
-
-Update installed software on root file systems either weekly or monthly.
-Reap superfluous software projects at least quarterly.
-Deport aliens, unrecognized files, at least biannually.
-
-Please allocate sufficient time
-for learning how to accomplish reaping.
+Removing superfluous installed software projects on /+/base/
+reduces the size of initramfs images.
+Smaller initramfs images generate faster and load faster.
+Removing superfluous installed software projects from non /+/base/
+root file systems allows for faster updates, better performance,
+and provides more available space.
+The software projects installed on /+/base/
+used entirely for booting utilize nearly 1G of space.

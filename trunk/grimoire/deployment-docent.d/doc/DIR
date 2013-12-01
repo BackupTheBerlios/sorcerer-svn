@@ -1,0 +1,170 @@
+Perform this step only while logged into
+the root file system mounted on /+/base/
+
+Updating installed software is required.
+Otherwise known vulnerabilities can be exploited.
+However, updating installed software eventually creates a problem.
+Installed software on a DI becomes obsolete
+and unable to resuce deploy root file systems.
+
+DI are released as frequently as twice per year
+or as infrequently as once per year.
+A DI can become obsolete in as little as a week's duration.
+The solution is to craft a DI that can be used for repair.
+The new image is a DI+R or more simply "DIR," Deployment Image Repair.
+
+The lore acquire during the deployment
+is used again to create the DIR.
+
+First, insert a USB SSD into a USB port.
+The ideal size is 8G.
+A smaller capacity USB SSD may lack sufficient space.
+A larger  capacity USB SSD accesses files slower.
+
+Identify the USB SSD device node name.
+The device node appears upon insertion and disappears upon removal.
+If /dev/sdb is not already assigned to an installed fixed disk
+then the USB SSD may be granted the device node name /dev/sdb
+Be certain to select the proper block device.
+Utilizing the wrong block device results
+in loss of data on that device.
+The proper device can be identified with gdisk
+because the reported capacity meets expectation.
+
+Use gdisk to partition the USB SSD block device.
+One partition suffices.
+Grant it the BIOS legacy bootable attribute.
+Install a GPT compatible boot block to the USB SSD.
+/usr/share/syslinux/gptmbr.bin
+is the name of a GPT compatible boot block.
+If $NODE is replaced with the device node
+for the USB SSD then the command to install it is:
+# cat /usr/share/syslinux/gptmbr.bin > $NODE
+Partitioning and installing a bootable MBR should be easy by now.
+
+Now create the ext2 file system on the first partition of the USB SSD.
+If the command seems hazy then execute:
+# man mkfs.ext2
+Manual pages exist to be read during less than certain moments.
+For convenience add to mkfs.ext2 parameters -L DIR
+That grants file system the label of DIR
+
+Finally, mount the device node for the first partition.
+Create /tmp/dir/
+mount the partition device node on /tmp/dir/
+
+Type the command
+# df /tmp/dir/
+Does it show mounted on /tmp/dir
+and with the expected amount of space?
+Remember that a small portion of available space may be hidden.
+The reserved space on a root file system is hidden.
+
+Copy files from this root file system to the new one.
+
+# cp -ax /boot / /tmp/dir/
+
+Parameter -x of cp specifies that cp does not
+cross file system boundaries.
+Therefore, content of /proc/ /sys/ /dev/ /tmp/
+and other file systems will not copy onto /tmp/dir/
+However, those mount points will be required.
+
+# mkdir -pm 755 /tmp/dir/{dev,proc,sys,tmp}/
+# chmod    1777 /tmp/dir/tmp/
+
+Now the mount points exist and
+/tmp/dir/tmp/ was granted the proper mode for a temporary directory.
+
+Now edit /tmp/dir/etc/rootfs/fstab
+Find the line that mounts /+/base/
+Above it add this line:
+
+LABEL=DIR	/+/DIR	ext2 defaults 0 0
+
+Save the file and exit.
+Now edit /tmp/dir/etc/hostname
+It should have the hostname for the /+/base/ root file system.
+However, no two root file systems can have the same name.
+Therefore, if the hostname was something such as:
+
+base.muffinmaker.net
+
+then adjust it to read:
+
+dir.muffinmaker.net
+
+After the content of hostname differs
+save the file and exit.
+
+Now bind virtual file systems with the following commands:
+
+# mount --bind {,/tmp/dir}/dev
+# mount --bind {,/tmp/dir}/proc
+# mount --bind {,/tmp/dir}/sys
+
+Chroot into it with the command
+
+# chroot /tmp/dir/
+
+Update the initramfs images
+
+# /etc/init.d/initramfs force-reload
+
+Update the boot extlinux configuration file and boot block
+
+# /etc/init.d/extlinux force-reload
+
+Exit to the host root file system.
+
+# exit
+
+Umount the USB SSD
+
+# umount /tmp/dir/{dev,proc,sys,}
+
+Detach the USB SSD.
+
+The USB SSD is good to go for now.
+However, anytime glibc updates on /+/base/
+then the USB SSD must also be updated.
+Updating the USB SSD at least monthly is recommended.
+The USB SSD can only be boot if the BIOS CMOS configuration
+is configured to allow booting from a USB instead of fixed disk.
+Booting it is not required to update it.
+
+To update it, attach it, mount it,
+bind virtual file systems, chroot,
+and update it while chrooted.
+After update completion, exit the chroot, umount it,
+and place the USB in a safe place.
+
+Creation of the DIR is considered optional.
+Some SAs possess sufficient skill
+to utilize a DIR even after the DIR's
+installed software becomes obsolete.
+One aspect is certain concerning the DIR.
+Any SA that requires a DIR for booting feels
+greatful to have it or desparate without it.
+
+Back in the days of Disk Operating System, DOS,
+following the installation of DOS to a fixed disk
+was the creation of a boot floppy with the commands:
+
+C:> format /s a:
+C:> xcopy c:\command a:
+
+The tradition of creating a bootable rescue image
+is as old as the PC stretching back to the 1980s.
+Every experienced system administrator
+has at least one DIR.
+
+Please allocate the effort to create a DIR.
+Doing so verifies and solidifes the lore 
+assimilated during the first portion of deployment.
+Creating a DIR is not a matter of if.
+Creating a DIR is     a matter of when.
+Every experienced SA makes a bootable rescue image eventually;
+if not by choice then by necessity;
+a DIR will be crafted on a booted computer
+to repair a computer that does not boot.

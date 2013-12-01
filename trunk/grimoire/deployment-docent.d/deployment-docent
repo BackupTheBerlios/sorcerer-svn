@@ -66,13 +66,14 @@ progress chroot			rbind			umount
 progress umount			chroot			reboot
 progress reboot			umount			reboot
 
-progress resume			origin			reap
-progress reap			resume			feature
-progress feature		reap			update
-progress update			feature			account
-progress account		update			groups
-progress groups			account			manifest
-progress manifest		groups			inittab
+progress resume			origin			feature
+progress feature		resume			update
+progress update			feature			reap
+progress reap			update			account
+progress account		reap			groups
+progress groups			account			DIR
+progress DIR			groups			manifest
+progress manifest		DIR			inittab
 progress inittab		manifest		scry
 progress scry			inittab			retry
 progress retry			scry			reboot
@@ -664,17 +665,25 @@ stock GOAL[feature] "Activate useful sorcery features"
 stock HINT[feature] "au help feature"
 
 test_feature(){
- if   augur feature 2>&1 | grep -q retry
- then echo $"The retry feature was successfully enabled."
+ if   ! [ -f /etc/sorcery/config ]
+ then echo $"/etc/sorcery/config does not yet exist."
+      echo $"toggling a feature creates the file."
+ elif augur feature 2>&1 | grep -q retry
+ then echo $"The retry feature is enabled."
  else echo $"The retry feature is not yet enabled."
       echo $"However, the retry feature probably should be enabled."
       false
  fi
 }
 
-stock DOCS[update] "au" "\n" "au help sync" "\n" "au help scry"
+stock DOCS[update] "less /usr/doc/docent/update" "\n" \
+                   "au" "\n" "au help sync" "\n" "au help scry"
 stock GOAL[update] $"Update installed software projects"
 stock HINT[update] "au merge; au sync; au scry"
+
+stock DOCS[DIR] "less /usr/doc/docent/DIR"
+stock GOAL[DIR] $"Create a bootable USB SSD from /+/base/"
+stock HINT[DIR] "less /usr/doc/docent/DIR"
 
 stock DOCS[manifest] "au help begin" "\n" "less /usr/doc/docent/manifest"
 stock GOAL[manifest] "Install additional software"
@@ -682,8 +691,7 @@ stock HINT[manifest] "au merge; au begin firefox kde xorg; au begin; au scry"
 
 stock DOCS[reap] "au help queue" "\n" "less /usr/doc/docent/reap"
 stock GOAL[reap] $"Uninstall the deployment docent"
-stock HINT[reap] "au queue reap/deployment-docent"     "\n" \
-                 "au queue reap/wesnoth-music-samples" "\n" \
+stock HINT[reap] "au begin reap/{deployment-docent,wesnoth-music-samples}" "\n" \
                  "au begin" "\n" "au scry"
 
 stock DOCS[inittab] "man inittab" "\n" "less /usr/doc/docent/inittab"
