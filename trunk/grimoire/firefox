@@ -1,54 +1,41 @@
-# --enable-system-cairo does not work with version 13.0
-
-# some of the system libraries commented out because they random crashes
-# which ones I am not certain about.
-# --with-system-jpeg --with-system-nspr --with-system-nss --enable-system-sqlite
-
-# cairo glitz is deprecated code that no longer works
-# therefore do not experiment with it.
-
-with info    good 20131130
+with info    good 20131201
 with info    last 20131120
 with version   stable 25.0.1 25.0 24.0
-with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libjpeg-turbo libnotify startup-notification sqlite xorg-cf-files yasm zip
+with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libjpeg-turbo libnotify nss startup-notification sqlite xorg-cf-files yasm zip
 with base    corefonts webfonts
-with also    --disable-gnomevfs --disable-crashreporter
-#with elect   yasm       '' --disable-webm     for webm video codec
-# webm must not be disabled otherwise firefox fails to compile
-# with switch  --enable-glitz --disable-glitz 'enable glitz for use with cairo'
 
-with also    --with-system-zlib --with-system-bz2
-with also    --enable-startup-notification --disable-static
-with also    --enable-system-lcms --enable-application=browser
-with also    --with-system-nss --with-system-nspr --disable-gstreamer
-#with also    --without-system-nss --without-system-nspr --disable-gstreamer
-with also    --with-system-png --with-system-jpeg
-with also    --enable-shared-js --enable-system-sqlite
-with also    --enable-system-cairo --enable-system-pixman
-with also    --enable-system-ffi
-
-with also    --with-system-libxul # --with-libxul-sdk=/usr
-#with also    --disable-libxul --disable-xul
-
-## toolkit=cairo-gtk3 failed compilation version 24.0 and 25.0.1
-#with also    --enable-default-toolkit=cairo-gtk3
-with also    --enable-default-toolkit=cairo-gtk2
-with also    --disable-debug --disable-tests --disable-mochitest
-with also    --enable-strip --enable-official-branding
-# Enable official branding should be fine because we are not 
-# distributing the builds. This option names the browser Firefox instead
-# of Minefield but launches a EULA on the first start:
-
+with also    --disable-crashreporter
+with also    --disable-debug
+with also    --disable-gnomevfs
+with also    --disable-gstreamer
+with also    --disable-installer
+with also    --disable-mochitest
 with also    --disable-necko-wifi
-# necko-wifi is not supported
+with also    --disable-static
+with also    --disable-tests
+with also    --disable-updater
 
-with also    --disable-updater --disable-installer
-# These two should be safe for Sorcerer
+with also    --enable-application=browser
+with also    --enable-default-toolkit=cairo-gtk2
+with also    --enable-official-branding
+with also    --enable-shared-js
+with also    --enable-startup-notification
+with also    --enable-strip
+with also    --enable-system-cairo
+with also    --enable-system-ffi
+with also    --enable-system-lcms
+with also    --enable-system-pixman
+with also    --enable-system-sqlite
 
+with also    --with-system-bz2
+with also    --with-system-jpeg
+#with also    --with-system-libxul
+with also    --with-system-nspr
+with also    --with-system-nss
+with also    --with-system-png
+with also    --with-system-zlib
 with role    network/web
 with trait   bottleneck client huge library litelink makej multilib-fail optimize solo stack-protector x11
-# granted solo trait to compile faster using makej on SMP boxes
-#with trait   clang
 
 # release.mozilla.org might no longer be serving source tarballs.
 # also mirrored at sourceforge, but can not write the source statements
@@ -103,6 +90,21 @@ build(){
   link_icons
  }
 
+
+# installed xulrunner from xulrunner spell differs from what
+# firefox expects althought it comes from a nearly identicial source tree
+# and firefox's dist including libxul contains additional files
+
+# with also    --with-libxul-sdk="$PWD"/xul
+# mkdir xul
+# ln -s /usr/include/xulrunner xul/include
+# export   CFLAGS+=' -I/usr/include/xulrunner'
+# export CXXFLAGS+=' -I/usr/include/xulrunner'
+# if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+# then export  LDFLAGS+=' -L/usr/lib64/xulrunner -Wl,-rpath,/usr/lib64/xulrunner'; ln -s /usr/lib64/xulrunner xul/bin
+# else export  LDFLAGS+=' -L/usr/lib/xulrunner -Wl,-rpath,/usr/lib/xulrunner'; ln -s /usr/lib/xulrunner xul/bin
+# fi
+
  if    [[ $HOSTTYPE == x86_64 ]]; then
   if   [[ $CFLAGS   =~ -m32   ]]
   then with also "--host=${MACHTYPE/x86_64/i686}"
@@ -135,13 +137,6 @@ build(){
  export        PATH="${PATH//\/usr\/bin.a:/}"
  export CCACHE_PATH=/usr/bin
 
- export   CFLAGS+=' -I/usr/include/xulrunner'
- export CXXFLAGS+=' -I/usr/include/xulrunner'
- if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then export  LDFLAGS+=' -L/usr/lib64/xulrunner -Wl,-rpath,/usr/lib64/xulrunner'
- else export  LDFLAGS+=' -L/usr/lib/xulrunner -Wl,-rpath,/usr/lib/xulrunner'
- fi
-
  mkdir BUILD
  cd    BUILD
  ../configure \
@@ -161,10 +156,4 @@ post_install(){
  basenames |
  pipe_queue "$MOIL_QUEUE"
  true
-}
-
-current(){
- case $VERSION in
-  25.0) [ -h /usr/bin/firefox ] ;;
- esac
 }

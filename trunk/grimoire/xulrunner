@@ -1,12 +1,4 @@
-# 16.0 failed compilation
-# 18.0.1 failed compilation
-# 18.0 failed compilation with same error as 18.0.1
-# 17.0.1 failed compilat with different error than 18.0.1 and 18.0
-# 19.0 failed to compile
-
-# included java script library not makej compatible?
-
-with info    good 20131130
+with info    good 20131201
 with info    last 20131025
 with version   stable 25.0 16.0.2
 with base    GConf imake jdk libXScrnSaver libjpeg-turbo libnotify nss pygobject sqlite startup-notification xorg-cf-files yasm zip
@@ -55,7 +47,10 @@ build(){
   ln -s xulrunner-$VERSION "$DESTDIR"/usr/include/xulrunner
  }
 
- export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=" -Wl,-rpath,/usr/lib64/xulrunner-$VERSION"
+ else export LDFLAGS+=" -Wl,-rpath,/usr/lib/xulrunner-$VERSION"
+ fi
 
  if    [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then with also --host="${MACHTYPE/x86_64/i686}"
