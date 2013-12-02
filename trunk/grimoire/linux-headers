@@ -1,4 +1,4 @@
-with info    edit 20130911
+with info    edit 20131202
 with base    linux-config
 with role    development
 with trait   console solo
@@ -36,7 +36,7 @@ kversion
 build(){
 
  install_header(){
-  mkdir   -vm 755 -p                                     "$DESTDIR"/usr/include/{asm,linux}/
+  install -vm 755 -d                                     "$DESTDIR"/usr/include/{asm,linux}/
   install -vm 644 include/generated/asm-offsets.h        "$DESTDIR"/usr/include/asm/
   install -vm 644 include/generated/{autoconf,compile}.h "$DESTDIR"/usr/include/linux/
   cp      -av usr/include/*                              "$DESTDIR"/usr/include/
@@ -68,12 +68,22 @@ build(){
    return 1
   fi
 
+  HCF+=" -I$PWD/tmp"
+  mkdir -p tmp
+  cp -a /usr/src/linux/include/asm-generic/       tmp/
+  cp -a /usr/src/linux/include/linux/             tmp/
+  cp -a /usr/src/linux/include/uapi/              tmp/
+  cp -a /usr/src/linux/include/uapi/asm-generic/  tmp/
+  cp -a /usr/src/linux/include/uapi/linux/        tmp/
+  cp -a /usr/src/linux/arch/x86/include/uapi/asm/ tmp/
+  cp -a /usr/src/linux/arch/x86/include/uapi/     tmp/
+  cp -a /usr/src/linux/arch/x86/include/asm/      tmp/
+
   cd /usr/src/linux/ &&
   make distclean &&
   yes '' |
-  make O="$BUILD_DIR" oldconfig &&
-# make O="$BUILD_DIR" silentoldconfig &&
-  make O="$BUILD_DIR" headers_install prepare &&
+  make O="$BUILD_DIR" oldconfig               HOSTCFLAGS="$HCF" &&
+  make O="$BUILD_DIR" headers_install prepare HOSTCFLAGS="$HCF" &&
   cd     "$BUILD_DIR" &&
   install_header
  }
