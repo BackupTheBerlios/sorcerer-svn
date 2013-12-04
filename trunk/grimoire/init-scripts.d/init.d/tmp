@@ -1,0 +1,34 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Default-Start: 1 2 3 4 5
+# Short-Description: removes /aux/run/{pipe,save,source,tmp}/* /tmp/*
+### END INIT INFO
+
+(( UID == 0 )) || exit 0
+
+. /lib/lsb/init-functions
+
+only start
+deny control
+
+start(){
+ run(){
+  rm   -fr /aux/run/{pipe,save,source,tmp}/*
+  if    ! [   -d      /tmp/ ]; then
+   /bin/rm    -f      /tmp/
+   /bin/mkdir -m 1777 /tmp/
+  else
+   /bin/chmod 1777    /tmp/
+   /bin/find /tmp/ -mindepth 1 -type f     -print0 | /bin/xargs -r0L64 /bin/chattr -i
+   /bin/find /tmp/ -mindepth 1 -maxdepth 1 -print0 | /bin/xargs -r0L64 /bin/rm -fr
+  fi
+ }
+
+ if   log_warning_msg "clean"; run
+ then log_success_msg "clean"
+ else log_failure_msg "clean"; return 1
+ fi
+}
