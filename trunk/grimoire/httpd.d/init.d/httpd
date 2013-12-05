@@ -9,55 +9,31 @@
 # Default-Start: 2 3 4 5
 # Default-Stop: 0 1 6
 # Short-Description: httpd is a feature packed web server
-# Description: $EXTRA_START $EXTRA_STOP $EXTRA_RESTART can be set in
-# 	/etc/init.d/conf.d/httpd
+# Description: add a line to invoke options if extra options are desired
+# 	edit file: /etc/init.d/conf.d/httpd
 ### END INIT INFO
 
 . /lib/lsb/init-functions
 
 only start stop restart try-restart status
-pid_file /var/run/httpd.pid
 server /usr/sbin/apachectl
 config /etc/httpd/conf/httpd.conf
 name httpd
 options start
 
-start(){
- log_warning_msg  "$NAME starting"
- [     -d /var/log/httpd ] ||
- mkdir -p /var/log/httpd ]
- if   start_daemon $SERV start $EXTRA_START
- then log_success_msg "$NAME started"
- else log_failure_msg "$NAME not started"; status
+[     -d /var/log/httpd/ ] ||
+mkdir -p /var/log/httpd/ ]
+
+stop(){
+ if   log_warning_msg "stop"; $SERV stop $OPTS
+ then log_success_msg "stop"
+ else log_failure_msg "stop"; return 1
  fi
 }
 
-stop(){
- log_warning_msg "$NAME stopping"; $SERV stop $EXTRA_STOP
- log_success_msg "$NAME stopped"
-}
-
 restart(){
- log_warning_msg "$NAME restarting"; $SERV restart $EXTRA_RESTART
- log_success_msg "$NAME restarted"
-}
-
-status(){
-# httpd REQUIRES a non-standard status function because
-# the service is started by calling /usr/sbin/apachectl but 
-# the running processes are /usr/sbin/httpd instead!
-
-# This part can be disabled, it shows detailed information about httpd. 
-# Unfortunately, it always returns code 0 (success), even when no httpd 
-# server is running. The command can be 'status' or 'fullstatus':
-  $SERV status
-
-# Below is the actual test and its status tells us whether httpd is running
-  PIDS="$( pidofproc -p "$PIDF" "/usr/sbin/httpd" )"
-  if   [    "$PIDS" ]; then log_warning_msg "$NAME is running"; return 0
-  elif [ -f "$PIDF" ]; then log_warning_msg "$NAME is dead and $PIDF exists"; return 1
-  elif [    "$LOCK" ] &&
-       [ -f "$LOCK" ]; then log_warning_msg "$NAME is dead and $LOCK exists"; return 2
-                       else log_warning_msg "$NAME is not running"; return 3
-  fi
+ if   log_warning_msg "restart"; $SERV restart $OPTS
+ then log_success_msg "restart"
+ else log_failure_msg "restart"; return 1
+ fi
 }

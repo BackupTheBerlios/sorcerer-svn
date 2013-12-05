@@ -12,16 +12,19 @@
 
 only start stop restart reload status
 server /usr/sbin/avahi-dnsconfd
-pid_file /var/run/avahi-dnsconfd.pid
 name avahi-dnsconfd
 options -D
 
 stop(){
- log_warning_msg "$NAME stopping"; $SERV -k
- log_success_msg "$NAME stopped"
+ if   log_warning_msg "stop"; $SERV -k
+ then log_success_msg "stop"
+ else log_failure_msg "stop"; return 1
+ fi
 }
 
 reload(){
- $SERV -r
- log_success_msg "$NAME configuration reloaded"
+ if   log_warning_msg "reload"; $SERV -r
+ then log_success_msg "reload"
+ else log_failure_msg "reload"; return 1
+ fi
 }

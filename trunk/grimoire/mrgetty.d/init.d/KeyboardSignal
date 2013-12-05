@@ -1,0 +1,29 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: proc dev loadkeys
+# Default-Start: S 1 2 3 4 5
+# Short-Description: sets key combination for KeyboardSignal for spawning a getty
+### END INIT INFO
+
+[ -f /bin/loadkeys ] || exit 0
+[ -f /bin/mrgetty  ] || exit 0
+
+. /lib/lsb/init-functions
+only start
+
+# keycombination can be set by assigning value to variable param in file
+# /+/base/etc/rootfs/init.d/conf.d/KeyboardSignal
+
+if   [ -z "$param" ]
+then        param="alt shift keycode 30 = KeyboardSignal"
+fi
+
+start(){
+ if   log_warning_msg "set"; /bin/loadkeys <<< "$param"
+ then log_success_msg "set"
+      log_success_msg "Press alt shift a together to invoke a login getty"; echo
+ else log_failure_msg "set"
+ fi
+}

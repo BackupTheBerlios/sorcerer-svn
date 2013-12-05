@@ -16,16 +16,20 @@ config /etc/mapper
 
 start(){
 run(){
+ local r=0
  for MAP in /etc/mapper/*; do
   [ -f $MAP ] || continue
-  log_warning_msg "mapper executing dmsetup create ${MAP##*/} $MAP"
-  dmsetup create ${MAP##*/} $MAP
+  if   log_warning_msg "dmsetup create ${MAP##*/} $MAP"
+       dmsetup create ${MAP##*/} $MAP
+  then log_success_msg "dmsetup create ${MAP##*/} $MAP"
+  else log_failure_msg "dmsetup create ${MAP##*/} $MAP"; r=1
+  fi
  done
+ return $r
 }
 
- [ -d /etc/mapper ] &&
- if   log_warning_msg 'mapper starting'; run
- then log_success_msg 'mapper started'
- else log_failure_msg 'mapper not started'
+ if   log_warning_msg 'start'; run
+ then log_success_msg 'start'
+ else log_failure_msg 'start'; return 1
  fi
 }

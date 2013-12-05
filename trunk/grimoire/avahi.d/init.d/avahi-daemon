@@ -14,27 +14,22 @@
 
 only start stop restart reload status
 server /usr/sbin/avahi-daemon
-pid_file /var/run/avahi-daemon/pid
 name avahi-daemon
 options -D
 
-start(){
- log_warning_msg  "$NAME starting"
- [     -d /var/run/avahi-daemon ] ||
- mkdir -p /var/run/avahi-daemon
- if   start_daemon    -p $PIDF $SERV -D
- then log_success_msg "$NAME started"
- else log_failure_msg "$NAME not started"
-      status
+[     -d /var/run/avahi-daemon ] ||
+mkdir -p /var/run/avahi-daemon
+
+stop(){
+ if   log_warning_msg "stop""; $SERV -k
+ then log_success_msg "stop"
+ else log_failure_msg "stop"; return 1
  fi
 }
 
-stop(){
- log_warning_msg "$NAME stopping"; $SERV -k
- log_success_msg "$NAME stopped"
-}
-
 reload(){
- $SERV -r
- log_success_msg "$NAME configuration reloaded"
+ if   log_warning_msg "reload"; $SERV -r
+ then log_success_msg "reload"
+ else log_failure_msg "reload"; return 1
+ fi
 }

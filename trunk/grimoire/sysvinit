@@ -69,8 +69,15 @@ build(){
  # /bin/mountpoint /sbin/sulogin are installed by util-linux
 }
 
+post_install(){
+ default_post_install
+ grep -q "kb::kbrequest:/bin/mrgetty"    /etc/rootfs/inittab ||
+ echo    "kb::kbrequest:/bin/mrgetty" >> /etc/rootfs/inittab
+}
+
 current(){
  case $VERSION in
-  2.88dsf) [ -f /etc/rootfs/inittab ] ;;
+  2.88dsf) [ -f /etc/rootfs/inittab ] &&
+           grep -q "kb::kbrequest:/bin/mrgetty" /etc/rootfs/inittab ;;
  esac
 }
