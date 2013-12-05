@@ -371,9 +371,10 @@ control(){
 
  while
   mode=$( find "$SELF" -type f -printf "%m\n" )
+  chattr -i "$SELF"
   case $( control_menu ) in
    Automatic) if   [ "${mode:0:1}" == 5 ]
-              then chmod 400 "$SELF"
+              then chmod u-x "$SELF"
               else chmod u+x "$SELF"
               fi ;;
    Restart)   if   [ "${mode:1:1}" == 1 ]
@@ -382,6 +383,7 @@ control(){
               fi ;;
    *) /lib/lsb/install_initd; exit 0 ;;
   esac
+  chattr +i "$SELF"
  do :;
  done
 }
