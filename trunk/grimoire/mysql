@@ -23,7 +23,7 @@ with also    -DWITH_EMBEDDED_SERVER:BOOL=ON
 #     with also INSTALL_INCLUDEDIR:STRING=include/mysql
   sys_user mysql mysql /var/lib/mysql
 with role    db
-with trait   console library lto_off makej multilib-concurrent
+with trait   console library lto_off makej multilib-concurrent optimize
 with source    stable $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
 with source  unstable $MYSQL_URL MySQL-${VERSION:0:3}/mysql-$VERSION.tar.gz
 with info    vurl http://dev.mysql.com/downloads/mysql/${VERSION:0:3}.html
@@ -52,14 +52,24 @@ build(){
  else export OPENSSL_ROOT_DIR=/usr
  fi
 
- default_build # &&
-#mv_docs       &&
-# rm     -fr     "$DESTDIR"/usr/mysql-test/ &&
-# if   [ -f      "$DESTDIR"/usr/include/mysql.h ]; then
-#  mv            "$DESTDIR"/usr/include "$DESTDIR"/usr/mysql
-#  mkdir -pm 755 "$DESTDIR"/usr/include
-#  mv            "$DESTDIR"/usr/mysql   "$DESTDIR"/usr/include/
-# fi
+ with also -DCMAKE_C_FLAGS_RELEASE:STRING="$CFLAGS"
+
+ default_build &&
+ install -vm 755 -d "$DESTDIR"/usr/include/mysql/ &&
+ mv                 "$DESTDIR"/usr/share/mysql/include/ \
+                    "$DESTDIR"/usr/include/mysql/ &&
+ mv                 "$DESTDIR"/usr/share/mysql/bin/ \
+                    "$DESTDIR"/usr/ &&
+ mv                 "$DESTDIR"/usr/share/mysql/{info,man}/ \
+                    "$DESTDIR"/usr/share/ &&
+ if   [ -f          "$DESTDIR"/usr/share/mysql/lib/ ]
+ then mv            "$DESTDIR"/usr/share/mysql/lib/ \
+                    "$DESTDIR"/usr/
+ fi &&
+ if   [ -f          "$DESTDIR"/usr/share/mysql/lib64/ ]
+ then mv            "$DESTDIR"/usr/share/mysql/lib64/ \
+                    "$DESTDIR"/usr/
+ fi
 }
 
 post_install(){
