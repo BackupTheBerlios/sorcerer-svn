@@ -1,6 +1,6 @@
 # removing library trait until something else links with it's ELF library.
 
-with info    good 20130613
+with info    good 20131206
 with info    last 20090510
 with version stable 3.2.8
 with base    ncurses
@@ -9,8 +9,13 @@ with base    ncurses
 # libselinux
 with role    utility
 with trait   console library lto makej multilib-fail optimize solo
+# Makefiles might be incompatible with makej
 #trait library
 with source  stable http://procps.sourceforge.net/procps-$VERSION.tar.gz
+case $VERSION in
+ 3.2.8)
+with source  stable $GNU_URL make/make-3.81.tar.bz2 ;;
+esac
 with info    home http://procps.sourceforge.net/
 with protect /bin/pgrep
 with protect /bin/ps
@@ -33,8 +38,19 @@ build(){
   mv      -v       "$DESTDIR"/{usr/bin/{pgrep,pkill,top},bin/}
  }
 
+ local_make(){
+  cd make-3.81 &&
+  ./configure --prefix="$PWD/installed" &&
+  make install &&
+  export PATH="$PWD/installed/bin:$PATH" &&
+  cd ..
+ }  
+
+ local  PATH="$PATH"
+ export PATH
+
  case $VERSION in
-  3.2.8) sed -i '/Unknown HZ value/d' proc/sysinfo.c ;;
+  3.2.8) sed -i '/Unknown HZ value/d' proc/sysinfo.c; local_make ;;
  esac
 
  LD='-Wl,-warn-common'
