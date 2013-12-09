@@ -10,49 +10,21 @@
 # Copyright 2007 through 2013 by Kyle Sallee, all rights reserved.
 # for use with Sorcerer only
 
-# if   [ ramfs == "$( /bin/stat -f -c %T / )" ]
-# then exit 0
-# fi
-
-[ -d /boot ] || exit 0
+[ -d /boot/ ] || exit 0
 
 . /lib/lsb/init-functions
 
 only stop reload force-reload status
 name initramfs
-DONE=false
 
 initrf_update(){
+ local r=0
 
  for REPLY in /etc/init.d/initramfs-*
- do  bash $REPLY $1
+ do  bash $REPLY $1 || r=1
  done
 
- local               TEMPIF=/tmp/initramfs.$$.$RANDOM$RANDOM
- /bin/rm    -rf     $TEMPIF
- /bin/mkdir -pm 600 $TEMPIF/boot
-
- /bin/find /boot -maxdepth 2 -mindepth 2 -type f -name linux -printf '%h\n' |
- /bin/cut -d / -f3 | /bin/sed '\,rescue,d' |
- while read; do
-  /bin/mkdir           $TEMPIF/boot/$REPLY
-  /bin/ln -s ../initrf $TEMPIF/boot/$REPLY/initrf
- done
-
- if ! /bin/cp -a $TEMPIF/boot /; then /bin/rm -f /boot/*/initrf.old
-      /bin/cp -a $TEMPIF/boot /; fi
- /bin/rm -fr     $TEMPIF
- /bin/sync
-
- if $EXTL; then
-  if ! $DONE; then /etc/init.d/extlinux reload; fi
-  if ! [ -f   /boot/extlinux/version ] ||
-   ! [ "$(< /boot/extlinux/version )" == "$( /sbin/extlinux --version 2>&1 )" ]; then
-   /sbin/extlinux --version 2> /boot/extlinux/version
-   /sbin/extlinux -U /boot/extlinux ||
-   /sbin/extlinux -i /boot/extlinux
-  fi
- fi
+ return $r
 }
 
 run(){
@@ -70,17 +42,6 @@ status(){
 
 stop(){ status || run stop; }
 force_reload(){ run force-reload; }
-reload(){ DONE=true; stop; }
-
-if ! [[ -d /boot/ ]]; then log_failure_msg "$NAME unknown boot method"; exit 1; fi
-
-EXTL=false
-
-if   [ -f /etc/init.d/extlinux    ] &&
-     [ -x /etc/init.d/extlinux    ] &&
-     [ -f /boot/extlinux/menu.c32 ] &&
-     [ -f /sbin/extlinux ]
-then EXTL=true
-fi
+reload(){ stop; }
 
 export LC_ALL=C

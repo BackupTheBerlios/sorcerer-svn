@@ -16,7 +16,9 @@
 
 . /lib/lsb/init-functions
 
-if ! rootfs; then trap - EXIT; exit 0; fi
+# do not execute on rootfs
+# only execute on root file systems.
+if rootfs; then trap - EXIT; exit 0; fi
 
 only start
 deny control
@@ -48,9 +50,12 @@ start(){
    echo "/etc/init.d/$1 reported an error"
    echo "reboot/shutdown request denied"
    echo "Rebounded to runlevel 3"
+   echo "This message originates from /etc/issue"
+   echo "Please edit the file and remove the error message"
+   echo "after the error condition is fixed"
   }
 
-  deny(){ warn $1 | tee -a /etc/issue.rootfs; alert; REPLY=3; rebound; }
+  deny(){ warn $1 | tee -a /etc/issue; alert; REPLY=3; rebound; }
 
     if [ -f /var/log/init/failed/extlinux/stop  ]; then deny extlinux
   elif [ -f /var/log/init/failed/initramfs/stop ]; then deny initramfs

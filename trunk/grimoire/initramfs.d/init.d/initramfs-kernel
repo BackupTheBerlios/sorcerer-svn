@@ -10,12 +10,14 @@
 # Copyright 2013 by Kyle Sallee, all rights reserved.
 # for use with Modern Magic only
 
-if ! [ -d /boot/linux/ ]; then
- if   /bin/find /usr/share/linux/ -type f -name kernel | /bin/grep -q .
- then /bin/mkdir -m 700 /boot/linux/
- else exit 0
- fi
-fi
+[ -d /boot/ ] || exit 0
+
+# if ! [ -d /boot/linux/ ]; then
+#  if   /bin/find /usr/share/linux/ -type f -name kernel | /bin/grep -q .
+#  then /bin/mkdir -m 700 /boot/linux/
+#  else exit 0
+#  fi
+# fi
 
 . /lib/lsb/init-functions
 
@@ -66,14 +68,23 @@ current(){
 run(){
  if   log_warning_msg "update"; update
  then log_success_msg "update"
- else log_failure_msg "update"; return 1
+ else log_failure_msg "update"; status; return 1
+ fi
+}
+
+alsoav(){
+ if [ -z "$AV" ]; then
+  log_failure_msg ": When /boot/ exists "
+  log_failure_msg ": linux-kernel must also be installed."
+  log_failure_msg ": /boot/ is required only when"
+  log_failure_msg ": $HOSTNAME is the progenitor for rootfs."
  fi
 }
 
 status(){
  if   log_warning_msg "check"; current
  then log_success_msg "check status:     current"
- else log_warning_msg "check status: not current"; return 1
+ else log_warning_msg "check status: not current"; alsoav; return 1
  fi
 }
 
