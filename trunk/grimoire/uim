@@ -2,6 +2,7 @@
 # and therefore ruins the multilib compile.
 # Is this still so?
 
+with info    edit 20131211
 with info    good 20130820
 with info    last 20130703
 with version stable 1.8.6 1.8.5
@@ -14,10 +15,7 @@ with elect   gtk+        ''           --without-gtk2   for gtk tools and immodul
 with elect   phonon      --with-qt4-immodule '' for KDE support
 with also    --enable-dict --enable-static=no --prefix=/usr
 with role    input
-# Not certain how to allow this spell to also provide
-# an input manager for KDE and compile multilib
 with trait   library makej multilib-fail x11
-#with trait   library makej multilib-dual x11
 with source  stable http://uim.googlecode.com/files/uim-$VERSION.tar.bz2
 with info    home http://code.google.com/p/uim/
 #with info    home http://uim.freedesktop.org/wiki/
@@ -25,7 +23,7 @@ with info    vurl http://code.google.com/p/uim/
 with info    cite 'multilingual input method library'
 
 build(){
- if spell_installed $( get_provider phonon ); then
+ if technic_installed $( get_provider phonon ); then
   if    [[ $HOSTTYPE == x86_64 ]]; then
    if   [[ $CFLAGS   =~ -m32   ]]
    then export QTDIR=/opt/32bit/usr; export LDFLAGS+=' -L/usr/lib'
@@ -37,7 +35,7 @@ build(){
 }
 
 post_install(){
- if   spell_installed gtk-query-immodules-2.0
+ if   technic_installed gtk-query-immodules-2.0
  then echo            gtk-query-immodules-2.0 | pipe_queue "$MOIL_QUEUE"
  fi
  default_post_install

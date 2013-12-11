@@ -2,31 +2,21 @@
 # All rights reserved.
 # For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20131126
-with info    last   20131126
-with base    sorcery
+with version stable 20131211
+with info    last   20131211
+with base    EruditeTechnic
 with role    immune-system
 with trait   solo stale
 with info    home http://sorcerer.silverice.org/
 with clash   module-init-tools
-with info    cite 'applies adjustments as a box transitions through time
+with info    cite 'applies adjustments as a root file system transitions time
 
-Please also install spell immune-exam-dispel for automatic
-dispelling of installed spells that
-are lacking a definition in the software catalog.
+Please also install immune-exam-dispel
+for automatic reaping of installed software projects
+that lack a technic in the software catalog.
 
-Originally, the post_install of the sorcery spell
-checked for and applied necessary fixes to transition
-to new and improved file formats as Sorcerer boxes seamlessly
-transitioned through time without re-installation.
-However, checking for the conditions of the fixes and applying
-the fixes is a waste of CPU cycles and disk throughput
-when performed on every cast of the sorcery spell
-instead of after a new transition method becomes available.
-Therefore, this spell now applies necessary adjustments
-in order for Sorcerer boxes to transition.
 Transitional code is guaranteed to exist for no longer than 6 months.
-Boxes neglected for more than 6 months
+Root file systems neglected for more than 6 months
 might encounter problems during and after updating.'
 
 build(){ :; }
@@ -37,14 +27,14 @@ post_install(){
   local d e="$EVENT_LOGS"
   mkdir -pm 700 "$e/"{fore,yore}/
   find "$e/" -mindepth 1 -maxdepth 1 -type f -printf '%#m\t%P\n' |
-  while read MODE SPELL REST; do
+  while read MODE TECHNIC REST; do
    case $MODE in
     0644) d=fore ;;
     0604) d=yore ;;
        *) continue ;;
    esac
-   mkdir -pm 700              "$e/$d/$SPELL/"
-   mv    "$e/$SPELL$TAB$REST" "$e/$d/$SPELL/$REST"
+   mkdir -pm 700                "$e/$d/$TECHNIC/"
+   mv    "$e/$TECHNIC$TAB$REST" "$e/$d/$TECHNIC/$REST"
   done
  }
 
@@ -78,10 +68,28 @@ post_install(){
   done
  }
 
+ import_et_config(){
+  if   [ -f      /etc/sorcery/config ]  &&
+     ! [ -f      /etc/et/config      ]
+  then
+   mkdir -pm 700 /etc/et/
+   mv            /etc/sorcery/config /etc/et/
+   rm    -f      /etc/sorcery/config
+  fi
+ }
+
+ reap_sorcery(){
+  if   technic_installed sorcery
+  then echo sorcery | pipe_queue "$REAP_QUEUE"
+  fi
+ }
+
  # Temporary fixes to provide for 6 months.
  event_log_transition			# 20130828
  move_local_config			# 20131110
  init_log_change			# 20131115
  scrub_boot				# 20131125
+ import_et_config			# 20131211
+ reap_sorcery				# 20131211
  default_post_install
 }

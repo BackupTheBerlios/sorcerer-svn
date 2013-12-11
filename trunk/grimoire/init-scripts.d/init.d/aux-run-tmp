@@ -1,0 +1,56 @@
+#!/bin/bash
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: $local_fs
+# Default-Start: 1 2 3 4 5
+# Default-Stop: 0 6
+# Short-Description: mounts tmpfs on /aux/run/tmp
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start stop restart status
+name /aux/run/tmp
+options '-o defaults,size=256m,nr_inodes=256k,mode=700 -t tmpfs tmpfs'
+
+stop(){
+ [ -d /aux/run/tmp/ ] || return 0
+ active(){
+  pgrep -u root '^moil$'
+  pgrep -u root '^post$'
+  pgrep -u root '^reap$'
+  pgrep -u root '^save$'
+  pgrep -u root '^till$'
+ }
+
+ busy(){ active | grep -q .; }
+
+ abort_and_wait(){
+  /bin/touch /aux/run/tmp/halt
+  aurum queue | sed 's:moil/active/::p;d' | aurum abort
+  /bin/find /aux/run/queue/moil/ -mindepth 1 -maxdepth 1 -type f  |
+  /bin/xargs -r /bin/touch -d "+1 hour"
+  log_warning_msg ': waiting for completion of Erudite Technic'; echo
+  log_warning_msg ': forcing power off will cause problems please be patient'
+  while busy; do sleep 1; done
+  log_success_msg ': Erudite Technic run completed'
+ }
+
+ wait_et(){
+  if   log_warning_msg 'check'; ! busy
+  then log_success_msg 'check'
+  else log_warning_msg 'check'; abort_and_wait
+  fi
+ }
+
+ umount_et(){
+  if   log_warning_msg "unmount"; umount $NAME
+  then log_success_msg "unmount"
+  else log_failure_msg "unmount"; return 1
+  fi
+ }
+
+ wait_et
+ umount_et
+}

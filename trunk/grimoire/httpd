@@ -1,6 +1,6 @@
 # /usr/sbin/apachectl invokes lynx upon status request
 
-with info    edit 20131205
+with info    edit 20131211
 with info    last 20131129
 with version   stable 2.4.7 2.4.6 2.4.4
 with also    --with-apr=/usr/bin --with-apr-util=/usr/bin
@@ -36,8 +36,8 @@ query_dialog(){
               
  local ASK BACKT RESPONSE DEFAULT FTS FAS
 
- if   [ -n "$SPELL" ]
- then BACKT="Spell:  $SPELL"
+ if   [ -n "$TECHNIC" ]
+ then BACKT="Technic:  $TECHNIC"
  fi
 
  ASK="$( echo "$1" |
@@ -51,8 +51,8 @@ query_dialog(){
 
  if [ -n "$3" ]; then
 
-   FTS="aswit elect   requirement for this spell"
-   FAS="aswit elect   requirement for all spells"
+   FTS="as elect for this technic"
+   FAS="as elect for  all technics"
 
    RESPONSE=$(
     dialog --backtitle "$BACKT" --stdout --timeout "$PROMPT_DELAY" \
@@ -87,12 +87,12 @@ query_dialog(){
 
 query(){ query_dialog "$@"; }
 
- [ -f                                $SPELL_CONFIG ] ||
- touch                               $SPELL_CONFIG
- if !  grep -q "APACHE_SSL"          $SPELL_CONFIG; then
+ [ -f                                $TECHNIC_CONFIG ] ||
+ touch                               $TECHNIC_CONFIG
+ if !  grep -q "APACHE_SSL"          $TECHNIC_CONFIG; then
   if   query   "do you want to perform semi-auto httpd ssl configuration?" n
-  then echo    "APACHE_SSL=true"  >> $SPELL_CONFIG
-  else echo    "APACHE_SSL=false" >> $SPELL_CONFIG
+  then echo    "APACHE_SSL=true"  >> $TECHNIC_CONFIG
+  else echo    "APACHE_SSL=false" >> $TECHNIC_CONFIG
   fi
  fi
 }
@@ -183,15 +183,15 @@ post_install(){
  }
 
  generate_certificates(){
-  if ! grep -q "configured"      $SPELL_CONFIG; then
-   if  grep -q "APACHE_SSL=true" $SPELL_CONFIG; then
+  if ! grep -q "configured"      $TECHNIC_CONFIG; then
+   if  grep -q "APACHE_SSL=true" $TECHNIC_CONFIG; then
     echo           $"Password must be between 4 and 8191 characters"
     read -t 600 -p $"Please enter a password for the server key: "
     if (( ${#REPLY} > 3 )); then
      touch                  server.pas
      chmod 600              server.pas
      echo "$REPLY"        > server.pas
-     echo "configured=1" >> $SPELL_CONFIG
+     echo "configured=1" >> $TECHNIC_CONFIG
      self_signed_cert
     fi
    fi
@@ -201,7 +201,7 @@ post_install(){
  recast(){
   PRO="$(  get_provider  "$1"   )"
   if    [ -n             "$PRO" ] &&
-         spell_installed "$PRO"
+         technic_installed "$PRO"
   then
     [ -f  "$MOIL_QUEUE/$PRO" ] ||
     touch "$MOIL_QUEUE/$PRO"

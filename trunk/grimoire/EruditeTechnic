@@ -1,0 +1,59 @@
+with info    last     20131211
+with version   stable 20131211-0
+with role    utility
+with trait   bias solo
+with info    home http://sorcerer.silverice.org/
+with source    stable http://sorcerer.silverice.org/download/EruditeTechnic/EruditeTechnic-$VERSION.tar.xz
+with source  unstable http://sorcerer.silverice.org/download/EruditeTechnic/EruditeTechnic-$VERSION.tar.xz
+
+with omit    /aux/run/
+with omit    /dev/
+with omit    /home/
+with omit    /proc/
+with omit    /root/
+with omit    /tmp/
+with omit    /usr/local/
+with omit    /var/lock/
+with omit    /var/run/
+with omit    /var/state/
+with omit    /var/tmp/
+with vary    /aux/new/
+with vary    /etc/init.d/
+with vary    /usr/share/man/
+with vary    /usr/share/doc/
+with vary    /usr/share/gtk-doc/
+with vary    /usr/share/locale/
+with vary    /usr/share/info/
+with vary    /usr/share/icons/
+with vary    /var/lib/
+with vary    /var/log/
+with vary    '/lib/modules/.*/modules.*'
+with vary    /lib/udev/dev/
+with protect     /lib64/.link/
+with protect /usr/lib64/.link/
+with protect       /lib/.link/
+with protect   /usr/lib/.link/
+with protect /etc/et/config
+with protect /usr/libexec/et/config
+with protect /usr/libexec/et/functions
+with protect /usr/libexec/et/post
+with protect /usr/libexec/et/sign
+with protect /usr/libexec/et/wand
+with protect /usr/sbin/post
+with protect /usr/sbin/sign
+with protect /usr/sbin/wand
+with config  /etc/
+with info    cite 'EruditeTechnic provides source management tools
+
+Execute /usr/sbin/aurum without parameters for help'
+
+build(){ DESTDIR=$DESTDIR ./install $VERSION; }
+
+post_install(){
+ default_post_install
+ pkill -u root wand &>/dev/null
+ rm -fr /aux/run/tmp/*
+ . /usr/libexec/et/config
+ generate_index
+ touch "$MOIL_QUEUE"/immune-exam-transition
+}

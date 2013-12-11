@@ -5,14 +5,14 @@ DES="port numbers and names associations for TCP UDP services
 /etc/services
 maps service names to TCP and UDP port numbers.
 
-When installed a spell called \"services\"
+When installed a technic called \"services\"
 or called \"services-iana-direct\"
 can provide a monthly updated,
 large, comprehensive list of mappings
 provided by IANA,
 the organization responsible for
 port number to name server assignments.
-The file installed by the spell is called
+The file installed by the technic is called
 /etc/services.d/IANA
 
 However, any other file in /etc/services.d/

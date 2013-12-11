@@ -1,12 +1,13 @@
-#with base    binutils coreutils
-with info    last 20000101
 # avoid recursive requirement loop on binutils
 
+with info    edit 20131211
+with info    last 20000101
 with version stable 3.4.6
+#with base    binutils coreutils
 with role    development/compiler
 with trait   console library
 with trait   multilib-fail
-with source  $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
+with source  stable $GNU_URL gcc/gcc-$VERSION/gcc-$VERSION.tar.bz2
 with info    home  http://gcc.gnu.org/
 with info    docs  http://gcc.gnu.org/onlinedocs/
 #      mail http://gcc.gnu.org/lists.html
@@ -21,7 +22,7 @@ build(){
  finish_install(){
   ln -fs gcc $DESTDIR/opt/gcc/$VERSION/bin/cc
 
-                    SEDIT='s:-L/usr/src/sorcery[^ ]*::g'
+                    SEDIT='s:-L/aux/run/source[^ ]*::g'
   case $HOSTTYPE in
    x86_64) sed -i "$SEDIT" /opt/gcc/$VERSION/lib64/lib*.la 2>/dev/null ;;
         *) sed -i "$SEDIT" /opt/gcc/$VERSION/lib/lib*.la   2>/dev/null ;;
@@ -81,6 +82,6 @@ OPTS="$OPTS
          "$BF"                   \
          "$LCF"  "$LCXF"  "$LDF" \
          "$LJCF" "$LJCXF"        && 
- make    install DESTDIR=$DESTDIR &&
+ make    install DESTDIR="$DESTDIR" &&
   finish_install
 }
