@@ -11,6 +11,14 @@ with trait   library makej
 with info    cite 'PDF rendering library with qt-everywhere-opensource support'
 
 build(){
+ trim_bump(){
+  sed "s:^:$DESTDIR/:" "$INSTALL_INDEX/poppler" |
+  xargs -L64 -d '\n' -- /bin/rm -f --
+  find "$DESTDIR/" -type d | sort -r |
+  xargs -r -L64 -d '\n' -- /bin/rmdir --ignore-fail-on-non-empty --
+  return 0
+ }
+
  missing_install(){
   install -vdm 755 "$DESTDIR"/usr/include/poppler/
   install -vdm 755 "$DESTDIR"/usr/include/poppler/goo/
@@ -39,5 +47,6 @@ build(){
  $OPTS &&
  make  &&
  make install DESTDIR="$DESTDIR" &&
- missing_install
+ missing_install &&
+ trim_bump
 }

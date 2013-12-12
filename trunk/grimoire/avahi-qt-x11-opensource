@@ -30,6 +30,14 @@ with info    docs 'http://avahi.org/wiki/Avah4users#Documentation'
 with info    cite 'qt-everywhere-opensource bindings for avahi'
 
 build(){
+ trim_bump(){
+  sed "s:^:$DESTDIR/:" "$INSTALL_INDEX/avahi" |
+  xargs -L64 -d '\n' -- /bin/rm -f --
+  find "$DESTDIR/" -type d | sort -r |
+  xargs -r -L64 -d '\n' -- /bin/rmdir --ignore-fail-on-non-empty --
+  return 0
+ }
+
  remove(){
   rm -f "$DESTDIR"/usr/bin/avahi-browse
   rm -f "$DESTDIR"/usr/bin/avahi-browse-domains
@@ -53,5 +61,5 @@ build(){
  else   export PKG_CONFIG_PATH=/usr/lib/pkgconfig;      OPTS+=' --prefix=/usr'
  fi
 
- default_build && remove
+ default_build && remove && trim_bump
 }
