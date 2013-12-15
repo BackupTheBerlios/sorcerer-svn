@@ -8,271 +8,89 @@ If required then firmware must be loaded.
 Firmware for audio cards are installed by:
 alsa-firmware; linux-firmware; and firmware.
 
-Using a device requires a Linux kernel driver module.
-The ALSA software project provides source code
-for free Linux kernel audio driver modules
-that work with nearly every audio card/processor.
-Multiple processes can concurrently utilize audio devices.
-The software source code is already integrated
-into the vanilla Linux kernel source.
-ALSA more than adequately fulfills
-the audio requirements for most users.
+The second layer of integration is modules.
+Audio devices are driven by Linux kernel driver modules.
+The ALSA software project's Linux kernel modules source code
+is already integrated with Linux source code.
+Therefore, linux-modules provides the Linux kernel module.
+Most sound hardware is already supported.
 
-Before ALSA existed;
-kernel modules for driving a common device
-such as the "Creative Labs Sound Blaster"
-required purchase from the OSS project.
-Fortunately, the modern Linux kernel
-provides drivers for almost all common hardware.
-And the drivers tend not to disappear.
+The third layer is the ALSA software library.
+The sotware library provides convenient and useful functions.
+alsa-lib provides the third layer.
 
-Discontinuation of hardware drivers
-is common with upgrades
-of commercial operating systems.
-When using a commercial operating system
-then a collection of hardware
-eventually transforms into paper weights.
-With Linux the hardware remains usable.
+The final layer are audio programs.
+The programs adjust mixer levels, record and output audio.
+Audio programs are provided by alsa-utils.
+However, many other sotware projects
+that input and output audio
+also link with alsa-lib and provide programs.
 
-If a modern computer had a parallel port
-then parallel port web cameras
-and parallel port printers
-could still be used.
-That is a fine example of how the Linux
-kernel's hardware support
-tends to be superior to commercial operating systems.
+During the transition to runlevel 1, 2, 3, 4, or 5
+audio firmware and modules
+appropriate for installed hardware
+load into Linux.
+Run the program alsaconf
+if audio modules did not load.
 
-Commercial operating systems require that
-hardware manufacturers provide drivers.
-And those hardware manufacturers provide
-drivers only for one or two versions
-of a commercial operating system.
-Continued use of the device
-becomes impossible with further upgrades.
-Consequently, the consumer must purchase
-a newer device that performs
-the same exact tasks as the older device.
-Please pardon the digression.
+The volume level for an audio device
+can be adjusted with the command:
 
-Many software projects exist that can output through ALSA.
-Some open the audio devices in /dev/ directly.
-Others use software library provided by alsa-lib.
-The alsa-lib software library is the third layer.
+alsa-mixer
 
-The final layer is of course the programs
-for adjusting mixer volume levels,
-and for recording and playable of audio.
-Those programs are provided by alsa-utils.
-Many other software projects
-also input and output audio.
-
-During the run level stage of booting
-cold plug events are triggered
-which load audio device driver Linux kernel modules.
-udevd handles the events by loading
-appropriate Linux driver kernel modules and firmware.
-On almost all systems this happens automatically.
-
-If it did not then running alsaconf
-can help with the selection
-of the appropriate Linux kernel driver module
-and ensuring that it is loaded during boot.
-Instead of providing a single linux kernel module
-capable of driving all types of audio hardware;
-kernel modules exist for driving
-each category of dissimilar audio hardware.
-Fortunately, alsaconf can usually identify the installed hardware.
-And it can recommend which module should be loaded.
-Since most audio hardware attaches to the PCI bus
-then such hardware can be identified by running lspci.
-And the audio hardware attached to the USB bus
-can be identified by running lsusb.
-
-Provided that the firmware and modules loaded
-and are able to drive the device
-then ensure the speakers or amplifier
-is plugged into the correct ports.
-Run the test program to determine
-if the speaker output is in proper order
-by executing the command:
+Connect speakers or headphones and
+the output can be tested with the command:
 
 speaker-test -t wav -c 6 -l 1
 
-If nothing was heard then the speakers
-might not be plugged into the audio port,
-the speakers might be powered and lacking batteries or AC,
-the device output volume might be at minimal levels,
-or maybe audio is not working.
-Some computer cases have audio ports on the front and back.
-When uncertain try both.
+Retry the test with alternate physical audio ports
+until audio output is heard.
 
-If an error occurred during device initialization
-then that error might be still be in the kernel's ring buffer.
-The ring buffer can be displayed with the command:
-
-dmesg
-
-The kernel ring buffer's size is limited.
-Eventually, it loops back to the front.
-Then the oldest messages are eliminated.
-dmesg might not contain a list
-of all messages printed since booting.
-However, /var/log/init/dmesg was output
-late during run level execution.
-Reading that file with the less command
-could provide useful clues.
-
-Sound hardware is usually connected to the computer
-via what is called the PCI bus.
-Therefore, the command:
+Hardware attaches by a data bus.
+Audio hardware attachs to the PCI or USB bus.
+Devices can be displayed on each bus
+with the following commands:
 
 lspci -v -v | less
-
-can be used to provide verbose information
-about devices attached to the PCI bus.
-It might also provide a hint about which kernel module
-is expected to drive a device.
-
 lsusb -v -v | less
 
-can be used to provide verbose information
-about devices attached to the USB bus.
-Again this can provide hints about
-the kernel module that is loaded or should be loaded
-in order to drive the device.
+Knowing the installed hardware is useful
+if alsaconf fails automatic detection.
 
 Loaded kernel modules can be listed with the command:
 
 lsmod | less
 
-Knowing loaded kernel modules
-is useful when knowing
-which kernel modules should be loaded.
-At the very least audio driver kernel modules
-can be easily spotted by SAs that recollect the names.
+Kernel modules can be loaded with the command:
 
-This could be useful if lspci provided a clue.
-If required firmware could not be loaded
-then the device will not work.
-A message about it passed
-through the kernel's ring buffer
-when the module was loaded.
-When in doubt unload and reload the module
-to see what appears in the kernel's ring buffer.
-Sometimes to effect that test
-then every module which requires the audio driver
-to be loaded must also be unloaded.
+modprobe
 
-If the device was initialized improperly,
-which rarely happens on modern computers,
-then the device will not work.
-In some cases additional parameters can be specified
-when a module loads, or in a modprobe configuration file,
-or on the kernel's command line which will indicate
-how the device should be initialized.
+where the parameter for modprobe
+is the name of a Linux kernel module.
+Omit typing the .ko filename extention.
+If manually loading a module
+then the firmware also loads.
+If an error occurred when a module loaded
+then that error might be still be in the kernel's ring buffer.
+The ring buffer can be displayed with the command:
 
-The volume level for an audio device
-can be adjusted by running the command:
+dmesg
 
-alsa-mixer
+Most motherboards provide a built-in audio controller.
+Onboard audio devices attach via the PCI or USB bus.
+More than one audio device could be present.
 
-The last resort is running the program alsaconf.
-While it does support command line parameters
-it also provides a menu of what appears to be available.
+If audio does not yet work
+then it can be configured after deployment
+by running alsaconf on the /+/base/ root file system.
 
-Be aware that HDMI output
-used for driving modern digital displays
-also provides for audio output.
-ALSA or other audio type programs might recognize
-the HDMI ports provided on these devices
-and expect it can can output audio.
-Unless connected to a HD television
-then output to the port will not provide audio.
-Please be aware and avoid that potential point for confusion.
-
-Most motherboards have a built-in audio controller,
-rather than requiring a card plugged into a PCI expansion slot.
-A computer could have more than one audio device.
-It probably does not.
-A computer might also have audio output jacks
-on both the front of the case and the back of the case.
-However, both sets of jacks might not be connected.
-Probably only one group of outputs properly work.
-When in doubt try the audio output ports
-on the front of the case
-before trying the audio output ports on the rear.
-
-How did the speaker-test go?
-Fortunately, audio is something that can be fixed after deployment.
-Having usable audio provides
-an immediate opportunity for enjoying music.
-Not much additional software is required
-for playing audio/music files.
-Some of that software is already provided pre-installed
-on the DI, Deployment Image.
-
-Software that provides a graphical user interface
-can be installed post deployment.
-It is not provided on the DI.
-Instead the required sources can be downloaded
-from an Internet connection, compiled, linked, and installed.
-GUI software would increase the size of a DI by a half gigabyte.
-However, a CDROM can record about 650M to 700M.
-And not every SA wants to deploy a workstation.
-
-If a GUI workstation is desired
-then the eye candy comes later.
-However, a computer without a GUI
-is equally useful to someone with lore.
-Even web browsing is possible
-by using one or more text mode web browser.
-lynx is a text mode web browser that is provided
-on the DI initramfs.
-
-Want to enjoy music while continuing the deployment?
-Of course listening to music, reading documentation,
-and running commands concurrently are possible.
-POSIX are multi-user multi-tasking operating systems.
-
-The provided music is from the "Battle for Wesnoth" project.
-"Battle for Wesnoth" is a high quality fantasy strategy computer game.
-Similar to mastery of SA lore
-the path to victory while playing "Battle for Wesnoth"
-might only be realized after several attempts.
-It is a game enjoyed by tenacious people.
-
-After deployment is complete
-then the game can be installed and played.
-For now only a few of the excellent music files
-are provided on the DI file system.
-I considered providing audio commentary instead.
-However, music provides
-an enjoyable listening experience, yes?
+On the Deployment Image file system
+music from the software project called "Battle for Wesnoth" is provided.
+mocp, a music playing program, is also provided.
 The command to play the music is:
 
-mocp -l /usr/share/music/*.ogg
+mocp -l /usr/share/music/*
 
-If remembering the path is tedious
-then try the command:
+To end the music prior to completion the command is:
 
-mocp -l $( find / -name \*.ogg )
-
-mocp is the music on console player.
-mocp automatically forks into the background,
-plays the music, and returns to the shell
-or program that invoked mocp.
-mocp is a program which is both a client and a server.
-
-The find command can locate almost anything stored in a file system.
-However, the find command does not parse content of files
-with the exception of symbolic links and directories.
-In the above command line the discovered files
-are added to mocp's command line as additional parameters.
-Consequently, the above command line execute 2 commands.
-The first  command executed is the find command.
-The second command executed is mocp.
-
-Reading more of this document
-would be less entertaining than listening to music.
-Consequently, several paragraphs were deleted.
-Please press "q" and begin the next moment with music.
+mocp -x

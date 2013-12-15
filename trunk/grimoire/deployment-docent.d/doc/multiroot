@@ -1,21 +1,19 @@
 Until 2013 most POSIX were single root POSIX.
-In 2013 Modern Magic evolved into a full multi-root POSIX.
+The introduction of unshared namespace and
+virtual Ethernet devices into the Linux kernel
+made possible the potential for creating
+a POSIX with multiple root file systems.
 
 About 60 root file systems can exist.
 However, testing involved no more than 6 root file systems.
 Each root file system is mounted
 on an immediate sub directory of /+/
-Any deployment should have at least 2 root file systems.
-However, deployment with a single root file system remains possible.
+Every deployment requires a minimum of 2 root file systems.
 
 /+/base/ is the root file system common to all deployments.
-The main file system provides a minimal manifest of software
-for the purpose of updating and constructing the initramfs images.
-initramfs provide the files that populate the rootfs booting.
-The password for the root account on /+/base/
-becomes the password for the root account on the rootfs.
-Consequently, the person responsible
-for the computer should know the password.
+The base root file system provides installed software
+suitable for creating initramfs images and updating.
+initramfs provide the files that populate the rootfs.
 
 Other root file systems can be created
 that are specific to the role being performed.
@@ -24,84 +22,43 @@ Root file systems on a server might be:
 /+/mail/ /+/www/
 /+/ftp/  /+/dns/
 
-/+/ftp/ could contain software that is required
-for running a ftp server and for updating itself.
-Similar to /+/ftp/
-Each root file system will contain the software
-required for updating itself
-and software required to perform it's designated role.
-Consequently, each root file system
-also acts like a chroot jail
-which helps mitigate the penetration of an intrusion.
+Each root file system contains both role specific software
+and the software required for updating itself.
+Each root file sytem is not unlike a chroot jail.
+Intrusion of one root file system
+might not compromise all root file systems.
 
 If immune-security-tomoyo is also deployed
-then tomoyo can lock interlopers
-nearly inescapably within a root file system.
-EUID 0 processes could view as much as expected,
-but be surprised when unable to modify
-areas of the file system
-where system files are stored such as
-/etc/ /bin/ /sbin/ /usr/
+then tomoyo can lock interlopers within a root file system.
+Escape could be very difficult.
+Within a restricted tomoyo domain;
+EUID 0 processes can view as much as expected,
+yet are unable to modify root file system areas such as:
+/etc/ /bin/ /sbin/ /usr/ /opt/
 
 While able to exploit a current vulnerability
 in order to gain unauthorized access;
-tomoyo domains can prevent the interloper
-from installing a rootkit which would create a permanent backdoor.
-Consequently, an update could fix the vulnerability
-and prohibit the interloper's continued unauthorized access.
+tomoyo domains could prevent the interloper
+from installing a permanent backdoor.
+Consequently, an update could fix a vulnerability
+which prohibit the interloper's continued unauthorized access.
 
-The idea of running services with non root user,
-with capabilities dropped,
-and chrooted are not new ideas.
-A dedicated root file system
-for a service is not a new idea.
-
-For years those ideas were implemented
-by having role specific computers.
-When computers became over powered
-then a single computer's resources
-were partitioned and provided
-to several virtual computers.
-
-The new implementation is a host computer
-that runs multiple root file systems
-without running virtual computers.
-This can be accomplish by using
-chrooting and unshared namespace.
-The effect is that a single root kernel
-governs all aspects of system resource allocation
-and security for each root file system.
-The unshared name space
-gives each root file system
-it's own unique PIDs for processes,
-unique network stack,
-and other conveniences
-that allow each root file system
-to run while creating the illusion
-that it is the only root file system.
-
-If a development or test computer
-does not exist on a LAN
-then it should exist as a root file system.
-/+/dev/ or /+/test/ are suitable names.
-The manifest should including all the software
-that is installed on other root file systems.
-It should be updated prior to updating other root file systems.
+At least one computer on a LAN should be a test computer
+or receive a /+/test/ root file system.
+The manifest of installed software should including
+all the software currently installed on other root file systems.
+/+/test/ should be updated first.
 
 Problems with updates can be observed.
-Services can be verify expected responses verified.
-Encountering unwanted surprises
-on a root file system that has the purpose of testing
-helps mitigate down time on production file systems.
-Anticipated problems can be investigated, solved,
-circumvented, reported, and propagation of problems prevented.
-Therefore, root file systems that are hosting
-mission critical services can maintain maximum up-time.
+Services expected responses can be verified.
+Encountering surprises on a /+/test/ root file system
+allows problems to be avoided on production root file systems.
 
 /+/www/ is obviously where the web server runs.
-However, if vhosting then the possibility exists
-that each FQDN can receive it's own root file systems.
-However, that could require additional IP address
+However, if vhosting
+then the possibility exists where
+each FQDN can receive it's own root file systems.
+However, that requires additional IP address
 since vhosting typically associates multiple FQDNs
 with a single IP address.
 

@@ -1,0 +1,77 @@
+with info    last   20130823
+with version stable 20130823
+with disable scavenge
+with role    audio/speech
+with trait   data
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Generic%20Language%20Model/en-us.lm.dmp
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20WSJ5K%20Language%20Model/wsj5k.DMP
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/English%20Gutenberg%20Postprocessing/gutenberg.DMP
+
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20HUB4%20Language%20Model/HUB4_trigram_lm.zip
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20WSJ5K%20Language%20Model/WSJ5K_trigram_lm.zip
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20WSJ5K%20Language%20Model/WSJ20K_trigram_lm.zip
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20HUB4%20Language%20Model/cmudict.hub4.06d.dict.zip
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20HUB4%20Acoustic%20Model/hub4opensrc.cd_continuous_8gau.zip
+
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Generic%20Acoustic%20Model/en-us.tar.gz
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Communicator%20Telephone%20Acoustic%20Model/communicator_4000_20080321.tar.gz
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Broadcast%20News%20Acoustic%20Model/en_broadcastnews_16k_ptm256_5000.tar.bz2
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20HUB4WSJ%20Acoustic%20Mdoel/hub4wsj_sc_8k.tar.gz
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Tidigits%20Telephone%20Acoustic%20Model/tidigits_cd_phone_201103.tar.gz
+with source  stable $SOURCEFORGE_URL cmusphinx/Acoustic%20and%20Language%20Models/US%20English%20Tidigits%20Telephone%20Acoustic%20Model/tidigits_sc_phone_201010.tar.gz
+
+with info    home http://www.speech.cs.cmu.edu/sphinx
+with info    cite 'acoustic and language model'
+
+build(){
+ local lm="$DESTDIR"/usr/share/sphinx/model/lm/en_US/
+ local hm="$DESTDIR"/usr/share/sphinx/model/hmm/en_US/
+
+ install -vm 755 -d "$lm" &&
+ install -vm 644 -t "$lm" "${SOURCE[0]}" &&
+ install -vm 644 -t "$lm" "${SOURCE[1]}" &&
+ install -vm 644 -t "$lm" "${SOURCE[2]}" &&
+ unzip           -d "$lm" "${SOURCE[3]}" && rm -fr "${lm}"META-INF/ &&
+ unzip           -d "$lm" "${SOURCE[4]}" && rm -fr "${lm}"META-INF/ &&
+ unzip           -d "$lm" "${SOURCE[5]}" && rm -fr "${lm}"META-INF/ &&
+ unzip           -d "$lm" "${SOURCE[6]}" && rm -fr "${lm}"META-INF/ &&
+
+ install -vm 755 -d "${hm}hub4opensrc.cd_continuous_8gau/" &&
+ unzip           -d "${hm}hub4opensrc.cd_continuous_8gau/" "${SOURCE[7]}" &&
+
+ # ${SOURCE[8]}
+ find_source "${SOURCE[8]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "$hm/" &&
+ install -vm 644 -t "$hm/" en-us/* && # ${SOURCE[8]} &&
+
+ # ${SOURCE[9]}
+ find_source "${SOURCE[9]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "${hm}communicator_40.cd_cont_4000/" &&
+ install -vm 644 -t "${hm}communicator_40.cd_cont_4000/" \
+                    Communicator_40.cd_cont_4000/* &&
+ # ${SOURCE[10]}
+ find_source "${SOURCE[10]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "${hm}en_broadcastnews_16k_ptm256_5000/" &&
+ install -vm 644 -t "${hm}en_broadcastnews_16k_ptm256_5000/" \
+                    en_broadcastnews_16k_ptm256_5000/* &&
+ # ${SOURCE[11]}
+ find_source "${SOURCE[11]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "${hm}hub4wsj_sc_8k/" &&
+ install -vm 644 -t "${hm}hub4wsj_sc_8k/" hub4wsj_sc_8k/* &&
+
+ # ${SOURCE[12]}
+ find_source "${SOURCE[12]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "${hm}tidigits_cd_phone_201103/" &&
+ install -vm 644 -t "${hm}tidigits_cd_phone_201103/" tidigits_cd_phone_201103/* &&
+
+ # ${SOURCE[13]}
+ find_source "${SOURCE[13]}" &&
+ tar -xf "$REPLY" &&
+ install -vm 755 -d "${hm}tidigits_sc_phone_201010/" &&
+ install -vm 644 -t "${hm}tidigits_sc_phone_201010/" tidigits_sc_phone_201010/*
+}
