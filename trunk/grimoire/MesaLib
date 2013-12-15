@@ -4,10 +4,10 @@ with info    edit 20131211
 # i810, mach64, mga, r128, savage, sis, tdfx
 # Removal of i810 might effect some old desktops and laptops?
 
-with info    good 20131209
-with info    last 20131201
-with version   stable 9.2.4 9.2.3
-with version unstable 10.0.0
+with info    good 20131215
+with info    last 20131212
+with version   stable 10.0.1 9.2.4 9.2.3
+with version    9.2.x 9.2.5
 with base    dri2proto glproto libXdamage libXi libXmu libXvMC libXxf86vm libdrm libxml2 llvm makedepend systemd wayland
 ## elect on libvdpau causes recursive requirement loop
 #with elect   libvdpau
@@ -18,32 +18,34 @@ with also    --enable-gles2 --enable-gbm --enable-shared-glapi --with-egl-platfo
 # weston requires MesaLib compiled with --enable-gles2 --enable-gbm --enable-shared-glapi --with-egl-platforms=x11,wayland,drm
 with role    graphic/library
 with trait   X11R7 hidden library litelink makej multilib-dual optimize x11
-with source    stable ftp://ftp.freedesktop.org/pub/mesa/${VERSION:0:3}/MesaLib-$VERSION.tar.bz2
+with source    stable ftp://ftp.freedesktop.org/pub/mesa/$VERSION/MesaLib-$VERSION.tar.bz2
 with source  unstable ftp://ftp.freedesktop.org/pub/mesa/${VERSION:0:4}/MesaLib-$VERSION.tar.bz2
+with source     9.2.x ftp://ftp.freedesktop.org/pub/mesa/${VERSION:0:3}/MesaLib-$VERSION.tar.bz2
+
 #with source       git MesaLib-$VERSION.tar $VERSION git://anongit.freedesktop.org/git/mesa/mesa
 with info    home http://www.mesa3d.org
 with info    mail http://www.mesa3d.org/lists.html
 with info    bugs http://www.mesa3d.org/bugs.html
 with info    cite '3-D graphics library with an API similar to OpenGL'
 
-python_path(){
- LC_ALL=C grep -lr python * |
- xargs -r -L64 \
- sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
-         s:#!/usr/bin/python$:#!/usr/bin/python2:
-         s:#! /usr/bin/python$:#!/usr/bin/python2:'
-
- mkdir -pvm 755                       bin
- echo '#!/bin/bash'                 > bin/python
- echo 'exec /usr/bin/python2 "$@"' >> bin/python
- chmod 755                            bin/python
-
- local  RATH="$PATH"
- local  PATH="$PWD/bin:$RATH"
- export PATH
-}
-
 build(){
+ python_path(){
+  LC_ALL=C grep -lr python * |
+  xargs -r -L64 \
+  sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+          s:#!/usr/bin/python$:#!/usr/bin/python2:
+          s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+  mkdir -pvm 755                       bin
+  echo '#!/bin/bash'                 > bin/python
+  echo 'exec /usr/bin/python2 "$@"' >> bin/python
+  chmod 755                            bin/python
+
+  local  RATH="$PATH"
+  local  PATH="$PWD/bin:$RATH"
+  export PATH
+ }
+
  install_drirc(){
   install -vm 755 -d "$DESTDIR"/etc/
   install -vm 644 -t "$DESTDIR"/etc/ "$SCRIPT_DIR"/drirc
