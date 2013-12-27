@@ -1,7 +1,8 @@
-with info    last 20130823
+with info    edit 20131227
+with info    last 20131224
 # graphviz currently is broke
-with version stable 1.8.5 1.8.4 1.8.3.1
-with base    bison gcc-g++ perl
+with version stable 1.8.6 1.8.5 1.8.4
+with base    Python bison gcc-g++ perl
 with elect   texlive  '' '' for generating LaTeX, Postscript, and PDF output
 #with elect   graphviz '' '' for generating graphs
 with role    documentation
@@ -25,6 +26,22 @@ This type of information can be very useful to
 quickly find your way in large source distributions.'
 
 build(){
+
+ LC_ALL=C grep -lr python * |
+ xargs -r -L64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  ./configure   \
  --prefix /usr \
  $OPTS &&
