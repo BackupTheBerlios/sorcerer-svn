@@ -27,9 +27,13 @@ build(){
           export CXXFLAGS+=' -I/usr/include/mysql' ;;
  esac
 
- local  PATH="$PATH"
+ local  RATH="$PATH"
+ local  PATH="$RATH"
  export PATH
- if   [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
+
+ if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
+ then export LDFLAGS+=' -L/usr/lib64'
+ elif [[ $HOSTTYPE == x86_64 ]] && [[ $CFLAGS =~ -m32 ]]
  then export PATH=/opt/32bit/usr/bin:$RATH
  fi
 
