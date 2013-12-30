@@ -63,15 +63,13 @@ rootfs(){ [ 0 == "$( /bin/stat -f -c %i / )" ]; }
 
 export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 
-
   if [ "$1" == chroot    ]; then shift; exec_chroot "$@"
 #elif [ "$1" == namespace ]; then shift; pid1; never_exit
 elif [ "$1" == namespace ]; then shift; pid1; delayed_exit
 elif [ "$1" == runlevel  ]; then shift; /etc/init.d/prc "$@"
 else
- if rootfs && [ -f /etc/rootfs/inittab ]; then
-  /bin/rm -f /etc/inittab
-  /bin/ln    /etc/{rootfs,}/inittab
+ if   rootfs
+ then /bin/cp /aux/set/rootfs/etc/inittab /etc/
  fi
  if [[ $@  =~ bash     ]]; then pid1; load_modules; exec /bin/bash
                            else pid1; exec /sbin/init "$@"; fi

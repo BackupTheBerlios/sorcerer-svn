@@ -13,49 +13,14 @@
 . /lib/lsb/init-functions
 
 only stop reload force-reload status
-name /boot/initrf/etc
-INIT=initramfs-etc
+name /boot/initrf/aux
+INIT=initramfs-aux
 
 allpaths(){ /bin/sed -nr "p;:a;s:(.+)/.*:\1:p;ta" | /bin/sort -u; }
 
-exists(){ while read; do [[ -e $REPLY ]] && echo "$REPLY"; done; }
+if_find(){ while if [[ -e $1 ]]; then find $1; fi; [[ -n $2 ]]; do shift; done; }
 
-every(){
- /bin/find "/${NAME##*/}" |
- /bin/sed "\
-\,^/etc/[^/]*\.old$,d
-\,^/etc/X11,d
-\,^/etc/et/,d
-\,^/etc/selinux/,d
-\,^/etc/asciidoc/,d
-\,^/etc/avahi/,d
-\,^/etc/chipcard,d
-\,^/etc/courier/,d
-\,^/etc/cups/,d
-\,^/etc/elvis.default/stubs/,d
-\,^/etc/extlinux/,d
-\,^/etc/fonts/,d
-\,^/etc/gconf/,d
-\,^/etc/gdm/,d
-\,^/etc/gimp/,d
-\,^/etc/gtk/,d
-\,^/etc/httpd/,d
-\,^/etc/kde,d
-\,^/etc/logcheck,d
-\,^/etc/mono/,d
-\,^/etc/mplayer/,d
-\,^/etc/mtab,d
-\,^/etc/openldap/,d
-\,^/etc/php.ini$,d
-\,^/etc/prelink,d
-\,^/etc/sane\.d/,d
-\,^/etc/services\.d/,d
-\,^/etc/shells\.d/,d
-\,^/etc/sound/,d
-\,^/etc/squid/,d
-\,^/etc/xdg/,d
-\,^/etc/xml,d"
-}
+every(){ /bin/find /aux/set/; }
 
 initrf_update(){
 
@@ -66,7 +31,7 @@ initrf_update(){
  local COMMON="$TEMPIF/$NAME"
 
  cd /
- every |  allpaths | exists |
+ every |  allpaths |
  /bin/cut -b2-1024 |
  /bin/cpio -o -H newc --quiet |
  /bin/gzip -1 > $COMMON
@@ -83,22 +48,7 @@ initrf_update(){
 initrf_present(){ [ -f $NAME ] || return 1; }
 
 initrf_current(){
- also(){
-  var=$1; shift
-  while [ -n "$1" ]
-  do if [ -e "$1" ]; then eval $var+=\" $1\"; fi; shift
-  done
- }
-
- local FIND='/etc/bash.d'
- also  FIND \
- /etc/cgroup.rootfs/ /etc/exports /etc/group \
- /etc/init.d/ /etc/inittab /etc/localtime /etc/lvm/ \
- /etc/mdadm.conf /etc/modprobe.d/ /etc/multipath.conf /etc/networks.d/ \
- /etc/passwd /etc/port.forward /etc/port.receive /etc/quagga/ \
- /etc/rc.d/ /etc/shadow /etc/udev/ /etc/tomoyo/ /etc/wpa_supplicant/
-
- if   /bin/find $FIND -newer $NAME | /bin/grep -q .
+ if   /bin/find /aux/set/ -newer $NAME | /bin/grep -q .
  then return 1
  fi
 

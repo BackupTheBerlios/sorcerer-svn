@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+
+[ -d "$1" ] || exit 1
+
+transcribe(){
+ while read f; do
+  if   [ -f "$f" ]
+  then while read l; do echo "$l" >> "$f"; done < "$1/$f"
+  fi
+ done
+}
+
+/bin/find "$1" -mindepth 1 -maxdepth 1 -type d |
+/bin/sed "\,^$1/proc,d; \,^$1/sys,d" |
+/bin/xargs -L64 -d '\n' -r -- /bin/cp -at / --
+
+( [ -d      "$1/proc/" ] &&
+  /bin/find "$1/proc/" -type f -printf '/%P\n'
+
+  [ -d       "$1/sys/" ] &&
+  /bin/find  "$1/sys/" -type f -printf '/%P\n' |
+  /bin/sed  '\,^/sys/fs/cgroup/,d'
+) | transcribe "$1"
+
+/bin/find "$1/sys/fs/cgroup/" -type d \
+          -printf '/sys/fs/cgroup/%P\t%m\t%U\t%G\n' |
+/bin/sort |
+while read d m u g; do
+ /bin/mkdir -pm $m -- "$d"
+ /bin/chown $u:$g  -- "$d"
+ /bin/find         "$1/$d" -maxdepth 1 -type f -not -empty \
+            -printf   "$d/%P\n" | transcribe "$1"
+done

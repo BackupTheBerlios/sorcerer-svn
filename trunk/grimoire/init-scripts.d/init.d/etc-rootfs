@@ -3,7 +3,7 @@
 ### BEGIN INIT INFO
 # Default-Mode: 500
 # Default-Start: S
-# Short-Description: copies /etc/rootfs/* to /etc/ on rootfs.
+# Short-Description: copies /aux/set/rootfs/etc/ to / on rootfs.
 ### END INIT INFO
 
 . /lib/lsb/init-functions
@@ -16,27 +16,13 @@ config
 
 start(){
  copy(){
-  if   [ -f /etc/rootname ]; then cp /etc/rootname /etc/origin
-  elif [ -f /etc/hostname ]; then cp /etc/hostname /etc/origin
-  fi
-
-  /bin/find  /etc/ -mindepth 1 -maxdepth 1 -type f -name \*.rootfs |
-  /bin/sed   's:\(.*\)\.rootfs$:\1.rootfs\n\1:' |
-  /bin/xargs -r -d '\n' -L2 /bin/cp -al --
-
-  if ! [ -d  /etc/rootfs/ ]; then return; fi
-  /bin/find  /etc/rootfs/ -mindepth 1 -maxdepth 1 |
-  /bin/sed   's:^/etc/rootfs/:/etc/:' |
-  /bin/xargs -r -d '\n' -L64 /bin/rm -fr --
-
-  /bin/find  /etc/rootfs/ -mindepth 1 -maxdepth 1 |
-  /bin/xargs -r -d '\n' -L64 /bin/cp -alt /etc/ --
-
+  /bin/cp -a /etc/hostname        /etc/origin
+  /bin/cp -a /aux/set/rootfs/etc/ /
   return 0
  }
 
- if   log_warning_msg "/etc/rootfs/ to /etc/ copy"; copy
- then log_success_msg "/etc/rootfs/ to /etc/ copy"
- else log_failure_msg "/etc/rootfs/ to /etc/ copy"; return 1
+ if   log_warning_msg "/aux/set/rootfs/etc/ to / copy"; copy
+ then log_success_msg "/aux/set/rootfs/etc/ to / copy"
+ else log_failure_msg "/aux/set/rootfs/etc/ to / copy"; return 1
  fi
 }

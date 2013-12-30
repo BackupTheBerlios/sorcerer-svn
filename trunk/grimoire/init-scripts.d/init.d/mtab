@@ -14,12 +14,14 @@ deny control
 
 start(){
  run(){
-  if   [  -h /etc/mtab ]; then rm -f /etc/mtab
-  elif [  -d /etc/mtab ]; then rmdir /etc/mtab
+  if   [ -d /etc/mtab ]; then /bin/rmdir /etc/mtab
+  elif [ -e /etc/mtab ]; then /bin/rm -f /etc/mtab
   fi
   echo -n > /etc/mtab
  }
 
- log_warning_msg '/etc/mtab create'; run
- log_success_msg '/etc/mtab create'
+ if   log_warning_msg 'echo -n > /etc/mtab'; run
+ then log_success_msg 'echo -n > /etc/mtab'
+ else log_failure_msg 'echo -n > /etc/mtab'; return 1
+ fi
 }

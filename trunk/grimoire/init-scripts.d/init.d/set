@@ -1,0 +1,237 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013
+# All rights reserved.
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: dev cgroup hostname proc sys
+# Default-Start: S 1 2 3 4 5
+# Short-Description: sets persistent file content
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure reset
+deny control
+
+reset(){
+ local now=".old.$( printf "%(%Y%m%d%H%M%S)T" "-1" )"
+
+ old(){
+  if [ -d "$1" ]; then
+   /bin/mv -- "$1"{,$now}
+   log_succes_msg "/bin/mv -- \"$1\"{,$now}"; echo 1>&2
+  fi
+ }
+
+ new(){
+  if                    /bin/cp -a /aux/new/aux/set/{real,root}fs/ /aux/set/
+  then log_success_msg "/bin/cp -a /aux/new/aux/set/{real,root}fs/ /aux/set/"; echo 1>&2
+  else log_failure_msg "/bin/cp -a /aux/new/aux/set/{real,root}fs/ /aux/set/"; return 1
+  fi
+ }
+
+ old /aux/set/"$HOSTNAME"
+ old /aux/set/realfs
+ old /aux/set/rootfs
+ new
+}
+
+configure(){
+
+ if rootfs; then
+  local WARN=$"Configuration on rootfs will NOT be preserved "
+        WARN+=$"unless /aux/set/ is copied to /+/base/aux/"
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 --stdout --no-cancel \
+    --msgbox "$WARN" 0 0
+ fi
+
+ local BACKTITLE=$"/etc/init.d/set configure"
+
+ display(){
+  local TITLE=$"Persistent structures"
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 \
+    --msgbox   "$( find /aux/set/{real,root}fs/ -printf "%P\t%y\n" | sort )" 0 0
+ }
+
+ main_menu(){
+  mm(){
+       TITLE=$"configuration main menu"
+        HELP=$"Please select an action."
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 \
+    --stdout --ok-label Select \
+    --cancel-label Done \
+    --menu   "$HELP" 0 0 0 \
+    "Create"  "persistent structure"  \
+    "Display" "persistent structures" \
+    "Edit"    "persistent structure"
+  }
+
+  while  REPLY=$( mm ); do
+   case $REPLY in
+    Create)  create   ;;
+    Display) display  ;;
+    Edit)    edit     ;;
+    Exit)    return 0 ;;
+   esac
+  done
+ }
+
+ edit(){
+  structures(){ find /aux/set/{real,root}fs/ -printf "%f\t%y\n" | sort; }
+
+  structure_menu(){
+   local  TITLE=$"structure selection menu"
+   local   HELP=$"Please select a structure"
+   local    IFS
+   export   IFS="	
+"
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --stdout --timeout 60 \
+    --cancel-label Done \
+    --menu   "$HELP" 0 0 0 \
+    $( structures )
+  }
+
+  content(){
+   if   [ -s "$1" ]
+   then read < "$1"; echo "$REPLY"
+   else echo "Unset"
+   fi
+  }
+
+  cgroups(){
+   echo /
+   find $ecg -type d -printf '%P\n' | sed '/^$/d' | sort
+  }
+
+  vals(){
+   cgroups |
+   while read; do echo "$REPLY"; content "$ecg/$REPLY/$CONTROL"; done
+  }
+
+  cgroup_menu(){
+        TITLE=$"persistent structure selection menu"
+         HELP=$"Please select a persistent structure."
+
+   export IFS="
+"
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --stdout --timeout 60 \
+    --cancel-label Back \
+    --menu   "$HELP" 0 0 0 \
+    $( vals )
+  }
+
+  input_symlink(){
+   local TITLE=$"symbolic link object entry"
+   local  HELP=$"Please enter a valid relative or absolute pathname for where the symbolic link should point."
+   local   OLD="$( /bin/readlink "/aux/set/$STRUCTURE" )"
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --stdout --timeout 60 \
+    --cancel-label Abort \
+    --inputbox "$HELP" 0 0 "$OLD"
+  } 
+
+  while  STRUCTURE=$( structure_menu ); do
+   if   [ -h /aux/set/"$STRUCTURE" ]; then
+    if VAL=$( input_symlink  ); then
+     /bin/rm -f --        "/aux/set/$STRUCTURE"
+     /bin/ln -s -- "$VAL" "/aux/set/$STRUCTURE"
+    fi
+   elif [ -f /aux/set/"$STURCTURE" ]; then
+    ${EDITOR:-/bin/nano} /aux/set/"$STRUCTURE"
+   else
+    local WARN=$"Please edit /aux/set/\"$STRUCTURE\" "
+          WARN+=$"directly instead of using this menu."
+    /bin/dialog \
+     --backtitle "$BACKTITLE" \
+     --title     "$TITLE" \
+     --timeout 60 --stdout --no-cancel \
+     --msgbox "$WARN" 0 0
+   fi
+  done
+ }
+
+ create(){
+
+  name_entry(){
+   local TITLE=$"Persistent structure name entry"
+   local  HELP=$"Please enter an absolute pathname for an existing directory symbolic link file or node."
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 \
+    --stdout --no-cancel \
+    --inputbox "$HELP" 10 45
+  }
+
+  make_it(){
+   local TITLE=$"Persistent structure creation"
+
+   if   [ -d "$NEW" ] && ! [ -h "$NEW" ]
+   then /bin/mkdir -pm 755 /aux/set/"$NEW"
+   else /bin/mkdir -pm 755 /aux/set/"${NEW%/*}"
+        /bin/cp -a "$NEW"  /aux/set/"$NEW"
+   fi
+
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 --stdout --no-cancel \
+    --msgbox "/aux/set/$NEW created" 0 0
+  }
+
+  valid(){
+   NEW="${NEW#/aux/set}"
+   [ "${NEW:0:1}" == / ] &&
+   [ -n "$NEW" ] &&
+   [ -e "$NEW" ]
+  }
+
+  if   NEW=$( name_entry ) && valid
+  then make_it
+  fi
+ }
+
+ main_menu
+}
+
+start(){
+ if   [ -d /aux/set/"$HOSTNAME"/ ]
+ then    d=/aux/set/"$HOSTNAME"/
+ else    d=/aux/set/
+ fi
+
+ if      rootfs
+ then d+=rootfs
+ else d+=realfs
+ fi
+
+ if   log_warning_msg "initialize"; /sbin/set "$d"
+ then log_success_msg "initialize"
+ else log_failure_msg "initialize"; return 1
+ fi
+ /etc/init.d/hostname start
+}

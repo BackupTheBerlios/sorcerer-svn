@@ -5,20 +5,45 @@
 # findutils added as requirement for /etc/init.d/fstab
 # find also used by /etc/init.d/depmod
 
-with info    last   20131211
-with version stable 20131211
-with base    bash cgroup coreutils findutils grep init-functions procps shadow sed util-linux vm
+with info    last   20131230
+with version stable 20131230
+with base    bash cgroup coreutils findutils grep init-functions procps shadow sed util-linux
 with role    administration/boot profile
 with trait   console profile
 with info    home http://sorcerer.silverice.org
 with info    cite 'several important scripts used during boot and shutdown'
 
 build(){
- install -vm 755 -d "$DESTDIR"/{s,}bin/
- install -vm 755 -t "$DESTDIR"/bin/     "$SCRIPT_DIR"/bin/*
- install -vm 755 -t "$DESTDIR"/sbin/    "$SCRIPT_DIR"/sbin/*
- install -vm 700 -t "$DESTDIR"/         "$SCRIPT_DIR"/init  
- install -vm 755 -d "$DESTDIR"/usr/share/bash-completion/completions/
- install -vm 755 -t "$DESTDIR"/usr/share/bash-completion/completions/ \
-                    "$SCRIPT_DIR"/bash-completion/{cpufreq,init-scripts}
+ local d="$DESTDIR" s="$SCRIPT_DIR"
+
+ install -vm 755 -d "$d"/{s,}bin/
+ install -vm 755 -t "$d"/bin/     "$s"/bin/*
+ install -vm 755 -t "$d"/sbin/    "$s"/sbin/*
+ install -vm 700 -t "$d"/         "$s"/init  
+ install -vm 755 -d "$d"/usr/share/bash-completion/completions/
+ install -vm 755 -t "$d"/usr/share/bash-completion/completions/ \
+                    "$s"/bash-completion/{cpufreq,init-scripts}
+
+ install -vm 755 -d                      "$d"/aux/set/rootfs/dev/{pts,shm}/
+ /bin/ln -fns ../proc/self/fd            "$d"/aux/set/rootfs/dev/fd
+ /bin/ln -fns ../proc/self/fd/0          "$d"/aux/set/rootfs/dev/stdin
+ /bin/ln -fns ../proc/self/fd/1          "$d"/aux/set/rootfs/dev/stdout
+ /bin/ln -fns ../proc/self/fd/2          "$d"/aux/set/rootfs/dev/stderr
+ /bin/ln -fns ../proc/kcore              "$d"/aux/set/rootfs/dev/core
+ /bin/ln -fns ../proc/asound/oss/sndstat "$d"/aux/set/rootfs/dev/sndstat
+ rm    -f                                "$d"/aux/set/rootfs/dev/{console,mem,null,zero}
+ mknod -m 600                            "$d"/aux/set/rootfs/dev/console c 5 1
+ mknod -m 640                            "$d"/aux/set/rootfs/dev/mem     c 1 1
+ mknod -m 666                            "$d"/aux/set/rootfs/dev/null    c 1 3
+ mknod -m 444                            "$d"/aux/set/rootfs/dev/zero    c 1 5
+ mknod -m 660                            "$d"/aux/set/rootfs/dev/kmsg    c 1 11
+
+ cp      -av  "$d"/aux/set/{root,real}fs
+
+ cp      -avt "$d"/ "$s"/aux
+ find         "$d"/aux/set/ -type f | xargs -r -L=64 -d '\n' -- chmod 644 --
+ find         "$d"/aux/set/ -type d | xargs -r -L=64 -d '\n' -- chmod 755 --
+ chmod   700  "$d"/aux/set/
+
+ return 0
 }

@@ -29,21 +29,19 @@ start(){
   local o="-t cgroup -o $OPTS cgroup"
 
   if   rootfs
-  then mount $o /sys/fs/cgroup
+  then /bin/mount $o /sys/fs/cgroup
   else
    local r=/tmp/$RANDOM$RANDOM
    local h=$r/$HOSTNAME
 
-   if ! [      -d   /tmp ]; then
-   mkdir  -m 1777   /tmp  ; fi &&
-   mkdir  -m 0755   $r         &&
-   mount     $o     $r         &&
-   if ! [      -d   $h ]; then
-   mkdir  -m 0755   $h  ; fi   &&
-   mount  -n --bind $h /sys/fs/cgroup &&
-   umount -n        $r &&
-   rmdir            $r &&
-   sed    -i "s:$r:/sys/fs/cgroup:" /etc/mtab
+   /bin/mkdir -pm 1777 /tmp/ &&
+   /bin/mkdir -pm 0755    $r &&
+   /bin/mount     $o      $r &&
+   /bin/mkdir -pm 0755    $h &&
+   /bin/mount  -n --bind  $h /sys/fs/cgroup &&
+   /bin/umount -n         $r &&
+   /bin/rmdir             $r &&
+   /bin/sed    -i "s:$r:/sys/fs/cgroup:" /etc/mtab
   fi
  }
 
@@ -53,11 +51,6 @@ start(){
  then log_success_msg "mount";
  else log_failure_msg "mount"; return 1
  fi
-# fi &&
-# if   rootfs
-# then /etc/init.d/cgroup-init-rootfs start
-# else /etc/init.d/cgroup-init-root   start
-# fi
 }
 
 configure(){
@@ -121,7 +114,7 @@ configure(){
 
    export IFS="
 "
-   dialog \
+   /bin/dialog \
     --backtitle "$BACKTITLE" \
     --title     "$TITLE" \
     --stdout --timeout 120 \
@@ -136,10 +129,10 @@ configure(){
   if ss=$( subsys_menu ); then
    subsys_to_opts
    local n="options $OPTS"
-   mkdir -pm 700           /etc/init.d/conf.d/
-   echo  -n ''           > /etc/init.d/conf.d/cgroup
-   sed   -i '/options/d'   /etc/init.d/conf.d/cgroup
-   echo     "$n"         > /etc/init.d/conf.d/cgroup
+   /bin/mkdir -pm 700         /etc/init.d/conf.d/
+   echo       -n ''         > /etc/init.d/conf.d/cgroup
+   /bin/sed   -i '/options/d' /etc/init.d/conf.d/cgroup
+   echo     "$n"            > /etc/init.d/conf.d/cgroup
   fi
  }
 

@@ -2,8 +2,8 @@
 # All rights reserved.
 # For use with the POSIX Sorcerer Modern Magic only!
 
-with version stable 20131212
-with info    last   20131212
+with version stable 20131230
+with info    last   20131230
 with base    EruditeTechnic
 with role    immune-system
 with trait   solo stale
@@ -92,6 +92,50 @@ post_install(){
   fi
  }
 
+ rootfs_into_aux(){
+  mkdir -pm 700 /aux/set/
+  mkdir -p      /aux/set/rootfs/{etc,sys/fs/cgroup}/
+
+  if   [  -d /etc/cgroup ]
+  then cp -a /etc/cgroup /aux/set/realfs/sys/fs/; rm -fr /etc/cgroup
+  fi
+
+  if   [  -d /etc/rootfs/cgroup ]
+  then cp -a /etc/rootfs/cgroup /aux/set/sys/fs/; rm -fr /etc/rootfs/cgroup
+  fi
+
+  if   [  -d /etc/cgroup.rootfs ]
+  then mv    /etc/cgroup.rootfs /etc/cgroup
+       cp -a /etc/cgroup /aux/set/rootfs/sys/fs/; rm -fr /etc/cgroup
+  fi
+
+  if [ -d /etc/rootfs/ ]; then
+   find   /etc/rootfs/ -mindepth 1 -maxdepth 1 |
+   xargs -r -d '\n' -L64 -- \
+   cp -at /aux/set/rootfs/etc/ --
+   rm -fr /etc/rootfs/
+  fi
+
+  find /etc/ -mindepth 1 -maxdepth 1 -type f -name \*.rootfs |
+  while read
+  do    mv "$REPLY" /aux/set/rootfs/etc/"${REPLY%.rootfs}"
+  done
+ }
+
+ rootname_to_hostname(){
+  if  [ -f /etc/rootname ]; then
+   if [ -f /etc/hostname ]; then
+    local rn hn
+    read rn < /etc/rootname
+    read hn < /etc/hostname
+    if   ! [ "$rn" == "$hn" ]
+    then mv /etc/hostname /aux/set/rootfs/etc/
+    fi
+   fi
+   mv /etc/rootname /etc/hostname
+  fi
+ }
+
  # Temporary fixes to provide for 6 months.
  event_log_transition			# 20130828
  move_local_config			# 20131110
@@ -100,5 +144,7 @@ post_install(){
  import_et_config			# 20131211
  spell_to_technic			# 20131211
  reap_sorcery				# 20131211
+ rootfs_into_aux			# 20131230
+ rootname_to_hostname			# 20131230
  default_post_install
 }

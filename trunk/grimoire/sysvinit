@@ -1,5 +1,4 @@
-with info    edit 20131211
-with info    good 20131202
+with info    good 20131230
 with info    last 20100414
 with version stable 2.88dsf
 with role    utility
@@ -47,9 +46,13 @@ http://www.linux-foundation.org/spec/refspecs/LSB_3.1.0/LSB-Core-generic/LSB-Cor
 
 build(){
  install_init(){
-  install -vm 755 -d "$DESTDIR"/etc/rootfs/
-  install -vm 600 -t "$DESTDIR"/etc/rootfs/ "$SCRIPT_DIR"/rootfs/inittab
-  install -vm 600 -t "$DESTDIR"/etc/        "$SCRIPT_DIR"/inittab
+  cp      -avt "$d"/ "$s"/aux
+  find         "$d"/aux/set/ -type f | xargs -r -L=64 -d '\n' -- chmod 644 --
+  find         "$d"/aux/set/ -type d | xargs -r -L=64 -d '\n' -- chmod 755 --
+  chmod   700  "$d"/aux/set/
+
+  install -vm 755 -d "$d"/etc/
+  install -vm 600 -t "$d"/etc/ "$s"/inittab
  }
 
  case $HOSTTYPE in
@@ -62,23 +65,24 @@ build(){
  then export CFLAGS+=' -DWITH_SELINUX' SEL='WITH_SELINUX=1'
  fi
 
+ local d="$DESTDIR" s="$SCRIPT_DIR"
+
  make -C src $SEL &&
- install -vm 755 -d "$DESTDIR"/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}}/ &&
- make -C src $SEL install ROOT="$DESTDIR" &&
+ install -vm 755 -d "$d"/{{,s}bin,usr/{bin,include,share/man/man{1,5,8}}}/ &&
+ make -C src $SEL install ROOT="$d" &&
  install_init &&
- rm -f "$DESTDIR"{/bin/mountpoint,/sbin/sulogin}
+ rm -f "$d"{/bin/mountpoint,/sbin/sulogin}
  # /bin/mountpoint /sbin/sulogin are installed by util-linux
 }
 
 post_install(){
  default_post_install
- grep -q "kb::kbrequest:/bin/mrgetty"    /etc/rootfs/inittab ||
- echo    "kb::kbrequest:/bin/mrgetty" >> /etc/rootfs/inittab
+ grep -q "kb::kbrequest:/bin/mrgetty"    /aux/set/rootfs/etc/inittab ||
+ echo    "kb::kbrequest:/bin/mrgetty" >> /aux/set/rootfs/etc/inittab
 }
 
 current(){
  case $VERSION in
-  2.88dsf) [ -f /etc/rootfs/inittab ] &&
-           grep -q "kb::kbrequest:/bin/mrgetty" /etc/rootfs/inittab ;;
+  2.88dsf) [ -f /aux/set/rootfs/etc/inittab ] ;;
  esac
 }
