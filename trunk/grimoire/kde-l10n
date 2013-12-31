@@ -1,0 +1,34 @@
+with info    edit 20131231
+with inherit kde-v4
+#with version stable 4.12.0 4.11.4 4.11.3
+with base    kdelibs-v4
+with also    -DCMAKE_INSTALL_PREFIX:PATH=/usr
+with also    -DCMAKE_INSTALL_RPATH:PATH=/usr/lib64:/usr/lib
+with also    -DCMAKE_SKIP_BUILD_RPATH:BOOL=TRUE
+with also    -DCMAKE_BUILD_WITH_INSTALL_RPATH:BOOL=TRUE
+with also    -DCMAKE_INSTALL_RPATH_USE_LINK_PATH:BOOL=TRUE
+with also    -DCMAKE_BUILD_TYPE=Release
+with role    documentation/l10n
+with trait   kde4
+#with source  stable $KDE_URL stable/$VERSION/src/kde-l10n/$TECHNIC-$VERSION.tar.xz
+with info    cite 'Language translation for kde-v4'
+
+[ -f   "$TECHNIC_DIR"/kde-l10n.d/l10n ] &&
+while read; do
+with switch "$REPLY" "" '* the box to provide the translation'
+done < "$TECHNIC_DIR"/kde-l10n.d/l10n
+
+[ -f   "$OPT_ON_LOGS"/kde-l10n ] &&
+while read; do
+with source  stable $KDE_URL stable/$VERSION/src/kde-l10n/kde-l10n-"${REPLY//:/}"-$VERSION.tar.xz
+done < "$OPT_ON_LOGS"/kde-l10n
+
+build(){
+ local d r=0
+
+ kde_build || r=1
+ for      d in kde-l10n-*
+ do  cd "$d"; kde_build || r=1; cd ..
+ done
+ return $r
+}
