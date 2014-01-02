@@ -1,0 +1,42 @@
+# multilib-fail while evas is multilib-fail
+
+with info    good 20141201
+with info    last 20131220
+with version   stable 1.8.3 1.7.9 1.7.8
+case $VERSION in
+1.8.3)
+with base    automake ;;
+esac
+with base    bullet fribidi giflib libXp libXScrnSaver lua pulseaudio wayland
+#with base    bullet curl evas libXp libXScrnSaver libXtst openldap
+with elect   SDL '--enable-ecore-sdl --enable-ecore-evas-opengl-sdl'
+with elect   ibus
+with elect   scim
+with also    --enable-openssl --enable-ecore-evas-opengl-x11 --enable-ecore-evas-opengl-glew
+with also    --disable-static --disable-gstreamer
+## --enable-wayland required by terminology
+with also    --enable-wayland
+with role    development
+with trait   library multilib-fail optimize
+## makej failed
+#with trait   library makej multilib-concurrent
+with source    stable http://download.enlightenment.org/rel/libs/efl/efl-$VERSION.tar.bz2
+with info    home http://www.enlightenment.org/
+with info    docs 'http://www.enlightenment.org/p.php?p=docs&l=en'
+with info    cite 'enlightenment core libraries'
+with clash   ecore edje eet eeze efreet eina eio embryo emotion ethumb evas
+
+build(){
+ if   [[ $HOSTTYPE == x86_64 ]]; then
+  if  [[ $CFLAGS =~ -m32 ]]
+  then OPTS+=' --x-libraries=/usr/lib'
+  else OPTS+=' --x-libraries=/usr/lib64'
+  fi
+ fi
+
+ case $VERSION in
+  1.8.3) aclocal; automake -afc ;;
+ esac
+
+ default_build
+}

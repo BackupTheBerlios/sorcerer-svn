@@ -43,6 +43,21 @@ algorithms and data structures created in the generic
 programming style of the Standard Template Library (STL).'
 
 build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r -L64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  local LIBDIR ADDRESS_MODEL
  sed -i 's:-O3:-O2:' tools/jam/src/build.jam
  ./bootstrap.sh --prefix=/usr &&

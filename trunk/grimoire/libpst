@@ -2,18 +2,36 @@
 #     with also --with-boost-python=boost-python-mt
 
 with trait   broke
-with info    last 20130813
-with version stable 0.6.61 0.6.60 0.6.59
+with info    last 20140101
+with version   stable 0.6.63 0.6.61 0.6.60
+with version unstable 0.6.63
 with base    boost gd jpeg libgsf
 with role    network/email
 with trait   library makej multilib-dual
-with source  stable http://www.five-ten-sg.com/libpst/packages/libpst-$VERSION.tar.gz
+with source    stable http://www.five-ten-sg.com/libpst/packages/libpst-$VERSION.tar.gz
+with source  unstable http://www.five-ten-sg.com/libpst/packages/libpst-$VERSION.tar.gz
 with info    home http://www.five-ten-sg.com/libpst/
 with info    cite 'outlook to unix mail converter library'
 
 build(){
+ LC_ALL=C grep -lr python * |
+ xargs -r -L64 \
+ sed -i 's:#!/usr/bin/env python$:#!/usr/bin/python2:
+         s:#!/usr/bin/python$:#!/usr/bin/python2:
+         s:#! /usr/bin/python$:#!/usr/bin/python2:'
+
+ mkdir -pvm 755                       bin
+ echo '#!/bin/bash'                 > bin/python
+ echo 'exec /usr/bin/python2 "$@"' >> bin/python
+ chmod 755                            bin/python
+
+ local  RATH="$PATH"
+ local  PATH="$PWD/bin:$RATH"
+ export PATH
+
  case $VERSION in
   0.6.*) sed -i 's:ax_python_lib=boost_python:ax_python_lib=boost_python-mt:' configure ;;
  esac
+
  default_build
 }
