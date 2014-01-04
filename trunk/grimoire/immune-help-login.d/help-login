@@ -1,55 +1,51 @@
-# Copyright Kyle Sallee 2012
+#!/bin/bash
+
+# Copyright Kyle Sallee 2014
 # All rights reserved.
 
-wm_choices(){ [ -d /etc/X11/wm ] && find /etc/X11/wm -type l -printf '%l\tWindow Manager\n'; }
+BOLD="[1m"
+NORM="[0m"
+TAB="	"
 
-wm_valid(){ 
- echo "/bin/bash	Shell"
- echo "omit	selection during login"
- wm_choices |
- while read f d
- do [[ -f $f ]] && echo "$f	$d"
+hl-default(){ /bin/find /etc/shells.d/ -mindepth 1; /bin/find /etc/X11/wm/ -mindepth 1 -printf "/usr/bin/xinit %p\n"; }
+hl-update(){ hl-default | /bin/cat - $c{,} | LC_ALL=C /bin/sort | /bin/uniq -u >> $c; }
+hl-load(){ /bin/mkdir -p ~/.config/; echo -n >> $c; hl-update; }
+
+hl-inp(){
+ echo $"Please enter a command and parameters:"
+ read -i "$1" -t 60 && [ -n "$REPLY" ] && echo "$REPLY" >> $c
+}
+
+hl-show(){
+ local -a a; readarray -t -O 1 a < $c
+ for ((x=1;x<=${#a[*]};x++))
+ do  ((x==h))&&echo "$BOLD-->${a[$x]}<--$NORM"||echo "   ${a[$x]}   "
  done
 }
 
-wm_gain(){
- local  IFS
- export IFS="	
-"
- dialog --timeout 60 \
-  --backtitle $"Login Menu" --stdout \
-  --default-item "$WM" \
-  --ok-label $"Select" --no-cancel  \
-  --title $"Window Manager Selection" \
-  --menu $"Please select window manager to start" 20 75 10 \
-  $( wm_valid )
+instruct(){
+ echo
+ echo $"Arrow keys aim.  Space bar runs.  / Edits.  Select command."
+ echo -n $"Selected = "
+ hl-set
 }
 
-wm_load(){
- [ -f      "$HOME/.wm" ] &&
- read WM < "$HOME/.wm"
-      WM="${WM:-/bin/bash}"
+hl-box(){ (( h > 0 )) || h=1; }
+hl-get(){ hl-box; /bin/clear; hl-show; instruct; read -n 1 -t 60; }
+hl-set(){ /bin/sed "${h}p;d" $c$1; }
+hl-del(){ /bin/sed -i "${h}d" $c; }
+hl-top(){ hl-del; /bin/sed -i "1i$( hl-set .old )" $c; h=1; }
+hl-new(){ hl-inp "$( hl-set .old )" && /bin/sed -i "${h}i$REPLY" $c; }
+hl-mod(){ hl-del; hl-new; }
+
+hl-alt(){
+ echo $"Press a single key.  e edits.  d deletes.  i inserts.  t moves to top."
+ /bin/cp $c{,.old}
+ read -n 1 -t 60 x &&
+ case $x in e)hl-mod;;d)hl-del;;i)hl-new;;t)hl-top;;esac
 }
 
-wm_save(){
- if   [ -n "$HOME" ] &&
-      [ -d "$HOME" ]
- then echo "$WM" > "$HOME/.wm"
- fi
-}
-
-wm_exec(){
- if     [ -n "$WM" ] &&
-      ! [    "$WM" == /bin/bash ]
- then exec /usr/bin/xinit "$WM"
- fi
-}
-
-wm_load
-[[ $WM == omit ]] && return
-read -n 1 -t 60 -p $"Press Enter to run: $WM"
-if   [[ -n $REPLY ]]
-then WM="$( wm_gain )"; wm_save
-fi
-[[ $WM == omit ]] && return
-wm_exec
+hl-menu(){ hl-get&&case $REPLY in A)((h--));;B)((h++));;/)hl-alt;;\ )return;;esac;hl-menu; }
+hl-exec(){ exec $( hl-set ); }
+hl-main(){ local c=~/.config/help-login h=1 x;hl-load;hl-menu&&hl-exec; }
+hl-main
