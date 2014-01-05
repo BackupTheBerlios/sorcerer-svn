@@ -1,13 +1,17 @@
 # 0.9.4 0.9.3 failed compilation
 # 0.9.6 requires not yet released version of glib
 
+# broke while vala is broke
+
+with trait   broke
+with info    edit 20140105
 with info    last 20131110
 with version   stable 0.9.5 0.9.4
 with version unstable 0.9.6
 with base    dconf evolution-data-server libgee libxml2 libzeitgeist perl--Scalar-List-Utils telepathy-glib
 #with base    dconf evolution-data-server libgee-0.8 libxml2 libzeitgeist perl--Scalar-List-Utils telepathy-glib
 #with base    perl--PathTools
-with also    --disable-fatal-warnings
+with also    --disable-fatal-warnings --disable-vala
 with role    development
 with trait   gnome library makej multilib-dual
 with source    stable $GNOME_URL sources/folks/${VERSION:0:3}/folks-$VERSION.tar.xz
@@ -15,3 +19,11 @@ with source  unstable $GNOME_URL sources/folks/${VERSION:0:3}/folks-$VERSION.tar
 with info    home http://telepathy.freedesktop.org/wiki/Folks
 with info    cite 'library that aggregates people from multiple sources
 (eg, Telepathy connection managers) to create metacontacts.'
+
+build(){
+ if   technic_installed  vala
+ then with also --enable-vala
+ else with also --disable-vala
+ fi
+ default_build
+}
