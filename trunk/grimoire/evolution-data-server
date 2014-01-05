@@ -1,38 +1,14 @@
-# openldap support required for communicating with exchange servers
-# 2.32.0 failed compilation
-# during ia32 multilib compilation:
-# checking for iconv in -liconv... no
-# checking for iconv... yes
-# checking for gnu_get_libc_version... yes
-# checking if iconv() handles UTF-8... no
-# configure: error: You need to install a working iconv implementation, such as ftp://ftp.gnu.org/pub/gnu/libiconv
-
-# evolution-data-server might be doing something incorrect to test.
-
-# version 3.0.2 failed compilation
-# version 3.2.0 failed compilation
-# version 3.1.92 failed compilation.
-# version 3.2.0 is refusing to compile multilib
-# version 3.4.0 failed to compile
-# version 3.8.1 failed to compile
-
-with info    edit 20131221
+with info    good 20140105
 with info    last 20131210
 with version   stable 3.10.3 3.10.2 3.10.1
 with version unstable 3.11.3
 case $VERSION in
  3.10.*)
 with also    --disable-uoa ;;
- 3.9.*)
-with also    --disable-uoa ;;
- 3.8.*)
-with also    --disable-uoa ;;
- 3.4.0)
-with also    --enable-introspection=no ;;
 esac
 with base    gcr gnome-online-accounts libgdata libgweather libical nss nspr vala
 # vala-bindings required by folks
-with also    --with-openldap=yes --disable-gtk-doc --enable-vala-bindings
+with also    --with-openldap=yes --disable-gtk-doc
 #with elect   gtk-doc --enable-gtk-doc --disable-gtk-doc
 with role    network/email
 with trait   gnome library makej multilib-concurrent
@@ -46,5 +22,9 @@ build(){
 # hardcode_into_libs is required in order to compile evolution-data-server version 3.4.0
 # sed -i 's:hardcode_into_libs=yes:hardcode_into_libs=no:' configure
  sed -i 's:-L$libdb_prefix/lib::' configure
+
+ if   technic_installed  vala
+ then with also --enable-vala-bindings
+ fi
  default_build
 }
