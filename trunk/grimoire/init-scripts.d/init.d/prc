@@ -1,7 +1,6 @@
 #!/bin/bash
-# Copyright 2011, 2012, 2013 by Kyle Sallee
+# Copyright 2011, 2012, 2013, 2014 by Kyle Sallee
 # All Rights Reserved
-# For use on Modern Magic only
 # Default-Mode: 500
 
 trap : INT QUIT TSTP
@@ -76,17 +75,8 @@ rl_ns(){
 
  while [ -n "$1" ]; do
   if (( $1 == 1 )); then shift; continue; fi
-
-  ns=$( /bin/tr '\000' '\n' < /proc/$1/cmdline | /bin/grep /+/ )
-  echo "$ns Entering"
-## without being instructed to not fork nsenter created a zombie
-## by not waiting for prc to exit and read prc's exist status.
-## possible bug in nsenter?
-# /bin/nsenter -t $1 -i -m -n -p -r -u -w \
-  /bin/nsenter -t $1 -i -m -n -p -r -u -w -F \
-  /etc/init.d/prc $rl
+  /bin/openvt -- /etc/init.d/nsrc "$1" "$rl"
   ran=0
-  echo "$ns Exiting"
   shift
  done
 
@@ -94,6 +84,13 @@ rl_ns(){
 }
 
 rn(){ rl_ns $( /bin/pgrep -u 0 -f "init namespace" ); }
+
+await(){
+ while (( 120 > SECONDS )) &&
+       /bin/pgrep -u 0 -f "nsrc" &>/dev/null
+ do    sleep 1
+ done
+}
 
 RL="$1"
 
@@ -109,7 +106,7 @@ fi
 
 case $RL in
      0|6) export CGROUP_RETAIN=1
-          rn || /etc/init.d/rc.d stop; log ssl ;;
+          rn || /etc/init.d/rc.d stop; await; log ssl ;;
  3|5|1|7) rn || log ssl ;;
      4|2) rn || log ssp ;;
 esac
