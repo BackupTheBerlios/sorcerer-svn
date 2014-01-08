@@ -1,0 +1,31 @@
+with info    good 20140107
+with info    last 20120618
+with version stable 20120618
+
+for REPLY in ar cs de el en es fa fr hu it ja lv nb nl pl pt_BR ru sv tr zh_CN; do
+with switch $REPLY
+done
+
+CURL_PARAM=-k
+[ -f   "$OPT_ON_LOGS"/tor-short-user-manual ] &&
+while read REPLY; do
+           REPLY="${REPLY//:/}"
+[ -n     "$REPLY" ] &&
+with source  stable https://www.torproject.org/dist/manual/short-user-manual_$REPLY.xhtml
+done < "$OPT_ON_LOGS"/tor-short-user-manual
+
+with role    network network/security network/security
+with trait   data documentation
+with info    home https://www.torproject.org/
+with info    cite 'xhtml documentation for tor'
+
+configure(){
+ touch "$TECHNIC_DIR"/tor-short-user-manual
+ generate_index
+ echo tor-short-user-manual | pipe_queue "$LOAD_QUEUE"
+}
+
+build(){
+ install -vm 755 -d "$DESTDIR"/usr/share/doc/tor-short-user-manual/
+ install -vm 644 -t "$DESTDIR"/usr/share/doc/tor-short-user-manual/ "${SOURCE[@]}"
+}

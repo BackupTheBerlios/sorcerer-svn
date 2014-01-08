@@ -1,12 +1,13 @@
-# commenting out --with-system-sqlite should be followed by
-# commenting out --with-shared-js
-# only comment those out when completely undesired.
+# https://gitweb.torproject.org/builders/tor-browser-bundle.git/blob/HEAD:/gitian/descriptors/linux/gitian-firefox.yml
 
-# 26.0 failed to moil
+# Requires older aautotools to compile.
+# As if firefox was not already sufficitnyl difficult to compile
+# tor-browser enhances the challenge
 
-with info    last 20131215
-with version   stable 25.0.1 25.0
-with version unstable 26.0
+with trait   broke
+with info    last 20131217
+with version stable tor-browser-24.2.0esr-3.5.1-build1
+#with version stable tor-browser-24.2.0esr-3.5-build1
 with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libjpeg-turbo libnotify nss startup-notification sqlite xorg-cf-files yasm zip
 with base    corefonts webfonts
 
@@ -15,7 +16,6 @@ with also    --disable-debug
 with also    --disable-gnomevfs
 with also    --disable-gstreamer
 with also    --disable-installer
-with also    --disable-maintenance-service
 with also    --disable-mochitest
 with also    --disable-necko-wifi
 with also    --disable-static
@@ -44,20 +44,10 @@ with also    --with-system-zlib
 with role    network/web
 with trait   bottleneck client huge library litelink makej multilib-fail optimize solo stack-protector x11
 
-# release.mozilla.org might no longer be serving source tarballs.
-# also mirrored at sourceforge, but can not write the source statements
-# as $SOURCEFORGE_URL
-with source  stable \
-             http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
-                   ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
-             firefox-$VERSION.source.tar.bz2
-with source  unstable \
-             http://releases.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
-                   ftp://ftp.mozilla.org/pub/mozilla.org/firefox/releases/$VERSION/source/ \
-             firefox-$VERSION.source.tar.bz2
-with info    home http://www.mozilla.com/en-US/firefox/firefox.html
-with hold    mozilla
-with info    cite 'web brower based upon mozilla gecko HTML rendering engine'
+with source  stable tor-browser-$VERSION.tar $VERSION git://git.torproject.org/tor-browser.git
+
+with info    home https://www.torproject.org/
+with info    cite 'firefox mozilla web browser modified for tor onioning routing software'
 
 build(){
  link_icons(){
@@ -144,17 +134,48 @@ build(){
  export        PATH="${PATH//\/usr\/bin.a:/}"
  export CCACHE_PATH=/usr/bin
 
- mkdir BUILD
- cd    BUILD
- ../configure \
- --prefix=/usr \
- --sysconfdir=/etc \
- --localstatedir=/var \
- --enable-optimize="$CFLAGS" \
- $OPTS &&
- make  &&
- make install DESTDIR="$DESTDIR" &&
- make_install
+ re-dzip(){
+  local ZIPFILE="${1##*/}"
+  mkdir tmp_dzip
+  cd    tmp_dzip
+  unzip ../$1
+  find .   -executable -exec chmod 700 {} \;
+  find . ! -executable -exec chmod 600 {} \;
+  find . | sort | zip $ZIPOPTS -X -@ $ZIPFILE
+  mv $ZIPFILE ../$1
+  cd ..
+  rm -fr tmp_dzip
+ }
+
+ sed  -i "s:UNKNOWN:$VERSION:" browser/app/profile/000-tor-browser.js
+# rm   -f configure js/src/configure
+# automake -afc &&
+ make -f client.mk build &&
+ make -C obj-* package INNER_MAKE_PACKAGE=true    &&
+ cp   -a obj-*/dist/firefox/* "$DESTDIR"/Browser/ &&
+ cd                           "$DESTDIR"/browser/ &&
+ rm -f firefox-bin *.chk
+ for l in *.so webapprt-stub mozilla-xremote-client firefox plugin-container components/*.so;
+ do strip $l
+ done &&
+ re-dzip omni.ja &&
+ re-dzip webapprt/omni.ja &&
+ if   [ -f    browser/omni.ja ]
+ then re-dzip browser/omni.ja
+ fi &&
+ false
+
+#  mkdir BUILD
+#  cd    BUILD
+#  ../configure \
+#  --prefix=/usr \
+#  --sysconfdir=/etc \
+#  --localstatedir=/var \
+#  --enable-optimize="$CFLAGS" \
+#  $OPTS &&
+#  make  &&
+#  make install DESTDIR="$DESTDIR" &&
+#  make_install
 }
 
 post_install(){
