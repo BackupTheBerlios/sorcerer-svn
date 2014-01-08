@@ -8,6 +8,7 @@
 # to their Oracle binary Code License Agreement
 # is insufficient for downloading.
 
+with info    edit 20140108
 with info    good 20131104
 with info    last 20131008
 with version stable 7u45
@@ -41,49 +42,32 @@ install_jdk(){
   7*) DIR='jdk1.7.0' ;;
  esac
 
- set -x
- install -vm 755 -d "$DESTDIR"/{opt/$DIR,usr/bin}
+ install -vm 755 -d  "$DESTDIR"/{opt/$DIR,usr/bin}/
  # Copy the untarred package to the destination
- cp -ax *           "$DESTDIR"/opt/$DIR/
- chown -R root.root "$DESTDIR"/opt/$DIR
+ cp -avx *           "$DESTDIR"/opt/$DIR/
+ chown -Rv root.root "$DESTDIR"/opt/$DIR
  # /opt/jdk should be a symbolic link to the current version and NOT a directory
- ln -fs $DIR         "$DESTDIR"/opt/jdk	
+ ln -fsv $DIR        "$DESTDIR"/opt/jdk	
  # Make links to the binaries
- for        FILE in  "$DESTDIR"/opt/jdk/bin/*
- do  ln -fs           ../../opt/jdk/bin/${FILE##*/} \
-                     "$DESTDIR"/usr/bin/${FILE##*/}
- done
+ find "$DESTDIR"/opt/jdk/bin/ -mindepth 1 -type f -executeable -printf '%f\n' |
+ while read; do ln -fs ../../opt/jdk/bin/"$REPLY" "$DESTDIR"/usr/bin/; done
 
- if   [  -x  "$DESTDIR"/opt/jdk/jre/bin/java_vm ]
- then ln -fs      ../../opt/jdk/jre/bin/java_vm \
-                     "$DESTDIR"/usr/bin/java_vm
- fi 
-
- local PD
- # Some pages say that only libnpjp2.so plugin is needed for Firefox
- if   [ -d     /usr/lib64/mozilla/plugins ]; then
-  PD="$DESTDIR"/usr/lib64/mozilla/plugins
-  install -vm 755 -d "$PD"
-  ln -fs ../../../../opt/jdk/jre/lib/amd64/libnpjp2.so "$PD"/
- elif [ -d     /usr/lib/mozilla/plugins ]; then
-  PD="$DESTDIR"/usr/lib/mozilla/plugins
-  install -vm 755 -d "$PD"
-  ln -fs ../../../../opt/jdk/jre/lib/i386/libnpjp2.so  "$PD"/
+ if   [ -f           "$DESTDIR"/opt/jdk/jre/lib/amd64/libnpjp2.so ]; then
+  install -vm 755 -d "$DESTDIR"/usr/lib64/mozilla/plugins/
+  ln -fsv ../../../../opt/jdk/jre/lib/amd64/libnpjp2.so \
+                     "$DESTDIR"/usr/lib64/mozilla/plugins/
+ elif [ -f           "$DESTDIR"/opt/jdk/jre/lib/i386/libnpjp2.so ]; then
+  install -vm 755 -d "$DESTDIR"/usr/lib/mozilla/plugins/
+  ln -fsv ../../../../opt/jdk/jre/lib/i386/libnpjp2.so \
+                     "$DESTDIR"/usr/lib/mozilla/plugins/
  fi
 
- set +x
-
- #mkdir -p  $DESTDIR/etc/.java/.systemPrefs
- #touch     $DESTDIR/etc/.java/.systemPrefs/.system.lock
- #touch     $DESTDIR/etc/.java/.systemPrefs/.systemRootModFile
- #chmod 644 $DESTDIR/etc/.java/.systemPrefs/.system*
+ #mkdir -p  "$DESTDIR"/etc/.java/.systemPrefs
+ #touch     "$DESTDIR"/etc/.java/.systemPrefs/.system.lock
+ #touch     "$DESTDIR"/etc/.java/.systemPrefs/.systemRootModFile
+ #chmod 644 "$DESTDIR"/etc/.java/.systemPrefs/.system*
 }
 
- # Make sure the source downloaded is really a shell script
- # test broke with file version 5.05
- #file $SOURCE | grep -q 'shell script' && 
-
- # Test that the package was really JDK, not only some HTTP response:
  [[ -f COPYRIGHT ]] &&
  install_jdk
 }

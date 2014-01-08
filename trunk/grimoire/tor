@@ -1,49 +1,19 @@
-with info    good 20140107
+with info    good 20140108
 with info    last 20131223
 with version   stable 0.2.4.20
 with version unstable 0.2.5.1-alpha
 with base    libevent
-# with base    GConf bzip2 hicolor-icon-theme imake libXScrnSaver libjpeg-turbo libnotify nss startup-notification sqlite xorg-cf-files yasm zip
-# with base    corefonts webfonts
-
-# with also    --disable-crashreporter
-# with also    --disable-debug
-# with also    --disable-gnomevfs
-# with also    --disable-gstreamer
-# with also    --disable-installer
-# with also    --disable-mochitest
-# with also    --disable-necko-wifi
-# with also    --disable-static
-# with also    --disable-tests
-# with also    --disable-updater
-
-# with also    --enable-application=browser
-# with also    --enable-default-toolkit=cairo-gtk2
-# with also    --enable-official-branding
-# with also    --enable-shared-js
-# with also    --enable-startup-notification
-# with also    --enable-strip
-# with also    --enable-system-cairo
-# with also    --enable-system-ffi
-# with also    --enable-system-lcms
-# with also    --enable-system-pixman
-# with also    --enable-system-sqlite
-
-# with also    --with-system-bz2
-# with also    --with-system-jpeg
-# #with also    --with-system-libxul
-# with also    --with-system-nspr
-# with also    --with-system-nss
-# with also    --with-system-png
-# with also    --with-system-zlib
-with role    network/web
-with trait   bottleneck client huge library litelink makej multilib-fail optimize solo stack-protector x11
-
-# release.mozilla.org might no longer be serving source tarballs.
-# also mirrored at sourceforge, but can not write the source statements
-# as $SOURCEFORGE_URL
+with role    network/privacy
+with trait   client makej optimize server stack-protector
 with source    stable https://www.torproject.org/dist/tor-$VERSION.tar.gz
 with source  unstable https://www.torproject.org/dist/tor-$VERSION.tar.gz
 CURL_PARAM=-k
 with info    home https://www.torproject.org/
+with sys_user tor tor /etc/tor
 with info    cite 'Onioning routing software'
+
+post_install(){
+ default_post_install &&
+ install -vm 755 -d /var/ &&
+ install -vm 700 -d /var/{lib,log}/tor/ -g tor -o tor
+}
