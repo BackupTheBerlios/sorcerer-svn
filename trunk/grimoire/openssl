@@ -1,6 +1,7 @@
-with info    edit 20131126
-with info    last 20130213
-with version   stable 1.0.1e 1.0.1d 1.0.1c
+# 1.0.1f fails to install 32-bit library portion
+with info    last 20140110
+with version   stable 1.0.1e 1.0.1d
+with version unstable 1.0.1f
 with base    perl pkgconfig
 with role    security/encryption
 with trait   library lto multilib-dual optimize
@@ -33,7 +34,35 @@ with source  stable \
               ftp://ftp.calyx.nl/pub/openssl/source/ \
               ftp://ftp.duth.gr/pub/OpenSSL/source/ \
               ftp://ftp.si.uniovi.es/mirror/OpenSSL/source/ \
-            openssl-$VERSION.tar.gz
+             openssl-$VERSION.tar.gz
+with source  unstable \
+             http://www.openssl.org/source/\
+              ftp://ftp.openssl.org/source/ \
+              ftp://sunsite.cnlab-switch.ch/mirror/openssl/source/ \
+              ftp://ftp.funet.fi/pub/crypt/cryptography/libs/openssl/source/ \
+              ftp://ftp.pca.dfn.de/pub/tools/net/openssl/source/ \
+              ftp://ftp.webmonster.de/pub/openssl/source/ \
+              ftp://opensores.thebunker.net/pub/mirrors/openssl/source/ \
+              ftp://ftp.net.lut.ac.uk/openssl/source/ \
+              ftp://ftp.mirror.ac.uk/sites/ftp.openssl.org/source/ \
+              ftp://sunsite.uio.no/pub/security/openssl/source/ \
+              ftp://ftp.sunet.se/pub/security/tools/net/openssl/source/ \
+              ftp://ftp.chl.chalmers.se/pub/unix/security/openssl/source/ \
+              ftp://ftp.psy.uq.edu.au/pub/Crypto/OpenSSL/ \
+              ftp://gd.tuwien.ac.at/infosys/security/openssl/source/ \
+              ftp://guest.kuria.katowice.pl/pub/openssl/source/ \
+              ftp://ftp.infoscience.co.jp/pub/Crypto/SSL/openssl/source/ \
+              ftp://ftp.happysize.co.jp/mirror/openssl/source/ \
+              ftp://ftp.elab.co.za/support/openssl/source/ \
+              ftp://ftp.directnet.ru/pub/openssl/source/ \
+              ftp://ftp.linux.hr/pub/openssl/source/ \
+              ftp://ftp.openssl.uli.it/source/ \
+              ftp://ftp.grmbl.com/pub/openssl/source/ \
+              ftp://ftp.gin.cz/pub/MIRRORS/ftp.openssl.org/source/ \
+              ftp://ftp.calyx.nl/pub/openssl/source/ \
+              ftp://ftp.duth.gr/pub/OpenSSL/source/ \
+              ftp://ftp.si.uniovi.es/mirror/OpenSSL/source/ \
+             openssl-$VERSION.tar.gz
 with source  secure \
              http://www.openssl.org/source/\
               ftp://ftp.openssl.org/source/ \
@@ -75,28 +104,28 @@ build(){
  remove_ar(){ rm -f "$DESTDIR"/{,usr/}lib{,64}/lib{crypto,ssl}.a; }
 
  move_include_man(){
-  if ! [ -d "$DESTDIR"/usr     ]; then mkdir -pvm 755 "$DESTDIR"/usr; fi
-  if   [ -d "$DESTDIR"/include ]; then mv     -v "$DESTDIR"/{include,usr/}; fi
+  # if ! [ -d "$DESTDIR"/usr/     ]; then install -vm 755 -d "$DESTDIR"/usr/; fi
+  if   [ -d "$DESTDIR"/include/ ]; then mv      -v         "$DESTDIR"/{include,usr}/; fi
   if   [ -d "$DESTDIR"/lib/pkgconfig ]; then
-   mkdir -pvm 755 "$DESTDIR"/usr/lib
-   mv     -v      "$DESTDIR"/{lib/pkgconfig,usr/lib/}
+   install -vm 755 -d "$DESTDIR"/usr/lib/
+   mv      -v         "$DESTDIR"/{lib/pkgconfig,usr/lib/}
    sed -i 's:libdir=${exec_prefix}/lib:libdir=/lib:
            s:^prefix=/$:prefix=/usr:' "$DESTDIR"/usr/lib/pkgconfig/*.pc
-   cp -al "$DESTDIR"/lib/*.so* "$DESTDIR"/usr/lib
+   cp -al "$DESTDIR"/lib/*.so*        "$DESTDIR"/usr/lib/
   fi
-  if   [ -d "$DESTDIR"/lib64/pkgconfig ]
-  then mkdir -pvm 755 "$DESTDIR"/usr/lib64
-       mv     -v      "$DESTDIR"/{lib64/pkgconfig,usr/lib64/}
+  if   [ -d "$DESTDIR"/lib64/pkgconfig ]; then
+   install -vm 755 -d "$DESTDIR"/usr/lib64/
+   mv      -v         "$DESTDIR"/{lib64/pkgconfig,usr/lib64/}
    sed -i 's:libdir=${exec_prefix}/lib:libdir=/lib:
            s:^prefix=/$:prefix=/usr:' "$DESTDIR"/usr/lib64/pkgconfig/*.pc
-   cp -al "$DESTDIR"/lib64/*.so* "$DESTDIR"/usr/lib64
+   cp -al "$DESTDIR"/lib64/*.so*      "$DESTDIR"/usr/lib64/
   fi
-  if   [ -d  "$DESTDIR"/man ]
-  then mv -v "$DESTDIR"/{man,usr/}
-  fi
+  # if   [  -d "$DESTDIR"/man ]
+  # then mv -v "$DESTDIR"/{man,usr}/
+  # fi
   if   [ -f "$POST_LOGS"/deployment-docent ] ||
        [ -f "$POST_LOGS"/sorcerer-iso9660  ]
-  then rm -fr "$DESTDIR"/usr/man/man3
+  then rm -fr "$DESTDIR"/usr/share/man/man3
   fi
  }
 
@@ -128,23 +157,23 @@ build(){
 
  if   [[ $HOSTTYPE == x86_64 ]]; then
   if  [[ $CFLAGS   =~ -m32   ]];
-  then OS="linux-generic32"
+  then OS="linux-generic32"; sed -i 's:all install_docs install_sw:all install_sw:' Makefile
   else OS="linux-x86_64"
   fi
  else  OS="linux-elf"
  fi
 
  if   [[ $HOSTTYPE == x86_64 ]] && ! [[ $CFLAGS =~ -m32 ]]
- then mkdir -pm 755 "$DESTDIR"/lib64/pkgconfig
- else mkdir -pm 755 "$DESTDIR"/lib/pkgconfig
+ then install -vm 755 -d "$DESTDIR"/usr/lib64/pkgconfig/
+ else install -vm 755 -d "$DESTDIR"/usr/lib/pkgconfig/
  fi
 
 #./Configure --prefix=/usr --openssldir=/etc/ssl shared $OPTS $OS &&
  ./Configure --prefix=/ --openssldir=/etc/ssl shared $OPTS $OS &&
  sed -i 's:apps test tools:apps tools:' Makefile &&
  make &&
- rm -f "$DESTDIR"/usr/man/man3/EVP_BytesToKey.3 &&
- make install MANDIR=/usr/man INSTALL_PREFIX="$DESTDIR" &&
+ # rm -f "$DESTDIR"/usr/man/man3/EVP_BytesToKey.3 &&
+ make install MANDIR=/usr/share/man INSTALL_PREFIX="$DESTDIR" &&
  remove_ar &&
  move_include_man &&
  strip_destdir

@@ -3,6 +3,8 @@
 # only comment those out when completely undesired.
 
 # 26.0 failed to moil
+# 26.0 has odd problems; if I circumvent one problem I discover another.
+# why is 26.0 so different from 25.0.1?
 
 with info    good 20140109
 with info    last 20131215
@@ -46,6 +48,7 @@ with also    --with-system-jpeg
 with also    --with-system-nspr
 with also    --with-system-nss
 with also    --with-system-png
+# with also    --with-system-png	# commented out for 26.0.0
 with also    --with-system-libvpx
 with also    --with-system-zlib
 with role    network/web
@@ -150,6 +153,10 @@ build(){
  export  LDFLAGS="$( echo "$LDFLAGS" | sed "s:-flto=[^ ]::" )"
  export        PATH="${PATH//\/usr\/bin.a:/}"
  export CCACHE_PATH=/usr/bin
+
+ case $VERSION in
+  26.0) sed -i 's:ac_have_llvm_pr8927="yes"::' {,js/src/}configure ;;
+ esac
 
  mkdir BUILD
  cd    BUILD
