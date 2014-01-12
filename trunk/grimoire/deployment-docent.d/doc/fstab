@@ -1,8 +1,8 @@
 /etc/init.d/mount runs during sysinit.
-/etc/fstab.rootfs is processed.
-Root file systems are mounted.
+/etc/fstab is processed.
+File systems are mounted.
 Binds created.
-The order lines appear in /etc/fstab.rootfs
+The order lines appear in /etc/fstab
 is the order in which the actions happen.
 Therefore, order is important.
 
@@ -10,35 +10,30 @@ During sysinit rootfs is mounted as /
 rootfs is always mounted as /
 Never mount anything directly on /
 Any other directory can become a valid mount point.
-However, root file systems are always mounted
+However, real file systems are always mounted
 on the immediate sub directories of /+/
 
 Run level execution happens chrooted.
 Therefore, during runlevel execution
-a root file system appears to be mounted as /
+a real file system appears to be mounted as /
 /etc/init.d/mount also executes during the runlevel.
 During runlevel /etc/fstab is processed.
 
-Each root file system can have it's own /etc/fstab
-Only the main root file system used to generate
-the initramfs images should have /etc/fstab.rootfs.
+Each real file system can have it's own /etc/fstab
+Only /+/base/ must contain the file:
+/aux/set/rootfs/etc/fstab 
 
 Or that file can exist as /aux/set/rootfs/etc/fstab
 The contents of directory /aux/set/rootfs/etc/
 are copied to /etc/ early during sysinit.
 By this means alternate configuration files
 and alternate user group and password files
-can be provided for the rootfs
-if the ones inherited
-from the main root file system
-are insufficient for the rootfs.
+can be provided for the rootfs.
 
 fstab is the abbreviation for file system table.
-However, over many years the format was amended slightly
+However, over many years the format was amended
 to provide additional functionality.
 For example /etc/fstab can also specify swap systems
-that can be activated or should be activated during runlevel.
-/etc/fstab.rootfs will only specify file systems and binds.
 
 The format for the fstab file is described by the manual page
 which can be viewed with the command:
@@ -58,57 +53,60 @@ Files can be hard linked which is similar to a bind.
 However, hard links can not cross file system boundaries.
 binds lack that limitation.
 
-All root file systems are mounted
+All real file systems are mounted
 in immediate sub directories of /+/
-/etc/fstab.rootfs can also specify binds.
+/etc/fstab can also specify binds.
 A bind is useful for concurrently sharing
 /home/ or other portions of a file system
-across multiple root file systems.
+across multiple real file systems.
 And portions of file systems such as
 /aux/can/
-can also be mounted from /etc/fstab.rootfs
-which is useful if it is to receive additional binds.
+can also be mounted and shared by additional binds.
 Then it can be bound to /+/base/aux/can/
-and  it can also be bound to /+/base/work/can/
-It can be bound in as many locations as the SA desires.
+and  it can be bound to /+/base/work/can/
+It can be bound in as many locations as desired.
 
-If multiple root file systems existed
-on the same file system then that file system
-could first be mounted to some place other than /+/
-And then the directories containing root file systems
-could be bind to sub directories of /+/
+If multiple real file systems
+exist on the same file system
+then that file system could first be mounted
+on some place other than /+/
+And then the directories containing real file systems
+can be bind to sub directories of /+/
 Or if the file system directories were sub directories
-of the top level directory
 then that file system could be mounted on /+/
 
-Typically, SAs create root file systems
+Using an individual file system for each real file system
+is recommended to maximize efficiency and minimize confusion.
+Yet, the above paragraph explains that nonsensical
+inefficient methods also work using binds.
+
+Creating real file systems
 on a dedicated partition
-or a dedicate logical volume.
-Performance is the reason for that.
-However, on a computer that could have many root file systems
-that might change periodically
-then the use of a single file system to hold them all
-might be preferred instead of using partitions and logical volumes.
+or a dedicate logical volume is typical.
+Performance is the reason benefit.
+However, on a computer where file systems
+are frequently created and deleted
+then LVM2 may provide more benefit.
 
-So in summary /etc/fstab.rootfs is used during sysinit
-for mounting root file systems and additional file systems
-somewhere on the rootfs
-/etc/fstab within a root file system is parsed
-during run level for mounting file systems
-that should be mounted only within that root file system.
+A logical volume carved from a volume group
+can use an arbitrary amount of available space space.
+A partition can use only uninterrupted available space.
 
-Consider a /etc/fstab.rootfs for the Simplicity Plan.
+/aux/set/rootfs/etc/fstab is copied to /etc/ early during sysinit.
+/etc/fstab is used during sysinit   for mounting and binding.
+/etc/fstab is used during run level for mounting.
+
+Consider a /etc/fstab for the Simplicity Plan.
 It might look like the following two lines:
 
-/dev/sda2	/+/base	ext4	defaults	0 0
+/dev/sda2	/+/base		ext4	defaults	0 0
 /dev/sda1	/+/base/boot	ext2	defaults	0 1
 
 Please grant additional attention to the sequence.
-The file system which contains the mount point
-for the root file system must be mounted
-before the boot file system can be mounted.
+The file system which contains a mount point
+must be mounted first.
 The mount command probably aught to sensibly reorder
-the contents of /etc/fstab and /etc/fstab.rootfs
+the contents of /etc/fstab
 before attempting to mount file systems.
 However, it does not.
 Proper order is responsibility of the SA.
@@ -117,21 +115,19 @@ An alternate method would be
 
 /dev/sda2	/+/base	ext4	defaults	0 0
 
-in /etc/fstab.rootfs while /etc/fstab contains
+in    /+/base/aux/set/rootfs/etc/fstab
+while /+/base/etc/fstab contains
 
 /dev/sda1	/boot	ext2	defaults	0 1
 
-Run level execution for a root file system occurs
-chrooted within the root file system.
+Run level execution for a file system occurs chrooted.
 Consequently, /boot specified above is mounted
-while already chrooted within /+/base
+while already chrooted within    /+/base/
 and therefore becomes mounted as /+/base/boot
 
-However, because all root file systems have unshared mnt namespace
-/+/base/boot will continue to appear empty
-when viewed from the rootfs
-unless the unshared mnt namespace
-of the root file system is entered.
+Due to unshared name space;
+/+/base/boot/ appears empty while logged into /
+/boot/ appears populated while logged into /+/base/
 
 The format of a fstab file
 is also given by the fstab manual page.
@@ -174,14 +170,14 @@ UUID and LABEL for identifying partitions or systems
 then the computer might not reboot.
 Careful reading of the manual page is advised.
 
-Special nomenclature must be used in /etc/fstab{,.rootfs}
-in order to specify that a file system on a LUKS encrypted device
-will be mounted.
+Special nomenclature must be used in fstab
+for mounting a file system on a LUKS encrypted device.
 Either the device name or the logical volume name or the UUID can be used.
 However, they must be properly prefixed with
 /dev/mapper/luks-
 
-Therefore, the /etc/fstab.rootfs for the Secure Mobility plan would be:
+Therefore, the /aux/set/rootfs/etc/fstab
+for the Secure Mobility plan would be:
 
 /dev/mapper/luks-sda2	/+/base	ext4	defaults	0 0
 /dev/sda1		/+/base/boot	ext2	defaults	0 1
@@ -211,7 +207,7 @@ blkid /dev/sda1
 
 where the /dev/sda1 is replaced with the desired partition.
 
-If desired then /etc/fstab.rootfs
+If desired then /+/base/set/rootfs/etc/fstab
 can be later re-edited to replace device names
 with UUIDs or labels.
 For now device names are sufficient.
@@ -219,7 +215,7 @@ But remember to change it shortly after deployment
 otherwise a kernel upgrade or plugging in a USB device
 might create a box that no longer boots.
 
-An entry for /etc/fstab.rootfs
+An entry for /aux/set/rootfs/etc/fstab
 that contains a UUID might look like:
 
 UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/+/base	ext4	defaults 0 0
@@ -258,12 +254,12 @@ unique universal identifier.
 Consequently, UUID seems safe and easy to use.
 No concerns exist about it that are similar to labels.
 
-Add comments in /etc/fstab{.rootfs,}
-that associate the UUID with the purpose of the file system.
+Make comments in fstab
+that associate UUID with the purpose of the file system.
 That way the UUID for the file system
 which is utilized for /boot becomes apparent
 from reading the comment.
-Comments in /etc/fstab{.rootfs,} begin with #
+Comments in fstab begin with #
 Therefore, anything after a # is a comment.
 Comments are ignored when fstab files are parsed.
 
@@ -278,10 +274,9 @@ When looking at it a few years from now
 or when someone else is looking at it
 then what was intended and accomplished becomes apparent.
 
-For example if binding home then that portion of /etc/fstab.rootfs
-might look something like:
+For example binding home might look like:
 
-# share /home/ among root file systems dev www ftp gui
+# share /home/ among file systems dev www ftp gui
 
 UUID=546e2a7e-52fa-5981-7fa0-40d5902315	/home ext4 defaults 0 0
 /home /+/dev/home none bind 0 0
@@ -295,10 +290,8 @@ would be visible when logged into
 /+/www/
 /+/gui/
 
-Remember that the other root file systems
-must have their mount line before the bind.
-Therefore, binds should almost always
+Proper order is imperative.
+Binds should almost always
 exist towards the end of a fstab file.
-
 More about bind mounts can be learned
 from reading the mount manual page.

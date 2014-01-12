@@ -57,11 +57,8 @@ Nearly anything about a computer which is not software is hardware.
 For example, RAM, is hardware.
 
 initramfs are specially crafted cpio images.
-They contain portions of a root file system.
-A root file system provides useful programs and data files.
-If a POSIX was a person
-then the root file system would be the body.
-After the kernel and initramfs images are loaded into memory
+They contain portions of /+/base/
+After the kernel and initramfs load into memory
 then execution of the kernel's code begins.
 
 The kernel decompresses itself.
@@ -74,22 +71,30 @@ that is tasked to holding memory contents
 that are accessed too infrequently
 to be worthy of storing in RAM.
 
-The rootfs typically contains /bin/ /etc/ /lib/ /lib64/ /sbin/
-from the root file system.
-However, it will not contain /aux/ /opt/.
-Very few files from /usr/ are also provided.
-The purpose of the rootfs is to provide
-a sufficient amount of programs and data
-that would useful for booting, shutdown.
-The rootfs of Modern Magic also contains programs
-that are useful for trouble shooting problems
-that exist on root file systems.
+The rootfs typically contains:
+/aux/set/
+/bin/
+/etc/
+/init
+/lib/
+/lib64/
+/sbin/
+/usr/share/consolefonts/
+/usr/share/consoletrans/
+/usr/share/keymaps/
+/usr/share/pci.ids
+/usr/share/terminfo/l/
+/usr/share/unimaps/
+/usr/share/usb.ids
 
-Because a root file system is eventually mounted
-the rootfs requires only a careful selection
-of files from an actual root file system.
+all mirrored from /+/base/
+However, the rootfs will not provide /opt/ nor most of /usr/
+
+The purpose of the rootfs is to provide
+a sufficient amount of software to acomplish:
+booting; networking; shutdown; trouble shooting.
 The rootfs does not become
-a mirror image of a root file system.
+a mirror image of a real file system.
 
 After completing the above steps;
 the kernel begins execution of /init as process 1.
@@ -104,12 +109,8 @@ Modules and firmware are loaded for installed hardware.
 Device nodes are created in /dev/
 Networking devices can be configured.
 File systems on mass storage devices can be checked.
-Near the end of sysinit root file systems are mounted.
-Modern Magic can mount about 60 root file systems,
-however I have yet to test more than 6.
-When using a single root file system
-then that root file system is typically mounted as
-/+/base/
+Near the end of sysinit real file systems are mounted
+on direct subdirectories of /+/
 
 Modules provide kernel code in files.
 Modules provide code for running hardware, disks, file systems, 
@@ -171,64 +172,33 @@ then the contents of the directory become occluded.
 Instead the content of the attached file system
 is displayed in the directory where it was mounted.
 
-Before a root file system is mounted
-/+/base/ is merely an empty directory.
-After mounting /+/base/ displays a root file system.
+Before mounting /+/base/ might not exist
+or could be an empty directory.
+After mounting /+/base/ contains a real file system.
 During booting only mounts are performed.
 During shutdown and reboot all file systems are unmounted.
 
-After root file systems are mounted
+After real file systems are mounted
 then booting continues by executing some software
-chrooted within the root file system.
+chrooted within the real file system.
 chrooting allows for the file system
 at a given portion of a hierarchy
 to appear as if it's position
 is the root of the hierarchy.
 chroot is short for change root.
 
-Before chrooting a root file system appears at /+/base/.
-After chrooting into /+/base/
-then that same root file system appears at /
-After chrooting the file system formerly mounted at /
-becomes occluded from view.
-Therefore, chrooting into the root file system
-obscures the view of the file system provided on the rootfs.
+After chrooting into     /+/base/
+content that appeared on /+/base/
+now appears to be mounted on /
+Chrooting into a file system
+obscures views of the file systems
+mounted above it in the hierarchy.
 
-Soon after mounting root file systems
-and doing chrooted execution of programs then sysinit ends.
+sysinit ends soon after mounting.
 Run level execution begins entirely chrooted
-within a root file system.
-
-Run level begins execution of programs
-that are appropriate for the run level.
-In addition such programs usually exist
-only on the root file system.
-Programs that execute during run level
-do not have their files provided on the rootfs.
-Therefore, such programs can not begin execution
-until after root file systems are mounted.
-Some exceptions to that rule exist.
-The rootfs typically contains many small utility programs
-that are executed both during sysinit and run level.
-
-The description for each run level is explained in
-/etc/inittab
-/etc/inittab is the configuration file
-for the init process which runs as process 1.
-The selection of software that executes during run level
-depends upon the default run level,
-and the software installed in the root file system.
-
-The run level is typically where
-graphical login programs begin execution.
-Web servers, and email servers also begin
-execution during the run level.
-
-When the run level begins logind starts.
-logind provides prompts to run the login program
-on Linux virtual consoles.
-Each root file system can receive
-it's own login prompt on a virtual console.
+within each file system mounted on a direct
+subdirectory of /+/
+A runlevel defines a collection of software that should run.
 
 login of a user account typically begins
 execution of an interactive BASH shell.
@@ -236,11 +206,10 @@ However, any software can be selected
 to run in place of a shell.
 
 The point at which the run level completes execution
-is typically considered to be the end of booting.
+is typically considered the end of booting.
 However, from a user's perspective
 the moment after the user completes
-a login on a graphical user interface
-and receive a fully functional desktop environment
+a login and receives a shell or a window manager
 might be considered the completion of booting.
 
 Connecting the steps of booting resembles:
@@ -252,10 +221,10 @@ As a generalization the above diagram
 is a commonly occurring pattern.
 
 While in a pre-deployed state
-the rootfs is also acting as a root file system.
-Consequently, login happens on the rootfs
-rather than the root file system.
-And also the amount of RAM used during booting
+the rootfs sufficient installed software
+for generating /+/base/ and other file sytems.
+Also login happens on the rootfs.
+And the amount of memory used during booting
 is far greater during pre-deployment than post deployment.
 
 The purpose of deployment
@@ -269,7 +238,7 @@ The current manifest of installed software projects
 is suitable for the task of deployment
 and repair of previous deployments.
 This limited manifest of software is sometimes called
-a foundation or a skeletal system.
+a base, a foundation, or a skeletal system.
 
 The cold powered off state of a computer
 is something like puzzle pieces scattered in a box.

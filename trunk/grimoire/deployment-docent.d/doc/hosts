@@ -1,47 +1,43 @@
 /etc/hosts is nearly as the manual page describes.
 However, it has an additional purpose.
 It can statically assign
-an IPv4 or IPv6 address
-to the VETH provided to a root file system.
+an IPv4 or IPv6 address to a VETH.
 
 VETH is a virtual Ethernet adapter.
-VETH are created in pairs.
+VETH are created as a pair.
 The VETH pairs act as tunnels.
 
-Each root file system is granted one from a pair of VETH.
+Each real file system is granted one part from a VETH pair.
 The other part of a VETH pair remains in the rootfs.
 One or more IP addresses can be assigned to the VETH.
-Each root file system has it's own unique VETH.
-Services that run in the root file system
-can bind to ports on the root file system's VETH.
-Therefore, a root file system
-can have one or more IP addresses assigned to it's VETH.
+Each real file system has it's own unique VETH.
+Services bind to ports on the VETH.
+Therefore, identicial services such as sshd
+can run on multiple file systems and bind to
+the default port 22 of the provided VETH.
 
 FQDN is a fully qualified domain name.
 rabbit is not a FQDN.
 rabbit.hutch.home could be a FQDN.
 If the hostname for a computer is hutch.home
-then it probably has a root file systems
-with FQDN such as main.hutch.home.
+then it probably has a file systems
+with FQDN such as base.hutch.home.
 
-If the FQDN specified in /etc/rootname
+If the FQDN specified in /etc/hostname
 matches a FQDN specified in /etc/hosts
-then the VETH in the root file system
-receives the IP address that is specified in /etc/hosts
+then the VETH in the file system
+receives the specified IP address.
 And the rootfs network stack receives a routing rule
 that directs packets destined for the address to the VETH.
 
 If a static IP address assignment is not desired
 then at least add a line which reads
 127.0.0.1 localhost
-Consider it tradition.
+Some programs might malfunction without it.
 
-If deploying a box with multiple root file systems
-then all of the FQDNs for each root file system
-can be added to /etc/hosts at this moment.
-A requirement does not exist
-for each root file system to have a unique /etc/hosts
-To the contrary, identical /etc/hosts is a benefit.
-Network topology becomes more obvious.
-And specifying URLs for connection by name
-continues working even when the DNS server is down.
+If deploying with multiple real file systems
+then all of the FQDNs can be added to /etc/hosts
+/etc/hosts can be granted identicial content
+for every instance on a network.
+That allows network topology to be obvious
+with a glance of /etc/hosts

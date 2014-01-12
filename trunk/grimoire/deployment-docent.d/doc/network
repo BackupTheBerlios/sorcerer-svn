@@ -52,10 +52,8 @@ that is less than a decade old.
 
 Configuration of network adapters
 must happen during sysinit.
-The best time is before before the VETH adapters
-are created for root file systems.
-Whatever works becomes the correct method
-for accomplishing the task.
+Best for it to happen before VETH are created.
+Whatever works becomes the proper method.
 
 However, do not edit files that already exist
 in /etc/init.d/
@@ -93,48 +91,26 @@ would not describe network configuration as difficult.
 For a SA that seldom attempts network configuration
 then accomplishing the task could require extra tenacity.
 
-After a computer is deployed then network configuration
-becomes slightly more complex.
+Post deployment network configuration becomes slightly more complex.
 To make a change that is effective on the next boot
-requires login to the main root file system and editing files there.
-To make a change that has an immediate effect such as
-running dhcpcd or configuring for a new wireless network
-requires logging into the rootfs.
-Logging into the rootfs can be accomplished by using
-the logind running on the tty that provides that login.
-Otherwise login to the rootfs can be accomplished from
-any root file system by sshing to port 30 of the
-IP address for the computer.
-
-From the perspective of the root file system
-127.0.0.1 is not the IP address of the computer.
-127.0.0.1 is the IP address for the VETH in the root file system.
-Try the command
-# ssh -p 30 169.254.1.0
-That is the IP address for the first VETH adapter pair created
-for the portion that resides in the rootfs.
-sshd from the rootfs probably bound to that adapter
-and is awaiting connections.
-
-Considering the root file systems to be like virtual computers
-is inaccurate but provides a closer approximation to what they are.
-Each root file system receives
-it's own unique PID namespace
-and it's own unique network namespace.
-Consequently, they do seem a bit like virtual computers
-although they still all utilize the same Linux kernel.
+requires login to /+/base/ and editing files there.
+Making a change for an immediate immediate effect
+requires login to / the rootfs.
+Login to / is required to effect a change because
+the actual network adapters exist in the rootfs.
 
 Having multiple network namespace might seem inconvenient
 when compared to computers that have only one network stack
 where the Ethernet and wireless adapters immediately accessible.
 However, enduring the inconvenience provides additional security.
-The rootfs acts as a firewall for all the root file systems.
+The rootfs acts as a firewall.
 Therefore, if unexpected software
-is running on a root file system
-that is listening to a port
-then connection attempts made to the computer on that port
-might not be forwarded to the process.
-Instructions for configuring port forwarding
-are provided at a later step.
-This step is successfully completed when networking
-is configured to begin on each boot.
+binds without permission to a port
+then no packets will reach that port unless
+the computer's firewall rules are adjusted.
+
+Instructions are provided at a later step
+for configuring port forwarding of packets
+through the firewall.
+This step is successfully completed
+when networking is configured to begin on each boot.

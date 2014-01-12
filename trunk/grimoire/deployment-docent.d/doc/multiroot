@@ -1,39 +1,45 @@
-Until 2013 most POSIX were single root POSIX.
+Until 2013 most POSIX provided
+only a single root or real file system.
 The introduction of unshared namespace and
 virtual Ethernet devices into the Linux kernel
 made possible the potential for creating
-a POSIX with multiple root file systems.
+a POSIX with multiple real file systems.
 
-About 60 root file systems can exist.
-However, testing involved no more than 6 root file systems.
-Each root file system is mounted
+GUID partition tables allow approximately 127 partitions.
+Linux provides by default 64 virtual consoles.
+About 60 real file systems could exist.
+Testing involved no more than 6.
+Each real file system is mounted
 on an immediate sub directory of /+/
-Every deployment requires a minimum of 2 root file systems.
+Every deployment requires a minimum of 2 real file systems.
 
-/+/base/ is the root file system common to all deployments.
-The base root file system provides installed software
+/+/base/ is the real file system common to all deployments.
+The base real file system provides installed software
 suitable for creating initramfs images and updating.
 initramfs provide the files that populate the rootfs.
 
-Other root file systems can be created
+Other real file systems can be created
 that are specific to the role being performed.
-Root file systems on a server might be:
-/+/base/ /+/test/
-/+/mail/ /+/www/
-/+/ftp/  /+/dns/
+Real file systems on a server might be:
+/+/base/
+/+/dns/
+/+/ftp/
+/+/mail/
+/+/test/
+/+/www/
 
-Each root file system contains both role specific software
-and the software required for updating itself.
-Each root file sytem is not unlike a chroot jail.
-Intrusion of one root file system
-might not compromise all root file systems.
+Each contains both role specific software
+and the software required for updating.
+Each is not unlike a chroot jail.
+Intrusion in one file system
+might not compromise all file systems.
 
 If immune-security-tomoyo is also deployed
-then tomoyo can lock interlopers within a root file system.
+then tomoyo can confine interlopers.
 Escape could be very difficult.
 Within a restricted tomoyo domain;
 EUID 0 processes can view as much as expected,
-yet are unable to modify root file system areas such as:
+yet are unable to modify areas such as:
 /etc/ /bin/ /sbin/ /usr/ /opt/
 
 While able to exploit a current vulnerability
@@ -44,28 +50,28 @@ Consequently, an update could fix a vulnerability
 which prohibit the interloper's continued unauthorized access.
 
 At least one computer on a LAN should be a test computer
-or receive a /+/test/ root file system.
-The manifest of installed software should including
-all the software currently installed on other root file systems.
+Or a /+/test/ can be created.
+The manifest for /+/test/
+should including all installed software
+within each real file system.
 /+/test/ should be updated first.
 
 Problems with updates can be observed.
 Services expected responses can be verified.
-Encountering surprises on a /+/test/ root file system
-allows problems to be avoided on production root file systems.
+Encountering surprises on a /+/test/
+allows problems to be anticipated and avoided
+on production servers.
 
 /+/www/ is obviously where the web server runs.
 However, if vhosting
 then the possibility exists where
-each FQDN can receive it's own root file systems.
+each FQDN can receive it's own file systems.
 However, that requires additional IP address
 since vhosting typically associates multiple FQDNs
 with a single IP address.
 
 /+/dns/ could be the place
 where an authoritative name server for a domain runs.
-In contrast the names and roles of workstation's
-root file systems would probably differ.
 
 A possible configuration is:
 /+/base/ ;
@@ -75,10 +81,10 @@ A possible configuration is:
 /+/work/ could contain company approved software.
 /+/work/ could be intended for use on work related tasks only.
 However, a desire to install and run unapproved software could exist.
-/+/user/ can provide a root file system for unapproved software.
+/+/user/ can allow installation of unapproved software.
 The assigned user of the mobile computer can be granted
 the root account password for /+/user/
-Multiple root file systems allow for the possibility
+Multiple real file systems allow for the possibility
 of delegation of authority to separate system administrators.
 
 If not granted an approved method for running unapproved software
@@ -112,7 +118,7 @@ of computers for which the SA is responsible.
 Therefore, the best course of action
 is to plan contingencies
 that help promote sufficient security
-even by those violating rules.
+especially by those violating rules.
 
 People who make rules expect reality to warp
 in accordance with print on paper.
@@ -125,51 +131,49 @@ as best as possible.
 That is what skilled SAs must do.
 
 Are virtual computers preferred
-to multiple root file systems?
+to multiple real file systems?
 The answer varies.
 Security might seem more favorable with virtual computers.
 However, immune-security-tomoyo
 can help close many security gaps.
 
 Resource utilization is more favorable
-with multiple root file systems.
-Multiple root file systems
-are governed by a single Linux kernel.
+when governed by a single Linux kernel.
 A single kernel can
 more effectively use RAM, SWAP, and block device caching.
 A host kernel and guest kernel in a virtual computer
-with memory ballooning is not as efficient as a single Linux kernel.
+with memory ballooning can not approximate
+the efficiency of a single Linux kernel.
 The performance costs for using unshared namespace
 is considerably less than running para virtual computers.
 
-Unshared namespace allows multiple root file systems
+Unshared namespace allows multiple real file systems
 to approximate virtual computing.
-Each root file system will have it's own hostname
-which is stored in the file /etc/rootname.
-Each root file system can have
-it's own list of users groups and passwords.
-Each root file system contains it's own VETH for networking.
+Each receives it's own hostname.
+Each receives it's own users group and password lists.
+Each receives it's own VETH for networking.
 
 If the hostname for the computer is ronin.net
-with root file systems such as:
-/+/base/ /+/dev/ /+/www/
-then the SA might write the rootnames for each as:
-main.ronin.net; dev.ronin.net; www.ronin.net.
+with real file systems such as:
+/+/base/ ;
+/+/dev/ ;
+/+/www/
+then the SA might write the hostname for each as:
+base.ronin.net; dev.ronin.net; www.ronin.net.
 
-The first line from /etc/rootname becomes the rootname.
+The first line from /etc/hostname becomes the hostname.
 Consequently, the hostname of the box can differ.
-The rootname specified in /etc/rootname
+The hostname specified in /etc/hostname
 must be a FQDN, fully qualified domain name.
 A DNS "A record" is not required.
 
-Each root file system also receives an unshared net namespace.
-A VETH, virtual Ethernet adapter,
-is created for each root file system.
+Each real file system receives an unshared net namespace.
+A VETH, virtual Ethernet adapter, is created.
 VETH devices are created in pairs.
 Each part of the pair acts like endpoints of a tunnel.
-One VETH adapter is moved into each root file system
-and the other portion of the pair remains in the rootfs.
-This way root file systems can send and receive packets
+One VETH adapter is moved into each unshared net namespace.
+The other VETH in a pair remains in the rootfs net namespace.
+This way each VETH can send and receive packets
 with the networking stack in the rootfs.
 Consequently, the actual network adapters
 can remain in the rootfs's net namespace.
@@ -177,80 +181,55 @@ can remain in the rootfs's net namespace.
 IP addresses are assigned to each VETH.
 The IP addresses assigned to VETH are
 from the non-routable 169.254.1.0 to 169.254.254.255 range.
-Those IP addresses are designated for dynamic assignment
-in situations where DHCP is not used.
-The network stack in the rootfs is configured as a NAT,
-network address translator, for each root file system.
-Outbound TCP and UDP connections from root file systems
-will work without additional configuration.
-However, SAs must explicitly designate the ports
-that are forwarded from the rootfs network adapters
-to ports on the VETH in a root file system.
-In that configuration the rootfs network stack
-acts as a NATting firewall for root file systems.
+Those IP addresses are designated
+for dynamic assignment in situations
+where DHCP is not used.
+The network stack in the rootfs
+is configured as a NAT, network address translator.
+Outbound TCP and UDP connections work without additional configuration.
+Inbound connections must be explicitly allowed.
 
-If the /etc/hosts in a root file system specifies
-an IP address and the FQDN that matches the rootname
-then the VETH is configured also with that IP address
-and a route is created in the net namespace of the rootfs
-that directs all packets with that destination
-to the VETH for that root file system.
-With a routed IP address
-then the NAT functionality can be ignored
-and all ports for the routed IP address can connect.
-The IP address assigned to a root file system
-can be globally routable or
-from the non-routable IP address ranges
-provided that it does not conflict
-with assignment of IP address
-of other computers on the network.
+A VETH can be configured with additional IP addresses.
+Specify the FQDN and IP address in /etc/hosts
+A complimentary route will be created in the rootfs.
 
-Using explicit port forwarding and NATting provides
-additional security for a minuscule inconvenience
-of additional configuration.
-Using routable IP address provides the convenience
-of directly connecting to the ports of the VETH.
-Both are excellent choices.
-
-The non VETH network adapters in the rootfs net namespace
+The non VETH or ACTUAL network adapters
+located in the rootfs net namespace
 can be assigned IP addresses by a DHCP server.
-However, root file systems
-should NEVER have their VETH configured by DHCP.
-Such a configuration does not work as expected.
-Nothing informs the rootfs net namespace
-to create a routing rule.
-Without a rule;
-the rootfs network stack rejects packets
-that would reach a VETH
-if the proper rule existed.
+However, VETH will never be assigned IP addresses by DHCP.
+DHCP running during a runlevel can assign an IP address to a VETH,
+yet the complimentary route in the rootfs namespace is NOT created.
+Therefore, packets will not route.
 
-/etc/port.forward in the rootfs describes
-the ports to forward from the rootfs's network adapters
-to ports of the VETH within root file systems.
-The file must exist also on the root file system
-which generates the intiramfs images
-that are used to populate the rootfs during booting.
-/etc/port.receive in a root file system
-requests that ports be forward to
-that root file system's VETH.
-
-The content of those files determine which ports are forwarded.
+/etc/port.forward describes the ports to forward to VETH adapters.
+If /+/base/ is already deployed then edit the file as
+/+/base/etc/port.forward when logged into /
+or as  /etc/port.forward when logged into /+/base/
 
 Each line of /etc/port.forward contain 3 fields.
 The field separator can be space or tab.
-The first field is the FQDN for a root file system.
-The FQDN must match the content of only one
-/etc/rootname in all of the root file systems.
-The second field provides a port number or range
-for the actual network adapters in the rootfs.
-The final field provides the port numbers or range
-for the VETH adapter in the root file system.
+The first field is a FQDN.
+The FQDN must exactly match the content of /+/*/etc/hostname
+The second field provides an  inbound port number.
+The final field provides the outbound port number
+as packets will appear on the VETH.
 
-/etc/port.receive syntax is nearly the same as 
-/etc/port.forward
-Since the FQDN of the root file system
-is already known; delete the first field.
-Consequently, /etc/port.receive files
+Consider /+/www/
+/etc/port.forward could contain the line:
+www.muffins.eat 80 8080
+
+A service running in /+/www/ can bind to port 8080.
+And it will receive packets routed to www.muffins.eat:80
+
+Or for simplicity sshd could be enabled with the line:
+www.muffins.eat 22 22
+
+Chaning the port number is optional.
+
+Syntax for the file                /etc/port.receive 
+is nearly the same as for the file /etc/port.forward
+Since the FQDN is already known; delete the first field.
+Consequently, /etc/port.receive 
 contain only two fields
 and a single field separator per line.
 
@@ -258,34 +237,34 @@ For menu driven configuration run:
 
 /etc/init.d/port.forward configure
 
-within the root file system
-that constructs the initramfs images used for booting.
+while logged into /+/base/
+
 Or for menu driven configuration run:
 
 /etc/init.d/port.receive configure
 
-within the root file system that is requesting
-ports to be forwarded.
+within the a real file system that
+wants to request ports to be forward.
 
 Security is the reason
-for implementing two methods for forwarding ports.
-If the SA determines that requests for port forwarding
-should be ignored then that can be accomplished with the command:
+for implementing two separate methods for forwarding ports.
+If real file systems should not be allowed to request
+ports be forwarded to them
+then requests for port forwarding can be ignored
+by executing the commands:
 
-chmod 400 /etc/init.d/port.receive
+chattri -i /+/base/etc/init.d/port.receive
+chmod 400  /+/base/etc/init.d/port.receive
 
-Changing the mode to read only for /etc/init.d/port.receive
-must be done within the root file system
-that is used to construct the initramfs images
-that provide the content for the rootfs.
+while logged into /
 
 As previously mentioned,
 static assignment of an IP address to a VETH
 automatically grants a complimentary route
 from the rootfs network adapters to the VETH.
 If done then the VETH adapter should be accessible on the network.
-The root file system will appear as if
-it were a stand-alone computer on the network.
+The configured VETH within a real file system
+appear as if it were a stand-alone computer on the network.
 Port forwarding is not required when a VETH
 was assigned a routable IP address.
 However, port forwarding still works.
@@ -294,20 +273,19 @@ The port forwarding method provides security.
 The static assignment of IP address provides convenience.
 If an IPv6 address is desired for a VETH
 then that IPv6 address must be entered into the /etc/hosts
-inside that root file system.
-IP_ADDRESS	rootname	nickname
+IP_ADDRESS	hostname	nickname
 If the format for /etc/hosts is not already known
 then the manual page for it provides the details.
 man hosts
 The above command displays the manual page for /etc/hosts
 
 The unshared PID namespace creates the illusion
-that process processes running in the root file system
-are the only processes begin run by the Linux kernel.
+that process processes within a real file system
+are the only processes.
 
 Using a combination of unshared
 MNT, UTS, IPC, NET and PID namespace
-allows each root file system to seem
+allows each real file system to seem
 nearly as if it was it's own computer.
 If Linux capabilities are discarded
 from the processes in the namespace
@@ -317,7 +295,6 @@ then escape from the name space
 becomes difficult or perhaps impossible.
 
 Obviously, since a single Linux kernel
-is in use for all of the root file systems;
 a certain amount of damage can be accomplished
 with EUID 0 and a malicious intent.
 
@@ -335,11 +312,11 @@ Use of unshared namespace was conceived in 2000.
 However, the kernel implementation, glibc functions,
 and command line tools are new toys for 2012/2013.
 Consequently, not all POSIX will be revised
-to support multiple root file systems
-when using virtual computers
-provides a similar solution.
+to support multiple real file systems.
+The interest may be lacking when
+virtual computing provides a similar solution.
 
-Now that the concept of individual root file systems
+Now that the concept file systems
 mounted on /+/*/ is understood
 the difference between rootfs and /+/base/
 should be learned.
@@ -353,10 +330,10 @@ And TMPFS is assigned a capacity and inode limit.
 The rootfs has all of the characteristics of RAMFS
 yet can be swapped like TMPFS.
 
-The purpose of rootfs is to provide a root file system
+The purpose of rootfs is to provide a file system
 until disk or network based file systems can be mounted.
 At that point most POSIX discard the content of their rootfs
-and entirely chroot into the root file system.
+and entirely chroot into a single file system.
 
 The rootfs is populated from the content of initramfs images.
 initramfs images are cpio archive files.
@@ -394,7 +371,7 @@ Consequently, modifications to the rootfs
 are discarded during reboot and shutdown.
 
 /+/base/ is the typical origin of the rootfs.
-The root file system that generates
+The file system that generates
 the initramfs images should be updated and modified.
 Modifications made to that file system
 become modifications to the rootfs on the following boot.
@@ -449,7 +426,7 @@ Failure requires a DI, Deployment Image.
 If the rootfs is successful
 then the content of the rootfs is removed
 and execution continues after chrooting
-into a single root file system.
+into a single file system.
 
 For all the effort and time required
 to generate initramfs images
@@ -463,7 +440,7 @@ The rootfs remains a stable platform
 for investigating and sniping problems
 from a vantage point beyond potential retaliation.
 The rootfs can be logged into.
-Then all root file systems can be unmounted.
+Then all file systems can be unmounted.
 File systems can be fscked.
 New file systems can be created.
 Backups can be restored.

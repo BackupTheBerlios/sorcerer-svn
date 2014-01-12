@@ -34,8 +34,9 @@ declare -A ARGOT ASK DOCS FORE YORE GOAL HELP HINT
 progress(){ YORE[$1]="$2"; FORE[$1]="$3"; }
 
 progress origin			Introduction		Introduction
-progress Introduction		Introduction		POST
-progress POST			Introduction		rootfs
+progress Introduction		Introduction		ln
+progress ln			Introduction		POST
+progress POST			ln			rootfs
 progress rootfs			POST			date
 progress date			rootfs			password
 progress password		date			ALSA
@@ -73,14 +74,14 @@ progress reap			update			account
 progress account		reap			groups
 progress groups			account			DIR
 progress DIR			groups			manifest
-progress manifest		DIR			inittab
-progress inittab		manifest		scry
-progress scry			inittab			retry
-progress retry			scry			reboot
+progress manifest		DIR			survey
+progress survey			manifest		retry
+progress retry			survey			login
+progress login			retry			reboot
 
 stock DOCS[Introduction] \
 "man less"				"$RIGHT" $"# learn to use the pager program" "\n" \
-"less /usr/doc/docent/intro"		"$RIGHT" $"# please read the introduction" "\n" \
+"less /usr/doc/deployment-docent/intro"	"$RIGHT" $"# please read the introduction" "\n" \
 "man man"				"$RIGHT" $"# learn to read manual pages"     "\n" \
 "man xz"				"$RIGHT" $"# learn to decompress documents" "\n" \
 "man bash"                              "$RIGHT" $"# learn to wield the shell" "\n" \
@@ -106,13 +107,31 @@ GOAL[Introduction]=$"Comprehension"
 stock HINT[Introduction] $"The docs command presents command lines." "\n" \
 $"Executing command lines displays relevant documentation."
 
+stock DOCS[ln] "less /usr/share/doc/deployment-docent/ln" "$RIGHT"
+stock GOAL[ln] "create symbolic links"
+stock HINT[ln] "cd; ln -s /usr/share/doc/ d; ln -s /usr/share/doc/docent/ dd; ln -s /usr/src/linux/Documentation/ l"
+
+test_ln(){
+ if   ! [ -h ~/g ];         then echo "~/g should but is not a symbolic link"
+ elif ! [ -d ~/g ];         then echo "~/g should point to a directory but does not"
+ elif ! [ -d ~/dd/docent/ ]; then echo "~/g points to the wrong location"
+ elif ! [ -h ~/t ];         then echo "~/t should but is not a symbolic link"
+ elif ! [ -d ~/t ];         then echo "~/t should point to a directory but does not"
+ elif ! [ -f ~/t/ln ];      then echo "~/t points to the wrong location"
+ elif ! [ -h ~/l ];         then echo "~/l should but is not a symbolic link"
+ elif ! [ -d ~/l ];         then echo "~/l should point to a directory but does not"
+ elif ! [ -d ~/l/vm/ ];     then echo "~/l points to the wrong location"
+                            else echo "Symbolic links appear to be correct."
+ fi
+}
+
 stock DOCS[POST] \
-"less /usr/doc/docent/POST_to_Present"	"$RIGHT" $"# learn the steps of booting"
+"less dd/POST_to_Present"	"$RIGHT" $"# learn the steps of booting"
 stock GOAL[POST] $"Understand booting"
 stock HINT[POST] $"Proper deployment achieves successful booting."
 
 stock DOCS[rootfs] "less /usr/src/linux/Documentation/filesystems/ramfs-rootfs-initramfs.txt" \
-"\n" "less /usr/doc/docent/rootfs"
+"\n" "less dd/rootfs"
 stock GOAL[rootfs] $"Understand the purpose and position of rootfs"
 stock HINT[rootfs] $"Learn how rootfs and root file system differ."
 
@@ -164,7 +183,7 @@ stock ASK[inittab]	$"the configuration file for the init process which runs as p
 stock ASK[login]	$"the process of providing credentials followed by authentication which if successful grants permission to start processes as the user"
 
 stock GOAL[ALSA] $"Configure audio"
-stock DOCS[ALSA] "less /usr/doc/docent/ALSA" "\n" \
+stock DOCS[ALSA] "less dd/ALSA" "\n" \
                  "man alsamixer" "\n" \
                  "man alsaconf"  "\n" \
                  "man mocp"
@@ -173,12 +192,12 @@ stock HINT[ALSA] $"audio works often without configuration." "\n" \
 
 stock ARGOT[ALSA] "ALSA speaker-test mocp"
 stock ASK[ALSA]	$"Advanced Linux Sound Architecture is the current standard for excellent audio output on linux boxes"
-stock ASK[speaker-test] $"if audio is expect to work then try running speaker-test as suggested in /usr/doc/docent/ALSA to verify proper speaker position"
+stock ASK[speaker-test] $"if audio is expect to work then try running speaker-test as suggested in dd/ALSA to verify proper speaker position"
 stock ASK[alsaconf] $"If udev failed to load the audio kernel module during runlevel then alsaconf can assist with discovering which module to load and making the the load an explicitly requested during every boot"
 stock ASK[mocp] $"Music on Console Player is a program for playing audio files"
 
 stock DOCS[Plan] \
-"less /usr/doc/docent/plan"		"$RIGHT" $"# plan to achieve success"
+"less dd/plan"		"$RIGHT" $"# plan to achieve success"
 stock GOAL[Plan] $"Select Deployment Plan"
 stock HINT[Plan] $"Select or modify a sensible plan."
 
@@ -201,11 +220,11 @@ stock ASK[encryption]	$"a method for storing data where the data is can not be u
 
 stock DOCS[FHS] \
 "gzip -cd /usr/share/fhs.txt.gz | less" "$RIGHT" $"# learn the logic of file system loadout" "\n" \
-"less /usr/doc/docent/fhs"	 	"$RIGHT" $"# learn this POSIX's variation"
+"less dd/fhs"	 	"$RIGHT" $"# learn this POSIX's variation"
 
 stock GOAL[FHS] $"Comprehension"
 stock HINT[FHS] $"FHS describes almost everything about a root file system." "\n" \
-                $"However, the /aux/ hierarchy is described in the /usr/doc/docent/fhs"
+                $"However, the /aux/ hierarchy is described in the dd/fhs"
 
 stock ARGOT[FHS] $"FHS"
 stock ASK[FHS]	$"File System Hierarchy Standard is documentation that describes the organization local and purpose of directories"
@@ -235,7 +254,7 @@ stock ASK[modprobe]	$"program for loading a kernel module from disk into RAM"
 stock ASK[rmmod]	$"program for removing a loaded kernel module"
 
 stock DOCS[navigation] \
-"less /usr/doc/docent/navigation"       "$RIGHT" $"# learn base lore"
+"less dd/navigation"       "$RIGHT" $"# learn base lore"
 GOAL[navigation]=$"Learn cd find ls nano sed xargs"
 HINT[navigation]=$"Skilled SA should skip this step."
 
@@ -254,12 +273,12 @@ stock ASK[ls]		$"who does not occasionally wonder why the list command was calle
 stock DOCS[/dev/] \
 "less /usr/src/linux/Documentation/devices.txt" "\n" \
                                         "$RIGHT" $"# learn device names" "\n" \
-"less /usr/doc/docent/dev"              "$RIGHT" $"# important devices"
+"less dd/dev"              "$RIGHT" $"# important devices"
 GOAL[/dev/]="Learn device node nomenclature"
 HINT[/dev/]="Learn the device node names for fixed disks and partitions."
 
 stock DOCS[Partition] \
-"less /usr/doc/docent/partition"	"$RIGHT" $"# partitioning summarized" "\n" \
+"less dd/partition"	"$RIGHT" $"# partitioning summarized" "\n" \
 "xz -cd /usr/share/tldp/Partition.xz"	"$RIGHT" $"# learn about partitioning" "\n" \
 "less /usr/doc/syslinux/gpt.txt"	"$RIGHT" $"# learn about GPT" "\n" \
 "man gdisk"				"$RIGHT" $"# partition table manipulator" "\n" \
@@ -289,7 +308,7 @@ test_Partition(){
 }
 
 stock DOCS[MBR] \
-"less /usr/doc/docent/mbr"              "$RIGHT" $"# learn the MBR"
+"less dd/mbr"              "$RIGHT" $"# learn the MBR"
 
 GOAL[MBR]=$"Install a bootable MBR"
 stock HINT[MBR] "cat /usr/share/syslinux/gptmbr.bin > /dev/sda" "\n"
@@ -335,7 +354,7 @@ $"Therefore, at least learning it's capabilities is useful."
 
 stock DOCS[LUKS] \
 "man cryptsetup"                        "$RIGHT" $"# learn LUKS encryption command" "\n" \
-"less /usr/doc/docent/LUKS"
+"less dd/LUKS"
 stock GOAL[LUKS] $"Optionally encrypt block devices"
 stock HINT[LUKS] $"When the root file system reside on a LUKS encrypted device" "\n" \
 $"then an unencrypted ext2 /boot partition must also exist." "\n" \
@@ -367,7 +386,7 @@ stock DOCS[mkfs] \
 "{btrfs,ext4,jfs,ocfs2,xfs}.txt | less" "\n" \
 "man mkfs.{btrfs,ext4,ocfs2,xfs} jfs_mkfs" "\n" \
 "xz -cd /usr/share/tldp/Filesystems-HOWTO.xz | less" "\n" \
-"less /usr/doc/docent/plan"
+"less dd/plan"
 
 stock GOAL[mkfs] $"Initialize file systems"
 stock HINT[mkfs] $"Device node name is an essential command line parameter." "\n" \
@@ -375,8 +394,8 @@ $"Other parameters suggested in manual pages are optional."
 
 stock DOCS[mkswap] \
 "man mkswap" "\n" \
-"less /usr/doc/docent/swap" "\n" \
-"less /usr/doc/docent/plan"
+"less dd/swap" "\n" \
+"less dd/plan"
 
 stock GOAL[mkswap] $"Initialize swap partitions"
 stock HINT[mkswap] $"mkswap device_node" "\n" \
@@ -397,8 +416,8 @@ test_mkswap(){
 
 stock DOCS[mkdir] \
 "man mkdir" "\n" \
-"less /usr/doc/docent/mkdir" "\n" \
-"less /usr/doc/docent/plan"
+"less dd/mkdir" "\n" \
+"less dd/plan"
 
 stock GOAL[mkdir] $"Make mount points"
 stock HINT[mkdir] $"mkdir -pm 755 /+/base/" "\n" \
@@ -415,8 +434,8 @@ test_mkdir(){
 
 stock DOCS[mount] \
 "man mount" "\n" \
-"less /usr/doc/docent/mount" "\n" \
-"less /usr/doc/docent/plan"
+"less dd/mount" "\n" \
+"less dd/plan"
 
 stock GOAL[mount] $"Mount file systems"
 stock HINT[mount] $"Mount in proper order all of the file systems specified by the selected plan."
@@ -443,7 +462,7 @@ test_mount(){
 
 stock DOCS[fstab] \
 "man fstab" "\n" \
-"less /usr/doc/docent/fstab"
+"less dd/fstab"
 
 stock GOAL[fstab] $"Make a valid /aux/set/rootfs/etc/fstab"
 stock HINT[fstab] "nano /aux/set/rootfs/etc/fstab"
@@ -512,7 +531,7 @@ $"Execution of the above command completes this step."
 #  fi
 # }
 
-stock DOCS[account] "man useradd" "\n" "man groupadd" "\n" "/usr/doc/docent/account"
+stock DOCS[account] "man useradd" "\n" "man groupadd" "\n" "dd/account"
 stock GOAL[account] $"Create a user account and group"
 stock HINT[account] $"For convenience an adduser script exists." "\n" \
                     $"adduser will run useradd, groupadd, and create a mail spool entry."
@@ -524,7 +543,7 @@ $"Replace username with the name of the user account." "\n" \
 $"Running the above command completes this step" "\n" \
 $"Group memberships grant additional privileges to a user."
 
-stock DOCS[boothash] "less /usr/doc/docent/boothash"
+stock DOCS[boothash] "less dd/boothash"
 stock GOAL[boothash] $"Change the boot password"
 stock HINT[boothash] 'sed -i \"s|PASSWD.*|PASSWD\\\t\$( md5crypt <<< \"unique\")|\" /etc/extlinux/head' "\n" \
 $"Substitute something clever for unique." "\n" \
@@ -542,7 +561,7 @@ test_boothash(){
 }
 
 stock DOCS[cp] "man cp" "\n" \
-               "less /usr/doc/docent/cp"
+               "less dd/cp"
 stock GOAL[cp] $"Copy rootfs to new root file system"
 stock HINT[cp] $"cp -ax / /usr/ /+/base/"	"$RIGHT" $"# copies the files."
 stock ARGOT[cp] "cp"
@@ -560,7 +579,7 @@ test_cp(){
  fi
 }
 
-stock DOCS[rbind] "man mount" "\n" "less /usr/doc/docent/rbind"
+stock DOCS[rbind] "man mount" "\n" "less dd/rbind"
 stock GOAL[rbind] $"rbind virtual file systems"
 stock HINT[rbind] \
 "mount --rbind {,/+/main}/dev"  "\n" \
@@ -577,7 +596,7 @@ test_rbind(){
  fi
 }
 
-stock DOCS[chroot] "man chroot" "\n" "less /usr/doc/docent/chroot"
+stock DOCS[chroot] "man chroot" "\n" "less dd/chroot"
 stock GOAL[chroot] $"Install bootloader"
 stock HINT[chroot] \
 "chroot /+/base/ /etc/init.d/extlinux force-reload" "\n" \
@@ -612,10 +631,10 @@ $"The above command immediately reboots without executing runlevel 6." "\n" \
 $"Remember to eject CDROMs DVDs or disconnect USB SSDs." "\n" \
 $"The next boot will use the mass storage device."
 
-stock DOCS[hostname]  "man -a hostname" "\n" "less /usr/doc/docent/hostname"
+stock DOCS[hostname]  "man -a hostname" "\n" "less dd/hostname"
 stock GOAL[hostname] $"Assign hostnames"
 stock HINT[hostname]  "nano /etc/{,rootfs/}hostname"
-stock DOCS[hosts]     "man hosts" "\n" "less /usr/doc/docent/hosts"
+stock DOCS[hosts]     "man hosts" "\n" "less dd/hosts"
 stock GOAL[hosts]    $"Edit /etc/hosts"
 stock HINT[hosts]     "nano /etc/hosts"
 
@@ -650,7 +669,7 @@ stock DOCS[network] "less /usr/share/tldp/Unix-and-Internet-Fundamentals-HOWTO.x
 "less /usr/share/tldp/Home-Network-mini-HOWTO.xz" "\n" \
 "man ip" "\n" \
 "less /etc/networks.d/templates/README" "\n" \
-"less /usr/doc/docent/network"
+"less dd/network"
 
 stock GOAL[network] $"Configure network interface"
 stock HINT[network] $"Hopefully automatic network configuration worked." "\n" \
@@ -674,37 +693,37 @@ test_feature(){
  fi
 }
 
-stock DOCS[update] "less /usr/doc/docent/update" "\n" \
-                   "au" "\n" "au help sync" "\n" "au help scry"
+stock DOCS[update] "less dd/update" "\n" \
+                   "au" "\n" "au help sync" "\n" "au help survey"
 stock GOAL[update] $"Update installed software projects"
-stock HINT[update] "au merge; au sync; au scry"
+stock HINT[update] "au merge; au sync; au survey"
 
-stock DOCS[DIR] "less /usr/doc/docent/DIR"
+stock DOCS[DIR] "less dd/DIR"
 stock GOAL[DIR] $"Create a bootable USB SSD from /+/base/"
-stock HINT[DIR] "less /usr/doc/docent/DIR"
+stock HINT[DIR] "less dd/DIR"
 
-stock DOCS[manifest] "au help begin" "\n" "less /usr/doc/docent/manifest"
+stock DOCS[manifest] "au help begin" "\n" "less dd/manifest"
 stock GOAL[manifest] "Install additional software"
-stock HINT[manifest] "au merge; au begin firefox kde xorg; au begin; au scry"
+stock HINT[manifest] "au merge; au begin enlightenment firefox xorg; au begin; au survey"
 
-stock DOCS[reap] "au help queue" "\n" "less /usr/doc/docent/reap"
+stock DOCS[reap] "au help queue" "\n" "less dd/reap"
 stock GOAL[reap] $"Uninstall the deployment docent"
 stock HINT[reap] "au begin reap/{deployment-docent,wesnoth-music-samples}" "\n" \
-                 "au begin" "\n" "au scry"
+                 "au begin" "\n" "au survey"
 
-stock DOCS[inittab] "man inittab" "\n" "less /usr/doc/docent/inittab"
+stock DOCS[inittab] "man inittab" "\n" "less dd/inittab"
 stock GOAL[inittab] $"Modify /etc/inittab if desirable"
 stock HINT[inittab] "nano /etc/inittab"
 
-stock DOCS[multiroot] "less /usr/doc/docent/multiroot"
+stock DOCS[multiroot] "less dd/multiroot"
 stock GOAL[multiroot] "Understand multiroot deployment"
 stock HINT[multiroot] $"The advanced concept of multiple root file systems is supported"
 
-stock DOCS[scry] "au help"
-stock GOAL[scry] "Monitor the progress of software installation"
-stock HINT[scry] "au begin; au scry"
+stock DOCS[survey] "au help"
+stock GOAL[survey] "Monitor the progress of software installation"
+stock HINT[survey] "au begin; au survey"
 
-stock DOCS[retry] "au help" "\n" "less /usr/doc/docent/retry"
+stock DOCS[retry] "au help" "\n" "less dd/retry"
 stock GOAL[retry] "Retry software that failed to install"
 stock HINT[retry] "au queue | sed 's:moil/failed/:moil/:p;d' | au begin"
 
@@ -805,7 +824,7 @@ test(){
 }
  
 if   [ 1 == "$( /bin/stat -c %D / )" ]
-then STEP=origin; less /usr/doc/docent/intro
+then STEP=origin; less dd/intro
 else STEP=resume
 fi
 

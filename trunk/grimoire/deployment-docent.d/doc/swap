@@ -60,17 +60,9 @@ Some plans have dedicated swap partitions.
 If the plan has a dedicated swap partition
 then initialize the swap partition.
 Also add the swap partition to file
-/+/main/etc/fstab
+/+/base/etc/fstab
 The above file is created at a later step
 So do not edit it yet.
-
-/bin/swapon -a
-The above command does not yet support
-the -T parameter for specifying the fstab file.
-Therefore, /etc/init.d/swap activates the swap spaces
-specified in /etc/fstab on a root file system during runlevel.
-/etc/fstab.rootfs is used during sysinit
-for mounting file systems that attach to the rootfs.
 
 Some plans lack a dedicated swap partition.
 That is not problematic.
@@ -197,29 +189,24 @@ However, limiting each process is inconvenient.
 Therefore, several processes can be grouped together.
 Then the limit can be applied to the group.
 
-Limits can be applied to root file systems
+Limits can be applied to real file systems
 by modifying the control groups initialization
 that is done during sysinit.
-The command to run from the root file system
-that generates the initramfs images would be
-/etc/init.d/cgroup-init-rootfs configure
+The command to run while logged into /+/base/ is:
 
-If within a root file system
-and limits are desired for a user or users
-or system started services, etc...
-then those limits can be adjusted by running
-/etc/init.d/cgroup-init-root configure
+/etc/init.d/set configure
 
-Controls groups are explained in directory
+Controls groups are explained by files within directory
 /usr/src/linux/Documentation/cgroups/
 The documentation for the memory subsystem is in
 /usr/src/linux/Documentation/cgroups/memory.txt
+The command to easily read all of it is:
+
+cat ~/l/cgroups/* | less
 
 When running
-/etc/init.d/cgroup-init-rootfs configure
-then the directories are the FQDN for each root file system.
-If the FQDN for the testing root file system is
-test.bcgnt.gov
-then /sys/fs/cgroup/test.bcgnt.gov/ would exist
-and contain the hierarchy for that root file system.
+/etc/init.d/set configure
+then FQDNs become directory names.
+If the FQDN is test.bcgnt.gov
+then /aux/set/rootfs/sys/fs/cgroup/test.bcgnt.gov/ would exist
 Limits can be set there.

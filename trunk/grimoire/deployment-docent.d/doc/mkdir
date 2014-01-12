@@ -17,20 +17,20 @@ And /root/ is the name of the home directory for the
 system administration account.
 
 The current file system
-is not a root file system.
+is not a real file system.
 It is the rootfs file system.
-However, it is unusual for a rootfs.
+However, the deployment image rootfs is unusual.
 It contains nearly every file
-that would be present on a root file system.
+that would be present on a real file system.
 
-On a deployed box the initramfs images that populates
-the rootfs are created from the root file system.
-In a pre-deployed state the root file system
+initramfs images that populate the rootfs
+are created from the /+/base/ file system.
+In a pre-deployed state the real file system
 will be created from the contents of the rootfs.
 
-Part of the deployment process is to create a root file system.
+Part of the deployment process is to create a /+/base/
 Since rootfs is already mounted as /
-the root file system must be mounted elsewhere.
+real file system must be mounted elsewhere.
 Consequently, the mount point becomes
 /+/base/
 
@@ -38,8 +38,24 @@ The command to create the mount point is:
 
 mkdir -pm 755 /+/base/
 
-Before the initialized root file system can be mounted
+Before the initialized file system can be mounted
 please create the mount point using the aforementioned command.
 
-If deploying with multiple root file systems
-then create the mount point for each root file system.
+If deploying with multiple real file systems
+then create the mount point for each real file system.
+
+For example, to create:
+/+/base/
+/+/food/
+/+/test/
+/+/work/
+
+the command becomes:
+
+mkdir -pm 755 /+/{base,food,test,work}/
+
+Every real file system is mounted on a direct subdirectory of /+/
+Using /+/ simply avoids confusion so that if the same
+file system appears at different places due to a bind
+then only the one as an immediate subdirectory of /+/
+becomes initialized during runlevel.
