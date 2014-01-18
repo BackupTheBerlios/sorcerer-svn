@@ -1,7 +1,5 @@
-# 2.7.0 2.6.1 failed to compile
-
-#with trait   broke
-with info    last 20130602
+with info    good 20140118
+with info    last 20130616
 with version   stable 2.7.0 2.6.1
 with base    SDL lua libtheora libvorbis
 #with also    -DCMAKE_BUILD_TYPE:STRING=Release 
@@ -13,17 +11,24 @@ with info    cite 'futuristic real time strategy game (RTS)'
 
 build(){
  make_install(){
-  mkdir  -pvm 755         "$DESTDIR"/usr/share/boswars
-  mv      -v  campaigns graphics intro maps patches scripts sounds units \
-                          "$DESTDIR"/usr/share/boswars/
+  install -vm 755 -d "$DESTDIR"/usr/share/boswars/
+  mv      -v      -t "$DESTDIR"/usr/share/boswars/ \
+          campaigns graphics intro maps patches scripts sounds units
   find "$DESTDIR" -type d | xargs --max-lines=64 chmod 755
   find "$DESTDIR" -type f | xargs --max-lines=64 chmod 644
-  mkdir  -pvm 755         "$DESTDIR"/usr/libexec
-  install -vm 755 boswars "$DESTDIR"/usr/libexec/
-  mkdir  -pvm 755         "$DESTDIR"/usr/bin
-  install -vm 755         "$SCRIPT_DIR"/boswars \
-                          "$DESTDIR"/usr/bin/
+  install -vm 755 -d "$DESTDIR"/usr/libexec/
+  install -vm 755 -t "$DESTDIR"/usr/libexec/ build/boswars-release
+  install -vm 755 -d "$DESTDIR"/usr/bin/
+  install -vm 755 -t "$DESTDIR"/usr/bin/ "$SCRIPT_DIR"/boswars
  }
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then sed -i "s:'/usr/lib', '/usr/X11R6/lib':'/usr/lib64':" SConstruct
+ else sed -i "s:'/usr/lib', '/usr/X11R6/lib':'/usr/lib':"   SConstruct
+ fi
+
+ export PATH="${PATH//\/usr\/libexec\/ccache:/}"
  scons &&
+ [ -f build/boswars-release ] &&
  make_install
 }
