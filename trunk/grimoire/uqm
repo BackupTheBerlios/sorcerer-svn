@@ -1,58 +1,43 @@
 with info    good 20140120
 with info    last 20110704
-
-case $TECHNIC in
- uqm) 
 with version stable 0.7.0
-with base    MesaLib SDL_image audiofile libmikmod libvorbis uqm-content
-with elect   uqm-3domusic '' '' for excellent but large music files
-with elect   uqm-remix    '' '' for remixed music instead of original music
-with elect   uqm-voice    '' '' for excellent but large voice files
-with source  stable $SOURCEFORGE_URL sc2/UQM/${VERSION:0:3}/uqm-$VERSION-source.tgz ;;
-   *)
-with trait   x11
- pre_build(){ :; } ;;
-esac
+with base    MesaLib SDL_image audiofile libmikmod libvorbis
+with source  stable $SOURCEFORGE_URL "sc2/UQM/${VERSION:0:3}/uqm-$VERSION-source.tgz"
+with source  stable $SOURCEFORGE_URL "sc2/UQM/${VERSION:0:3}/uqm-$VERSION-content.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM/${VERSION:0:3}/uqm-$VERSION-3domusic.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM/${VERSION:0:3}/uqm-$VERSION-voice.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM%20Remix%20Packs/UQM%20Remix%20Pack%201/uqm-remix-disc1.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM%20Remix%20Packs/UQM%20Remix%20Pack%202/uqm-remix-disc2.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM%20Remix%20Packs/UQM%20Remix%20Pack%203/uqm-remix-disc3.uqm"
+with source  stable $SOURCEFORGE_URL "sc2/UQM%20Remix%20Packs/UQM%20Remix%20Pack%204/uqm-remix-disc4.uqm"
 with role    game
 with trait   makej optimize x11
 with info    home http://sc2.sourceforge.net
-with info    cite 'port of the 3DO version of the game StarControl 2'
+with info    cite 'port of the 3DO version of the game StarControl 2
+uqm provides 370 megabytes of 2D space combat
+while adventuring through a hostile enslaved galaxy
+with the ultimate goal of defeating the Ur Quan Masters
+and liberating Earth and other enslaves sentient species.'
 
 build(){
- install_source(){
-  mkdir -pvm 755 content
-  echo |
+ echo |
  ./build.sh uqm depend  &&
  ./build.sh uqm         &&
  ./build.sh uqm install &&
-  install -vm 755 -d "$DESTDIR"/usr/share/uqm/content/ &&
-  echo "$VERSION"  > "$DESTDIR"/usr/share/uqm/content/version
- }
-
-
- install_data(){
-  local d="$DESTDIR"/usr/share/uqm/content/packages
-  install -vm 755 -d "$d" &&
-  install -vm 644 -t "$d" -o root -g root "$SOURCE"
- }
-
-
- install_addons(){
-  local d="$DESTDIR"/usr/share/uqm/content/addons/
-  install -vm 755 -d "$d"
-  while [[ -n $1 ]]; do
-   if   [[ -f $1 ]]
-   then install -vm 644 -t "$d" "$1"; shift
-   else echo "Missing $1" 1>&2; return 1
-   fi
-  done
- }
-
- case $TECHNIC in
-  uqm)          install_source ;;
-  uqm-remix)    install_addons "${SOURCE[@]}" ;;
-  uqm-voice)    install_addons "${SOURCE[@]}" ;;
-  uqm-3domusic) install_addons "${SOURCE[@]}" ;;
-  *)            install_data ;;
- esac
+ install -vm 755 -d "$DESTDIR"/usr/bin/ &&
+ install -vm 755 -t "$DESTDIR"/usr/bin/ "$SCRIPT_DIR"/bin/uqm &&
+ install -vm 755 -d "$DESTDIR"/usr/libexec/ &&
+ install -vm 755 -t "$DESTDIR"/usr/libexec/ "$DESTDIR"/usr/lib/uqm/uqm &&
+ rm                 "$DESTDIR"/usr/lib/uqm/uqm &&
+ rmdir              "$DESTDIR"/usr/lib/uqm/ &&
+ rmdir              "$DESTDIR"/usr/lib/ &&
+ install -vm 755 -d "$DESTDIR"/usr/share/uqm/content/{addons,packages}/ &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/packages/ "${SOURCE[1]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[2]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[3]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[4]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[5]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[6]}" &&
+ install -vm 644 -t "$DESTDIR"/usr/share/uqm/content/addons/   "${SOURCE[7]}" &&
+ echo  "$VERSION" > "$DESTDIR"/usr/share/uqm/content/version
 }
