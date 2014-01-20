@@ -1,5 +1,4 @@
-with info    edit 20131211
-with info    good 20130528
+with info    good 20140120
 with info    last 20110704
 
 case $TECHNIC in
@@ -9,7 +8,7 @@ with base    MesaLib SDL_image audiofile libmikmod libvorbis uqm-content
 with elect   uqm-3domusic '' '' for excellent but large music files
 with elect   uqm-remix    '' '' for remixed music instead of original music
 with elect   uqm-voice    '' '' for excellent but large voice files
-with source  $SOURCEFORGE_URL sc2/UQM/${VERSION:0:3}/uqm-$VERSION-source.tgz ;;
+with source  stable $SOURCEFORGE_URL sc2/UQM/${VERSION:0:3}/uqm-$VERSION-source.tgz ;;
    *)
 with trait   x11
  pre_build(){ :; } ;;
@@ -26,50 +25,35 @@ build(){
  ./build.sh uqm depend  &&
  ./build.sh uqm         &&
  ./build.sh uqm install &&
-  mkdir -pvm 755    "$DESTDIR"/usr/share/uqm/content &&
-  echo "$VERSION" > "$DESTDIR"/usr/share/uqm/content/version
+  install -vm 755 -d "$DESTDIR"/usr/share/uqm/content/ &&
+  echo "$VERSION"  > "$DESTDIR"/usr/share/uqm/content/version
  }
 
 
  install_data(){
-  CONTENT=${SOURCE}
-  PACKAGE="$DESTDIR"/usr/share/uqm/content/packages
-  if [[ -n $CONTENT ]]; then
-   set     -x &&
-   mkdir   -pm 755 "$PACKAGE" &&
-   install -vm 644 -o root -g root $CONTENT "$PACKAGE" &&
-   set     +x
-  else
-   echo "$SOURCE not found"
-   false
-  fi
+  local d="$DESTDIR"/usr/share/uqm/content/packages
+  install -vm 755 -d "$d" &&
+  install -vm 644 -t "$d" -o root -g root "$SOURCE"
  }
 
 
- install_remix(){
-  CONTENT1=${SOURCE[0]}
-  CONTENT2=${SOURCE[1]}
-  CONTENT3=${SOURCE[2]}
-  PACKAGE="$DESTDIR"/usr/share/uqm/content/packages/addons/uqmremix
-  if   [[ -f $CONTENT1 ]] &&
-       [[ -f $CONTENT2 ]] &&
-       [[ -f $CONTENT3 ]]
-  then
-   set     -x          &&
-   mkdir   -pvm 755 "$PACKAGE" &&
-   install  -vm 644 -o root -g root $CONTENT1 "$PACKAGE" &&
-   install  -vm 644 -o root -g root $CONTENT2 "$PACKAGE" &&
-   install  -vm 644 -o root -g root $CONTENT3 "$PACKAGE" &&
-   set     +x
-  else
-   echo "Not all remixes tarballs found."
-   false
-  fi
+ install_addons(){
+  # d="$DESTDIR"/usr/share/uqm/content/packages/addons/uqmremix
+  d="$DESTDIR/usr/share/uqm/content/addons/$1"; shift
+  install -vm 755 -d "$d"
+  while [[ -n $1 ]]; do
+   if   [[ -f $1 ]]
+   then install -vm 644 -t "$d/" "$1"; shift
+   else echo "Missing $1" 1>&2; return 1
+   fi
+  done
  }
 
  case $TECHNIC in
-  uqm)       install_source ;;
-  uqm-remix) install_remix  ;;
-  *)         install_data   ;;
+  uqm)          install_source ;;
+  uqm-remix)    install_addons uqmremix "${SOURCE[@]}" ;;
+  uqm-voice)    install_addons 3dovoice "${SOURCE[@]}" ;;
+  uqm-3domusic) install_addons 3domusic "${SOURCE[@]}" ;;
+  *)            install_data ;;
  esac
 }
