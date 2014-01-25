@@ -58,7 +58,7 @@ configure(){
     --backtitle "$BACKTITLE" \
     --title     "$TITLE" \
     --timeout 60 \
-    --msgbox   "$( find /aux/set/{real,root}fs/ -printf "%P\t%y\n" | sort )" 0 0
+    --msgbox   "$( find /aux/set/{real,root}fs/ -printf "/%P\t%y\n" | sort )" 20 70
  }
 
  main_menu(){
@@ -89,7 +89,14 @@ configure(){
  }
 
  edit(){
-  structures(){ find /aux/set/{real,root}fs/ -printf "%f\t%y\n" | sort; }
+  structures(){
+   find /aux/set/    \
+        -not -type b \
+        -not -type c \
+        -not -type d \
+        -printf "%P\t%y\n" |
+   sort -u
+  }
 
   structure_menu(){
    local  TITLE=$"structure selection menu"
@@ -103,7 +110,7 @@ configure(){
     --title     "$TITLE" \
     --stdout --timeout 60 \
     --cancel-label Done \
-    --menu   "$HELP" 0 0 0 \
+    --menu   "$HELP" 20 70 10 \
     $( structures )
   }
 
@@ -159,10 +166,10 @@ configure(){
      /bin/rm -f --        "/aux/set/$STRUCTURE"
      /bin/ln -s -- "$VAL" "/aux/set/$STRUCTURE"
     fi
-   elif [ -f /aux/set/"$STURCTURE" ]; then
-    ${EDITOR:-/bin/nano} /aux/set/"$STRUCTURE"
+   elif [ -f /aux/set/"$STRUCTURE" ]
+   then ${EDITOR:-/bin/nano} /aux/set/"$STRUCTURE"
    else
-    local WARN=$"Please edit /aux/set/\"$STRUCTURE\" "
+    local WARN=$"Please edit /aux/set/$STRUCTURE "
           WARN+=$"directly instead of using this menu."
     /bin/dialog \
      --backtitle "$BACKTITLE" \
@@ -187,20 +194,35 @@ configure(){
     --inputbox "$HELP" 10 45
   }
 
+  root_entry(){
+   local TITLE="rootfs or realfs selection"
+   local  HELP="Structures on rootfs modify the rootfs mounted on / during sysinit.\n"
+         HELP+="Structures on realfs modify this root file system mounted as / when logged into it."
+   /bin/dialog \
+    --backtitle "$BACKTITLE" \
+    --title     "$TITLE" \
+    --timeout 60 \
+    --stdout --ok-label Select \
+    --cancel-label Done \
+    --menu   "$HELP" 0 0 0 \
+    "rootfs" "changes effect file system used during boot and shutdown" \
+    "realfs" "changes effect only this file system"
+ }
+
   make_it(){
    local TITLE=$"Persistent structure creation"
 
    if   [ -d "$NEW" ] && ! [ -h "$NEW" ]
-   then /bin/mkdir -pm 755 /aux/set/"$NEW"
-   else /bin/mkdir -pm 755 /aux/set/"${NEW%/*}"
-        /bin/cp -a "$NEW"  /aux/set/"$NEW"
+   then /bin/mkdir -pm 755 /aux/set/"$RFS$NEW"
+   else /bin/mkdir -pm 755 /aux/set/"$RFS${NEW%/*}"
+        /bin/cp -a "$NEW"  /aux/set/"$RFS$NEW"
    fi
 
    /bin/dialog \
     --backtitle "$BACKTITLE" \
     --title     "$TITLE" \
     --timeout 60 --stdout --no-cancel \
-    --msgbox "/aux/set/$NEW created" 0 0
+    --msgbox "/aux/set/$RFS$NEW created" 0 0
   }
 
   valid(){
@@ -210,7 +232,8 @@ configure(){
    [ -e "$NEW" ]
   }
 
-  if   NEW=$( name_entry ) && valid
+  local NEW RFS
+  if   NEW=$( name_entry ) && valid && RFS=$( root_entry )
   then make_it
   fi
  }
