@@ -1,99 +1,153 @@
 #!/bin/bash
 
+# Copyright Kyle Sallee 2013, 2014
+
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: sys
-# Default-Start: 2 3 4 5
-# Short-Description: veth configures the provided veth device
+# Required-Start: hub namespace
+# Should-Start: wpa_supplicant networks
+# Default-Start: S
+# Short-Description: creates and configure veth devices
 ### END INIT INFO
+
+# Read RFC 5735 and RFC 3927
+# to understand purpose of IP addresses
+# from 169.254.1.0 through 169.254.254.255
+# veth IP address assignments
+# will use 169.254.1.0 through 169.254.2.255
+# Please pardon the inconvenience.
+# Additional IP addresses can be assigned to the veth
+# in a root file system by running
+# /etc/init.d/veth configure
 
 . /lib/lsb/init-functions
 
-only start stop status
+if   ! rootfs
+then echo "$0 can only be executed on the rootfs"; trap - EXIT; exit 1
+fi
 
-from_etc_hosts(){
- [ -f /etc/hosts ] &&
- /bin/sed 's:#.*::' /etc/hosts |
- /bin/tr  '\t' ' ' |
- /bin/tr  -s   ' ' |
- /bin/sed "/$HOSTNAME/p;d" |
- /bin/cut -d ' ' -f1
+# only start stop
+only start
+deny control
+
+load_cat(){
+ if   [      -f /usr/libexec/bash/cat ] &&
+      enable -f /usr/libexec/bash/cat cat
+ then cat=cat
+ else cat=/bin/cat
+ fi
 }
 
-veth_num(){ /sbin/ip addr show | sed -r 's/[0-9]*: veth\.2\.([0-9]): .*/\1/p;d'; }
+hostname(){
+ if   [ -f "$1"/etc/hostname ]
+ then $cat "$1"/etc/hostname
+ fi
+}
 
-static(){
- local p r
- for p in $( from_etc_hosts ); do
+from_etc_hosts(){
+ local d="$1"	# directory where root is mounted
+ local n="$2"
+ [   -f             "$d/etc/hosts" ] &&
+ /bin/sed 's:#.*::' "$d/etc/hosts" |
+ /bin/tr  '\t' ' '  |
+ /bin/tr  -s   ' '  |
+ /bin/sed "/$n/p;d" |
+ /bin/cut -d   ' ' -f1
+}
+
+add_route(){
+ local d="$1"	# directory where root is mounted
+ local a="$2"	# device adapter name
+ local n="$3"
+ local r
+
+ for p in $( from_etc_hosts "$d" "$n" ); do
   if   [[ $p =~ : ]]; then
     if [[ $p =~ / ]]; then p="${p%/*}/64"; else p+=/64; fi
   elif [[ $p =~ / ]]; then p="${p%/*}/32"; else p+=/32; fi
-  /sbin/ip addr replace "$p" dev "$1" || r=1
+  nsh /sbin/ip route add "$p" dev "$a" || r=1
+  nsr /sbin/ip addr  add "$p" dev "$a" || r=1
  done
  return $r
 }
 
+nsh(){ /bin/nsenter -t "$P" -n -- "$@"; }
+nsr(){ /bin/nsenter -t "$p" -n -- "$@"; }
+
+veth(){
+ local v="$1"	# veth counter
+ local p="$2"	# PID of the root's namespace
+ local d="$3"	# directory where root is mounted
+ local n="$( hostname "$d" )"
+ local r
+
+ if   nsh /sbin/ip addr show | grep veth.1.$v
+ then return
+ fi
+
+# Create veth pair in hub net namespace.
+ nsh /sbin/ip link  add  name                   veth.1.$v type veth  \
+                    peer name                   veth.2.$v            || r=1
+# Configure first veth of pair in hub net ns.
+ nsh /sbin/ip addr  replace 169.254.1.$v/16 dev veth.1.$v            || r=1
+ nsh /sbin/ip link  set                         veth.1.$v up         || r=1
+ nsh /sbin/ip route del     169.254.0.$v/16 2>/dev/null
+ nsh /sbin/ip route add     169.254.2.$v    dev veth.1.$v            || r=1
+
+# Move second veth of pair into realfs net ns and configure it.
+ nsh /sbin/ip link  set                         veth.2.$v netns "$p" || r=1
+ nsr /sbin/ip addr  replace 169.254.2.$v/16 dev veth.2.$v            || r=1
+ nsr /sbin/ip link                          set veth.2.$v up         || r=1
+ nsr /sbin/ip route replace to default via   169.254.2.$v            || r=1
+
+ add_route "$d" "veth.1.$v" "$n" || r=1
+
+ [ -f /etc/roots ] || echo -n          > /etc/roots
+ [ -f /etc/hosts ] || echo -n          > /etc/hosts
+ /bin/sed -i "/169\.254\.2\.$v/d"        /etc/roots
+ /bin/sed -i "/169\.254\.2\.$v/d"        /etc/hosts
+ echo "$d	$n	169.254.2.$v" >> /etc/roots
+ echo "$n	169.254.2.$v"         >> /etc/hosts
+
+ return $r
+}
+
+runlevel_namespace(){
+ load_cat
+
+ local e=0	# return status
+ local v=0	# veth counter
+ while [ -n "$1" ]; do
+  veth "$v" "$1" "$2" || e=1
+  shift 2
+  (( v++ ))
+  if   (( v == 256 ))
+  then log_failure_msg "256 veth is the limit."; return 1
+  fi
+ done
+ return $e
+}
+
+hub_load(){
+ if   log_warning_msg "hub status from /etc/hub"; [ -f /etc/hub ] && read P REPLY < /etc/hub
+ then log_success_msg "hub status from /etc/hub"
+ else log_failure_msg "hub status from /etc/hub"; return 1
+ fi
+}
+
+veth_pp(){
+ if   [ "$P" == 1 ]
+ then /bin/pgrep -l -u 0 -f "init namespace" | sed '/^1 /d'
+ else /bin/pgrep -l -u 0 -f "init namespace" | sed "/^$P /d"
+      echo     "1 /bin/bash /init namespace /"
+ fi | /bin/cut -d ' ' -f1,5 | /bin/sort -g
+}
+
 start(){
- veth_up(){
-  local v=$( veth_num )
-  local a="veth.2.$v"
-  local b="169.254.2.$v/16"
-  local r
-
-  if   [ -z "$v" ]
-  then log_failure_msg "veth device detection"; return 1
-  fi
-
-  sed -i '/169\.254\.1\./d'         /etc/resolv.conf
-  echo "nameserver 169.254.1.$v" >> /etc/resolv.conf
-
-  /sbin/ip addr  flush      dev $a    || r=1; static "$a" || r=1
-  /sbin/ip addr  replace $b dev $a    || r=1
-  /sbin/ip link             set $a up || r=1
-  /sbin/ip route flush      dev $a    || r=1
-  /sbin/ip route replace to default via ${b%/*} || r=1
-
-  return $r
- }
-
- if   log_warning_msg "veth configure"; veth_up
- then log_success_msg "veth configure"
- else log_failure_msg "veth configure"; return 1
+ if   log_warning_msg "veth devices create"
+      hub_load &&
+      runlevel_namespace $( veth_pp )
+ then log_success_msg "veth devices create"
+ else log_failure_msg "veth devices create"; return 1
  fi
-}
-
-stop(){
- veth_down(){
-  local v=$( veth_num )
-  local a="veth.2.$v"
-  local r
-
-  if   [ -z "$v" ]
-  then log_failure_msg "veth device detection"; return 1
-  fi
-
-  /sbin/ip link set $a down  || r=1
-  /sbin/ip addr flush dev $a || r=1
-  return $r
- }
-
- if   log_warning_msg "veth down"; veth_down
- then log_success_msg "veth down"
- else log_failure_msg "veth down"; return 1
- fi
-}
-
-status(){
- local v=$( veth_num )
- local a="veth.2.$v"
-
- if   [ -z "$v" ]
- then log_failure_msg "veth device detection"; return 1
- fi
-
- echo "# /sbin/ip addr show $a"
-         /sbin/ip addr show $a
- echo
- echo "# /sbin/ip route show"
-         /sbin/ip route show
 }

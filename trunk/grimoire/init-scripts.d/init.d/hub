@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2014
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: namespace
+# Default-Start: S
+# Short-Description: moves actual net devices into designated hub net ns
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start configure
+deny control
+
+hub_start(){
+ if   [ "${HUB:=rootfs}" == rootfs ] ||
+      [ "$HUB"           == / ]
+ then P=1
+ else P="$( /bin/pgrep -u 0 -f "init namespace ${HUB//+/\+}$" )"
+ fi
+
+ if   [ -z "$P" ]; then
+  log_failure_msg $"The hub \"$HUB\" was was not rootfs nor realfs"
+  P=1
+ fi
+
+ if   [ "$P" == 1 ]
+ then echo "1	/"
+ else echo "$P	$HUB"
+ fi > /etc/hub
+
+ log_warning_msg "HUB = $HUB; PID = $P"
+
+ if ! [ "$P" == 1 ]; then
+  /sbin/ip link show |
+  /bin/sed '/^[0-9]\{1\}/p;d' |
+  /bin/sed '/veth/d;/lo/d' |
+  /bin/cut -d : -f2  |
+  /bin/tr  -d ' ' |
+  while read; do
+   if   log_warning_msg "Move into hub net ns net dev $REPLY"
+        /sbin/ip link set "$REPLY" netns "$P"
+   then log_success_msg "Move into hub net ns net dev $REPLY"
+   else log_failure_msg "Move into hub net ns net dev $REPLY"; return 1
+   fi
+  done
+ fi
+}
+
+start(){
+ if   ! rootfs
+ then log_failure_msg "starts only on rootfs"; return 1
+ elif log_warning_msg "configure"; hub_start
+ then log_success_msg "configure"
+ else log_failure_msg "configure"; return 1
+ fi
+}
+
+configure(){
+
+ get_hub(){
+  local BACKTITLE=$"$NAME configuration menu"
+  local     TITLE=$"Hub selection"
+  local      HELP=$"\
+One network namespace becomes the hub.
+The hub contains hardware network devices.
+The default hub is rootfs net namespace.
+However, any realfs can become the hub.
+For, example if /+/base is entered
+then hardware Ethernet and wireless devices
+will appear while logged into /+/base
+And those same devices
+will NOT appear while loged into rootfs.
+Be aware that this effects firewalling and routing
+such that the security of /+/base is lowered."
+
+  /bin/dialog \
+  --backtitle "$BACKTITLE"  \
+  --title     "$TITLE"      \
+  --timeout 60              \
+  --stdout --no-cancel      \
+  --inputbox "$HELP" 0 0 "${HUB:-rootfs}"
+ }
+
+ if   HUB="$( get_hub )" && [ -n "$HUB" ]; then
+  /bin/mkdir -pm 700    /etc/init.d/conf.d/
+  echo "HUB=\"${HUB%/}\"" > /etc/init.d/conf.d/hub
+ fi
+}

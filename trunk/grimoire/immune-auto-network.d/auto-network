@@ -1,5 +1,5 @@
 #!/bin/bash
-# Copyright 2011 through 2013 by Kyle Sallee,
+# Copyright 2011 through 2014 by Kyle Sallee,
 # All rights reserved.
 # For use with the Sorcerer distribution only.
 
@@ -9,14 +9,20 @@ if    [ -d          /etc/networks.d ]; then
  fi
 fi
 
+nsh(){ /bin/nsenter -t "$P" -n -p -- "$@"; }
+
+hub_load(){ [ -f /etc/hub ] && read P REPLY < /etc/hub; }
+
+hub_load || P=1
+
 interfaces(){
- ip link show |
- LC_ALL=C grep -v "lo:\|^ " |
- tr -d ' ' |
- cut -d : -f2
+ /sbin/ip link show |
+ /bin/sed '/^ /d; /: lo:/d; /: veth/d' |
+ /bin/tr  -d ' ' |
+ /bin/cut -d : -f2
 }
 
-wireless(){ iwconfig 2>/dev/null | sed "/^ /d; s/ .*//"; }
+wireless(){ /sbin/iwconfig 2>/dev/null | sed "/^ /d; s/ .*//"; }
 
-for r in $( wireless   ); do iwconfig     $r mode Managed essid any; done
-for r in $( interfaces ); do dhcpcd -q -w $r; done
+for r in $( wireless   ); do /sbin/iwconfig     $r mode Managed essid any; done
+for r in $( interfaces ); do /sbin/dhcpcd -q -w $r; done

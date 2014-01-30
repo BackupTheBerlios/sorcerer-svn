@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2013, 2014
+
+### BEGIN INIT INFO
+# Default-Mode: 500
+# Required-Start: veth
+# Should-Start: auto-networks networks
+# Default-Start: S
+# Short-Description: Updates DNAT and SNAT firewall rules
+## Can update firewall DNAT and SNAT rules
+## soon after the IP address changes
+## due to wpa_supplicant or a mobile computer owner
+## transitioning to a different network
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start status stop
+server /sbin/nat
+
+hub_load(){
+ if   log_warning_msg "hub status from /etc/hub"; [ -f /etc/hub ] && read P REPLY < /etc/hub
+ then log_success_msg "hub status from /etc/hub"
+ else log_failure_msg "hub status from /etc/hub"; return 1
+ fi
+}
+
+options_select(){
+ hub_load
+ REPLY=$P
+ if [ -x /etc/init.d/port.forward ]; then REPLY+=" f"; fi
+ if [ -x /etc/init.d/port.receive ]; then REPLY+=" r"; fi
+}
+
+options_select
+options "$REPLY"
+
+# status(){
+#  if hub_load; then
+#   echo  "# /sbin/iptables -t nat -L"
+#            /sbin/iptables -t nat -L
+#   echo  "# /sbin/iptables -t filter -L"
+#            /sbin/iptables -t filter -L
+#  else return 1
+#  fi
+# }

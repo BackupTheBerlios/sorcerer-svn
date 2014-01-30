@@ -5,7 +5,7 @@
 # Required-Start: proc wpa_priv var_run
 # Should-Start: udev
 # Required-Stop: kill
-# Default-Start: S
+# Default-Start: S 2 3 4 5
 # Default-Stop: 0 6
 # Short-Description: Starts wpa_supplicant for all wireless interfaces
 ### END INIT INFO
@@ -30,6 +30,13 @@ server /sbin/wpa_supplicant
 guess_interface
 config /etc/wpa_supplicant/wpa_supplicant.conf
 options "-B -Dwext -i$INTERFACE -c $CONF"
+
+if    [ "$1" == start ]; then
+ if   [ -z "$INTERFACE" ] || ! /sbin/ip link show grep -q ": $INTERFACE:"; then
+  log_warning_msg "Net device is not obvious.  Not starting."
+  trap - EXIT; exit 0
+ fi
+fi
 
 write_conf(){
  output(){

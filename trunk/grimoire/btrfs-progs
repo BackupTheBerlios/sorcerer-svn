@@ -1,10 +1,17 @@
-with version stable v0.20-rc1
+# /sbin/btrfs-convert     /usr/lib64/libcom_err.so.3      krb5
+
+# how important is having working btrfs-convert on rootfs?
+
+## Possible download URL for tarballs:
+# https://www.kernel.org/pub/linux/kernel/people/mason/btrfs-progs/
+
+with version stable v3.12 v0.20-rc1
 #with version stable 91d9eec1ff044394f2b98ee7fcb76713dd33b994
-with base    util-linux
-with info    good 20130425
+with base    e2fsprogs lzo2 util-linux
+with info    good 20140130
 with info    last 20120804
 with elect   keyutils
-with elect   krb5
+#with elect   krb5
 [ -f "${POST_LOGS:-/aux/log/post}"/deployment-docent ] ||
 with base    git
 with role    disk/file-system
@@ -18,5 +25,11 @@ with info    cite 'tools for experimental copy on write file system'
 build(){
  sed -i 's:bindir = .*:bindir = /sbin:' Makefile
  sed -i 's:/usr/local:/usr:' {,man/}Makefile
+
+ if   [[ $HOSTTYPE == x86_64 ]]
+ then export LDFLAGS+=' -L/lib64'
+ else export LDFLAGS+=' -L/lib'
+ fi
+
  default_build
 }

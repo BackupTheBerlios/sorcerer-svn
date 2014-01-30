@@ -1,14 +1,9 @@
 #!/bin/bash
 
-# Copyright Kyle Sallee 2013
-# All rights reserved.
-# For use with the distribution Sorcerer Modern Magic only!
+# Copyright Kyle Sallee 2013, 2014
 
 ### BEGIN INIT INFO
 # Default-Mode: 500
-# Required-Start: veth-setup
-# Should-Start: auto-networks networks
-# Default-Start: S
 # Short-Description: ports specified /etc/port.forward forwarded to veths
 ### END INIT INFO
 
@@ -16,22 +11,7 @@
 
 config /etc/port.forward
 
-only start configure status
-
-declare -A mnt_ipa  mnt_root
-declare -A root_mnt root_ipa
-declare -A ipa_mnt  ipa_root
-SELF=$0
-
-load_etc_roots(){
- local      d n a
- [ -f /etc/roots ] &&
- while read d n a; do
-  root_mnt[$n]="$d"; root_ipa[$n]="$a"
-   mnt_ipa[$d]="$a"; mnt_root[$d]="$n"
-  ipa_root[$a]="$n";  ipa_mnt[$a]="$d"
- done < /etc/roots
-}
+only configure
 
 port_get(){
  local TITLE=$"Port Selection"
@@ -211,60 +191,4 @@ configure(){
    cp    "$CONF" /+/base/aux/set/rootfs/etc/port.forward
   fi
  fi
-}
-
-start(){
- run(){
-  local ipa r i o j
-  load_etc_roots
-
-  local host_ipa=$(
-   /sbin/ip  -o addr show |
-   /bin/tr   -s ' '       |
-   /bin/cut  -d ' ' -f4   |
-   /bin/grep -v "169\.254\.\|:" |
-   /bin/cut  -d / -f1 )
-
-  [ -f "$CONF" ] &&
-  while read r i o j; do
-   ipa="${root_ipa[$r]}"
-   /sbin/iptables -A INPUT -p tcp --dport "$i" -j ACCEPT
-   /sbin/iptables -A INPUT -p udp --dport "$i" -j ACCEPT
-   for a in $host_ipa; do
-    if [[ $i =~ \# ]]; then continue; fi
-    /sbin/iptables -t nat -A PREROUTING -p tcp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
-    /sbin/iptables -t nat -A PREROUTING -p udp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
-    /sbin/iptables -t nat -A OUTPUT     -p tcp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
-    /sbin/iptables -t nat -A OUTPUT     -p udp -d $a --dport "$i" -j DNAT --to "$ipa:$o"
-   done
-  done < "$CONF"
-
-  a="$( echo "$host_ipa" | /bin/grep -v 127.0.0.1 | head -n 1 )"
-  /sbin/iptables -t nat -A POSTROUTING -p tcp  -j SNAT --to-source $a
-  /sbin/iptables -t nat -A POSTROUTING -p udp  -j SNAT --to-source $a
-  /sbin/iptables -t nat -A POSTROUTING -p icmp -j SNAT --to-source $a
- }
-
- if   ! rootfs
- then log_failure_msg "$NAME runs only on rootfs"; exit 1
- elif log_warning_msg "$NAME execute"; run
- then log_success_msg "$NAME execute"
- else log_failure_msg "$NAME execute"; return 1
- fi
-}
-
-stop(){
- if   ! rootfs
- then log_failure_msg "$NAME runs only on rootfs"; exit 1
- elif log_warning_msg "nat table flush"; /sbin/iptables -t nat -F
- then log_success_msg "nat table flush"
- else log_failure_msg "nat table flush"; return 1
- fi
-}
-
-status(){
- echo  "# /sbin/iptables -t nat -L"
-          /sbin/iptables -t nat -L
- echo  "# /sbin/iptables -t filter -L"
-          /sbin/iptables -t filter -L
 }

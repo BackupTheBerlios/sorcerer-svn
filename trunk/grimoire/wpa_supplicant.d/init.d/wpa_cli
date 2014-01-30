@@ -5,7 +5,7 @@
 # Required-Start: proc wpa_supplicant
 # Should-Start: udev
 # Required-Stop: kill
-# Default-Start: S
+# Default-Start: S 2 3 4 5
 # Default-Stop: 0 6
 # Short-Description: runs wpa_cli after wpa_supplicant during boot
 ### END INIT INFO
@@ -17,3 +17,10 @@ name wpa_cli
 config /etc/wpa_supplicant/wpa_action.conf
 server /sbin/wpa_cli
 options "-a /etc/wpa_supplicant/wpa_action.conf"
+
+if    [ "$1" == start ]; then
+ if   ! /bin/pgrep  -u root wpa_supplicant &>/dev/null; then
+  log_warning_msg "will not run when wpa_supplicant is not running."
+  trap - EXIT; exit 0
+ fi
+fi

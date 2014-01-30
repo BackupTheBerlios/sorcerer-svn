@@ -95,9 +95,10 @@ await(){
 RL="$1"
 
 if   [ -z "$RL" ]
-then RL=$( /bin/grep :initdefault: /etc/inittab | cut -d : -f2 )
+then RL=$( /bin/sed "s:#.*::; s/^id:\(.\):initdefault:/\1/p; d" /etc/inittab )
 fi
-RL=${RL:-5}
+
+RL=${RL:-3}
 
 if   ! [ -d /proc/$$/ ] &&
        [ -x /etc/init.d/proc ]

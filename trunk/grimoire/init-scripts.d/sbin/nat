@@ -1,0 +1,134 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2014
+
+nsh(){ /bin/nsenter -t "$P" -n -- "$@"; }
+
+load_sleep(){
+ if   [      -f /usr/libexec/bash/sleep ]
+ then enable -f /usr/libexec/bash/sleep sleep
+ fi
+}
+
+ipa_load(){
+ nsh \
+ /sbin/ip -o addr show |
+ /bin/tr  -s ' '       |
+ /bin/cut -d ' ' -f4   |
+ /bin/cut -d /   -f1   |
+ /bin/sed '/^169\.254\./d; /^127\.0\./d; /:/d' |
+ /bin/sed '1p;d'
+}
+
+declare -A mnt_ipa  mnt_root
+declare -A root_mnt root_ipa
+declare -A ipa_mnt  ipa_root
+
+nsh(){ /bin/nsenter -t "$P" -n -- "$@"; }
+
+load_etc_roots(){
+ local      d n a
+ [ -f /etc/roots ] &&
+ while read d n a; do
+  root_mnt[$n]="$d"; root_ipa[$n]="$a"
+   mnt_ipa[$d]="$a"; mnt_root[$d]="$n"
+  ipa_root[$a]="$n";  ipa_mnt[$a]="$d"
+ done < /etc/roots
+}
+
+hostname(){
+ local d="$1"
+ if   [ -f   "$d"/etc/hostname ]
+ then read < "$d"/etc/hostname
+ fi
+}
+
+snat(){
+ if [ -n "$ipa_old" ]; then
+ nsh /sbin/iptables -t nat -D POSTROUTING -p tcp  -j SNAT --to-source "$ipa_old"
+ nsh /sbin/iptables -t nat -D POSTROUTING -p udp  -j SNAT --to-source "$ipa_old"
+ nsh /sbin/iptables -t nat -D POSTROUTING -p icmp -j SNAT --to-source "$ipa_old"
+ fi
+ nsh /sbin/iptables -t nat -A POSTROUTING -p tcp  -j SNAT --to-source "$ipa_new"
+ nsh /sbin/iptables -t nat -A POSTROUTING -p udp  -j SNAT --to-source "$ipa_new"
+ nsh /sbin/iptables -t nat -A POSTROUTING -p icmp -j SNAT --to-source "$ipa_new"
+}
+
+dnat_iptables(){
+ if [ -n "$ipa_old" ]; then
+ nsh /sbin/iptables -t nat -D PREROUTING -p tcp -d $ipa_old --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -D PREROUTING -p udp -d $ipa_old --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -D OUTPUT     -p tcp -d $ipa_old --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -D OUTPUT     -p udp -d $ipa_old --dport "$i" -j DNAT --to "$ipa:$o"
+ fi
+ nsh /sbin/iptables -t nat -A PREROUTING -p tcp -d $ipa_new --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -A PREROUTING -p udp -d $ipa_new --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -A OUTPUT     -p tcp -d $ipa_new --dport "$i" -j DNAT --to "$ipa:$o"
+ nsh /sbin/iptables -t nat -A OUTPUT     -p udp -d $ipa_new --dport "$i" -j DNAT --to "$ipa:$o"
+}
+
+dnat_f(){
+ local r i o j
+ [ -f /etc/port.forward ] &&
+ while read r i o j; do
+  ipa="${root_ipa[$r]}"
+  ## Following two rules not required unless firewall configured
+  ## to block all ports not explicitly accepted?
+  # nsh /sbin/iptables -A INPUT -p tcp --dport "$i" -j ACCEPT
+  # nsh /sbin/iptables -A INPUT -p udp --dport "$i" -j ACCEPT
+
+  if [[ $i =~ \# ]]; then continue; fi
+  dnat_iptables
+ done < /etc/port.forward
+}
+
+dnat_r(){
+ local r i o j
+ for f in /+/*/etc/port.receive; do
+  [ -f "$f" ] || continue
+  hostname "${f%/etc/port.receive}"
+  r="$REPLY"
+  ipa="${root_ipa[$r]}"
+  while read i o j; do
+   ## Following two rules not required unless firewall configured
+   ## to block all ports not explicitly accepted?
+   # nsh /sbin/iptables -A INPUT -p tcp --dport "$i" -j ACCEPT
+   # nsh /sbin/iptables -A INPUT -p udp --dport "$i" -j ACCEPT
+   if [[ $i =~ \# ]]; then continue; fi
+   dnat_iptables
+  done < "$f"
+ done
+}
+
+renat(){ snat; dnat_f; dnat_r; ipa_old="$ipa_new"; }
+
+start(){
+ load_sleep
+ load_etc_roots
+ local ipa_new ipa_old
+
+ while :; do
+      ipa_new="$(   ipa_load )"
+  [ "$ipa_new" == "$ipa_old" ] || renat
+  sleep 20
+ done
+}
+
+parse(){
+ P="$1"; shift 1
+
+ local r f
+ while [ -n "$1" ]; do
+  case "$1" in
+   f) f=1 ;;
+   r) r=1 ;;
+  esac
+  shift
+ done
+
+ if [ -z "$f" ]; then dnat_f(){ :; }; fi
+ if [ -z "$r" ]; then dnat_r(){ :; }; fi
+}
+
+parse "$@"
+start &>/dev/null &
