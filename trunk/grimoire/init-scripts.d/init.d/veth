@@ -45,8 +45,8 @@ hostname(){
 }
 
 from_etc_hosts(){
- local d="$1"	# directory where root is mounted
- local n="$2"
+ local d="$1"	# mount point
+ local n="$2"	# hostname
  [   -f             "$d/etc/hosts" ] &&
  /bin/sed 's:#.*::' "$d/etc/hosts" |
  /bin/tr  '\t' ' '  |
@@ -59,14 +59,14 @@ add_route(){
  local d="$1"	# directory where root is mounted
  local a="$2"	# device adapter name
  local n="$3"
- local r
+ local b r
 
- for p in $( from_etc_hosts "$d" "$n" ); do
-  if   [[ $p =~ : ]]; then
-    if [[ $p =~ / ]]; then p="${p%/*}/64"; else p+=/64; fi
-  elif [[ $p =~ / ]]; then p="${p%/*}/32"; else p+=/32; fi
-  nsh /sbin/ip route add "$p" dev "$a" || r=1
-  nsr /sbin/ip addr  add "$p" dev "$a" || r=1
+ for b in $( from_etc_hosts "$d" "$n" ); do
+  if   [[ $b =~ : ]]; then
+    if [[ $b =~ / ]]; then b="${b%/*}/64"; else b+=/64; fi
+  elif [[ $b =~ / ]]; then b="${b%/*}/32"; else b+=/32; fi
+  nsh /sbin/ip route add "$b" dev "veth.1.$a" || r=1
+  nsr /sbin/ip addr  add "$b" dev "veth.2.$a" || r=1
  done
  return $r
 }
@@ -100,7 +100,7 @@ veth(){
  nsr /sbin/ip link                          set veth.2.$v up         || r=1
  nsr /sbin/ip route replace to default via   169.254.2.$v            || r=1
 
- add_route "$d" "veth.1.$v" "$n" || r=1
+ add_route "$d" "$v" "$n" || r=1
 
  [ -f /etc/roots ] || echo -n          > /etc/roots
  [ -f /etc/hosts ] || echo -n          > /etc/hosts

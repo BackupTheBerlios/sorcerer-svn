@@ -1,0 +1,165 @@
+The  rootfs behaves like a computer.
+Each realfs behaves like a computer.
+Therefore, each computer
+behaves like at least 3 computers
+because of the rootfs, /+/base/
+and at least one additional realfs.
+
+The computer probably has one wired network device
+and perhaps one wireless network device.
+However, a network device is required for each realfs.
+The solution is provided by VETH, virtual Ethernet interfaces.
+
+VETH are created in pairs.
+A pair of VETH form a tunnel.
+Packets sent to the IP address of a VETH
+emerge on the other end of the VETH.
+Naturally, one end of each VETH pair
+is located within a realfs.
+The other VETH pair is located within the rootfs.
+This makes the rootfs the hub.
+The hub is where the actual network interfaces exist.
+
+For a network connection to be established
+by a process within a realfs to a computer
+that exists beyond the Ethernet adapter
+requires the use of the VETH.
+However, the IP addresses assigned to VETH
+might not be the IP addresses
+that can be routed across the Internet.
+The IP address within the 169.254.x.y range
+will not have packets routed properly
+to any computer one hop beyond the hub.
+
+One solution is to assign routable IP addresses to VETH.
+But not everyone can purchase or wants to purchase IP addresses.
+The other solution is to have the IP addresses from VETH
+appear to originate from the IP address assigned to
+the Ethernet or wireless interface.
+Translating one IP address to another is called
+Network Address Translation or NAT.
+
+The NAT is automatically configured by a daemon
+that checks the IP address of actual network interfaces
+and then updates the NAT rules using the program iptables
+which modifies Linux's networking tables.
+
+From the origin of this document until this point
+understanding is the goal.
+VETH are tunnels and each VETH receives an IP address.
+The VETH tunnels converge at the hub.
+The hub contains the actual network interfaces.
+The hub contains the networking tables that allow
+packets from VETH to masquerade as packets from
+the IP address assigned to the actual network interface.
+
+With the above properly configured a web browser in a realfs
+can initiate connections to computers across the Internet.
+Yet the realfs remains protected by a NAT
+and outside computers may be unable to connect
+to processes running in the realfs.
+
+Two methods exist for allowing a server in a realfs
+to receive connections from outside computers.
+First, ports on the actual network interface
+can be forwarded to ports on a VETH.
+By far the method of port forwarding is most common.
+The second method is to assign a globally routable IP address
+to the VETH within the realfs net name space.
+Then packets sent to that IP address will arrive.
+
+If all of the above seems clear;
+then the apparent reason for VETH and a HUB are
+that both actual network devices and IP address are scarce.
+However, the amount of realfs on a computer could be 60.
+60 realfs without network capabilities
+would seem impotent for many uses.
+Therefore, VETH allow process on each realfs
+to be able to contact processes on other realfs.
+In a sense a single computer can act like
+an entire network of traditional computers
+which each support only a single realfs.
+
+The arrangement of VETH and
+actual network adapters
+into a hub formation;
+provides optimal utilization of IP address and VETH.
+If 60 realfs were networked using VETH in a configuration
+where each realfs could connect with another
+then the amount of VETH required would be 60 * 61 or 3660.
+And the amount of IP address required would also be 3660.
+However, using a web configuration 60 realfs
+can be networked using 120 VETH and 120 IP addresses.
+
+Allowing the rootfs to act as a network hub
+for connecting the realfs on a computer
+is not unlike the function of an airport hub
+such as having nearly all customers flown to Atlanta
+and then flying from Atlanta to final destination.
+While the use of an airport hub increases the duration
+and fuel utilization for transporting a customer
+it allows more frequent flights and less utilization of aircraft
+as compared to waiting for an aircraft schedule
+to provide a flight directly from Houston to Las Vegas.
+
+Throughout 2013 the network hub was always the rootfs.
+That configuration provides the best protection for each realfs.
+However, SAs using mobile computers may feel inconvenienced.
+Network configuration on the rootfs
+must be accomplished without the crutch of fluffy GUI tools.
+The task typically involved
+modifying configuration files on /+/base/
+and then rebooting.
+
+After careful consideration of the boon of protection
+with the bane of inconvenience;
+the networking implementation was revised in January 2014.
+The revision introduced two new aspects.
+First, a NAT daemon is provided for detecting
+and adjusting NAT rules when the IP address
+for actual network interfaces changes.
+Second, the much of the network configuration code
+was revised to allow the hub to exist
+in the rootfs net name space
+or any realfs net name space.
+
+With the actual network adapters
+available within a realfs net name space
+such as /+/work/
+then the SA or user of a mobile computer
+can then use fluffy soft GUI crutches
+to adjust the network connection
+whenever desired and without rebooting.
+
+That said, a reboot is required
+after changing     the location of the hub.
+However,  changing the location of the hub
+will then make the new location of the hub
+on every boot      the location of the hub.
+For added emphasis the location of the hub
+is written several times
+because the purpose of this document
+is to impart understanding about    the hub
+and lore to change the location of the hub.
+
+Using the root account run the command:
+
+/etc/init.d/hub configure
+
+while logged into /+/base/
+or from the rootfs
+before /+/base/ is deployed.
+
+A menu will appear.
+Then type the name of the realfs
+where the hub should exist.
+Or type rootfs if the hub should exist in the rootfs.
+
+If never configured
+then the rootfs net name space
+is used as the location for the hub.
+
+While changing the location of the hub
+may seem beneficial for mobile computer users;
+rootfs is recommended as the hub
+for all workstation and server deployments.
