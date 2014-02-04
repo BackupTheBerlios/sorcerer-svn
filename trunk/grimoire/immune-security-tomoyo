@@ -2,40 +2,42 @@
 # All rights reserved.
 # For use with the distribution sorcerer only!
 
-with info    last   20131211
-with version stable 20131211
+with info    last   20140204
+with version stable 20140204
 with base    md5crypt tomoyo-tools
 with role    immune-system
 with trait   solo stale
 with info    home http://sorcerer.silverice.org/
 with info    cite 'enhanced security
 
-Tomoyo on Sorcerer has 5 generally used domain
+This implementation grants 5 domain
 <kernel> /sbin/init
 <kernel> /domain/freedom
 <kernel> /domain/user
 <kernel> /domain/limited
 <kernel> /domain/et
 
-The first domain is a default domain and provides no restrictions.
-The second domain provides no restrictions
-The third domain provides restrictions appropriate for users.
-The forth domain provides restrictions appropraite
-for servers/daemons that do not provide user login.
-The fifth domain has restrictions suitable for software compilation,
-but not software installation.
+The domains are duplicated for each realfs.
+Therefore, /+/base/ receives
+<kernel> /+/base/sbin/init
+<kernel> /+/base/domain/freedom
+<kernel> /+/base/domain/user
+<kernel> /+/base/domain/limited
+<kernel> /+/base/domain/et
 
-The domains that begin with /domain/ are also mirrored
-for each root file system so that
-if a root file system is mounted on /+/base/
-then /+/base/domain/{et,freedom,user,limited}
-domains also exist.
+The /sbin/init is a default domain and provides no restrictions.
+The freedom domain provides no restrictions
+The user domain provides restrictions appropriate for users.
+The limited domain provides restrictions appropraite
+for servers/daemons that do not provide user login.
+The et domain has restrictions suitable for software compilation,
+but not software installation.
 
 Domain transition is accomplished by running
 a domain transition script installed in /domain/
 
 Transitioning to domain
-<kernel> domain/freedom
+<kernel> /domain/freedom
 is allowed only from
 <kernel> /+/*/domain/user
 and requires authentication.
@@ -66,9 +68,9 @@ and are unable to modify files in home directories.
 tomyo can still be configured
 to provide mandatory access control lists specific to programs
 exactly as described in the tomoyo documentations.
-Write the new domain files in /etc/tomoyo/sorcerer/domain/
-Write the new exception files in /etc/tomoyo/sorcerer/exception/
-Write the transition scripts  in /etc/tomoyo/sorcerer/transition/
+Write the new domain files in /etc/tomoyo/domain/
+Write the new exception files in /etc/tomoyo/exception/
+Write the transition scripts  in /etc/tomoyo/transition/
 That way the modifications are merged
 with Sorcerer defaults and loaded into the kernel.
 

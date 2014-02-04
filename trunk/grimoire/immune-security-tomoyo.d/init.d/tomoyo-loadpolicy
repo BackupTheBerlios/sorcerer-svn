@@ -1,0 +1,73 @@
+#!/bin/bash
+
+# Copyright Kyle Sallee 2011, 2012, 2013, 2014
+# All rights reserved.
+
+### BEGIN INIT INFO
+# Default-Mode: 510
+# Required-Start: securityfs tomoyo-domain mount
+# Should-Start:   namespace
+# Default-Start: S
+# Short-Description: loads policies for Tomoyo
+### END INIT INFO
+
+. /lib/lsb/init-functions
+
+only start try-restart
+
+start(){
+ concat(){
+  dp(){
+   /bin/cat   /etc/tomoyo/domain/*
+   if [ -d    /+/ ]; then
+    /bin/find /+/ -mindepth 1 -maxdepth 1 -type d |
+    while read; do
+     /bin/sed "s:^<kernel> /domain/:<kernel> $REPLY/domain/:
+               s:^file execute /domain/:file execute $REPLY/domain/:" \
+              /etc/tomoyo/domain/*
+    done
+   fi
+  }
+
+  ep(){
+   /bin/cat   /etc/tomoyo/exception/*
+   if [ -d    /+/ ]; then
+    /bin/find /+/ -mindepth 1 -maxdepth 1 -type d |
+    while read; do
+     /bin/sed "s:^initialize_domain /domain/:initialize_domain $REPLY/domain/:p
+               s:^keep_domain any from <kernel> /domain/:keep_domain any from <kernel> $REPLY/domain/:p
+               s:^no_keep_domain /domain/:no_keep_domain $REPLY/domain/:p;d" \
+              /etc/tomoyo/exception/*
+    done
+   fi
+  }
+
+  cat_pol(){
+   ## rootfs does not support immutable files?
+   # /bin/chattr -i /etc/tomoyo/{domain,exception}_policy.conf &&
+   /bin/rm -f /etc/tomoyo/{domain,exception}_policy.conf &&
+   dp       > /etc/tomoyo/domain_policy.conf &&
+   ep       > /etc/tomoyo/exception_policy.conf
+  }
+  if   log_warning_msg "concatenate"; cat_pol
+  then log_success_msg "concatenate"
+  else log_failure_msg "concatenate"; return 1
+  fi
+ }
+
+ load_policies(){
+  load(){
+   tomoyo-loadpolicy -ef < /etc/tomoyo/exception_policy.conf &&
+   tomoyo-loadpolicy -df < /etc/tomoyo/domain_policy.conf
+  }
+  if   log_warning_msg "load"; load
+  then log_success_msg "load"
+  else log_failure_msg "load"; return 1
+  fi
+ }
+
+ if ! rootfs; then log_failure_msg "only run from rootfs"; return 1; fi
+ concat && load_policies
+}
+
+try_restart(){ start; }

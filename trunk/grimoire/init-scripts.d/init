@@ -68,8 +68,15 @@ export PATH=/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/bin:/sbin
 elif [ "$1" == namespace ]; then shift; pid1; delayed_exit
 elif [ "$1" == runlevel  ]; then shift; /etc/init.d/prc "$@"
 else
- if   rootfs
- then /bin/cp /aux/set/rootfs/etc/inittab /etc/
+ if   rootfs; then
+  /bin/cp /aux/set/rootfs/etc/inittab /etc/
+  if [ -x /etc/init.d/tomoyo-domain ]; then
+   /etc/init.d/sys start
+   /etc/init.d/tomoyo-domain start
+   /etc/init.d/tomoyo-transition start
+   /etc/init.d/tomoyo-autid start
+   /etc/init.d/tomoyo-loadpolicy start
+  fi
  fi
  if [[ $@  =~ bash     ]]; then pid1; load_modules; exec /bin/bash
                            else pid1; exec /sbin/init "$@"; fi

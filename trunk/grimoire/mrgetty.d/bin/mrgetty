@@ -80,7 +80,13 @@ namespace_pid(){
  fi
 }
 
-run_login(){ /bin/clear; exec /bin/nsenter -t $pid -i -m -n -p -r -u -w -F /bin/login; }
+run_login(){
+ /bin/clear
+ if   [ -f /proc/$pid/root/domain/user ]
+ then exec /bin/nsenter -t $pid -i -m -n -p -r -u -w -F /domain/user /bin/login
+ else exec /bin/nsenter -t $pid -i -m -n -p -r -u -w -F              /bin/login
+ fi
+}
 
 release(){ /bin/deallocvt; printf "%b\033c"; }
 
